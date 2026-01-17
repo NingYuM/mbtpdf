@@ -12,6 +12,8 @@ pub fn addobj(Pdf, PdfObject) -> Int
 
 pub fn addobj_given_num(Pdf, (Int, PdfObject)) -> Unit
 
+pub fn contents_of_nametree(Pdf, PdfObject) -> Array[(PdfObject, PdfObject)] raise
+
 pub fn direct(Pdf, PdfObject) -> PdfObject
 
 pub fn empty() -> Pdf
@@ -37,6 +39,8 @@ pub fn lookup_fail(String, Pdf, String, PdfObject) -> PdfObject raise
 pub fn lookup_immediate(String, PdfObject) -> PdfObject?
 
 pub fn lookup_obj(Pdf, Int) -> PdfObject
+
+pub fn nametree_lookup(Pdf, PdfObject, PdfObject) -> PdfObject? raise
 
 pub fn objcard(Pdf) -> Int
 

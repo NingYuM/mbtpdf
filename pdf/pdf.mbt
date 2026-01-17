@@ -519,6 +519,153 @@ pub fn lookup_direct_orelse(
 }
 
 ///|
+/// Name tree helpers.
+fn compare_string(a : String, b : String) -> Int {
+  let ac = a.to_array()
+  let bc = b.to_array()
+  let mut i = 0
+  while i < ac.length() && i < bc.length() {
+    if ac[i] != bc[i] {
+      return ac[i].to_int() - bc[i].to_int()
+    }
+    i = i + 1
+  }
+  ac.length() - bc.length()
+}
+
+///|
+fn key_compare(a : PdfObject, b : PdfObject) -> Int? {
+  match (a, b) {
+    (String(sa), String(sb)) => Some(compare_string(sa, sb))
+    (Integer(ia), Integer(ib)) => Some(ia - ib)
+    _ => None
+  }
+}
+
+///|
+fn key_eq(a : PdfObject, b : PdfObject) -> Bool {
+  match key_compare(a, b) {
+    Some(0) => true
+    _ => false
+  }
+}
+
+///|
+fn array_lookup(key : PdfObject, array : PdfObject) -> PdfObject? raise {
+  match array {
+    Array(elts) => {
+      let mut i = 0
+      while i + 1 < elts.length() {
+        if key_eq(key, elts[i]) {
+          return Some(elts[i + 1])
+        }
+        i = i + 2
+      }
+      None
+    }
+    _ => raise PdfError::Msg("Bad lookup array")
+  }
+}
+
+///|
+fn nametree_lookup_kids(
+  pdf : Pdf,
+  key : PdfObject,
+  kids : PdfObject,
+) -> PdfObject? raise {
+  match kids {
+    Array(values) => {
+      for kid in values {
+        match nametree_lookup(pdf, key, kid) {
+          Some(result) => return Some(result)
+          None => ()
+        }
+      }
+      None
+    }
+    _ => raise PdfError::Msg("nametree_lookup_kids: malformed name tree")
+  }
+}
+
+///|
+/// Look something up in a name tree.
+pub fn nametree_lookup(
+  pdf : Pdf,
+  key : PdfObject,
+  dict : PdfObject,
+) -> PdfObject? raise {
+  match lookup_direct(pdf, "/Limits", dict) {
+    Some(Array([l, r])) => {
+      match key_compare(key, l) {
+        Some(cmp) if cmp < 0 => return None
+        _ => ()
+      }
+      match key_compare(key, r) {
+        Some(cmp) if cmp > 0 => return None
+        _ => ()
+      }
+      match lookup_direct(pdf, "/Kids", dict) {
+        Some(kids) => nametree_lookup_kids(pdf, key, kids)
+        None =>
+          match lookup_direct_orelse(pdf, "/Names", "/Nums", dict) {
+            Some(names) => array_lookup(key, names)
+            None => raise PdfError::Msg("Malformed name tree entry")
+          }
+      }
+    }
+    None =>
+      match lookup_direct(pdf, "/Kids", dict) {
+        Some(kids) => nametree_lookup_kids(pdf, key, kids)
+        None =>
+          match lookup_direct_orelse(pdf, "/Names", "/Nums", dict) {
+            Some(names) => array_lookup(key, names)
+            None => raise PdfError::Msg("Missing name tree entry")
+          }
+      }
+    _ => raise PdfError::Msg("Malformed name tree")
+  }
+}
+
+///|
+fn[T] flatten(lists : Array[Array[T]]) -> Array[T] {
+  let out = Array::new()
+  for list in lists {
+    for item in list {
+      out.push(item)
+    }
+  }
+  out
+}
+
+///|
+/// Return an ordered list of all (k, v) pairs in a name tree.
+pub fn contents_of_nametree(
+  pdf : Pdf,
+  tree : PdfObject,
+) -> Array[(PdfObject, PdfObject)] raise {
+  match lookup_direct_orelse(pdf, "/Names", "/Nums", tree) {
+    Some(Array(names)) => {
+      let out = Array::new()
+      let mut i = 0
+      while i + 1 < names.length() {
+        out.push((names[i], names[i + 1]))
+        i = i + 2
+      }
+      if names.length() % 2 == 1 {
+        @pdfe.log("warning: contents_of_nametree: odd number of /Names\n")
+      }
+      out
+    }
+    _ =>
+      match lookup_direct(pdf, "/Kids", tree) {
+        Some(Array(kids)) =>
+          flatten(kids.map(kid => contents_of_nametree(pdf, kid)))
+        _ => raise PdfError::Msg("contents_of_nametree: neither names nor kids")
+      }
+  }
+}
+
+///|
 /// Get a stream from disk if it hasn't already been got.
 pub fn getstream(obj : PdfObject) -> Unit raise {
   match obj {
