@@ -1,0 +1,6 @@
+{
+  "import": [
+    "bobzhang/mbtpdf/pdf",
+    "bobzhang/mbtpdf/pdfe"
+  ]
+}
