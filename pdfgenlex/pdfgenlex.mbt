@@ -120,6 +120,8 @@ fn get_string(input : @pdfio.Input) -> String {
       let next = (input.input_byte)()
       if next == @pdfio.no_more {
         done = true
+      } else if next == '"'.to_int() {
+        bytes.push('"'.to_int().to_byte())
       } else {
         bytes.push('\\'.to_int().to_byte())
         bytes.push(next.to_byte())
