@@ -325,6 +325,237 @@ pub fn dropwhite(input : @pdfio.Input) -> Unit raise {
 }
 
 ///|
+/// Read a line from input (newline not included).
+fn input_line(input : @pdfio.Input) -> String {
+  let sb = StringBuilder::new()
+  let mut got_eol = false
+  let mut finished = false
+  while !finished {
+    let b = (input.input_byte)()
+    if b == @pdfio.no_more {
+      finished = true
+    } else {
+      let c = b.to_byte().to_char()
+      if is_newline(c) {
+        got_eol = true
+      } else if got_eol {
+        @pdfio.rewind(input)
+        finished = true
+      } else {
+        sb.write_char(c)
+      }
+    }
+  }
+  sb.to_string()
+}
+
+///|
+/// Read back until predicate is true.
+fn read_back_until(pred : (Char) -> Bool, input : @pdfio.Input) -> Unit raise {
+  match @pdfio.read_char_back(input) {
+    Some(ch) => if !pred(ch) { read_back_until(pred, input) }
+    None => fail("End_of_file")
+  }
+}
+
+///|
+/// Go back one line.
+fn backline(input : @pdfio.Input) -> Unit raise {
+  read_back_until(is_newline, input)
+  read_back_until(c => !is_newline(c), input)
+  read_back_until(is_newline, input)
+  @pdfio.nudge(input)
+}
+
+///|
+/// Find the EOF marker and position input there.
+fn find_eof(input : @pdfio.Input) -> Unit raise {
+  fn fail_find() -> Unit raise {
+    let message = @pdf.input_pdferror(input, "Could not find EOF marker")
+    raise @pdf.PdfError::Msg(message)
+  }
+
+  let mut pos = input.in_channel_length - 4
+  let mut tries = pos
+  let mut found = false
+  while !found {
+    pos = pos - 1
+    if pos < 0 || tries < 0 {
+      fail_find()
+    }
+    tries = tries - 1
+    (input.seek_in)(pos)
+    let a = (input.input_byte)()
+    let b = (input.input_byte)()
+    let c = (input.input_byte)()
+    let d = (input.input_byte)()
+    let e = (input.input_byte)()
+    if a == '%'.to_int() &&
+      b == '%'.to_int() &&
+      c == 'E'.to_int() &&
+      d == 'O'.to_int() &&
+      e == 'F'.to_int() {
+      found = true
+    }
+  }
+  (input.seek_in)(pos)
+}
+
+///|
+priv enum XRef {
+  Plain(Int, Int)
+  Stream(Int, Int)
+}
+
+///|
+priv enum XRefLine {
+  Invalid
+  Section(Int, Int)
+  Valid(Int, Int)
+  Free(Int, Int)
+  InObjectStream(Int, Int)
+  StreamFree(Int, Int)
+  XRefNull
+  Finished
+}
+
+///|
+fn parse_digits(chars : Array[Char], start : Int, len : Int) -> Int? {
+  if start < 0 || len < 0 || start + len > chars.length() {
+    return None
+  }
+  let mut value = 0
+  let mut i = start
+  while i < start + len {
+    let c = chars[i]
+    if c < '0' || c > '9' {
+      return None
+    }
+    value = value * 10 + (c.to_int() - '0'.to_int())
+    i = i + 1
+  }
+  Some(value)
+}
+
+///|
+fn count_leading_spaces(chars : Array[Char]) -> Int {
+  let mut i = 0
+  while i < chars.length() && chars[i] == ' ' {
+    i = i + 1
+  }
+  i
+}
+
+///|
+fn split_fields(line : String) -> Array[String] {
+  let parts = Array::new()
+  for part in line.split(" ") {
+    let s = part.to_string()
+    if s != "" {
+      parts.push(s)
+    }
+  }
+  parts
+}
+
+///|
+fn parse_uint_string(s : String) -> Int? {
+  if s == "" {
+    return None
+  }
+  let mut value = 0
+  for c in s {
+    if c < '0' || c > '9' {
+      return None
+    }
+    value = value * 10 + (c.to_int() - '0'.to_int())
+  }
+  Some(value)
+}
+
+///|
+fn read_xref_line(input : @pdfio.Input) -> XRefLine raise {
+  let pos = (input.pos_in)()
+  dropwhite(input)
+  let line = input_line(input)
+  if line == "xref" || line == "xref " {
+    return read_xref_line(input)
+  }
+  let chars = line.to_array()
+  let offset_opt = if chars.length() >= 18 {
+    parse_digits(chars, 0, 10)
+  } else {
+    None
+  }
+  let gen_opt = if chars.length() >= 18 {
+    parse_digits(chars, 11, 5)
+  } else {
+    None
+  }
+  match (offset_opt, gen_opt) {
+    (Some(offset), Some(gen)) =>
+      match chars[17] {
+        'n' => return XRefLine::Valid(offset, gen)
+        'f' => return XRefLine::Free(offset, gen)
+        _ => return XRefLine::Invalid
+      }
+    _ => ()
+  }
+  if chars.length() >= 18 &&
+    parse_digits(chars, 0, 10) is Some(0) &&
+    chars[17] == 'n' {
+    return XRefLine::Free(0, 0)
+  }
+  if line.has_prefix("trailer") {
+    let leading_spaces = count_leading_spaces(chars)
+    (input.seek_in)(pos + 7 + leading_spaces)
+    return XRefLine::Finished
+  }
+  let parts = split_fields(line)
+  let mut start_index = 0
+  if parts.length() >= 3 && parts[0] == "xref" {
+    start_index = 1
+  }
+  if parts.length() - start_index >= 2 {
+    match
+      (
+        parse_uint_string(parts[start_index]),
+        parse_uint_string(parts[start_index + 1]),
+      ) {
+      (Some(s), Some(l)) => return XRefLine::Section(s, l)
+      _ => ()
+    }
+  }
+  XRefLine::Invalid
+}
+
+///|
+fn read_xref(input : @pdfio.Input) -> Array[(Int, XRef)] raise {
+  fn fail_read() -> Unit raise {
+    let message = @pdf.input_pdferror(input, "Could not read x-ref table")
+    raise @pdf.PdfError::Msg(message)
+  }
+
+  let xrefs = Array::new()
+  let mut finished = false
+  let mut objnumber = 0
+  while !finished {
+    match read_xref_line(input) {
+      XRefLine::Invalid => fail_read()
+      XRefLine::Valid(offset, gen) => {
+        xrefs.push((objnumber, XRef::Plain(offset, gen)))
+        objnumber = objnumber + 1
+      }
+      XRefLine::Free(_, _) => objnumber = objnumber + 1
+      XRefLine::Section(start, _) => objnumber = start
+      XRefLine::Finished => finished = true
+      _ => ()
+    }
+  }
+  xrefs
+}
+
+///|
 /// Lex a name.
 pub fn lex_name(input : @pdfio.Input) -> @pdfgenlex.Token {
   let bytes : @pdfio.MutableBytes = Array::new()
