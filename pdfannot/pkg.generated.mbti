@@ -1,0 +1,83 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/pdfannot"
+
+import {
+  "bobzhang/mbtpdf/pdf",
+  "bobzhang/mbtpdf/pdfpage",
+  "bobzhang/mbtpdf/pdftransform",
+}
+
+// Values
+pub fn add_annotation(@pdf.Pdf, @pdfpage.Page, Annotation) -> @pdfpage.Page raise
+
+pub fn annotations_of_page(@pdf.Pdf, @pdfpage.Page) -> Array[Annotation] raise
+
+pub fn make(Subtype, content? : String, border? : Border, rectangle? : (Double, Double, Double, Double), colour? : (Int, Int, Int), subject? : String) -> Annotation
+
+pub fn make_border(Double, vradius? : Double, hradius? : Double, style? : Style, dasharray? : Array[Int]) -> Border
+
+pub fn transform_annotations(@pdf.Pdf, @pdftransform.TransformMatrix, @pdf.PdfObject) -> Unit raise
+
+// Errors
+
+// Types and methods
+pub(all) struct Annotation {
+  subtype : Subtype
+  annot_contents : String?
+  subject : String?
+  rectangle : (Double, Double, Double, Double)
+  border : Border
+  colour : (Int, Int, Int)?
+  annotrest : @pdf.PdfObject
+}
+
+pub(all) struct Border {
+  width : Double
+  vradius : Double
+  hradius : Double
+  style : Style
+  dasharray : Array[Int]
+}
+
+pub(all) enum Style {
+  NoStyle
+  Solid
+  Dashed
+  Beveled
+  Inset
+  UnderlineStyle
+}
+
+pub(all) enum Subtype {
+  Text
+  Link
+  FreeText
+  Line
+  Square
+  Circle
+  Polygon
+  PolyLine
+  Highlight
+  Underline
+  Squiggly
+  StrikeOut
+  Stamp
+  Caret
+  Ink
+  Popup(Annotation)
+  FileAttachment
+  Sound
+  Movie
+  Widget
+  Screen
+  PrinterMark
+  TrapNet
+  Watermark
+  ThreeDee
+  Unknown(String)
+}
+
+// Type aliases
+
+// Traits
+
