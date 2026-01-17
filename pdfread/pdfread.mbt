@@ -556,6 +556,367 @@ fn read_xref(input : @pdfio.Input) -> Array[(Int, XRef)] raise {
 }
 
 ///|
+fn read_xref_line_stream(
+  input : @pdfio.Input,
+  w1 : Int,
+  w2 : Int,
+  w3 : Int,
+) -> XRefLine raise {
+  fn read_field(bytes : Int) -> Int raise {
+    if bytes == 0 {
+      return 0
+    }
+    let mut value = 0
+    let mut i = 0
+    while i < bytes {
+      let b = (input.input_byte)()
+      if b == @pdfio.no_more {
+        let message = @pdf.input_pdferror(input, "Bad xref stream")
+        raise @pdf.PdfError::Msg(message)
+      }
+      value = value * 256 + b
+      i = i + 1
+    }
+    value
+  }
+
+  let f1 = read_field(w1)
+  let f2 = read_field(w2)
+  let f3 = read_field(w3)
+  match f1 {
+    0 => XRefLine::StreamFree(f2, f3)
+    1 => XRefLine::Valid(f2, f3)
+    2 => XRefLine::InObjectStream(f2, f3)
+    _ => XRefLine::XRefNull
+  }
+}
+
+///|
+fn decode_stream_best_effort(obj : @pdf.PdfObject) -> Unit raise {
+  let pdf = @pdf.empty()
+  let mut done = false
+  while !done {
+    @pdfcodec.decode_pdfstream_onestage(pdf, obj) catch {
+      @pdfcodec.CodecError::DecodeNotSupported(_) => done = true
+      err => raise err
+    }
+  }
+}
+
+///|
+fn read_xref_stream(input : @pdfio.Input) -> (Array[(Int, XRef)], Int) raise {
+  let original_pos = (input.pos_in)()
+  let err = @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Bad xref stream"))
+  let dummy_lexobj = fn(_ : Int) -> Array[@pdfgenlex.Token] raise {
+    Array::new()
+  }
+  let dict_level : Ref[Int] = { val: 0 }
+  let array_level : Ref[Int] = { val: 0 }
+  let xrefstream_objectnumber = match
+    lex_next(
+      dict_level,
+      array_level,
+      false,
+      input,
+      Array::new(),
+      true,
+      dummy_lexobj,
+    ) {
+    @pdfgenlex.Token::LexInt(i) => i
+    _ => {
+      @pdfe.log("couldn't lex object number\n")
+      raise err
+    }
+  }
+  if read_debug.val {
+    @pdfe.log(
+      "Object number of this xref stream is \{xrefstream_objectnumber}\n",
+    )
+  }
+  (input.seek_in)(original_pos)
+  fn lex_untilstream(
+    input : @pdfio.Input,
+    read_stream_data : Bool,
+  ) -> Array[@pdfgenlex.Token] raise {
+    let lexemes = Array::new()
+    let dict_level : Ref[Int] = { val: 0 }
+    let array_level : Ref[Int] = { val: 0 }
+    let mut done = false
+    while !done {
+      let t = lex_next(
+        dict_level, array_level, true, input, lexemes, read_stream_data, dummy_lexobj,
+      )
+      match t {
+        @pdfgenlex.Token::StopLexing | @pdfgenlex.Token::LexNone => done = true
+        _ => lexemes.push(t)
+      }
+    }
+    lexemes
+  }
+
+  let dictlex = lex_untilstream(input, true)
+  if dictlex.length() < 2 {
+    raise err
+  }
+  let objnum = match dictlex[0] {
+    @pdfgenlex.Token::LexInt(i) => i
+    _ => raise err
+  }
+  let gen = match dictlex[1] {
+    @pdfgenlex.Token::LexInt(i) => i
+    _ => raise err
+  }
+  let stream_token = lex_stream(input, dictlex, dummy_lexobj, true)
+  let tokens = Array::new()
+  for t in dictlex {
+    tokens.push(t)
+  }
+  tokens.push(stream_token)
+  tokens.push(@pdfgenlex.Token::LexEndStream)
+  tokens.push(@pdfgenlex.Token::LexEndObj)
+  let (_, parsed) = parse(tokens)
+  let stream_obj = match parsed {
+    @pdf.PdfObject::Stream(_) => parsed
+    _ => raise err
+  }
+  decode_stream_best_effort(stream_obj) catch {
+    err => raise err
+  }
+  @pdf.getstream(stream_obj)
+  let (w1, w2, w3) = match @pdf.lookup_direct(@pdf.empty(), "/W", stream_obj) {
+    Some(@pdf.PdfObject::Array(elts)) => {
+      if elts.length() != 3 {
+        raise err
+      }
+      match (elts[0], elts[1], elts[2]) {
+        (
+          @pdf.PdfObject::Integer(a),
+          @pdf.PdfObject::Integer(b),
+          @pdf.PdfObject::Integer(c),
+        ) => (a, b, c)
+        _ => raise err
+      }
+    }
+    _ => raise err
+  }
+  let raw_input = match stream_obj {
+    @pdf.PdfObject::Stream(r) =>
+      match r.val {
+        (_, @pdf.Stream::Got(bytes)) => @pdfio.input_of_bytes(bytes)
+        _ => raise err
+      }
+    _ => raise err
+  }
+  let xrefs_raw = Array::new()
+  try {
+    while true {
+      xrefs_raw.push(read_xref_line_stream(raw_input, w1, w2, w3))
+    }
+  } catch {
+    _ => ()
+  }
+  let starts_and_lens = match
+    @pdf.lookup_direct(@pdf.empty(), "/Index", stream_obj) {
+    Some(@pdf.PdfObject::Array(elts)) => {
+      if elts.length() % 2 != 0 {
+        raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Bad /Index"))
+      }
+      let pairs = Array::new()
+      let mut i = 0
+      while i < elts.length() {
+        match (elts[i], elts[i + 1]) {
+          (@pdf.PdfObject::Integer(s), @pdf.PdfObject::Integer(l)) =>
+            pairs.push((s, l))
+          _ =>
+            raise @pdf.PdfError::Msg(
+              @pdf.input_pdferror(input, "Bad /Index entry"),
+            )
+        }
+        i = i + 2
+      }
+      pairs
+    }
+    Some(_) =>
+      raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Unknown /Index"))
+    None => {
+      let size = match @pdf.lookup_direct(@pdf.empty(), "/Size", stream_obj) {
+        Some(@pdf.PdfObject::Integer(s)) => s
+        _ =>
+          raise @pdf.PdfError::Msg(
+            @pdf.input_pdferror(input, "Missing /Size in xref dict"),
+          )
+      }
+      [(0, size)]
+    }
+  }
+  let xrefs = Array::new()
+  let mut raw_pos = 0
+  for pair in starts_and_lens {
+    let (start, len) = pair
+    let mut objnumber = start
+    let mut i = 0
+    while i < len {
+      if raw_pos >= xrefs_raw.length() {
+        raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Bad xref stream"))
+      }
+      match xrefs_raw[raw_pos] {
+        XRefLine::Valid(offset, gen) =>
+          xrefs.push((objnumber, XRef::Plain(offset, gen)))
+        XRefLine::InObjectStream(stream, index) =>
+          xrefs.push((objnumber, XRef::Stream(stream, index)))
+        _ => ()
+      }
+      objnumber = objnumber + 1
+      raw_pos = raw_pos + 1
+      i = i + 1
+    }
+  }
+  (input.seek_in)(original_pos)
+  let _ = objnum
+  let _ = gen
+  (xrefs, xrefstream_objectnumber)
+}
+
+///|
+fn read_int_from_stream(input : @pdfio.Input) -> Int raise {
+  dropwhite(input)
+  match lex_number(input) {
+    @pdfgenlex.Token::LexInt(i) => i
+    _ => {
+      let message = @pdf.input_pdferror(input, "objstm offset problem")
+      raise @pdf.PdfError::Msg(message)
+    }
+  }
+}
+
+///|
+fn parse_object_stream(
+  input : @pdfio.Input,
+  xrefs : Map[Int, XRef],
+  objstm : Int,
+) -> Array[(Int, @pdf.PdfObject)] raise {
+  let lexemes = lex_object_for_xref(input, xrefs, true, objstm)
+  let (_, stmobj) = parse(lexemes)
+  match stmobj {
+    @pdf.PdfObject::Stream(_) => ()
+    _ => {
+      let message = @pdf.input_pdferror(
+        input, "lex_stream_object: not a stream",
+      )
+      raise @pdf.PdfError::Msg(message)
+    }
+  }
+  decode_stream_best_effort(stmobj)
+  @pdf.getstream(stmobj)
+  let (dict, stream_bytes) = match stmobj {
+    @pdf.PdfObject::Stream(r) => r.val
+    _ => raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Bad objstm"))
+  }
+  let n = match @pdf.lookup_direct(@pdf.empty(), "/N", dict) {
+    Some(@pdf.PdfObject::Integer(v)) => v
+    _ => raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "malformed /N"))
+  }
+  let first = match @pdf.lookup_direct(@pdf.empty(), "/First", dict) {
+    Some(@pdf.PdfObject::Integer(v)) => v
+    _ =>
+      raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "malformed /First"))
+  }
+  let raw = match stream_bytes {
+    @pdf.Stream::Got(bytes) => bytes
+    _ =>
+      raise @pdf.PdfError::Msg(
+        @pdf.input_pdferror(input, "couldn't decode objstream"),
+      )
+  }
+  let stm_input = @pdfio.input_of_bytes(raw)
+  let rawnums = Array::new()
+  let mut i = 0
+  while i < n * 2 {
+    rawnums.push(read_int_from_stream(stm_input))
+    i = i + 1
+  }
+  let objects = Array::new()
+  let mut idx = 0
+  while idx < rawnums.length() {
+    let objnum = rawnums[idx]
+    let offset = rawnums[idx + 1]
+    (stm_input.seek_in)(offset + first)
+    let lexemes = lex_object_at(true, stm_input, true, fn(
+      _ : Int,
+    ) -> Array[@pdfgenlex.Token] raise {
+      Array::new()
+    })
+    let (_, obj) = parse(lexemes)
+    objects.push((objnum, obj))
+    idx = idx + 2
+  }
+  objects
+}
+
+///|
+fn build_pdf_objects(
+  input : @pdfio.Input,
+  xref_entries : Array[(Int, XRef)],
+  read_stream_data : Bool,
+) -> @pdf.PdfObjects raise {
+  let xrefs : Map[Int, XRef] = Map::new()
+  for pair in xref_entries {
+    xrefs.set(pair.0, pair.1)
+  }
+  let objects : @pdf.PdfObjMap = Map::new()
+  let object_stream_ids : Map[Int, Int] = Map::new()
+  let stream_id_seen : Map[Int, Bool] = Map::new()
+  let mut max_obj = 0
+  let stream_ids = Array::new()
+  for pair in xref_entries {
+    let objnum = pair.0
+    let xref = pair.1
+    if objnum > max_obj {
+      max_obj = objnum
+    }
+    match xref {
+      XRef::Plain(_, gen) =>
+        objects.set(objnum, ({ val: @pdf.ObjectData::ToParse }, gen))
+      XRef::Stream(stream_id, _index) => {
+        if stream_id_seen.get(stream_id) is None {
+          stream_id_seen.set(stream_id, true)
+          stream_ids.push(stream_id)
+        }
+        object_stream_ids.set(objnum, stream_id)
+      }
+    }
+  }
+  for stream_id in stream_ids {
+    let parsed = parse_object_stream(input, xrefs, stream_id)
+    for pair in parsed {
+      let objnum = pair.0
+      let obj = pair.1
+      objects.set(
+        objnum,
+        ({ val: @pdf.ObjectData::ParsedAlreadyDecrypted(obj) }, 0),
+      )
+      object_stream_ids.set(objnum, stream_id)
+    }
+  }
+  fn parse_obj(num : Int) -> @pdf.PdfObject {
+    try {
+      let lexemes = lex_object_for_xref(input, xrefs, read_stream_data, num)
+      let (_, obj) = parse(lexemes)
+      obj
+    } catch {
+      _ => {
+        if read_debug.val {
+          @pdfe.log("parse_obj failed for object \{num}\n")
+        }
+        @pdf.PdfObject::Null
+      }
+    }
+  }
+
+  { max_obj_num: max_obj, parse: Some(parse_obj), objects, object_stream_ids }
+}
+
+///|
 /// Lex a name.
 pub fn lex_name(input : @pdfio.Input) -> @pdfgenlex.Token {
   let bytes : @pdfio.MutableBytes = Array::new()
@@ -756,6 +1117,101 @@ pub fn lex_comment(input : @pdfio.Input) -> @pdfgenlex.Token raise {
 }
 
 ///|
+fn ignoreuntilwhite(input : @pdfio.Input) -> Unit raise {
+  ignoreuntil(true, is_whitespace, input)
+}
+
+///|
+fn read_chunk(count : Int, input : @pdfio.Input) -> String raise {
+  let pos = (input.pos_in)()
+  let sb = StringBuilder::new()
+  let mut i = 0
+  while i < count {
+    match (input.input_char)() {
+      Some(ch) => sb.write_char(ch)
+      None => {
+        (input.seek_in)(pos)
+        fail("read_chunk")
+      }
+    }
+    i = i + 1
+  }
+  (input.seek_in)(pos)
+  sb.to_string()
+}
+
+///|
+fn is_malformed(input : @pdfio.Input) -> Bool {
+  try {
+    if read_chunk(9, input) == "endstream" {
+      false
+    } else if read_chunk(10, input) == "\nendstream" ||
+      read_chunk(10, input) == "\rendstream" {
+      false
+    } else if read_chunk(11, input) == "\r\nendstream" {
+      false
+    } else {
+      true
+    }
+  } catch {
+    _ => true
+  }
+}
+
+///|
+fn skip_stream_beginning(input : @pdfio.Input) -> Unit raise {
+  ignoreuntilwhite(input)
+  ignoreuntil(
+    true,
+    c => {
+      let v = c.to_int()
+      v != 32 && v != 0 && v != 12 && v != 9
+    },
+    input,
+  )
+  let first = (input.input_byte)()
+  if first == '\r'.to_int() {
+    let second = (input.input_byte)()
+    if second != '\n'.to_int() {
+      @pdfio.rewind(input)
+    }
+  } else if first == '\n'.to_int() {
+    ()
+  } else {
+    @pdfio.rewind(input)
+  }
+}
+
+///|
+fn find_endstream(input : @pdfio.Input) -> Int raise {
+  fn match_chunk(s : String, input : @pdfio.Input) -> Bool raise {
+    let pos = (input.pos_in)()
+    let ok = read_chunk(s.length(), input) == s
+    (input.seek_in)(pos)
+    ok
+  }
+
+  let mut done = false
+  let mut found_pos = (input.pos_in)()
+  while !done {
+    let pos = (input.pos_in)()
+    if match_chunk("endstream", input) ||
+      match_chunk("\nendstream", input) ||
+      match_chunk("\r\nendstream", input) ||
+      match_chunk("\rendstream", input) {
+      done = true
+      found_pos = pos
+    } else if pos == input.in_channel_length {
+      done = true
+      found_pos = pos
+    } else {
+      @pdfio.nudge(input)
+    }
+  }
+  found_pos
+}
+
+///|
 fn lex_keyword(input : @pdfio.Input) -> @pdfgenlex.Token raise {
   let kw = getuntil_white_or_delimiter_string(input)
   match kw {
@@ -771,30 +1227,179 @@ fn lex_keyword(input : @pdfio.Input) -> @pdfgenlex.Token raise {
 }
 
 ///|
-fn lex_next(
-  read_stream_data : Bool,
+fn lex_malformed_stream_data(input : @pdfio.Input) -> @pdfgenlex.Token raise {
+  skip_stream_beginning(input)
+  let curr = (input.pos_in)()
+  let pos = find_endstream(input)
+  (input.seek_in)(curr)
+  let len = pos - curr
+  let bytes = @pdfio.mkbytes(len)
+  for i = 0; i < len; i = i + 1 {
+    bytes[i] = (input.input_byte)().to_byte()
+  }
+  @pdfgenlex.Token::LexStream(@pdf.Stream::Got(bytes))
+}
+
+///|
+pub fn lex_stream_data(
   input : @pdfio.Input,
+  length : Int,
+  read_data : Bool,
 ) -> @pdfgenlex.Token raise {
-  let _ = read_stream_data
+  let original_pos = (input.pos_in)()
+  skip_stream_beginning(input)
+  let pos = (input.pos_in)()
+  if read_data {
+    let bytes = @pdfio.mkbytes(length)
+    if length > 0 {
+      @pdfio.setinit(input, bytes, 0, length)
+    }
+    (input.seek_in)(pos + length)
+    if is_malformed(input) {
+      (input.seek_in)(original_pos)
+      lex_malformed_stream_data(input)
+    } else {
+      (input.seek_in)(pos + length)
+      @pdfgenlex.Token::LexStream(@pdf.Stream::Got(bytes))
+    }
+  } else {
+    (input.seek_in)(pos + length)
+    if is_malformed(input) {
+      (input.seek_in)(original_pos)
+      lex_malformed_stream_data(input)
+    } else {
+      let toget : @pdf.ToGet = {
+        input,
+        position: pos,
+        length,
+        crypt: @pdf.ToGetCrypt::NoChange,
+      }
+      @pdfgenlex.Token::LexStream(@pdf.Stream::ToGet(toget))
+    }
+  }
+}
+
+///|
+fn reverse_tokens(tokens : Array[@pdfgenlex.Token]) -> Array[@pdfgenlex.Token] {
+  let out = Array::new(capacity=tokens.length())
+  if tokens.length() == 0 {
+    return out
+  }
+  let mut i = tokens.length() - 1
+  while true {
+    out.push(tokens[i])
+    if i == 0 {
+      break
+    }
+    i = i - 1
+  }
+  out
+}
+
+///|
+fn take_dict_lexemes(
+  previous_lexemes : Array[@pdfgenlex.Token],
+) -> Array[@pdfgenlex.Token] {
+  let collected = Array::new()
+  if previous_lexemes.length() == 0 {
+    return collected
+  }
+  let mut i = previous_lexemes.length() - 1
+  while true {
+    let t = previous_lexemes[i]
+    if t is @pdfgenlex.Token::LexObj {
+      break
+    }
+    collected.push(t)
+    if i == 0 {
+      break
+    }
+    i = i - 1
+  }
+  reverse_tokens(collected)
+}
+
+///|
+fn lex_stream(
+  input : @pdfio.Input,
+  previous_lexemes : Array[@pdfgenlex.Token],
+  lexobj : (Int) -> Array[@pdfgenlex.Token] raise,
+  read_stream_data : Bool,
+) -> @pdfgenlex.Token raise {
+  fn fail_stream() -> @pdfgenlex.Token raise {
+    let message = @pdf.input_pdferror(input, "Failure lexing stream dict")
+    raise @pdf.PdfError::Msg(message)
+  }
+
+  let dictlexemes = take_dict_lexemes(previous_lexemes)
+  let (_, parsed) = parse(dictlexemes)
+  match parsed {
+    @pdf.PdfObject::Dictionary(_) => {
+      let pos = (input.pos_in)()
+      fn findlength(value : @pdf.PdfObject) -> Int? raise {
+        match value {
+          @pdf.PdfObject::Integer(l) => Some(l)
+          @pdf.PdfObject::Indirect(k) => {
+            let (_, obj) = parse(lexobj(k))
+            findlength(obj)
+          }
+          _ => None
+        }
+      }
+
+      match @pdf.lookup_direct(@pdf.empty(), "/Length", parsed) {
+        None => lex_malformed_stream_data(input)
+        Some(v) =>
+          match findlength(v) {
+            Some(l) => lex_stream_data(input, l, read_stream_data)
+            None => {
+              (input.seek_in)(pos)
+              lex_malformed_stream_data(input)
+            }
+          }
+      }
+    }
+    _ => fail_stream()
+  }
+}
+
+///|
+fn lex_next(
+  dict_level : Ref[Int],
+  array_level : Ref[Int],
+  end_on_stream : Bool,
+  input : @pdfio.Input,
+  previous_lexemes : Array[@pdfgenlex.Token],
+  read_stream_data : Bool,
+  lexobj : (Int) -> Array[@pdfgenlex.Token] raise,
+) -> @pdfgenlex.Token raise {
   dropwhite(input)
-  match @pdfio.peek_byte(input) {
-    b if b == @pdfio.no_more => @pdfgenlex.Token::StopLexing
-    b if b == '%'.to_int() => lex_comment(input)
-    b if b == '/'.to_int() => lex_name(input)
-    b if b == '('.to_int() => lex_string(input)
-    b if b == '['.to_int() => {
+  let raw = (input.input_byte)()
+  if raw == @pdfio.no_more {
+    return @pdfgenlex.Token::StopLexing
+  }
+  let ch = raw.to_byte().to_char()
+  @pdfio.rewind(input)
+  match ch {
+    '%' => lex_comment(input)
+    '/' => lex_name(input)
+    '[' => {
       @pdfio.nudge(input)
+      array_level.val = array_level.val + 1
       @pdfgenlex.Token::LexLeftSquare
     }
-    b if b == ']'.to_int() => {
+    ']' => {
       @pdfio.nudge(input)
+      array_level.val = array_level.val - 1
       @pdfgenlex.Token::LexRightSquare
     }
-    b if b == '<'.to_int() => {
+    '(' => lex_string(input)
+    '<' => {
       @pdfio.nudge(input)
       match @pdfio.peek_byte(input) {
         b2 if b2 == '<'.to_int() => {
           @pdfio.nudge(input)
+          dict_level.val = dict_level.val + 1
           @pdfgenlex.Token::LexLeftDict
         }
         _ => {
@@ -803,20 +1408,45 @@ fn lex_next(
         }
       }
     }
-    b if b == '>'.to_int() => {
+    '>' => {
       @pdfio.nudge(input)
       match @pdfio.peek_byte(input) {
         b2 if b2 == '>'.to_int() => {
           @pdfio.nudge(input)
+          dict_level.val = dict_level.val - 1
           @pdfgenlex.Token::LexRightDict
         }
         _ => @pdfgenlex.Token::LexNone
       }
     }
-    b if (b >= '0'.to_int() && b <= '9'.to_int()) ||
-      b == '-'.to_int() ||
-      b == '+'.to_int() ||
-      b == '.'.to_int() => lex_number(input)
+    'R' => {
+      @pdfio.nudge(input)
+      @pdfgenlex.Token::LexR
+    }
+    's' => {
+      let _ = (input.input_byte)()
+      let _ = (input.input_byte)()
+      let third = (input.input_byte)()
+      @pdfio.rewind(input)
+      @pdfio.rewind(input)
+      @pdfio.rewind(input)
+      if third == @pdfio.no_more {
+        @pdfgenlex.Token::StopLexing
+      } else {
+        let c3 = third.to_byte().to_char()
+        if c3 == 'a' {
+          @pdfgenlex.Token::StopLexing
+        } else if end_on_stream {
+          @pdfgenlex.Token::StopLexing
+        } else {
+          lex_stream(input, previous_lexemes, lexobj, read_stream_data)
+        }
+      }
+    }
+    'I' => @pdfgenlex.Token::StopLexing
+    c if (c >= '0' && c <= '9') || c == '-' || c == '+' || c == '.' =>
+      lex_number(input)
+    c if c >= 'a' && c <= 'z' => lex_keyword(input)
     _ => lex_keyword(input)
   }
 }
@@ -828,34 +1458,31 @@ pub fn lex_dictionary(
   input : @pdfio.Input,
 ) -> Array[@pdfgenlex.Token] raise {
   let tokens = Array::new()
+  let dict_level : Ref[Int] = { val: 0 }
+  let array_level : Ref[Int] = { val: 0 }
   let mut done = false
+  let dummy_lexobj = fn(_ : Int) -> Array[@pdfgenlex.Token] raise {
+    Array::new()
+  }
   while !done {
-    let t = lex_next(read_stream_data, input)
+    let t = lex_next(
+      dict_level, array_level, false, input, tokens, read_stream_data, dummy_lexobj,
+    )
     tokens.push(t)
     match t {
-      @pdfgenlex.Token::LexRightDict | @pdfgenlex.Token::StopLexing =>
-        done = true
+      @pdfgenlex.Token::LexRightDict =>
+        if dict_level.val == 0 && array_level.val == 0 {
+          done = true
+        }
+      @pdfgenlex.Token::StopLexing => done = true
+      @pdfgenlex.Token::LexNone => {
+        let message = @pdf.input_pdferror(input, "Could not read dictionary")
+        raise @pdf.PdfError::Msg(message)
+      }
       _ => ()
     }
   }
   tokens
-}
-
-///|
-/// Lex stream data.
-pub fn lex_stream_data(
-  input : @pdfio.Input,
-  length : Int,
-  read_data : Bool,
-) -> @pdfgenlex.Token raise {
-  let pos = (input.pos_in)()
-  let bytes = if read_data {
-    @pdfio.bytes_of_input(input, pos, length)
-  } else {
-    @pdfio.mkbytes(0)
-  }
-  (input.seek_in)(pos + length)
-  @pdfgenlex.Token::LexStream(@pdf.Stream::Got(bytes))
 }
 
 ///|
@@ -1049,25 +1676,101 @@ pub fn parse(
 }
 
 ///|
-fn lex_object(input : @pdfio.Input) -> Array[@pdfgenlex.Token] raise {
+fn lex_object_at(
+  oneonly : Bool,
+  input : @pdfio.Input,
+  read_stream_data : Bool,
+  lexobj : (Int) -> Array[@pdfgenlex.Token] raise,
+) -> Array[@pdfgenlex.Token] raise {
+  let dict_level : Ref[Int] = { val: 0 }
+  let array_level : Ref[Int] = { val: 0 }
   let tokens = Array::new()
   let mut done = false
   while !done {
-    let t = lex_next(true, input)
+    let t = lex_next(
+      dict_level, array_level, false, input, tokens, read_stream_data, lexobj,
+    )
     match t {
+      @pdfgenlex.Token::LexEndObj => {
+        tokens.push(t)
+        done = true
+      }
       @pdfgenlex.Token::StopLexing => done = true
-      @pdfgenlex.Token::LexComment(_) => ()
-      _ => tokens.push(t)
+      @pdfgenlex.Token::LexComment(_) => tokens.push(t)
+      @pdfgenlex.Token::LexRightSquare | @pdfgenlex.Token::LexRightDict =>
+        if oneonly && dict_level.val == 0 && array_level.val == 0 {
+          tokens.push(t)
+          done = true
+        } else {
+          tokens.push(t)
+        }
+      @pdfgenlex.Token::LexNone => {
+        let message = @pdf.input_pdferror(input, "Could not read object")
+        raise @pdf.PdfError::Msg(message)
+      }
+      other => {
+        tokens.push(other)
+        if oneonly && dict_level.val == 0 && array_level.val == 0 {
+          let is_atom = match other {
+            @pdfgenlex.Token::LexBool(_)
+            | @pdfgenlex.Token::LexReal(_)
+            | @pdfgenlex.Token::LexString(_)
+            | @pdfgenlex.Token::LexName(_)
+            | @pdfgenlex.Token::LexNull
+            | @pdfgenlex.Token::LexInt(_) => true
+            _ => false
+          }
+          if is_atom {
+            done = true
+          }
+        }
+      }
     }
   }
   tokens
 }
 
 ///|
+fn lex_object_for_xref(
+  input : @pdfio.Input,
+  xrefs : Map[Int, XRef],
+  read_stream_data : Bool,
+  objnum : Int,
+) -> Array[@pdfgenlex.Token] raise {
+  let current_pos = (input.pos_in)()
+  match xrefs.get(objnum) {
+    Some(XRef::Plain(offset, _gen)) => {
+      (input.seek_in)(offset)
+      let tokens = lex_object_at(false, input, read_stream_data, fn(
+        k : Int,
+      ) -> Array[@pdfgenlex.Token] raise {
+        lex_object_for_xref(input, xrefs, read_stream_data, k)
+      })
+      (input.seek_in)(current_pos)
+      tokens
+    }
+    Some(XRef::Stream(_, _)) => {
+      let message = @pdf.input_pdferror(input, "Object in object stream")
+      raise @pdf.PdfError::Msg(message)
+    }
+    None => {
+      let message = @pdf.input_pdferror(input, "Object not in xref table")
+      raise @pdf.PdfError::Msg(message)
+    }
+  }
+}
+
+///|
 /// Parse a single object from a string.
 pub fn parse_single_object(s : String) -> @pdf.PdfObject raise {
   let input = @pdfio.input_of_string(s)
-  let (_, obj) = parse(lex_object(input))
+  let (_, obj) = parse(
+    lex_object_at(true, input, true, fn(
+      _ : Int,
+    ) -> Array[@pdfgenlex.Token] raise {
+      Array::new()
+    }),
+  )
   obj
 }
 

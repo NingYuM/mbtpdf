@@ -72,7 +72,7 @@ pub struct DeferredEncryption {
   placeholder : Unit
 }
 
-pub enum ObjectData {
+pub(all) enum ObjectData {
   Parsed(PdfObject)
   ParsedAlreadyDecrypted(PdfObject)
   ToParse
@@ -102,7 +102,7 @@ pub(all) enum PdfObject {
   Indirect(Int)
 }
 
-pub struct PdfObjects {
+pub(all) struct PdfObjects {
   mut max_obj_num : Int
   parse : ((Int) -> PdfObject)?
   objects : Map[Int, (Ref[ObjectData], Int)]
@@ -118,14 +118,14 @@ pub(all) enum Stream {
   ToGet(ToGet)
 }
 
-pub struct ToGet {
+pub(all) struct ToGet {
   input : @pdfio.Input
   position : Int
   length : Int
   crypt : ToGetCrypt
 }
 
-pub enum ToGetCrypt {
+pub(all) enum ToGetCrypt {
   NoChange
   ToDecrypt(DeferredEncryption)
 }

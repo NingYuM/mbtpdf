@@ -18,14 +18,14 @@ pub struct DeferredEncryption {
 
 ///|
 /// Indicates whether a stream needs decryption when materialized.
-pub enum ToGetCrypt {
+pub(all) enum ToGetCrypt {
   NoChange
   ToDecrypt(DeferredEncryption)
 }
 
 ///|
 /// Stream descriptor when bytes are not yet materialized.
-pub struct ToGet {
+pub(all) struct ToGet {
   input : @pdfio.Input
   position : Int
   length : Int
@@ -56,7 +56,7 @@ pub(all) enum PdfObject {
 
 ///|
 /// Object data state during parsing or decryption.
-pub enum ObjectData {
+pub(all) enum ObjectData {
   Parsed(PdfObject)
   ParsedAlreadyDecrypted(PdfObject)
   ToParse
@@ -79,7 +79,7 @@ pub type PdfObjMap = Map[PdfObjMapKey, PdfObjMapEntry]
 
 ///|
 /// Container for document objects.
-pub struct PdfObjects {
+pub(all) struct PdfObjects {
   mut max_obj_num : Int
   parse : ((PdfObjMapKey) -> PdfObject)?
   objects : PdfObjMap
