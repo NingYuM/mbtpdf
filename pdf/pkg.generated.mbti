@@ -79,7 +79,7 @@ pub(all) enum ObjectData {
   ToParseFromObjectStream(Map[Int, Array[Int]], Int, Int, (Int, Array[Int]) -> Array[(Int, (Ref[ObjectData], Int))])
 }
 
-pub struct Pdf {
+pub(all) struct Pdf {
   major : Int
   minor : Int
   root : Int

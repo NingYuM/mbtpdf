@@ -88,7 +88,7 @@ pub(all) struct PdfObjects {
 
 ///|
 /// In-memory PDF document.
-pub struct Pdf {
+pub(all) struct Pdf {
   major : Int
   minor : Int
   root : Int
@@ -266,8 +266,39 @@ pub fn lookup_obj(pdf : Pdf, objnum : Int) -> PdfObject {
               obj
             }
           }
-        ToParseFromObjectStream(_, _, _, _) => Null
+        ToParseFromObjectStream(themap, streamobjnum, _index, objstreamparser) =>
+          parse_delayed_object_stream(
+            themap, objnum, streamobjnum, pdf, objstreamparser,
+          )
       }
+  }
+}
+
+///|
+fn parse_delayed_object_stream(
+  themap : Map[Int, Array[Int]],
+  objnum : Int,
+  streamobjnum : Int,
+  pdf : Pdf,
+  parser : (Int, Array[Int]) -> Array[(Int, (Ref[ObjectData], Int))],
+) -> PdfObject {
+  let indexes = match themap.get(objnum) {
+    Some(value) => value
+    None => return Null
+  }
+  let objects_from_stream = parser(streamobjnum, indexes)
+  let mut found = false
+  for pair in objects_from_stream {
+    if pair.0 == objnum {
+      found = true
+    }
+    pdf.objects.objects.set(pair.0, pair.1)
+  }
+  removeobj(pdf, streamobjnum)
+  if found {
+    lookup_obj(pdf, objnum)
+  } else {
+    Null
   }
 }
 

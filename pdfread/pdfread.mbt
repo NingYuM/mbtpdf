@@ -1092,6 +1092,7 @@ fn build_pdf_objects(
   let objects : @pdf.PdfObjMap = Map::new()
   let object_stream_ids : Map[Int, Int] = Map::new()
   let stream_id_seen : Map[Int, Bool] = Map::new()
+  let stream_groups : Map[Int, Array[(Int, Int)]] = Map::new()
   let mut max_obj = 0
   let stream_ids = Array::new()
   for pair in xref_entries {
@@ -1109,19 +1110,89 @@ fn build_pdf_objects(
           stream_ids.push(stream_id)
         }
         object_stream_ids.set(objnum, stream_id)
+        let entries = match stream_groups.get(stream_id) {
+          Some(existing) => existing
+          None => {
+            let created = Array::new()
+            stream_groups.set(stream_id, created)
+            created
+          }
+        }
+        entries.push((objnum, _index))
       }
     }
   }
-  for stream_id in stream_ids {
-    let parsed = parse_object_stream(input, xrefs, stream_id)
-    for pair in parsed {
-      let objnum = pair.0
-      let obj = pair.1
-      objects.set(
-        objnum,
-        ({ val: @pdf.ObjectData::ParsedAlreadyDecrypted(obj) }, 0),
-      )
-      object_stream_ids.set(objnum, stream_id)
+  if read_stream_data {
+    for stream_id in stream_ids {
+      let parsed = parse_object_stream(input, xrefs, stream_id)
+      for pair in parsed {
+        let objnum = pair.0
+        let obj = pair.1
+        objects.set(
+          objnum,
+          ({ val: @pdf.ObjectData::ParsedAlreadyDecrypted(obj) }, 0),
+        )
+        object_stream_ids.set(objnum, stream_id)
+      }
+    }
+  } else {
+    let themap : Map[Int, Array[Int]] = Map::new()
+    for group in stream_groups.to_array() {
+      let entries = group.1
+      for entry in entries {
+        let objnum = entry.0
+        let index = entry.1
+        let indexes = match themap.get(objnum) {
+          Some(existing) => existing
+          None => {
+            let created = Array::new()
+            themap.set(objnum, created)
+            created
+          }
+        }
+        indexes.push(index)
+      }
+    }
+    fn parse_stream(
+      stream_objnum : Int,
+      indexes : Array[Int],
+    ) -> Array[(Int, (Ref[@pdf.ObjectData], Int))] {
+      let _ = indexes
+      try {
+        let parsed = parse_object_stream(input, xrefs, stream_objnum)
+        let out = Array::new(capacity=parsed.length())
+        for pair in parsed {
+          out.push(
+            (
+              pair.0,
+              ({ val: @pdf.ObjectData::ParsedAlreadyDecrypted(pair.1) }, 0),
+            ),
+          )
+        }
+        out
+      } catch {
+        _ => Array::new()
+      }
+    }
+
+    for group in stream_groups.to_array() {
+      let stream_id = group.0
+      let entries = group.1
+      for entry in entries {
+        let objnum = entry.0
+        let index = entry.1
+        objects.set(
+          objnum,
+          (
+            {
+              val: @pdf.ObjectData::ToParseFromObjectStream(
+                themap, stream_id, index, parse_stream,
+              ),
+            },
+            0,
+          ),
+        )
+      }
     }
   }
   fn parse_obj(num : Int) -> @pdf.PdfObject {
