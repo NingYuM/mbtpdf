@@ -6,6 +6,7 @@ import {
   "bobzhang/mbtpdf/pdfdest",
   "bobzhang/mbtpdf/pdfops",
   "bobzhang/mbtpdf/pdfpaper",
+  "bobzhang/mbtpdf/pdftransform",
 }
 
 // Values
@@ -16,6 +17,8 @@ pub fn add_prefix(@pdf.Pdf, String) -> Unit raise
 pub fn add_root(Int, Array[(String, @pdf.PdfObject)], @pdf.Pdf) -> @pdf.Pdf raise
 
 pub fn blankpage(@pdfpaper.Paper) -> Page
+
+pub fn change_pages(Bool, @pdf.Pdf, Array[Page], matrices? : Array[(Int, @pdftransform.TransformMatrix)], changes? : Array[(Int, Int)]) -> @pdf.Pdf raise
 
 pub fn combine_pdf_resources(@pdf.Pdf, @pdf.PdfObject, @pdf.PdfObject) -> @pdf.PdfObject raise
 
@@ -42,6 +45,8 @@ pub fn page_object_number(@pdf.Pdf, Int) -> Int? raise
 pub fn pages_of_pagetree(@pdf.Pdf) -> Array[Page] raise
 
 pub fn pages_of_pagetree_quick(@pdf.Pdf) -> Int raise
+
+pub fn pdf_of_pages(@pdf.Pdf, Array[Int], retain_numbering? : Bool, process_struct_tree? : Bool) -> @pdf.Pdf raise
 
 pub fn postpend_operators(@pdf.Pdf, Array[@pdfops.Op], Page, fast? : Bool) -> Page raise
 
