@@ -33,7 +33,7 @@ pub struct ToGet {
 ///|
 /// Stream payload, either in memory or deferred.
 pub enum Stream {
-  Got(Bytes)
+  Got(@pdfio.MutableBytes)
   ToGet(ToGet)
 }
 
