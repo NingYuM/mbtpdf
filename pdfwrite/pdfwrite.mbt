@@ -289,6 +289,111 @@ fn write_header(pdf : @pdf.Pdf, output : @pdfio.Output) -> Unit {
 }
 
 ///|
+fn bytes_required(value : Int) -> Int {
+  if value <= 0 {
+    return 1
+  }
+  let mut v = value
+  let mut bytes = 0
+  while v > 0 {
+    bytes = bytes + 1
+    v = v >> 8
+  }
+  bytes
+}
+
+///|
+fn write_int_be(output : @pdfio.Output, value : Int, width : Int) -> Unit {
+  let mut pos = width - 1
+  while pos >= 0 {
+    let shift = pos * 8
+    let byte = (value >> shift) & 0xff
+    (output.output_byte)(byte)
+    pos = pos - 1
+  }
+}
+
+///|
+fn build_xref_stream(
+  pdf : @pdf.Pdf,
+  size : Int,
+  offsets : Array[Int],
+  gens : Array[Int],
+  used : Array[Bool],
+) -> @pdf.PdfObject raise {
+  let mut max_offset = 0
+  let mut max_gen = 0
+  let mut i = 0
+  while i < size {
+    if i == 0 || !used[i] {
+      if 65535 > max_gen {
+        max_gen = 65535
+      }
+    } else {
+      let offset = offsets[i]
+      if offset > max_offset {
+        max_offset = offset
+      }
+      let gen = gens[i]
+      if gen > max_gen {
+        max_gen = gen
+      }
+    }
+    i = i + 1
+  }
+  let w1 = bytes_required(1)
+  let w2 = bytes_required(max_offset)
+  let w3 = bytes_required(max_gen)
+  let (output, buffer) = @pdfio.input_output_of_bytes(256)
+  i = 0
+  while i < size {
+    let (typ, field2, field3) = if i == 0 || !used[i] {
+      (0, 0, 65535)
+    } else {
+      (1, offsets[i], gens[i])
+    }
+    write_int_be(output, typ, w1)
+    write_int_be(output, field2, w2)
+    write_int_be(output, field3, w3)
+    i = i + 1
+  }
+  let data = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let dict_with_type = @pdf.add_dict_entry(
+    pdf.trailerdict,
+    "/Type",
+    @pdf.PdfObject::Name("/XRef"),
+  )
+  let dict_with_size = @pdf.add_dict_entry(
+    dict_with_type,
+    "/Size",
+    @pdf.PdfObject::Integer(size),
+  )
+  let dict_with_root = @pdf.add_dict_entry(
+    dict_with_size,
+    "/Root",
+    @pdf.PdfObject::Indirect(pdf.root),
+  )
+  let dict_with_w = @pdf.add_dict_entry(
+    dict_with_root,
+    "/W",
+    @pdf.PdfObject::Array([
+      @pdf.PdfObject::Integer(w1),
+      @pdf.PdfObject::Integer(w2),
+      @pdf.PdfObject::Integer(w3),
+    ]),
+  )
+  let dict_with_length = @pdf.add_dict_entry(
+    dict_with_w,
+    "/Length",
+    @pdf.PdfObject::Integer(@pdfio.bytes_size(data)),
+  )
+  let stream_obj = @pdf.PdfObject::Stream(
+    Ref::new((dict_with_length, @pdf.Stream::Got(data))),
+  )
+  stream_obj
+}
+
+///|
 fn write_pdf_object_to_output(
   obj : @pdf.PdfObject,
   output : @pdfio.Output,
@@ -460,17 +565,19 @@ pub fn pdf_to_output(
   let _ = generate_objstm
   let _ = compress_objstm
   let _ = recrypt
+  let use_xref_stream = preserve_objstm || generate_objstm
   write_header(pdf, output)
   let entries = @pdf.pdfobjmap_bindings(pdf.objects.objects)
   let objnums = entries.map(pair => pair.0)
   objnums.sort_by((a, b) => a - b)
   let max_obj = pdf.objects.max_obj_num
-  let size = max_obj + 1
+  let size = if use_xref_stream { max_obj + 2 } else { max_obj + 1 }
+  let xref_objnum = max_obj + 1
   let offsets = Array::make(size, 0)
   let gens = Array::make(size, 0)
   let used = Array::make(size, false)
   for objnum in objnums {
-    if objnum == 0 {
+    if objnum == 0 || (use_xref_stream && objnum == xref_objnum) {
       continue
     }
     match pdf.objects.objects.get(objnum) {
@@ -488,27 +595,43 @@ pub fn pdf_to_output(
     }
   }
   let xref_start = (output.pos_out)()
-  (output.output_string)("xref\n")
-  (output.output_string)("0 \{size}\n")
-  let mut i = 0
-  while i < size {
-    if i == 0 || !used[i] {
-      (output.output_string)("0000000000 65535 f \n")
-    } else {
-      let line = "\{pad_int(offsets[i], 10)} \{pad_int(gens[i], 5)} n \n"
-      (output.output_string)(line)
+  if use_xref_stream {
+    offsets[xref_objnum] = xref_start
+    gens[xref_objnum] = 0
+    used[xref_objnum] = true
+    let xref_stream = build_xref_stream(pdf, size, offsets, gens, used)
+    (output.output_string)("\{xref_objnum} 0 obj\n")
+    write_pdf_object_to_output(xref_stream, output, true, true)
+    (output.output_string)("\nendobj\n")
+    (output.output_string)("startxref\n")
+    (output.output_string)("\{xref_start}\n%%EOF\n")
+  } else {
+    (output.output_string)("xref\n")
+    (output.output_string)("0 \{size}\n")
+    let mut i = 0
+    while i < size {
+      if i == 0 || !used[i] {
+        (output.output_string)("0000000000 65535 f \n")
+      } else {
+        let line = "\{pad_int(offsets[i], 10)} \{pad_int(gens[i], 5)} n \n"
+        (output.output_string)(line)
+      }
+      i = i + 1
     }
-    i = i + 1
+    (output.output_string)("trailer\n")
+    let trailerdict = @pdf.add_dict_entry(
+      @pdf.add_dict_entry(
+        pdf.trailerdict,
+        "/Size",
+        @pdf.PdfObject::Integer(size),
+      ),
+      "/Root",
+      @pdf.PdfObject::Indirect(pdf.root),
+    )
+    write_pdf_object_to_output(trailerdict, output, false, true)
+    (output.output_string)("\nstartxref\n")
+    (output.output_string)("\{xref_start}\n%%EOF\n")
   }
-  (output.output_string)("trailer\n")
-  let trailerdict = @pdf.add_dict_entry(
-    @pdf.add_dict_entry(pdf.trailerdict, "/Size", @pdf.PdfObject::Integer(size)),
-    "/Root",
-    @pdf.PdfObject::Indirect(pdf.root),
-  )
-  write_pdf_object_to_output(trailerdict, output, false, true)
-  (output.output_string)("\nstartxref\n")
-  (output.output_string)("\{xref_start}\n%%EOF\n")
 }
 
 ///|

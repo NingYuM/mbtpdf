@@ -85,3 +85,28 @@ test "pdf roundtrip read/write/read" {
   assert_eq(pdf2.root, 4)
   assert_eq(pdf3.root, 4)
 }
+
+///|
+test "pdf roundtrip with xref stream" {
+  let pdf1 = build_minimal_pdf()
+  let (output, buffer) = @pdfio.input_output_of_bytes(512)
+  @pdfwrite.pdf_to_output(
+    preserve_objstm=true,
+    _encryption=None,
+    _build_new_id=false,
+    pdf1,
+    output,
+  )
+  let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let pdf_text = @pdfio.string_of_bytes(pdf_bytes)
+  assert_true(pdf_text.contains("/Type /XRef"))
+  let input = @pdfio.input_of_bytes(pdf_bytes, source="xref-stream")
+  let parsed = @pdfread.pdf_of_input(
+    revision=None,
+    user_password=None,
+    owner_password=None,
+    input,
+  )
+  assert_eq(@pdf.objcard(parsed), 4)
+  assert_eq(parsed.root, 4)
+}
