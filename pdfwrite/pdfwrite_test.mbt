@@ -56,3 +56,15 @@ test "pdf_to_output writes binary header" {
     i = i + 1
   }
 }
+
+///|
+test "string_of_pdf formats reals without exponent" {
+  let s = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(1e-6))
+  assert_true(!s.contains("e") && !s.contains("E"))
+}
+
+///|
+test "string_of_pdf trims trailing zeros" {
+  let s = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(2.0))
+  assert_eq(s, "2")
+}
