@@ -334,10 +334,85 @@ pub fn decode_pdfstream_until_unknown(
 ///|
 /// Decode from input; returns None when decoder unsupported.
 pub fn decode_from_input(
-  _input : @pdfio.Input,
-  _dict : @pdf.PdfObject,
+  input : @pdfio.Input,
+  dict : @pdf.PdfObject,
 ) -> @pdfio.MutableBytes? {
-  None
+  let pdf = @pdf.empty()
+  let filter_opt = @pdf.lookup_direct_orelse(pdf, "/F", "/Filter", dict)
+  let parms_opt = @pdf.lookup_direct_orelse(pdf, "/DP", "/DecodeParms", dict)
+  let start = (input.pos_in)()
+  let length = input.in_channel_length - start
+  if length < 0 {
+    return None
+  }
+  let data_res : Result[@pdfio.MutableBytes, Error] = try? @pdfio.bytes_of_input(
+    input, start, length,
+  )
+  let data = match data_res {
+    Ok(bytes) => bytes
+    Err(_) => return None
+  }
+  fn parms_at(index : Int) -> @pdf.PdfObject? {
+    match parms_opt {
+      Some(@pdf.PdfObject::Array(arr)) =>
+        if index < arr.length() {
+          Some(arr[index])
+        } else {
+          None
+        }
+      Some(@pdf.PdfObject::Null) => None
+      Some(other) => if index == 0 { Some(other) } else { None }
+      None => None
+    }
+  }
+
+  fn decode_stage(
+    bytes : @pdfio.MutableBytes,
+    filter_name : String,
+    parms : @pdf.PdfObject?,
+  ) -> @pdfio.MutableBytes? {
+    if filter_name != "/FlateDecode" && filter_name != "/Fl" {
+      return None
+    }
+    let mut decoded = decode_flate(bytes) catch { _ => return None }
+    match parms {
+      Some(@pdf.PdfObject::Dictionary(_)) => {
+        let predictor = get_int_param(pdf, parms, "/Predictor", 1)
+        if predictor != 1 {
+          let colors = get_int_param(pdf, parms, "/Colors", 1)
+          let bpc = get_int_param(pdf, parms, "/BitsPerComponent", 8)
+          let columns = get_int_param(pdf, parms, "/Columns", 1)
+          decoded = decode_predictor(predictor, colors, bpc, columns, decoded) catch {
+            _ => return None
+          }
+        }
+      }
+      _ => ()
+    }
+    Some(decoded)
+  }
+
+  match filter_opt {
+    Some(@pdf.PdfObject::Name(name)) => decode_stage(data, name, parms_at(0))
+    Some(@pdf.PdfObject::Array(filters)) => {
+      if filters.length() == 0 {
+        return None
+      }
+      let mut current = data
+      for i = 0; i < filters.length(); i = i + 1 {
+        let filter_name = match filters[i] {
+          @pdf.PdfObject::Name(name) => name
+          _ => return None
+        }
+        match decode_stage(current, filter_name, parms_at(i)) {
+          Some(decoded) => current = decoded
+          None => return None
+        }
+      }
+      Some(current)
+    }
+    _ => None
+  }
 }
 
 ///|
