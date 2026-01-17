@@ -5,5 +5,8 @@
     "bobzhang/mbtpdf/pdfcodec",
     "moonbitlang/async",
     "moonbitlang/async/fs"
+  ],
+  "test-import": [
+    "bobzhang/mbtpdf/pdfread"
   ]
 }
