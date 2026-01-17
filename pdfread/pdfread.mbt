@@ -1681,81 +1681,88 @@ fn lex_next(
   read_stream_data : Bool,
   lexobj : (Int) -> Array[@pdfgenlex.Token] raise,
 ) -> @pdfgenlex.Token raise {
-  dropwhite(input)
-  let raw = (input.input_byte)()
-  if raw == @pdfio.no_more {
-    return @pdfgenlex.Token::StopLexing
-  }
-  let ch = raw.to_byte().to_char()
-  @pdfio.rewind(input)
-  match ch {
-    '%' => lex_comment(input)
-    '/' => lex_name(input)
-    '[' => {
-      @pdfio.nudge(input)
-      array_level.val = array_level.val + 1
-      @pdfgenlex.Token::LexLeftSquare
+  try {
+    dropwhite(input)
+    let raw = (input.input_byte)()
+    if raw == @pdfio.no_more {
+      return @pdfgenlex.Token::StopLexing
     }
-    ']' => {
-      @pdfio.nudge(input)
-      array_level.val = array_level.val - 1
-      @pdfgenlex.Token::LexRightSquare
-    }
-    '(' => lex_string(input)
-    '<' => {
-      @pdfio.nudge(input)
-      match @pdfio.peek_byte(input) {
-        b2 if b2 == '<'.to_int() => {
-          @pdfio.nudge(input)
-          dict_level.val = dict_level.val + 1
-          @pdfgenlex.Token::LexLeftDict
-        }
-        _ => {
-          @pdfio.rewind(input)
-          lex_hexstring(input)
+    let ch = raw.to_byte().to_char()
+    @pdfio.rewind(input)
+    match ch {
+      '%' => lex_comment(input)
+      '/' => lex_name(input)
+      '[' => {
+        @pdfio.nudge(input)
+        array_level.val = array_level.val + 1
+        @pdfgenlex.Token::LexLeftSquare
+      }
+      ']' => {
+        @pdfio.nudge(input)
+        array_level.val = array_level.val - 1
+        @pdfgenlex.Token::LexRightSquare
+      }
+      '(' => lex_string(input)
+      '<' => {
+        @pdfio.nudge(input)
+        match @pdfio.peek_byte(input) {
+          b2 if b2 == '<'.to_int() => {
+            @pdfio.nudge(input)
+            dict_level.val = dict_level.val + 1
+            @pdfgenlex.Token::LexLeftDict
+          }
+          _ => {
+            @pdfio.rewind(input)
+            lex_hexstring(input)
+          }
         }
       }
-    }
-    '>' => {
-      @pdfio.nudge(input)
-      match @pdfio.peek_byte(input) {
-        b2 if b2 == '>'.to_int() => {
-          @pdfio.nudge(input)
-          dict_level.val = dict_level.val - 1
-          @pdfgenlex.Token::LexRightDict
+      '>' => {
+        @pdfio.nudge(input)
+        match @pdfio.peek_byte(input) {
+          b2 if b2 == '>'.to_int() => {
+            @pdfio.nudge(input)
+            dict_level.val = dict_level.val - 1
+            @pdfgenlex.Token::LexRightDict
+          }
+          _ => @pdfgenlex.Token::LexNone
         }
-        _ => @pdfgenlex.Token::LexNone
       }
-    }
-    'R' => {
-      @pdfio.nudge(input)
-      @pdfgenlex.Token::LexR
-    }
-    's' => {
-      let _ = (input.input_byte)()
-      let _ = (input.input_byte)()
-      let third = (input.input_byte)()
-      @pdfio.rewind(input)
-      @pdfio.rewind(input)
-      @pdfio.rewind(input)
-      if third == @pdfio.no_more {
-        @pdfgenlex.Token::StopLexing
-      } else {
-        let c3 = third.to_byte().to_char()
-        if c3 == 'a' {
-          @pdfgenlex.Token::StopLexing
-        } else if end_on_stream {
+      'R' => {
+        @pdfio.nudge(input)
+        @pdfgenlex.Token::LexR
+      }
+      's' => {
+        let _ = (input.input_byte)()
+        let _ = (input.input_byte)()
+        let third = (input.input_byte)()
+        @pdfio.rewind(input)
+        @pdfio.rewind(input)
+        @pdfio.rewind(input)
+        if third == @pdfio.no_more {
           @pdfgenlex.Token::StopLexing
         } else {
-          lex_stream(input, previous_lexemes, lexobj, read_stream_data)
+          let c3 = third.to_byte().to_char()
+          if c3 == 'a' {
+            @pdfgenlex.Token::StopLexing
+          } else if end_on_stream {
+            @pdfgenlex.Token::StopLexing
+          } else {
+            lex_stream(input, previous_lexemes, lexobj, read_stream_data)
+          }
         }
       }
+      'I' => @pdfgenlex.Token::StopLexing
+      c if (c >= '0' && c <= '9') || c == '-' || c == '+' || c == '.' =>
+        lex_number(input)
+      c if c >= 'a' && c <= 'z' => lex_keyword(input)
+      _ => @pdfgenlex.Token::LexNone
     }
-    'I' => @pdfgenlex.Token::StopLexing
-    c if (c >= '0' && c <= '9') || c == '-' || c == '+' || c == '.' =>
-      lex_number(input)
-    c if c >= 'a' && c <= 'z' => lex_keyword(input)
-    _ => @pdfgenlex.Token::LexNone
+  } catch {
+    err => {
+      @pdfe.log("Recovering from lex error: \{err}\n")
+      @pdfgenlex.Token::StopLexing
+    }
   }
 }
 
