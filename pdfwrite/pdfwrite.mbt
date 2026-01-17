@@ -128,6 +128,16 @@ fn pad_int(value : Int, width : Int) -> String {
 }
 
 ///|
+fn write_header(pdf : @pdf.Pdf, output : @pdfio.Output) -> Unit {
+  (output.output_string)("%PDF-\{pdf.major}.\{pdf.minor}\n%")
+  let bytes = [128, 129, 130, 131]
+  for b in bytes {
+    (output.output_byte)(b)
+  }
+  (output.output_char)('\n')
+}
+
+///|
 fn write_pdf_object_to_output(
   obj : @pdf.PdfObject,
   output : @pdfio.Output,
@@ -295,7 +305,7 @@ pub fn pdf_to_output(
   let _ = generate_objstm
   let _ = compress_objstm
   let _ = recrypt
-  (output.output_string)("%PDF-\{pdf.major}.\{pdf.minor}\n")
+  write_header(pdf, output)
   let entries = @pdf.pdfobjmap_bindings(pdf.objects.objects)
   let objnums = entries.map(pair => pair.0)
   objnums.sort_by((a, b) => a - b)
