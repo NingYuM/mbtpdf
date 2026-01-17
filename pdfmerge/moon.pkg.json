@@ -1,0 +1,13 @@
+{
+  "import": [
+    "bobzhang/mbtpdf/pdf",
+    "bobzhang/mbtpdf/pdfe",
+    "bobzhang/mbtpdf/pdfdest",
+    "bobzhang/mbtpdf/pdfmarks",
+    "bobzhang/mbtpdf/pdfpage",
+    "bobzhang/mbtpdf/pdfpagelabels",
+    "bobzhang/mbtpdf/pdftree",
+    "bobzhang/mbtpdf/pdfst",
+    "bobzhang/mbtpdf/pdfwrite"
+  ]
+}
