@@ -1,0 +1,78 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/pdfread"
+
+import {
+  "bobzhang/mbtpdf/pdf",
+  "bobzhang/mbtpdf/pdfgenlex",
+  "bobzhang/mbtpdf/pdfio",
+}
+
+// Values
+pub let debug_always_treat_malformed : Ref[Bool]
+
+pub fn dropwhite(@pdfio.Input) -> Unit raise
+
+pub let endpage : Ref[(@pdf.Pdf) -> Int]
+
+pub let error_on_malformed : Ref[Bool]
+
+pub fn getuntil(Bool, (Char) -> Bool, @pdfio.Input) -> Array[Char] raise
+
+pub fn getuntil_white_or_delimiter(@pdfio.Input) -> Array[Char] raise
+
+pub fn getuntil_white_or_delimiter_string(@pdfio.Input) -> String raise
+
+pub fn ignoreuntil(Bool, (Char) -> Bool, @pdfio.Input) -> Unit raise
+
+pub fn is_linearized(@pdfio.Input) -> Bool
+
+pub fn lex_comment(@pdfio.Input) -> @pdfgenlex.Token raise
+
+pub fn lex_dictionary(Bool, @pdfio.Input) -> Array[@pdfgenlex.Token] raise
+
+pub fn lex_hexstring(@pdfio.Input) -> @pdfgenlex.Token raise
+
+pub fn lex_name(@pdfio.Input) -> @pdfgenlex.Token
+
+pub fn lex_number(@pdfio.Input) -> @pdfgenlex.Token raise
+
+pub fn lex_stream_data(@pdfio.Input, Int, Bool) -> @pdfgenlex.Token raise
+
+pub fn lex_string(@pdfio.Input) -> @pdfgenlex.Token raise
+
+pub fn parse(Array[@pdfgenlex.Token], failure_is_ok? : Bool) -> (Int, @pdf.PdfObject) raise
+
+pub fn parse_single_object(String) -> @pdf.PdfObject raise
+
+pub fn pdf_of_channel(revision? : Int, source? : String, String?, String?, Unit) -> @pdf.Pdf raise
+
+pub fn pdf_of_channel_lazy(revision? : Int, source? : String, String?, String?, Unit) -> @pdf.Pdf raise
+
+pub fn pdf_of_file(revision? : Int, String?, String?, String) -> @pdf.Pdf raise
+
+pub fn pdf_of_input(revision? : Int, String?, String?, @pdfio.Input) -> @pdf.Pdf raise
+
+pub fn pdf_of_input_lazy(revision? : Int, String?, String?, @pdfio.Input) -> @pdf.Pdf raise
+
+pub fn permissions(@pdf.Pdf) -> Array[Unit]
+
+pub fn print_lexeme(@pdfgenlex.Token) -> Unit
+
+pub let read_debug : Ref[Bool]
+
+pub fn read_header(@pdfio.Input) -> (Int, Int) raise
+
+pub fn revisions(@pdfio.Input) -> Int
+
+pub fn string_of_lexeme(@pdfgenlex.Token) -> String
+
+pub fn what_encryption(@pdf.Pdf) -> Unit?
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

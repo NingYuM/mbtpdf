@@ -1,6 +1,6 @@
 ///|
 /// Core error used across the PDF surface.
-pub suberror PdfError {
+pub(all) suberror PdfError {
   Msg(String)
 }
 

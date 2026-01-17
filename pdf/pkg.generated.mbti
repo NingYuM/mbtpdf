@@ -63,7 +63,7 @@ pub fn replace_chain(Pdf, ArrayView[String], PdfObject) -> Unit raise
 pub fn replace_dict_entry(PdfObject, String, PdfObject) -> PdfObject raise
 
 // Errors
-pub suberror PdfError {
+pub(all) suberror PdfError {
   Msg(String)
 }
 
