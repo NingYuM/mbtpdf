@@ -1,0 +1,141 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/pdf"
+
+import {
+  "bobzhang/mbtpdf/pdfio",
+}
+
+// Values
+pub fn add_dict_entry(PdfObject, String, PdfObject) -> PdfObject raise
+
+pub fn addobj(Pdf, PdfObject) -> Int
+
+pub fn addobj_given_num(Pdf, (Int, PdfObject)) -> Unit
+
+pub fn direct(Pdf, PdfObject) -> PdfObject
+
+pub fn empty() -> Pdf
+
+pub fn getnum(Pdf, PdfObject) -> Double raise
+
+pub fn getstream(PdfObject) -> Unit raise
+
+pub fn indirect_number(Pdf, String, PdfObject) -> Int?
+
+pub fn input_pdferror(@pdfio.Input, String) -> String
+
+pub fn lookup_chain(Pdf, PdfObject, ArrayView[String]) -> PdfObject?
+
+pub fn lookup_direct(Pdf, String, PdfObject) -> PdfObject?
+
+pub fn lookup_direct_orelse(Pdf, String, String, PdfObject) -> PdfObject?
+
+pub fn lookup_exception(Error, Pdf, String, PdfObject) -> PdfObject raise
+
+pub fn lookup_fail(String, Pdf, String, PdfObject) -> PdfObject raise
+
+pub fn lookup_immediate(String, PdfObject) -> PdfObject?
+
+pub fn lookup_obj(Pdf, Int) -> PdfObject
+
+pub fn objcard(Pdf) -> Int
+
+pub fn parse_rectangle(Pdf, PdfObject) -> (Double, Double, Double, Double) raise
+
+pub fn pdfobjmap_add(Int, (Ref[ObjectData], Int), Map[Int, (Ref[ObjectData], Int)]) -> Map[Int, (Ref[ObjectData], Int)]
+
+pub fn pdfobjmap_bindings(Map[Int, (Ref[ObjectData], Int)]) -> Array[(Int, (Ref[ObjectData], Int))]
+
+pub fn pdfobjmap_empty() -> Map[Int, (Ref[ObjectData], Int)]
+
+pub fn pdfobjmap_find(Int, Map[Int, (Ref[ObjectData], Int)]) -> (Ref[ObjectData], Int) raise
+
+pub fn pdfobjmap_remove(Int, Map[Int, (Ref[ObjectData], Int)]) -> Map[Int, (Ref[ObjectData], Int)]
+
+pub fn remove_chain(Pdf, ArrayView[String]) -> Bool raise
+
+pub fn remove_dict_entry(PdfObject, String) -> PdfObject raise
+
+pub fn removeobj(Pdf, Int) -> Unit
+
+pub fn replace_chain(Pdf, ArrayView[String], PdfObject) -> Unit raise
+
+pub fn replace_dict_entry(PdfObject, String, PdfObject) -> PdfObject raise
+
+// Errors
+pub suberror PdfError {
+  Msg(String)
+}
+
+// Types and methods
+pub struct DeferredEncryption {
+  placeholder : Unit
+}
+
+pub enum ObjectData {
+  Parsed(PdfObject)
+  ParsedAlreadyDecrypted(PdfObject)
+  ToParse
+  ToParseFromObjectStream(Map[Int, Array[Int]], Int, Int, (Int, Array[Int]) -> Array[(Int, (Ref[ObjectData], Int))])
+}
+
+pub struct Pdf {
+  major : Int
+  minor : Int
+  root : Int
+  objects : PdfObjects
+  mut trailerdict : PdfObject
+  was_linearized : Bool
+  saved_encryption : SavedEncryption?
+}
+
+pub(all) enum PdfObject {
+  Null
+  Boolean(Bool)
+  Integer(Int)
+  Real(Double)
+  String(String)
+  Name(String)
+  Array(Array[PdfObject])
+  Dictionary(Array[(String, PdfObject)])
+  Stream(Ref[(PdfObject, Stream)])
+  Indirect(Int)
+}
+
+pub struct PdfObjects {
+  mut max_obj_num : Int
+  parse : ((Int) -> PdfObject)?
+  objects : Map[Int, (Ref[ObjectData], Int)]
+  object_stream_ids : Map[Int, Int]
+}
+
+pub struct SavedEncryption {
+  placeholder : Unit
+}
+
+pub(all) enum Stream {
+  Got(Array[Byte])
+  ToGet(ToGet)
+}
+
+pub struct ToGet {
+  input : @pdfio.Input
+  position : Int
+  length : Int
+  crypt : ToGetCrypt
+}
+
+pub enum ToGetCrypt {
+  NoChange
+  ToDecrypt(DeferredEncryption)
+}
+
+// Type aliases
+pub type PdfObjMap = Map[Int, (Ref[ObjectData], Int)]
+
+pub type PdfObjMapEntry = (Ref[ObjectData], Int)
+
+pub type PdfObjMapKey = Int
+
+// Traits
+

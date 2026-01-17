@@ -34,14 +34,14 @@ pub struct ToGet {
 
 ///|
 /// Stream payload, either in memory or deferred.
-pub enum Stream {
+pub(all) enum Stream {
   Got(@pdfio.MutableBytes)
   ToGet(ToGet)
 }
 
 ///|
 /// Core PDF object tree.
-pub enum PdfObject {
+pub(all) enum PdfObject {
   Null
   Boolean(Bool)
   Integer(Int)
@@ -64,7 +64,7 @@ pub enum ObjectData {
     Map[Int, Array[Int]],
     Int,
     Int,
-    (Int, Array[Int]) -> Array[(Int, (Ref[ObjectData], Int))],
+    (Int, Array[Int]) -> Array[(Int, (Ref[ObjectData], Int))]
   )
 }
 
@@ -104,7 +104,10 @@ pub fn pdfobjmap_empty() -> PdfObjMap {
 }
 
 ///|
-pub fn pdfobjmap_find(key : PdfObjMapKey, map : PdfObjMap) -> PdfObjMapEntry raise {
+pub fn pdfobjmap_find(
+  key : PdfObjMapKey,
+  map : PdfObjMap,
+) -> PdfObjMapEntry raise {
   match map.get(key) {
     Some(entry) => entry
     None => fail("Not_found")
@@ -112,7 +115,11 @@ pub fn pdfobjmap_find(key : PdfObjMapKey, map : PdfObjMap) -> PdfObjMapEntry rai
 }
 
 ///|
-pub fn pdfobjmap_add(key : PdfObjMapKey, entry : PdfObjMapEntry, map : PdfObjMap) -> PdfObjMap {
+pub fn pdfobjmap_add(
+  key : PdfObjMapKey,
+  entry : PdfObjMapEntry,
+  map : PdfObjMap,
+) -> PdfObjMap {
   map.set(key, entry)
   map
 }
@@ -124,7 +131,9 @@ pub fn pdfobjmap_remove(key : PdfObjMapKey, map : PdfObjMap) -> PdfObjMap {
 }
 
 ///|
-pub fn pdfobjmap_bindings(map : PdfObjMap) -> Array[(PdfObjMapKey, PdfObjMapEntry)] {
+pub fn pdfobjmap_bindings(
+  map : PdfObjMap,
+) -> Array[(PdfObjMapKey, PdfObjMapEntry)] {
   map.to_array()
 }
 
@@ -132,18 +141,18 @@ pub fn pdfobjmap_bindings(map : PdfObjMap) -> Array[(PdfObjMapKey, PdfObjMapEntr
 /// The empty document (PDF 2.0, no objects, no root, empty trailer dictionary).
 pub fn empty() -> Pdf {
   {
-    major : 2,
-    minor : 0,
-    root : 0,
-    objects : {
-      max_obj_num : 0,
-      parse : None,
-      objects : pdfobjmap_empty(),
-      object_stream_ids : Map::new(),
+    major: 2,
+    minor: 0,
+    root: 0,
+    objects: {
+      max_obj_num: 0,
+      parse: None,
+      objects: pdfobjmap_empty(),
+      object_stream_ids: Map::new(),
     },
-    trailerdict : Dictionary([]),
-    was_linearized : false,
-    saved_encryption : None,
+    trailerdict: Dictionary([]),
+    was_linearized: false,
+    saved_encryption: None,
   }
 }
 
@@ -158,7 +167,7 @@ pub fn input_pdferror(input : @pdfio.Input, message : String) -> String {
 pub fn remove_dict_entry(dict : PdfObject, key : String) -> PdfObject raise {
   match dict {
     Dictionary(entries) => {
-      let out = entries.filter((pair) => pair.0 != key)
+      let out = entries.filter(pair => pair.0 != key)
       Dictionary(out)
     }
     Stream(r) => {
@@ -172,7 +181,11 @@ pub fn remove_dict_entry(dict : PdfObject, key : String) -> PdfObject raise {
 
 ///|
 /// Replace a dictionary entry, raising if it's not present (also works for streams).
-pub fn replace_dict_entry(dict : PdfObject, key : String, value : PdfObject) -> PdfObject raise {
+pub fn replace_dict_entry(
+  dict : PdfObject,
+  key : String,
+  value : PdfObject,
+) -> PdfObject raise {
   match dict {
     Null => Dictionary([(key, value)])
     Dictionary(entries) => {
@@ -203,7 +216,11 @@ pub fn replace_dict_entry(dict : PdfObject, key : String, value : PdfObject) -> 
 
 ///|
 /// Add a dictionary entry, replacing if already present (also works for streams).
-pub fn add_dict_entry(dict : PdfObject, key : String, value : PdfObject) -> PdfObject raise {
+pub fn add_dict_entry(
+  dict : PdfObject,
+  key : String,
+  value : PdfObject,
+) -> PdfObject raise {
   match dict {
     Null => Dictionary([(key, value)])
     Dictionary(entries) => {
@@ -237,10 +254,10 @@ pub fn add_dict_entry(dict : PdfObject, key : String, value : PdfObject) -> PdfO
 pub fn lookup_obj(pdf : Pdf, objnum : Int) -> PdfObject {
   match pdf.objects.objects.get(objnum) {
     None => Null
-    Some((obj_ref, _gen)) => {
+    Some((obj_ref, _gen)) =>
       match obj_ref.val {
         Parsed(obj) | ParsedAlreadyDecrypted(obj) => obj
-        ToParse => {
+        ToParse =>
           match pdf.objects.parse {
             None => Null
             Some(parser) => {
@@ -249,10 +266,8 @@ pub fn lookup_obj(pdf : Pdf, objnum : Int) -> PdfObject {
               obj
             }
           }
-        }
         ToParseFromObjectStream(_, _, _, _) => Null
       }
-    }
   }
 }
 
@@ -269,27 +284,25 @@ pub fn direct(pdf : Pdf, obj : PdfObject) -> PdfObject {
 /// Lookup the key, resolving indirections at source and destination.
 pub fn lookup_direct(pdf : Pdf, key : String, dict : PdfObject) -> PdfObject? {
   let dict_obj = direct(pdf, dict)
-  let entry =
-    match dict_obj {
-      Dictionary(entries) => {
-        match entries.search_by((pair) => pair.0 == key) {
-          None => None
-          Some(i) => Some(entries[i].1)
-        }
+  let entry = match dict_obj {
+    Dictionary(entries) =>
+      match entries.search_by(pair => pair.0 == key) {
+        None => None
+        Some(i) => Some(entries[i].1)
       }
-      Stream(r) => {
-        let (inner, _) = r.val
-        match inner {
-          Dictionary(entries) =>
-            match entries.search_by((pair) => pair.0 == key) {
-              None => None
-              Some(i) => Some(entries[i].1)
-            }
-          _ => None
-        }
+    Stream(r) => {
+      let (inner, _) = r.val
+      match inner {
+        Dictionary(entries) =>
+          match entries.search_by(pair => pair.0 == key) {
+            None => None
+            Some(i) => Some(entries[i].1)
+          }
+        _ => None
       }
-      _ => None
     }
+    _ => None
+  }
   match entry {
     None => None
     Some(value) => Some(direct(pdf, value))
@@ -300,17 +313,16 @@ pub fn lookup_direct(pdf : Pdf, key : String, dict : PdfObject) -> PdfObject? {
 /// Lookup the key without following indirects at either source or destination.
 pub fn lookup_immediate(key : String, dict : PdfObject) -> PdfObject? {
   match dict {
-    Dictionary(entries) => {
-      match entries.search_by((pair) => pair.0 == key) {
+    Dictionary(entries) =>
+      match entries.search_by(pair => pair.0 == key) {
         None => None
         Some(i) => Some(entries[i].1)
       }
-    }
     Stream(r) => {
       let (inner, _) = r.val
       match inner {
         Dictionary(entries) =>
-          match entries.search_by((pair) => pair.0 == key) {
+          match entries.search_by(pair => pair.0 == key) {
             None => None
             Some(i) => Some(entries[i].1)
           }
@@ -323,7 +335,11 @@ pub fn lookup_immediate(key : String, dict : PdfObject) -> PdfObject? {
 
 ///|
 /// Lookup a key in a nested dictionary chain.
-pub fn lookup_chain(pdf : Pdf, start : PdfObject, keys : ArrayView[String]) -> PdfObject? {
+pub fn lookup_chain(
+  pdf : Pdf,
+  start : PdfObject,
+  keys : ArrayView[String],
+) -> PdfObject? {
   let mut current = start
   for key in keys {
     match lookup_direct(pdf, key, current) {
@@ -336,12 +352,16 @@ pub fn lookup_chain(pdf : Pdf, start : PdfObject, keys : ArrayView[String]) -> P
 
 ///|
 /// Replace or insert a chain from the trailer dictionary.
-pub fn replace_chain(pdf : Pdf, chain : ArrayView[String], obj : PdfObject) -> Unit raise {
+pub fn replace_chain(
+  pdf : Pdf,
+  chain : ArrayView[String],
+  obj : PdfObject,
+) -> Unit raise {
   fn replace_in_obj(
     pdf : Pdf,
     current : PdfObject,
     chain : ArrayView[String],
-    obj : PdfObject
+    obj : PdfObject,
   ) -> PdfObject raise {
     if chain.length() == 0 {
       return obj
@@ -381,13 +401,17 @@ pub fn replace_chain(pdf : Pdf, chain : ArrayView[String], obj : PdfObject) -> U
       _ => raise PdfError::Msg("replace_chain: not a dictionary")
     }
   }
+
   pdf.trailerdict = replace_in_obj(pdf, pdf.trailerdict, chain, obj)
 }
 
 ///|
 /// Remove the object at the given chain. Returns true if removed.
 pub fn remove_chain(pdf : Pdf, chain : ArrayView[String]) -> Bool raise {
-  fn remove_in_obj(current : PdfObject, chain : ArrayView[String]) -> (PdfObject, Bool) raise {
+  fn remove_in_obj(
+    current : PdfObject,
+    chain : ArrayView[String],
+  ) -> (PdfObject, Bool) raise {
     if chain.length() == 0 {
       return (current, false)
     }
@@ -422,6 +446,7 @@ pub fn remove_chain(pdf : Pdf, chain : ArrayView[String]) -> Bool raise {
       _ => raise PdfError::Msg("remove_chain: not a dictionary")
     }
   }
+
   let (updated, removed) = remove_in_obj(pdf.trailerdict, chain)
   pdf.trailerdict = updated
   removed
@@ -431,17 +456,15 @@ pub fn remove_chain(pdf : Pdf, chain : ArrayView[String]) -> Bool raise {
 /// Return the object number of an indirect dictionary object, if it is indirect.
 pub fn indirect_number(pdf : Pdf, key : String, dict : PdfObject) -> Int? {
   match direct(pdf, dict) {
-    Dictionary(entries) => {
-      match entries.search_by((pair) => pair.0 == key) {
+    Dictionary(entries) =>
+      match entries.search_by(pair => pair.0 == key) {
         None => None
-        Some(i) => {
+        Some(i) =>
           match entries[i].1 {
             Indirect(objnum) => Some(objnum)
             _ => None
           }
-        }
       }
-    }
     Stream(r) => {
       let (inner, _) = r.val
       indirect_number(pdf, key, inner)
@@ -452,7 +475,12 @@ pub fn indirect_number(pdf : Pdf, key : String, dict : PdfObject) -> Int? {
 
 ///|
 /// Same as lookup_direct, but allow a second alternative key.
-pub fn lookup_direct_orelse(pdf : Pdf, key : String, alt : String, dict : PdfObject) -> PdfObject? {
+pub fn lookup_direct_orelse(
+  pdf : Pdf,
+  key : String,
+  alt : String,
+  dict : PdfObject,
+) -> PdfObject? {
   match lookup_direct(pdf, key, dict) {
     Some(obj) => Some(obj)
     None => lookup_direct(pdf, alt, dict)
@@ -463,20 +491,27 @@ pub fn lookup_direct_orelse(pdf : Pdf, key : String, alt : String, dict : PdfObj
 /// Get a stream from disk if it hasn't already been got.
 pub fn getstream(obj : PdfObject) -> Unit raise {
   match obj {
-    Stream(r) => {
+    Stream(r) =>
       match r.val {
         (dict, Stream::ToGet(toget)) => {
-          let data = @pdfio.bytes_of_input(toget.input, toget.position, toget.length)
-          let dict_updated =
-            match dict {
-              Dictionary(_) => replace_dict_entry(dict, "/Length", Integer(@pdfio.bytes_size(data)))
-              _ => dict
-            }
+          let data = @pdfio.bytes_of_input(
+            toget.input,
+            toget.position,
+            toget.length,
+          )
+          let dict_updated = match dict {
+            Dictionary(_) =>
+              replace_dict_entry(
+                dict,
+                "/Length",
+                Integer(@pdfio.bytes_size(data)),
+              )
+            _ => dict
+          }
           r.val = (dict_updated, Stream::Got(data))
         }
         _ => ()
       }
-    }
     _ => raise PdfError::Msg("getstream: not a stream")
   }
 }
@@ -494,7 +529,10 @@ pub fn getnum(pdf : Pdf, obj : PdfObject) -> Double raise {
 
 ///|
 /// Parse a PDF rectangle structure into min x, min y, max x, max y.
-pub fn parse_rectangle(pdf : Pdf, obj : PdfObject) -> (Double, Double, Double, Double) raise {
+pub fn parse_rectangle(
+  pdf : Pdf,
+  obj : PdfObject,
+) -> (Double, Double, Double, Double) raise {
   match obj {
     Array(vals) =>
       if vals.length() == 4 {
@@ -546,7 +584,12 @@ pub fn addobj_given_num(pdf : Pdf, pair : (Int, PdfObject)) -> Unit {
 
 ///|
 /// Lookup an object, failing if not found.
-pub fn lookup_fail(errtext : String, pdf : Pdf, key : String, dict : PdfObject) -> PdfObject raise {
+pub fn lookup_fail(
+  errtext : String,
+  pdf : Pdf,
+  key : String,
+  dict : PdfObject,
+) -> PdfObject raise {
   match lookup_direct(pdf, key, dict) {
     Some(obj) => obj
     None => raise PdfError::Msg(errtext)
@@ -555,7 +598,12 @@ pub fn lookup_fail(errtext : String, pdf : Pdf, key : String, dict : PdfObject) 
 
 ///|
 /// Same as lookup_fail, but with a customized exception.
-pub fn lookup_exception(err : Error, pdf : Pdf, key : String, dict : PdfObject) -> PdfObject raise {
+pub fn lookup_exception(
+  err : Error,
+  pdf : Pdf,
+  key : String,
+  dict : PdfObject,
+) -> PdfObject raise {
   match lookup_direct(pdf, key, dict) {
     Some(obj) => obj
     None => raise err

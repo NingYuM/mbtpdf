@@ -38,24 +38,28 @@ pub let debug : Ref[Bool] = { val: false }
 
 ///|
 /// Inter-module recursion hooks (placeholders for now).
-pub let string_of_pdf : Ref[(@pdf.PdfObject) -> String] = { val: (_) => "" }
+pub let string_of_pdf : Ref[(@pdf.PdfObject) -> String] = { val: _ => "" }
 
 ///|
 /// Placeholder for Pdf.of_file (revision?, owner?, user?, filename).
 pub let pdf_of_file : Ref[(Int?, String?, String?, String) -> @pdf.Pdf] = {
-  val: (_, _, _, _) => @pdf.empty()
+  val: (_, _, _, _) => @pdf.empty(),
 }
 
 ///|
 /// Encode data in FlateDecode.
-pub fn encode_flate(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes raise CodecError {
+pub fn encode_flate(
+  data : @pdfio.MutableBytes,
+) -> @pdfio.MutableBytes raise CodecError {
   let _ = data
   raise CodecError::DecodeNotSupported("encode_flate not implemented")
 }
 
 ///|
 /// Decode data in FlateDecode.
-pub fn decode_flate(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes raise CodecError {
+pub fn decode_flate(
+  data : @pdfio.MutableBytes,
+) -> @pdfio.MutableBytes raise CodecError {
   let mut pos = 0
   let input = (buf : @pdfio.MutableBytes) => {
     let remaining = data.length() - pos
@@ -71,10 +75,10 @@ pub fn decode_flate(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes raise Cod
     }
   }
   let out : @pdfio.MutableBytes = Array::new()
-  let output = (buf : @pdfio.MutableBytes, length : Int) => {
-    for i = 0; i < length; i = i + 1 {
-      out.push(buf[i])
-    }
+  let output = (buf : @pdfio.MutableBytes, length : Int) => for i = 0
+                                                                i < length
+                                                                i = i + 1 {
+    out.push(buf[i])
   }
   try {
     @pdfflate.uncompress(header=true, input, output)
@@ -87,7 +91,11 @@ pub fn decode_flate(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes raise Cod
 
 ///|
 /// Encode data in CCITTDecode Group 3.
-pub fn encode_ccitt(_columns : Int, _rows : Int, _data : @pdfio.MutableBytes) -> @pdfio.MutableBytes raise CodecError {
+pub fn encode_ccitt(
+  _columns : Int,
+  _rows : Int,
+  _data : @pdfio.MutableBytes,
+) -> @pdfio.MutableBytes raise CodecError {
   raise CodecError::DecodeNotSupported("encode_ccitt not implemented")
 }
 
@@ -135,12 +143,133 @@ pub fn decode_pdfstream(
 ///|
 /// Decode just one stage of a PDF stream.
 pub fn decode_pdfstream_onestage(
-  _pdf : @pdf.Pdf,
-  _obj : @pdf.PdfObject,
+  pdf : @pdf.Pdf,
+  obj : @pdf.PdfObject,
   jbig2dec? : String,
 ) -> Unit raise CodecError {
   let _ = jbig2dec
-  raise CodecError::DecodeNotSupported("decode_pdfstream_onestage not implemented")
+  match obj {
+    @pdf.PdfObject::Stream(r) => {
+      let (dict, _stream) = r.val
+      let filter_opt = @pdf.lookup_direct(pdf, "/Filter", dict)
+      match filter_opt {
+        None => raise CodecError::DecodeNotSupported("no filter")
+        Some(filter_obj) => {
+          let (filter_name, remaining_filters) : (
+            String,
+            Array[@pdf.PdfObject]?,
+          ) = match filter_obj {
+            @pdf.PdfObject::Name(name) => (name, None)
+            @pdf.PdfObject::Array(filters) => {
+              if filters.length() == 0 {
+                raise CodecError::DecodeNotSupported("empty filter array")
+              }
+              match filters[0] {
+                @pdf.PdfObject::Name(name) => {
+                  let rest = filters.sub(start=1).to_array()
+                  (name, Some(rest))
+                }
+                _ =>
+                  raise CodecError::DecodeNotSupported("invalid filter entry")
+              }
+            }
+            _ => raise CodecError::DecodeNotSupported("invalid filter")
+          }
+          if filter_name != "/FlateDecode" && filter_name != "/Fl" {
+            raise CodecError::DecodeNotSupported(
+              "filter not supported: \{filter_name}",
+            )
+          }
+          map_pdf_error("getstream", fn() raise { @pdf.getstream(obj) })
+          let data = match r.val {
+            (_, @pdf.Stream::Got(bytes)) => bytes
+            _ =>
+              raise CodecError::CouldntDecodeStream("stream data not available")
+          }
+          let mut decoded = decode_flate(data)
+          let parms = @pdf.lookup_direct(pdf, "/DecodeParms", dict)
+          let parms_first = match parms {
+            Some(@pdf.PdfObject::Array(arr)) =>
+              if arr.length() > 0 {
+                Some(arr[0])
+              } else {
+                None
+              }
+            Some(@pdf.PdfObject::Null) => None
+            Some(other) => Some(other)
+            None => None
+          }
+          match parms_first {
+            Some(@pdf.PdfObject::Dictionary(_)) => {
+              let predictor = get_int_param(pdf, parms_first, "/Predictor", 1)
+              if predictor != 1 {
+                let colors = get_int_param(pdf, parms_first, "/Colors", 1)
+                let bpc = get_int_param(
+                  pdf, parms_first, "/BitsPerComponent", 8,
+                )
+                let columns = get_int_param(pdf, parms_first, "/Columns", 1)
+                decoded = decode_predictor(
+                  predictor, colors, bpc, columns, decoded,
+                )
+              }
+            }
+            _ => ()
+          }
+          let mut new_dict = dict
+          new_dict = match remaining_filters {
+            None =>
+              map_pdf_error("remove filter", fn() raise {
+                @pdf.remove_dict_entry(new_dict, "/Filter")
+              })
+            Some(rest) =>
+              if rest.length() == 0 {
+                map_pdf_error("remove filter", fn() raise {
+                  @pdf.remove_dict_entry(new_dict, "/Filter")
+                })
+              } else {
+                map_pdf_error("replace filter", fn() raise {
+                  @pdf.replace_dict_entry(
+                    new_dict,
+                    "/Filter",
+                    @pdf.PdfObject::Array(rest),
+                  )
+                })
+              }
+          }
+          new_dict = match parms {
+            None => new_dict
+            Some(@pdf.PdfObject::Array(arr)) => {
+              let rest = arr.sub(start=1).to_array()
+              if rest.length() == 0 {
+                map_pdf_error("remove decode parms", fn() raise {
+                  @pdf.remove_dict_entry(new_dict, "/DecodeParms")
+                })
+              } else {
+                map_pdf_error("replace decode parms", fn() raise {
+                  @pdf.replace_dict_entry(
+                    new_dict,
+                    "/DecodeParms",
+                    @pdf.PdfObject::Array(rest),
+                  )
+                })
+              }
+            }
+            Some(_) =>
+              map_pdf_error("remove decode parms", fn() raise {
+                @pdf.remove_dict_entry(new_dict, "/DecodeParms")
+              })
+          }
+          new_dict = set_dict_entry(
+            new_dict,
+            "/Length",
+            @pdf.PdfObject::Integer(@pdfio.bytes_size(decoded)),
+          )
+          r.val = (new_dict, @pdf.Stream::Got(decoded))
+        }
+      }
+    }
+    _ => raise CodecError::DecodeNotSupported("not a stream")
+  }
 }
 
 ///|
@@ -151,7 +280,9 @@ pub fn decode_pdfstream_until_unknown(
   jbig2dec? : String,
 ) -> Unit raise CodecError {
   let _ = jbig2dec
-  raise CodecError::DecodeNotSupported("decode_pdfstream_until_unknown not implemented")
+  raise CodecError::DecodeNotSupported(
+    "decode_pdfstream_until_unknown not implemented",
+  )
 }
 
 ///|
@@ -184,5 +315,187 @@ pub fn decode_predictor(
   _columns : Int,
   _stream : @pdfio.MutableBytes,
 ) -> @pdfio.MutableBytes raise CodecError {
-  raise CodecError::DecodeNotSupported("decode_predictor not implemented")
+  let pred = _pred
+  let colors = _colors
+  let bpc = _bpc
+  let columns = _columns
+  let stream = _stream
+  if pred == 2 {
+    decode_tiff_predictor(colors, bpc, columns, stream)
+  } else {
+    decode_png_predictor(colors, bpc, columns, stream)
+  }
+}
+
+///|
+fn[T] map_pdf_error(
+  context : String,
+  action : () -> T raise,
+) -> T raise CodecError {
+  action() catch {
+    @pdf.PdfError::Msg(msg) =>
+      raise CodecError::CouldntDecodeStream("\{context}: \{msg}")
+    _ => raise CodecError::CouldntDecodeStream("\{context}: unknown error")
+  }
+}
+
+///|
+fn set_dict_entry(
+  dict : @pdf.PdfObject,
+  key : String,
+  value : @pdf.PdfObject,
+) -> @pdf.PdfObject raise CodecError {
+  match @pdf.lookup_immediate(key, dict) {
+    Some(_) =>
+      map_pdf_error("replace dict entry", fn() raise {
+        @pdf.replace_dict_entry(dict, key, value)
+      })
+    None =>
+      map_pdf_error("add dict entry", fn() raise {
+        @pdf.add_dict_entry(dict, key, value)
+      })
+  }
+}
+
+///|
+fn get_int_param(
+  pdf : @pdf.Pdf,
+  parms : @pdf.PdfObject?,
+  key : String,
+  default_value : Int,
+) -> Int {
+  match parms {
+    Some(obj) =>
+      match @pdf.lookup_direct(pdf, key, obj) {
+        Some(@pdf.PdfObject::Integer(i)) => i
+        Some(@pdf.PdfObject::Real(r)) => r.to_int()
+        _ => default_value
+      }
+    None => default_value
+  }
+}
+
+///|
+fn decode_tiff_predictor(
+  colors : Int,
+  bpc : Int,
+  columns : Int,
+  stream : @pdfio.MutableBytes,
+) -> @pdfio.MutableBytes raise CodecError {
+  if bpc != 8 {
+    raise CodecError::DecodeNotSupported("TIFF predictor only supports 8bpc")
+  }
+  let scanline_width = (colors * bpc * columns + 7) / 8
+  let out = stream.copy()
+  let lines = if scanline_width == 0 {
+    0
+  } else {
+    out.length() / scanline_width
+  }
+  for line = 0; line < lines; line = line + 1 {
+    let line_start = line * scanline_width
+    let mut p = colors
+    while p < scanline_width {
+      let val = (
+          out[line_start + p - colors].to_int() + out[line_start + p].to_int()
+        ) %
+        256
+      out[line_start + p] = val.to_byte()
+      p = p + 1
+    }
+  }
+  out
+}
+
+///|
+fn decode_png_predictor(
+  colors : Int,
+  bpc : Int,
+  columns : Int,
+  stream : @pdfio.MutableBytes,
+) -> @pdfio.MutableBytes raise CodecError {
+  if bpc != 8 {
+    raise CodecError::DecodeNotSupported("PNG predictor only supports 8bpc")
+  }
+  let scanline_width = (colors * bpc * columns + 7) / 8
+  let bytes_per_pixel = (bpc * colors + 7) / 8
+  let mut pos = 0
+  let prev_decoded = Array::make(scanline_width, 0)
+  let output : @pdfio.MutableBytes = Array::new()
+  while pos < stream.length() {
+    let predictor = stream[pos].to_int()
+    pos = pos + 1
+    let curr = Array::make(scanline_width, 0)
+    let mut i = 0
+    while i < scanline_width && pos < stream.length() {
+      curr[i] = stream[pos].to_int()
+      pos = pos + 1
+      i = i + 1
+    }
+    let decoded = decode_scanline_pair(
+      prev_decoded, curr, predictor, bytes_per_pixel,
+    )
+    for v in decoded {
+      output.push(v.to_byte())
+    }
+    for i = 0; i < scanline_width; i = i + 1 {
+      prev_decoded[i] = decoded[i]
+    }
+    if i < scanline_width {
+      break
+    }
+  }
+  output
+}
+
+///|
+fn decode_scanline_pair(
+  prior_decoded : Array[Int],
+  current : Array[Int],
+  pred : Int,
+  bytes_per_pixel : Int,
+) -> Array[Int] raise CodecError {
+  let output = current.copy()
+  let get0 = (arr : Array[Int], idx : Int) => if idx < 0 { 0 } else { arr[idx] }
+  match pred {
+    0 => ()
+    1 =>
+      for i = 0; i < output.length(); i = i + 1 {
+        output[i] = (get0(current, i) + get0(output, i - bytes_per_pixel)) % 256
+      }
+    2 =>
+      for i = 0; i < output.length(); i = i + 1 {
+        output[i] = (get0(current, i) + get0(prior_decoded, i)) % 256
+      }
+    3 =>
+      for i = 0; i < output.length(); i = i + 1 {
+        let left = get0(output, i - bytes_per_pixel)
+        let up = get0(prior_decoded, i)
+        output[i] = (get0(current, i) + (left + up) / 2) % 256
+      }
+    4 => {
+      let paeth = (a : Int, b : Int, c : Int) => {
+        let p = a + b - c
+        let pa = (p - a).abs()
+        let pb = (p - b).abs()
+        let pc = (p - c).abs()
+        if pa <= pb && pa <= pc {
+          a
+        } else if pb <= pc {
+          b
+        } else {
+          c
+        }
+      }
+      for i = 0; i < output.length(); i = i + 1 {
+        let curr = get0(current, i)
+        let left = get0(output, i - bytes_per_pixel)
+        let up = get0(prior_decoded, i)
+        let up_left = get0(prior_decoded, i - bytes_per_pixel)
+        output[i] = (curr + paeth(left, up, up_left)) % 256
+      }
+    }
+    _ => raise CodecError::DecodeNotSupported("unknown PNG predictor")
+  }
+  output
 }

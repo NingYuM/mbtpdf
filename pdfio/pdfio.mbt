@@ -54,7 +54,7 @@ pub fn fillbytes(value : Int, bytes : MutableBytes) -> Unit {
 ///|
 /// Print bytes to standard output (debug format).
 pub fn print_bytes(bytes : MutableBytes) -> Unit {
-  println(bytes.map((b) => b.to_int()))
+  println(bytes.map(b => b.to_int()))
 }
 
 ///|
@@ -146,13 +146,13 @@ pub fn bytes_of_int_array(values : Array[Int]) -> MutableBytes {
 ///|
 /// Integer array from bytes.
 pub fn int_array_of_bytes(bytes : MutableBytes) -> Array[Int] {
-  bytes.map((b) => b.to_int())
+  bytes.map(b => b.to_int())
 }
 
 ///|
 /// Integer array from a string (UTF-8).
 pub fn int_array_of_string(s : String) -> Array[Int] {
-  bytes_of_string(s).map((b) => b.to_int())
+  bytes_of_string(s).map(b => b.to_int())
 }
 
 ///|
@@ -176,7 +176,7 @@ pub fn string_of_bytes(bytes : MutableBytes) -> String {
 ///|
 /// Make a character array from bytes.
 pub fn charlist_of_bytes(bytes : MutableBytes) -> Array[Char] {
-  bytes.map((b) => b.to_char())
+  bytes.map(b => b.to_char())
 }
 
 ///|
@@ -187,24 +187,22 @@ pub fn copybytes(bytes : MutableBytes) -> MutableBytes {
 
 ///|
 /// Build an input from bytes.
-pub fn input_of_bytes(bytes : MutableBytes, source? : String = "bytes") -> Input {
+pub fn input_of_bytes(
+  bytes : MutableBytes,
+  source? : String = "bytes",
+) -> Input {
   let mut pos = 0
   let mut offset = 0
   let len = bytes.length()
   let input_int = () => {
-    let result =
-      if pos > len - 1 {
-        no_more
-      } else {
-        bget_unsafe(bytes, pos)
-      }
+    let result = if pos > len - 1 { no_more } else { bget_unsafe(bytes, pos) }
     pos = pos + 1
     result
   }
   {
-    pos_in : () => pos - offset,
-    seek_in : (p) => { pos = p + offset },
-    input_char : () => {
+    pos_in: () => pos - offset,
+    seek_in: p => pos = p + offset,
+    input_char: () => {
       let v = input_int()
       if v == no_more {
         None
@@ -212,26 +210,25 @@ pub fn input_of_bytes(bytes : MutableBytes, source? : String = "bytes") -> Input
         Some(v.to_byte().to_char())
       }
     },
-    input_byte : input_int,
-    in_channel_length : len,
-    set_offset : (o) => {
-      if offset == 0 {
-        offset = o
-      }
-    },
-    source : source,
+    input_byte: input_int,
+    in_channel_length: len,
+    set_offset: o => if offset == 0 { offset = o },
+    source,
   }
 }
 
 ///|
 /// Build an input from a string.
 pub fn input_of_string(s : String, source? : String = "string") -> Input {
-  input_of_bytes(bytes_of_string(s), source=source)
+  input_of_bytes(bytes_of_string(s), source~)
 }
 
 ///|
 /// Build an input from a channel (native-only, placeholder).
-pub fn input_of_channel(_ch : Unit, _source? : String = "channel") -> Input raise {
+pub fn input_of_channel(
+  _ch : Unit,
+  _source? : String = "channel",
+) -> Input raise {
   fail("input_of_channel not implemented yet")
 }
 
@@ -250,7 +247,10 @@ pub fn input_output_of_bytes(size : Int) -> (Output, Ref[MutableBytes]) {
 
 ///|
 /// Extract the contents of an input-output in bytes.
-pub fn extract_bytes_from_input_output(output : Output, data : Ref[MutableBytes]) -> MutableBytes {
+pub fn extract_bytes_from_input_output(
+  output : Output,
+  data : Ref[MutableBytes],
+) -> MutableBytes {
   let len = (output.pos_out)()
   let out = mkbytes(len)
   for i = 0; i < len; i = i + 1 {
@@ -301,15 +301,13 @@ pub fn read_char_back(input : Input) -> Char? {
 /// Read a line from an input (newline not included).
 pub fn read_line(input : Input) -> String raise {
   let sb = StringBuilder::new()
-  fn read_more(sb : StringBuilder, saw_any : Bool, input : Input) -> String raise {
+  fn read_more(
+    sb : StringBuilder,
+    saw_any : Bool,
+    input : Input,
+  ) -> String raise {
     match (input.input_char)() {
-      None => {
-        if saw_any {
-          sb.to_string()
-        } else {
-          fail("End_of_file")
-        }
-      }
+      None => if saw_any { sb.to_string() } else { fail("End_of_file") }
       Some('\n') => sb.to_string()
       Some(ch) => {
         sb.write_char(ch)
@@ -317,6 +315,7 @@ pub fn read_line(input : Input) -> String raise {
       }
     }
   }
+
   read_more(sb, false, input)
 }
 
@@ -333,12 +332,18 @@ pub fn read_lines(input : Input) -> Array[String] raise {
       }
     }
   }
+
   read_all(lines, input)
 }
 
 ///|
 /// Set bytes o..o+l-1 from input.
-pub fn setinit(input : Input, bytes : MutableBytes, offset : Int, length : Int) -> Unit raise {
+pub fn setinit(
+  input : Input,
+  bytes : MutableBytes,
+  offset : Int,
+  length : Int,
+) -> Unit raise {
   if length == 0 {
     return
   }
@@ -354,13 +359,22 @@ pub fn setinit(input : Input, bytes : MutableBytes, offset : Int, length : Int) 
 
 ///|
 /// Set bytes o..o+l-1 from input (alias for string-backed buffers).
-pub fn setinit_string(input : Input, bytes : MutableBytes, offset : Int, length : Int) -> Unit raise {
+pub fn setinit_string(
+  input : Input,
+  bytes : MutableBytes,
+  offset : Int,
+  length : Int,
+) -> Unit raise {
   setinit(input, bytes, offset, length)
 }
 
 ///|
 /// Bytes with input o..o+l-1.
-pub fn bytes_of_input(input : Input, offset : Int, length : Int) -> MutableBytes raise {
+pub fn bytes_of_input(
+  input : Input,
+  offset : Int,
+  length : Int,
+) -> MutableBytes raise {
   (input.seek_in)(offset)
   let out = mkbytes(length)
   setinit(input, out, 0, length)
@@ -375,7 +389,12 @@ pub fn string_of_input(input : Input) -> String raise {
 
 ///|
 /// Write bytes o..o+l-1 to output.
-pub fn getinit(output : Output, bytes : MutableBytes, offset : Int, length : Int) -> Unit raise {
+pub fn getinit(
+  output : Output,
+  bytes : MutableBytes,
+  offset : Int,
+  length : Int,
+) -> Unit raise {
   if length == 0 {
     return
   }
@@ -431,34 +450,32 @@ pub struct BitstreamWrite {
 fn output_of_bytes(data : Ref[MutableBytes]) -> Output {
   let mut pos = 0
   let mut highest_written = -1
-  let output_int = (value : Int) => {
-    if pos > data.val.length() - 1 {
-      let new_len = if pos * 2 > 0 { pos * 2 } else { 1 }
-      let new_bytes = mkbytes(new_len)
-      for i = 0; i < data.val.length(); i = i + 1 {
-        bset_unsafe(new_bytes, i, bget_unsafe(data.val, i))
-      }
-      bset_unsafe(new_bytes, pos, value)
-      highest_written = if highest_written > pos { highest_written } else { pos }
-      pos = pos + 1
-      data.val = new_bytes
-    } else {
-      highest_written = if highest_written > pos { highest_written } else { pos }
-      bset_unsafe(data.val, pos, value)
-      pos = pos + 1
+  let output_int = (value : Int) => if pos > data.val.length() - 1 {
+    let new_len = if pos * 2 > 0 { pos * 2 } else { 1 }
+    let new_bytes = mkbytes(new_len)
+    for i = 0; i < data.val.length(); i = i + 1 {
+      bset_unsafe(new_bytes, i, bget_unsafe(data.val, i))
     }
+    bset_unsafe(new_bytes, pos, value)
+    highest_written = if highest_written > pos { highest_written } else { pos }
+    pos = pos + 1
+    data.val = new_bytes
+  } else {
+    highest_written = if highest_written > pos { highest_written } else { pos }
+    bset_unsafe(data.val, pos, value)
+    pos = pos + 1
   }
   {
-    pos_out : () => pos,
-    seek_out : (p) => { pos = p },
-    output_char : (c) => { output_int(c.to_int()) },
-    output_string : (s) => {
+    pos_out: () => pos,
+    seek_out: p => pos = p,
+    output_char: c => output_int(c.to_int()),
+    output_string: s => {
       let bytes = bytes_of_string(s)
       for b in bytes {
         output_int(b.to_int())
       }
     },
-    output_byte : output_int,
-    out_channel_length : () => highest_written + 1,
+    output_byte: output_int,
+    out_channel_length: () => highest_written + 1,
   }
 }

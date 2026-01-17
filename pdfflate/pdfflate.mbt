@@ -87,7 +87,7 @@ fn build_huffman(lengths : Array[Int]) -> Huffman {
     code = (code + count[bits - 1]) << 1
     next[bits] = code
   }
-  let table = Array::makei(max_len + 1, (_i) => Map::new())
+  let table = Array::makei(max_len + 1, _i => Map::new())
   for i = 0; i < lengths.length(); i = i + 1 {
     let len = lengths[i]
     if len > 0 {
@@ -97,7 +97,7 @@ fn build_huffman(lengths : Array[Int]) -> Huffman {
       table[len].set(rev, i)
     }
   }
-  { max_bits: max_len, table: table }
+  { max_bits: max_len, table }
 }
 
 ///|
@@ -145,52 +145,34 @@ let fixed_distance_huffman : Huffman = build_huffman(fixed_distance_lengths())
 
 ///|
 let length_base : Array[Int] = [
-  3, 4, 5, 6, 7, 8, 9, 10,
-  11, 13, 15, 17,
-  19, 23, 27, 31,
-  35, 43, 51, 59,
-  67, 83, 99, 115,
-  131, 163, 195, 227,
-  258,
+  3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83,
+  99, 115, 131, 163, 195, 227, 258,
 ]
 
 ///|
 let length_extra : Array[Int] = [
-  0, 0, 0, 0, 0, 0, 0, 0,
-  1, 1, 1, 1,
-  2, 2, 2, 2,
-  3, 3, 3, 3,
-  4, 4, 4, 4,
-  5, 5, 5, 5,
-  0,
+  0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5,
+  5, 0,
 ]
 
 ///|
 let dist_base : Array[Int] = [
-  1, 2, 3, 4,
-  5, 7, 9, 13,
-  17, 25, 33, 49,
-  65, 97, 129, 193,
-  257, 385, 513, 769,
-  1025, 1537, 2049, 3073,
-  4097, 6145, 8193, 12289,
-  16385, 24577,
+  1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769,
+  1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577,
 ]
 
 ///|
 let dist_extra : Array[Int] = [
-  0, 0, 0, 0,
-  1, 1, 2, 2,
-  3, 3, 4, 4,
-  5, 5, 6, 6,
-  7, 7, 8, 8,
-  9, 9, 10, 10,
-  11, 11, 12, 12,
-  13, 13,
+  0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11,
+  12, 12, 13, 13,
 ]
 
 ///|
-fn copy_from_output(out : @pdfio.MutableBytes, distance : Int, length : Int) -> Unit raise FlateError {
+fn copy_from_output(
+  out : @pdfio.MutableBytes,
+  distance : Int,
+  length : Int,
+) -> Unit raise FlateError {
   if distance <= 0 {
     raise FlateError::Error("uncompress", "invalid distance")
   }
@@ -204,7 +186,10 @@ fn copy_from_output(out : @pdfio.MutableBytes, distance : Int, length : Int) -> 
 }
 
 ///|
-fn inflate_stored(reader : BitReader, out : @pdfio.MutableBytes) -> Unit raise FlateError {
+fn inflate_stored(
+  reader : BitReader,
+  out : @pdfio.MutableBytes,
+) -> Unit raise FlateError {
   align_byte(reader)
   let len = read_u16_le(reader)
   let nlen = read_u16_le(reader)
@@ -218,8 +203,14 @@ fn inflate_stored(reader : BitReader, out : @pdfio.MutableBytes) -> Unit raise F
 }
 
 ///|
-fn inflate_fixed(reader : BitReader, out : @pdfio.MutableBytes) -> Unit raise FlateError {
-  fn decode_loop(reader : BitReader, out : @pdfio.MutableBytes) -> Unit raise FlateError {
+fn inflate_fixed(
+  reader : BitReader,
+  out : @pdfio.MutableBytes,
+) -> Unit raise FlateError {
+  fn decode_loop(
+    reader : BitReader,
+    out : @pdfio.MutableBytes,
+  ) -> Unit raise FlateError {
     let symbol = decode_symbol(reader, fixed_literal_huffman)
     if symbol < 256 {
       out.push(symbol.to_byte())
@@ -236,18 +227,26 @@ fn inflate_fixed(reader : BitReader, out : @pdfio.MutableBytes) -> Unit raise Fl
         raise FlateError::Error("uncompress", "invalid distance symbol")
       }
       let dist = dist_base[dist_symbol] +
-        (if dist_extra[dist_symbol] > 0 { read_bits(reader, dist_extra[dist_symbol]) } else { 0 })
+        (if dist_extra[dist_symbol] > 0 {
+          read_bits(reader, dist_extra[dist_symbol])
+        } else {
+          0
+        })
       copy_from_output(out, dist, length)
       decode_loop(reader, out)
     } else {
       raise FlateError::Error("uncompress", "invalid literal/length symbol")
     }
   }
+
   decode_loop(reader, out)
 }
 
 ///|
-fn inflate_dynamic(reader : BitReader, out : @pdfio.MutableBytes) -> Unit raise FlateError {
+fn inflate_dynamic(
+  reader : BitReader,
+  out : @pdfio.MutableBytes,
+) -> Unit raise FlateError {
   let hlit = read_bits(reader, 5) + 257
   let hdist = read_bits(reader, 5) + 1
   let hclen = read_bits(reader, 4) + 4
@@ -270,7 +269,9 @@ fn inflate_dynamic(reader : BitReader, out : @pdfio.MutableBytes) -> Unit raise 
       prev = sym
     } else if sym == 16 {
       if lengths.length() == 0 {
-        raise FlateError::Error("uncompress", "repeat with no previous code length")
+        raise FlateError::Error(
+          "uncompress", "repeat with no previous code length",
+        )
       }
       let repeat = 3 + read_bits(reader, 2)
       for _i = 0; _i < repeat; _i = _i + 1 {
@@ -311,7 +312,10 @@ fn inflate_dynamic(reader : BitReader, out : @pdfio.MutableBytes) -> Unit raise 
   }
   let lit_huff = build_huffman(lit_lengths)
   let dist_huff = build_huffman(dist_lengths)
-  fn decode_loop(reader : BitReader, out : @pdfio.MutableBytes) -> Unit raise FlateError {
+  fn decode_loop(
+    reader : BitReader,
+    out : @pdfio.MutableBytes,
+  ) -> Unit raise FlateError {
     let symbol = decode_symbol(reader, lit_huff)
     if symbol < 256 {
       out.push(symbol.to_byte())
@@ -328,13 +332,18 @@ fn inflate_dynamic(reader : BitReader, out : @pdfio.MutableBytes) -> Unit raise 
         raise FlateError::Error("uncompress", "invalid distance symbol")
       }
       let dist = dist_base[dist_symbol] +
-        (if dist_extra[dist_symbol] > 0 { read_bits(reader, dist_extra[dist_symbol]) } else { 0 })
+        (if dist_extra[dist_symbol] > 0 {
+          read_bits(reader, dist_extra[dist_symbol])
+        } else {
+          0
+        })
       copy_from_output(out, dist, length)
       decode_loop(reader, out)
     } else {
       raise FlateError::Error("uncompress", "invalid literal/length symbol")
     }
   }
+
   decode_loop(reader, out)
 }
 
@@ -342,7 +351,11 @@ fn inflate_dynamic(reader : BitReader, out : @pdfio.MutableBytes) -> Unit raise 
 fn read_all_input(input : (@pdfio.MutableBytes) -> Int) -> @pdfio.MutableBytes {
   let out = Array::new()
   let buf = @pdfio.mkbytes(4096)
-  fn read_more(out : @pdfio.MutableBytes, buf : @pdfio.MutableBytes, input : (@pdfio.MutableBytes) -> Int) -> Unit {
+  fn read_more(
+    out : @pdfio.MutableBytes,
+    buf : @pdfio.MutableBytes,
+    input : (@pdfio.MutableBytes) -> Int,
+  ) -> Unit {
     let n = input(buf)
     if n <= 0 {
       return
@@ -352,6 +365,7 @@ fn read_all_input(input : (@pdfio.MutableBytes) -> Int) -> @pdfio.MutableBytes {
     }
     read_more(out, buf, input)
   }
+
   read_more(out, buf, input)
   out
 }
@@ -399,9 +413,12 @@ pub fn uncompress(
 ) -> Unit raise FlateError {
   let data = read_all_input(input)
   let start = if header { zlib_start_offset(data) } else { 0 }
-  let reader = { data: data, byte_pos: start, bit_pos: 0 }
+  let reader = { data, byte_pos: start, bit_pos: 0 }
   let out : @pdfio.MutableBytes = Array::new()
-  fn read_blocks(reader : BitReader, out : @pdfio.MutableBytes) -> Unit raise FlateError {
+  fn read_blocks(
+    reader : BitReader,
+    out : @pdfio.MutableBytes,
+  ) -> Unit raise FlateError {
     let bfinal = read_bits(reader, 1)
     let btype = read_bits(reader, 2)
     match btype {
@@ -415,6 +432,7 @@ pub fn uncompress(
     }
     read_blocks(reader, out)
   }
+
   read_blocks(reader, out)
   output(out, out.length())
 }
