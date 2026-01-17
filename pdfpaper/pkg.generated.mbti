@@ -1,0 +1,57 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/pdfpaper"
+
+import {
+  "bobzhang/mbtpdf/pdfunits",
+}
+
+// Values
+pub let a0 : Paper
+
+pub let a1 : Paper
+
+pub let a10 : Paper
+
+pub let a2 : Paper
+
+pub let a3 : Paper
+
+pub let a4 : Paper
+
+pub let a5 : Paper
+
+pub let a6 : Paper
+
+pub let a7 : Paper
+
+pub let a8 : Paper
+
+pub let a9 : Paper
+
+pub fn height(Paper) -> Double
+
+pub fn landscape(Paper) -> Paper
+
+pub fn make(@pdfunits.Unit, Double, Double) -> Paper
+
+pub fn unit(Paper) -> @pdfunits.Unit
+
+pub let uslegal : Paper
+
+pub let usletter : Paper
+
+pub fn width(Paper) -> Double
+
+// Errors
+
+// Types and methods
+pub struct Paper {
+  unit : @pdfunits.Unit
+  width : Double
+  height : Double
+}
+
+// Type aliases
+
+// Traits
+

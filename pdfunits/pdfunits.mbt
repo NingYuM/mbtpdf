@@ -1,6 +1,6 @@
 ///|
 /// Units for paper sizes and conversions.
-pub enum Unit {
+pub(all) enum Unit {
   PdfPoint
   Inch
   Centimetre

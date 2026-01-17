@@ -13,7 +13,7 @@ pub fn points(Double, Unit) -> Double
 // Errors
 
 // Types and methods
-pub enum Unit {
+pub(all) enum Unit {
   PdfPoint
   Inch
   Centimetre
