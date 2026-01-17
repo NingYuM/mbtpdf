@@ -137,7 +137,35 @@ pub fn decode_pdfstream(
   jbig2dec? : String,
 ) -> Unit raise CodecError {
   let _ = jbig2dec
-  raise CodecError::DecodeNotSupported("decode_pdfstream not implemented")
+  fn decode_one_stage(
+    pdf : @pdf.Pdf,
+    obj : @pdf.PdfObject,
+  ) -> Unit raise CodecError {
+    match obj {
+      @pdf.PdfObject::Stream(r) => {
+        let (dict, _stream) = r.val
+        let filter_opt = @pdf.lookup_direct_orelse(pdf, "/Filter", "/F", dict)
+        match filter_opt {
+          None => ()
+          Some(@pdf.PdfObject::Name(_)) | Some(@pdf.PdfObject::Array(_)) => {
+            let before = (string_of_pdf.val)(dict)
+            decode_pdfstream_onestage(pdf, obj)
+            let (after_dict, _after_stream) = r.val
+            let after = (string_of_pdf.val)(after_dict)
+            if before != after {
+              decode_one_stage(pdf, obj)
+            }
+          }
+          Some(_) => raise CodecError::CouldntDecodeStream("malformed /Filter")
+        }
+      }
+      @pdf.PdfObject::Indirect(i) =>
+        decode_one_stage(pdf, @pdf.direct(pdf, @pdf.PdfObject::Indirect(i)))
+      _ => raise CodecError::CouldntDecodeStream("malformed stream")
+    }
+  }
+
+  decode_one_stage(_pdf, _obj)
 }
 
 ///|
@@ -151,7 +179,25 @@ pub fn decode_pdfstream_onestage(
   match obj {
     @pdf.PdfObject::Stream(r) => {
       let (dict, _stream) = r.val
-      let filter_opt = @pdf.lookup_direct(pdf, "/Filter", dict)
+      let (filter_key, filter_opt) = match
+        @pdf.lookup_immediate("/Filter", dict) {
+        Some(_) => ("/Filter", @pdf.lookup_direct(pdf, "/Filter", dict))
+        None =>
+          match @pdf.lookup_immediate("/F", dict) {
+            Some(_) => ("/F", @pdf.lookup_direct(pdf, "/F", dict))
+            None => ("/Filter", None)
+          }
+      }
+      let (parms_key, parms) = match
+        @pdf.lookup_immediate("/DecodeParms", dict) {
+        Some(_) =>
+          ("/DecodeParms", @pdf.lookup_direct(pdf, "/DecodeParms", dict))
+        None =>
+          match @pdf.lookup_immediate("/DP", dict) {
+            Some(_) => ("/DP", @pdf.lookup_direct(pdf, "/DP", dict))
+            None => ("/DecodeParms", None)
+          }
+      }
       match filter_opt {
         None => raise CodecError::DecodeNotSupported("no filter")
         Some(filter_obj) => {
@@ -187,7 +233,6 @@ pub fn decode_pdfstream_onestage(
               raise CodecError::CouldntDecodeStream("stream data not available")
           }
           let mut decoded = decode_flate(data)
-          let parms = @pdf.lookup_direct(pdf, "/DecodeParms", dict)
           let parms_first = match parms {
             Some(@pdf.PdfObject::Array(arr)) =>
               if arr.length() > 0 {
@@ -219,18 +264,18 @@ pub fn decode_pdfstream_onestage(
           new_dict = match remaining_filters {
             None =>
               map_pdf_error("remove filter", fn() raise {
-                @pdf.remove_dict_entry(new_dict, "/Filter")
+                @pdf.remove_dict_entry(new_dict, filter_key)
               })
             Some(rest) =>
               if rest.length() == 0 {
                 map_pdf_error("remove filter", fn() raise {
-                  @pdf.remove_dict_entry(new_dict, "/Filter")
+                  @pdf.remove_dict_entry(new_dict, filter_key)
                 })
               } else {
                 map_pdf_error("replace filter", fn() raise {
                   @pdf.replace_dict_entry(
                     new_dict,
-                    "/Filter",
+                    filter_key,
                     @pdf.PdfObject::Array(rest),
                   )
                 })
@@ -242,13 +287,13 @@ pub fn decode_pdfstream_onestage(
               let rest = arr.sub(start=1).to_array()
               if rest.length() == 0 {
                 map_pdf_error("remove decode parms", fn() raise {
-                  @pdf.remove_dict_entry(new_dict, "/DecodeParms")
+                  @pdf.remove_dict_entry(new_dict, parms_key)
                 })
               } else {
                 map_pdf_error("replace decode parms", fn() raise {
                   @pdf.replace_dict_entry(
                     new_dict,
-                    "/DecodeParms",
+                    parms_key,
                     @pdf.PdfObject::Array(rest),
                   )
                 })
@@ -256,7 +301,7 @@ pub fn decode_pdfstream_onestage(
             }
             Some(_) =>
               map_pdf_error("remove decode parms", fn() raise {
-                @pdf.remove_dict_entry(new_dict, "/DecodeParms")
+                @pdf.remove_dict_entry(new_dict, parms_key)
               })
           }
           new_dict = set_dict_entry(
@@ -280,9 +325,10 @@ pub fn decode_pdfstream_until_unknown(
   jbig2dec? : String,
 ) -> Unit raise CodecError {
   let _ = jbig2dec
-  raise CodecError::DecodeNotSupported(
-    "decode_pdfstream_until_unknown not implemented",
-  )
+  decode_pdfstream(_pdf, _obj) catch {
+    CodecError::DecodeNotSupported(_) => ()
+    err => raise err
+  }
 }
 
 ///|
