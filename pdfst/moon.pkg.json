@@ -1,5 +1,7 @@
 {
   "import": [
-    "bobzhang/mbtpdf/pdf"
+    "bobzhang/mbtpdf/pdf",
+    "bobzhang/mbtpdf/pdfe",
+    "bobzhang/mbtpdf/pdftree"
   ]
 }

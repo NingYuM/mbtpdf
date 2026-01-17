@@ -14,6 +14,8 @@ pub fn addobj_given_num(Pdf, (Int, PdfObject)) -> Unit
 
 pub fn catalog_of_pdf(Pdf) -> PdfObject raise
 
+pub fn change_id(Pdf, String) -> Unit raise
+
 pub fn contents_of_nametree(Pdf, PdfObject) -> Array[(PdfObject, PdfObject)] raise
 
 pub fn direct(Pdf, PdfObject) -> PdfObject
@@ -48,6 +50,8 @@ pub fn objcard(Pdf) -> Int
 
 pub fn objiter((Int, PdfObject) -> Unit raise?, Pdf) -> Unit raise?
 
+pub fn objnumbers(Pdf) -> Array[Int]
+
 pub fn objselfmap((PdfObject) -> PdfObject raise?, Pdf) -> Unit raise?
 
 pub fn page_reference_numbers(Pdf) -> Array[Int] raise
@@ -74,7 +78,11 @@ pub fn remove_dict_entry(PdfObject, String) -> PdfObject raise
 
 pub fn removeobj(Pdf, Int) -> Unit
 
+pub fn renumber(Map[Int, Int], Pdf, preserve_order? : Bool) -> Pdf
+
 pub fn renumber_object_parsed(Pdf, Map[Int, Int], PdfObject, preserve_order? : Bool) -> PdfObject
+
+pub fn renumber_pdfs(Array[Pdf]) -> Array[Pdf]
 
 pub fn replace_chain(Pdf, ArrayView[String], PdfObject) -> Unit raise
 

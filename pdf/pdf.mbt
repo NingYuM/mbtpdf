@@ -737,6 +737,14 @@ pub fn objcard(pdf : Pdf) -> Int {
 }
 
 ///|
+/// Return the object numbers in ascending order.
+pub fn objnumbers(pdf : Pdf) -> Array[Int] {
+  let entries = pdf.objects.objects.to_array()
+  entries.sort_by((a, b) => a.0 - b.0)
+  entries.map(pair => pair.0)
+}
+
+///|
 /// Remove the given object.
 pub fn removeobj(pdf : Pdf, objnum : Int) -> Unit {
   pdf.objects.objects.remove(objnum)
@@ -929,5 +937,107 @@ pub fn renumber_object_parsed(
       Stream(r)
     }
     _ => obj
+  }
+}
+
+///|
+/// Renumber a PDF's objects using a change table.
+pub fn renumber(
+  change_table : Map[Int, Int],
+  pdf : Pdf,
+  preserve_order? : Bool = false,
+) -> Pdf {
+  let root = match change_table.get(pdf.root) {
+    Some(value) => value
+    None => pdf.root
+  }
+  let trailerdict = renumber_object_parsed(
+    pdf,
+    change_table,
+    pdf.trailerdict,
+    preserve_order~,
+  )
+  let entries = pdf.objects.objects.to_array()
+  entries.sort_by((a, b) => a.0 - b.0)
+  let objects : PdfObjMap = Map::new(capacity=entries.length())
+  let mut max_obj_num = 0
+  for entry in entries {
+    let old_num = entry.0
+    let new_num = match change_table.get(old_num) {
+      Some(value) => value
+      None => old_num
+    }
+    let obj = lookup_obj(pdf, old_num)
+    let updated = renumber_object_parsed(
+      pdf,
+      change_table,
+      obj,
+      preserve_order~,
+    )
+    objects.set(new_num, ({ val: ObjectData::Parsed(updated) }, 0))
+    if new_num > max_obj_num {
+      max_obj_num = new_num
+    }
+  }
+  let object_stream_ids = Map::new()
+  for key, value in pdf.objects.object_stream_ids {
+    match change_table.get(key) {
+      Some(new_key) => object_stream_ids.set(new_key, value)
+      None => ()
+    }
+  }
+  {
+    major: pdf.major,
+    minor: pdf.minor,
+    root,
+    objects: {
+      max_obj_num,
+      parse: pdf.objects.parse,
+      objects,
+      object_stream_ids,
+    },
+    trailerdict,
+    was_linearized: pdf.was_linearized,
+    saved_encryption: pdf.saved_encryption,
+  }
+}
+
+///|
+/// Renumber a list of PDFs so their object numbers are mutually exclusive.
+pub fn renumber_pdfs(pdfs : Array[Pdf]) -> Array[Pdf] {
+  let out = Array::new(capacity=pdfs.length())
+  let mut base = 1
+  for pdf in pdfs {
+    let keys = objnumbers(pdf)
+    let changes : Map[Int, Int] = Map::new(capacity=keys.length())
+    let mut i = 0
+    for key in keys {
+      changes.set(key, base + i)
+      i = i + 1
+    }
+    base = base + keys.length()
+    out.push(renumber(changes, pdf))
+  }
+  out
+}
+
+///|
+fn generate_id(path : String) -> PdfObject {
+  let stamp = @env.now().to_string()
+  let id = path + stamp
+  PdfObject::Array([PdfObject::String(id), PdfObject::String(id)])
+}
+
+///|
+/// Replace the /ID entry in the trailer dictionary.
+pub fn change_id(pdf : Pdf, path : String) -> Unit raise {
+  match pdf.trailerdict {
+    Dictionary(_) =>
+      pdf.trailerdict = add_dict_entry(
+        pdf.trailerdict,
+        "/ID",
+        generate_id(path),
+      )
+    _ => raise PdfError::Msg("Bad trailer dictionary")
   }
 }

@@ -8,6 +8,10 @@ import {
 // Values
 pub let endpage : Ref[(@pdf.Pdf) -> Int]
 
+pub fn merge_structure_trees(@pdf.Pdf, Array[@pdf.Pdf], add_toplevel_document? : Bool) -> Int? raise
+
+pub fn renumber_parent_trees(Array[@pdf.Pdf]) -> Unit raise
+
 pub fn trim_structure_tree(@pdf.Pdf, Array[Int]) -> Unit raise
 
 // Errors
