@@ -398,10 +398,85 @@ pub fn compress(
   output : (@pdfio.MutableBytes, Int) -> Unit,
 ) -> Unit raise FlateError {
   let _ = level
-  let _ = header
-  let _ = input
-  let _ = output
-  raise FlateError::Error("compress", "not implemented")
+  let data = read_all_input(input)
+  let one = @pdfio.mkbytes(1)
+  fn write_byte(value : Int) -> Unit {
+    one[0] = value.to_byte()
+    output(one, 1)
+  }
+
+  fn write_u16_le(value : Int) -> Unit {
+    write_byte(value & 0xff)
+    write_byte((value >> 8) & 0xff)
+  }
+
+  fn write_bytes(
+    data : @pdfio.MutableBytes,
+    offset : Int,
+    length : Int,
+  ) -> Unit {
+    if length == 0 {
+      return
+    }
+    let chunk = @pdfio.mkbytes(length)
+    for i = 0; i < length; i = i + 1 {
+      chunk[i] = data[offset + i]
+    }
+    output(chunk, length)
+  }
+
+  fn adler32(data : @pdfio.MutableBytes) -> Int {
+    let mod_adler = 65521
+    let mut s1 = 1
+    let mut s2 = 0
+    for b in data {
+      s1 = (s1 + b.to_int()) % mod_adler
+      s2 = (s2 + s1) % mod_adler
+    }
+    (s2 << 16) | s1
+  }
+
+  fn write_stored_block(
+    data : @pdfio.MutableBytes,
+    offset : Int,
+    length : Int,
+    is_final : Bool,
+  ) -> Unit {
+    let header_byte = if is_final { 1 } else { 0 }
+    write_byte(header_byte)
+    write_u16_le(length)
+    write_u16_le(0xffff - length)
+    write_bytes(data, offset, length)
+  }
+
+  if header {
+    let zlib_header = @pdfio.mkbytes(2)
+    zlib_header[0] = (0x78).to_byte()
+    zlib_header[1] = (0x01).to_byte()
+    output(zlib_header, 2)
+  }
+  let total = data.length()
+  if total == 0 {
+    write_stored_block(data, 0, 0, true)
+  } else {
+    let mut offset = 0
+    while offset < total {
+      let remaining = total - offset
+      let block_len = if remaining > 65535 { 65535 } else { remaining }
+      let is_final = offset + block_len == total
+      write_stored_block(data, offset, block_len, is_final)
+      offset = offset + block_len
+    }
+  }
+  if header {
+    let checksum = adler32(data)
+    let adler_bytes = @pdfio.mkbytes(4)
+    adler_bytes[0] = ((checksum >> 24) & 0xff).to_byte()
+    adler_bytes[1] = ((checksum >> 16) & 0xff).to_byte()
+    adler_bytes[2] = ((checksum >> 8) & 0xff).to_byte()
+    adler_bytes[3] = (checksum & 0xff).to_byte()
+    output(adler_bytes, 4)
+  }
 }
 
 ///|
