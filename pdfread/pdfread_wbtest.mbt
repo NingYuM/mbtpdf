@@ -57,3 +57,17 @@ test "lex_hexstring rejects invalid hex" {
     _ => fail("expected lex_hexstring failure")
   }
 }
+
+///|
+test "lex_dictionary minus_one stops after closing dict" {
+  let input = @pdfio.input_of_string("/Type /Example >> trailer")
+  let tokens = lex_dictionary(true, input)
+  if tokens.length() == 0 {
+    fail("expected tokens")
+  }
+  let last = tokens[tokens.length() - 1]
+  match last {
+    @pdfgenlex.Token::LexRightDict => ()
+    _ => fail("expected closing dict")
+  }
+}

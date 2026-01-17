@@ -1770,9 +1770,9 @@ fn lex_next(
 }
 
 ///|
-/// Lex a dictionary.
+/// Lex a dictionary. If minus_one is true, assume the opening << was consumed.
 pub fn lex_dictionary(
-  read_stream_data : Bool,
+  minus_one : Bool,
   input : @pdfio.Input,
 ) -> Array[@pdfgenlex.Token] raise {
   let tokens = Array::new()
@@ -1784,12 +1784,13 @@ pub fn lex_dictionary(
   }
   while !done {
     let t = lex_next(
-      dict_level, array_level, false, input, tokens, read_stream_data, dummy_lexobj,
+      dict_level, array_level, false, input, tokens, false, dummy_lexobj,
     )
     tokens.push(t)
     match t {
       @pdfgenlex.Token::LexRightDict =>
-        if dict_level.val == 0 && array_level.val == 0 {
+        if dict_level.val == (if minus_one { -1 } else { 0 }) &&
+          array_level.val == 0 {
           done = true
         }
       @pdfgenlex.Token::StopLexing => done = true
