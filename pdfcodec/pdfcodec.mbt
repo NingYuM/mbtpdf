@@ -41,8 +41,8 @@ pub let debug : Ref[Bool] = { val: false }
 pub let string_of_pdf : Ref[(@pdf.PdfObject) -> String] = { val: _ => "" }
 
 ///|
-/// Placeholder for Pdf.of_file (revision?, owner?, user?, filename).
-pub let pdf_of_file : Ref[(Int?, String?, String?, String) -> @pdf.Pdf] = {
+/// Placeholder for Pdf.of_file (revision?, user?, owner?, filename).
+pub let pdf_of_file : Ref[(Int?, String?, String?, String) -> @pdf.Pdf raise] = {
   val: (_, _, _, _) => @pdf.empty(),
 }
 
