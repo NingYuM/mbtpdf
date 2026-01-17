@@ -1,0 +1,26 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/pdfunits"
+
+// Values
+pub fn centimetres(Double, Unit) -> Double
+
+pub fn inches(Double, Unit) -> Double
+
+pub fn millimetres(Double, Unit) -> Double
+
+pub fn points(Double, Unit) -> Double
+
+// Errors
+
+// Types and methods
+pub enum Unit {
+  PdfPoint
+  Inch
+  Centimetre
+  Millimetre
+}
+
+// Type aliases
+
+// Traits
+
