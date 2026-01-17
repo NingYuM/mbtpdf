@@ -4,6 +4,7 @@ package "bobzhang/mbtpdf/pdfwrite"
 import {
   "bobzhang/mbtpdf/pdf",
   "bobzhang/mbtpdf/pdfio",
+  "moonbitlang/async/fs",
 }
 
 // Values
@@ -11,7 +12,7 @@ pub fn debug_whole_pdf(@pdf.Pdf) -> Unit
 
 pub fn make_hex_pdf_string(String) -> String
 
-pub fn pdf_to_channel(preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, Unit) -> Unit raise
+pub fn pdf_to_channel(preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, @fs.File) -> Unit raise
 
 pub fn pdf_to_file(@pdf.Pdf, String) -> Unit raise
 

@@ -43,6 +43,93 @@ fn make_pdf_string(value : String) -> String {
 }
 
 ///|
+fn pad_int(value : Int, width : Int) -> String {
+  let s = value.to_string()
+  if s.length() >= width {
+    s
+  } else {
+    "0".repeat(width - s.length()) + s
+  }
+}
+
+///|
+fn write_pdf_object_to_output(
+  obj : @pdf.PdfObject,
+  output : @pdfio.Output,
+  include_stream_data : Bool,
+  hex_strings : Bool,
+) -> Unit raise {
+  fn write_str(s : String) -> Unit {
+    (output.output_string)(s)
+  }
+
+  match obj {
+    @pdf.PdfObject::Null => write_str("null")
+    @pdf.PdfObject::Boolean(b) => write_str(if b { "true" } else { "false" })
+    @pdf.PdfObject::Integer(i) => write_str(i.to_string())
+    @pdf.PdfObject::Real(r) => write_str(format_real(r))
+    @pdf.PdfObject::String(s) =>
+      write_str(
+        if hex_strings {
+          make_hex_pdf_string(s)
+        } else {
+          make_pdf_string(s)
+        },
+      )
+    @pdf.PdfObject::Name(n) => write_str(make_pdf_name(n))
+    @pdf.PdfObject::Array(values) => {
+      write_str("[")
+      for i = 0; i < values.length(); i = i + 1 {
+        if i > 0 {
+          write_str(" ")
+        }
+        write_pdf_object_to_output(
+          values[i],
+          output,
+          include_stream_data,
+          hex_strings,
+        )
+      }
+      write_str("]")
+    }
+    @pdf.PdfObject::Dictionary(entries) => {
+      write_str("<<")
+      for i = 0; i < entries.length(); i = i + 1 {
+        let (key, value) = entries[i]
+        if i > 0 {
+          write_str(" ")
+        }
+        write_str(make_pdf_name(key))
+        write_str(" ")
+        let value_hex = hex_strings && key == "/ID"
+        write_pdf_object_to_output(
+          value, output, include_stream_data, value_hex,
+        )
+      }
+      write_str(">>")
+    }
+    @pdf.PdfObject::Stream(r) => {
+      if include_stream_data {
+        let _ = @pdf.getstream(obj) catch { _ => () }
+
+      }
+      let (dict, stream_data) = r.val
+      write_pdf_object_to_output(dict, output, include_stream_data, hex_strings)
+      write_str("\nstream\n")
+      if include_stream_data {
+        match stream_data {
+          @pdf.Stream::Got(bytes) =>
+            @pdfio.getinit(output, bytes, 0, @pdfio.bytes_size(bytes))
+          _ => ()
+        }
+      }
+      write_str("\nendstream")
+    }
+    @pdf.PdfObject::Indirect(n) => write_str("\{n} 0 R")
+  }
+}
+
+///|
 fn write_pdf_object(
   obj : @pdf.PdfObject,
   include_stream_data : Bool,
@@ -118,7 +205,7 @@ pub struct Encryption {
 }
 
 ///|
-/// Write a PDF to an output (placeholder).
+/// Write a PDF to an output.
 pub fn pdf_to_output(
   preserve_objstm? : Bool = false,
   generate_objstm? : Bool = false,
@@ -126,18 +213,66 @@ pub fn pdf_to_output(
   recrypt? : String,
   _encryption : Encryption?,
   _build_new_id : Bool,
-  _pdf : @pdf.Pdf,
-  _output : @pdfio.Output,
+  pdf : @pdf.Pdf,
+  output : @pdfio.Output,
 ) -> Unit raise {
   let _ = preserve_objstm
   let _ = generate_objstm
   let _ = compress_objstm
   let _ = recrypt
-  raise @pdf.PdfError::Msg("pdf_to_output not implemented")
+  (output.output_string)("%PDF-\{pdf.major}.\{pdf.minor}\n")
+  let entries = @pdf.pdfobjmap_bindings(pdf.objects.objects)
+  let objnums = entries.map(pair => pair.0)
+  objnums.sort_by((a, b) => a - b)
+  let max_obj = pdf.objects.max_obj_num
+  let size = max_obj + 1
+  let offsets = Array::make(size, 0)
+  let gens = Array::make(size, 0)
+  let used = Array::make(size, false)
+  for objnum in objnums {
+    if objnum == 0 {
+      continue
+    }
+    match pdf.objects.objects.get(objnum) {
+      None => ()
+      Some((_obj_ref, gen)) => {
+        let offset = (output.pos_out)()
+        offsets[objnum] = offset
+        gens[objnum] = gen
+        used[objnum] = true
+        (output.output_string)("\{objnum} \{gen} obj\n")
+        let obj = @pdf.lookup_obj(pdf, objnum)
+        write_pdf_object_to_output(obj, output, true, false)
+        (output.output_string)("\nendobj\n")
+      }
+    }
+  }
+  let xref_start = (output.pos_out)()
+  (output.output_string)("xref\n")
+  (output.output_string)("0 \{size}\n")
+  let mut i = 0
+  while i < size {
+    if i == 0 || !used[i] {
+      (output.output_string)("0000000000 65535 f \n")
+    } else {
+      let line = "\{pad_int(offsets[i], 10)} \{pad_int(gens[i], 5)} n \n"
+      (output.output_string)(line)
+    }
+    i = i + 1
+  }
+  (output.output_string)("trailer\n")
+  let trailerdict = @pdf.add_dict_entry(
+    @pdf.add_dict_entry(pdf.trailerdict, "/Size", @pdf.PdfObject::Integer(size)),
+    "/Root",
+    @pdf.PdfObject::Indirect(pdf.root),
+  )
+  write_pdf_object_to_output(trailerdict, output, false, true)
+  (output.output_string)("\nstartxref\n")
+  (output.output_string)("\{xref_start}\n%%EOF\n")
 }
 
 ///|
-/// Write a PDF to a channel (placeholder).
+/// Write a PDF to a channel.
 pub fn pdf_to_channel(
   preserve_objstm? : Bool = false,
   generate_objstm? : Bool = false,
@@ -145,18 +280,37 @@ pub fn pdf_to_channel(
   recrypt? : String,
   _encryption : Encryption?,
   _build_new_id : Bool,
-  _pdf : @pdf.Pdf,
-  _channel : Unit,
+  pdf : @pdf.Pdf,
+  channel : @fs.File,
 ) -> Unit raise {
-  let _ = preserve_objstm
-  let _ = generate_objstm
-  let _ = compress_objstm
-  let _ = recrypt
-  raise @pdf.PdfError::Msg("pdf_to_channel not implemented")
+  let output = @pdfio.output_of_channel(channel)
+  match recrypt {
+    Some(value) =>
+      pdf_to_output(
+        preserve_objstm~,
+        generate_objstm~,
+        compress_objstm~,
+        recrypt=value,
+        _encryption,
+        _build_new_id,
+        pdf,
+        output,
+      )
+    None =>
+      pdf_to_output(
+        preserve_objstm~,
+        generate_objstm~,
+        compress_objstm~,
+        _encryption,
+        _build_new_id,
+        pdf,
+        output,
+      )
+  }
 }
 
 ///|
-/// Write a PDF to a file (placeholder).
+/// Write a PDF to a file.
 pub fn pdf_to_file_options(
   preserve_objstm? : Bool = false,
   generate_objstm? : Bool = false,
@@ -164,20 +318,70 @@ pub fn pdf_to_file_options(
   recrypt? : String,
   _encryption : Encryption?,
   _build_new_id : Bool,
-  _pdf : @pdf.Pdf,
-  _filename : String,
+  pdf : @pdf.Pdf,
+  filename : String,
 ) -> Unit raise {
-  let _ = preserve_objstm
-  let _ = generate_objstm
-  let _ = compress_objstm
-  let _ = recrypt
-  raise @pdf.PdfError::Msg("pdf_to_file_options not implemented")
+  let result : Ref[Result[@fs.File, Error]] = Ref::new(
+    Err(Failure::Failure("uninitialized open")),
+  )
+  @async.run_async_main(() => {
+    let res : Result[@fs.File, Error] = try? @fs.open(
+      filename,
+      mode=WriteOnly,
+      create=0o644,
+      truncate=true,
+    )
+    result.val = res
+  })
+  let file = match result.val {
+    Ok(f) => f
+    Err(err) => raise err
+  }
+  try {
+    match recrypt {
+      Some(value) =>
+        pdf_to_channel(
+          preserve_objstm~,
+          generate_objstm~,
+          compress_objstm~,
+          recrypt=value,
+          _encryption,
+          _build_new_id,
+          pdf,
+          file,
+        )
+      None =>
+        pdf_to_channel(
+          preserve_objstm~,
+          generate_objstm~,
+          compress_objstm~,
+          _encryption,
+          _build_new_id,
+          pdf,
+          file,
+        )
+    }
+    file.close()
+  } catch {
+    err => {
+      file.close()
+      raise err
+    }
+  }
 }
 
 ///|
-/// Simple write to file (placeholder).
-pub fn pdf_to_file(_pdf : @pdf.Pdf, _filename : String) -> Unit raise {
-  raise @pdf.PdfError::Msg("pdf_to_file not implemented")
+/// Simple write to file.
+pub fn pdf_to_file(pdf : @pdf.Pdf, filename : String) -> Unit raise {
+  pdf_to_file_options(
+    preserve_objstm=true,
+    generate_objstm=false,
+    compress_objstm=true,
+    None,
+    true,
+    pdf,
+    filename,
+  )
 }
 
 ///|

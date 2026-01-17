@@ -2,6 +2,8 @@
   "import": [
     "bobzhang/mbtpdf/pdf",
     "bobzhang/mbtpdf/pdfio",
-    "bobzhang/mbtpdf/pdfcodec"
+    "bobzhang/mbtpdf/pdfcodec",
+    "moonbitlang/async",
+    "moonbitlang/async/fs"
   ]
 }
