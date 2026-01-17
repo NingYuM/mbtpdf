@@ -231,7 +231,7 @@ pub fn input_of_string(s : String, source? : String = "string") -> Input {
 
 ///|
 /// Build an input from a channel (native-only, placeholder).
-pub fn input_of_channel(_ch : Unit, source? : String = "channel") -> Input raise {
+pub fn input_of_channel(_ch : Unit, _source? : String = "channel") -> Input raise {
   fail("input_of_channel not implemented yet")
 }
 

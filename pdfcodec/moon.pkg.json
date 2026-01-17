@@ -1,7 +1,6 @@
 {
   "import": [
     "bobzhang/mbtpdf/pdf",
-    "bobzhang/mbtpdf/pdfio",
-    "bobzhang/mbtpdf/pdfflate"
+    "bobzhang/mbtpdf/pdfio"
   ]
 }

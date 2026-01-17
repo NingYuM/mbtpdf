@@ -134,7 +134,7 @@ pub fn decode_pdfstream_until_unknown(
 pub fn decode_from_input(
   _input : @pdfio.Input,
   _dict : @pdf.PdfObject,
-) -> @pdfio.MutableBytes? raise CodecError {
+) -> @pdfio.MutableBytes? {
   None
 }
 
