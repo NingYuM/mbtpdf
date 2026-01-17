@@ -71,3 +71,13 @@ test "lex_dictionary minus_one stops after closing dict" {
     _ => fail("expected closing dict")
   }
 }
+
+///|
+test "lex_name rejects invalid hex" {
+  let input = @pdfio.input_of_string("/#GZ")
+  let res : Result[@pdfgenlex.Token, Error] = try? lex_name(input)
+  match res {
+    Err(_) => ()
+    _ => fail("expected lex_name failure")
+  }
+}

@@ -33,7 +33,7 @@ pub fn lex_dictionary(Bool, @pdfio.Input) -> Array[@pdfgenlex.Token] raise
 
 pub fn lex_hexstring(@pdfio.Input) -> @pdfgenlex.Token raise
 
-pub fn lex_name(@pdfio.Input) -> @pdfgenlex.Token
+pub fn lex_name(@pdfio.Input) -> @pdfgenlex.Token raise
 
 pub fn lex_number(@pdfio.Input) -> @pdfgenlex.Token raise
 

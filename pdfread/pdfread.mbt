@@ -1215,7 +1215,7 @@ fn build_pdf_objects(
 
 ///|
 /// Lex a name.
-pub fn lex_name(input : @pdfio.Input) -> @pdfgenlex.Token {
+pub fn lex_name(input : @pdfio.Input) -> @pdfgenlex.Token raise {
   let bytes : @pdfio.MutableBytes = Array::new()
   let _ = (input.input_byte)()
   bytes.push('/'.to_int().to_byte())
@@ -1239,11 +1239,8 @@ pub fn lex_name(input : @pdfio.Input) -> @pdfgenlex.Token {
           ])
           match (try? @strconv.parse_int("0x\{hex}")) {
             Ok(v) => bytes.push(v.to_byte())
-            Err(_) => {
-              bytes.push('#'.to_int().to_byte())
-              bytes.push(h1.to_byte())
-              bytes.push(h2.to_byte())
-            }
+            Err(_) =>
+              raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "lex_name"))
           }
         }
       } else {
