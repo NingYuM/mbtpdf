@@ -136,3 +136,39 @@ test "pdf roundtrip with generated object streams" {
   )
   assert_true(parsed.objects.object_stream_ids.length() > 0)
 }
+
+///|
+test "pdf roundtrip with preserved object streams" {
+  let pdf1 = build_minimal_pdf()
+  let (output1, buffer1) = @pdfio.input_output_of_bytes(512)
+  @pdfwrite.pdf_to_output(
+    generate_objstm=true,
+    preserve_objstm=false,
+    compress_objstm=true,
+    _encryption=None,
+    _build_new_id=false,
+    pdf1,
+    output1,
+  )
+  let bytes1 = @pdfio.extract_bytes_from_input_output(output1, buffer1)
+  let input1 = @pdfio.input_of_bytes(bytes1, source="objstm-preserve")
+  let parsed = @pdfread.pdf_of_input(
+    revision=None,
+    user_password=None,
+    owner_password=None,
+    input1,
+  )
+  let (output2, buffer2) = @pdfio.input_output_of_bytes(512)
+  @pdfwrite.pdf_to_output(
+    preserve_objstm=true,
+    generate_objstm=false,
+    compress_objstm=true,
+    _encryption=None,
+    _build_new_id=false,
+    parsed,
+    output2,
+  )
+  let bytes2 = @pdfio.extract_bytes_from_input_output(output2, buffer2)
+  let pdf_text = @pdfio.string_of_bytes(bytes2)
+  assert_true(pdf_text.contains("/ObjStm"))
+}
