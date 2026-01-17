@@ -110,3 +110,29 @@ test "pdf roundtrip with xref stream" {
   assert_eq(@pdf.objcard(parsed), 4)
   assert_eq(parsed.root, 4)
 }
+
+///|
+test "pdf roundtrip with generated object streams" {
+  let pdf1 = build_minimal_pdf()
+  let (output, buffer) = @pdfio.input_output_of_bytes(512)
+  @pdfwrite.pdf_to_output(
+    generate_objstm=true,
+    preserve_objstm=false,
+    compress_objstm=true,
+    _encryption=None,
+    _build_new_id=false,
+    pdf1,
+    output,
+  )
+  let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let pdf_text = @pdfio.string_of_bytes(pdf_bytes)
+  assert_true(pdf_text.contains("/ObjStm"))
+  let input = @pdfio.input_of_bytes(pdf_bytes, source="objstm")
+  let parsed = @pdfread.pdf_of_input(
+    revision=None,
+    user_password=None,
+    owner_password=None,
+    input,
+  )
+  assert_true(parsed.objects.object_stream_ids.length() > 0)
+}

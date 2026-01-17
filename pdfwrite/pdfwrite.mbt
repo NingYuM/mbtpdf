@@ -314,43 +314,247 @@ fn write_int_be(output : @pdfio.Output, value : Int, width : Int) -> Unit {
 }
 
 ///|
+fn clear_object_stream_ids(ids : Map[Int, Int]) -> Unit {
+  for pair in ids.to_array() {
+    ids.remove(pair.0)
+  }
+}
+
+///|
+fn split_into_groups(items : Array[Int], group_size : Int) -> Array[Array[Int]] {
+  let groups = Array::new()
+  let mut index = 0
+  while index < items.length() {
+    let group = Array::new()
+    let mut i = 0
+    while i < group_size && index < items.length() {
+      group.push(items[index])
+      index = index + 1
+      i = i + 1
+    }
+    groups.push(group)
+  }
+  groups
+}
+
+///|
+fn generate_object_stream_hints(
+  pdf : @pdf.Pdf,
+  preserve_existing : Bool,
+  encrypting : Bool,
+) -> Unit raise {
+  if !preserve_existing {
+    clear_object_stream_ids(pdf.objects.object_stream_ids)
+  }
+  let indirect_lengths : Map[Int, Bool] = Map::new()
+  let entries = @pdf.pdfobjmap_bindings(pdf.objects.objects)
+  for pair in entries {
+    let objnum = pair.0
+    let obj = @pdf.lookup_obj(pdf, objnum)
+    match obj {
+      @pdf.PdfObject::Stream(r) => {
+        let (dict, _) = r.val
+        match @pdf.lookup_direct(pdf, "/Length", dict) {
+          Some(@pdf.PdfObject::Indirect(i)) => indirect_lengths.set(i, true)
+          _ => ()
+        }
+      }
+      _ => ()
+    }
+  }
+  let candidates = Array::new()
+  for pair in entries {
+    let objnum = pair.0
+    if pdf.objects.object_stream_ids.get(objnum) is Some(_) {
+      continue
+    }
+    if indirect_lengths.get(objnum) is Some(_) {
+      continue
+    }
+    if encrypting && objnum == pdf.root {
+      continue
+    }
+    let obj = @pdf.lookup_obj(pdf, objnum)
+    match obj {
+      @pdf.PdfObject::Stream(_) => ()
+      _ => candidates.push(objnum)
+    }
+  }
+  candidates.sort_by((a, b) => a - b)
+  let groups = split_into_groups(candidates, 250)
+  let mut stream_id = pdf.objects.max_obj_num + 1
+  for group in groups {
+    let this_id = stream_id
+    stream_id = stream_id + 1
+    for objnum in group {
+      pdf.objects.object_stream_ids.set(objnum, this_id)
+    }
+  }
+}
+
+///|
+fn build_object_stream_groups(pdf : @pdf.Pdf) -> Array[(Int, Array[Int])] {
+  let groups : Map[Int, Array[Int]] = Map::new()
+  for pair in pdf.objects.object_stream_ids.to_array() {
+    let objnum = pair.0
+    let stream_id = pair.1
+    if pdf.objects.objects.get(objnum) is None {
+      pdf.objects.object_stream_ids.remove(objnum)
+      continue
+    }
+    let obj = @pdf.lookup_obj(pdf, objnum)
+    match obj {
+      @pdf.PdfObject::Stream(_) => {
+        pdf.objects.object_stream_ids.remove(objnum)
+        continue
+      }
+      _ => ()
+    }
+    let list = match groups.get(stream_id) {
+      Some(existing) => existing
+      None => {
+        let created = Array::new()
+        groups.set(stream_id, created)
+        created
+      }
+    }
+    list.push(objnum)
+  }
+  let groups_array = groups.to_array()
+  groups_array.sort_by((a, b) => a.0 - b.0)
+  for pair in groups_array {
+    pair.1.sort_by((a, b) => a - b)
+  }
+  groups_array
+}
+
+///|
+fn bake_object_streams(
+  pdf : @pdf.Pdf,
+  compress : Bool,
+  groups : Array[(Int, Array[Int])],
+) -> Map[Int, (Int, Int)] raise {
+  let entries : Map[Int, (Int, Int)] = Map::new()
+  for group in groups {
+    let stream_id = group.0
+    let objs = group.1
+    if objs.length() == 0 {
+      continue
+    }
+    let object_strings = Array::new()
+    let offsets = Array::new()
+    let mut offset = 0
+    let mut index = 0
+    for objnum in objs {
+      let obj = @pdf.lookup_obj(pdf, objnum)
+      let s = string_of_pdf(obj) + " "
+      object_strings.push(s)
+      offsets.push(offset)
+      entries.set(objnum, (stream_id, index))
+      pdf.objects.object_stream_ids.set(objnum, stream_id)
+      offset = offset + s.length()
+      index = index + 1
+    }
+    for objnum in objs {
+      @pdf.removeobj(pdf, objnum)
+    }
+    let header = StringBuilder::new()
+    let mut i = 0
+    while i < objs.length() {
+      header.write_string(objs[i].to_string())
+      header.write_char(' ')
+      header.write_string(offsets[i].to_string())
+      header.write_char(' ')
+      i = i + 1
+    }
+    let header_str = header.to_string()
+    let first = header_str.length()
+    let data_sb = StringBuilder::new()
+    data_sb.write_string(header_str)
+    for s in object_strings {
+      data_sb.write_string(s)
+    }
+    let data = @pdfio.bytes_of_string(data_sb.to_string())
+    let dict = @pdf.PdfObject::Dictionary([
+      ("/Type", @pdf.PdfObject::Name("/ObjStm")),
+      ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+      ("/N", @pdf.PdfObject::Integer(objs.length())),
+      ("/First", @pdf.PdfObject::Integer(first)),
+    ])
+    let mut stream_obj = @pdf.PdfObject::Stream(
+      Ref::new((dict, @pdf.Stream::Got(data))),
+    )
+    if compress {
+      let encoded = @pdfcodec.encode_flate(data)
+      if @pdfio.bytes_size(encoded) + 20 < @pdfio.bytes_size(data) {
+        let dict_with_filter = @pdf.add_dict_entry(
+          dict,
+          "/Filter",
+          @pdf.PdfObject::Name("/FlateDecode"),
+        )
+        let dict_with_length = @pdf.add_dict_entry(
+          dict_with_filter,
+          "/Length",
+          @pdf.PdfObject::Integer(@pdfio.bytes_size(encoded)),
+        )
+        stream_obj = @pdf.PdfObject::Stream(
+          Ref::new((dict_with_length, @pdf.Stream::Got(encoded))),
+        )
+      }
+    }
+    @pdf.addobj_given_num(pdf, (stream_id, stream_obj))
+  }
+  entries
+}
+
+///|
 fn build_xref_stream(
   pdf : @pdf.Pdf,
   size : Int,
   offsets : Array[Int],
   gens : Array[Int],
   used : Array[Bool],
+  object_stream_entries : Map[Int, (Int, Int)],
 ) -> @pdf.PdfObject raise {
-  let mut max_offset = 0
-  let mut max_gen = 0
+  let mut max_type = 1
+  let mut max_field2 = 0
+  let mut max_field3 = 0
   let mut i = 0
   while i < size {
-    if i == 0 || !used[i] {
-      if 65535 > max_gen {
-        max_gen = 65535
-      }
-    } else {
-      let offset = offsets[i]
-      if offset > max_offset {
-        max_offset = offset
-      }
-      let gen = gens[i]
-      if gen > max_gen {
-        max_gen = gen
-      }
+    let (typ, field2, field3) = match object_stream_entries.get(i) {
+      Some((stream_id, index)) => (2, stream_id, index)
+      None =>
+        if i == 0 || !used[i] {
+          (0, 0, 65535)
+        } else {
+          (1, offsets[i], gens[i])
+        }
+    }
+    if typ > max_type {
+      max_type = typ
+    }
+    if field2 > max_field2 {
+      max_field2 = field2
+    }
+    if field3 > max_field3 {
+      max_field3 = field3
     }
     i = i + 1
   }
-  let w1 = bytes_required(1)
-  let w2 = bytes_required(max_offset)
-  let w3 = bytes_required(max_gen)
+  let w1 = bytes_required(max_type)
+  let w2 = bytes_required(max_field2)
+  let w3 = bytes_required(max_field3)
   let (output, buffer) = @pdfio.input_output_of_bytes(256)
   i = 0
   while i < size {
-    let (typ, field2, field3) = if i == 0 || !used[i] {
-      (0, 0, 65535)
-    } else {
-      (1, offsets[i], gens[i])
+    let (typ, field2, field3) = match object_stream_entries.get(i) {
+      Some((stream_id, index)) => (2, stream_id, index)
+      None =>
+        if i == 0 || !used[i] {
+          (0, 0, 65535)
+        } else {
+          (1, offsets[i], gens[i])
+        }
     }
     write_int_be(output, typ, w1)
     write_int_be(output, field2, w2)
@@ -561,11 +765,23 @@ pub fn pdf_to_output(
   pdf : @pdf.Pdf,
   output : @pdfio.Output,
 ) -> Unit raise {
-  let _ = preserve_objstm
-  let _ = generate_objstm
-  let _ = compress_objstm
   let _ = recrypt
-  let use_xref_stream = preserve_objstm || generate_objstm
+  let encrypting = match _encryption {
+    Some(_) => true
+    None => false
+  }
+  let mut object_stream_entries : Map[Int, (Int, Int)] = Map::new()
+  if preserve_objstm || generate_objstm {
+    if generate_objstm {
+      generate_object_stream_hints(pdf, preserve_objstm, encrypting)
+    }
+    let groups = build_object_stream_groups(pdf)
+    if groups.length() > 0 {
+      object_stream_entries = bake_object_streams(pdf, compress_objstm, groups)
+    }
+  }
+  let use_xref_stream = (preserve_objstm || generate_objstm) &&
+    object_stream_entries.length() > 0
   write_header(pdf, output)
   let entries = @pdf.pdfobjmap_bindings(pdf.objects.objects)
   let objnums = entries.map(pair => pair.0)
@@ -599,7 +815,9 @@ pub fn pdf_to_output(
     offsets[xref_objnum] = xref_start
     gens[xref_objnum] = 0
     used[xref_objnum] = true
-    let xref_stream = build_xref_stream(pdf, size, offsets, gens, used)
+    let xref_stream = build_xref_stream(
+      pdf, size, offsets, gens, used, object_stream_entries,
+    )
     (output.output_string)("\{xref_objnum} 0 obj\n")
     write_pdf_object_to_output(xref_stream, output, true, true)
     (output.output_string)("\nendobj\n")
