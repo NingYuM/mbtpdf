@@ -224,12 +224,41 @@ pub fn input_of_string(s : String, source? : String = "string") -> Input {
 }
 
 ///|
-/// Build an input from a channel (native-only, placeholder).
-pub fn input_of_channel(
-  _ch : Unit,
-  _source? : String = "channel",
+fn read_data_to_bytes(load : async () -> &@io.Data) -> MutableBytes raise {
+  let result : Ref[Result[MutableBytes, Error]] = {
+    val: Err(Failure("uninitialized async read")),
+  }
+  @async.run_async_main(() => {
+    let data_res : Result[&@io.Data, Error] = try? load()
+    result.val = match data_res {
+      Ok(data) => Ok(data.binary().to_array())
+      Err(err) => Err(err)
+    }
+  })
+  match result.val {
+    Ok(bytes) => bytes
+    Err(err) => raise err
+  }
+}
+
+///|
+/// Build an input from a file path (native-only, reads entire file).
+pub fn input_of_file(
+  filename : String,
+  source? : String = "file",
 ) -> Input raise {
-  fail("input_of_channel not implemented yet")
+  let bytes = read_data_to_bytes(() => @fs.read_file(filename))
+  input_of_bytes(bytes, source~)
+}
+
+///|
+/// Build an input from a channel (native-only, reads entire stream).
+pub fn input_of_channel(
+  ch : @fs.File,
+  source? : String = "channel",
+) -> Input raise {
+  let bytes = read_data_to_bytes(() => ch.read_all())
+  input_of_bytes(bytes, source~)
 }
 
 ///|

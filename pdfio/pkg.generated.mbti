@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "bobzhang/mbtpdf/pdfio"
 
+import {
+  "moonbitlang/async/fs",
+}
+
 // Values
 pub fn bget(Array[Byte], Int) -> Int
 
@@ -44,7 +48,9 @@ pub fn getinit(Output, Array[Byte], Int, Int) -> Unit raise
 
 pub fn input_of_bytes(Array[Byte], source? : String) -> Input
 
-pub fn input_of_channel(Unit, _source? : String) -> Input raise
+pub fn input_of_channel(@fs.File, source? : String) -> Input raise
+
+pub fn input_of_file(String, source? : String) -> Input raise
 
 pub fn input_of_string(String, source? : String) -> Input
 

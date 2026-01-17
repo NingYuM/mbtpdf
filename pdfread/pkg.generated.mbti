@@ -5,6 +5,7 @@ import {
   "bobzhang/mbtpdf/pdf",
   "bobzhang/mbtpdf/pdfgenlex",
   "bobzhang/mbtpdf/pdfio",
+  "moonbitlang/async/fs",
 }
 
 // Values
@@ -44,9 +45,9 @@ pub fn parse(Array[@pdfgenlex.Token], failure_is_ok? : Bool) -> (Int, @pdf.PdfOb
 
 pub fn parse_single_object(String) -> @pdf.PdfObject raise
 
-pub fn pdf_of_channel(revision? : Int, source? : String, String?, String?, Unit) -> @pdf.Pdf raise
+pub fn pdf_of_channel(revision? : Int, source? : String, String?, String?, @fs.File) -> @pdf.Pdf raise
 
-pub fn pdf_of_channel_lazy(revision? : Int, source? : String, String?, String?, Unit) -> @pdf.Pdf raise
+pub fn pdf_of_channel_lazy(revision? : Int, source? : String, String?, String?, @fs.File) -> @pdf.Pdf raise
 
 pub fn pdf_of_file(revision? : Int, String?, String?, String) -> @pdf.Pdf raise
 
@@ -62,7 +63,7 @@ pub let read_debug : Ref[Bool]
 
 pub fn read_header(@pdfio.Input) -> (Int, Int) raise
 
-pub fn revisions(@pdfio.Input) -> Int
+pub fn revisions(@pdfio.Input) -> Int raise
 
 pub fn string_of_lexeme(@pdfgenlex.Token) -> String
 
