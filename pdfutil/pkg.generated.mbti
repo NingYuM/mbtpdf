@@ -10,9 +10,19 @@ pub fn fleprint(String) -> Unit
 
 pub fn flprint(String) -> Unit
 
+pub fn[K : Hash + Eq, V] hashtable_of_dictionary(Array[(K, V)]) -> Map[K, V]
+
+pub fn[K, V] list_of_hashtbl(Map[K, V]) -> Array[(K, V)]
+
+pub fn[T] memoize(() -> T raise) -> () -> T raise
+
+pub fn[K, V] null_hash() -> Map[K, V]
+
 pub let stderr_file : Ref[@fs.File?]
 
 pub let stdout_file : Ref[@fs.File?]
+
+pub fn[K : Hash + Eq, V] tryfind(Map[K, V], K) -> V?
 
 // Errors
 

@@ -1,0 +1,40 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/pdfafmdata"
+
+// Values
+pub fn courier_afm() -> Array[Byte]
+
+pub fn courier_bold_afm() -> Array[Byte]
+
+pub fn courier_bold_oblique_afm() -> Array[Byte]
+
+pub fn courier_oblique_afm() -> Array[Byte]
+
+pub fn helvetica_afm() -> Array[Byte]
+
+pub fn helvetica_bold_afm() -> Array[Byte]
+
+pub fn helvetica_bold_oblique_afm() -> Array[Byte]
+
+pub fn helvetica_oblique_afm() -> Array[Byte]
+
+pub fn symbol_afm() -> Array[Byte]
+
+pub fn times_bold_afm() -> Array[Byte]
+
+pub fn times_bold_italic_afm() -> Array[Byte]
+
+pub fn times_italic_afm() -> Array[Byte]
+
+pub fn times_roman_afm() -> Array[Byte]
+
+pub fn zapf_dingbats_afm() -> Array[Byte]
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

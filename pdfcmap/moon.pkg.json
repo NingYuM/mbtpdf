@@ -1,0 +1,9 @@
+{
+  "import": [
+    "bobzhang/mbtpdf/pdf",
+    "bobzhang/mbtpdf/pdfcodec",
+    "bobzhang/mbtpdf/pdfe",
+    "bobzhang/mbtpdf/pdfio",
+    "bobzhang/mbtpdf/pdfwrite"
+  ]
+}

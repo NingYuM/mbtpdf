@@ -1,0 +1,13 @@
+{
+  "import": [
+    "bobzhang/mbtpdf/pdf",
+    "bobzhang/mbtpdf/pdfcmap",
+    "bobzhang/mbtpdf/pdfe",
+    "bobzhang/mbtpdf/pdfgenlex",
+    "bobzhang/mbtpdf/pdfglyphlist",
+    "bobzhang/mbtpdf/pdfio",
+    "bobzhang/mbtpdf/pdfread",
+    "bobzhang/mbtpdf/pdftransform",
+    "bobzhang/mbtpdf/pdfutil"
+  ]
+}

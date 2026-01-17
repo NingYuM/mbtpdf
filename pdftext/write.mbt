@@ -1,0 +1,272 @@
+///|
+/// Font writing helpers.
+
+///|
+pub fn make_font(fontname : String, encoding : Encoding) -> @pdf.PdfObject {
+  @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/Font")),
+    ("/Subtype", @pdf.PdfObject::Name("/Type1")),
+    ("/Encoding", @pdf.PdfObject::Name("/" + string_of_encoding(encoding))),
+    ("/BaseFont", @pdf.PdfObject::Name("/" + fontname)),
+  ])
+}
+
+///|
+pub fn write_encoding(pdf : @pdf.Pdf, encoding : Encoding) -> Int raise {
+  match encoding {
+    Encoding::CustomEncoding(Encoding::ImplicitInFontFile, diffs) => {
+      let diff_array = Array::new()
+      for diff in diffs {
+        diff_array.push(@pdf.PdfObject::Integer(diff.1))
+        diff_array.push(@pdf.PdfObject::Name(diff.0))
+      }
+      let encoding_dict = @pdf.PdfObject::Dictionary([
+        ("/Type", @pdf.PdfObject::Name("/Encoding")),
+        ("/Differences", @pdf.PdfObject::Array(diff_array)),
+      ])
+      @pdf.addobj(pdf, encoding_dict)
+    }
+    _ => raise @pdf.PdfError::Msg("write_encoding: not supported")
+  }
+}
+
+///|
+let tounicode_preamble : String =
+  #|/CIDInit /ProcSet findresource begin
+  #|12 dict begin
+  #|begincmap
+  #|/CIDSystemInfo <<
+  #|  /Registry (Adobe)
+  #|  /Ordering (UCS)
+  #|  /Supplement 0
+  #|>> def
+  #|/CMapName /Adobe-Identity-UCS def
+  #|/CMapType 2 def
+  #|1 begincodespacerange
+  #|<00><FF>
+  #|endcodespacerange
+  #|
+
+///|
+let tounicode_postamble : String =
+  #|endbfrange
+  #|endcmap
+  #|CMapName currentdict /CMap defineresource pop
+  #|end
+  #|end
+  #|
+
+///|
+fn hex_byte_upper(value : Int) -> String {
+  let digits = "0123456789ABCDEF".to_array()
+  let hi = value / 16
+  let lo = value % 16
+  String::from_array([digits[hi], digits[lo]])
+}
+
+///|
+fn hex_byte_lower(value : Int) -> String {
+  let digits = "0123456789abcdef".to_array()
+  let hi = value / 16
+  let lo = value % 16
+  String::from_array([digits[hi], digits[lo]])
+}
+
+///|
+pub fn hex(u : String) -> String {
+  let sb = StringBuilder::new()
+  let bytes = @pdfio.bytes_of_string(u)
+  for b in bytes {
+    sb.write_string(hex_byte_upper(b.to_int()))
+  }
+  sb.to_string()
+}
+
+///|
+pub fn tounicode_map(
+  start_code : Int,
+  us : Array[String],
+) -> @pdfio.MutableBytes {
+  let sb = StringBuilder::new()
+  let mut code = start_code
+  sb.write_string(tounicode_preamble)
+  sb.write_string("\{us.length()} beginbfrange\n")
+  for u in us {
+    sb.write_string(
+      "<\{hex_byte_lower(code)}><\{hex_byte_lower(code)}><\{hex(u)}>\n",
+    )
+    code = code + 1
+  }
+  sb.write_string(tounicode_postamble)
+  @pdfio.bytes_of_string(sb.to_string())
+}
+
+///|
+pub fn write_tounicode(pdf : @pdf.Pdf, u : Map[Int, String]) -> Int raise {
+  let pairs = @pdfutil.list_of_hashtbl(u)
+  pairs.sort_by((a, b) => a.0 - b.0)
+  let strings = pairs.map(pair => pair.1)
+  let bytes = tounicode_map(33, strings)
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(bytes))),
+  ])
+  @pdf.addobj(
+    pdf,
+    @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(bytes)))),
+  )
+}
+
+///|
+pub fn write_font(objnum? : Int, pdf : @pdf.Pdf, font : Font) -> Int raise {
+  match font {
+    Font::SimpleFont(simple) =>
+      match simple.fonttype {
+        SimpleFontType::Type3(type3) =>
+          match simple.fontdescriptor {
+            Some(_) => {
+              let encoding_entry = match simple.encoding {
+                Encoding::ImplicitInFontFile => []
+                _ =>
+                  [
+                    (
+                      "/Encoding",
+                      @pdf.PdfObject::Indirect(
+                        write_encoding(pdf, simple.encoding),
+                      ),
+                    ),
+                  ]
+              }
+              let dict = @pdf.PdfObject::Dictionary(
+                [
+                  ("/Type", @pdf.PdfObject::Name("/Font")),
+                  ("/Subtype", @pdf.PdfObject::Name("/Type3")),
+                  (
+                    "/FontBBox",
+                    @pdf.PdfObject::Array([
+                      @pdf.PdfObject::Real(0.0),
+                      @pdf.PdfObject::Real(0.0),
+                      @pdf.PdfObject::Real(0.0),
+                      @pdf.PdfObject::Real(0.0),
+                    ]),
+                  ),
+                  (
+                    "/FontMatrix",
+                    @pdf.PdfObject::Array([
+                      @pdf.PdfObject::Real(0.0),
+                      @pdf.PdfObject::Real(0.0),
+                      @pdf.PdfObject::Real(0.0),
+                      @pdf.PdfObject::Real(0.0),
+                      @pdf.PdfObject::Real(0.0),
+                      @pdf.PdfObject::Real(0.0),
+                    ]),
+                  ),
+                  (
+                    "/CharProcs",
+                    @pdf.PdfObject::Dictionary(
+                      type3.charprocs.map(pair => (pair.0, @pdf.PdfObject::Null)),
+                    ),
+                  ),
+                  ("/FirstChar", @pdf.PdfObject::Integer(0)),
+                  ("/LastChar", @pdf.PdfObject::Integer(0)),
+                  (
+                    "/Widths",
+                    @pdf.PdfObject::Array([@pdf.PdfObject::Real(0.0)]),
+                  ),
+                ].add(encoding_entry),
+              )
+              @pdf.addobj(pdf, dict)
+            }
+            None => raise @pdf.PdfError::Msg("Missing font descriptor")
+          }
+        SimpleFontType::Truetype =>
+          match simple.fontdescriptor {
+            Some(fd) =>
+              match fd.fontfile {
+                Some(FontFile::FontFile2(ttf)) => {
+                  let (minx, miny, maxx, maxy) = fd.fontbbox
+                  let fontdesc = @pdf.PdfObject::Dictionary([
+                    ("/Type", @pdf.PdfObject::Name("/FontDescriptor")),
+                    ("/FontName", @pdf.PdfObject::Name(simple.basefont)),
+                    ("/Flags", @pdf.PdfObject::Integer(fd.flags)),
+                    (
+                      "/FontBBox",
+                      @pdf.PdfObject::Array([
+                        @pdf.PdfObject::Integer(minx.to_int()),
+                        @pdf.PdfObject::Integer(miny.to_int()),
+                        @pdf.PdfObject::Integer(maxx.to_int()),
+                        @pdf.PdfObject::Integer(maxy.to_int()),
+                      ]),
+                    ),
+                    (
+                      "/ItalicAngle",
+                      @pdf.PdfObject::Integer(fd.italicangle.to_int()),
+                    ),
+                    ("/Ascent", @pdf.PdfObject::Integer(fd.ascent.to_int())),
+                    ("/Descent", @pdf.PdfObject::Integer(fd.descent.to_int())),
+                    (
+                      "/CapHeight",
+                      @pdf.PdfObject::Integer(fd.capheight.to_int()),
+                    ),
+                    ("/StemV", @pdf.PdfObject::Integer(fd.stemv.to_int())),
+                    ("/XHeight", @pdf.PdfObject::Integer(fd.xheight.to_int())),
+                    ("/AvgWidth", @pdf.PdfObject::Integer(fd.avgwidth.to_int())),
+                    ("/MaxWidth", @pdf.PdfObject::Integer(fd.maxwidth.to_int())),
+                    ("/FontFile2", @pdf.PdfObject::Indirect(ttf)),
+                  ])
+                  let fontdesc_num = @pdf.addobj(pdf, fontdesc)
+                  let mut font_dict_entries : Array[(String, @pdf.PdfObject)] = [
+                    ("/Type", @pdf.PdfObject::Name("/Font")),
+                    ("/Subtype", @pdf.PdfObject::Name("/TrueType")),
+                    ("/BaseFont", @pdf.PdfObject::Name(simple.basefont)),
+                    ("/FontDescriptor", @pdf.PdfObject::Indirect(fontdesc_num)),
+                    ("/FirstChar", @pdf.PdfObject::Integer(simple.firstchar)),
+                    ("/LastChar", @pdf.PdfObject::Integer(simple.lastchar)),
+                    (
+                      "/Widths",
+                      @pdf.PdfObject::Array(
+                        simple.widths.map(w => @pdf.PdfObject::Integer(w)),
+                      ),
+                    ),
+                  ]
+                  font_dict_entries = match fd.tounicode {
+                    None =>
+                      font_dict_entries.add([
+                        (
+                          "/Encoding",
+                          @pdf.PdfObject::Name(
+                            "/" + string_of_encoding(simple.encoding),
+                          ),
+                        ),
+                      ])
+                    Some(u) =>
+                      font_dict_entries.add([
+                        (
+                          "/ToUnicode",
+                          @pdf.PdfObject::Indirect(write_tounicode(pdf, u)),
+                        ),
+                      ])
+                  }
+                  let font_obj = @pdf.PdfObject::Dictionary(font_dict_entries)
+                  match objnum {
+                    None => @pdf.addobj(pdf, font_obj)
+                    Some(o) => {
+                      @pdf.addobj_given_num(pdf, (o, font_obj))
+                      o
+                    }
+                  }
+                }
+                _ => raise @pdf.PdfError::Msg("Missing FontFile2")
+              }
+            None => raise @pdf.PdfError::Msg("Missing font descriptor")
+          }
+        _ =>
+          raise @pdf.PdfError::Msg(
+            "Pdftext.write_font does not support this font",
+          )
+      }
+    Font::StandardFont(standard, encoding) =>
+      @pdf.addobj(pdf, make_font(string_of_standard_font(standard), encoding))
+    _ =>
+      raise @pdf.PdfError::Msg("Pdftext.write_font does not support this font")
+  }
+}

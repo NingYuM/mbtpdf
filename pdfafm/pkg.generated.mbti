@@ -1,0 +1,18 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/pdfafm"
+
+import {
+  "bobzhang/mbtpdf/pdfio",
+}
+
+// Values
+pub fn read(@pdfio.Input) -> (Array[(String, String)], Array[(Int, Int)], Array[(Int, Int, Int)], Array[(String, Int)]) raise
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

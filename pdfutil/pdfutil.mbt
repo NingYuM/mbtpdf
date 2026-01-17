@@ -56,3 +56,51 @@ pub fn fleprint(message : String) -> Unit {
     None => println(message)
   }
 }
+
+///|
+/// Memoize a nullary function (cache the first computed value).
+pub fn[T] memoize(f : () -> T raise) -> () -> T raise {
+  let cached : Ref[T?] = Ref::new(None)
+  let ready : Ref[Bool] = Ref::new(false)
+  () => if ready.val {
+    match cached.val {
+      Some(value) => value
+      None => f()
+    }
+  } else {
+    let value = f()
+    cached.val = Some(value)
+    ready.val = true
+    value
+  }
+}
+
+///|
+/// Build a hash map from a list of key/value pairs.
+pub fn[K : Hash + Eq, V] hashtable_of_dictionary(
+  pairs : Array[(K, V)],
+) -> Map[K, V] {
+  let table : Map[K, V] = Map::new(capacity=pairs.length() * 2)
+  for pair in pairs {
+    table.set(pair.0, pair.1)
+  }
+  table
+}
+
+///|
+/// Construct an empty hash table.
+pub fn[K, V] null_hash() -> Map[K, V] {
+  Map::new(capacity=0)
+}
+
+///|
+/// Lookup an entry in a hash table.
+pub fn[K : Hash + Eq, V] tryfind(table : Map[K, V], key : K) -> V? {
+  table.get(key)
+}
+
+///|
+/// Extract all pairs from a hash table.
+pub fn[K, V] list_of_hashtbl(table : Map[K, V]) -> Array[(K, V)] {
+  table.to_array()
+}
