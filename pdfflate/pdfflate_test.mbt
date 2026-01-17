@@ -28,6 +28,35 @@ fn run_uncompress(
 }
 
 ///|
+fn run_compress(
+  data : @pdfio.MutableBytes,
+  header : Bool,
+) -> @pdfio.MutableBytes raise FlateError {
+  let mut pos = 0
+  let input = (buf : @pdfio.MutableBytes) => {
+    let remaining = data.length() - pos
+    if remaining <= 0 {
+      0
+    } else {
+      let n = if remaining < buf.length() { remaining } else { buf.length() }
+      for i = 0; i < n; i = i + 1 {
+        buf[i] = data[pos + i]
+      }
+      pos = pos + n
+      n
+    }
+  }
+  let out : @pdfio.MutableBytes = Array::new()
+  let output = (buf : @pdfio.MutableBytes, length : Int) => for i = 0
+                                                                i < length
+                                                                i = i + 1 {
+    out.push(buf[i])
+  }
+  compress(header~, input, output)
+  out
+}
+
+///|
 test "uncompress stored zlib" {
   let data : @pdfio.MutableBytes = [
     120, 1, 1, 11, 0, 244, 255, 104, 101, 108, 108, 111, 32, 119, 111, 114, 108,
@@ -70,4 +99,28 @@ test "uncompress dynamic huffman" {
   }
   let expected = @pdfio.bytes_of_string("abcde".repeat(1000))
   assert_eq(out, expected)
+}
+
+///|
+test "compress/uncompress roundtrip zlib" {
+  let input = @pdfio.bytes_of_string("hello flate")
+  let encoded = run_compress(input, true) catch {
+    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+  }
+  let decoded = run_uncompress(encoded, true) catch {
+    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+  }
+  assert_eq(@pdfio.string_of_bytes(decoded), "hello flate")
+}
+
+///|
+test "compress/uncompress roundtrip raw" {
+  let input = @pdfio.bytes_of_string("hello flate raw")
+  let encoded = run_compress(input, false) catch {
+    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+  }
+  let decoded = run_uncompress(encoded, false) catch {
+    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+  }
+  assert_eq(@pdfio.string_of_bytes(decoded), "hello flate raw")
 }
