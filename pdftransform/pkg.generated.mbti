@@ -1,0 +1,70 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/pdftransform"
+
+// Values
+pub fn append(Array[TransformOp], Array[TransformOp]) -> Array[TransformOp]
+
+pub fn compose(TransformOp, Array[TransformOp]) -> Array[TransformOp]
+
+pub fn decompose(TransformMatrix) -> (Double, Double, Double, Double, Double, Double)
+
+pub let i : Array[TransformOp]
+
+pub let i_matrix : TransformMatrix
+
+pub fn matrix_compose(TransformMatrix, TransformMatrix) -> TransformMatrix
+
+pub fn matrix_invert(TransformMatrix) -> TransformMatrix raise NonInvertable
+
+pub fn matrix_of_op(TransformOp) -> TransformMatrix
+
+pub fn matrix_of_transform(Array[TransformOp]) -> TransformMatrix
+
+pub fn mkrotate((Double, Double), Double) -> TransformMatrix
+
+pub fn mkscale((Double, Double), Double, Double) -> TransformMatrix
+
+pub fn mkshearx((Double, Double), Double) -> TransformMatrix
+
+pub fn mksheary((Double, Double), Double) -> TransformMatrix
+
+pub fn mktranslate(Double, Double) -> TransformMatrix
+
+pub fn recompose(Double, Double, Double, Double, Double, Double) -> TransformMatrix
+
+pub fn string_of_matrix(TransformMatrix) -> String
+
+pub fn string_of_transform(Array[TransformOp]) -> String
+
+pub fn transform(Array[TransformOp], (Double, Double)) -> (Double, Double)
+
+pub fn transform_matrix(TransformMatrix, (Double, Double)) -> (Double, Double)
+
+// Errors
+pub suberror NonInvertable {
+  NonInvertable
+}
+
+// Types and methods
+pub(all) struct TransformMatrix {
+  a : Double
+  b : Double
+  c : Double
+  d : Double
+  e : Double
+  f : Double
+}
+
+pub(all) enum TransformOp {
+  Scale((Double, Double), Double, Double)
+  Rotate((Double, Double), Double)
+  Translate(Double, Double)
+  ShearX((Double, Double), Double)
+  ShearY((Double, Double), Double)
+}
+
+// Type aliases
+pub type Transform = Array[TransformOp]
+
+// Traits
+
