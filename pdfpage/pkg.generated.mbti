@@ -3,6 +3,7 @@ package "bobzhang/mbtpdf/pdfpage"
 
 import {
   "bobzhang/mbtpdf/pdf",
+  "bobzhang/mbtpdf/pdfdest",
   "bobzhang/mbtpdf/pdfops",
   "bobzhang/mbtpdf/pdfpaper",
 }
@@ -24,9 +25,19 @@ pub fn endpage(@pdf.Pdf) -> Int raise
 
 pub fn endpage_fast(@pdf.Pdf) -> Int raise
 
+pub fn fixup_destinations(@pdf.Pdf) -> Unit raise
+
+pub fn fixup_duplicate_annots(@pdf.Pdf) -> Unit raise
+
+pub fn fixup_duplicate_pages(@pdf.Pdf) -> Unit raise
+
+pub fn fixup_parents(@pdf.Pdf) -> Unit raise
+
 pub fn int_of_rotation(Rotation) -> Int
 
 pub fn minimum_valid_pdf() -> @pdf.Pdf raise
+
+pub fn page_object_number(@pdf.Pdf, Int) -> Int? raise
 
 pub fn pages_of_pagetree(@pdf.Pdf) -> Array[Page] raise
 
@@ -46,9 +57,13 @@ pub fn rectangle_of_paper(@pdfpaper.Paper) -> @pdf.PdfObject
 
 pub fn renumber_pages(@pdf.Pdf, Array[Page]) -> Array[Page] raise
 
+pub fn replace_inherit(@pdf.Pdf, Array[Int]) -> Unit raise
+
 pub fn rotation_of_int(Int) -> Rotation raise
 
 pub fn shortest_unused_prefix(@pdf.Pdf) -> String
+
+pub fn target_of_pagenumber(@pdf.Pdf, Int) -> @pdfdest.Destination raise
 
 // Errors
 
