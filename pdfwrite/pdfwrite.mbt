@@ -366,6 +366,7 @@ fn write_pdf_object_to_output(
 fn write_pdf_object(
   obj : @pdf.PdfObject,
   include_stream_data : Bool,
+  warn_on_toget : Bool,
   sb : StringBuilder,
 ) -> Unit {
   match obj {
@@ -382,7 +383,7 @@ fn write_pdf_object(
         if i > 0 {
           sb.write_char(' ')
         }
-        write_pdf_object(values[i], include_stream_data, sb)
+        write_pdf_object(values[i], include_stream_data, warn_on_toget, sb)
       }
       sb.write_char(']')
     }
@@ -395,20 +396,23 @@ fn write_pdf_object(
         }
         sb.write_string(make_pdf_name(key))
         sb.write_char(' ')
-        write_pdf_object(value, include_stream_data, sb)
+        write_pdf_object(value, include_stream_data, warn_on_toget, sb)
       }
       sb.write_string(">>")
     }
     @pdf.PdfObject::Stream(r) => {
       let (dict, _) = r.val
-      write_pdf_object(dict, include_stream_data, sb)
+      write_pdf_object(dict, include_stream_data, warn_on_toget, sb)
       sb.write_string("\nstream\n")
       if include_stream_data {
         let _ = @pdf.getstream(obj) catch { _ => () }
         match r.val {
           (_, @pdf.Stream::Got(bytes)) =>
             sb.write_string(@pdfio.string_of_bytes(bytes))
-          _ => ()
+          _ =>
+            if warn_on_toget {
+              @pdfe.log("WARNING: toget in string_of_pdf_including_data\n")
+            }
         }
       }
       sb.write_string("\nendstream")
@@ -621,7 +625,7 @@ pub fn pdf_to_file(pdf : @pdf.Pdf, filename : String) -> Unit raise {
 /// String of a PDF object.
 pub fn string_of_pdf(obj : @pdf.PdfObject) -> String {
   let sb = StringBuilder::new()
-  write_pdf_object(obj, false, sb)
+  write_pdf_object(obj, false, false, sb)
   sb.to_string()
 }
 
@@ -629,7 +633,7 @@ pub fn string_of_pdf(obj : @pdf.PdfObject) -> String {
 /// String of a PDF object including stream data.
 pub fn string_of_pdf_including_data(obj : @pdf.PdfObject) -> String {
   let sb = StringBuilder::new()
-  write_pdf_object(obj, true, sb)
+  write_pdf_object(obj, true, true, sb)
   sb.to_string()
 }
 
