@@ -787,3 +787,147 @@ pub fn lookup_exception(
     None => raise err
   }
 }
+
+///|
+/// Return the document catalog.
+pub fn catalog_of_pdf(pdf : Pdf) -> PdfObject raise {
+  let obj = lookup_obj(pdf, pdf.root)
+  match obj {
+    Null => raise PdfError::Msg("No catalog")
+    _ => obj
+  }
+}
+
+///|
+/// Recursively rebuild an array.
+pub fn recurse_array(
+  f : (PdfObject) -> PdfObject,
+  elts : Array[PdfObject],
+) -> PdfObject {
+  Array(elts.map(f))
+}
+
+///|
+/// Recursively rebuild a dictionary.
+pub fn recurse_dict(
+  f : (PdfObject) -> PdfObject,
+  elts : Array[(String, PdfObject)],
+  preserve_order? : Bool = false,
+) -> PdfObject {
+  let _ = preserve_order
+  let out = Array::new(capacity=elts.length())
+  for entry in elts {
+    out.push((entry.0, f(entry.1)))
+  }
+  Dictionary(out)
+}
+
+///|
+/// Iterate over all objects in a document.
+pub fn objiter(f : (Int, PdfObject) -> Unit raise?, pdf : Pdf) -> Unit raise? {
+  let entries = pdf.objects.objects.to_array()
+  entries.sort_by((a, b) => a.0 - b.0)
+  for entry in entries {
+    let key = entry.0
+    f(key, lookup_obj(pdf, key))
+  }
+}
+
+///|
+/// Map a function over all objects in a document.
+pub fn objselfmap(
+  f : (PdfObject) -> PdfObject raise?,
+  pdf : Pdf,
+) -> Unit raise? {
+  let entries = pdf.objects.objects.to_array()
+  entries.sort_by((a, b) => a.0 - b.0)
+  for entry in entries {
+    let key = entry.0
+    let obj = lookup_obj(pdf, key)
+    let updated = f(obj)
+    let (obj_ref, _gen) = entry.1
+    match obj_ref.val {
+      ParsedAlreadyDecrypted(_) => obj_ref.val = ParsedAlreadyDecrypted(updated)
+      _ => obj_ref.val = Parsed(updated)
+    }
+  }
+}
+
+///|
+fn page_reference_numbers_inner(
+  pdf : Pdf,
+  pages_node : PdfObject,
+  node_number : Int,
+) -> Array[Int] {
+  match lookup_direct(pdf, "/Type", pages_node) {
+    Some(Name("/Page")) => [node_number]
+    _ =>
+      match lookup_direct(pdf, "/Kids", pages_node) {
+        Some(Array(elts)) => {
+          let out = Array::new()
+          for elt in elts {
+            match elt {
+              Indirect(i) =>
+                out.append(
+                  page_reference_numbers_inner(pdf, direct(pdf, Indirect(i)), i)[:],
+                )
+              _ => ()
+            }
+          }
+          out
+        }
+        _ => [node_number]
+      }
+  }
+}
+
+///|
+/// Return the page reference numbers in order.
+pub fn page_reference_numbers(pdf : Pdf) -> Array[Int] raise {
+  let root = lookup_obj(pdf, pdf.root)
+  let pages_node = match lookup_direct(pdf, "/Pages", root) {
+    Some(p) => p
+    None => raise PdfError::Msg("No /Pages found in /Root")
+  }
+  page_reference_numbers_inner(pdf, pages_node, -1)
+}
+
+///|
+/// Renumber indirect references using a change table.
+pub fn renumber_object_parsed(
+  pdf : Pdf,
+  changes : Map[Int, Int],
+  obj : PdfObject,
+  preserve_order? : Bool = false,
+) -> PdfObject {
+  let _ = pdf
+  match obj {
+    Indirect(i) =>
+      match changes.get(i) {
+        Some(x) => Indirect(x)
+        None => Indirect(i)
+      }
+    Array(values) =>
+      Array(
+        values.map(v => renumber_object_parsed(pdf, changes, v, preserve_order~)),
+      )
+    Dictionary(entries) =>
+      recurse_dict(
+        v => renumber_object_parsed(pdf, changes, v, preserve_order~),
+        entries,
+        preserve_order~,
+      )
+    Stream(r) => {
+      let (dict, stream) = r.val
+      let dict_updated = renumber_object_parsed(
+        pdf,
+        changes,
+        dict,
+        preserve_order~,
+      )
+      r.val = (dict_updated, stream)
+      Stream(r)
+    }
+    _ => obj
+  }
+}

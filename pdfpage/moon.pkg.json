@@ -1,0 +1,17 @@
+{
+  "import": [
+    "bobzhang/mbtpdf/pdf",
+    "bobzhang/mbtpdf/pdfcodec",
+    "bobzhang/mbtpdf/pdfdest",
+    "bobzhang/mbtpdf/pdfe",
+    "bobzhang/mbtpdf/pdfio",
+    "bobzhang/mbtpdf/pdfops",
+    "bobzhang/mbtpdf/pdfpagelabels",
+    "bobzhang/mbtpdf/pdfpaper",
+    "bobzhang/mbtpdf/pdfread",
+    "bobzhang/mbtpdf/pdftree",
+    "bobzhang/mbtpdf/pdftransform",
+    "bobzhang/mbtpdf/pdfunits",
+    "bobzhang/mbtpdf/pdfwrite"
+  ]
+}
