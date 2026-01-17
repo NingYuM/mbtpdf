@@ -139,19 +139,95 @@ pub fn encode_ccittg4(
 ///|
 /// Encode a PDF stream with an encoding.
 pub fn encode_pdfstream(
-  _pdf : @pdf.Pdf,
-  _encoding : Encoding,
-  _obj : @pdf.PdfObject,
+  pdf : @pdf.Pdf,
+  encoding : Encoding,
+  obj : @pdf.PdfObject,
   im? : String,
   only_if_smaller? : Bool = false,
   predictor? : Predictor,
   predictor_columns? : Int,
 ) -> Unit raise CodecError {
   let _ = im
-  let _ = only_if_smaller
-  let _ = predictor
   let _ = predictor_columns
-  raise CodecError::DecodeNotSupported("encode_pdfstream not implemented")
+  match predictor {
+    Some(_) =>
+      raise CodecError::DecodeNotSupported("predictor encoding not supported")
+    None => ()
+  }
+  let encoding_name = match encoding {
+    Encoding::ASCIIHex => "/ASCIIHexDecode"
+    Encoding::ASCII85 => "/ASCII85Decode"
+    Encoding::RunLength => "/RunLengthDecode"
+    Encoding::Flate => "/FlateDecode"
+    Encoding::CCITT(_, _) | Encoding::CCITTG4(_, _) => "/CCITTFaxDecode"
+  }
+  fn update_filter(dict : @pdf.PdfObject) -> @pdf.PdfObject raise CodecError {
+    let filter_obj = match @pdf.lookup_direct(pdf, "/Filter", dict) {
+      None => @pdf.PdfObject::Name(encoding_name)
+      Some(@pdf.PdfObject::Name(name)) =>
+        @pdf.PdfObject::Array([
+          @pdf.PdfObject::Name(encoding_name),
+          @pdf.PdfObject::Name(name),
+        ])
+      Some(@pdf.PdfObject::Array(filters)) => {
+        let updated = Array::new(capacity=filters.length() + 1)
+        updated.push(@pdf.PdfObject::Name(encoding_name))
+        for f in filters {
+          updated.push(f)
+        }
+        @pdf.PdfObject::Array(updated)
+      }
+      Some(_) => raise CodecError::CouldntDecodeStream("malformed /Filter")
+    }
+    set_dict_entry(dict, "/Filter", filter_obj)
+  }
+
+  fn encode_stream(
+    dict : @pdf.PdfObject,
+    data : @pdfio.MutableBytes,
+  ) -> (@pdf.PdfObject, @pdfio.MutableBytes) raise CodecError {
+    let encoded = match encoding {
+      Encoding::Flate => encode_flate(data)
+      _ =>
+        raise CodecError::DecodeNotSupported(
+          "encoding not supported: \{encoding_name}",
+        )
+    }
+    let dict_with_filter = update_filter(dict)
+    let dict_with_length = set_dict_entry(
+      dict_with_filter,
+      "/Length",
+      @pdf.PdfObject::Integer(@pdfio.bytes_size(encoded)),
+    )
+    (dict_with_length, encoded)
+  }
+
+  match obj {
+    @pdf.PdfObject::Stream(r) => {
+      map_pdf_error("getstream", fn() raise { @pdf.getstream(obj) })
+      let (dict, stream_data) = r.val
+      let data = match stream_data {
+        @pdf.Stream::Got(bytes) => bytes
+        _ => raise CodecError::CouldntDecodeStream("stream data not available")
+      }
+      let (new_dict, new_data) = encode_stream(dict, data)
+      if !only_if_smaller ||
+        @pdfio.bytes_size(new_data) + 20 < @pdfio.bytes_size(data) {
+        r.val = (new_dict, @pdf.Stream::Got(new_data))
+      }
+    }
+    @pdf.PdfObject::Indirect(i) =>
+      encode_pdfstream(
+        pdf,
+        encoding,
+        @pdf.direct(pdf, @pdf.PdfObject::Indirect(i)),
+        im?,
+        only_if_smaller~,
+        predictor?,
+        predictor_columns?,
+      )
+    _ => raise CodecError::CouldntDecodeStream("malformed stream")
+  }
 }
 
 ///|
