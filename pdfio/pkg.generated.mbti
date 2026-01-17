@@ -22,7 +22,7 @@ pub fn bytes_of_charlist(Array[Char]) -> Array[Byte]
 
 pub fn bytes_of_input(Input, Int, Int) -> Array[Byte] raise
 
-pub fn bytes_of_input_channel(Unit) -> Array[Byte] raise
+pub fn bytes_of_input_channel(@fs.File) -> Array[Byte] raise
 
 pub fn bytes_of_int_array(Array[Int]) -> Array[Byte]
 
@@ -34,7 +34,7 @@ pub fn bytes_selfmap((Int) -> Int, Array[Byte]) -> Unit
 
 pub fn bytes_size(Array[Byte]) -> Int
 
-pub fn bytes_to_output_channel(Unit, Array[Byte]) -> Unit raise
+pub fn bytes_to_output_channel(@fs.File, Array[Byte]) -> Unit raise
 
 pub fn charlist_of_bytes(Array[Byte]) -> Array[Char]
 
@@ -66,7 +66,7 @@ pub let no_more : Int
 
 pub fn nudge(Input) -> Unit
 
-pub fn output_of_channel(Unit) -> Output raise
+pub fn output_of_channel(@fs.File) -> Output
 
 pub fn peek_byte(Input) -> Int
 

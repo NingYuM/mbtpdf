@@ -225,9 +225,9 @@ pub fn input_of_string(s : String, source? : String = "string") -> Input {
 
 ///|
 fn read_data_to_bytes(load : async () -> &@io.Data) -> MutableBytes raise {
-  let result : Ref[Result[MutableBytes, Error]] = {
-    val: Err(Failure("uninitialized async read")),
-  }
+  let result : Ref[Result[MutableBytes, Error]] = Ref::new(
+    Err(Failure::Failure("uninitialized async read")),
+  )
   @async.run_async_main(() => {
     let data_res : Result[&@io.Data, Error] = try? load()
     result.val = match data_res {
@@ -237,6 +237,21 @@ fn read_data_to_bytes(load : async () -> &@io.Data) -> MutableBytes raise {
   })
   match result.val {
     Ok(bytes) => bytes
+    Err(err) => raise err
+  }
+}
+
+///|
+fn run_async_unit(load : async () -> Unit) -> Unit raise {
+  let result : Ref[Result[Unit, Error]] = Ref::new(
+    Err(Failure::Failure("uninitialized async write")),
+  )
+  @async.run_async_main(() => {
+    let res : Result[Unit, Error] = try? load()
+    result.val = res
+  })
+  match result.val {
+    Ok(_) => ()
     Err(err) => raise err
   }
 }
@@ -262,9 +277,39 @@ pub fn input_of_channel(
 }
 
 ///|
-/// Build an output from a channel (native-only, placeholder).
-pub fn output_of_channel(_ch : Unit) -> Output raise {
-  fail("output_of_channel not implemented yet")
+/// Build an output from a channel (native-only).
+pub fn output_of_channel(ch : @fs.File) -> Output {
+  let mut pos = 0
+  let mut highest_written = -1
+  let single : MutableBytes = mkbytes(1)
+  let output_bytes = (bytes : Bytes) => {
+    let start = pos
+    let len = bytes.length()
+    run_async_unit(() => ch.write_at(bytes[:], position=start.to_int64())) catch {
+      _ => ()
+    }
+    pos = start + len
+    let last = pos - 1
+    highest_written = if highest_written > last {
+      highest_written
+    } else {
+      last
+    }
+  }
+  {
+    pos_out: () => pos,
+    seek_out: p => pos = p,
+    output_char: c => {
+      single[0] = c.to_int().to_byte()
+      output_bytes(Bytes::from_array(single))
+    },
+    output_byte: b => {
+      single[0] = b.to_byte()
+      output_bytes(Bytes::from_array(single))
+    },
+    output_string: s => output_bytes(@encoding/utf8.encode(s)),
+    out_channel_length: () => highest_written + 1,
+  }
 }
 
 ///|
@@ -438,15 +483,19 @@ pub fn getinit(
 }
 
 ///|
-/// Extract bytes from input channel (placeholder).
-pub fn bytes_of_input_channel(_ch : Unit) -> MutableBytes raise {
-  fail("bytes_of_input_channel not implemented yet")
+/// Extract bytes from input channel.
+pub fn bytes_of_input_channel(ch : @fs.File) -> MutableBytes raise {
+  read_data_to_bytes(() => ch.read_all())
 }
 
 ///|
-/// Write bytes to output channel (placeholder).
-pub fn bytes_to_output_channel(_ch : Unit, _bytes : MutableBytes) -> Unit raise {
-  fail("bytes_to_output_channel not implemented yet")
+/// Write bytes to output channel.
+pub fn bytes_to_output_channel(
+  ch : @fs.File,
+  bytes : MutableBytes,
+) -> Unit raise {
+  let payload = Bytes::from_array(bytes)
+  run_async_unit(() => ch.write(payload))
 }
 
 ///|
