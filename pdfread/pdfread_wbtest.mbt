@@ -11,3 +11,21 @@ test "lex_keyword rewinds endobj suffix" {
     _ => fail("expected 123")
   }
 }
+
+///|
+test "lex_next returns LexNone for unknown uppercase" {
+  let input = @pdfio.input_of_string("T")
+  let dict_level : Ref[Int] = { val: 0 }
+  let array_level : Ref[Int] = { val: 0 }
+  let previous = Array::new()
+  let dummy_lexobj = fn(_ : Int) -> Array[@pdfgenlex.Token] raise {
+    Array::new()
+  }
+  let token = lex_next(
+    dict_level, array_level, false, input, previous, true, dummy_lexobj,
+  )
+  match token {
+    @pdfgenlex.Token::LexNone => ()
+    _ => fail("expected LexNone")
+  }
+}

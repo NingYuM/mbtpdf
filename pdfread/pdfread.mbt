@@ -1755,7 +1755,7 @@ fn lex_next(
     c if (c >= '0' && c <= '9') || c == '-' || c == '+' || c == '.' =>
       lex_number(input)
     c if c >= 'a' && c <= 'z' => lex_keyword(input)
-    _ => lex_keyword(input)
+    _ => @pdfgenlex.Token::LexNone
   }
 }
 
