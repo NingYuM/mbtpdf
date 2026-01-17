@@ -47,3 +47,13 @@ test "lex_next recovers from lex errors" {
     _ => fail("expected StopLexing")
   }
 }
+
+///|
+test "lex_hexstring rejects invalid hex" {
+  let input = @pdfio.input_of_string("<G>")
+  let res : Result[@pdfgenlex.Token, Error] = try? lex_hexstring(input)
+  match res {
+    Err(_) => ()
+    _ => fail("expected lex_hexstring failure")
+  }
+}

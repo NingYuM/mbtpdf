@@ -1389,7 +1389,10 @@ pub fn lex_hexstring(input : @pdfio.Input) -> @pdfgenlex.Token raise {
         let hex = c.to_string()
         match (try? @strconv.parse_int("0x\{hex}")) {
           Ok(v) => digits.push(v)
-          Err(_) => ()
+          Err(_) =>
+            raise @pdf.PdfError::Msg(
+              @pdf.input_pdferror(input, "lex_hexstring"),
+            )
         }
       }
     }
