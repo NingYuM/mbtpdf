@@ -48,3 +48,17 @@ test "uncompress fixed huffman" {
   let ints = out.map((b) => b.to_int())
   inspect(ints, content="[104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100]")
 }
+
+///|
+test "uncompress dynamic huffman" {
+  let data : @pdfio.MutableBytes = [
+    120, 156, 237, 196, 57, 1, 0, 0, 8, 4, 160, 172, 231, 211, 191, 130,
+    41, 220, 96, 32, 213, 179, 145, 36, 73, 146, 36, 73, 146, 244, 217, 1,
+    198, 122, 142, 2,
+  ]
+  let out = try run_uncompress(data, true) catch {
+    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+  }
+  let expected = @pdfio.bytes_of_string("abcde".repeat(1000))
+  assert_eq(out, expected)
+}

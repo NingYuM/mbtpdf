@@ -82,8 +82,6 @@ pub fn decode_flate(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes raise Cod
   } catch {
     @pdfflate.FlateError::Error(stage, msg) =>
       raise CodecError::CouldntDecodeStream("\{stage}: \{msg}")
-    _ =>
-      raise CodecError::CouldntDecodeStream("flate decode failed")
   }
 }
 

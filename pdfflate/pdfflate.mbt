@@ -247,6 +247,98 @@ fn inflate_fixed(reader : BitReader, out : @pdfio.MutableBytes) -> Unit raise Fl
 }
 
 ///|
+fn inflate_dynamic(reader : BitReader, out : @pdfio.MutableBytes) -> Unit raise FlateError {
+  let hlit = read_bits(reader, 5) + 257
+  let hdist = read_bits(reader, 5) + 1
+  let hclen = read_bits(reader, 4) + 4
+  let code_length_order : Array[Int] = [
+    16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15,
+  ]
+  let code_lengths = Array::make(19, 0)
+  for i = 0; i < hclen; i = i + 1 {
+    let symbol = code_length_order[i]
+    code_lengths[symbol] = read_bits(reader, 3)
+  }
+  let code_length_huff = build_huffman(code_lengths)
+  let total = hlit + hdist
+  let lengths = Array::new(capacity=total)
+  let mut prev = 0
+  while lengths.length() < total {
+    let sym = decode_symbol(reader, code_length_huff)
+    if sym <= 15 {
+      lengths.push(sym)
+      prev = sym
+    } else if sym == 16 {
+      if lengths.length() == 0 {
+        raise FlateError::Error("uncompress", "repeat with no previous code length")
+      }
+      let repeat = 3 + read_bits(reader, 2)
+      for _i = 0; _i < repeat; _i = _i + 1 {
+        if lengths.length() >= total {
+          raise FlateError::Error("uncompress", "code length overflow")
+        }
+        lengths.push(prev)
+      }
+    } else if sym == 17 {
+      let repeat = 3 + read_bits(reader, 3)
+      for _i = 0; _i < repeat; _i = _i + 1 {
+        if lengths.length() >= total {
+          raise FlateError::Error("uncompress", "code length overflow")
+        }
+        lengths.push(0)
+      }
+      prev = 0
+    } else if sym == 18 {
+      let repeat = 11 + read_bits(reader, 7)
+      for _i = 0; _i < repeat; _i = _i + 1 {
+        if lengths.length() >= total {
+          raise FlateError::Error("uncompress", "code length overflow")
+        }
+        lengths.push(0)
+      }
+      prev = 0
+    } else {
+      raise FlateError::Error("uncompress", "invalid code length symbol")
+    }
+  }
+  let lit_lengths = Array::new(capacity=hlit)
+  for i = 0; i < hlit; i = i + 1 {
+    lit_lengths.push(lengths[i])
+  }
+  let dist_lengths = Array::new(capacity=hdist)
+  for i = 0; i < hdist; i = i + 1 {
+    dist_lengths.push(lengths[hlit + i])
+  }
+  let lit_huff = build_huffman(lit_lengths)
+  let dist_huff = build_huffman(dist_lengths)
+  fn decode_loop(reader : BitReader, out : @pdfio.MutableBytes) -> Unit raise FlateError {
+    let symbol = decode_symbol(reader, lit_huff)
+    if symbol < 256 {
+      out.push(symbol.to_byte())
+      decode_loop(reader, out)
+    } else if symbol == 256 {
+      ()
+    } else if symbol <= 285 {
+      let index = symbol - 257
+      let base = length_base[index]
+      let extra = length_extra[index]
+      let length = base + (if extra > 0 { read_bits(reader, extra) } else { 0 })
+      let dist_symbol = decode_symbol(reader, dist_huff)
+      if dist_symbol < 0 || dist_symbol >= dist_base.length() {
+        raise FlateError::Error("uncompress", "invalid distance symbol")
+      }
+      let dist = dist_base[dist_symbol] +
+        (if dist_extra[dist_symbol] > 0 { read_bits(reader, dist_extra[dist_symbol]) } else { 0 })
+      copy_from_output(out, dist, length)
+      decode_loop(reader, out)
+    } else {
+      raise FlateError::Error("uncompress", "invalid literal/length symbol")
+    }
+  }
+  decode_loop(reader, out)
+}
+
+///|
 fn read_all_input(input : (@pdfio.MutableBytes) -> Int) -> @pdfio.MutableBytes {
   let out = Array::new()
   let buf = @pdfio.mkbytes(4096)
@@ -315,7 +407,7 @@ pub fn uncompress(
     match btype {
       0 => inflate_stored(reader, out)
       1 => inflate_fixed(reader, out)
-      2 => raise FlateError::Error("uncompress", "dynamic huffman not supported")
+      2 => inflate_dynamic(reader, out)
       _ => raise FlateError::Error("uncompress", "invalid block type")
     }
     if bfinal == 1 {
