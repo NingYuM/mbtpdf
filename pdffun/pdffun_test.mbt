@@ -1,0 +1,39 @@
+///|
+fn assert_close(a : Double, b : Double) -> Unit {
+  let diff = (a - b).abs()
+  assert_true(diff < 1e-6)
+}
+
+///|
+test "eval calculator function" {
+  let pdf = @pdf.empty()
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(4)),
+    (
+      "/Domain",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(10.0),
+      ]),
+    ),
+  ])
+  let data = @pdfio.bytes_of_string("{ dup mul }")
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  let fun = parse_function(pdf, stream_obj)
+  let output = eval_function(fun, [2.0])
+  assert_eq(output.length(), 1)
+  assert_close(output[0], 4.0)
+}
+
+///|
+test "eval interpolation function" {
+  let fun : PdfFunction = {
+    func: PdfFunctionKind::Interpolation({ c0: [0.0], c1: [1.0], n: 1.0 }),
+    domain: [0.0, 1.0],
+    range: Some([0.0, 1.0]),
+  }
+  let output = eval_function(fun, [0.25])
+  assert_eq(output.length(), 1)
+  assert_close(output[0], 0.25)
+}

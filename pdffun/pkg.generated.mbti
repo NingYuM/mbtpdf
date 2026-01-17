@@ -1,0 +1,106 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/pdffun"
+
+import {
+  "bobzhang/mbtpdf/pdf",
+}
+
+// Values
+pub fn eval_function(PdfFunction, Array[Double]) -> Array[Double] raise BadFunctionEvaluation
+
+pub fn parse_function(@pdf.Pdf, @pdf.PdfObject) -> PdfFunction raise
+
+pub fn pdfobject_of_function(@pdf.Pdf, PdfFunction) -> @pdf.PdfObject
+
+pub fn print_function(PdfFunction) -> Unit
+
+// Errors
+pub(all) suberror BadFunctionEvaluation {
+  Msg(String)
+}
+
+// Types and methods
+pub(all) enum Calculator {
+  If(Array[Calculator])
+  IfElse(Array[Calculator], Array[Calculator])
+  Bool(Bool)
+  Float(Double)
+  Int(Int)
+  Abs
+  Add
+  Atan
+  Ceiling
+  Cos
+  Cvi
+  Cvr
+  Div
+  Exp
+  Floor
+  Idiv
+  Ln
+  Log
+  Mod
+  Mul
+  Neg
+  Round
+  Sin
+  Sqrt
+  Sub
+  Truncate
+  And
+  Bitshift
+  Eq
+  Ge
+  Gt
+  Le
+  Lt
+  Ne
+  Not
+  Or
+  Xor
+  Copy
+  Exch
+  Pop
+  Dup
+  Index
+  Roll
+}
+
+pub(all) struct Interpolation {
+  c0 : Array[Double]
+  c1 : Array[Double]
+  n : Double
+}
+
+pub(all) struct PdfFunction {
+  func : PdfFunctionKind
+  domain : Array[Double]
+  range : Array[Double]?
+}
+
+pub(all) enum PdfFunctionKind {
+  Interpolation(Interpolation)
+  Stitching(Stitching)
+  Sampled(Sampled)
+  Calculator(Array[Calculator])
+}
+
+pub(all) struct Sampled {
+  size : Array[Int]
+  order : Int
+  encode : Array[Double]
+  decode : Array[Double]
+  bps : Int
+  samples : Array[Int]
+}
+
+pub(all) struct Stitching {
+  functions : Array[PdfFunction]
+  bounds : Array[Double]
+  stitch_encode : Array[Double]
+}
+
+// Type aliases
+
+// Traits
+
