@@ -106,15 +106,89 @@ pub fn permissions(_pdf : @pdf.Pdf) -> Array[Unit] {
 }
 
 ///|
-/// Check if input is linearized (placeholder).
-pub fn is_linearized(_input : @pdfio.Input) -> Bool {
-  false
+/// Check if input is linearized.
+pub fn is_linearized(input : @pdfio.Input) -> Bool {
+  try {
+    let _ = read_header(input)
+    let lexemes = lex_dictionary(false, input)
+    let (_, parsed) = parse(lexemes, failure_is_ok=true)
+    match @pdf.lookup_direct(@pdf.empty(), "/Linearized", parsed) {
+      Some(@pdf.PdfObject::Integer(_)) | Some(@pdf.PdfObject::Real(_)) => true
+      _ => false
+    }
+  } catch {
+    _ => false
+  }
 }
 
 ///|
-/// Read a PDF header (placeholder).
-pub fn read_header(_input : @pdfio.Input) -> (Int, Int) raise {
-  raise @pdf.PdfError::Msg("read_header not implemented")
+/// Read a PDF header.
+pub fn read_header(input : @pdfio.Input) -> (Int, Int) raise {
+  fn get8chars(input : @pdfio.Input) -> Array[Char] {
+    let out = Array::new(capacity=8)
+    let mut ok = true
+    let mut i = 0
+    while ok && i < 8 {
+      match (input.input_char)() {
+        Some(ch) => out.push(ch)
+        None => ok = false
+      }
+      i = i + 1
+    }
+    if ok {
+      out
+    } else {
+      Array::new()
+    }
+  }
+
+  fn digits_to_int(digits : Array[Char]) -> Int {
+    let mut value = 0
+    for d in digits {
+      value = value * 10 + (d.to_int() - '0'.to_int())
+    }
+    value
+  }
+
+  let mut pos = 0
+  while pos <= 1024 {
+    (input.seek_in)(pos)
+    let chars = get8chars(input)
+    if chars.length() == 8 &&
+      chars[0] == '%' &&
+      chars[1] == 'P' &&
+      chars[2] == 'D' &&
+      chars[3] == 'F' &&
+      chars[4] == '-' &&
+      chars[6] == '.' {
+      let major_char = chars[5]
+      if major_char < '0' || major_char > '9' {
+        return (2, 0)
+      }
+      let minor_digits = Array::new()
+      let mut idx = 7
+      while idx < chars.length() {
+        let c = chars[idx]
+        if c >= '0' && c <= '9' {
+          minor_digits.push(c)
+          idx = idx + 1
+        } else {
+          idx = chars.length()
+        }
+      }
+      if minor_digits.length() == 0 {
+        let message = @pdf.input_pdferror(input, "Malformed PDF header")
+        raise @pdf.PdfError::Msg(message)
+      }
+      if read_debug.val {
+        @pdfe.log("setting offset to \{pos}\n")
+      }
+      (input.set_offset)(pos)
+      return (major_char.to_int() - '0'.to_int(), digits_to_int(minor_digits))
+    }
+    pos = pos + 1
+  }
+  (2, 0)
 }
 
 ///|
