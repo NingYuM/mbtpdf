@@ -1,10 +1,18 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "bobzhang/mbtpdf/pdfutil"
 
+import {
+  "moonbitlang/async/fs",
+}
+
 // Values
 pub fn fleprint(String) -> Unit
 
 pub fn flprint(String) -> Unit
+
+pub let stderr_file : Ref[@fs.File?]
+
+pub let stdout_file : Ref[@fs.File?]
 
 // Errors
 

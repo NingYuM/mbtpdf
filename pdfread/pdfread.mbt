@@ -2279,7 +2279,7 @@ pub fn string_of_lexeme(t : @pdfgenlex.Token) -> String {
 ///|
 /// Print a lexeme to stdout.
 pub fn print_lexeme(t : @pdfgenlex.Token) -> Unit {
-  println(string_of_lexeme(t))
+  @pdfutil.flprint(string_of_lexeme(t) + " ")
 }
 
 ///|
