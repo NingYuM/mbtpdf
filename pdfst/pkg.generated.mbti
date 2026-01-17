@@ -1,0 +1,20 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/pdfst"
+
+import {
+  "bobzhang/mbtpdf/pdf",
+}
+
+// Values
+pub let endpage : Ref[(@pdf.Pdf) -> Int]
+
+pub fn trim_structure_tree(@pdf.Pdf, Array[Int]) -> Unit raise
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+
