@@ -1,0 +1,285 @@
+///|
+/// Placeholder for optional content group usage dictionaries.
+pub(all) enum OcgUsage {
+  Placeholder
+}
+
+///|
+/// Optional content group.
+pub(all) struct Ocg {
+  ocg_name : String
+  ocg_intent : Array[String]
+  ocg_usage : OcgUsage?
+}
+
+///|
+/// Optional content group visibility state.
+pub(all) enum OcgState {
+  On
+  Off
+  Unchanged
+}
+
+///|
+/// Optional content group list mode.
+pub(all) enum OcgListMode {
+  AllPages
+  VisiblePages
+}
+
+///|
+/// Placeholder for optional content group application dictionaries.
+pub(all) enum OcgAppDict {
+  AppDict
+}
+
+///|
+/// Placeholder for optional content order tree.
+pub(all) enum OcgOrderTree {
+  Leaf
+  Branch(Int, OcgOrderTree, OcgOrderTree)
+}
+
+///|
+/// Optional content group configuration.
+pub(all) struct OcgConfig {
+  ocgconfig_name : String?
+  ocgconfig_creator : String?
+  ocgconfig_basestate : OcgState
+  ocgconfig_on : Array[Int]?
+  ocgconfig_off : Array[Int]?
+  ocgconfig_intent : Array[String]
+  ocgconfig_usage_application_dictionaries : Array[OcgAppDict]?
+  ocgconfig_order : OcgOrderTree?
+  ocgconfig_listmode : OcgListMode
+  ocgconfig_rbgroups : Array[Array[Int]]
+  ocgconfig_locked : Array[Int]
+}
+
+///|
+/// Optional content properties.
+pub(all) struct OcgProperties {
+  ocgs : Array[(Int, Ocg)]
+  ocg_default_config : OcgConfig
+  ocg_configs : Array[OcgConfig]
+}
+
+///|
+fn read_ocgappdict(pdf : @pdf.Pdf, appdict : @pdf.PdfObject) -> OcgAppDict {
+  let _ = pdf
+  let _ = appdict
+  OcgAppDict::AppDict
+}
+
+///|
+fn read_config(pdf : @pdf.Pdf, config : @pdf.PdfObject) -> OcgConfig {
+  let ocgconfig_name = match @pdf.lookup_direct(pdf, "/Name", config) {
+    Some(@pdf.PdfObject::String(s)) => Some(s)
+    _ => None
+  }
+  let ocgconfig_creator = match @pdf.lookup_direct(pdf, "/Creator", config) {
+    Some(@pdf.PdfObject::String(s)) => Some(s)
+    _ => None
+  }
+  let ocgconfig_basestate = match
+    @pdf.lookup_direct(pdf, "/BaseState", config) {
+    Some(@pdf.PdfObject::Name("/ON")) => OcgState::On
+    Some(@pdf.PdfObject::Name("/OFF")) => OcgState::Off
+    Some(@pdf.PdfObject::Name("/Unchanged")) => OcgState::Unchanged
+    _ => OcgState::On
+  }
+  let ocgconfig_on = match @pdf.lookup_direct(pdf, "/ON", config) {
+    Some(@pdf.PdfObject::Array(indirects)) =>
+      Some(
+        indirects.map(obj => match obj {
+          @pdf.PdfObject::Indirect(n) => n
+          _ => 0
+        }),
+      )
+    _ => None
+  }
+  let ocgconfig_off = match @pdf.lookup_direct(pdf, "/OFF", config) {
+    Some(@pdf.PdfObject::Array(indirects)) =>
+      Some(
+        indirects.map(obj => match obj {
+          @pdf.PdfObject::Indirect(n) => n
+          _ => 0
+        }),
+      )
+    _ => None
+  }
+  let ocgconfig_intent = match @pdf.lookup_direct(pdf, "/Intent", config) {
+    Some(@pdf.PdfObject::Name(n)) => [n]
+    Some(@pdf.PdfObject::Array(items)) =>
+      items.map(item => match @pdf.direct(pdf, item) {
+        @pdf.PdfObject::Name(n) => n
+        _ => ""
+      })
+    _ => ["/View"]
+  }
+  let ocgconfig_usage_application_dictionaries = match
+    @pdf.lookup_direct(pdf, "/AS", config) {
+    Some(@pdf.PdfObject::Array(appdicts)) =>
+      Some(appdicts.map(appdict => read_ocgappdict(pdf, appdict)))
+    _ => None
+  }
+  let ocgconfig_order = None
+  let ocgconfig_listmode = match @pdf.lookup_direct(pdf, "/ListMode", config) {
+    Some(@pdf.PdfObject::Name("/VisiblePages")) => OcgListMode::VisiblePages
+    _ => OcgListMode::AllPages
+  }
+  let ocgconfig_rbgroups = []
+  let ocgconfig_locked = match @pdf.lookup_direct(pdf, "/Locked", config) {
+    Some(@pdf.PdfObject::Array(items)) =>
+      items.map(item => match @pdf.direct(pdf, item) {
+        @pdf.PdfObject::Indirect(n) => n
+        _ => 0
+      })
+    _ => []
+  }
+  {
+    ocgconfig_name,
+    ocgconfig_creator,
+    ocgconfig_basestate,
+    ocgconfig_on,
+    ocgconfig_off,
+    ocgconfig_intent,
+    ocgconfig_usage_application_dictionaries,
+    ocgconfig_order,
+    ocgconfig_listmode,
+    ocgconfig_rbgroups,
+    ocgconfig_locked,
+  }
+}
+
+///|
+fn read_ocg_usage(pdf : @pdf.Pdf, usage : @pdf.PdfObject) -> OcgUsage? {
+  let _ = pdf
+  let _ = usage
+  None
+}
+
+///|
+fn read_individual_ocg(pdf : @pdf.Pdf, ocg : @pdf.PdfObject) -> Ocg raise {
+  let ocg_name = match @pdf.lookup_direct(pdf, "/Name", ocg) {
+    Some(@pdf.PdfObject::String(s)) => s
+    _ => raise @pdf.PdfError::Msg("No /Name in optional content group")
+  }
+  let ocg_intent = match @pdf.lookup_direct(pdf, "/Intent", ocg) {
+    Some(@pdf.PdfObject::Name(n)) => [n]
+    Some(@pdf.PdfObject::Array(items)) => {
+      let out = Array::new()
+      for item in items {
+        match @pdf.direct(pdf, item) {
+          @pdf.PdfObject::Name(n) => out.push(n)
+          _ => ()
+        }
+      }
+      out
+    }
+    _ => ["/View"]
+  }
+  let ocg_usage = match @pdf.lookup_direct(pdf, "/Usage", ocg) {
+    None => None
+    Some(usage) => read_ocg_usage(pdf, usage)
+  }
+  { ocg_name, ocg_intent, ocg_usage }
+}
+
+///|
+/// Read optional content data.
+pub fn read_ocg(pdf : @pdf.Pdf) -> OcgProperties? raise {
+  match @pdf.lookup_direct(pdf, "/Root", pdf.trailerdict) {
+    None => raise @pdf.PdfError::Msg("No /Root")
+    Some(root) =>
+      match @pdf.lookup_direct(pdf, "/OCProperties", root) {
+        None => None
+        Some(ocproperties) => {
+          let ocgs = match @pdf.lookup_direct(pdf, "/OCGs", ocproperties) {
+            Some(@pdf.PdfObject::Array(indirects)) => {
+              let out = Array::new()
+              for entry in indirects {
+                let num = match entry {
+                  @pdf.PdfObject::Indirect(n) => n
+                  _ => 0
+                }
+                out.push((num, read_individual_ocg(pdf, entry)))
+              }
+              out
+            }
+            _ => []
+          }
+          let ocg_default_config = match
+            @pdf.lookup_direct(pdf, "/D", ocproperties) {
+            None =>
+              raise @pdf.PdfError::Msg("No default config in /OCProperties")
+            Some(config) => read_config(pdf, config)
+          }
+          let ocg_configs = match
+            @pdf.lookup_direct(pdf, "/Configs", ocproperties) {
+            Some(@pdf.PdfObject::Array(configs)) =>
+              configs.map(config => read_config(pdf, config))
+            _ => []
+          }
+          Some({ ocgs, ocg_default_config, ocg_configs })
+        }
+      }
+  }
+}
+
+///|
+/// Write optional content data.
+pub fn write_ocg(pdf : @pdf.Pdf, ocgprops : OcgProperties) -> Unit {
+  let _ = pdf
+  let _ = ocgprops
+  ()
+}
+
+///|
+fn print_ocg(pair : (Int, Ocg)) -> Unit {
+  let num = pair.0
+  let ocg = pair.1
+  @pdfutil.flprint("OCG \{num}\n")
+  @pdfutil.flprint("Name \{ocg.ocg_name}\n")
+  let sb = StringBuilder::new()
+  sb.write_string("Intent(s)")
+  for intent in ocg.ocg_intent {
+    sb..write_char(' ')..write_string(intent)
+  }
+  sb.write_char('\n')
+  @pdfutil.flprint(sb.to_string())
+}
+
+///|
+fn print_ocg_config(config : OcgConfig) -> Unit {
+  match config.ocgconfig_name {
+    None => @pdfutil.flprint("No config name\n")
+    Some(name) => @pdfutil.flprint("Config Name: \{name}\n")
+  }
+}
+
+///|
+/// Print information about the document's Optional Content Groups.
+/// Debug only.
+pub fn print_document_ocg(pdf : @pdf.Pdf) -> Unit raise {
+  match read_ocg(pdf) {
+    None =>
+      @pdfutil.flprint(
+        "There are no optional content groups in this document\n",
+      )
+    Some(ocgs) => {
+      @pdfutil.flprint(
+        "There are \{ocgs.ocgs.length()} OCGs, and " +
+        "\{ocgs.ocg_configs.length()} additional configs\n",
+      )
+      @pdfutil.flprint("OCGs\n-------------\n")
+      for pair in ocgs.ocgs {
+        print_ocg(pair)
+      }
+      @pdfutil.flprint("OCG Configs\n------------\n")
+      for config in ocgs.ocg_configs {
+        print_ocg_config(config)
+      }
+    }
+  }
+}
