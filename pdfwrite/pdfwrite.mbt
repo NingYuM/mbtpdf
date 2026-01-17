@@ -636,14 +636,14 @@ pub fn string_of_pdf_including_data(obj : @pdf.PdfObject) -> String {
 ///|
 /// Debug print of a whole PDF.
 pub fn debug_whole_pdf(pdf : @pdf.Pdf) -> Unit {
-  println("trailerdict = \{string_of_pdf(pdf.trailerdict)}")
+  @pdfe.log("trailerdict = \{string_of_pdf(pdf.trailerdict)}\n")
   for pair in @pdf.pdfobjmap_bindings(pdf.objects.objects) {
     let (objnum, entry) = pair
     let (obj_ref, _gen) = entry
     match obj_ref.val {
       @pdf.ObjectData::Parsed(obj)
       | @pdf.ObjectData::ParsedAlreadyDecrypted(obj) =>
-        println("\{objnum} = \{string_of_pdf(obj)}")
+        @pdfe.log("\{objnum} = \{string_of_pdf(obj)}\n")
       _ => ()
     }
   }
