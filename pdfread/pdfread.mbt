@@ -1519,7 +1519,18 @@ fn lex_keyword(input : @pdfio.Input) -> @pdfgenlex.Token raise {
     "endstream" => @pdfgenlex.Token::LexEndStream
     "true" => @pdfgenlex.Token::LexBool(true)
     "false" => @pdfgenlex.Token::LexBool(false)
-    _ => @pdfgenlex.Token::LexNone
+    _ =>
+      if kw.has_prefix("endobj") && kw.length() > 6 {
+        let extra = kw.length() - 6
+        let mut i = 0
+        while i < extra {
+          @pdfio.rewind(input)
+          i = i + 1
+        }
+        @pdfgenlex.Token::LexEndObj
+      } else {
+        @pdfgenlex.Token::LexNone
+      }
   }
 }
 
