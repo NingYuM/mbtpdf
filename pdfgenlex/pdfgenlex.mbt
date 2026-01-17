@@ -41,7 +41,7 @@ pub fn string_of_tokens(tokens : Array[Token]) -> String {
   if parts.length() == 0 {
     ""
   } else {
-    parts.join("\n ")
+    "\n " + parts.join("\n ")
   }
 }
 
