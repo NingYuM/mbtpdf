@@ -14,3 +14,10 @@ test "string_of_pdf dictionary" {
   let s = @pdfwrite.string_of_pdf(obj)
   assert_eq(s, "<</Type /Example /Count 2>>")
 }
+
+///|
+test "string_of_pdf escapes names" {
+  let obj = @pdf.PdfObject::Name("/A B#C/D")
+  let s = @pdfwrite.string_of_pdf(obj)
+  assert_eq(s, "/A#20B#23C#2FD")
+}
