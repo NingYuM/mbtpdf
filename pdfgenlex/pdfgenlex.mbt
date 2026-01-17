@@ -25,31 +25,24 @@ pub(all) enum Token {
 /// String representation of a token (debug only).
 pub fn string_of_token(t : Token) -> String {
   match t {
-    LexNull => "null"
-    LexBool(b) => if b { "true" } else { "false" }
-    LexInt(i) => i.to_string()
-    LexReal(r) => r.to_string()
-    LexString(s) => "(\"\{s}\")"
-    LexName(n) => "\{n}"
-    LexLeftSquare => "["
-    LexRightSquare => "]"
-    LexLeftDict => "<<"
-    LexRightDict => ">>"
-    LexStream(_) => "stream"
-    LexEndStream => "endstream"
-    LexObj => "obj"
-    LexEndObj => "endobj"
-    LexR => "R"
-    LexComment(c) => "%\{c}"
-    StopLexing => "<eof>"
-    LexNone => "<none>"
+    LexInt(i) => "Int \{i}"
+    LexReal(r) => "Float \{r}"
+    LexString(s) => "String \{s}"
+    LexName(n) => "Ident \{n}"
+    LexNull => "Nothing"
+    _ => "GenLexNone"
   }
 }
 
 ///|
 /// String representation of a list of tokens (debug only).
 pub fn string_of_tokens(tokens : Array[Token]) -> String {
-  tokens.map(string_of_token).join(" ")
+  let parts = tokens.map(string_of_token)
+  if parts.length() == 0 {
+    ""
+  } else {
+    parts.join("\n ")
+  }
 }
 
 ///|
