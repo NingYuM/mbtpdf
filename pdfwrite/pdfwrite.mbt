@@ -217,7 +217,10 @@ fn needs_processing_name(bytes : @pdfio.MutableBytes) -> Bool {
 fn make_pdf_name(name : String) -> String {
   let normalized = match name.get_char(0) {
     Some('/') => name
-    _ => "/\{name}"
+    _ => {
+      @pdfe.log("warning: bad name |\{name}|\n")
+      "/"
+    }
   }
   let bytes = @pdfio.bytes_of_string(normalized)
   if !needs_processing_name(bytes) {

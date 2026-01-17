@@ -68,3 +68,9 @@ test "string_of_pdf trims trailing zeros" {
   let s = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(2.0))
   assert_eq(s, "2")
 }
+
+///|
+test "string_of_pdf invalid name" {
+  let s = @pdfwrite.string_of_pdf(@pdf.PdfObject::Name("Example"))
+  assert_eq(s, "/")
+}
