@@ -149,6 +149,9 @@ fn expand_scientific(value : String) -> String {
 
 ///|
 fn format_real(value : Double) -> String {
+  if value == 0.0 {
+    return "0"
+  }
   let raw = value.to_string()
   if raw.contains("e") || raw.contains("E") {
     expand_scientific(raw)

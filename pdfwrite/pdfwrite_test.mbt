@@ -74,3 +74,9 @@ test "string_of_pdf invalid name" {
   let s = @pdfwrite.string_of_pdf(@pdf.PdfObject::Name("Example"))
   assert_eq(s, "/")
 }
+
+///|
+test "string_of_pdf normalizes -0.0" {
+  let s = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(-0.0))
+  assert_eq(s, "0")
+}
