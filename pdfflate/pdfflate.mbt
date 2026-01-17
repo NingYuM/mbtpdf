@@ -390,7 +390,7 @@ fn zlib_start_offset(data : @pdfio.MutableBytes) -> Int raise FlateError {
 }
 
 ///|
-/// Compress data using a streaming interface (not implemented yet).
+/// Compress data using a streaming interface (stored blocks only).
 pub fn compress(
   level? : Int = 6,
   header? : Bool = true,
