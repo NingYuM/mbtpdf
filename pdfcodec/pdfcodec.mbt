@@ -56,8 +56,35 @@ pub fn encode_flate(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes raise Cod
 ///|
 /// Decode data in FlateDecode.
 pub fn decode_flate(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes raise CodecError {
-  let _ = data
-  raise CodecError::DecodeNotSupported("decode_flate not implemented")
+  let mut pos = 0
+  let input = (buf : @pdfio.MutableBytes) => {
+    let remaining = data.length() - pos
+    if remaining <= 0 {
+      0
+    } else {
+      let n = if remaining < buf.length() { remaining } else { buf.length() }
+      for i = 0; i < n; i = i + 1 {
+        buf[i] = data[pos + i]
+      }
+      pos = pos + n
+      n
+    }
+  }
+  let out : @pdfio.MutableBytes = Array::new()
+  let output = (buf : @pdfio.MutableBytes, length : Int) => {
+    for i = 0; i < length; i = i + 1 {
+      out.push(buf[i])
+    }
+  }
+  try {
+    @pdfflate.uncompress(header=true, input, output)
+    out
+  } catch {
+    @pdfflate.FlateError::Error(stage, msg) =>
+      raise CodecError::CouldntDecodeStream("\{stage}: \{msg}")
+    _ =>
+      raise CodecError::CouldntDecodeStream("flate decode failed")
+  }
 }
 
 ///|
