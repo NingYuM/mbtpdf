@@ -31,6 +31,7 @@ fn main {
       rebuilt.push(rebuild_page(pdf, page))
     }
     let pdf = @pdfpage.change_pages(true, pdf, rebuilt)
+    @pdf.remove_unreferenced(pdf)
     @pdfwrite.pdf_to_file(pdf, out_name)
   } catch {
     err => {

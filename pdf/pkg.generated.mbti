@@ -49,6 +49,8 @@ pub fn nametree_lookup(Pdf, PdfObject, PdfObject) -> PdfObject? raise
 
 pub fn objcard(Pdf) -> Int
 
+pub fn objects_referenced(Array[String], Array[(String, PdfObject)], Pdf, PdfObject) -> Array[Int]
+
 pub fn objiter((Int, PdfObject) -> Unit raise?, Pdf) -> Unit raise?
 
 pub fn objnumbers(Pdf) -> Array[Int]
@@ -76,6 +78,8 @@ pub fn recurse_dict((PdfObject) -> PdfObject, Array[(String, PdfObject)], preser
 pub fn remove_chain(Pdf, ArrayView[String]) -> Bool raise
 
 pub fn remove_dict_entry(PdfObject, String) -> PdfObject raise
+
+pub fn remove_unreferenced(Pdf) -> Unit raise
 
 pub fn removeobj(Pdf, Int) -> Unit
 

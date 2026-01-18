@@ -910,6 +910,204 @@ pub fn objselfmap(
 }
 
 ///|
+fn refset_empty() -> Map[Int, Bool] {
+  Map::new()
+}
+
+///|
+fn refset_add(n : Int, rs : Map[Int, Bool]) -> Unit {
+  rs.set(n, true)
+}
+
+///|
+fn refset_mem(n : Int, rs : Map[Int, Bool]) -> Bool {
+  rs.contains(n)
+}
+
+///|
+fn refset_elts(rs : Map[Int, Bool]) -> Array[Int] {
+  let out = Array::new()
+  for key in rs.keys() {
+    out.push(key)
+  }
+  out
+}
+
+///|
+fn contains_string(xs : Array[String], key : String) -> Bool {
+  for entry in xs {
+    if entry == key {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn dict_contains_name_entry(
+  dict : Array[(String, PdfObject)],
+  entry : (String, PdfObject),
+) -> Bool {
+  let (key, value) = entry
+  match value {
+    Name(name) => {
+      for pair in dict {
+        let (k, v) = pair
+        match v {
+          Name(vname) if k == key && vname == name => return true
+          _ => ()
+        }
+      }
+      false
+    }
+    _ => false
+  }
+}
+
+///|
+fn tocontinue(
+  no_follow_entries : Array[String],
+  no_follow_contains : Array[(String, PdfObject)],
+  dict : Array[(String, PdfObject)],
+) -> Bool {
+  if no_follow_entries.length() == 0 && no_follow_contains.length() == 0 {
+    return true
+  }
+  for entry in no_follow_contains {
+    if dict_contains_name_entry(dict, entry) {
+      return false
+    }
+  }
+  true
+}
+
+///|
+fn referenced_pdfobj(
+  no_follow_entries : Array[String],
+  no_follow_contains : Array[(String, PdfObject)],
+  pdf : Pdf,
+  found : Map[Int, Bool],
+  obj : PdfObject,
+) -> Unit {
+  match obj {
+    Indirect(j) =>
+      if !refset_mem(j, found) {
+        let target = lookup_obj(pdf, j)
+        match target {
+          Dictionary(d) =>
+            if tocontinue(no_follow_entries, no_follow_contains, d) {
+              refset_add(j, found)
+              referenced_pdfobj(
+                no_follow_entries, no_follow_contains, pdf, found, target,
+              )
+            }
+          _ => {
+            refset_add(j, found)
+            referenced_pdfobj(
+              no_follow_entries, no_follow_contains, pdf, found, target,
+            )
+          }
+        }
+      }
+    Dictionary(d) =>
+      for pair in d {
+        let (k, v) = pair
+        if no_follow_entries.length() == 0 ||
+          !contains_string(no_follow_entries, k) {
+          referenced_pdfobj(
+            no_follow_entries, no_follow_contains, pdf, found, v,
+          )
+        }
+      }
+    Array(values) =>
+      for value in values {
+        referenced_pdfobj(
+          no_follow_entries, no_follow_contains, pdf, found, value,
+        )
+      }
+    Stream(r) => {
+      let (dict, _) = r.val
+      referenced_pdfobj(no_follow_entries, no_follow_contains, pdf, found, dict)
+    }
+    _ => ()
+  }
+}
+
+///|
+/// Find the objects reachable from the given object.
+pub fn objects_referenced(
+  no_follow_entries : Array[String],
+  no_follow_contains : Array[(String, PdfObject)],
+  pdf : Pdf,
+  pdfobject : PdfObject,
+) -> Array[Int] {
+  let found = refset_empty()
+  referenced_pdfobj(
+    no_follow_entries, no_follow_contains, pdf, found, pdfobject,
+  )
+  refset_elts(found)
+}
+
+///|
+fn nullify_deleted_page_references(pdf : Pdf) -> Unit raise {
+  fn nullify(numbers : Map[Int, Bool], obj : PdfObject) -> PdfObject {
+    match obj {
+      Indirect(i) => if numbers.contains(i) { Null } else { obj }
+      Array(elts) => recurse_array(v => nullify(numbers, v), elts)
+      Dictionary(elts) => recurse_dict(v => nullify(numbers, v), elts)
+      Stream(r) => {
+        let (dict, stream) = r.val
+        r.val = (nullify(numbers, dict), stream)
+        Stream(r)
+      }
+      _ => obj
+    }
+  }
+
+  let page_object_numbers = Array::new()
+  objiter(
+    (objnum, obj) => match obj {
+      Dictionary(_) =>
+        match lookup_direct(pdf, "/Type", obj) {
+          Some(Name("/Page")) => page_object_numbers.push(objnum)
+          _ => ()
+        }
+      _ => ()
+    },
+    pdf,
+  )
+  let refnums = page_reference_numbers(pdf)
+  if refnums.length() != page_object_numbers.length() {
+    let table = Map::new()
+    for num in page_object_numbers {
+      table.set(num, true)
+    }
+    for num in refnums {
+      table.remove(num)
+    }
+    objselfmap(obj => nullify(table, obj), pdf)
+  }
+}
+
+///|
+/// Remove any unreferenced objects.
+pub fn remove_unreferenced(pdf : Pdf) -> Unit raise {
+  nullify_deleted_page_references(pdf)
+  let found = refset_empty()
+  referenced_pdfobj([], [], pdf, found, lookup_obj(pdf, pdf.root))
+  referenced_pdfobj([], [], pdf, found, pdf.trailerdict)
+  refset_add(pdf.root, found)
+  let eltnumbers = refset_elts(found)
+  let elements = eltnumbers.map(num => lookup_obj(pdf, num))
+  pdf.objects.max_obj_num = 0
+  pdf.objects.objects.clear()
+  pdf.objects.object_stream_ids.clear()
+  for i, num in eltnumbers {
+    addobj_given_num(pdf, (num, elements[i]))
+  }
+}
+
+///|
 fn page_reference_numbers_inner(
   pdf : Pdf,
   pages_node : PdfObject,
