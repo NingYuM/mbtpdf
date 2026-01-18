@@ -222,7 +222,7 @@ fn make_pdf_name(name : String) -> String {
     Some('/') => name
     _ => {
       @pdfe.log("warning: bad name |\{name}|\n")
-      "/"
+      "/" + name
     }
   }
   let bytes = @pdfio.bytes_of_string(normalized)
@@ -780,8 +780,7 @@ pub fn pdf_to_output(
       object_stream_entries = bake_object_streams(pdf, compress_objstm, groups)
     }
   }
-  let use_xref_stream = (preserve_objstm || generate_objstm) &&
-    object_stream_entries.length() > 0
+  let use_xref_stream = preserve_objstm || generate_objstm
   write_header(pdf, output)
   let entries = @pdf.pdfobjmap_bindings(pdf.objects.objects)
   let objnums = entries.map(pair => pair.0)

@@ -162,9 +162,10 @@ fn read_pdf_internal(
         input, read_stream_data,
       )
     } else {
-      let (entries, _xref_objnum, stream_obj) = read_xref_stream(input)
+      let (entries, xref_objnum, stream_obj) = read_xref_stream(input)
       if !skip {
-        add_entries(entries, xrefs)
+        let filtered = entries.filter(pair => pair.0 != xref_objnum)
+        add_entries(filtered, xrefs)
       }
       trailerdict_current = extract_trailer_dict(stream_obj)
     }
@@ -176,9 +177,10 @@ fn read_pdf_internal(
       Some(@pdf.PdfObject::Integer(n)) => {
         (input.seek_in)(n)
         dropwhite(input)
-        let (entries, _objnum, _stream_obj) = read_xref_stream(input)
+        let (entries, xref_objnum, _stream_obj) = read_xref_stream(input)
         if !skip {
-          add_entries(entries, xrefs)
+          let filtered = entries.filter(pair => pair.0 != xref_objnum)
+          add_entries(filtered, xrefs)
         }
       }
       Some(_) =>
@@ -2009,6 +2011,27 @@ fn parse_finish(
     }
   }
   if items.length() >= 5 {
+    if items.length() >= 7 {
+      match
+        (items[0], items[1], items[2], items[3], items[4], items[5], items[6]) {
+        (
+          ParseItem::Parsed(@pdf.PdfObject::Integer(o)),
+          ParseItem::Parsed(@pdf.PdfObject::Integer(_)),
+          ParseItem::Lexeme(@pdfgenlex.Token::LexObj),
+          ParseItem::Parsed(@pdf.PdfObject::Dictionary(dict)),
+          ParseItem::Lexeme(@pdfgenlex.Token::LexStream(stream)),
+          ParseItem::Lexeme(@pdfgenlex.Token::LexEndStream),
+          ParseItem::Lexeme(@pdfgenlex.Token::LexEndObj),
+        ) =>
+          return (
+            o,
+            @pdf.PdfObject::Stream(
+              Ref::new((@pdf.PdfObject::Dictionary(dict), stream)),
+            ),
+          )
+        _ => ()
+      }
+    }
     match (items[0], items[1], items[2], items[3], items[4]) {
       (
         ParseItem::Parsed(@pdf.PdfObject::Integer(o)),
