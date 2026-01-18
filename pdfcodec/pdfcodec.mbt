@@ -517,7 +517,7 @@ pub fn decode_from_input(
 }
 
 ///|
-/// Encode predictor (placeholder).
+/// Encode predictor.
 pub fn encode_predictor(
   _pred : Int,
   _colors : Int,
@@ -525,7 +525,73 @@ pub fn encode_predictor(
   _columns : Int,
   _stream : @pdfio.MutableBytes,
 ) -> @pdfio.MutableBytes raise CodecError {
-  raise CodecError::DecodeNotSupported("encode_predictor not implemented")
+  let pred = _pred
+  let colors = _colors
+  let bpc = _bpc
+  let columns = _columns
+  let stream = _stream
+  let get0 = (bytes : @pdfio.MutableBytes, idx : Int) => if idx < 0 {
+    0
+  } else {
+    @pdfio.bget(bytes, idx)
+  }
+  let sub_mod = (a : Int, b : Int) => {
+    let mut delta = a - b
+    if delta < 0 {
+      delta = delta + 256
+    }
+    delta
+  }
+  match pred {
+    11 => {
+      let _ = colors
+      let _ = bpc
+      let (output, data) = @pdfio.input_output_of_bytes(4096)
+      let scanline_bytes = columns * 3
+      let lines = if scanline_bytes == 0 {
+        0
+      } else {
+        @pdfio.bytes_size(stream) / scanline_bytes
+      }
+      for scanline = 0; scanline < lines; scanline = scanline + 1 {
+        (output.output_byte)(1)
+        let line_base = scanline * columns
+        for byte = 0; byte < scanline_bytes; byte = byte + 1 {
+          let curr = get0(stream, line_base + byte)
+          let left = if byte < 3 {
+            0
+          } else {
+            get0(stream, line_base + byte - 3)
+          }
+          (output.output_byte)(sub_mod(curr, left))
+        }
+      }
+      @pdfio.extract_bytes_from_input_output(output, data)
+    }
+    12 => {
+      let _ = colors
+      let _ = bpc
+      let (output, data) = @pdfio.input_output_of_bytes(4096)
+      let lines = if columns == 0 {
+        0
+      } else {
+        @pdfio.bytes_size(stream) / columns
+      }
+      for scanline = 0; scanline < lines; scanline = scanline + 1 {
+        (output.output_byte)(2)
+        for byte = 0; byte < columns; byte = byte + 1 {
+          let curr = get0(stream, scanline * columns + byte)
+          let up = get0(stream, (scanline - 1) * columns + byte)
+          (output.output_byte)(sub_mod(curr, up))
+        }
+      }
+      @pdfio.extract_bytes_from_input_output(output, data)
+    }
+    _ =>
+      raise CodecError::DecodeNotSupported(
+        "encode_predictor: not supported - \{pred}",
+      )
+  }
 }
 
 ///|
