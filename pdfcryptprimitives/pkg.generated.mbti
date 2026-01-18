@@ -31,7 +31,7 @@ pub fn sha512(@pdfio.Input) -> String raise
 // Errors
 
 // Types and methods
-pub enum Encryption {
+pub(all) enum Encryption {
   ARC4(Int, Int)
   AESV2
   AESV3(Bool)

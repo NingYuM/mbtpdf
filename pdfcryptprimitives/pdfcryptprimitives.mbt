@@ -1,6 +1,6 @@
 ///|
 /// Types of encryption.
-pub enum Encryption {
+pub(all) enum Encryption {
   ARC4(Int, Int)
   AESV2
   AESV3(Bool)

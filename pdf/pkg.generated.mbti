@@ -2,6 +2,7 @@
 package "bobzhang/mbtpdf/pdf"
 
 import {
+  "bobzhang/mbtpdf/pdfcryptprimitives",
   "bobzhang/mbtpdf/pdfio",
 }
 
@@ -94,8 +95,14 @@ pub(all) suberror PdfError {
 }
 
 // Types and methods
-pub struct DeferredEncryption {
-  placeholder : Unit
+pub(all) struct DeferredEncryption {
+  crypt_type : @pdfcryptprimitives.Encryption
+  file_encryption_key : String?
+  obj : Int
+  gen : Int
+  key : Array[Int]
+  keylength : Int
+  r : Int
 }
 
 pub(all) enum ObjectData {
@@ -112,7 +119,7 @@ pub(all) struct Pdf {
   objects : PdfObjects
   mut trailerdict : PdfObject
   was_linearized : Bool
-  saved_encryption : SavedEncryption?
+  mut saved_encryption : SavedEncryption?
 }
 
 pub(all) enum PdfObject {
@@ -135,8 +142,10 @@ pub(all) struct PdfObjects {
   object_stream_ids : Map[Int, Int]
 }
 
-pub struct SavedEncryption {
-  placeholder : Unit
+pub(all) struct SavedEncryption {
+  from_get_encryption_values : (@pdfcryptprimitives.Encryption, String, String, Int, String, String?, String?)
+  encrypt_metadata : Bool
+  perms : String
 }
 
 pub(all) enum Stream {
@@ -157,6 +166,8 @@ pub(all) enum ToGetCrypt {
 }
 
 // Type aliases
+pub type EncryptionValues = (@pdfcryptprimitives.Encryption, String, String, Int, String, String?, String?)
+
 pub type PdfObjMap = Map[Int, (Ref[ObjectData], Int)]
 
 pub type PdfObjMapEntry = (Ref[ObjectData], Int)

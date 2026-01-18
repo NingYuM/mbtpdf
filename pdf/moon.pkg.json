@@ -1,6 +1,7 @@
 {
   "import": [
     "bobzhang/mbtpdf/pdfio",
-    "bobzhang/mbtpdf/pdfe"
+    "bobzhang/mbtpdf/pdfe",
+    "bobzhang/mbtpdf/pdfcryptprimitives"
   ]
 }

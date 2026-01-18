@@ -5,15 +5,35 @@ pub(all) suberror PdfError {
 }
 
 ///|
-/// Placeholder for saved encryption metadata.
-pub struct SavedEncryption {
-  placeholder : Unit
+/// Snapshot of encryption settings used for re-encryption.
+pub type EncryptionValues = (
+  @pdfcryptprimitives.Encryption,
+  String,
+  String,
+  Int,
+  String,
+  String?,
+  String?,
+)
+
+///|
+/// Saved encryption metadata used by recrypt helpers.
+pub(all) struct SavedEncryption {
+  from_get_encryption_values : EncryptionValues
+  encrypt_metadata : Bool
+  perms : String
 }
 
 ///|
-/// Placeholder for deferred encryption metadata.
-pub struct DeferredEncryption {
-  placeholder : Unit
+/// Deferred crypt settings for stream materialization.
+pub(all) struct DeferredEncryption {
+  crypt_type : @pdfcryptprimitives.Encryption
+  file_encryption_key : String?
+  obj : Int
+  gen : Int
+  key : Array[Int]
+  keylength : Int
+  r : Int
 }
 
 ///|
@@ -95,7 +115,7 @@ pub(all) struct Pdf {
   objects : PdfObjects
   mut trailerdict : PdfObject
   was_linearized : Bool
-  saved_encryption : SavedEncryption?
+  mut saved_encryption : SavedEncryption?
 }
 
 ///|
@@ -667,16 +687,44 @@ pub fn contents_of_nametree(
 
 ///|
 /// Get a stream from disk if it hasn't already been got.
+fn process_deferred_cryption(
+  crypt : ToGetCrypt,
+  data : @pdfio.MutableBytes,
+) -> @pdfio.MutableBytes raise {
+  match crypt {
+    ToGetCrypt::NoChange => data
+    ToGetCrypt::ToDecrypt(saved) =>
+      @pdfcryptprimitives.decrypt_stream_data(
+        saved.crypt_type,
+        false,
+        saved.file_encryption_key,
+        saved.obj,
+        saved.gen,
+        saved.key,
+        saved.keylength,
+        saved.r,
+        data,
+      )
+  }
+}
+
+///|
+/// Get a stream from disk if it hasn't already been got.
 pub fn getstream(obj : PdfObject) -> Unit raise {
   match obj {
     Stream(r) =>
       match r.val {
         (dict, Stream::ToGet(toget)) => {
-          let data = @pdfio.bytes_of_input(
-            toget.input,
-            toget.position,
-            toget.length,
-          )
+          let data = try {
+            let raw = @pdfio.bytes_of_input(
+              toget.input,
+              toget.position,
+              toget.length,
+            )
+            process_deferred_cryption(toget.crypt, raw)
+          } catch {
+            _ => raise PdfError::Msg("getstream: can't read stream")
+          }
           let dict_updated = match dict {
             Dictionary(_) =>
               replace_dict_entry(
