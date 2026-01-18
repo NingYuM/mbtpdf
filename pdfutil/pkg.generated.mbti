@@ -14,6 +14,8 @@ pub fn[A] append(Array[A], Array[A]) -> Array[A]
 
 pub fn[A] append_rev(Array[A], Array[A]) -> Array[A]
 
+pub fn between((Double, Double), (Double, Double)) -> (Double, Double)
+
 pub fn clear(Ref[Bool]) -> Unit
 
 pub fn[A] cleave(Array[A], Int) -> (Array[A], Array[A]) raise
@@ -35,6 +37,8 @@ pub fn[A, B] couple_ext((A, A) -> B raise?, (A) -> B raise?, Array[A]) -> Array[
 pub fn[A] couple_reduce((A, A) -> A raise?, Array[A]) -> A raise
 
 pub fn cumulative_sum(Int, Array[Int]) -> Array[Int]
+
+pub fn distance_between((Double, Double), (Double, Double)) -> Double
 
 pub fn[A] drop(Array[A], Int) -> Array[A] raise
 
@@ -142,6 +146,8 @@ pub fn[A] interleave(A, Array[A]) -> Array[A]
 
 pub fn[A] interleave_lists(Array[A], Array[A]) -> Array[A] raise
 
+pub fn invert((Double, Double)) -> (Double, Double)
+
 pub fn[A] isnull(Array[A]) -> Bool
 
 pub fn[A] isolate((A) -> Bool raise?, (A) -> Bool raise?, Array[A]) -> Array[A] raise?
@@ -222,9 +228,15 @@ pub fn[T] memoize(() -> T raise) -> () -> T raise
 
 pub fn[K : Eq, V] mergedict(Array[(K, V)], Array[(K, V)]) -> Array[(K, V)]
 
+pub fn mkunitvector((Double, Double), (Double, Double)) -> (Double, Double)
+
+pub fn mkvector((Double, Double), (Double, Double)) -> (Double, Double)
+
 pub fn[A] notnull(Array[A]) -> Bool
 
 pub fn[K, V] null_hash() -> Map[K, V]
+
+pub fn offset_point((Double, Double), (Double, Double)) -> (Double, Double)
 
 pub fn[A, B] option_map((A) -> B? raise?, Array[A]) -> Array[B] raise?
 
@@ -237,6 +249,8 @@ pub fn[A, B] pair_ext((A, A) -> B raise?, (A) -> B raise?, Array[A]) -> Array[B]
 pub fn[A] pair_reduce((A, A) -> A raise?, Array[A]) -> A raise
 
 pub fn[A] pairs(Array[A]) -> Array[(A, A)]
+
+pub fn perpendicular((Double, Double)) -> (Double, Double)
 
 pub fn[A : Eq] position(A, Array[A]) -> Int?
 
@@ -290,6 +304,8 @@ pub fn[A, B, C, D, E, F] rev_map5((A, B, C, D, E) -> F raise?, Array[A], Array[B
 
 pub fn[A, B, C, D, E, F, G] rev_map6((A, B, C, D, E, F) -> G raise?, Array[A], Array[B], Array[C], Array[D], Array[E], Array[F]) -> Array[G] raise
 
+pub fn scalevectolength(Double, (Double, Double)) -> (Double, Double)
+
 pub fn[A] select(Int, Array[A]) -> A raise
 
 pub fn set(Ref[Bool]) -> Unit
@@ -323,6 +339,8 @@ pub fn[A] splitat(Array[Int], Array[A]) -> Array[Array[A]] raise
 pub fn[A] splitinto(Int, Array[A]) -> Array[Array[A]] raise
 
 pub fn[A] splitinto_small(Int, Array[A]) -> Array[Array[A]] raise
+
+pub fn sqr(Double) -> Double
 
 pub fn sr32(Int, Int) -> Int
 
@@ -358,6 +376,8 @@ pub fn[A] tl(Array[A]) -> Array[A] raise
 
 pub fn[K : Hash + Eq, V] tryfind(Map[K, V], K) -> V?
 
+pub fn veclength((Double, Double)) -> Double
+
 pub fn[A] zipn(Array[Array[A]]) -> Array[Array[A]] raise
 
 // Errors
@@ -365,6 +385,7 @@ pub fn[A] zipn(Array[Array[A]]) -> Array[Array[A]] raise
 // Types and methods
 
 // Type aliases
+pub type Vector = (Double, Double)
 
 // Traits
 
