@@ -47,11 +47,11 @@ pub fn parse(Array[@pdfgenlex.Token], failure_is_ok? : Bool) -> (Int, @pdf.PdfOb
 
 pub fn parse_single_object(String) -> @pdf.PdfObject raise
 
-pub fn pdf_of_channel(revision? : Int, source? : String, String?, String?, @fs.File) -> @pdf.Pdf raise
+pub async fn pdf_of_channel(revision? : Int, source? : String, String?, String?, @fs.File) -> @pdf.Pdf
 
-pub fn pdf_of_channel_lazy(revision? : Int, source? : String, String?, String?, @fs.File) -> @pdf.Pdf raise
+pub async fn pdf_of_channel_lazy(revision? : Int, source? : String, String?, String?, @fs.File) -> @pdf.Pdf
 
-pub fn pdf_of_file(revision? : Int, String?, String?, String) -> @pdf.Pdf raise
+pub async fn pdf_of_file(revision? : Int, String?, String?, String) -> @pdf.Pdf
 
 pub fn pdf_of_input(revision? : Int, String?, String?, @pdfio.Input) -> @pdf.Pdf raise
 

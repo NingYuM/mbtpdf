@@ -1,5 +1,5 @@
 ///|
-fn main {
+async fn main {
   let args = @env.args()
   if args.length() != 3 {
     println("Syntax: pdfdecomp <input> <output>")

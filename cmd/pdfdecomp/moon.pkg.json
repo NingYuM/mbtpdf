@@ -5,6 +5,7 @@
     "bobzhang/mbtpdf/pdfread",
     "bobzhang/mbtpdf/pdfcodec",
     "bobzhang/mbtpdf/pdfwrite",
-    "moonbitlang/core/env"
+    "moonbitlang/core/env",
+    "moonbitlang/async"
   ]
 }

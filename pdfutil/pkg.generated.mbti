@@ -1,10 +1,6 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "bobzhang/mbtpdf/pdfutil"
 
-import {
-  "moonbitlang/async/fs",
-}
-
 // Values
 pub fn[K : Eq, V] add(K, V, Array[(K, V)]) -> Array[(K, V)]
 
@@ -54,9 +50,9 @@ pub fn[A, B] conspair(((A, B), (Array[A], Array[B]))) -> (Array[A], Array[B])
 
 pub fn[A, B] conspairopt(((A?, B?), (Array[A], Array[B]))) -> (Array[A], Array[B])
 
-pub fn contents_of_file(String) -> Array[Byte] raise
+pub async fn contents_of_file(String) -> Array[Byte]
 
-pub fn contents_to_file(String, Array[Byte]) -> Unit raise
+pub async fn contents_to_file(String, Array[Byte]) -> Unit
 
 pub fn[A, B] couple((A, A) -> B raise?, Array[A]) -> Array[B] raise?
 
@@ -224,7 +220,7 @@ pub fn lastchar(String) -> Char?
 
 pub fn[A] lcount((A) -> Bool raise?, Array[A]) -> Int raise?
 
-pub fn leafnames_of_dir(String) -> Array[String] raise
+pub async fn leafnames_of_dir(String) -> Array[String]
 
 pub fn[A] length(Array[A]) -> Int
 
@@ -454,9 +450,9 @@ pub fn sr64(Int64, Int) -> Int64
 
 pub fn starts_with(String, String) -> Bool
 
-pub let stderr_file : Ref[@fs.File?]
+pub let stderr_buffer : Ref[String]
 
-pub let stdout_file : Ref[@fs.File?]
+pub let stdout_buffer : Ref[String]
 
 pub fn string_of_char(Char) -> String
 

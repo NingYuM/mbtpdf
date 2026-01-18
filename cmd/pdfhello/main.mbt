@@ -1,5 +1,5 @@
 ///|
-fn main {
+async fn main {
   try {
     let font = @pdf.PdfObject::Dictionary([
       ("/Type", @pdf.PdfObject::Name("/Font")),

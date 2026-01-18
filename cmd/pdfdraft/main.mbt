@@ -128,7 +128,7 @@ fn remove_images(pdf : @pdf.Pdf) -> @pdf.Pdf raise {
 }
 
 ///|
-fn main {
+async fn main {
   let args = @env.args()
   if args.length() != 3 {
     println("Syntax: pdfdraft <input> <output>")

@@ -1,5 +1,5 @@
 ///|
-fn main {
+async fn main {
   let args = @env.args()
   if args.length() != 4 {
     println("Syntax: pdfencrypt <input> <output> <owner-password>")

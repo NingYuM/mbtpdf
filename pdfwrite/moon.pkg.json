@@ -5,7 +5,6 @@
     "bobzhang/mbtpdf/pdfcodec",
     "bobzhang/mbtpdf/pdfcrypt",
     "bobzhang/mbtpdf/pdfe",
-    "moonbitlang/async",
     "moonbitlang/async/fs"
   ],
   "test-import": [

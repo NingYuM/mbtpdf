@@ -957,7 +957,7 @@ pub fn pdf_to_output(
 
 ///|
 /// Write a PDF to a channel.
-pub fn pdf_to_channel(
+pub async fn pdf_to_channel(
   preserve_objstm? : Bool = false,
   generate_objstm? : Bool = false,
   compress_objstm? : Bool = false,
@@ -966,7 +966,7 @@ pub fn pdf_to_channel(
   build_new_id : Bool,
   pdf : @pdf.Pdf,
   channel : @fs.File,
-) -> Unit raise {
+) -> Unit {
   let output = @pdfio.output_of_channel(channel)
   match recrypt {
     Some(value) =>
@@ -991,11 +991,12 @@ pub fn pdf_to_channel(
         output,
       )
   }
+  (output.flush)()
 }
 
 ///|
 /// Write a PDF to a file.
-pub fn pdf_to_file_options(
+pub async fn pdf_to_file_options(
   preserve_objstm? : Bool = false,
   generate_objstm? : Bool = false,
   compress_objstm? : Bool = false,
@@ -1004,59 +1005,37 @@ pub fn pdf_to_file_options(
   build_new_id : Bool,
   pdf : @pdf.Pdf,
   filename : String,
-) -> Unit raise {
-  let result : Ref[Result[@fs.File, Error]] = Ref::new(
-    Err(Failure::Failure("uninitialized open")),
-  )
-  @async.run_async_main(() => {
-    let res : Result[@fs.File, Error] = try? @fs.open(
-      filename,
-      mode=WriteOnly,
-      create=0o644,
-      truncate=true,
-    )
-    result.val = res
-  })
-  let file = match result.val {
-    Ok(f) => f
-    Err(err) => raise err
-  }
-  try {
-    match recrypt {
-      Some(value) =>
-        pdf_to_channel(
-          preserve_objstm~,
-          generate_objstm~,
-          compress_objstm~,
-          recrypt=value,
-          encryption,
-          build_new_id,
-          pdf,
-          file,
-        )
-      None =>
-        pdf_to_channel(
-          preserve_objstm~,
-          generate_objstm~,
-          compress_objstm~,
-          encryption,
-          build_new_id,
-          pdf,
-          file,
-        )
-    }
-    file.close()
-  } catch {
-    err => {
-      file.close()
-      raise err
-    }
+) -> Unit {
+  let file = @fs.open(filename, mode=WriteOnly, create=0o644, truncate=true)
+  defer file.close()
+  match recrypt {
+    Some(value) =>
+      pdf_to_channel(
+        preserve_objstm~,
+        generate_objstm~,
+        compress_objstm~,
+        recrypt=value,
+        encryption,
+        build_new_id,
+        pdf,
+        file,
+      )
+    None =>
+      pdf_to_channel(
+        preserve_objstm~,
+        generate_objstm~,
+        compress_objstm~,
+        encryption,
+        build_new_id,
+        pdf,
+        file,
+      )
   }
 }
 
 ///|
 /// Simple write to file.
-pub fn pdf_to_file(pdf : @pdf.Pdf, filename : String) -> Unit raise {
+pub async fn pdf_to_file(pdf : @pdf.Pdf, filename : String) -> Unit {
   pdf_to_file_options(
     preserve_objstm=true,
     generate_objstm=false,

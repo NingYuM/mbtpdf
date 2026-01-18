@@ -6,6 +6,7 @@
     "bobzhang/mbtpdf/pdfpage",
     "bobzhang/mbtpdf/pdfpaper",
     "bobzhang/mbtpdf/pdftransform",
-    "bobzhang/mbtpdf/pdfwrite"
+    "bobzhang/mbtpdf/pdfwrite",
+    "moonbitlang/async"
   ]
 }

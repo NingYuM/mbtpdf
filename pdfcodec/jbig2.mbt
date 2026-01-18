@@ -57,7 +57,7 @@ fn jbig2_globals(
 }
 
 ///|
-fn decode_jbig2(
+async fn decode_jbig2(
   globals : @pdfio.MutableBytes?,
   jbig2dec : String,
   input : @pdfio.Input,
@@ -73,14 +73,6 @@ fn decode_jbig2(
     None => ""
   }
   let output_path = "\{dir}/mbtpdf_jbig2_\{stamp}.pbm"
-  fn cleanup() -> Unit {
-    remove_file(input_path)
-    if globals_path != "" {
-      remove_file(globals_path)
-    }
-    remove_file(output_path)
-  }
-
   let decoded = try {
     let input_bytes = @pdfio.bytes_of_input(input, 0, input.in_channel_length)
     run_async_mapped("write jbig2 input", () => @fs.write_file(
@@ -116,18 +108,38 @@ fn decode_jbig2(
     decode_jbig2dec_pbm(output_bytes)
   } catch {
     CodecError::CouldntDecodeStream(msg) => {
-      cleanup()
+      let _ : Result[Unit, Error] = try? @fs.remove(input_path)
+      if globals_path != "" {
+        let _ : Result[Unit, Error] = try? @fs.remove(globals_path)
+
+      }
+      let _ : Result[Unit, Error] = try? @fs.remove(output_path)
       raise CodecError::CouldntDecodeStream(msg)
     }
     CodecError::DecodeNotSupported(msg) => {
-      cleanup()
+      let _ : Result[Unit, Error] = try? @fs.remove(input_path)
+      if globals_path != "" {
+        let _ : Result[Unit, Error] = try? @fs.remove(globals_path)
+
+      }
+      let _ : Result[Unit, Error] = try? @fs.remove(output_path)
       raise CodecError::DecodeNotSupported(msg)
     }
     _ => {
-      cleanup()
+      let _ : Result[Unit, Error] = try? @fs.remove(input_path)
+      if globals_path != "" {
+        let _ : Result[Unit, Error] = try? @fs.remove(globals_path)
+
+      }
+      let _ : Result[Unit, Error] = try? @fs.remove(output_path)
       raise CodecError::CouldntDecodeStream("decode_jbig2 failed")
     }
   }
-  cleanup()
+  let _ : Result[Unit, Error] = try? @fs.remove(input_path)
+  if globals_path != "" {
+    let _ : Result[Unit, Error] = try? @fs.remove(globals_path)
+
+  }
+  let _ : Result[Unit, Error] = try? @fs.remove(output_path)
   decoded
 }

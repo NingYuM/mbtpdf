@@ -20,7 +20,7 @@ fn has_stream(pdf : @pdf.Pdf) -> Bool {
 }
 
 ///|
-test "e2e parse camlpdf intro pdf" {
+async test "e2e parse camlpdf intro pdf" {
   let filename = "camlpdf/introduction_to_camlpdf.pdf"
   let pdf = @pdfread.pdf_of_file(None, None, filename)
   let page_count = @pdfpage.pages_of_pagetree_quick(pdf)
@@ -30,7 +30,7 @@ test "e2e parse camlpdf intro pdf" {
 }
 
 ///|
-test "e2e roundtrip camlpdf intro pdf" {
+async test "e2e roundtrip camlpdf intro pdf" {
   let filename = "camlpdf/introduction_to_camlpdf.pdf"
   let pdf = @pdfread.pdf_of_file(None, None, filename)
   let roundtripped = roundtrip_pdf(pdf)
@@ -41,7 +41,7 @@ test "e2e roundtrip camlpdf intro pdf" {
 }
 
 ///|
-test "e2e parse camlpdf logo pdf has stream" {
+async test "e2e parse camlpdf logo pdf has stream" {
   let filename = "camlpdf/logo.pdf"
   let pdf = @pdfread.pdf_of_file(None, None, filename)
   assert_true(has_stream(pdf))

@@ -35,6 +35,7 @@ pub struct Output {
   output_byte : (Int) -> Unit
   output_string : (String) -> Unit
   out_channel_length : () -> Int
+  flush : async () -> Unit
 }
 
 ///|
@@ -249,54 +250,32 @@ pub fn input_of_string(s : String, source? : String = "string") -> Input {
 }
 
 ///|
-fn read_data_to_bytes(load : async () -> &@io.Data) -> MutableBytes raise {
-  let result : Ref[Result[MutableBytes, Error]] = Ref::new(
-    Err(Failure::Failure("uninitialized async read")),
-  )
-  @async.run_async_main(() => {
-    let data_res : Result[&@io.Data, Error] = try? load()
-    result.val = match data_res {
-      Ok(data) => Ok(data.binary().to_array())
-      Err(err) => Err(err)
-    }
-  })
-  match result.val {
-    Ok(bytes) => bytes
-    Err(err) => raise err
-  }
+async fn read_data_to_bytes(load : async () -> &@io.Data) -> MutableBytes {
+  let data = load()
+  data.binary().to_array()
 }
 
 ///|
-fn run_async_unit(load : async () -> Unit) -> Unit raise {
-  let result : Ref[Result[Unit, Error]] = Ref::new(
-    Err(Failure::Failure("uninitialized async write")),
-  )
-  @async.run_async_main(() => {
-    let res : Result[Unit, Error] = try? load()
-    result.val = res
-  })
-  match result.val {
-    Ok(_) => ()
-    Err(err) => raise err
-  }
+async fn run_async_unit(load : async () -> Unit) -> Unit {
+  load()
 }
 
 ///|
 /// Build an input from a file path (native-only, reads entire file).
-pub fn input_of_file(
+pub async fn input_of_file(
   filename : String,
   source? : String = "file",
-) -> Input raise {
+) -> Input {
   let bytes = read_data_to_bytes(() => @fs.read_file(filename))
   input_of_bytes(bytes, source~)
 }
 
 ///|
 /// Build an input from a channel (native-only, reads entire stream).
-pub fn input_of_channel(
+pub async fn input_of_channel(
   ch : @fs.File,
   source? : String = "channel",
-) -> Input raise {
+) -> Input {
   let bytes = read_data_to_bytes(() => ch.read_all())
   input_of_bytes(bytes, source~)
 }
@@ -307,13 +286,20 @@ pub fn output_of_channel(ch : @fs.File) -> Output {
   let mut pos = 0
   let mut highest_written = -1
   let single : MutableBytes = mkbytes(1)
+  let buffer : Ref[MutableBytes] = { val: mkbytes(4096) }
   let output_bytes = (bytes : Bytes) => {
-    let start = pos
-    let len = bytes.length()
-    run_async_unit(() => ch.write_at(bytes[:], position=start.to_int64())) catch {
-      _ => ()
+    for b in bytes {
+      if pos > buffer.val.length() - 1 {
+        let new_len = if pos * 2 > 0 { pos * 2 } else { 1 }
+        let new_bytes = mkbytes(new_len)
+        for i = 0; i < buffer.val.length(); i = i + 1 {
+          bset_unsafe(new_bytes, i, bget_unsafe(buffer.val, i))
+        }
+        buffer.val = new_bytes
+      }
+      bset_unsafe(buffer.val, pos, b.to_int())
+      pos = pos + 1
     }
-    pos = start + len
     let last = pos - 1
     highest_written = if highest_written > last {
       highest_written
@@ -321,7 +307,16 @@ pub fn output_of_channel(ch : @fs.File) -> Output {
       last
     }
   }
-  {
+  async fn flush_output() -> Unit {
+    let out = mkbytes(pos)
+    for i = 0; i < pos; i = i + 1 {
+      bset_unsafe(out, i, bget_unsafe(buffer.val, i))
+    }
+    let bytes = Bytes::from_array(out)
+    ch.write_at(bytes[:], position=0)
+  }
+
+  let output = {
     pos_out: () => pos,
     seek_out: p => pos = p,
     output_char: c => {
@@ -334,7 +329,9 @@ pub fn output_of_channel(ch : @fs.File) -> Output {
     },
     output_string: s => output_bytes(Bytes::from_array(bytes_of_string(s))),
     out_channel_length: () => highest_written + 1,
+    flush: flush_output,
   }
+  output
 }
 
 ///|
@@ -509,16 +506,16 @@ pub fn getinit(
 
 ///|
 /// Extract bytes from input channel.
-pub fn bytes_of_input_channel(ch : @fs.File) -> MutableBytes raise {
+pub async fn bytes_of_input_channel(ch : @fs.File) -> MutableBytes {
   read_data_to_bytes(() => ch.read_all())
 }
 
 ///|
 /// Write bytes to output channel.
-pub fn bytes_to_output_channel(
+pub async fn bytes_to_output_channel(
   ch : @fs.File,
   bytes : MutableBytes,
-) -> Unit raise {
+) -> Unit {
   let payload = Bytes::from_array(bytes)
   run_async_unit(() => ch.write(payload))
 }
@@ -767,7 +764,14 @@ fn output_of_bytes(data : Ref[MutableBytes]) -> Output {
     },
     output_byte: output_int,
     out_channel_length: () => highest_written + 1,
+    flush: noop_flush,
   }
+}
+
+///|
+/// No-op flush for in-memory outputs.
+async fn noop_flush() -> Unit {
+  ()
 }
 
 ///|

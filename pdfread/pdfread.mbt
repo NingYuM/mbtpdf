@@ -357,38 +357,38 @@ pub fn pdf_of_input_lazy(
 
 ///|
 /// Read a PDF from a channel.
-pub fn pdf_of_channel(
+pub async fn pdf_of_channel(
   revision? : Int,
   source? : String = "channel",
   user_password : String?,
   owner_password : String?,
   channel : @fs.File,
-) -> @pdf.Pdf raise {
+) -> @pdf.Pdf {
   let input = @pdfio.input_of_channel(channel, source~)
   read_pdf_internal(revision, user_password, owner_password, input, true)
 }
 
 ///|
 /// Read a PDF from a channel lazily.
-pub fn pdf_of_channel_lazy(
+pub async fn pdf_of_channel_lazy(
   revision? : Int,
   source? : String = "channel",
   user_password : String?,
   owner_password : String?,
   channel : @fs.File,
-) -> @pdf.Pdf raise {
+) -> @pdf.Pdf {
   let input = @pdfio.input_of_channel(channel, source~)
   read_pdf_internal(revision, user_password, owner_password, input, false)
 }
 
 ///|
 /// Read a PDF from a file.
-pub fn pdf_of_file(
+pub async fn pdf_of_file(
   revision? : Int,
   user_password : String?,
   owner_password : String?,
   filename : String,
-) -> @pdf.Pdf raise {
+) -> @pdf.Pdf {
   let input = @pdfio.input_of_file(filename, source=filename)
   read_pdf_internal(revision, user_password, owner_password, input, true)
 }
@@ -2573,12 +2573,12 @@ pub let endpage : Ref[(@pdf.Pdf) -> Int] = { val: _ => 0 }
 
 ///|
 /// Register pdf_of_file hook for decoder modules.
-fn pdf_of_file_unlabeled(
+async fn pdf_of_file_unlabeled(
   revision : Int?,
   user_password : String?,
   owner_password : String?,
   filename : String,
-) -> @pdf.Pdf raise {
+) -> @pdf.Pdf {
   match revision {
     Some(r) => pdf_of_file(revision=r, user_password, owner_password, filename)
     None => pdf_of_file(user_password, owner_password, filename)

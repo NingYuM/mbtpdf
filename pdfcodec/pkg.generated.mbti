@@ -15,15 +15,23 @@ pub fn decode_from_input(@pdfio.Input, @pdf.PdfObject) -> Array[Byte]?
 
 pub fn decode_pdfstream(@pdf.Pdf, @pdf.PdfObject, jbig2dec? : String) -> Unit raise CodecError
 
+pub async fn decode_pdfstream_async(@pdf.Pdf, @pdf.PdfObject, jbig2dec? : String) -> Unit raise CodecError
+
 pub fn decode_pdfstream_onestage(@pdf.Pdf, @pdf.PdfObject, jbig2dec? : String) -> Unit raise CodecError
 
+pub async fn decode_pdfstream_onestage_async(@pdf.Pdf, @pdf.PdfObject, jbig2dec? : String) -> Unit raise CodecError
+
 pub fn decode_pdfstream_until_unknown(@pdf.Pdf, @pdf.PdfObject, jbig2dec? : String) -> Unit raise CodecError
+
+pub async fn decode_pdfstream_until_unknown_async(@pdf.Pdf, @pdf.PdfObject, jbig2dec? : String) -> Unit raise CodecError
 
 pub fn decode_predictor(Int, Int, Int, Int, Array[Byte]) -> Array[Byte] raise CodecError
 
 pub fn encode_ccitt(Int, Int, Array[Byte]) -> Array[Byte] raise CodecError
 
 pub fn encode_ccittg4(Int, Int, Array[Byte], im? : String) -> Array[Byte] raise CodecError
+
+pub async fn encode_ccittg4_async(Int, Int, Array[Byte], String) -> Array[Byte] raise CodecError
 
 pub fn encode_flate(Array[Byte]) -> Array[Byte] raise CodecError
 
@@ -33,7 +41,7 @@ pub fn encode_predictor(Int, Int, Int, Int, Array[Byte]) -> Array[Byte] raise Co
 
 pub let flate_level : Ref[Int]
 
-pub let pdf_of_file : Ref[(Int?, String?, String?, String) -> @pdf.Pdf raise]
+pub let pdf_of_file : Ref[async (Int?, String?, String?, String) -> @pdf.Pdf]
 
 pub let string_of_pdf : Ref[(@pdf.PdfObject) -> String]
 

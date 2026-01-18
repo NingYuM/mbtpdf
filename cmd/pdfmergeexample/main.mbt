@@ -32,7 +32,7 @@ fn merge_pdfs(pdfs : Array[@pdf.Pdf]) -> @pdf.Pdf raise {
 }
 
 ///|
-fn main {
+async fn main {
   let args = @env.args()
   let argc = args.length()
   if argc < 3 {

@@ -15,11 +15,11 @@ pub fn make_encryption(EncryptionMethod, String, String, Array[@pdfcrypt.Permiss
 
 pub fn make_hex_pdf_string(String) -> String
 
-pub fn pdf_to_channel(preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, @fs.File) -> Unit raise
+pub async fn pdf_to_channel(preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, @fs.File) -> Unit
 
-pub fn pdf_to_file(@pdf.Pdf, String) -> Unit raise
+pub async fn pdf_to_file(@pdf.Pdf, String) -> Unit
 
-pub fn pdf_to_file_options(preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, String) -> Unit raise
+pub async fn pdf_to_file_options(preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, String) -> Unit
 
 pub fn pdf_to_output(preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, @pdfio.Output) -> Unit raise
 
