@@ -836,6 +836,147 @@ fn extract_ccittg4_stream(
 }
 
 ///|
+fn ccittg4_transitions(
+  input : @pdfio.Bitstream,
+  columns : Int,
+) -> Array[Int] raise {
+  let transitions = Array::new(capacity=columns + 2)
+  transitions.push(0)
+  let mut prev_white = true
+  for pos = 0; pos < columns; pos = pos + 1 {
+    let is_white = @pdfio.getbit(input)
+    if is_white != prev_white {
+      transitions.push(pos)
+      prev_white = is_white
+    }
+  }
+  transitions.push(columns)
+  @pdfio.align(input)
+  transitions
+}
+
+///|
+fn write_ccittg4_vertical(
+  output : @pdfio.BitstreamWrite,
+  diff : Int,
+) -> Unit raise CodecError {
+  match diff {
+    0 => write_bits(output, [1])
+    -1 => write_bits(output, [0, 1, 1])
+    -2 => write_bits(output, [0, 0, 0, 0, 1, 1])
+    -3 => write_bits(output, [0, 0, 0, 0, 0, 1, 1])
+    1 => write_bits(output, [0, 1, 0])
+    2 => write_bits(output, [0, 0, 0, 0, 1, 0])
+    3 => write_bits(output, [0, 0, 0, 0, 0, 1, 0])
+    _ =>
+      raise CodecError::DecodeNotSupported(
+        "bad vertical mode in CCITT G4 encoding",
+      )
+  }
+}
+
+///|
+fn encode_ccittg4_line(
+  columns : Int,
+  coding : Array[Int],
+  reference : Array[Int],
+  output : @pdfio.BitstreamWrite,
+) -> Unit raise CodecError {
+  let mut a0 = 0
+  let mut a0_run = 0
+  let mut ref_run = 0
+  while a0 < columns {
+    while a0_run + 1 < coding.length() && a0 >= coding[a0_run + 1] {
+      a0_run = a0_run + 1
+    }
+    while ref_run + 1 < reference.length() && a0 >= reference[ref_run + 1] {
+      ref_run = ref_run + 1
+    }
+    let a0_iswhite = a0_run % 2 == 0
+    let a1 = if a0_run + 1 < coding.length() {
+      coding[a0_run + 1]
+    } else {
+      columns
+    }
+    let a2 = if a0_run + 2 < coding.length() {
+      coding[a0_run + 2]
+    } else {
+      columns
+    }
+    let ref_iswhite = ref_run % 2 == 0
+    let b1_index = if ref_iswhite == a0_iswhite {
+      ref_run + 2
+    } else {
+      ref_run + 1
+    }
+    let b1 = if b1_index < reference.length() {
+      reference[b1_index]
+    } else {
+      columns
+    }
+    let b2 = if b1_index + 1 < reference.length() {
+      reference[b1_index + 1]
+    } else {
+      columns
+    }
+    if b2 < a1 {
+      write_bits(output, [0, 0, 0, 1])
+      a0 = b2
+      continue
+    }
+    let diff = a1 - b1
+    if diff >= -3 && diff <= 3 {
+      write_ccittg4_vertical(output, diff)
+      a0 = a1
+      continue
+    }
+    write_bits(output, [0, 0, 1])
+    let run1 = a1 - a0
+    let run2 = a2 - a1
+    if a0_iswhite {
+      write_bits(output, write_white_code(run1))
+      write_bits(output, write_black_code(run2))
+    } else {
+      write_bits(output, write_black_code(run1))
+      write_bits(output, write_white_code(run2))
+    }
+    a0 = a2
+  }
+}
+
+///|
+fn encode_ccittg4_pure(
+  columns : Int,
+  rows : Int,
+  data : @pdfio.MutableBytes,
+) -> @pdfio.MutableBytes raise CodecError {
+  let input = @pdfio.bitbytes_of_input(@pdfio.input_of_bytes(data))
+  let output = @pdfio.make_write_bitstream()
+  try {
+    let mut rows_left = rows
+    let mut reference = Array::new(capacity=2)
+    reference.push(0)
+    reference.push(columns)
+    while rows_left > 0 {
+      let coding = ccittg4_transitions(input, columns)
+      encode_ccittg4_line(columns, coding, reference, output)
+      reference = coding
+      rows_left = rows_left - 1
+    }
+    write_bits(output, [
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    ])
+    @pdfio.align_write(output)
+    @pdfio.bytes_of_write_bitstream(output)
+  } catch {
+    Failure::Failure(_) =>
+      raise CodecError::CouldntDecodeStream("encode_ccittg4: not enough data")
+    _ =>
+      raise CodecError::CouldntDecodeStream("encode_ccittg4: not enough data")
+  }
+}
+
+///|
 /// Encode data in CCITTDecode Group 4.
 pub fn encode_ccittg4(
   _columns : Int,
@@ -847,7 +988,7 @@ pub fn encode_ccittg4(
   let rows = _rows
   let data = _data
   match im {
-    None => raise CodecError::DecodeNotSupported("no imagemagick provided.")
+    None => encode_ccittg4_pure(columns, rows, data)
     Some(im_path) => {
       let dir = match @env.current_dir() {
         Some(path) => path
