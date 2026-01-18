@@ -482,6 +482,51 @@ pub fn lookup_immediate(key : String, dict : PdfObject) -> PdfObject? {
 }
 
 ///|
+/// Parse array index keys of the form "/[<digits>]".
+fn array_index_from_key(key : String) -> Int? {
+  if !key.has_prefix("/[") {
+    return None
+  }
+  let rest = try key[2:] catch {
+    _ => return None
+  } noraise {
+    view => view
+  }
+  let mut value = 0
+  let mut seen = false
+  for ch in rest {
+    if ch >= '0' && ch <= '9' {
+      value = value * 10 + (ch.to_int() - '0'.to_int())
+      seen = true
+    } else {
+      break
+    }
+  }
+  if seen {
+    Some(value)
+  } else {
+    None
+  }
+}
+
+///|
+/// Lookup a key, allowing array index chains.
+fn lookup_direct_or_array(
+  pdf : Pdf,
+  key : String,
+  obj : PdfObject,
+) -> PdfObject? {
+  match array_index_from_key(key) {
+    Some(index) =>
+      match obj {
+        Array(items) => Some(direct(pdf, items[index]))
+        _ => None
+      }
+    None => lookup_direct(pdf, key, obj)
+  }
+}
+
+///|
 /// Lookup a key in a nested dictionary chain.
 pub fn lookup_chain(
   pdf : Pdf,
@@ -490,7 +535,7 @@ pub fn lookup_chain(
 ) -> PdfObject? {
   let mut current = start
   for key in keys {
-    match lookup_direct(pdf, key, current) {
+    match lookup_direct_or_array(pdf, key, current) {
       None => return None
       Some(next) => current = next
     }
@@ -516,37 +561,57 @@ pub fn replace_chain(
     }
     let key = chain[0]
     let rest = chain.sub(start=1)
-    match current {
-      Null => {
-        let child = replace_in_obj(pdf, Dictionary([]), rest, obj)
-        Dictionary([(key, child)])
-      }
-      Dictionary(entries) => {
-        let mut found = false
-        let out = Array::new(capacity=entries.length() + 1)
-        for entry in entries {
-          let (k, v) = entry
-          if k == key {
-            let child = replace_in_obj(pdf, v, rest, obj)
-            out.push((k, child))
-            found = true
-          } else {
-            out.push((k, v))
+    match array_index_from_key(key) {
+      Some(index) =>
+        match current {
+          Array(items) => {
+            if index < 0 || index >= items.length() {
+              raise PdfError::Msg("replace_chain: array index out of range")
+            }
+            let updated = if rest.length() == 0 {
+              obj
+            } else {
+              replace_in_obj(pdf, items[index], rest, obj)
+            }
+            let out = items.copy()
+            out[index] = updated
+            Array(out)
           }
+          _ => raise PdfError::Msg("replace_chain: bad array chain")
         }
-        if !found {
-          let child = replace_in_obj(pdf, Dictionary([]), rest, obj)
-          out.push((key, child))
+      None =>
+        match current {
+          Null => {
+            let child = replace_in_obj(pdf, Dictionary([]), rest, obj)
+            Dictionary([(key, child)])
+          }
+          Dictionary(entries) => {
+            let mut found = false
+            let out = Array::new(capacity=entries.length() + 1)
+            for entry in entries {
+              let (k, v) = entry
+              if k == key {
+                let child = replace_in_obj(pdf, v, rest, obj)
+                out.push((k, child))
+                found = true
+              } else {
+                out.push((k, v))
+              }
+            }
+            if !found {
+              let child = replace_in_obj(pdf, Dictionary([]), rest, obj)
+              out.push((key, child))
+            }
+            Dictionary(out)
+          }
+          Stream(r) => {
+            let (inner, stream) = r.val
+            let updated = replace_in_obj(pdf, inner, chain, obj)
+            r.val = (updated, stream)
+            Stream(r)
+          }
+          _ => raise PdfError::Msg("replace_chain: not a dictionary")
         }
-        Dictionary(out)
-      }
-      Stream(r) => {
-        let (inner, stream) = r.val
-        let updated = replace_in_obj(pdf, inner, chain, obj)
-        r.val = (updated, stream)
-        Stream(r)
-      }
-      _ => raise PdfError::Msg("replace_chain: not a dictionary")
     }
   }
 
