@@ -10,5 +10,8 @@
     "bobzhang/mbtpdf/pdfwrite",
     "bobzhang/mbtpdf/pdfe",
     "moonbitlang/async/fs"
+  ],
+  "test-import": [
+    "bobzhang/mbtpdf/pdfpage"
   ]
 }
