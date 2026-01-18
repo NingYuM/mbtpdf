@@ -14,6 +14,10 @@ pub fn[A] append(Array[A], Array[A]) -> Array[A]
 
 pub fn[A] append_rev(Array[A], Array[A]) -> Array[A]
 
+pub fn[A, B] array_iter2((A, B) -> Unit raise?, Array[A], Array[B]) -> Unit raise
+
+pub fn[A, B, C] array_map2((A, B) -> C raise?, Array[A], Array[B]) -> Array[C] raise
+
 pub fn between((Double, Double), (Double, Double)) -> (Double, Double)
 
 pub fn clear(Ref[Bool]) -> Unit
@@ -354,6 +358,8 @@ pub fn[A] select(Int, Array[A]) -> A raise
 
 pub fn set(Ref[Bool]) -> Unit
 
+pub fn[A] set_array(Array[A], A) -> Unit
+
 pub fn[A : Compare] setify(Array[A]) -> Array[A]
 
 pub fn[A : Hash + Eq] setify_large(Array[A]) -> Array[A]
@@ -407,6 +413,8 @@ pub fn string_replace_all(String, String, String) -> String
 pub fn string_replace_all_lazy(String, () -> String, String) -> String
 
 pub fn sum(Array[Int]) -> Int
+
+pub fn[A] swap(Array[A], Int, Int) -> Unit
 
 pub fn[A] tail_no_fail(Array[A]) -> Array[A]
 
