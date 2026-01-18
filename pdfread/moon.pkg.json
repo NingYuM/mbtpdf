@@ -13,6 +13,7 @@
     "moonbitlang/core/strconv"
   ],
   "test-import": [
-    "bobzhang/mbtpdf/pdfpage"
+    "bobzhang/mbtpdf/pdfpage",
+    "moonbitlang/async"
   ]
 }
