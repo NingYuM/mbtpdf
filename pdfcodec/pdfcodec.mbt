@@ -1284,6 +1284,8 @@ pub fn decode_pdfstream_onestage(
           } else if filter_name == "/LZWDecode" || filter_name == "/LZW" {
             let early = get_int_param(pdf, parms_first, "/EarlyChange", 1)
             decode_lzw(early, @pdfio.input_of_bytes(data, source="lzw"))
+          } else if filter_name == "/Crypt" {
+            data
           } else if filter_name == "/JBIG2Decode" {
             let jbig2_path = match jbig2dec {
               Some(path) => path
@@ -1470,6 +1472,8 @@ pub fn decode_from_input(
       let input = @pdfio.input_of_bytes(bytes, source="lzw")
       let decoded = decode_lzw(early, input) catch { _ => return None }
       Some(decoded)
+    } else if filter_name == "/Crypt" {
+      Some(bytes)
     } else if filter_name == "/CCITTFaxDecode" || filter_name == "/CCF" {
       let k = get_int_param(pdf, parms, "/K", 0)
       let eol = get_bool_param(pdf, parms, "/EndOfLine", false)
