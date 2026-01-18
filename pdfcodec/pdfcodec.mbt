@@ -1102,6 +1102,7 @@ pub fn encode_pdfstream(
     let encoded = match encoding {
       Encoding::ASCIIHex => encode_asciihex(data)
       Encoding::ASCII85 => encode_ascii85(data)
+      Encoding::RunLength => encode_runlength(data)
       Encoding::Flate => encode_flate(data)
       _ =>
         raise CodecError::DecodeNotSupported(
@@ -1277,6 +1278,8 @@ pub fn decode_pdfstream_onestage(
             decode_asciihex(@pdfio.input_of_bytes(data, source="asciihex"))
           } else if filter_name == "/ASCII85Decode" || filter_name == "/A85" {
             decode_ascii85(@pdfio.input_of_bytes(data, source="ascii85"))
+          } else if filter_name == "/RunLengthDecode" || filter_name == "/RL" {
+            decode_runlength(@pdfio.input_of_bytes(data, source="runlength"))
           } else if filter_name == "/CCITTFaxDecode" || filter_name == "/CCF" {
             let k = get_int_param(pdf, parms_first, "/K", 0)
             let eol = get_bool_param(pdf, parms_first, "/EndOfLine", false)
@@ -1442,6 +1445,9 @@ pub fn decode_from_input(
       let input = @pdfio.input_of_bytes(bytes, source="ascii85")
       let decoded = decode_ascii85(input) catch { _ => return None }
       Some(decoded)
+    } else if filter_name == "/RunLengthDecode" || filter_name == "/RL" {
+      let input = @pdfio.input_of_bytes(bytes, source="runlength")
+      Some(decode_runlength(input))
     } else if filter_name == "/CCITTFaxDecode" || filter_name == "/CCF" {
       let k = get_int_param(pdf, parms, "/K", 0)
       let eol = get_bool_param(pdf, parms, "/EndOfLine", false)
