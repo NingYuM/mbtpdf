@@ -136,6 +136,7 @@ fn read_pdf_internal(
   let mut first_trailer = true
   let mut trailerdict = @pdf.PdfObject::Dictionary([])
   let xrefs : Map[Int, XRef] = Map::new()
+  let postdeletes : Map[Int, Bool] = Map::new()
   fn add_entries(entries : Array[(Int, XRef)], xrefs : Map[Int, XRef]) -> Unit {
     for pair in entries {
       if xrefs.get(pair.0) is None {
@@ -166,6 +167,7 @@ fn read_pdf_internal(
       if !skip {
         let filtered = entries.filter(pair => pair.0 != xref_objnum)
         add_entries(filtered, xrefs)
+        postdeletes.set(xref_objnum, true)
       }
       trailerdict_current = extract_trailer_dict(stream_obj)
     }
@@ -181,6 +183,7 @@ fn read_pdf_internal(
         if !skip {
           let filtered = entries.filter(pair => pair.0 != xref_objnum)
           add_entries(filtered, xrefs)
+          postdeletes.set(xref_objnum, true)
         }
       }
       Some(_) =>
@@ -206,6 +209,14 @@ fn read_pdf_internal(
       revisions_count
     }
     raise ReadPdfError::Revisions(real_revisions)
+  }
+  if read_stream_data {
+    for _key, xref in xrefs {
+      match xref {
+        XRef::Stream(stream_id, _) => postdeletes.set(stream_id, true)
+        _ => ()
+      }
+    }
   }
   let root = match @pdf.lookup_immediate("/Root", trailerdict) {
     Some(@pdf.PdfObject::Indirect(i)) => i
@@ -243,7 +254,7 @@ fn read_pdf_internal(
     Some(pair) => pair
     None => (major_header, minor_header)
   }
-  @pdf.Pdf::{
+  let pdf_final = @pdf.Pdf::{
     major,
     minor,
     root,
@@ -252,6 +263,29 @@ fn read_pdf_internal(
     was_linearized,
     saved_encryption: None,
   }
+  fn remove_postdelete(pdf : @pdf.Pdf, objnum : Int) -> Unit {
+    try {
+      match @pdf.lookup_obj(pdf, objnum) {
+        @pdf.PdfObject::Stream(r) => {
+          let (dict, _) = r.val
+          match @pdf.lookup_direct(pdf, "/Type", dict) {
+            Some(@pdf.PdfObject::Name("/XRef"))
+            | Some(@pdf.PdfObject::Name("/ObjStm")) =>
+              @pdf.removeobj(pdf, objnum)
+            _ => ()
+          }
+        }
+        _ => ()
+      }
+    } catch {
+      _ => ()
+    }
+  }
+
+  for objnum, _ in postdeletes {
+    remove_postdelete(pdf_final, objnum)
+  }
+  pdf_final
 }
 
 ///|
