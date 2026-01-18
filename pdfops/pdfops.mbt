@@ -662,22 +662,6 @@ pub fn stream_of_ops(ops : Array[Op]) -> @pdf.PdfObject raise {
 }
 
 ///|
-fn debug_next_n_chars(count : Int, input : @pdfio.Input) -> Unit {
-  let mut i = 0
-  while i < count {
-    match (input.input_char)() {
-      Some(chr) => @pdfe.log("\{chr} = \{chr.to_int()}\n")
-      None => ()
-    }
-    i = i + 1
-  }
-  @pdfe.log("\n")
-  let mut rewind_count = 0
-  while rewind_count < count {
-    @pdfio.rewind(input)
-    rewind_count = rewind_count + 1
-  }
-}
 
 ///|
 fn lex_name(input : @pdfio.Input) -> Lexeme raise {
@@ -693,7 +677,7 @@ fn lex_name(input : @pdfio.Input) -> Lexeme raise {
 fn nocontent(input : @pdfio.Input) -> Unit raise {
   @pdfe.log("Failed to understand content on page\n")
   if @pdfread.read_debug.val {
-    debug_next_n_chars(20, input)
+    @pdfio.debug_next_n_chars(20, input)
   }
   raise CouldntHandleContent
 }

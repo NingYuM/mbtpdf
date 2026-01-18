@@ -52,6 +52,8 @@ pub fn charlist_of_bytes(Array[Byte]) -> Array[Char]
 
 pub fn copybytes(Array[Byte]) -> Array[Byte]
 
+pub fn debug_next_n_chars(Int, Input) -> Unit
+
 pub fn extract_bytes_from_input_output(Output, Ref[Array[Byte]]) -> Array[Byte]
 
 pub fn fillbytes(Int, Array[Byte]) -> Unit

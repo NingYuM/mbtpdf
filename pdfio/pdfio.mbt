@@ -744,3 +744,27 @@ fn output_of_bytes(data : Ref[MutableBytes]) -> Output {
     out_channel_length: () => highest_written + 1,
   }
 }
+
+///|
+fn debug_next_char(input : Input) -> Unit {
+  match (input.input_char)() {
+    Some(chr) => @pdfe.log("\{chr} = \{chr.to_int()}\n")
+    None => ()
+  }
+}
+
+///|
+/// Debug the next `count` characters to the log and rewind.
+pub fn debug_next_n_chars(count : Int, input : Input) -> Unit {
+  let mut i = 0
+  while i < count {
+    debug_next_char(input)
+    i = i + 1
+  }
+  @pdfe.log("\n")
+  let mut rewind_count = 0
+  while rewind_count < count {
+    rewind(input)
+    rewind_count = rewind_count + 1
+  }
+}

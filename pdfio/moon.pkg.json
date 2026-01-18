@@ -1,5 +1,6 @@
 {
   "import": [
+    "bobzhang/mbtpdf/pdfe",
     "moonbitlang/async",
     "moonbitlang/async/fs",
     "moonbitlang/async/io"
