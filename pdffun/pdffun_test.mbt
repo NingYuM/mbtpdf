@@ -37,3 +37,48 @@ test "eval interpolation function" {
   assert_eq(output.length(), 1)
   assert_close(output[0], 0.25)
 }
+
+///|
+test "serialize sampled function" {
+  let fun : PdfFunction = {
+    func: PdfFunctionKind::Sampled({
+      size: [2],
+      order: 1,
+      encode: [0.0, 1.0],
+      decode: [0.0, 1.0],
+      bps: 8,
+      samples: [0, 255],
+    }),
+    domain: [0.0, 1.0],
+    range: Some([0.0, 1.0]),
+  }
+  let pdf = @pdf.empty()
+  let obj = pdfobject_of_function(pdf, fun)
+  match obj {
+    @pdf.PdfObject::Stream(_) => ()
+    _ => fail("expected sampled function to be a stream")
+  }
+  let parsed = parse_function(pdf, obj)
+  let output = eval_function(parsed, [1.0])
+  assert_eq(output.length(), 1)
+  assert_close(output[0], 1.0)
+}
+
+///|
+test "serialize calculator function" {
+  let fun : PdfFunction = {
+    func: PdfFunctionKind::Calculator([Calculator::Dup, Calculator::Mul]),
+    domain: [0.0, 10.0],
+    range: Some([0.0, 100.0]),
+  }
+  let pdf = @pdf.empty()
+  let obj = pdfobject_of_function(pdf, fun)
+  match obj {
+    @pdf.PdfObject::Stream(_) => ()
+    _ => fail("expected calculator function to be a stream")
+  }
+  let parsed = parse_function(pdf, obj)
+  let output = eval_function(parsed, [3.0])
+  assert_eq(output.length(), 1)
+  assert_close(output[0], 9.0)
+}

@@ -1308,6 +1308,72 @@ fn mkreal(x : Double) -> @pdf.PdfObject {
 }
 
 ///|
+fn mkint(x : Int) -> @pdf.PdfObject {
+  @pdf.PdfObject::Integer(x)
+}
+
+///|
+fn max_value_for_bits(bits : Int) -> Int {
+  let mut value = 0
+  let mut i = 0
+  while i < bits {
+    value = (value << 1) | 1
+    i = i + 1
+  }
+  value
+}
+
+///|
+fn write_bits(
+  data : @pdfio.MutableBytes,
+  bit_pos : Ref[Int],
+  bits : Int,
+  value : Int,
+) -> Unit {
+  if bits <= 0 {
+    return
+  }
+  let mut i = bits - 1
+  while true {
+    let bit = (value >> i) & 1
+    if bit == 1 {
+      let byte_index = bit_pos.val / 8
+      let bit_index = 7 - bit_pos.val % 8
+      let existing = @pdfio.bget_unsafe(data, byte_index)
+      @pdfio.bset_unsafe(data, byte_index, existing | (1 << bit_index))
+    }
+    bit_pos.val = bit_pos.val + 1
+    if i == 0 {
+      break
+    }
+    i = i - 1
+  }
+}
+
+///|
+fn sampled_bytes(samples : Array[Int], bits : Int) -> @pdfio.MutableBytes {
+  if bits <= 0 {
+    return @pdfio.mkbytes(0)
+  }
+  let total_bits = samples.length() * bits
+  let byte_len = if total_bits == 0 { 0 } else { (total_bits + 7) / 8 }
+  let data = @pdfio.mkbytes(byte_len)
+  let bit_pos = Ref::new(0)
+  let max_value = max_value_for_bits(bits)
+  for sample in samples {
+    let clamped = if sample < 0 {
+      0
+    } else if sample > max_value {
+      max_value
+    } else {
+      sample
+    }
+    write_bits(data, bit_pos, bits, clamped)
+  }
+  data
+}
+
+///|
 fn entries_of_interpolation(
   i : Interpolation,
 ) -> Array[(String, @pdf.PdfObject)] {
@@ -1353,7 +1419,7 @@ pub fn pdfobject_of_function(
   fun : PdfFunction,
 ) -> @pdf.PdfObject {
   let domain = @pdf.PdfObject::Array(fun.domain.map(mkreal))
-  let range = match fun.range {
+  let range_entry = match fun.range {
     None => []
     Some(values) => [("/Range", @pdf.PdfObject::Array(values.map(mkreal)))]
   }
@@ -1361,8 +1427,80 @@ pub fn pdfobject_of_function(
     ("/FunctionType", @pdf.PdfObject::Integer(funtype_of_function(fun))),
     ("/Domain", domain),
   ]
-  let extras = extra_entries_of_function(pdf, fun)
-  @pdf.PdfObject::Dictionary(concat_arrays(concat_arrays(base, range), extras))
+  match fun.func {
+    PdfFunctionKind::Sampled(s) => {
+      let encode_vals = if s.encode.length() == 0 {
+        interleave_lists(
+          many(0.0, s.size.length()),
+          s.size.map(x => (x - 1).to_double()),
+        )
+      } else {
+        s.encode
+      }
+      let decode_vals = if s.decode.length() == 0 {
+        match fun.range {
+          Some(values) => values
+          None => []
+        }
+      } else {
+        s.decode
+      }
+      let sampled_entries = [
+        ("/Size", @pdf.PdfObject::Array(s.size.map(mkint))),
+        ("/BitsPerSample", @pdf.PdfObject::Integer(s.bps)),
+        ("/Encode", @pdf.PdfObject::Array(encode_vals.map(mkreal))),
+      ]
+      let sampled_entries = if decode_vals.length() > 0 {
+        concat_arrays(sampled_entries, [
+          ("/Decode", @pdf.PdfObject::Array(decode_vals.map(mkreal))),
+        ])
+      } else {
+        sampled_entries
+      }
+      let entries = concat_arrays(
+        concat_arrays(base, range_entry),
+        sampled_entries,
+      )
+      let entries_with_order = if s.order != 1 {
+        concat_arrays(entries, [("/Order", @pdf.PdfObject::Integer(s.order))])
+      } else {
+        entries
+      }
+      let data = sampled_bytes(s.samples, s.bps)
+      let entries_with_length = concat_arrays(entries_with_order, [
+        ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+      ])
+      @pdf.PdfObject::Stream(
+        Ref::new(
+          (
+            @pdf.PdfObject::Dictionary(entries_with_length),
+            @pdf.Stream::Got(data),
+          ),
+        ),
+      )
+    }
+    PdfFunctionKind::Calculator(ops) => {
+      let entries = concat_arrays(base, range_entry)
+      let data = @pdfio.bytes_of_string(string_of_calculator(ops))
+      let entries_with_length = concat_arrays(entries, [
+        ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+      ])
+      @pdf.PdfObject::Stream(
+        Ref::new(
+          (
+            @pdf.PdfObject::Dictionary(entries_with_length),
+            @pdf.Stream::Got(data),
+          ),
+        ),
+      )
+    }
+    _ => {
+      let extras = extra_entries_of_function(pdf, fun)
+      @pdf.PdfObject::Dictionary(
+        concat_arrays(concat_arrays(base, range_entry), extras),
+      )
+    }
+  }
 }
 
 ///|
