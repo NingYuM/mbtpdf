@@ -342,7 +342,15 @@ fn obj_of_annot(annot : Annotation) -> @pdf.PdfObject raise {
             @pdf.PdfObject::Real(annot.border.vradius),
             @pdf.PdfObject::Real(annot.border.width),
           ])
-        _ => raise @pdf.PdfError::Msg("non-empty dash array unsupported")
+        dash =>
+          @pdf.PdfObject::Array([
+            @pdf.PdfObject::Real(annot.border.hradius),
+            @pdf.PdfObject::Real(annot.border.vradius),
+            @pdf.PdfObject::Real(annot.border.width),
+            @pdf.PdfObject::Array(
+              dash.map(value => @pdf.PdfObject::Integer(value)),
+            ),
+          ])
       },
     ),
   ]
