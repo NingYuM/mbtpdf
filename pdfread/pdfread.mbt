@@ -1431,6 +1431,16 @@ fn is_hex_digit(c : Char) -> Bool {
 }
 
 ///|
+fn hex_value(c : Char) -> Int? {
+  match c {
+    '0'..='9' => Some(c.to_int() - '0'.to_int())
+    'a'..='f' => Some(10 + c.to_int() - 'a'.to_int())
+    'A'..='F' => Some(10 + c.to_int() - 'A'.to_int())
+    _ => None
+  }
+}
+
+///|
 /// Lex a name.
 pub fn lex_name(input : @pdfio.Input) -> @pdfgenlex.Token raise {
   let bytes : @pdfio.MutableBytes = Array::new()
@@ -1602,8 +1612,9 @@ pub fn lex_string(input : @pdfio.Input) -> @pdfgenlex.Token raise {
 ///|
 /// Lex a hex string.
 pub fn lex_hexstring(input : @pdfio.Input) -> @pdfgenlex.Token raise {
-  let digits = Array::new()
   let _ = (input.input_byte)()
+  let bytes : @pdfio.MutableBytes = Array::new()
+  let mut pending : Int? = None
   let mut done = false
   while !done {
     let b = (input.input_byte)()
@@ -1616,10 +1627,16 @@ pub fn lex_hexstring(input : @pdfio.Input) -> @pdfgenlex.Token raise {
       } else if is_whitespace(c) {
         ()
       } else {
-        let hex = c.to_string()
-        match (try? @strconv.parse_int("0x\{hex}")) {
-          Ok(v) => digits.push(v)
-          Err(_) =>
+        match hex_value(c) {
+          Some(v) =>
+            match pending {
+              None => pending = Some(v)
+              Some(hi) => {
+                bytes.push(((hi << 4) + v).to_byte())
+                pending = None
+              }
+            }
+          None =>
             raise @pdf.PdfError::Msg(
               @pdf.input_pdferror(input, "lex_hexstring"),
             )
@@ -1627,14 +1644,9 @@ pub fn lex_hexstring(input : @pdfio.Input) -> @pdfgenlex.Token raise {
       }
     }
   }
-  if digits.length() % 2 == 1 {
-    digits.push(0)
-  }
-  let bytes : @pdfio.MutableBytes = Array::new()
-  for i = 0; i < digits.length(); i = i + 2 {
-    let hi = digits[i]
-    let lo = digits[i + 1]
-    bytes.push(((hi << 4) + lo).to_byte())
+  match pending {
+    None => ()
+    Some(hi) => bytes.push((hi << 4).to_byte())
   }
   @pdfgenlex.Token::LexString(@pdfio.string_of_bytes(bytes))
 }

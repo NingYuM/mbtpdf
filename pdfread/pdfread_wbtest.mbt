@@ -59,6 +59,35 @@ test "lex_hexstring rejects invalid hex" {
 }
 
 ///|
+test "lex_hexstring pads odd nibble" {
+  let input = @pdfio.input_of_string("<F>")
+  let token = lex_hexstring(input)
+  match token {
+    @pdfgenlex.Token::LexString(s) => {
+      let bytes = @pdfio.bytes_of_string(s)
+      assert_eq(bytes.length(), 1)
+      assert_eq(bytes[0].to_int(), 0xF0)
+    }
+    _ => fail("expected LexString")
+  }
+}
+
+///|
+test "lex_hexstring ignores whitespace" {
+  let input = @pdfio.input_of_string("<0F 0A>")
+  let token = lex_hexstring(input)
+  match token {
+    @pdfgenlex.Token::LexString(s) => {
+      let bytes = @pdfio.bytes_of_string(s)
+      assert_eq(bytes.length(), 2)
+      assert_eq(bytes[0].to_int(), 0x0F)
+      assert_eq(bytes[1].to_int(), 0x0A)
+    }
+    _ => fail("expected LexString")
+  }
+}
+
+///|
 test "lex_dictionary minus_one stops after closing dict" {
   let input = @pdfio.input_of_string("/Type /Example >> trailer")
   let tokens = lex_dictionary(true, input)
