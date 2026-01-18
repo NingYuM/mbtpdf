@@ -4,6 +4,7 @@ package "bobzhang/mbtpdf/pdf"
 import {
   "bobzhang/mbtpdf/pdfcryptprimitives",
   "bobzhang/mbtpdf/pdfio",
+  "bobzhang/mbtpdf/pdftransform",
 }
 
 // Values
@@ -57,6 +58,8 @@ pub fn lookup_immediate(String, PdfObject) -> PdfObject?
 
 pub fn lookup_obj(Pdf, Int) -> PdfObject
 
+pub fn make_matrix(@pdftransform.TransformMatrix) -> PdfObject
+
 pub fn nametree_lookup(Pdf, PdfObject, PdfObject) -> PdfObject? raise
 
 pub fn objcard(Pdf) -> Int
@@ -76,6 +79,8 @@ pub fn objselect((PdfObject) -> Bool raise?, Pdf) -> Array[Int] raise?
 pub fn objselfmap((PdfObject) -> PdfObject raise?, Pdf) -> Unit raise?
 
 pub fn page_reference_numbers(Pdf) -> Array[Int] raise
+
+pub fn parse_matrix(Pdf, String, PdfObject) -> @pdftransform.TransformMatrix raise
 
 pub fn parse_rectangle(Pdf, PdfObject) -> (Double, Double, Double, Double) raise
 
@@ -114,6 +119,10 @@ pub fn replace_chain(Pdf, ArrayView[String], PdfObject) -> Unit raise
 pub fn replace_dict_entry(PdfObject, String, PdfObject) -> PdfObject raise
 
 pub fn toget(@pdfio.Input, Int, Int, crypt? : ToGetCrypt) -> ToGet
+
+pub fn transform_quadpoints(Pdf, @pdftransform.TransformMatrix, PdfObject) -> PdfObject raise
+
+pub fn transform_rect(Pdf, @pdftransform.TransformMatrix, PdfObject) -> PdfObject raise
 
 pub fn unique_key(String, PdfObject) -> String raise
 
