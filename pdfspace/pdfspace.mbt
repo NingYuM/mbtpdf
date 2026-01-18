@@ -371,6 +371,171 @@ fn interleave_defaults(n : Int) -> Array[Double] {
 }
 
 ///|
+fn mkreal(x : Double) -> @pdf.PdfObject {
+  @pdf.PdfObject::Real(x)
+}
+
+///|
+fn mkint(x : Int) -> @pdf.PdfObject {
+  @pdf.PdfObject::Integer(x)
+}
+
+///|
+fn normalize_name(name : String) -> String {
+  if name.has_prefix("/") {
+    name
+  } else {
+    "/\{name}"
+  }
+}
+
+///|
+fn array_of_point(point : Point) -> @pdf.PdfObject {
+  @pdf.PdfObject::Array([mkreal(point.0), mkreal(point.1), mkreal(point.2)])
+}
+
+///|
+fn dict_entries(obj : @pdf.PdfObject) -> Array[(String, @pdf.PdfObject)] {
+  match obj {
+    @pdf.PdfObject::Dictionary(entries) => entries
+    _ => []
+  }
+}
+
+///|
+fn dict_has_key(
+  entries : Array[(String, @pdf.PdfObject)],
+  key : String,
+) -> Bool {
+  entries.search_by(pair => pair.0 == key) is Some(_)
+}
+
+///|
+fn dict_set(
+  entries : Array[(String, @pdf.PdfObject)],
+  key : String,
+  value : @pdf.PdfObject,
+) -> Array[(String, @pdf.PdfObject)] {
+  let out = Array::new(capacity=entries.length() + 1)
+  let mut found = false
+  for pair in entries {
+    if pair.0 == key {
+      out.push((key, value))
+      found = true
+    } else {
+      out.push(pair)
+    }
+  }
+  if !found {
+    out.push((key, value))
+  }
+  out
+}
+
+///|
+fn ensure_length(
+  entries : Array[(String, @pdf.PdfObject)],
+  stream_data : @pdf.Stream,
+) -> Array[(String, @pdf.PdfObject)] {
+  if dict_has_key(entries, "/Length") {
+    return entries
+  }
+  match stream_data {
+    @pdf.Stream::Got(bytes) =>
+      dict_set(entries, "/Length", mkint(@pdfio.bytes_size(bytes)))
+    _ => entries
+  }
+}
+
+///|
+fn is_empty_dict(obj : @pdf.PdfObject) -> Bool {
+  match obj {
+    @pdf.PdfObject::Dictionary(entries) => entries.length() == 0
+    _ => false
+  }
+}
+
+///|
+fn components_of_colourspace(space : ColourSpace) -> Int {
+  match get_basic_table_colourspace(space) {
+    ColourSpace::DeviceGray | ColourSpace::CalGray(_, _, _) => 1
+    ColourSpace::DeviceRGB
+    | ColourSpace::CalRGB(_, _, _, _)
+    | ColourSpace::Lab(_, _, _) => 3
+    ColourSpace::DeviceCMYK => 4
+    _ => 0
+  }
+}
+
+///|
+fn table_bytes(
+  table : Map[Int, Array[Int]],
+  hival : Int,
+  components : Int,
+) -> @pdfio.MutableBytes {
+  let total = if hival >= 0 { (hival + 1) * components } else { 0 }
+  let data = @pdfio.mkbytes(total)
+  let mut offset = 0
+  let mut i = 0
+  while i <= hival {
+    let row = match table.get(i) {
+      Some(values) => values
+      None => Array::make(components, 0)
+    }
+    let mut j = 0
+    while j < components {
+      let value = if j < row.length() { row[j] } else { 0 }
+      if offset < data.length() {
+        data[offset] = value.to_byte()
+      }
+      offset = offset + 1
+      j = j + 1
+    }
+    i = i + 1
+  }
+  data
+}
+
+///|
+fn write_iccbased(pdf : @pdf.Pdf, icc : ICCBased) -> @pdf.PdfObject {
+  match icc.icc_stream {
+    @pdf.PdfObject::Stream(r) => {
+      let (dict_obj, stream_data) = r.val
+      let entries = dict_entries(dict_obj)
+      let entries = dict_set(entries, "/N", mkint(icc.icc_n))
+      let entries = dict_set(
+        entries,
+        "/Alternate",
+        write_colourspace(pdf, icc.icc_alternate),
+      )
+      let entries = if icc.icc_range.length() == 2 * icc.icc_n {
+        dict_set(
+          entries,
+          "/Range",
+          @pdf.PdfObject::Array(icc.icc_range.map(mkreal)),
+        )
+      } else {
+        entries
+      }
+      let entries = match icc.icc_metadata {
+        Some(metadata) => dict_set(entries, "/Metadata", metadata)
+        None => entries
+      }
+      let entries = ensure_length(entries, stream_data)
+      let stream_obj = @pdf.PdfObject::Stream(
+        Ref::new((@pdf.PdfObject::Dictionary(entries), stream_data)),
+      )
+      let objnum = @pdf.addobj(pdf, stream_obj)
+      @pdf.PdfObject::Indirect(objnum)
+    }
+    _ => {
+      @pdfe.log("write_colourspace: ICCBased stream missing\n")
+      write_colourspace(pdf, icc.icc_alternate)
+    }
+  }
+}
+
+///|
 /// Write a colourspace to a PDF.
 pub fn write_colourspace(pdf : @pdf.Pdf, space : ColourSpace) -> @pdf.PdfObject {
   let _ = pdf
@@ -378,9 +543,97 @@ pub fn write_colourspace(pdf : @pdf.Pdf, space : ColourSpace) -> @pdf.PdfObject 
     ColourSpace::DeviceGray => @pdf.PdfObject::Name("/DeviceGray")
     ColourSpace::DeviceRGB => @pdf.PdfObject::Name("/DeviceRGB")
     ColourSpace::DeviceCMYK => @pdf.PdfObject::Name("/DeviceCMYK")
-    _ => {
-      @pdfe.log("write_colourspace space not supported\n")
-      @pdf.PdfObject::Null
+    ColourSpace::CalGray(white, black, gamma) =>
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Name("/CalGray"),
+        @pdf.PdfObject::Dictionary([
+          ("/WhitePoint", array_of_point(white)),
+          ("/BlackPoint", array_of_point(black)),
+          ("/Gamma", mkreal(gamma)),
+        ]),
+      ])
+    ColourSpace::CalRGB(white, black, gamma, matrix) =>
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Name("/CalRGB"),
+        @pdf.PdfObject::Dictionary([
+          ("/WhitePoint", array_of_point(white)),
+          ("/BlackPoint", array_of_point(black)),
+          ("/Gamma", @pdf.PdfObject::Array(gamma.map(mkreal))),
+          ("/Matrix", @pdf.PdfObject::Array(matrix.map(mkreal))),
+        ]),
+      ])
+    ColourSpace::Lab(white, black, range) =>
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Name("/Lab"),
+        @pdf.PdfObject::Dictionary([
+          ("/WhitePoint", array_of_point(white)),
+          ("/BlackPoint", array_of_point(black)),
+          ("/Range", @pdf.PdfObject::Array(range.map(mkreal))),
+        ]),
+      ])
+    ColourSpace::ICCBased(icc) =>
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Name("/ICCBased"),
+        write_iccbased(pdf, icc),
+      ])
+    ColourSpace::Indexed(base, table) => {
+      let components = components_of_colourspace(base)
+      if components == 0 {
+        @pdfe.log("write_colourspace: Indexed base not supported\n")
+        @pdf.PdfObject::Null
+      } else {
+        let mut hival = -1
+        for pair in table.to_array() {
+          if pair.0 > hival {
+            hival = pair.0
+          }
+        }
+        if hival < 0 {
+          hival = 0
+        }
+        let data = table_bytes(table, hival, components)
+        let lookup = @pdfio.string_of_bytes(data)
+        @pdf.PdfObject::Array([
+          @pdf.PdfObject::Name("/Indexed"),
+          write_colourspace(pdf, base),
+          @pdf.PdfObject::Integer(hival),
+          @pdf.PdfObject::String(lookup),
+        ])
+      }
+    }
+    ColourSpace::Pattern => @pdf.PdfObject::Name("/Pattern")
+    ColourSpace::PatternWithBaseColourspace(base) =>
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Name("/Pattern"),
+        write_colourspace(pdf, base),
+      ])
+    ColourSpace::Separation(name, alternate, tint) =>
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Name("/Separation"),
+        @pdf.PdfObject::Name(normalize_name(name)),
+        write_colourspace(pdf, alternate),
+        @pdffun.pdfobject_of_function(pdf, tint),
+      ])
+    ColourSpace::DeviceN(names, alternate, tint, attrs) => {
+      let names_obj = @pdf.PdfObject::Array(
+        names.map(name => @pdf.PdfObject::Name(normalize_name(name))),
+      )
+      let base = [
+        @pdf.PdfObject::Name("/DeviceN"),
+        names_obj,
+        write_colourspace(pdf, alternate),
+        @pdffun.pdfobject_of_function(pdf, tint),
+      ]
+      if is_empty_dict(attrs) {
+        @pdf.PdfObject::Array(base)
+      } else {
+        let with_attrs = Array::new(capacity=base.length() + 1)
+        for item in base {
+          with_attrs.push(item)
+        }
+        with_attrs.push(attrs)
+        @pdf.PdfObject::Array(with_attrs)
+      }
     }
   }
 }
