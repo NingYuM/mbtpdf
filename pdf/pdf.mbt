@@ -5,6 +5,27 @@ pub(all) suberror PdfError {
 }
 
 ///|
+/// PDF delimiter predicate.
+pub fn is_delimiter(c : Char) -> Bool {
+  match c {
+    '(' | ')' | '<' | '>' | '[' | ']' | '{' | '}' | '%' | '/' => true
+    _ => false
+  }
+}
+
+///|
+/// PDF whitespace predicate.
+pub fn is_whitespace(c : Char) -> Bool {
+  let v = c.to_int()
+  v == 0 || v == 9 || v == 10 || v == 12 || v == 13 || v == 32
+}
+
+///|
+pub fn is_not_whitespace(c : Char) -> Bool {
+  !is_whitespace(c)
+}
+
+///|
 /// Snapshot of encryption settings used for re-encryption.
 pub type EncryptionValues = (
   @pdfcryptprimitives.Encryption,
@@ -50,6 +71,31 @@ pub(all) struct ToGet {
   position : Int
   length : Int
   crypt : ToGetCrypt
+}
+
+///|
+pub fn toget(
+  input : @pdfio.Input,
+  position : Int,
+  length : Int,
+  crypt? : ToGetCrypt = ToGetCrypt::NoChange,
+) -> ToGet {
+  { input, position, length, crypt }
+}
+
+///|
+pub fn length_of_toget(t : ToGet) -> Int {
+  t.length
+}
+
+///|
+pub fn position_of_toget(t : ToGet) -> Int {
+  t.position
+}
+
+///|
+pub fn input_of_toget(t : ToGet) -> @pdfio.Input {
+  t.input
 }
 
 ///|
