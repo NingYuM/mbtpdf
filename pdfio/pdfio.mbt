@@ -11,6 +11,10 @@ pub type MutableBytes = Array[Byte]
 pub type CoreBytes = Bytes
 
 ///|
+/// Raw bytes for FFI-style access (alias in MoonBit).
+pub type RawBytes = MutableBytes
+
+///|
 /// Input abstraction (seekable stream of bytes).
 pub struct Input {
   pos_in : () -> Int
@@ -104,6 +108,18 @@ pub fn bytes_of_string(s : String) -> MutableBytes {
 /// Make bytes from core bytes.
 pub fn bytes_of_caml_bytes(bytes : CoreBytes) -> MutableBytes {
   bytes.to_array()
+}
+
+///|
+/// Expose raw bytes for interop (identity in MoonBit).
+pub fn raw_of_bytes(bytes : MutableBytes) -> RawBytes {
+  bytes
+}
+
+///|
+/// Convert raw bytes back to mutable bytes (identity in MoonBit).
+pub fn bytes_of_raw(raw : RawBytes) -> MutableBytes {
+  raw
 }
 
 ///|

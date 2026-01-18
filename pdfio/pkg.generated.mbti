@@ -38,6 +38,8 @@ pub fn bytes_of_int_array(Array[Int]) -> Array[Byte]
 
 pub fn bytes_of_list(Array[Int]) -> Array[Byte]
 
+pub fn bytes_of_raw(Array[Byte]) -> Array[Byte]
+
 pub fn bytes_of_string(String) -> Array[Byte]
 
 pub fn bytes_of_write_bitstream(BitstreamWrite) -> Array[Byte]
@@ -101,6 +103,8 @@ pub fn print_bytes(Array[Byte]) -> Unit
 pub fn putbit(BitstreamWrite, Int) -> Unit
 
 pub fn putval(BitstreamWrite, Int, Int) -> Unit raise
+
+pub fn raw_of_bytes(Array[Byte]) -> Array[Byte]
 
 pub fn read_char_back(Input) -> Char?
 
@@ -169,6 +173,8 @@ pub struct Output {
 pub type CoreBytes = Bytes
 
 pub type MutableBytes = Array[Byte]
+
+pub type RawBytes = Array[Byte]
 
 // Traits
 
