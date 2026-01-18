@@ -126,166 +126,187 @@ fn read_pdf_internal(
     Some(r) if r < 1 && r != -1 => raise ReadPdfError::BadRevision
     _ => ()
   }
-  let was_linearized = is_linearized(input)
-  (input.seek_in)(0)
-  let (major_header, minor_header) = read_header(input)
-  let mut revisions_count = 1
-  let mut current_revision = 0
-  let mut got_all_xref_sections = false
-  let mut xref_offset = read_startxref(input)
-  let mut first_trailer = true
-  let mut trailerdict = @pdf.PdfObject::Dictionary([])
-  let xrefs : Map[Int, XRef] = Map::new()
-  let postdeletes : Map[Int, Bool] = Map::new()
-  fn add_entries(entries : Array[(Int, XRef)], xrefs : Map[Int, XRef]) -> Unit {
-    for pair in entries {
-      if xrefs.get(pair.0) is None {
-        xrefs.set(pair.0, pair.1)
-      }
-    }
+  if debug_always_treat_malformed.val && revision != Some(-1) {
+    return read_malformed_pdf(
+      revision, user_password, owner_password, input, read_stream_data,
+    )
   }
+  try {
+    let was_linearized = is_linearized(input)
+    (input.seek_in)(0)
+    let (major_header, minor_header) = read_header(input)
+    let mut revisions_count = 1
+    let mut current_revision = 0
+    let mut got_all_xref_sections = false
+    let mut xref_offset = read_startxref(input)
+    let mut first_trailer = true
+    let mut trailerdict = @pdf.PdfObject::Dictionary([])
+    let xrefs : Map[Int, XRef] = Map::new()
+    let postdeletes : Map[Int, Bool] = Map::new()
+    fn add_entries(
+      entries : Array[(Int, XRef)],
+      xrefs : Map[Int, XRef],
+    ) -> Unit {
+      for pair in entries {
+        if xrefs.get(pair.0) is None {
+          xrefs.set(pair.0, pair.1)
+        }
+      }
+    }
 
-  while !got_all_xref_sections {
-    (input.seek_in)(xref_offset)
-    current_revision = current_revision + 1
-    dropwhite(input)
-    let skip = match revision {
-      None => false
-      Some(r) => r > current_revision
-    }
-    let mut trailerdict_current = @pdf.PdfObject::Dictionary([])
-    if @pdfio.peek_char(input) == Some('x') {
-      let entries = read_xref(input)
-      if !skip {
-        add_entries(entries, xrefs)
+    while !got_all_xref_sections {
+      (input.seek_in)(xref_offset)
+      current_revision = current_revision + 1
+      dropwhite(input)
+      let skip = match revision {
+        None => false
+        Some(r) => r > current_revision
       }
-      trailerdict_current = read_trailer_dict_from_table(
-        input, read_stream_data,
-      )
-    } else {
-      let (entries, xref_objnum, stream_obj) = read_xref_stream(input)
-      if !skip {
-        let filtered = entries.filter(pair => pair.0 != xref_objnum)
-        add_entries(filtered, xrefs)
-        postdeletes.set(xref_objnum, true)
-      }
-      trailerdict_current = extract_trailer_dict(stream_obj)
-    }
-    if first_trailer {
-      trailerdict = trailerdict_current
-      first_trailer = false
-    }
-    match @pdf.lookup_immediate("/XRefStm", trailerdict_current) {
-      Some(@pdf.PdfObject::Integer(n)) => {
-        (input.seek_in)(n)
-        dropwhite(input)
-        let (entries, xref_objnum, _stream_obj) = read_xref_stream(input)
+      let mut trailerdict_current = @pdf.PdfObject::Dictionary([])
+      if @pdfio.peek_char(input) == Some('x') {
+        let entries = read_xref(input)
+        if !skip {
+          add_entries(entries, xrefs)
+        }
+        trailerdict_current = read_trailer_dict_from_table(
+          input, read_stream_data,
+        )
+      } else {
+        let (entries, xref_objnum, stream_obj) = read_xref_stream(input)
         if !skip {
           let filtered = entries.filter(pair => pair.0 != xref_objnum)
           add_entries(filtered, xrefs)
           postdeletes.set(xref_objnum, true)
         }
+        trailerdict_current = extract_trailer_dict(stream_obj)
       }
-      Some(_) =>
-        raise @pdf.PdfError::Msg(
-          @pdf.input_pdferror(input, "Malformed /XRefStm"),
-        )
-      None => ()
-    }
-    match @pdf.lookup_immediate("/Prev", trailerdict_current) {
-      None => got_all_xref_sections = true
-      Some(@pdf.PdfObject::Integer(n)) => {
-        revisions_count = revisions_count + 1
-        xref_offset = n
+      if first_trailer {
+        trailerdict = trailerdict_current
+        first_trailer = false
       }
-      Some(_) =>
-        raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Malformed /Prev"))
-    }
-  }
-  if revision == Some(-1) {
-    let real_revisions = if was_linearized {
-      revisions_count - 1
-    } else {
-      revisions_count
-    }
-    raise ReadPdfError::Revisions(real_revisions)
-  }
-  if read_stream_data {
-    for _key, xref in xrefs {
-      match xref {
-        XRef::Stream(stream_id, _) => postdeletes.set(stream_id, true)
-        _ => ()
-      }
-    }
-  }
-  let root = match @pdf.lookup_immediate("/Root", trailerdict) {
-    Some(@pdf.PdfObject::Indirect(i)) => i
-    None => {
-      let message = @pdf.input_pdferror(input, "No /Root entry")
-      raise @pdf.PdfError::Msg(message)
-    }
-    _ => {
-      let message = @pdf.input_pdferror(input, "Malformed /Root entry")
-      raise @pdf.PdfError::Msg(message)
-    }
-  }
-  let objects = build_pdf_objects(
-    input,
-    xrefs.to_array(),
-    read_stream_data,
-    trailerdict,
-    user_password,
-    owner_password,
-  )
-  let sanitized_trailer = sanitize_trailerdict(
-    objects.objects.length(),
-    trailerdict,
-  )
-  let pdf_tmp = @pdf.Pdf::{
-    major: major_header,
-    minor: minor_header,
-    root,
-    objects,
-    trailerdict: sanitized_trailer,
-    was_linearized,
-    saved_encryption: None,
-  }
-  let (major, minor) = match version_from_catalog(pdf_tmp) {
-    Some(pair) => pair
-    None => (major_header, minor_header)
-  }
-  let pdf_final = @pdf.Pdf::{
-    major,
-    minor,
-    root,
-    objects,
-    trailerdict: sanitized_trailer,
-    was_linearized,
-    saved_encryption: None,
-  }
-  fn remove_postdelete(pdf : @pdf.Pdf, objnum : Int) -> Unit {
-    try {
-      match @pdf.lookup_obj(pdf, objnum) {
-        @pdf.PdfObject::Stream(r) => {
-          let (dict, _) = r.val
-          match @pdf.lookup_direct(pdf, "/Type", dict) {
-            Some(@pdf.PdfObject::Name("/XRef"))
-            | Some(@pdf.PdfObject::Name("/ObjStm")) =>
-              @pdf.removeobj(pdf, objnum)
-            _ => ()
+      match @pdf.lookup_immediate("/XRefStm", trailerdict_current) {
+        Some(@pdf.PdfObject::Integer(n)) => {
+          (input.seek_in)(n)
+          dropwhite(input)
+          let (entries, xref_objnum, _stream_obj) = read_xref_stream(input)
+          if !skip {
+            let filtered = entries.filter(pair => pair.0 != xref_objnum)
+            add_entries(filtered, xrefs)
+            postdeletes.set(xref_objnum, true)
           }
         }
+        Some(_) =>
+          raise @pdf.PdfError::Msg(
+            @pdf.input_pdferror(input, "Malformed /XRefStm"),
+          )
+        None => ()
+      }
+      match @pdf.lookup_immediate("/Prev", trailerdict_current) {
+        None => got_all_xref_sections = true
+        Some(@pdf.PdfObject::Integer(n)) => {
+          revisions_count = revisions_count + 1
+          xref_offset = n
+        }
+        Some(_) =>
+          raise @pdf.PdfError::Msg(
+            @pdf.input_pdferror(input, "Malformed /Prev"),
+          )
+      }
+    }
+    if revision == Some(-1) {
+      let real_revisions = if was_linearized {
+        revisions_count - 1
+      } else {
+        revisions_count
+      }
+      raise ReadPdfError::Revisions(real_revisions)
+    }
+    if read_stream_data {
+      for _key, xref in xrefs {
+        match xref {
+          XRef::Stream(stream_id, _) => postdeletes.set(stream_id, true)
+          _ => ()
+        }
+      }
+    }
+    let root = match @pdf.lookup_immediate("/Root", trailerdict) {
+      Some(@pdf.PdfObject::Indirect(i)) => i
+      None => {
+        let message = @pdf.input_pdferror(input, "No /Root entry")
+        raise @pdf.PdfError::Msg(message)
+      }
+      _ => {
+        let message = @pdf.input_pdferror(input, "Malformed /Root entry")
+        raise @pdf.PdfError::Msg(message)
+      }
+    }
+    let objects = build_pdf_objects(
+      input,
+      xrefs.to_array(),
+      read_stream_data,
+      trailerdict,
+      user_password,
+      owner_password,
+    )
+    let sanitized_trailer = sanitize_trailerdict(
+      objects.objects.length(),
+      trailerdict,
+    )
+    let pdf_tmp = @pdf.Pdf::{
+      major: major_header,
+      minor: minor_header,
+      root,
+      objects,
+      trailerdict: sanitized_trailer,
+      was_linearized,
+      saved_encryption: None,
+    }
+    let (major, minor) = match version_from_catalog(pdf_tmp) {
+      Some(pair) => pair
+      None => (major_header, minor_header)
+    }
+    let pdf_final = @pdf.Pdf::{
+      major,
+      minor,
+      root,
+      objects,
+      trailerdict: sanitized_trailer,
+      was_linearized,
+      saved_encryption: None,
+    }
+    fn remove_postdelete(pdf : @pdf.Pdf, objnum : Int) -> Unit {
+      try {
+        match @pdf.lookup_obj(pdf, objnum) {
+          @pdf.PdfObject::Stream(r) => {
+            let (dict, _) = r.val
+            match @pdf.lookup_direct(pdf, "/Type", dict) {
+              Some(@pdf.PdfObject::Name("/XRef"))
+              | Some(@pdf.PdfObject::Name("/ObjStm")) =>
+                @pdf.removeobj(pdf, objnum)
+              _ => ()
+            }
+          }
+          _ => ()
+        }
+      } catch {
         _ => ()
       }
-    } catch {
-      _ => ()
     }
-  }
 
-  for objnum, _ in postdeletes {
-    remove_postdelete(pdf_final, objnum)
+    for objnum, _ in postdeletes {
+      remove_postdelete(pdf_final, objnum)
+    }
+    pdf_final
+  } catch {
+    err =>
+      if should_fallback_on_error(err, revision) {
+        read_malformed_pdf(
+          revision, user_password, owner_password, input, read_stream_data,
+        )
+      } else {
+        raise err
+      }
   }
-  pdf_final
 }
 
 ///|
