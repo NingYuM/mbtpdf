@@ -1156,7 +1156,6 @@ pub fn decode_pdfstream(
   _obj : @pdf.PdfObject,
   jbig2dec? : String,
 ) -> Unit raise CodecError {
-  let _ = jbig2dec
   fn decode_one_stage(
     pdf : @pdf.Pdf,
     obj : @pdf.PdfObject,
@@ -1169,7 +1168,7 @@ pub fn decode_pdfstream(
           None => ()
           Some(@pdf.PdfObject::Name(_)) | Some(@pdf.PdfObject::Array(_)) => {
             let before = (string_of_pdf.val)(dict)
-            decode_pdfstream_onestage(pdf, obj)
+            decode_pdfstream_onestage(pdf, obj, jbig2dec?)
             let (after_dict, _after_stream) = r.val
             let after = (string_of_pdf.val)(after_dict)
             if before != after {
@@ -1195,7 +1194,6 @@ pub fn decode_pdfstream_onestage(
   obj : @pdf.PdfObject,
   jbig2dec? : String,
 ) -> Unit raise CodecError {
-  let _ = jbig2dec
   match obj {
     @pdf.PdfObject::Stream(r) => {
       let (dict, _stream) = r.val
@@ -1286,6 +1284,20 @@ pub fn decode_pdfstream_onestage(
           } else if filter_name == "/LZWDecode" || filter_name == "/LZW" {
             let early = get_int_param(pdf, parms_first, "/EarlyChange", 1)
             decode_lzw(early, @pdfio.input_of_bytes(data, source="lzw"))
+          } else if filter_name == "/JBIG2Decode" {
+            let jbig2_path = match jbig2dec {
+              Some(path) => path
+              None =>
+                raise CodecError::DecodeNotSupported(
+                  "JBIG2Decode requires jbig2dec",
+                )
+            }
+            let globals = jbig2_globals(pdf, parms_first)
+            decode_jbig2(
+              globals,
+              jbig2_path,
+              @pdfio.input_of_bytes(data, source="jbig2"),
+            )
           } else if filter_name == "/CCITTFaxDecode" || filter_name == "/CCF" {
             let k = get_int_param(pdf, parms_first, "/K", 0)
             let eol = get_bool_param(pdf, parms_first, "/EndOfLine", false)
@@ -1379,8 +1391,7 @@ pub fn decode_pdfstream_until_unknown(
   _obj : @pdf.PdfObject,
   jbig2dec? : String,
 ) -> Unit raise CodecError {
-  let _ = jbig2dec
-  decode_pdfstream(_pdf, _obj) catch {
+  decode_pdfstream(_pdf, _obj, jbig2dec?) catch {
     CodecError::DecodeNotSupported(_) => ()
     err => raise err
   }
