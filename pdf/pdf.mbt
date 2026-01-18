@@ -204,6 +204,24 @@ pub fn pdfobjmap_bindings(
 }
 
 ///|
+/// Build an object map from a list of (number, entry) pairs.
+pub fn objects_of_list(
+  parse : ((Int) -> PdfObject)?,
+  entries : Array[(Int, PdfObjMapEntry)],
+) -> PdfObjects {
+  let mut max_obj_num = 0
+  let objects = pdfobjmap_empty()
+  for entry in entries {
+    let (num, obj) = entry
+    if num > max_obj_num {
+      max_obj_num = num
+    }
+    objects.set(num, obj)
+  }
+  { max_obj_num, parse, objects, object_stream_ids: Map::new() }
+}
+
+///|
 /// The empty document (PDF 2.0, no objects, no root, empty trailer dictionary).
 pub fn empty() -> Pdf {
   {
@@ -818,6 +836,20 @@ pub fn getstream(obj : PdfObject) -> Unit raise {
 }
 
 ///|
+/// Find the contents of a stream as bytes.
+pub fn bigarray_of_stream(obj : PdfObject) -> @pdfio.MutableBytes raise {
+  getstream(obj)
+  match obj {
+    Stream(r) =>
+      match r.val {
+        (_, Stream::Got(bytes)) => bytes
+        _ => raise PdfError::Msg("couldn't extract raw stream")
+      }
+    _ => raise PdfError::Msg("couldn't extract raw stream")
+  }
+}
+
+///|
 /// Return a float from a PDF number.
 pub fn getnum(pdf : Pdf, obj : PdfObject) -> Double raise {
   match obj {
@@ -1057,6 +1089,19 @@ pub fn lookup_exception(
   match lookup_direct(pdf, key, dict) {
     Some(obj) => obj
     None => raise err
+  }
+}
+
+///|
+/// Find the indirect reference given by the value associated with a key.
+pub fn find_indirect(key : String, dict : PdfObject) -> Int? raise {
+  match dict {
+    Dictionary(_) =>
+      match lookup_immediate(key, dict) {
+        Some(Indirect(i)) => Some(i)
+        _ => None
+      }
+    _ => raise PdfError::Msg("find_indirect: not a dictionary")
   }
 }
 
@@ -1447,6 +1492,19 @@ pub fn renumber_object_parsed(
     }
     _ => obj
   }
+}
+
+///|
+/// Calculate the change table required to renumber objects 1..n.
+pub fn changes(pdf : Pdf) -> Map[Int, Int] {
+  let keys = objnumbers(pdf)
+  let table : Map[Int, Int] = Map::new(capacity=keys.length())
+  let mut num = 1
+  for key in keys {
+    table.set(key, num)
+    num = num + 1
+  }
+  table
 }
 
 ///|

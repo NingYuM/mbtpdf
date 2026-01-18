@@ -14,15 +14,21 @@ pub fn addobj(Pdf, PdfObject) -> Int
 
 pub fn addobj_given_num(Pdf, (Int, PdfObject)) -> Unit
 
+pub fn bigarray_of_stream(PdfObject) -> Array[Byte] raise
+
 pub fn catalog_of_pdf(Pdf) -> PdfObject raise
 
 pub fn change_id(Pdf, String) -> Unit raise
+
+pub fn changes(Pdf) -> Map[Int, Int]
 
 pub fn contents_of_nametree(Pdf, PdfObject) -> Array[(PdfObject, PdfObject)] raise
 
 pub fn direct(Pdf, PdfObject) -> PdfObject
 
 pub fn empty() -> Pdf
+
+pub fn find_indirect(String, PdfObject) -> Int? raise
 
 pub fn getnum(Pdf, PdfObject) -> Double raise
 
@@ -63,6 +69,8 @@ pub fn make_matrix(@pdftransform.TransformMatrix) -> PdfObject
 pub fn nametree_lookup(Pdf, PdfObject, PdfObject) -> PdfObject? raise
 
 pub fn objcard(Pdf) -> Int
+
+pub fn objects_of_list(((Int) -> PdfObject)?, Array[(Int, (Ref[ObjectData], Int))]) -> PdfObjects
 
 pub fn objects_referenced(Array[String], Array[(String, PdfObject)], Pdf, PdfObject) -> Array[Int]
 
