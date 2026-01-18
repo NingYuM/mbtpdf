@@ -332,7 +332,7 @@ pub fn output_of_channel(ch : @fs.File) -> Output {
       single[0] = b.to_byte()
       output_bytes(Bytes::from_array(single))
     },
-    output_string: s => output_bytes(@encoding/utf8.encode(s)),
+    output_string: s => output_bytes(Bytes::from_array(bytes_of_string(s))),
     out_channel_length: () => highest_written + 1,
   }
 }

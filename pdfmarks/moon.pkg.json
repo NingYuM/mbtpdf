@@ -5,5 +5,13 @@
     "bobzhang/mbtpdf/pdftransform",
     "bobzhang/mbtpdf/pdfe",
     "bobzhang/mbtpdf/pdfwrite"
+  ],
+  "test-import": [
+    "bobzhang/mbtpdf/pdfdest",
+    "bobzhang/mbtpdf/pdfpage",
+    "bobzhang/mbtpdf/pdfread",
+    "bobzhang/mbtpdf/pdfwrite",
+    "moonbitlang/async",
+    "moonbitlang/async/fs"
   ]
 }
