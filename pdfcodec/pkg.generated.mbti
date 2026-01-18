@@ -44,7 +44,7 @@ pub suberror CodecError {
 }
 
 // Types and methods
-pub enum Encoding {
+pub(all) enum Encoding {
   ASCIIHex
   ASCII85
   RunLength

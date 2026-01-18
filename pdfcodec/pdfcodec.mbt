@@ -1,6 +1,6 @@
 ///|
 /// Supported stream encodings.
-pub enum Encoding {
+pub(all) enum Encoding {
   ASCIIHex
   ASCII85
   RunLength
