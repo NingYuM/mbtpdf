@@ -378,6 +378,12 @@ pub fn[A, B, C, D, E, F] rev_map5((A, B, C, D, E) -> F raise?, Array[A], Array[B
 
 pub fn[A, B, C, D, E, F, G] rev_map6((A, B, C, D, E, F) -> G raise?, Array[A], Array[B], Array[C], Array[D], Array[E], Array[F]) -> Array[G] raise
 
+pub fn roman(Int) -> String
+
+pub fn roman_lower(Int) -> String
+
+pub fn roman_upper(Int) -> String
+
 pub let root2 : Double
 
 pub fn round(Double) -> Double
