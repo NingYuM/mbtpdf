@@ -77,6 +77,9 @@ fn append_text_from_streams(
   }
 
   fn decode_text(value : String) -> String {
+    if is_unicode(value) {
+      return utf8_of_pdfdocstring(value) catch { _ => value }
+    }
     match current_extractor {
       Some(extractor) =>
         utf8_of_codepoints(codepoints_of_text(extractor, value)) catch {
