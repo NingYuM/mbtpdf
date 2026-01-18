@@ -1121,6 +1121,10 @@ pub fn encode_pdfstream(
       Encoding::RunLength => encode_runlength(predicted_data)
       Encoding::LZW(early) => encode_lzw(early, predicted_data)
       Encoding::Flate => encode_flate(predicted_data)
+      Encoding::CCITT(columns, rows) =>
+        encode_ccitt(columns, rows, predicted_data)
+      Encoding::CCITTG4(columns, rows) =>
+        encode_ccittg4(columns, rows, predicted_data, im?)
       _ =>
         raise CodecError::DecodeNotSupported(
           "encoding not supported: \{encoding_name}",
