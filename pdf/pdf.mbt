@@ -1564,6 +1564,25 @@ pub fn renumber_object_parsed(
 }
 
 ///|
+fn check_object_contains_renumbering(
+  changes : Map[Int, Int],
+  obj : PdfObject,
+) -> Bool {
+  match obj {
+    Indirect(i) => changes.get(i) is Some(_)
+    Array(values) =>
+      values.any(v => check_object_contains_renumbering(changes, v))
+    Dictionary(entries) =>
+      entries.any(pair => check_object_contains_renumbering(changes, pair.1))
+    Stream(r) => {
+      let (dict, _) = r.val
+      check_object_contains_renumbering(changes, dict)
+    }
+    _ => false
+  }
+}
+
+///|
 /// Calculate the change table required to renumber objects 1..n.
 pub fn changes(pdf : Pdf) -> Map[Int, Int] {
   let keys = objnumbers(pdf)
@@ -1587,12 +1606,14 @@ pub fn renumber(
     Some(value) => value
     None => pdf.root
   }
-  let trailerdict = renumber_object_parsed(
-    pdf,
-    change_table,
-    pdf.trailerdict,
-    preserve_order~,
-  )
+  let trailerdict = if check_object_contains_renumbering(
+      change_table,
+      pdf.trailerdict,
+    ) {
+    renumber_object_parsed(pdf, change_table, pdf.trailerdict, preserve_order~)
+  } else {
+    pdf.trailerdict
+  }
   let entries = pdf.objects.objects.to_array()
   entries.sort_by((a, b) => a.0 - b.0)
   let objects : PdfObjMap = Map::new(capacity=entries.length())
@@ -1604,12 +1625,11 @@ pub fn renumber(
       None => old_num
     }
     let obj = lookup_obj(pdf, old_num)
-    let updated = renumber_object_parsed(
-      pdf,
-      change_table,
-      obj,
-      preserve_order~,
-    )
+    let updated = if check_object_contains_renumbering(change_table, obj) {
+      renumber_object_parsed(pdf, change_table, obj, preserve_order~)
+    } else {
+      obj
+    }
     objects.set(new_num, ({ val: ObjectData::Parsed(updated) }, 0))
     if new_num > max_obj_num {
       max_obj_num = new_num
