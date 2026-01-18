@@ -121,6 +121,10 @@ pub(all) enum PdfObject {
 }
 
 ///|
+/// Deferred stringification hook.
+pub let string_of_pdf : Ref[(PdfObject) -> String] = Ref::new((_ : PdfObject) => "")
+
+///|
 /// Object data state during parsing or decryption.
 pub(all) enum ObjectData {
   Parsed(PdfObject)
@@ -1589,8 +1593,16 @@ pub fn renumber_pdfs(pdfs : Array[Pdf]) -> Array[Pdf] {
 }
 
 ///|
-fn generate_id(path : String) -> PdfObject {
-  let stamp = @env.now().to_string()
+
+///|
+/// Generate an /ID entry for a document.
+pub fn generate_id(
+  pdf : Pdf,
+  path : String,
+  gettime : () -> Double,
+) -> PdfObject {
+  let _ = pdf
+  let stamp = gettime().to_string()
   let id = path + stamp
   PdfObject::Array([PdfObject::String(id), PdfObject::String(id)])
 }
@@ -1603,7 +1615,7 @@ pub fn change_id(pdf : Pdf, path : String) -> Unit raise {
       pdf.trailerdict = add_dict_entry(
         pdf.trailerdict,
         "/ID",
-        generate_id(path),
+        generate_id(pdf, path, () => @env.now().to_double()),
       )
     _ => raise PdfError::Msg("Bad trailer dictionary")
   }

@@ -1013,4 +1013,5 @@ pub fn make_hex_pdf_string(value : String) -> String {
 ///|
 fn init {
   @pdfcodec.string_of_pdf.val = string_of_pdf
+  @pdf.string_of_pdf.val = string_of_pdf
 }

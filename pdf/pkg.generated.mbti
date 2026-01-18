@@ -30,6 +30,8 @@ pub fn empty() -> Pdf
 
 pub fn find_indirect(String, PdfObject) -> Int? raise
 
+pub fn generate_id(Pdf, String, () -> Double) -> PdfObject
+
 pub fn getnum(Pdf, PdfObject) -> Double raise
 
 pub fn getstream(PdfObject) -> Unit raise
@@ -125,6 +127,8 @@ pub fn renumber_pdfs(Array[Pdf]) -> Array[Pdf]
 pub fn replace_chain(Pdf, ArrayView[String], PdfObject) -> Unit raise
 
 pub fn replace_dict_entry(PdfObject, String, PdfObject) -> PdfObject raise
+
+pub let string_of_pdf : Ref[(PdfObject) -> String]
 
 pub fn toget(@pdfio.Input, Int, Int, crypt? : ToGetCrypt) -> ToGet
 
