@@ -1095,17 +1095,28 @@ pub fn encode_pdfstream(
     data : @pdfio.MutableBytes,
   ) -> (@pdf.PdfObject, @pdfio.MutableBytes) raise CodecError {
     match predictor {
-      Some(Predictor::PNGUp) => {
-        let predicted = encode_predictor(12, 1, 8, predictor_columns, data)
+      Some(pred) => {
+        let (pred_value, colors, bpc) = match pred {
+          Predictor::TIFF2 => (2, 1, 8)
+          Predictor::PNGNone => (10, 1, 8)
+          Predictor::PNGSub => (11, 1, 8)
+          Predictor::PNGUp => (12, 1, 8)
+          Predictor::PNGAverage => (13, 1, 8)
+          Predictor::PNGPaeth => (14, 1, 8)
+          Predictor::PNGOptimum => (15, 1, 8)
+        }
+        let predicted = encode_predictor(
+          pred_value, colors, bpc, predictor_columns, data,
+        )
         let decodeparms = @pdf.PdfObject::Dictionary([
           ("/Columns", @pdf.PdfObject::Integer(predictor_columns)),
-          ("/Predictor", @pdf.PdfObject::Integer(12)),
+          ("/Predictor", @pdf.PdfObject::Integer(pred_value)),
+          ("/Colors", @pdf.PdfObject::Integer(colors)),
+          ("/BitsPerComponent", @pdf.PdfObject::Integer(bpc)),
         ])
         let dict_with_parms = set_dict_entry(dict, "/DecodeParms", decodeparms)
         (dict_with_parms, predicted)
       }
-      Some(_) =>
-        raise CodecError::DecodeNotSupported("Encode predictor not supported")
       None => (dict, data)
     }
   }
@@ -1538,6 +1549,181 @@ pub fn decode_from_input(
 
 ///|
 /// Encode predictor.
+fn sub_mod(a : Int, b : Int) -> Int {
+  let mut delta = a - b
+  if delta < 0 {
+    delta = delta + 256
+  }
+  delta
+}
+
+///|
+fn paeth(a : Int, b : Int, c : Int) -> Int {
+  let p = a + b - c
+  let pa = (p - a).abs()
+  let pb = (p - b).abs()
+  let pc = (p - c).abs()
+  if pa <= pb && pa <= pc {
+    a
+  } else if pb <= pc {
+    b
+  } else {
+    c
+  }
+}
+
+///|
+fn encode_png_filter(
+  current : Array[Int],
+  prior : Array[Int],
+  bytes_per_pixel : Int,
+  filter : Int,
+) -> Array[Int] {
+  let out = Array::new(capacity=current.length())
+  let get0 = (arr : Array[Int], idx : Int) => if idx < 0 { 0 } else { arr[idx] }
+  let mut i = 0
+  while i < current.length() {
+    let left = if i < bytes_per_pixel {
+      0
+    } else {
+      current[i - bytes_per_pixel]
+    }
+    let up = if i < prior.length() { prior[i] } else { 0 }
+    let up_left = if i < bytes_per_pixel {
+      0
+    } else {
+      prior[i - bytes_per_pixel]
+    }
+    let predicted = match filter {
+      0 => 0
+      1 => left
+      2 => up
+      3 => (left + up) / 2
+      4 => paeth(left, up, up_left)
+      _ => 0
+    }
+    out.push(sub_mod(current[i], predicted))
+    i = i + 1
+  }
+  out
+}
+
+///|
+fn predictor_cost(values : Array[Int]) -> Int {
+  let mut total = 0
+  for v in values {
+    let signed = if v > 127 { v - 256 } else { v }
+    total = total + signed.abs()
+  }
+  total
+}
+
+///|
+fn encode_png_line(
+  current : Array[Int],
+  prior : Array[Int],
+  bytes_per_pixel : Int,
+  pred : Int,
+) -> (Int, Array[Int]) {
+  let filter = if pred == 15 { -1 } else { pred - 10 }
+  if filter >= 0 && filter <= 4 {
+    let encoded = encode_png_filter(current, prior, bytes_per_pixel, filter)
+    return (filter, encoded)
+  }
+  let mut best_filter = 0
+  let mut best_encoded = encode_png_filter(current, prior, bytes_per_pixel, 0)
+  let mut best_cost = predictor_cost(best_encoded)
+  let mut f = 1
+  while f <= 4 {
+    let candidate = encode_png_filter(current, prior, bytes_per_pixel, f)
+    let cost = predictor_cost(candidate)
+    if cost < best_cost {
+      best_cost = cost
+      best_filter = f
+      best_encoded = candidate
+    }
+    f = f + 1
+  }
+  (best_filter, best_encoded)
+}
+
+///|
+fn encode_png_predictor(
+  pred : Int,
+  colors : Int,
+  bpc : Int,
+  columns : Int,
+  stream : @pdfio.MutableBytes,
+) -> @pdfio.MutableBytes raise CodecError {
+  if bpc != 8 {
+    raise CodecError::DecodeNotSupported("PNG predictor only supports 8bpc")
+  }
+  let scanline_width = (colors * bpc * columns + 7) / 8
+  let bytes_per_pixel = (bpc * colors + 7) / 8
+  let (output, data) = @pdfio.input_output_of_bytes(4096)
+  let lines = if scanline_width == 0 {
+    0
+  } else {
+    @pdfio.bytes_size(stream) / scanline_width
+  }
+  let prior = Array::make(scanline_width, 0)
+  let mut line = 0
+  while line < lines {
+    let current = Array::make(scanline_width, 0)
+    let mut i = 0
+    while i < scanline_width {
+      current[i] = @pdfio.bget(stream, line * scanline_width + i)
+      i = i + 1
+    }
+    let (filter, encoded) = encode_png_line(
+      current, prior, bytes_per_pixel, pred,
+    )
+    (output.output_byte)(filter)
+    for v in encoded {
+      (output.output_byte)(v)
+    }
+    for i = 0; i < scanline_width; i = i + 1 {
+      prior[i] = current[i]
+    }
+    line = line + 1
+  }
+  @pdfio.extract_bytes_from_input_output(output, data)
+}
+
+///|
+fn encode_tiff_predictor(
+  colors : Int,
+  bpc : Int,
+  columns : Int,
+  stream : @pdfio.MutableBytes,
+) -> @pdfio.MutableBytes raise CodecError {
+  if bpc != 8 {
+    raise CodecError::DecodeNotSupported("TIFF predictor only supports 8bpc")
+  }
+  let bytes_per_pixel = (bpc * colors + 7) / 8
+  let scanline_width = (colors * bpc * columns + 7) / 8
+  let out = stream.copy()
+  let lines = if scanline_width == 0 {
+    0
+  } else {
+    @pdfio.bytes_size(stream) / scanline_width
+  }
+  let mut line = 0
+  while line < lines {
+    let line_start = line * scanline_width
+    let mut p = bytes_per_pixel
+    while p < scanline_width {
+      let curr = @pdfio.bget(stream, line_start + p)
+      let left = @pdfio.bget(stream, line_start + p - bytes_per_pixel)
+      out[line_start + p] = sub_mod(curr, left).to_byte()
+      p = p + 1
+    }
+    line = line + 1
+  }
+  out
+}
+
+///|
 pub fn encode_predictor(
   _pred : Int,
   _colors : Int,
@@ -1550,63 +1736,10 @@ pub fn encode_predictor(
   let bpc = _bpc
   let columns = _columns
   let stream = _stream
-  let get0 = (bytes : @pdfio.MutableBytes, idx : Int) => if idx < 0 {
-    0
-  } else {
-    @pdfio.bget(bytes, idx)
-  }
-  let sub_mod = (a : Int, b : Int) => {
-    let mut delta = a - b
-    if delta < 0 {
-      delta = delta + 256
-    }
-    delta
-  }
   match pred {
-    11 => {
-      let _ = colors
-      let _ = bpc
-      let (output, data) = @pdfio.input_output_of_bytes(4096)
-      let scanline_bytes = columns * 3
-      let lines = if scanline_bytes == 0 {
-        0
-      } else {
-        @pdfio.bytes_size(stream) / scanline_bytes
-      }
-      for scanline = 0; scanline < lines; scanline = scanline + 1 {
-        (output.output_byte)(1)
-        let line_base = scanline * columns
-        for byte = 0; byte < scanline_bytes; byte = byte + 1 {
-          let curr = get0(stream, line_base + byte)
-          let left = if byte < 3 {
-            0
-          } else {
-            get0(stream, line_base + byte - 3)
-          }
-          (output.output_byte)(sub_mod(curr, left))
-        }
-      }
-      @pdfio.extract_bytes_from_input_output(output, data)
-    }
-    12 => {
-      let _ = colors
-      let _ = bpc
-      let (output, data) = @pdfio.input_output_of_bytes(4096)
-      let lines = if columns == 0 {
-        0
-      } else {
-        @pdfio.bytes_size(stream) / columns
-      }
-      for scanline = 0; scanline < lines; scanline = scanline + 1 {
-        (output.output_byte)(2)
-        for byte = 0; byte < columns; byte = byte + 1 {
-          let curr = get0(stream, scanline * columns + byte)
-          let up = get0(stream, (scanline - 1) * columns + byte)
-          (output.output_byte)(sub_mod(curr, up))
-        }
-      }
-      @pdfio.extract_bytes_from_input_output(output, data)
-    }
+    2 => encode_tiff_predictor(colors, bpc, columns, stream)
+    10 | 11 | 12 | 13 | 14 | 15 =>
+      encode_png_predictor(pred, colors, bpc, columns, stream)
     _ =>
       raise CodecError::DecodeNotSupported(
         "encode_predictor: not supported - \{pred}",
