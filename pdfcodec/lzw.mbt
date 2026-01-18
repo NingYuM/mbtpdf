@@ -6,7 +6,7 @@ fn decode_lzw(
   let prefix_code : Array[Int] = Array::make(8192, 0)
   let append_character : Array[Int] = Array::make(8192, 0)
   let mut bit_count = 0
-  let mut bit_buffer = 0
+  let mut bit_buffer : UInt = 0
   let mut endflush = 4
   let mut code_length = 9
   let mut next_code = 258
@@ -46,11 +46,13 @@ fn decode_lzw(
       } else {
         streambyte
       }
-      bit_buffer = bit_buffer | (value << (24 - bit_count))
+      bit_buffer = bit_buffer |
+        (value.reinterpret_as_uint() << (24 - bit_count))
       bit_count = bit_count + 8
     }
-    let result = bit_buffer >> (32 - code_length)
-    bit_buffer = (bit_buffer << code_length) & 0xffff_ffff
+    let result = (bit_buffer >> (32 - code_length)).reinterpret_as_int()
+    let mask : UInt = 0xffff_ffff
+    bit_buffer = (bit_buffer << code_length) & mask
     bit_count = bit_count - code_length
     result
   }

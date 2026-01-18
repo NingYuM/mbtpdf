@@ -90,9 +90,14 @@ pub fn bytes_selfmap(f : (Int) -> Int, bytes : MutableBytes) -> Unit {
 }
 
 ///|
-/// Make bytes from a string (UTF-8 encoding).
+/// Make bytes from a string by taking the low 8 bits of each character.
 pub fn bytes_of_string(s : String) -> MutableBytes {
-  @encoding/utf8.encode(s).to_array()
+  let chars = s.to_array()
+  let out = Array::new(capacity=chars.length())
+  for c in chars {
+    out.push(c.to_int().to_byte())
+  }
+  out
 }
 
 ///|
@@ -150,7 +155,7 @@ pub fn int_array_of_bytes(bytes : MutableBytes) -> Array[Int] {
 }
 
 ///|
-/// Integer array from a string (UTF-8).
+/// Integer array from a string (byte-wise).
 pub fn int_array_of_string(s : String) -> Array[Int] {
   bytes_of_string(s).map(b => b.to_int())
 }
@@ -168,9 +173,13 @@ pub fn string_of_int_array(values : Array[Int]) -> String {
 }
 
 ///|
-/// Make a string from bytes without validation.
+/// Make a string by mapping each byte to a single character.
 pub fn string_of_bytes(bytes : MutableBytes) -> String {
-  Bytes::from_array(bytes).to_unchecked_string()
+  let chars = Array::new(capacity=bytes.length())
+  for b in bytes {
+    chars.push(b.to_char())
+  }
+  String::from_array(chars)
 }
 
 ///|
