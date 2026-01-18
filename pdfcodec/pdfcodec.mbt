@@ -1057,11 +1057,9 @@ pub fn encode_pdfstream(
   predictor_columns? : Int,
 ) -> Unit raise CodecError {
   let _ = im
-  let _ = predictor_columns
-  match predictor {
-    Some(_) =>
-      raise CodecError::DecodeNotSupported("predictor encoding not supported")
-    None => ()
+  let predictor_columns = match predictor_columns {
+    Some(value) => value
+    None => 1
   }
   let encoding_name = match encoding {
     Encoding::ASCIIHex => "/ASCIIHexDecode"
@@ -1092,22 +1090,43 @@ pub fn encode_pdfstream(
     set_dict_entry(dict, "/Filter", filter_obj)
   }
 
+  fn process_prediction(
+    dict : @pdf.PdfObject,
+    data : @pdfio.MutableBytes,
+  ) -> (@pdf.PdfObject, @pdfio.MutableBytes) raise CodecError {
+    match predictor {
+      Some(Predictor::PNGUp) => {
+        let predicted = encode_predictor(12, 1, 8, predictor_columns, data)
+        let decodeparms = @pdf.PdfObject::Dictionary([
+          ("/Columns", @pdf.PdfObject::Integer(predictor_columns)),
+          ("/Predictor", @pdf.PdfObject::Integer(12)),
+        ])
+        let dict_with_parms = set_dict_entry(dict, "/DecodeParms", decodeparms)
+        (dict_with_parms, predicted)
+      }
+      Some(_) =>
+        raise CodecError::DecodeNotSupported("Encode predictor not supported")
+      None => (dict, data)
+    }
+  }
+
   fn encode_stream(
     dict : @pdf.PdfObject,
     data : @pdfio.MutableBytes,
   ) -> (@pdf.PdfObject, @pdfio.MutableBytes) raise CodecError {
+    let (predicted_dict, predicted_data) = process_prediction(dict, data)
     let encoded = match encoding {
-      Encoding::ASCIIHex => encode_asciihex(data)
-      Encoding::ASCII85 => encode_ascii85(data)
-      Encoding::RunLength => encode_runlength(data)
-      Encoding::LZW(early) => encode_lzw(early, data)
-      Encoding::Flate => encode_flate(data)
+      Encoding::ASCIIHex => encode_asciihex(predicted_data)
+      Encoding::ASCII85 => encode_ascii85(predicted_data)
+      Encoding::RunLength => encode_runlength(predicted_data)
+      Encoding::LZW(early) => encode_lzw(early, predicted_data)
+      Encoding::Flate => encode_flate(predicted_data)
       _ =>
         raise CodecError::DecodeNotSupported(
           "encoding not supported: \{encoding_name}",
         )
     }
-    let dict_with_filter = update_filter(dict)
+    let dict_with_filter = update_filter(predicted_dict)
     let dict_with_length = set_dict_entry(
       dict_with_filter,
       "/Length",
@@ -1138,7 +1157,7 @@ pub fn encode_pdfstream(
         im?,
         only_if_smaller~,
         predictor?,
-        predictor_columns?,
+        predictor_columns~,
       )
     _ => raise CodecError::CouldntDecodeStream("malformed stream")
   }
