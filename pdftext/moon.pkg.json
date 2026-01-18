@@ -6,10 +6,15 @@
     "bobzhang/mbtpdf/pdfgenlex",
     "bobzhang/mbtpdf/pdfglyphlist",
     "bobzhang/mbtpdf/pdfio",
+    "bobzhang/mbtpdf/pdfops",
+    "bobzhang/mbtpdf/pdfpage",
     "bobzhang/mbtpdf/pdfread",
     "bobzhang/mbtpdf/pdftransform",
     "bobzhang/mbtpdf/pdfutil",
     "moonbitlang/core/encoding/utf8",
     "moonbitlang/core/builtin"
+  ],
+  "test-import": [
+    "moonbitlang/async"
   ]
 }

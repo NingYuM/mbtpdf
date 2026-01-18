@@ -1,0 +1,14 @@
+{
+  "is-main": true,
+  "import": [
+    "bobzhang/mbtpdf/pdfcrypt",
+    "bobzhang/mbtpdf/pdfread",
+    {
+      "path": "bobzhang/mbtpdf/pdftext",
+      "alias": "pdftextlib"
+    },
+    "moonbitlang/core/env",
+    "moonbitlang/async",
+    "moonbitlang/async/fs"
+  ]
+}

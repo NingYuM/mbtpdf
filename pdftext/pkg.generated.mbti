@@ -23,6 +23,10 @@ pub fn codepoints_of_utf16be(String) -> Array[Int] raise
 
 pub fn codepoints_of_utf8(String) -> Array[Int] raise
 
+pub fn extract_text(@pdf.Pdf, page_break? : String) -> String raise
+
+pub fn extract_text_by_page(@pdf.Pdf) -> Array[String] raise
+
 pub fn find_tounicode(Font) -> Map[Int, String]?
 
 pub fn get_utf8_chars(Int) -> Array[Int] raise
