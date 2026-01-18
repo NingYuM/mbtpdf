@@ -10,15 +10,21 @@ pub fn[K : Eq, V] add(K, V, Array[(K, V)]) -> Array[(K, V)]
 
 pub fn[A] all_but_last(Array[A]) -> Array[A]
 
+pub fn[A] always(A) -> Bool
+
 pub fn[A] append(Array[A], Array[A]) -> Array[A]
 
 pub fn[A] append_rev(Array[A], Array[A]) -> Array[A]
+
+pub fn[A] applyn((A) -> A raise?, Int, A) -> A raise?
 
 pub fn[A, B] array_iter2((A, B) -> Unit raise?, Array[A], Array[B]) -> Unit raise
 
 pub fn[A, B, C] array_map2((A, B) -> C raise?, Array[A], Array[B]) -> Array[C] raise
 
 pub fn between((Double, Double), (Double, Double)) -> (Double, Double)
+
+pub fn bool_xor(Bool, Bool) -> Bool
 
 pub fn clear(Ref[Bool]) -> Unit
 
@@ -48,6 +54,10 @@ pub fn deg_of_rad(Double) -> Double
 
 pub fn distance_between((Double, Double), (Double, Double)) -> Double
 
+pub fn do_many(() -> Unit raise?, Int) -> Unit raise
+
+pub fn[A] do_return(() -> A raise?, () -> Unit raise?) -> A raise?
+
 pub fn[A] drop(Array[A], Int) -> Array[A] raise
 
 pub fn[A] drop_evens(Array[A]) -> Array[A]
@@ -57,6 +67,8 @@ pub fn[A] drop_odds(Array[A]) -> Array[A]
 pub fn[A] drop_swapped(Int, Array[A]) -> Array[A] raise
 
 pub fn[A] dropwhile((A) -> Bool raise?, Array[A]) -> Array[A] raise?
+
+pub fn[A : Eq] eq(A, A) -> Bool
 
 pub fn even(Int) -> Bool
 
@@ -141,6 +153,8 @@ pub fn i64succ(Int64) -> Int64
 pub fn i64tof(Int64) -> Double
 
 pub fn i64toi(Int64) -> Int
+
+pub fn[A] ident(A) -> A
 
 pub fn ilist(Int, Int) -> Array[Int] raise
 
@@ -256,13 +270,21 @@ pub fn[K : Eq, V] mergedict(Array[(K, V)], Array[(K, V)]) -> Array[(K, V)]
 
 pub fn min(Int, Int) -> Int
 
+pub fn[A, B] mkunit((A) -> B raise?, A) -> () -> B raise?
+
 pub fn mkunitvector((Double, Double), (Double, Double)) -> (Double, Double)
 
 pub fn mkvector((Double, Double), (Double, Double)) -> (Double, Double)
 
+pub fn[A : Eq] neq(A, A) -> Bool
+
+pub fn[A] never(A) -> Bool
+
 pub fn[A] none(A?) -> Bool
 
 pub fn[A] notnull(Array[A]) -> Bool
+
+pub fn[A] notpred((A) -> Bool raise?) -> (A) -> Bool raise?
 
 pub fn[K, V] null_hash() -> Map[K, V]
 
@@ -335,6 +357,8 @@ pub fn[A] replace_number(Int, A, Array[A]) -> Array[A]
 pub fn[A] replaceinlist((A) -> Bool raise?, A, Array[A]) -> Array[A] raise?
 
 pub fn[A] rev(Array[A]) -> Array[A]
+
+pub fn[A : Compare] rev_compare(A, A) -> Int
 
 pub fn[A, B] rev_map((A) -> B raise?, Array[A]) -> Array[B] raise?
 
@@ -433,6 +457,8 @@ pub fn[A] tl(Array[A]) -> Array[A] raise
 pub fn toint(Double) -> Int
 
 pub fn[K : Hash + Eq, V] tryfind(Map[K, V], K) -> V?
+
+pub fn[A, B] tuple(A, B) -> (A, B)
 
 pub fn[A] unopt(A?) -> A raise
 
