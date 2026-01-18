@@ -116,6 +116,8 @@ pub fn[A, B] fold_right((A, B) -> B raise?, Array[A], B) -> B raise?
 
 pub fn fsum(Array[Double]) -> Double
 
+pub fn[K : Hash + Eq] hashset_of_list(Array[K]) -> Map[K, Unit]
+
 pub fn[K : Hash + Eq, V] hashtable_of_dictionary(Array[(K, V)]) -> Map[K, V]
 
 pub fn[A] hd(Array[A]) -> A raise

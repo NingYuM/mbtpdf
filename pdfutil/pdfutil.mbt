@@ -127,6 +127,16 @@ pub fn[K : Hash + Eq, V] hashtable_of_dictionary(
 }
 
 ///|
+/// Build a hash set from a list of keys.
+pub fn[K : Hash + Eq] hashset_of_list(values : Array[K]) -> Map[K, Unit] {
+  let table : Map[K, Unit] = Map::new(capacity=values.length() * 2)
+  for value in values {
+    table.set(value, ())
+  }
+  table
+}
+
+///|
 /// Construct an empty hash table.
 pub fn[K, V] null_hash() -> Map[K, V] {
   Map::new(capacity=0)
