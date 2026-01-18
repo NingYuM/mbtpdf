@@ -1,6 +1,6 @@
 ///|
 /// Permissions for PDF encryption.
-pub enum Permission {
+pub(all) enum Permission {
   NoEdit
   NoPrint
   NoCopy

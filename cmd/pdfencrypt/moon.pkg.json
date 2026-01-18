@@ -1,0 +1,8 @@
+{
+  "is-main": true,
+  "import": [
+    "bobzhang/mbtpdf/pdfcrypt",
+    "bobzhang/mbtpdf/pdfread",
+    "bobzhang/mbtpdf/pdfwrite"
+  ]
+}
