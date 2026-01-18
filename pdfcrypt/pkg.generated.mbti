@@ -38,7 +38,7 @@ pub let string_of_pdf : Ref[(@pdf.PdfObject) -> String]
 // Errors
 
 // Types and methods
-pub enum Permission {
+pub(all) enum Permission {
   NoEdit
   NoPrint
   NoCopy

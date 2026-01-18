@@ -10,10 +10,7 @@ fn main {
   let owner_pw = args[3]
   try {
     let pdf = @pdfread.pdf_of_file(None, None, in_file)
-    let banlist = [
-      @pdfcrypt.Permission::NoEdit,
-      @pdfcrypt.Permission::NoPrint,
-    ]
+    let banlist = [@pdfcrypt.Permission::NoEdit, @pdfcrypt.Permission::NoPrint]
     let encrypted = @pdfcrypt.encrypt_pdf_AES(false, "", owner_pw, banlist, pdf)
     @pdfwrite.pdf_to_file(encrypted, out_file)
   } catch {

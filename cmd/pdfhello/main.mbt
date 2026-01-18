@@ -1,0 +1,39 @@
+///|
+fn main {
+  try {
+    let font = @pdf.PdfObject::Dictionary([
+      ("/Type", @pdf.PdfObject::Name("/Font")),
+      ("/Subtype", @pdf.PdfObject::Name("/Type1")),
+      ("/BaseFont", @pdf.PdfObject::Name("/Times-Italic")),
+    ])
+    let ops = [
+      @pdfops.Op::Opcm(
+        @pdftransform.matrix_of_transform([
+          @pdftransform.TransformOp::Translate(50.0, 770.0),
+        ]),
+      ),
+      @pdfops.Op::OpBT,
+      @pdfops.Op::OpTf("/F0", 36.0),
+      @pdfops.Op::OpTj("Hello, World!"),
+      @pdfops.Op::OpET,
+    ]
+    let stream = @pdfops.stream_of_ops(ops)
+    let page : @pdfpage.Page = {
+      content: [stream],
+      mediabox: @pdfpage.blankpage(@pdfpaper.a4).mediabox,
+      resources: @pdf.PdfObject::Dictionary([
+        ("/Font", @pdf.PdfObject::Dictionary([("/F0", font)])),
+      ]),
+      rotate: @pdfpage.Rotation::Rotate0,
+      rest: @pdf.PdfObject::Dictionary([]),
+    }
+    let (pdf, pageroot) = @pdfpage.add_pagetree([page], @pdf.empty())
+    let pdf = @pdfpage.add_root(pageroot, [], pdf)
+    @pdfwrite.pdf_to_file(pdf, "hello.pdf")
+  } catch {
+    err => {
+      println("Failed to produce output.")
+      println(err)
+    }
+  }
+}
