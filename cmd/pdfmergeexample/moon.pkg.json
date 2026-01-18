@@ -1,0 +1,9 @@
+{
+  "is-main": true,
+  "import": [
+    "bobzhang/mbtpdf/pdf",
+    "bobzhang/mbtpdf/pdfpage",
+    "bobzhang/mbtpdf/pdfread",
+    "bobzhang/mbtpdf/pdfwrite"
+  ]
+}
