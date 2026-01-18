@@ -13,20 +13,53 @@ pub fn make_font(fontname : String, encoding : Encoding) -> @pdf.PdfObject {
 
 ///|
 pub fn write_encoding(pdf : @pdf.Pdf, encoding : Encoding) -> Int raise {
+  fn encoding_name(enc : Encoding) -> String? {
+    match enc {
+      Encoding::StandardEncoding => Some("/StandardEncoding")
+      Encoding::MacRomanEncoding => Some("/MacRomanEncoding")
+      Encoding::WinAnsiEncoding => Some("/WinAnsiEncoding")
+      Encoding::MacExpertEncoding => Some("/MacExpertEncoding")
+      Encoding::CustomEncoding(inner, _) => encoding_name(inner)
+      Encoding::FillUndefinedWithStandard(inner) => encoding_name(inner)
+      Encoding::ImplicitInFontFile => None
+    }
+  }
+
   match encoding {
-    Encoding::CustomEncoding(Encoding::ImplicitInFontFile, diffs) => {
+    Encoding::StandardEncoding
+    | Encoding::MacRomanEncoding
+    | Encoding::WinAnsiEncoding
+    | Encoding::MacExpertEncoding => {
+      let name = match encoding_name(encoding) {
+        Some(value) => value
+        None => raise @pdf.PdfError::Msg("write_encoding: missing name")
+      }
+      @pdf.addobj(pdf, @pdf.PdfObject::Name(name))
+    }
+    Encoding::FillUndefinedWithStandard(inner) => write_encoding(pdf, inner)
+    Encoding::CustomEncoding(base, diffs) => {
       let diff_array = Array::new()
       for diff in diffs {
         diff_array.push(@pdf.PdfObject::Integer(diff.1))
         diff_array.push(@pdf.PdfObject::Name(diff.0))
       }
-      let encoding_dict = @pdf.PdfObject::Dictionary([
+      let mut encoding_dict = @pdf.PdfObject::Dictionary([
         ("/Type", @pdf.PdfObject::Name("/Encoding")),
         ("/Differences", @pdf.PdfObject::Array(diff_array)),
       ])
+      match encoding_name(base) {
+        Some(name) =>
+          encoding_dict = @pdf.add_dict_entry(
+            encoding_dict,
+            "/BaseEncoding",
+            @pdf.PdfObject::Name(name),
+          )
+        None => ()
+      }
       @pdf.addobj(pdf, encoding_dict)
     }
-    _ => raise @pdf.PdfError::Msg("write_encoding: not supported")
+    Encoding::ImplicitInFontFile =>
+      raise @pdf.PdfError::Msg("write_encoding: implicit encoding")
   }
 }
 
