@@ -3,12 +3,15 @@ package "bobzhang/mbtpdf/pdfwrite"
 
 import {
   "bobzhang/mbtpdf/pdf",
+  "bobzhang/mbtpdf/pdfcrypt",
   "bobzhang/mbtpdf/pdfio",
   "moonbitlang/async/fs",
 }
 
 // Values
 pub fn debug_whole_pdf(@pdf.Pdf) -> Unit
+
+pub fn make_encryption(EncryptionMethod, String, String, Array[@pdfcrypt.Permission]) -> Encryption
 
 pub fn make_hex_pdf_string(String) -> String
 
@@ -33,7 +36,7 @@ pub struct Encryption {
   encryption_method : EncryptionMethod
   owner_password : String
   user_password : String
-  permissions : Array[String]
+  permissions : Array[@pdfcrypt.Permission]
 }
 
 pub(all) enum EncryptionMethod {

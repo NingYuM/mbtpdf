@@ -745,12 +745,82 @@ pub(all) enum EncryptionMethod {
 }
 
 ///|
-/// Encryption settings (placeholder).
+/// Encryption settings.
 pub struct Encryption {
   encryption_method : EncryptionMethod
   owner_password : String
   user_password : String
-  permissions : Array[String]
+  permissions : Array[@pdfcrypt.Permission]
+}
+
+///|
+pub fn make_encryption(
+  encryption_method : EncryptionMethod,
+  owner_password : String,
+  user_password : String,
+  permissions : Array[@pdfcrypt.Permission],
+) -> Encryption {
+  { encryption_method, owner_password, user_password, permissions }
+}
+
+///|
+let dummy_encryption : Encryption = {
+  encryption_method: EncryptionMethod::AlreadyEncrypted,
+  owner_password: "",
+  user_password: "",
+  permissions: [],
+}
+
+///|
+fn crypt_if_necessary(
+  pdf : @pdf.Pdf,
+  encryption : Encryption?,
+) -> @pdf.Pdf raise {
+  match encryption {
+    None => pdf
+    Some(enc) =>
+      match enc.encryption_method {
+        EncryptionMethod::PDF40bit =>
+          @pdfcrypt.encrypt_pdf_40bit(
+            enc.user_password,
+            enc.owner_password,
+            enc.permissions,
+            pdf,
+          )
+        EncryptionMethod::PDF128bit =>
+          @pdfcrypt.encrypt_pdf_128bit(
+            enc.user_password,
+            enc.owner_password,
+            enc.permissions,
+            pdf,
+          )
+        EncryptionMethod::AES128bit(encrypt_metadata) =>
+          @pdfcrypt.encrypt_pdf_AES(
+            encrypt_metadata,
+            enc.user_password,
+            enc.owner_password,
+            enc.permissions,
+            pdf,
+          )
+        EncryptionMethod::AES256bit(encrypt_metadata) =>
+          @pdfcrypt.encrypt_pdf_AES256(
+            encrypt_metadata,
+            enc.user_password,
+            enc.owner_password,
+            enc.permissions,
+            pdf,
+          )
+        EncryptionMethod::AES256bitISO(encrypt_metadata) =>
+          @pdfcrypt.encrypt_pdf_AES256ISO(
+            encrypt_metadata,
+            enc.user_password,
+            enc.owner_password,
+            enc.permissions,
+            pdf,
+          )
+        EncryptionMethod::AlreadyEncrypted => pdf
+      }
+  }
 }
 
 ///|
@@ -760,15 +830,29 @@ pub fn pdf_to_output(
   generate_objstm? : Bool = false,
   compress_objstm? : Bool = false,
   recrypt? : String,
-  _encryption : Encryption?,
-  _build_new_id : Bool,
+  encryption : Encryption?,
+  build_new_id : Bool,
   pdf : @pdf.Pdf,
   output : @pdfio.Output,
 ) -> Unit raise {
-  let _ = recrypt
-  let encrypting = match _encryption {
+  let mut pdf = pdf
+  if build_new_id {
+    @pdf.change_id(pdf, "")
+  }
+  let recrypting = match recrypt {
     Some(_) => true
     None => false
+  }
+  let mut encryption_value = encryption
+  if recrypting {
+    encryption_value = Some(dummy_encryption)
+  }
+  let encrypting = match encryption_value {
+    Some(_) => true
+    None => false
+  }
+  if encrypting {
+    pdf.objects.object_stream_ids.remove(pdf.root)
   }
   let mut object_stream_entries : Map[Int, (Int, Int)] = Map::new()
   if preserve_objstm || generate_objstm {
@@ -780,6 +864,26 @@ pub fn pdf_to_output(
       object_stream_entries = bake_object_streams(pdf, compress_objstm, groups)
     }
   }
+  if !preserve_objstm && !generate_objstm {
+    match encryption_value {
+      Some(enc) =>
+        match enc.encryption_method {
+          EncryptionMethod::AlreadyEncrypted => ()
+          _ => pdf = @pdf.renumber(@pdf.changes(pdf), pdf)
+        }
+      None => ()
+    }
+  }
+  match recrypt {
+    Some(password) =>
+      pdf = @pdfcrypt.recrypt_pdf(
+        pdf,
+        password,
+        renumber=!(preserve_objstm || generate_objstm),
+      )
+    None => ()
+  }
+  pdf = crypt_if_necessary(pdf, encryption_value)
   let use_xref_stream = preserve_objstm || generate_objstm
   write_header(pdf, output)
   let entries = @pdf.pdfobjmap_bindings(pdf.objects.objects)
@@ -858,8 +962,8 @@ pub fn pdf_to_channel(
   generate_objstm? : Bool = false,
   compress_objstm? : Bool = false,
   recrypt? : String,
-  _encryption : Encryption?,
-  _build_new_id : Bool,
+  encryption : Encryption?,
+  build_new_id : Bool,
   pdf : @pdf.Pdf,
   channel : @fs.File,
 ) -> Unit raise {
@@ -871,8 +975,8 @@ pub fn pdf_to_channel(
         generate_objstm~,
         compress_objstm~,
         recrypt=value,
-        _encryption,
-        _build_new_id,
+        encryption,
+        build_new_id,
         pdf,
         output,
       )
@@ -881,8 +985,8 @@ pub fn pdf_to_channel(
         preserve_objstm~,
         generate_objstm~,
         compress_objstm~,
-        _encryption,
-        _build_new_id,
+        encryption,
+        build_new_id,
         pdf,
         output,
       )
@@ -896,8 +1000,8 @@ pub fn pdf_to_file_options(
   generate_objstm? : Bool = false,
   compress_objstm? : Bool = false,
   recrypt? : String,
-  _encryption : Encryption?,
-  _build_new_id : Bool,
+  encryption : Encryption?,
+  build_new_id : Bool,
   pdf : @pdf.Pdf,
   filename : String,
 ) -> Unit raise {
@@ -925,8 +1029,8 @@ pub fn pdf_to_file_options(
           generate_objstm~,
           compress_objstm~,
           recrypt=value,
-          _encryption,
-          _build_new_id,
+          encryption,
+          build_new_id,
           pdf,
           file,
         )
@@ -935,8 +1039,8 @@ pub fn pdf_to_file_options(
           preserve_objstm~,
           generate_objstm~,
           compress_objstm~,
-          _encryption,
-          _build_new_id,
+          encryption,
+          build_new_id,
           pdf,
           file,
         )
