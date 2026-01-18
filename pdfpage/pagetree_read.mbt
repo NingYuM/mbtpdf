@@ -170,36 +170,46 @@ fn find_pages_quick(
   count : Int,
   pages : @pdf.PdfObject,
   pdf : @pdf.Pdf,
+  stack : Map[Int, Bool],
 ) -> Int raise {
   if count == 10000 {
     raise @pdf.PdfError::Msg("cycle in page tree")
   }
+  let mut resolved = pages
+  let mut objnum : Int? = None
   match pages {
+    @pdf.PdfObject::Indirect(k) => {
+      if stack.contains(k) {
+        raise @pdf.PdfError::Msg("cycle in page tree")
+      }
+      stack.set(k, true)
+      objnum = Some(k)
+      let resolved_obj = @pdf.lookup_obj(pdf, k)
+      match resolved_obj {
+        @pdf.PdfObject::Null => raise @pdf.PdfError::Msg("missing kid")
+        _ => resolved = resolved_obj
+      }
+    }
+    _ => ()
+  }
+  let total = match resolved {
     @pdf.PdfObject::Null => 0
     _ => {
-      let typ = @pdf.lookup_direct(pdf, "/Type", pages)
+      let typ = @pdf.lookup_direct(pdf, "/Type", resolved)
       match typ {
         Some(@pdf.PdfObject::Name("/Pages")) | None => {
           let kids = match
-            @pdf.lookup_fail("No /Kids in page tree", pdf, "/Kids", pages) {
+            @pdf.lookup_fail("No /Kids in page tree", pdf, "/Kids", resolved) {
             @pdf.PdfObject::Array(values) => values
             _ => raise @pdf.PdfError::Msg("Malformed /Kids in page tree node")
           }
           let mut total = 0
           for kid in kids {
-            let obj = match kid {
-              @pdf.PdfObject::Indirect(k) => {
-                let kid_obj = @pdf.lookup_obj(pdf, k)
-                match kid_obj {
-                  @pdf.PdfObject::Null =>
-                    raise @pdf.PdfError::Msg("missing kid")
-                  _ => kid_obj
-                }
-              }
-              @pdf.PdfObject::Dictionary(d) => @pdf.PdfObject::Dictionary(d)
+            match kid {
+              @pdf.PdfObject::Indirect(_) | @pdf.PdfObject::Dictionary(_) =>
+                total = total + find_pages_quick(count + 1, kid, pdf, stack)
               _ => raise @pdf.PdfError::Msg("malformed kid")
             }
-            total = total + find_pages_quick(count + 1, obj, pdf)
           }
           total
         }
@@ -207,6 +217,11 @@ fn find_pages_quick(
       }
     }
   }
+  match objnum {
+    Some(k) => stack.remove(k)
+    None => ()
+  }
+  total
 }
 
 ///|
@@ -219,7 +234,8 @@ pub fn pages_of_pagetree_quick(pdf : @pdf.Pdf) -> Int raise {
       let pages = @pdf.lookup_fail(
         "No or malformed /Pages", pdf, "/Pages", document_catalog,
       )
-      find_pages_quick(0, pages, pdf)
+      let stack : Map[Int, Bool] = Map::new()
+      find_pages_quick(0, pages, pdf, stack)
     }
   }
 }
