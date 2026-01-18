@@ -24,6 +24,8 @@ pub fn changes(Pdf) -> Map[Int, Int]
 
 pub fn contents_of_nametree(Pdf, PdfObject) -> Array[(PdfObject, PdfObject)] raise
 
+pub fn deep_copy(Pdf) -> Pdf
+
 pub fn direct(Pdf, PdfObject) -> PdfObject
 
 pub fn empty() -> Pdf

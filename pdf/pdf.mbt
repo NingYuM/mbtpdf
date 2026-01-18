@@ -1593,6 +1593,77 @@ pub fn renumber_pdfs(pdfs : Array[Pdf]) -> Array[Pdf] {
 }
 
 ///|
+fn copy_bytes(bytes : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
+  let out = Array::new(capacity=bytes.length())
+  out.append(bytes[:])
+  out
+}
+
+///|
+fn deep_copy_pdfobject(obj : PdfObject) -> PdfObject {
+  match obj {
+    Array(values) => Array(values.map(v => deep_copy_pdfobject(v)))
+    Dictionary(entries) =>
+      Dictionary(entries.map(pair => (pair.0, deep_copy_pdfobject(pair.1))))
+    Stream(r) => {
+      let (dict, stream) = r.val
+      let dict_copy = deep_copy_pdfobject(dict)
+      let stream_copy = match stream {
+        Stream::Got(bytes) => Stream::Got(copy_bytes(bytes))
+        Stream::ToGet(toget) => Stream::ToGet(toget)
+      }
+      Stream(Ref::new((dict_copy, stream_copy)))
+    }
+    _ => obj
+  }
+}
+
+///|
+fn deep_copy_objdata(objdata : ObjectData) -> ObjectData {
+  match objdata {
+    Parsed(obj) => Parsed(deep_copy_pdfobject(obj))
+    ParsedAlreadyDecrypted(obj) =>
+      ParsedAlreadyDecrypted(deep_copy_pdfobject(obj))
+    ToParse => ToParse
+    ToParseFromObjectStream(themap, x, y, func) =>
+      ToParseFromObjectStream(themap, x, y, func)
+  }
+}
+
+///|
+fn deep_copy_pdfobjects(from : Pdf) -> PdfObjMap {
+  let out = pdfobjmap_empty()
+  for objnum, entry in from.objects.objects {
+    let (obj_ref, gen) = entry
+    out.set(objnum, (Ref::new(deep_copy_objdata(obj_ref.val)), gen))
+  }
+  out
+}
+
+///|
+/// Create a deep copy of a PDF document.
+pub fn deep_copy(from : Pdf) -> Pdf {
+  let object_stream_ids = Map::new()
+  for key, value in from.objects.object_stream_ids {
+    object_stream_ids.set(key, value)
+  }
+  {
+    major: from.major,
+    minor: from.minor,
+    root: from.root,
+    objects: {
+      max_obj_num: from.objects.max_obj_num,
+      parse: from.objects.parse,
+      objects: deep_copy_pdfobjects(from),
+      object_stream_ids,
+    },
+    trailerdict: deep_copy_pdfobject(from.trailerdict),
+    was_linearized: from.was_linearized,
+    saved_encryption: from.saved_encryption,
+  }
+}
+
+///|
 
 ///|
 /// Generate an /ID entry for a document.
