@@ -30,6 +30,8 @@ pub fn[A, B] combine(Array[A], Array[B]) -> Array[(A, B)] raise
 
 pub fn[A, B, C] combine3(Array[A], Array[B], Array[C]) -> Array[(A, B, C)] raise
 
+pub fn compare_i(Int, Int) -> Int
+
 pub fn[A, B] couple((A, A) -> B raise?, Array[A]) -> Array[B] raise?
 
 pub fn[A, B] couple_ext((A, A) -> B raise?, (A) -> B raise?, Array[A]) -> Array[B] raise?
@@ -37,6 +39,8 @@ pub fn[A, B] couple_ext((A, A) -> B raise?, (A) -> B raise?, Array[A]) -> Array[
 pub fn[A] couple_reduce((A, A) -> A raise?, Array[A]) -> A raise
 
 pub fn cumulative_sum(Int, Array[Int]) -> Array[Int]
+
+pub fn deg_of_rad(Double) -> Double
 
 pub fn distance_between((Double, Double), (Double, Double)) -> Double
 
@@ -50,11 +54,15 @@ pub fn[A] drop_swapped(Int, Array[A]) -> Array[A] raise
 
 pub fn[A] dropwhile((A) -> Bool raise?, Array[A]) -> Array[A] raise?
 
+pub fn even(Int) -> Bool
+
 pub fn explode(String) -> Array[Char]
 
 pub fn[A] extremes(Array[A]) -> (A, A) raise
 
 pub fn[A] extremes_and_middle(Array[A]) -> (A, Array[A], A) raise
+
+pub fn fabs(Double) -> Double
 
 pub fn firstchar(String) -> Char?
 
@@ -65,6 +73,10 @@ pub fn fleprint(String) -> Unit
 pub fn flip(Ref[Bool]) -> Unit
 
 pub fn flprint(String) -> Unit
+
+pub fn fmax(Double, Double) -> Double
+
+pub fn fmin(Double, Double) -> Double
 
 pub fn[A, B] fold_left((B, A) -> B raise?, B, Array[A]) -> B raise?
 
@@ -148,6 +160,10 @@ pub fn[A] interleave_lists(Array[A], Array[A]) -> Array[A] raise
 
 pub fn invert((Double, Double)) -> (Double, Double)
 
+pub fn iround(Double) -> Int
+
+pub fn isdigit(Char) -> Bool
+
 pub fn[A] isnull(Array[A]) -> Bool
 
 pub fn[A] isolate((A) -> Bool raise?, (A) -> Bool raise?, Array[A]) -> Array[A] raise?
@@ -164,6 +180,8 @@ pub fn land32(Int, Int) -> Int
 
 pub fn land64(Int64, Int64) -> Int64
 
+pub fn largest_pow2_divisible(Int) -> Int
+
 pub fn[A] last(Array[A]) -> A raise
 
 pub fn lastchar(String) -> Char?
@@ -177,6 +195,8 @@ pub fn[K, V] list_of_hashtbl(Map[K, V]) -> Array[(K, V)]
 pub fn lnot32(Int) -> Int
 
 pub fn lnot64(Int64) -> Int64
+
+pub fn log2of(Int) -> Int
 
 pub fn[K : Eq, V] lookup(K, Array[(K, V)]) -> V?
 
@@ -220,6 +240,8 @@ pub fn[A, B, C, D, E, F, G] map6((A, B, C, D, E, F) -> G raise?, Array[A], Array
 
 pub fn[A, B] map_lol((A) -> B raise?, Array[Array[A]]) -> Array[Array[B]] raise?
 
+pub fn max(Int, Int) -> Int
+
 pub fn[A : Eq] mem(A, Array[A]) -> Bool
 
 pub fn[A : Eq] mem_swapped(Array[A], A) -> Bool
@@ -228,6 +250,8 @@ pub fn[T] memoize(() -> T raise) -> () -> T raise
 
 pub fn[K : Eq, V] mergedict(Array[(K, V)], Array[(K, V)]) -> Array[(K, V)]
 
+pub fn min(Int, Int) -> Int
+
 pub fn mkunitvector((Double, Double), (Double, Double)) -> (Double, Double)
 
 pub fn mkvector((Double, Double), (Double, Double)) -> (Double, Double)
@@ -235,6 +259,8 @@ pub fn mkvector((Double, Double), (Double, Double)) -> (Double, Double)
 pub fn[A] notnull(Array[A]) -> Bool
 
 pub fn[K, V] null_hash() -> Map[K, V]
+
+pub fn odd(Int) -> Bool
 
 pub fn offset_point((Double, Double), (Double, Double)) -> (Double, Double)
 
@@ -252,15 +278,25 @@ pub fn[A] pairs(Array[A]) -> Array[(A, A)]
 
 pub fn perpendicular((Double, Double)) -> (Double, Double)
 
+pub let pi : Double
+
 pub fn[A : Eq] position(A, Array[A]) -> Int?
 
 pub fn[A : Eq] position_1(A, Array[A]) -> Int?
+
+pub fn pow(Int, Int) -> Int
+
+pub fn pow2gt(Int) -> Int
+
+pub fn pow2lt(Int) -> Int
 
 pub fn print_floats(Array[Double]) -> Unit
 
 pub fn print_int32s(Array[Int]) -> Unit
 
 pub fn print_ints(Array[Int]) -> Unit
+
+pub fn rad_of_deg(Double) -> Double
 
 pub fn[A] really_drop_evens(Array[A]) -> Array[A]
 
@@ -304,6 +340,12 @@ pub fn[A, B, C, D, E, F] rev_map5((A, B, C, D, E) -> F raise?, Array[A], Array[B
 
 pub fn[A, B, C, D, E, F, G] rev_map6((A, B, C, D, E, F) -> G raise?, Array[A], Array[B], Array[C], Array[D], Array[E], Array[F]) -> Array[G] raise
 
+pub let root2 : Double
+
+pub fn round(Double) -> Double
+
+pub fn safe_float(Double) -> Double
+
 pub fn scalevectolength(Double, (Double, Double)) -> (Double, Double)
 
 pub fn[A] select(Int, Array[A]) -> A raise
@@ -319,6 +361,8 @@ pub fn[A : Eq] setify_preserving_order(Array[A]) -> Array[A]
 pub fn[A : Eq] setminus(Array[A], Array[A]) -> Array[A]
 
 pub fn[A : Eq] setminus_preserving_order(Array[A], Array[A]) -> Array[A]
+
+pub fn sign_extend(Int, Int) -> Int
 
 pub fn[A] sort((A, A) -> Int, Array[A]) -> Array[A]
 
@@ -373,6 +417,8 @@ pub fn[A] takewhile((A) -> Bool raise?, Array[A]) -> Array[A] raise?
 pub fn[A] takewhile_reverse((A) -> Bool raise?, Array[A]) -> Array[A] raise?
 
 pub fn[A] tl(Array[A]) -> Array[A] raise
+
+pub fn toint(Double) -> Int
 
 pub fn[K : Hash + Eq, V] tryfind(Map[K, V], K) -> V?
 
