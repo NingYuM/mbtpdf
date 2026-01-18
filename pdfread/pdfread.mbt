@@ -218,7 +218,14 @@ fn read_pdf_internal(
       raise @pdf.PdfError::Msg(message)
     }
   }
-  let objects = build_pdf_objects(input, xrefs.to_array(), read_stream_data)
+  let objects = build_pdf_objects(
+    input,
+    xrefs.to_array(),
+    read_stream_data,
+    trailerdict,
+    user_password,
+    owner_password,
+  )
   let sanitized_trailer = sanitize_trailerdict(
     objects.objects.length(),
     trailerdict,
@@ -1086,9 +1093,19 @@ fn parse_object_stream(
   input : @pdfio.Input,
   xrefs : Map[Int, XRef],
   objstm : Int,
+  user_password : String?,
+  owner_password : String?,
+  partial_pdf : @pdf.Pdf,
 ) -> Array[(Int, @pdf.PdfObject)] raise {
   let lexemes = lex_object_for_xref(input, xrefs, true, objstm)
   let (_, stmobj) = parse(lexemes)
+  let gen = match xrefs.get(objstm) {
+    Some(XRef::Plain(_, g)) => g
+    _ => 0
+  }
+  let stmobj = @pdfcrypt.decrypt_single_stream(
+    user_password, owner_password, partial_pdf, objstm, gen, stmobj,
+  )
   match stmobj {
     @pdf.PdfObject::Stream(_) => ()
     _ => {
@@ -1150,6 +1167,9 @@ fn build_pdf_objects(
   input : @pdfio.Input,
   xref_entries : Array[(Int, XRef)],
   read_stream_data : Bool,
+  trailerdict : @pdf.PdfObject,
+  user_password : String?,
+  owner_password : String?,
 ) -> @pdf.PdfObjects raise {
   let xrefs : Map[Int, XRef] = Map::new()
   for pair in xref_entries {
@@ -1188,9 +1208,40 @@ fn build_pdf_objects(
       }
     }
   }
+  fn parse_obj(num : Int) -> @pdf.PdfObject {
+    try {
+      let lexemes = lex_object_for_xref(input, xrefs, read_stream_data, num)
+      let (_, obj) = parse(lexemes)
+      obj
+    } catch {
+      _ => {
+        if read_debug.val {
+          @pdfe.log("parse_obj failed for object \{num}\n")
+        }
+        @pdf.PdfObject::Null
+      }
+    }
+  }
+
+  let partial_pdf : @pdf.Pdf = {
+    major: 0,
+    minor: 0,
+    root: 0,
+    objects: {
+      max_obj_num: max_obj,
+      parse: Some(parse_obj),
+      objects,
+      object_stream_ids,
+    },
+    trailerdict,
+    was_linearized: false,
+    saved_encryption: None,
+  }
   if read_stream_data {
     for stream_id in stream_ids {
-      let parsed = parse_object_stream(input, xrefs, stream_id)
+      let parsed = parse_object_stream(
+        input, xrefs, stream_id, user_password, owner_password, partial_pdf,
+      )
       for pair in parsed {
         let objnum = pair.0
         let obj = pair.1
@@ -1225,7 +1276,9 @@ fn build_pdf_objects(
     ) -> Array[(Int, (Ref[@pdf.ObjectData], Int))] {
       let _ = indexes
       try {
-        let parsed = parse_object_stream(input, xrefs, stream_objnum)
+        let parsed = parse_object_stream(
+          input, xrefs, stream_objnum, user_password, owner_password, partial_pdf,
+        )
         let out = Array::new(capacity=parsed.length())
         for pair in parsed {
           out.push(
@@ -1261,21 +1314,6 @@ fn build_pdf_objects(
       }
     }
   }
-  fn parse_obj(num : Int) -> @pdf.PdfObject {
-    try {
-      let lexemes = lex_object_for_xref(input, xrefs, read_stream_data, num)
-      let (_, obj) = parse(lexemes)
-      obj
-    } catch {
-      _ => {
-        if read_debug.val {
-          @pdfe.log("parse_obj failed for object \{num}\n")
-        }
-        @pdf.PdfObject::Null
-      }
-    }
-  }
-
   { max_obj_num: max_obj, parse: Some(parse_obj), objects, object_stream_ids }
 }
 

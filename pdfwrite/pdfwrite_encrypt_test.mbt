@@ -113,3 +113,28 @@ test "pdf_to_output recrypt uses saved encryption" {
   assert_eq(@pdf.objcard(parsed2), 6)
   assert_eq(parsed2.root, 4)
 }
+
+///|
+test "pdf_to_output encrypts object streams and reads with user password" {
+  let pdf = build_minimal_pdf_for_encrypt()
+  let permissions : Array[@pdfcrypt.Permission] = []
+  let enc = @pdfwrite.make_encryption(
+    @pdfwrite.EncryptionMethod::PDF128bit,
+    "owner",
+    "user",
+    permissions,
+  )
+  let (output, buffer) = @pdfio.input_output_of_bytes(1024)
+  @pdfwrite.pdf_to_output(
+    generate_objstm=true,
+    compress_objstm=false,
+    Some(enc),
+    false,
+    pdf,
+    output,
+  )
+  let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let input = @pdfio.input_of_bytes(pdf_bytes, source="encrypt-objstm")
+  let parsed = @pdfread.pdf_of_input(Some("user"), None, input)
+  assert_eq(parsed.root, 4)
+}
