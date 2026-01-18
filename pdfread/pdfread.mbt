@@ -1336,7 +1336,12 @@ fn build_pdf_objects(
     for stream_id in stream_ids {
       let parsed = parse_object_stream(
         input, xrefs, stream_id, user_password, owner_password, partial_pdf,
-      )
+      ) catch {
+        _ => {
+          @pdfe.log("Warning: unable to parse object stream \{stream_id}\n")
+          Array::new()
+        }
+      }
       for pair in parsed {
         let objnum = pair.0
         let obj = pair.1

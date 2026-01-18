@@ -62,6 +62,30 @@ fn build_minimal_pdf_for_encrypt() -> @pdf.Pdf {
 }
 
 ///|
+fn find_subslice(
+  haystack : @pdfio.MutableBytes,
+  needle : @pdfio.MutableBytes,
+  start? : Int = 0,
+) -> Int? {
+  if needle.length() == 0 {
+    return Some(start)
+  }
+  let mut i = start
+  let last = haystack.length() - needle.length()
+  while i <= last {
+    let mut j = 0
+    while j < needle.length() && haystack[i + j] == needle[j] {
+      j = j + 1
+    }
+    if j == needle.length() {
+      return Some(i)
+    }
+    i = i + 1
+  }
+  None
+}
+
+///|
 test "pdf_to_output encrypts and reads with user password" {
   let pdf = build_minimal_pdf_for_encrypt()
   let permissions : Array[@pdfcrypt.Permission] = []
@@ -205,5 +229,49 @@ test "pdfread returns pdf for encrypted objstm without password" {
         fail("expected encryption info")
       }
     Err(_) => fail("expected read to succeed without password")
+  }
+}
+
+///|
+test "pdfread skips malformed object stream" {
+  let pdf = build_minimal_pdf_for_encrypt()
+  let permissions : Array[@pdfcrypt.Permission] = []
+  let enc = @pdfwrite.make_encryption(
+    @pdfwrite.EncryptionMethod::AES128bit(true),
+    "owner",
+    "user",
+    permissions,
+  )
+  let (output, buffer) = @pdfio.input_output_of_bytes(1024)
+  @pdfwrite.pdf_to_output(
+    generate_objstm=true,
+    compress_objstm=false,
+    Some(enc),
+    false,
+    pdf,
+    output,
+  )
+  let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let objstm_marker = @pdfio.bytes_of_string("/ObjStm")
+  let n_marker = @pdfio.bytes_of_string("/N ")
+  let objstm_pos = match find_subslice(pdf_bytes, objstm_marker) {
+    Some(pos) => pos
+    None => fail("expected /ObjStm")
+  }
+  let n_pos = match find_subslice(pdf_bytes, n_marker, start=objstm_pos) {
+    Some(pos) => pos
+    None => fail("expected /N entry")
+  }
+  let n_value_index = n_pos + n_marker.length()
+  pdf_bytes[n_value_index] = '/'.to_int().to_byte()
+  let input = @pdfio.input_of_bytes(pdf_bytes, source="malformed-objstm")
+  let res : Result[@pdf.Pdf, Error] = try? @pdfread.pdf_of_input(
+    Some("user"),
+    None,
+    input,
+  )
+  match res {
+    Ok(_) => ()
+    Err(_) => fail("expected read to succeed despite malformed objstm")
   }
 }
