@@ -823,60 +823,45 @@ fn decode_ccittfax(
       raise Failure::Failure("Bad CCITT stream")
     }
     let end = column + length
-    for idx = column; idx < end; idx = idx + 1 {
+    let bounded_end = if end > columns { columns } else { end }
+    for idx = column; idx < bounded_end; idx = idx + 1 {
       currline[idx] = value
     }
-    column = end
+    column = bounded_end
   }
 
   fn find_b1() -> Int {
     let mut pos = column
-    let (curr, opp) = if white {
-      (whiteval, blackval)
-    } else {
-      (blackval, whiteval)
+    if pos >= columns {
+      return columns
     }
-    fn find(v : Int) -> Int {
-      while pos >= 0 && pos < refline.length() && refline[pos] != v {
-        pos = pos + 1
-      }
-      pos
+    let ref_color = refline[pos]
+    while pos < refline.length() && refline[pos] == ref_color {
+      pos = pos + 1
     }
-
-    if !(column == 0 && white) {
-      ignore(find(curr))
-    }
-    let result = find(opp)
-    if result > columns {
+    if pos > columns {
       columns
     } else {
-      result
+      pos
     }
   }
 
   fn find_b2() -> Int {
     let mut pos = column
-    let (curr, opp) = if white {
-      (whiteval, blackval)
-    } else {
-      (blackval, whiteval)
+    if pos >= columns {
+      return columns
     }
-    fn find(v : Int) -> Int {
-      while pos >= 0 && pos < refline.length() && refline[pos] != v {
-        pos = pos + 1
-      }
-      pos
+    let ref_color = refline[pos]
+    while pos < refline.length() && refline[pos] == ref_color {
+      pos = pos + 1
     }
-
-    if !(column == 0 && white) {
-      ignore(find(curr))
+    while pos < refline.length() && refline[pos] != ref_color {
+      pos = pos + 1
     }
-    ignore(find(opp))
-    let result = find(curr)
-    if result > columns {
+    if pos > columns {
       columns
     } else {
-      result
+      pos
     }
   }
 
@@ -908,15 +893,19 @@ fn decode_ccittfax(
             )
           CcittMode::Horizontal =>
             if white {
-              output_span(read_white_code(bitstream), whiteval)
-              output_span(read_black_code(bitstream), blackval)
+              let wlen = read_white_code(bitstream)
+              let blen = read_black_code(bitstream)
+              output_span(wlen, whiteval)
+              output_span(blen, blackval)
             } else {
-              output_span(read_black_code(bitstream), blackval)
-              output_span(read_white_code(bitstream), whiteval)
+              let blen = read_black_code(bitstream)
+              let wlen = read_white_code(bitstream)
+              output_span(blen, blackval)
+              output_span(wlen, whiteval)
             }
           CcittMode::Vertical(n) => {
             output_span(
-              find_b1() - column - n,
+              find_b1() + n - column,
               if white {
                 whiteval
               } else {

@@ -904,12 +904,7 @@ fn encode_ccittg4_line(
     } else {
       columns
     }
-    let ref_iswhite = ref_run % 2 == 0
-    let b1_index = if ref_iswhite == a0_iswhite {
-      ref_run + 2
-    } else {
-      ref_run + 1
-    }
+    let b1_index = ref_run + 1
     let b1 = if b1_index < reference.length() {
       reference[b1_index]
     } else {
