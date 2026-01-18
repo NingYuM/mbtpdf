@@ -32,9 +32,9 @@ pub fn height(Paper) -> Double
 
 pub fn landscape(Paper) -> Paper
 
-pub fn make(@pdfunits.Unit, Double, Double) -> Paper
+pub fn make(@pdfunits.LengthUnit, Double, Double) -> Paper
 
-pub fn unit(Paper) -> @pdfunits.Unit
+pub fn unit(Paper) -> @pdfunits.LengthUnit
 
 pub let uslegal : Paper
 
@@ -46,7 +46,7 @@ pub fn width(Paper) -> Double
 
 // Types and methods
 pub struct Paper {
-  unit : @pdfunits.Unit
+  unit : @pdfunits.LengthUnit
   width : Double
   height : Double
 }

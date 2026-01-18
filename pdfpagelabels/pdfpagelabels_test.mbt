@@ -1,7 +1,7 @@
 ///|
 test "pagelabeltext roman" {
   let labels = [
-    {
+    PageLabel::{
       labelstyle: LabelStyle::LowercaseRoman,
       labelprefix: None,
       startpage: 1,
@@ -15,7 +15,7 @@ test "pagelabeltext roman" {
 ///|
 test "pagelabel_of_pagenumber" {
   let labels = [
-    {
+    PageLabel::{
       labelstyle: LabelStyle::DecimalArabic,
       labelprefix: None,
       startpage: 1,
@@ -30,19 +30,19 @@ test "pagelabel_of_pagenumber" {
 ///|
 test "coalesce labels" {
   let labels = [
-    {
+    PageLabel::{
       labelstyle: LabelStyle::DecimalArabic,
       labelprefix: None,
       startpage: 1,
       startvalue: 1,
     },
-    {
+    PageLabel::{
       labelstyle: LabelStyle::DecimalArabic,
       labelprefix: None,
       startpage: 3,
       startvalue: 3,
     },
-    {
+    PageLabel::{
       labelstyle: LabelStyle::DecimalArabic,
       labelprefix: Some("A"),
       startpage: 5,
@@ -61,7 +61,7 @@ test "coalesce labels" {
 ///|
 test "complete labels" {
   let labels = [
-    {
+    PageLabel::{
       labelstyle: LabelStyle::DecimalArabic,
       labelprefix: None,
       startpage: 3,

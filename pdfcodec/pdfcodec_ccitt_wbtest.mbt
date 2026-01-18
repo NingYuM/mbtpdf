@@ -2,7 +2,7 @@
 fn bitmap_bytes(
   rows_bits : Array[Array[Int]],
   columns : Int,
-) -> @pdfio.MutableBytes {
+) -> @pdfio.MutableBytes raise {
   let output = @pdfio.make_write_bitstream()
   for row in rows_bits {
     assert_eq(row.length(), columns)
@@ -18,7 +18,7 @@ fn bitmap_bytes(
 fn assert_bytes_eq(
   left : @pdfio.MutableBytes,
   right : @pdfio.MutableBytes,
-) -> Unit {
+) -> Unit raise {
   assert_eq(left.length(), right.length())
   for i = 0; i < left.length(); i = i + 1 {
     assert_eq(left[i], right[i])

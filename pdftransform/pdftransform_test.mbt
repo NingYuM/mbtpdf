@@ -1,7 +1,7 @@
 ///|
-fn assert_close(a : Double, b : Double) -> Unit {
+fn assert_close(a : Double, b : Double) -> Unit raise {
   let diff = (a - b).abs()
-  assert_true(diff < 1e-6)
+  assert_true(diff < 0.000001)
 }
 
 ///|

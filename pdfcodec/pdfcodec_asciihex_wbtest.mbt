@@ -11,7 +11,9 @@ test "asciihex roundtrip" {
 ///|
 test "asciihex odd nibble" {
   let encoded = @pdfio.bytes_of_string("F>")
-  let decoded = decode_asciihex(@pdfio.input_of_bytes(encoded, source="asciihex"))
+  let decoded = decode_asciihex(
+    @pdfio.input_of_bytes(encoded, source="asciihex"),
+  )
   assert_eq(decoded.length(), 1)
-  assert_eq(decoded[0], 0xF0.to_byte())
+  assert_eq(decoded[0], (240).to_byte())
 }
