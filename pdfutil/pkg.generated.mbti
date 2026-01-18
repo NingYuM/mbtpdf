@@ -256,6 +256,8 @@ pub fn mkunitvector((Double, Double), (Double, Double)) -> (Double, Double)
 
 pub fn mkvector((Double, Double), (Double, Double)) -> (Double, Double)
 
+pub fn[A] none(A?) -> Bool
+
 pub fn[A] notnull(Array[A]) -> Bool
 
 pub fn[K, V] null_hash() -> Map[K, V]
@@ -364,6 +366,8 @@ pub fn[A : Eq] setminus_preserving_order(Array[A], Array[A]) -> Array[A]
 
 pub fn sign_extend(Int, Int) -> Int
 
+pub fn[A] some(A?) -> Bool
+
 pub fn[A] sort((A, A) -> Int, Array[A]) -> Array[A]
 
 pub fn[A, B] split(Array[(A, B)]) -> (Array[A], Array[B])
@@ -421,6 +425,8 @@ pub fn[A] tl(Array[A]) -> Array[A] raise
 pub fn toint(Double) -> Int
 
 pub fn[K : Hash + Eq, V] tryfind(Map[K, V], K) -> V?
+
+pub fn[A] unopt(A?) -> A raise
 
 pub fn veclength((Double, Double)) -> Double
 
