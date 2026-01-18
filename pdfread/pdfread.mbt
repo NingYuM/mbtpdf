@@ -1389,7 +1389,7 @@ fn build_pdf_objects(
           out.push(
             (
               pair.0,
-              ({ val: @pdf.ObjectData::ParsedAlreadyDecrypted(pair.1) }, 0),
+              (Ref::new(@pdf.ObjectData::ParsedAlreadyDecrypted(pair.1)), 0),
             ),
           )
         }

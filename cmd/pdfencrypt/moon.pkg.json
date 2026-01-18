@@ -3,6 +3,7 @@
   "import": [
     "bobzhang/mbtpdf/pdfcrypt",
     "bobzhang/mbtpdf/pdfread",
-    "bobzhang/mbtpdf/pdfwrite"
+    "bobzhang/mbtpdf/pdfwrite",
+    "moonbitlang/core/env"
   ]
 }

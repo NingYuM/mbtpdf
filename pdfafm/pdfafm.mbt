@@ -5,7 +5,7 @@
 fn split_whitespace(line : String) -> Array[String] {
   let out = Array::new()
   for part_view in line.split(" ") {
-    let token = part_view.to_string().trim_space().to_string()
+    let token = part_view.to_string().trim().to_string()
     if token.length() > 0 {
       out.push(token)
     }
@@ -66,11 +66,11 @@ fn extract_section(
   let out = Array::new()
   let mut collecting = false
   for line in lines {
-    if line.starts_with(start_prefix) {
+    if line.has_prefix(start_prefix) {
       collecting = true
       continue
     }
-    if line.starts_with(end_prefix) {
+    if line.has_prefix(end_prefix) {
       collecting = false
       continue
     }
@@ -86,10 +86,7 @@ fn split_header(line : String) -> (String, String) raise {
   match line.find(" ") {
     None => (line, "")
     Some(pos) =>
-      (
-        line[0:pos].to_string(),
-        line[pos + 1:].to_string().trim_space().to_string(),
-      )
+      (line[0:pos].to_string(), line[pos + 1:].to_string().trim().to_string())
   }
 }
 
@@ -116,7 +113,7 @@ fn get_tables(
   let kern_lines = extract_section(lines, "StartKernPairs", "EndKernPairs")
   let header_lines = Array::new()
   for line in lines {
-    if line.starts_with("C ") {
+    if line.has_prefix("C ") {
       break
     }
     if line.length() > 0 {
@@ -128,7 +125,7 @@ fn get_tables(
     headers.push(split_header(line))
   }
   let charmetrics = char_metrics_lines.filter_map(line => if line
-    .trim_space()
+    .trim()
     .length() <
     5 {
     None
@@ -141,7 +138,7 @@ fn get_tables(
   for entry in charmetrics {
     charmetrics_hash.set(entry.0, entry.1)
   }
-  let kerns = kern_lines.filter_map(line => if line.trim_space().length() < 5 {
+  let kerns = kern_lines.filter_map(line => if line.trim().length() < 5 {
     None
   } else {
     Some(read_kern_line(line))

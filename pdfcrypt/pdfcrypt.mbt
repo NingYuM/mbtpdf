@@ -538,16 +538,21 @@ pub fn decrypt_pdf(
                       ue_val,
                     )
                     match p_of_perms(key, perms) {
-                      None => raise Failure("/Perms file permissions corrupted")
+                      None =>
+                        raise Failure::Failure(
+                          "/Perms file permissions corrupted",
+                        )
                       Some(x) if x == p =>
                         (5, 256, Some(@pdfio.string_of_bytes(key)))
                       Some(_) =>
-                        raise Failure("Mismatched /Perms and /P permissions")
+                        raise Failure::Failure(
+                          "Mismatched /Perms and /P permissions",
+                        )
                     }
                   }
                 }
               }
-            _ => raise Failure("decrypt_pdf: no oe")
+            _ => raise Failure::Failure("decrypt_pdf: no oe")
           }
         @pdfcryptprimitives.Encryption::ARC4(k, r_val) => (r_val, k, None)
       }

@@ -1,6 +1,7 @@
 {
   "import": [
     "bobzhang/mbtpdf/pdf",
-    "bobzhang/mbtpdf/pdfe"
+    "bobzhang/mbtpdf/pdfe",
+    "moonbitlang/core/strconv"
   ]
 }

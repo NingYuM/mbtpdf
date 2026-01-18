@@ -8,6 +8,8 @@
     "bobzhang/mbtpdf/pdfio",
     "bobzhang/mbtpdf/pdfread",
     "bobzhang/mbtpdf/pdftransform",
-    "bobzhang/mbtpdf/pdfutil"
+    "bobzhang/mbtpdf/pdfutil",
+    "moonbitlang/core/encoding/utf8",
+    "moonbitlang/core/builtin"
   ]
 }

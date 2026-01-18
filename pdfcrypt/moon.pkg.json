@@ -3,6 +3,9 @@
     "bobzhang/mbtpdf/pdf",
     "bobzhang/mbtpdf/pdfcryptprimitives",
     "bobzhang/mbtpdf/pdfio",
-    "bobzhang/mbtpdf/pdfe"
+    "bobzhang/mbtpdf/pdfe",
+    "moonbitlang/core/env",
+    "moonbitlang/core/random",
+    "moonbitlang/core/builtin"
   ]
 }

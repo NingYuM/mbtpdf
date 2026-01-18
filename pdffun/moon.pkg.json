@@ -4,6 +4,7 @@
     "bobzhang/mbtpdf/pdfcodec",
     "bobzhang/mbtpdf/pdfgenlex",
     "bobzhang/mbtpdf/pdfio",
-    "bobzhang/mbtpdf/pdfe"
+    "bobzhang/mbtpdf/pdfe",
+    "moonbitlang/core/math"
   ]
 }

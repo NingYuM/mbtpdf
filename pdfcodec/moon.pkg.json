@@ -6,6 +6,7 @@
     "moonbitlang/async",
     "moonbitlang/async/fs",
     "moonbitlang/async/io",
-    "moonbitlang/async/process"
+    "moonbitlang/async/process",
+    "moonbitlang/core/env"
   ]
 }

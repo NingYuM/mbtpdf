@@ -2,6 +2,7 @@
   "import": [
     "bobzhang/mbtpdf/pdfcodec",
     "bobzhang/mbtpdf/pdfio",
-    "bobzhang/mbtpdf/pdfutil"
+    "bobzhang/mbtpdf/pdfutil",
+    "moonbitlang/core/strconv"
   ]
 }

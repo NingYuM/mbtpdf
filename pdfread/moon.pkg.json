@@ -9,7 +9,8 @@
     "bobzhang/mbtpdf/pdfutil",
     "bobzhang/mbtpdf/pdfwrite",
     "bobzhang/mbtpdf/pdfe",
-    "moonbitlang/async/fs"
+    "moonbitlang/async/fs",
+    "moonbitlang/core/strconv"
   ],
   "test-import": [
     "bobzhang/mbtpdf/pdfpage"

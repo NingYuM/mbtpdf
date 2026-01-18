@@ -1,5 +1,6 @@
 {
   "import": [
-    "bobzhang/mbtpdf/pdfio"
+    "bobzhang/mbtpdf/pdfio",
+    "moonbitlang/core/random"
   ]
 }

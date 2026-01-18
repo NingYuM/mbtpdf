@@ -251,7 +251,7 @@ fn perms_of_p(
   let b = Array::make(16, 0)
   let mut n = 0
   while n < 8 {
-    let v = UInt64::lsr(extendedp, n * 8).to_int()
+    let v = (extendedp >> (n * 8)).to_int()
     b[n] = Int::land(v, 0xff)
     n = n + 1
   }

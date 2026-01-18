@@ -4,6 +4,7 @@
     "bobzhang/mbtpdf/pdfcodec",
     "bobzhang/mbtpdf/pdfe",
     "bobzhang/mbtpdf/pdfio",
-    "bobzhang/mbtpdf/pdfwrite"
+    "bobzhang/mbtpdf/pdfwrite",
+    "moonbitlang/core/strconv"
   ]
 }

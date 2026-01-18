@@ -24,7 +24,7 @@ fn flatten_int_arrays(arrays : Array[Array[Int]]) -> Array[Int] {
 ///|
 pub fn utf16be_of_codepoint(u : Int) -> Array[Int] raise {
   if u < 0 || u > 0x10ffff {
-    raise Failure("utf16be_of_codepoints")
+    raise Failure::Failure("utf16be_of_codepoints")
   }
   let bytes_of_double = (x : Int) => [x >> 8, x & 255]
   if u < 0x10000 {
@@ -54,7 +54,7 @@ fn codepoints_of_utf16be_inner(bytes : Array[Int]) -> Array[Int] raise {
   let mut i = 0
   while i < bytes.length() {
     if i + 1 >= bytes.length() {
-      raise Failure("codepoints_of_utf16be")
+      raise Failure::Failure("codepoints_of_utf16be")
     }
     let w1 = (bytes[i] << 8) | bytes[i + 1]
     if w1 < 0xd800 || w1 > 0xdfff {
@@ -62,7 +62,7 @@ fn codepoints_of_utf16be_inner(bytes : Array[Int]) -> Array[Int] raise {
       i = i + 2
     } else if w1 >= 0xd800 && w1 <= 0xdbff {
       if i + 3 >= bytes.length() {
-        raise Failure("codepoints_of_utf16be")
+        raise Failure::Failure("codepoints_of_utf16be")
       }
       let w2 = (bytes[i + 2] << 8) | bytes[i + 3]
       if w2 >= 0xdc00 && w2 <= 0xdfff {
@@ -71,10 +71,10 @@ fn codepoints_of_utf16be_inner(bytes : Array[Int]) -> Array[Int] raise {
         out.push(((ho << 10) | lo) + 0x10000)
         i = i + 4
       } else {
-        raise Failure("codepoints_of_utf16be")
+        raise Failure::Failure("codepoints_of_utf16be")
       }
     } else {
-      raise Failure("codepoints_of_utf16be")
+      raise Failure::Failure("codepoints_of_utf16be")
     }
   }
   out
@@ -330,7 +330,7 @@ pub fn is_unicode(s : String) -> Bool {
 ///|
 pub fn codepoint_of_pdfdocencoding_character(i : Int) -> Int raise {
   if i < 0 || i > 255 {
-    raise Failure("codepoint_of_pdfdocencoding_character out of range")
+    raise Failure::Failure("codepoint_of_pdfdocencoding_character out of range")
   }
   try {
     match @pdfglyphlist.reverse_name_to_pdf_hashes.get(i) {
@@ -459,7 +459,7 @@ fn codepoints_of_utf8_inner(values : Array[Int]) -> Array[Int] raise {
 
 ///|
 pub fn codepoints_of_utf8(s : String) -> Array[Int] raise {
-  let bytes = @encoding/utf8.encode(s)
+  let bytes = @utf8.encode(s)
   let values = @pdfio.int_array_of_bytes(@pdfio.bytes_of_caml_bytes(bytes))
   codepoints_of_utf8_inner(values)
 }

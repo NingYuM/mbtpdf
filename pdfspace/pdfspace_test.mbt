@@ -23,7 +23,8 @@ test "read_colourspace device rgb" {
 test "read_colourspace indexed" {
   let pdf = @pdf.empty()
   let resources = @pdf.PdfObject::Dictionary([])
-  let lookup = @pdf.PdfObject::String("\x01\x02\x03")
+  let lookup_bytes = @pdfio.bytes_of_list([1, 2, 3])
+  let lookup = @pdf.PdfObject::String(@pdfio.string_of_bytes(lookup_bytes))
   let space = read_colourspace(
     pdf,
     resources,
