@@ -50,6 +50,10 @@ pub fn[A, B, C] combine3(Array[A], Array[B], Array[C]) -> Array[(A, B, C)] raise
 
 pub fn compare_i(Int, Int) -> Int
 
+pub fn contents_of_file(String) -> Array[Byte] raise
+
+pub fn contents_to_file(String, Array[Byte]) -> Unit raise
+
 pub fn[A, B] couple((A, A) -> B raise?, Array[A]) -> Array[B] raise?
 
 pub fn[A, B] couple_ext((A, A) -> B raise?, (A) -> B raise?, Array[A]) -> Array[B] raise?
@@ -213,6 +217,8 @@ pub fn[A] last(Array[A]) -> A raise
 pub fn lastchar(String) -> Char?
 
 pub fn[A] lcount((A) -> Bool raise?, Array[A]) -> Int raise?
+
+pub fn leafnames_of_dir(String) -> Array[String] raise
 
 pub fn[A] length(Array[A]) -> Int
 
