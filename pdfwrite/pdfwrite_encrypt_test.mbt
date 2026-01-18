@@ -138,3 +138,37 @@ test "pdf_to_output encrypts object streams and reads with user password" {
   let parsed = @pdfread.pdf_of_input(Some("user"), None, input)
   assert_eq(parsed.root, 4)
 }
+
+///|
+test "pdfread lazy decrypts object streams for encrypted PDFs" {
+  let pdf = build_minimal_pdf_for_encrypt()
+  let permissions : Array[@pdfcrypt.Permission] = []
+  let enc = @pdfwrite.make_encryption(
+    @pdfwrite.EncryptionMethod::PDF128bit,
+    "owner",
+    "user",
+    permissions,
+  )
+  let (output, buffer) = @pdfio.input_output_of_bytes(1024)
+  @pdfwrite.pdf_to_output(
+    generate_objstm=true,
+    compress_objstm=false,
+    Some(enc),
+    false,
+    pdf,
+    output,
+  )
+  let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let input = @pdfio.input_of_bytes(pdf_bytes, source="encrypt-objstm-lazy")
+  let parsed = @pdfread.pdf_of_input_lazy(Some("user"), None, input)
+  let objstm_entries = parsed.objects.object_stream_ids.to_array()
+  if objstm_entries.length() == 0 {
+    fail("expected object stream entries")
+  }
+  let objnum = objstm_entries[0].0
+  let obj = @pdf.lookup_obj(parsed, objnum)
+  match obj {
+    @pdf.PdfObject::Null => fail("expected parsed object from objstm")
+    _ => ()
+  }
+}
