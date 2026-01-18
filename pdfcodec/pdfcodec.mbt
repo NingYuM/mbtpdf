@@ -4,6 +4,7 @@ pub(all) enum Encoding {
   ASCIIHex
   ASCII85
   RunLength
+  LZW(Int)
   Flate
   CCITT(Int, Int)
   CCITTG4(Int, Int)
@@ -1071,6 +1072,7 @@ pub fn encode_pdfstream(
     Encoding::ASCIIHex => "/ASCIIHexDecode"
     Encoding::ASCII85 => "/ASCII85Decode"
     Encoding::RunLength => "/RunLengthDecode"
+    Encoding::LZW(_) => "/LZWDecode"
     Encoding::Flate => "/FlateDecode"
     Encoding::CCITT(_, _) | Encoding::CCITTG4(_, _) => "/CCITTFaxDecode"
   }
@@ -1103,6 +1105,7 @@ pub fn encode_pdfstream(
       Encoding::ASCIIHex => encode_asciihex(data)
       Encoding::ASCII85 => encode_ascii85(data)
       Encoding::RunLength => encode_runlength(data)
+      Encoding::LZW(early) => encode_lzw(early, data)
       Encoding::Flate => encode_flate(data)
       _ =>
         raise CodecError::DecodeNotSupported(
@@ -1280,6 +1283,9 @@ pub fn decode_pdfstream_onestage(
             decode_ascii85(@pdfio.input_of_bytes(data, source="ascii85"))
           } else if filter_name == "/RunLengthDecode" || filter_name == "/RL" {
             decode_runlength(@pdfio.input_of_bytes(data, source="runlength"))
+          } else if filter_name == "/LZWDecode" || filter_name == "/LZW" {
+            let early = get_int_param(pdf, parms_first, "/EarlyChange", 1)
+            decode_lzw(early, @pdfio.input_of_bytes(data, source="lzw"))
           } else if filter_name == "/CCITTFaxDecode" || filter_name == "/CCF" {
             let k = get_int_param(pdf, parms_first, "/K", 0)
             let eol = get_bool_param(pdf, parms_first, "/EndOfLine", false)
@@ -1448,6 +1454,11 @@ pub fn decode_from_input(
     } else if filter_name == "/RunLengthDecode" || filter_name == "/RL" {
       let input = @pdfio.input_of_bytes(bytes, source="runlength")
       Some(decode_runlength(input))
+    } else if filter_name == "/LZWDecode" || filter_name == "/LZW" {
+      let early = get_int_param(pdf, parms, "/EarlyChange", 1)
+      let input = @pdfio.input_of_bytes(bytes, source="lzw")
+      let decoded = decode_lzw(early, input) catch { _ => return None }
+      Some(decoded)
     } else if filter_name == "/CCITTFaxDecode" || filter_name == "/CCF" {
       let k = get_int_param(pdf, parms, "/K", 0)
       let eol = get_bool_param(pdf, parms, "/EndOfLine", false)

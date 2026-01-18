@@ -48,6 +48,7 @@ pub(all) enum Encoding {
   ASCIIHex
   ASCII85
   RunLength
+  LZW(Int)
   Flate
   CCITT(Int, Int)
   CCITTG4(Int, Int)
