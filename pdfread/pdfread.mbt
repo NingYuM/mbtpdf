@@ -889,16 +889,6 @@ fn read_xref_line_stream(
 }
 
 ///|
-fn decode_stream_best_effort(obj : @pdf.PdfObject) -> Unit raise {
-  let pdf = @pdf.empty()
-  let mut done = false
-  while !done {
-    @pdfcodec.decode_pdfstream_onestage(pdf, obj) catch {
-      @pdfcodec.CodecError::DecodeNotSupported(_) => done = true
-      err => raise err
-    }
-  }
-}
 
 ///|
 fn read_xref_stream(
@@ -978,9 +968,7 @@ fn read_xref_stream(
     @pdf.PdfObject::Stream(_) => parsed
     _ => raise err
   }
-  decode_stream_best_effort(stream_obj) catch {
-    err => raise err
-  }
+  @pdfcodec.decode_pdfstream(@pdf.empty(), stream_obj)
   @pdf.getstream(stream_obj)
   let (w1, w2, w3) = match @pdf.lookup_direct(@pdf.empty(), "/W", stream_obj) {
     Some(@pdf.PdfObject::Array(elts)) => {
@@ -1115,7 +1103,7 @@ fn parse_object_stream(
       raise @pdf.PdfError::Msg(message)
     }
   }
-  decode_stream_best_effort(stmobj)
+  @pdfcodec.decode_pdfstream(partial_pdf, stmobj)
   @pdf.getstream(stmobj)
   let (dict, stream_bytes) = match stmobj {
     @pdf.PdfObject::Stream(r) => r.val
