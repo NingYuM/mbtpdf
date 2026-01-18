@@ -81,3 +81,13 @@ test "lex_name rejects invalid hex" {
     _ => fail("expected lex_name failure")
   }
 }
+
+///|
+test "lex_name rejects truncated hex" {
+  let input = @pdfio.input_of_string("/#1")
+  let res : Result[@pdfgenlex.Token, Error] = try? lex_name(input)
+  match res {
+    Err(_) => ()
+    _ => fail("expected lex_name failure")
+  }
+}

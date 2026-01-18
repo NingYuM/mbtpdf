@@ -1398,6 +1398,14 @@ fn build_pdf_objects(
 }
 
 ///|
+fn is_hex_digit(c : Char) -> Bool {
+  match c {
+    '0'..='9' | 'a'..='f' | 'A'..='F' => true
+    _ => false
+  }
+}
+
+///|
 /// Lex a name.
 pub fn lex_name(input : @pdfio.Input) -> @pdfgenlex.Token raise {
   let bytes : @pdfio.MutableBytes = Array::new()
@@ -1416,15 +1424,31 @@ pub fn lex_name(input : @pdfio.Input) -> @pdfgenlex.Token raise {
       } else if c == '#' {
         let h1 = (input.input_byte)()
         let h2 = (input.input_byte)()
-        if h1 != @pdfio.no_more && h2 != @pdfio.no_more {
-          let hex = String::from_array([
-            h1.to_byte().to_char(),
-            h2.to_byte().to_char(),
-          ])
-          match (try? @strconv.parse_int("0x\{hex}")) {
-            Ok(v) => bytes.push(v.to_byte())
-            Err(_) =>
-              raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "lex_name"))
+        if h1 == @pdfio.no_more || h2 == @pdfio.no_more {
+          let message = @pdf.input_pdferror(
+            input, "lex_name: truncated hex escape",
+          )
+          raise @pdf.PdfError::Msg(message)
+        }
+        let c1 = h1.to_byte().to_char()
+        let c2 = h2.to_byte().to_char()
+        if !is_hex_digit(c1) || !is_hex_digit(c2) {
+          let hex = String::from_array([c1, c2])
+          let message = @pdf.input_pdferror(
+            input,
+            "lex_name: bad hex escape #\{hex}",
+          )
+          raise @pdf.PdfError::Msg(message)
+        }
+        let hex = String::from_array([c1, c2])
+        match (try? @strconv.parse_int("0x\{hex}")) {
+          Ok(v) => bytes.push(v.to_byte())
+          Err(_) => {
+            let message = @pdf.input_pdferror(
+              input,
+              "lex_name: bad hex escape #\{hex}",
+            )
+            raise @pdf.PdfError::Msg(message)
           }
         }
       } else {
