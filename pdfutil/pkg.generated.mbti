@@ -6,23 +6,245 @@ import {
 }
 
 // Values
+pub fn[A] all_but_last(Array[A]) -> Array[A]
+
+pub fn[A] append(Array[A], Array[A]) -> Array[A]
+
+pub fn[A] append_rev(Array[A], Array[A]) -> Array[A]
+
+pub fn[A] cleave(Array[A], Int) -> (Array[A], Array[A]) raise
+
+pub fn[A] cleavewhile((A) -> Bool raise?, Array[A]) -> (Array[A], Array[A]) raise?
+
+pub fn[A] cleavewhile_unordered((A) -> Bool raise?, Array[A]) -> (Array[A], Array[A]) raise?
+
+pub fn[A] collate((A, A) -> Int, Array[A]) -> Array[Array[A]]
+
+pub fn[A, B] combine(Array[A], Array[B]) -> Array[(A, B)] raise
+
+pub fn[A, B, C] combine3(Array[A], Array[B], Array[C]) -> Array[(A, B, C)] raise
+
+pub fn[A, B] couple((A, A) -> B raise?, Array[A]) -> Array[B] raise?
+
+pub fn[A, B] couple_ext((A, A) -> B raise?, (A) -> B raise?, Array[A]) -> Array[B] raise?
+
+pub fn[A] couple_reduce((A, A) -> A raise?, Array[A]) -> A raise
+
+pub fn cumulative_sum(Int, Array[Int]) -> Array[Int]
+
+pub fn[A] drop(Array[A], Int) -> Array[A] raise
+
+pub fn[A] drop_evens(Array[A]) -> Array[A]
+
+pub fn[A] drop_odds(Array[A]) -> Array[A]
+
+pub fn[A] drop_swapped(Int, Array[A]) -> Array[A] raise
+
+pub fn[A] dropwhile((A) -> Bool raise?, Array[A]) -> Array[A] raise?
+
+pub fn explode(String) -> Array[Char]
+
+pub fn[A] extremes(Array[A]) -> (A, A) raise
+
+pub fn[A] extremes_and_middle(Array[A]) -> (A, Array[A], A) raise
+
+pub fn firstchar(String) -> Char?
+
+pub fn[A] flatten(Array[Array[A]]) -> Array[A]
+
 pub fn fleprint(String) -> Unit
 
 pub fn flprint(String) -> Unit
 
+pub fn[A, B] fold_left((B, A) -> B raise?, B, Array[A]) -> B raise?
+
+pub fn[A, B] fold_right((A, B) -> B raise?, Array[A], B) -> B raise?
+
+pub fn fsum(Array[Double]) -> Double
+
 pub fn[K : Hash + Eq, V] hashtable_of_dictionary(Array[(K, V)]) -> Map[K, V]
+
+pub fn[A] hd(Array[A]) -> A raise
+
+pub fn[A] heads(Array[Array[A]]) -> Array[A] raise
+
+pub fn ilist(Int, Int) -> Array[Int] raise
+
+pub fn ilist_fail_null(Int, Int) -> Array[Int]
+
+pub fn ilist_null(Int, Int) -> Array[Int] raise
+
+pub fn implode(Array[Char]) -> String
+
+pub fn[A] index((A) -> Bool raise?, Array[A]) -> Int raise
+
+pub fn[A] indx(Array[A]) -> Array[Int]
+
+pub fn[A] indx0(Array[A]) -> Array[Int]
+
+pub fn[A] indxn(Int, Array[A]) -> Array[Int]
+
+pub fn[A] interleave(A, Array[A]) -> Array[A]
+
+pub fn[A] interleave_lists(Array[A], Array[A]) -> Array[A] raise
+
+pub fn[A] isnull(Array[A]) -> Bool
+
+pub fn[A] isolate((A) -> Bool raise?, (A) -> Bool raise?, Array[A]) -> Array[A] raise?
+
+pub fn[A] iter((A) -> Unit raise?, Array[A]) -> Unit raise?
+
+pub fn[A, B] iter2((A, B) -> Unit raise?, Array[A], Array[B]) -> Unit raise
+
+pub fn[A, B, C] iter3((A, B, C) -> Unit raise?, Array[A], Array[B], Array[C]) -> Unit raise
+
+pub fn[A] keep((A) -> Bool raise?, Array[A]) -> Array[A] raise?
+
+pub fn[A] last(Array[A]) -> A raise
+
+pub fn lastchar(String) -> Char?
+
+pub fn[A] lcount((A) -> Bool raise?, Array[A]) -> Int raise?
+
+pub fn[A] length(Array[A]) -> Int
 
 pub fn[K, V] list_of_hashtbl(Map[K, V]) -> Array[(K, V)]
 
+pub fn[A] lose((A) -> Bool raise?, Array[A]) -> Array[A] raise?
+
+pub fn[A] losenones(Array[A?]) -> Array[A]
+
+pub fn[A] many(A, Int) -> Array[A] raise
+
+pub fn[A] manyunique(() -> A raise?, Int) -> Array[A] raise
+
+pub fn[A, B] map((A) -> B raise?, Array[A]) -> Array[B] raise?
+
+pub fn[A, B, C] map2((A, B) -> C raise?, Array[A], Array[B]) -> Array[C] raise
+
+pub fn[A, B, C, D] map3((A, B, C) -> D raise?, Array[A], Array[B], Array[C]) -> Array[D] raise
+
+pub fn[A, B, C, D, E] map4((A, B, C, D) -> E raise?, Array[A], Array[B], Array[C], Array[D]) -> Array[E] raise
+
+pub fn[A, B, C, D, E, F] map5((A, B, C, D, E) -> F raise?, Array[A], Array[B], Array[C], Array[D], Array[E]) -> Array[F] raise
+
+pub fn[A, B, C, D, E, F, G] map6((A, B, C, D, E, F) -> G raise?, Array[A], Array[B], Array[C], Array[D], Array[E], Array[F]) -> Array[G] raise
+
+pub fn[A, B] map_lol((A) -> B raise?, Array[Array[A]]) -> Array[Array[B]] raise?
+
+pub fn[A : Eq] mem(A, Array[A]) -> Bool
+
+pub fn[A : Eq] mem_swapped(Array[A], A) -> Bool
+
 pub fn[T] memoize(() -> T raise) -> () -> T raise
 
+pub fn[A] notnull(Array[A]) -> Bool
+
 pub fn[K, V] null_hash() -> Map[K, V]
+
+pub fn[A, B] option_map((A) -> B? raise?, Array[A]) -> Array[B] raise?
+
+pub fn[A, B, C] option_map2((A, B) -> C? raise?, Array[A], Array[B]) -> Array[C] raise
+
+pub fn[A] pair((A, A) -> A raise?, Array[A]) -> Array[A] raise?
+
+pub fn[A, B] pair_ext((A, A) -> B raise?, (A) -> B raise?, Array[A]) -> Array[B] raise?
+
+pub fn[A] pair_reduce((A, A) -> A raise?, Array[A]) -> A raise
+
+pub fn[A] pairs(Array[A]) -> Array[(A, A)]
+
+pub fn[A : Eq] position(A, Array[A]) -> Int?
+
+pub fn[A : Eq] position_1(A, Array[A]) -> Int?
+
+pub fn print_floats(Array[Double]) -> Unit
+
+pub fn print_int32s(Array[Int]) -> Unit
+
+pub fn print_ints(Array[Int]) -> Unit
+
+pub fn[A] really_drop_evens(Array[A]) -> Array[A]
+
+pub fn[A] replace_number(Int, A, Array[A]) -> Array[A]
+
+pub fn[A] replaceinlist((A) -> Bool raise?, A, Array[A]) -> Array[A] raise?
+
+pub fn[A] rev(Array[A]) -> Array[A]
+
+pub fn[A, B] rev_map((A) -> B raise?, Array[A]) -> Array[B] raise?
+
+pub fn[A, B, C, D] rev_map3((A, B, C) -> D raise?, Array[A], Array[B], Array[C]) -> Array[D] raise
+
+pub fn[A, B, C, D, E] rev_map4((A, B, C, D) -> E raise?, Array[A], Array[B], Array[C], Array[D]) -> Array[E] raise
+
+pub fn[A, B, C, D, E, F] rev_map5((A, B, C, D, E) -> F raise?, Array[A], Array[B], Array[C], Array[D], Array[E]) -> Array[F] raise
+
+pub fn[A, B, C, D, E, F, G] rev_map6((A, B, C, D, E, F) -> G raise?, Array[A], Array[B], Array[C], Array[D], Array[E], Array[F]) -> Array[G] raise
+
+pub fn[A] select(Int, Array[A]) -> A raise
+
+pub fn[A : Compare] setify(Array[A]) -> Array[A]
+
+pub fn[A : Hash + Eq] setify_large(Array[A]) -> Array[A]
+
+pub fn[A : Eq] setify_preserving_order(Array[A]) -> Array[A]
+
+pub fn[A : Eq] setminus(Array[A], Array[A]) -> Array[A]
+
+pub fn[A : Eq] setminus_preserving_order(Array[A], Array[A]) -> Array[A]
+
+pub fn[A] sort((A, A) -> Int, Array[A]) -> Array[A]
+
+pub fn[A, B] split(Array[(A, B)]) -> (Array[A], Array[B])
+
+pub fn[A, B, C] split3(Array[(A, B, C)]) -> (Array[A], Array[B], Array[C])
+
+pub fn[A, B, C, D, E] split5(Array[(A, B, C, D, E)]) -> (Array[A], Array[B], Array[C], Array[D], Array[E])
+
+pub fn[A, B, C, D, E, F] split6(Array[(A, B, C, D, E, F)]) -> (Array[A], Array[B], Array[C], Array[D], Array[E], Array[F])
+
+pub fn[A, B, C, D, E, F, G, H] split8(Array[(A, B, C, D, E, F, G, H)]) -> (Array[A], Array[B], Array[C], Array[D], Array[E], Array[F], Array[G], Array[H])
+
+pub fn[A] split_around((A) -> Bool raise?, Array[A]) -> Array[Array[A]] raise?
+
+pub fn[A] splitat(Array[Int], Array[A]) -> Array[Array[A]] raise
+
+pub fn[A] splitinto(Int, Array[A]) -> Array[Array[A]] raise
+
+pub fn[A] splitinto_small(Int, Array[A]) -> Array[Array[A]] raise
+
+pub fn starts_with(String, String) -> Bool
 
 pub let stderr_file : Ref[@fs.File?]
 
 pub let stdout_file : Ref[@fs.File?]
 
+pub fn string_of_char(Char) -> String
+
+pub fn string_replace_all(String, String, String) -> String
+
+pub fn string_replace_all_lazy(String, () -> String, String) -> String
+
+pub fn sum(Array[Int]) -> Int
+
+pub fn[A] tail_no_fail(Array[A]) -> Array[A]
+
+pub fn[A] tails(Array[Array[A]]) -> Array[Array[A]] raise
+
+pub fn[A] take(Array[A], Int) -> Array[A] raise
+
+pub fn[A] take_swapped(Int, Array[A]) -> Array[A] raise
+
+pub fn[A] takewhile((A) -> Bool raise?, Array[A]) -> Array[A] raise?
+
+pub fn[A] takewhile_reverse((A) -> Bool raise?, Array[A]) -> Array[A] raise?
+
+pub fn[A] tl(Array[A]) -> Array[A] raise
+
 pub fn[K : Hash + Eq, V] tryfind(Map[K, V], K) -> V?
+
+pub fn[A] zipn(Array[Array[A]]) -> Array[Array[A]] raise
 
 // Errors
 

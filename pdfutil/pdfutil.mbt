@@ -58,6 +58,45 @@ pub fn fleprint(message : String) -> Unit {
 }
 
 ///|
+/// Print a list of floating point numbers separated by spaces.
+pub fn print_floats(values : Array[Double]) -> Unit {
+  let sb = StringBuilder::new()
+  for i, value in values {
+    if i > 0 {
+      sb.write_char(' ')
+    }
+    sb.write_object(value)
+  }
+  flprint(sb.to_string())
+}
+
+///|
+/// Print a list of integers separated by spaces.
+pub fn print_ints(values : Array[Int]) -> Unit {
+  let sb = StringBuilder::new()
+  for i, value in values {
+    if i > 0 {
+      sb.write_char(' ')
+    }
+    sb.write_object(value)
+  }
+  flprint(sb.to_string())
+}
+
+///|
+/// Print a list of int32 values separated by spaces.
+pub fn print_int32s(values : Array[Int]) -> Unit {
+  let sb = StringBuilder::new()
+  for i, value in values {
+    if i > 0 {
+      sb.write_char(' ')
+    }
+    sb.write_object(value)
+  }
+  flprint(sb.to_string())
+}
+
+///|
 /// Memoize a nullary function (cache the first computed value).
 pub fn[T] memoize(f : () -> T raise) -> () -> T raise {
   let cached : Ref[T?] = Ref::new(None)
