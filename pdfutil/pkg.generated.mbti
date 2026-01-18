@@ -486,6 +486,8 @@ pub fn toint(Double) -> Int
 
 pub fn[K : Hash + Eq, V] tryfind(Map[K, V], K) -> V?
 
+pub fn tt_prime() -> Unit
+
 pub fn[A, B] tuple(A, B) -> (A, B)
 
 pub fn[A] unopt(A?) -> A raise
