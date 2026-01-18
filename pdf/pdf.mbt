@@ -270,6 +270,35 @@ pub fn add_dict_entry(
 }
 
 ///|
+/// Return a name with the given prefix not already used in the dictionary.
+pub fn unique_key(prefix : String, obj : PdfObject) -> String raise {
+  let entries = match obj {
+    Dictionary(es) => es
+    Stream(r) => {
+      let (inner, _) = r.val
+      match inner {
+        Dictionary(es) => es
+        _ => raise PdfError::Msg("unique_key: Not a dictionary or stream")
+      }
+    }
+    _ => raise PdfError::Msg("unique_key: Not a dictionary or stream")
+  }
+  fn dict_has_key(dict : Array[(String, PdfObject)], key : String) -> Bool {
+    dict.search_by(pair => pair.0 == key) is Some(_)
+  }
+
+  fn name_of_num(n : Int) -> String {
+    "/\{prefix}\{n}"
+  }
+
+  let mut num = 0
+  while dict_has_key(entries, name_of_num(num)) {
+    num = num + 1
+  }
+  name_of_num(num)
+}
+
+///|
 /// Lookup an object in a document, parsing it if required.
 pub fn lookup_obj(pdf : Pdf, objnum : Int) -> PdfObject {
   match pdf.objects.objects.get(objnum) {
@@ -890,6 +919,30 @@ pub fn objiter(f : (Int, PdfObject) -> Unit raise?, pdf : Pdf) -> Unit raise? {
 }
 
 ///|
+/// Iterate over all objects in a document, ordered by object number.
+pub fn objiter_inorder(
+  f : (Int, PdfObject) -> Unit raise?,
+  pdf : Pdf,
+) -> Unit raise? {
+  objiter(f, pdf)
+}
+
+///|
+/// Iterate over all objects in a document with generation numbers.
+pub fn objiter_gen(
+  f : (Int, Int, PdfObject) -> Unit raise?,
+  pdf : Pdf,
+) -> Unit raise? {
+  let entries = pdf.objects.objects.to_array()
+  entries.sort_by((a, b) => a.0 - b.0)
+  for entry in entries {
+    let key = entry.0
+    let (_obj_ref, gen) = entry.1
+    f(key, gen, lookup_obj(pdf, key))
+  }
+}
+
+///|
 /// Map a function over all objects in a document.
 pub fn objselfmap(
   f : (PdfObject) -> PdfObject raise?,
@@ -907,6 +960,29 @@ pub fn objselfmap(
       _ => obj_ref.val = Parsed(updated)
     }
   }
+}
+
+///|
+/// Iterate over stream objects in a document.
+pub fn iter_stream(f : (PdfObject) -> Unit raise?, pdf : Pdf) -> Unit raise? {
+  objiter(
+    (_num, obj) => match obj {
+      Stream(_) => f(obj)
+      _ => ()
+    },
+    pdf,
+  )
+}
+
+///|
+/// Select objects matching a predicate and return their numbers.
+pub fn objselect(
+  f : (PdfObject) -> Bool raise?,
+  pdf : Pdf,
+) -> Array[Int] raise? {
+  let out = Array::new()
+  objiter((num, obj) => if f(obj) { out.push(num) }, pdf)
+  out
 }
 
 ///|

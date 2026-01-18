@@ -31,6 +31,8 @@ pub fn indirect_number(Pdf, String, PdfObject) -> Int?
 
 pub fn input_pdferror(@pdfio.Input, String) -> String
 
+pub fn iter_stream((PdfObject) -> Unit raise?, Pdf) -> Unit raise?
+
 pub fn lookup_chain(Pdf, PdfObject, ArrayView[String]) -> PdfObject?
 
 pub fn lookup_direct(Pdf, String, PdfObject) -> PdfObject?
@@ -53,7 +55,13 @@ pub fn objects_referenced(Array[String], Array[(String, PdfObject)], Pdf, PdfObj
 
 pub fn objiter((Int, PdfObject) -> Unit raise?, Pdf) -> Unit raise?
 
+pub fn objiter_gen((Int, Int, PdfObject) -> Unit raise?, Pdf) -> Unit raise?
+
+pub fn objiter_inorder((Int, PdfObject) -> Unit raise?, Pdf) -> Unit raise?
+
 pub fn objnumbers(Pdf) -> Array[Int]
+
+pub fn objselect((PdfObject) -> Bool raise?, Pdf) -> Array[Int] raise?
 
 pub fn objselfmap((PdfObject) -> PdfObject raise?, Pdf) -> Unit raise?
 
@@ -92,6 +100,8 @@ pub fn renumber_pdfs(Array[Pdf]) -> Array[Pdf]
 pub fn replace_chain(Pdf, ArrayView[String], PdfObject) -> Unit raise
 
 pub fn replace_dict_entry(PdfObject, String, PdfObject) -> PdfObject raise
+
+pub fn unique_key(String, PdfObject) -> String raise
 
 // Errors
 pub(all) suberror PdfError {
