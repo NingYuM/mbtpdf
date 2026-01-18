@@ -17,6 +17,8 @@ pub fn codepoint_of_pdfdocencoding_character(Int) -> Int raise
 
 pub fn codepoints_of_pdfdocstring(String) -> Array[Int] raise
 
+pub fn codepoints_of_shift_jis(Array[Int]) -> Array[Int]
+
 pub fn codepoints_of_text(TextExtractor, String) -> Array[Int] raise
 
 pub fn codepoints_of_utf16be(String) -> Array[Int] raise
@@ -28,6 +30,8 @@ pub fn extract_text(@pdf.Pdf, page_break? : String) -> String raise
 pub fn extract_text_by_page(@pdf.Pdf) -> Array[String] raise
 
 pub fn find_tounicode(Font) -> Map[Int, String]?
+
+pub fn find_tounicode_bytes(Font) -> Map[String, String]?
 
 pub fn get_utf8_chars(Int) -> Array[Int] raise
 
@@ -177,6 +181,7 @@ pub struct FontDescriptor {
   fontfile : FontFile?
   charset : Array[String]?
   tounicode : Map[Int, String]?
+  tounicode_bytes : Map[String, String]?
 }
 
 pub enum FontFile {
@@ -223,6 +228,8 @@ pub impl Eq for StandardFont
 
 pub struct TextExtractor {
   convert : (Int) -> (String, Array[Int])
+  tounicode : Map[String, String]?
+  tounicode_lengths : Array[Int]
   font : Font
 }
 

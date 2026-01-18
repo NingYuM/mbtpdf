@@ -158,6 +158,7 @@ pub fn read_fontdescriptor(
         xheight: 0.0,
         stemv: 0.0,
         tounicode: None,
+        tounicode_bytes: None,
       })
     }
   }
@@ -609,19 +610,35 @@ pub fn add_tounicode(
   font : Font,
   fontdict : @pdf.PdfObject,
 ) -> Font {
-  let tounicode = match @pdf.lookup_direct(pdf, "/ToUnicode", fontdict) {
+  fn code_int_of_string(code : String) -> Int {
+    let bytes = @pdfio.bytes_of_string(code)
+    let mut value = 0
+    for b in bytes {
+      value = (value << 8) | b.to_int()
+    }
+    value
+  }
+
+  let (tounicode, tounicode_bytes) = match
+    @pdf.lookup_direct(pdf, "/ToUnicode", fontdict) {
     Some(tounicode) =>
       try {
         let parsed = @pdfcmap.parse_cmap(pdf, tounicode)
-        Some(@pdfutil.hashtable_of_dictionary(parsed.map))
+        let bytes_map = @pdfutil.hashtable_of_dictionary(parsed.map)
+        let int_pairs = parsed.map.map(pair => (
+          code_int_of_string(pair.0),
+          pair.1,
+        ))
+        let int_map = @pdfutil.hashtable_of_dictionary(int_pairs)
+        (Some(int_map), Some(bytes_map))
       } catch {
         err => {
           @pdfe.log("bad tounicode\n")
           let _ = err
-          None
+          (None, None)
         }
       }
-    None => None
+    None => (None, None)
   }
   match font {
     Font::SimpleFont(simple) =>
@@ -641,6 +658,7 @@ pub fn add_tounicode(
             fontfile: fd.fontfile,
             charset: fd.charset,
             tounicode,
+            tounicode_bytes,
           }
           Font::SimpleFont({
             fonttype: simple.fonttype,
@@ -668,6 +686,7 @@ pub fn add_tounicode(
             fontfile: None,
             charset: None,
             tounicode,
+            tounicode_bytes,
           }
           Font::SimpleFont({
             fonttype: simple.fonttype,
@@ -696,6 +715,7 @@ pub fn add_tounicode(
         fontfile: composite.cid_fontdescriptor.fontfile,
         charset: composite.cid_fontdescriptor.charset,
         tounicode,
+        tounicode_bytes,
       }
       let updated_composite : CompositeCIDFont = {
         cid_system_info: composite.cid_system_info,
@@ -720,6 +740,20 @@ pub fn find_tounicode(font : Font) -> Map[Int, String]? {
       }
     Font::CIDKeyedFont(_, composite, _) =>
       composite.cid_fontdescriptor.tounicode
+    _ => None
+  }
+}
+
+///|
+pub fn find_tounicode_bytes(font : Font) -> Map[String, String]? {
+  match font {
+    Font::SimpleFont(simple) =>
+      match simple.fontdescriptor {
+        Some(fd) => fd.tounicode_bytes
+        None => None
+      }
+    Font::CIDKeyedFont(_, composite, _) =>
+      composite.cid_fontdescriptor.tounicode_bytes
     _ => None
   }
 }

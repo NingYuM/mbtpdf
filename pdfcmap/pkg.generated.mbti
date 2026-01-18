@@ -12,7 +12,7 @@ pub fn parse_cmap(@pdf.Pdf, @pdf.PdfObject) -> CMap raise
 
 // Types and methods
 pub struct CMap {
-  map : Array[(Int, String)]
+  map : Array[(String, String)]
   wmode : Int?
 }
 

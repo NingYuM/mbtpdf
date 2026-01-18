@@ -24,6 +24,15 @@ async test "extract text pdf.js identity sample" {
 }
 
 ///|
+async test "extract text SFAA Japanese" {
+  let pdf = @pdfread.pdf_of_file(None, None, "testdata/SFAA_Japanese.pdf")
+  let extracted = extract_text(pdf)
+  assert_true(
+    extracted.contains("すべてのアメリカ人のための科学"),
+  )
+}
+
+///|
 fn build_unicode_pdf() -> @pdf.Pdf raise {
   let codepoints : Array[Int] = [0x4f60, 0x597d, 0x4e16, 0x754c, 0x263a]
   let pdf = @pdf.empty()

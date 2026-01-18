@@ -3,7 +3,7 @@
 
 ///|
 pub struct CMap {
-  map : Array[(Int, String)]
+  map : Array[(String, String)]
   wmode : Int?
 }
 
@@ -95,7 +95,7 @@ fn skip_whitespace(chars : Array[Char], start : Int) -> Int {
 }
 
 ///|
-fn read_number(chars : Array[Char], start : Int) -> (Int, Int) raise {
+fn read_hex_bytes(chars : Array[Char], start : Int) -> (Array[Int], Int) raise {
   let mut i = skip_whitespace(chars, start)
   if i >= chars.length() {
     fail("Not_found")
@@ -106,15 +106,27 @@ fn read_number(chars : Array[Char], start : Int) -> (Int, Int) raise {
   i = i + 1
   let hex_chars = Array::new()
   while i < chars.length() && chars[i] != '>' {
+    if !is_hex_digit(chars[i]) {
+      raise @pdf.PdfError::Msg("Bad hex value")
+    }
     hex_chars.push(chars[i])
     i = i + 1
   }
   if i >= chars.length() {
     raise @pdf.PdfError::Msg("Unknown number in /ToUnicode")
   }
-  let hex_str = String::from_array(hex_chars)
-  let value = @strconv.parse_int(hex_str, base=16)
-  (value, i + 1)
+  if hex_chars.length() == 0 || hex_chars.length() % 2 != 0 {
+    raise @pdf.PdfError::Msg("Bad hex value")
+  }
+  let bytes = Array::new()
+  let mut j = 0
+  while j < hex_chars.length() {
+    let hex_str = String::from_array(hex_chars[j:j + 2].to_array())
+    let value = @strconv.parse_int(hex_str, base=16)
+    bytes.push(value)
+    j = j + 2
+  }
+  (bytes, i + 1)
 }
 
 ///|
@@ -123,70 +135,99 @@ fn is_hex_digit(c : Char) -> Bool {
 }
 
 ///|
-fn read_unicode(chars : Array[Char], start : Int) -> (String, Int) raise {
+fn read_code(chars : Array[Char], start : Int) -> (String, Int) raise {
+  let (bytes, next) = read_hex_bytes(chars, start)
+  (@pdfio.string_of_int_array(bytes), next)
+}
+
+///|
+fn read_code_opt(chars : Array[Char], start : Int) -> (String, Int)? raise {
   let mut i = skip_whitespace(chars, start)
-  if i >= chars.length() || chars[i] != '<' {
-    raise @pdf.PdfError::Msg("Bad unicode value")
-  }
-  i = i + 1
-  let hex_chars = Array::new()
-  while i < chars.length() && chars[i] != '>' {
-    if !is_hex_digit(chars[i]) {
-      raise @pdf.PdfError::Msg("Bad unicode value")
+  while i < chars.length() {
+    if chars[i] == '<' {
+      let result : Result[(String, Int), Error] = try? read_code(chars, i)
+      match result {
+        Ok(value) => return Some(value)
+        Err(_) => i = i + 1
+      }
+    } else {
+      i = i + 1
     }
-    hex_chars.push(chars[i])
+  }
+  None
+}
+
+///|
+fn read_unicode_opt(chars : Array[Char], start : Int) -> (String, Int)? raise {
+  let mut i = skip_whitespace(chars, start)
+  while i < chars.length() {
+    if chars[i] == '<' {
+      let result : Result[(String, Int), Error] = try? read_code(chars, i)
+      match result {
+        Ok(value) => return Some(value)
+        Err(_) => i = i + 1
+      }
+    } else {
+      i = i + 1
+    }
+  }
+  None
+}
+
+///|
+fn code_bytes_of_string(code : String) -> Array[Int] {
+  @pdfio.int_array_of_bytes(@pdfio.bytes_of_string(code))
+}
+
+///|
+fn code_int_of_string(code : String) -> Int {
+  let bytes = code_bytes_of_string(code)
+  let mut value = 0
+  for b in bytes {
+    value = (value << 8) | b
+  }
+  value
+}
+
+///|
+fn code_string_of_int(value : Int, length : Int) -> String {
+  let bytes = Array::new(capacity=length)
+  let mut v = value
+  let mut i = 0
+  while i < length {
+    bytes.push(v & 0xff)
+    v = v >> 8
     i = i + 1
   }
-  if i >= chars.length() {
-    raise @pdf.PdfError::Msg("Bad unicode value")
-  }
-  if hex_chars.length() == 0 || hex_chars.length() % 2 != 0 {
-    raise @pdf.PdfError::Msg("Bad unicode value")
-  }
-  let bytes = Array::new()
-  let mut j = 0
-  while j < hex_chars.length() {
-    let hex_str = String::from_array(hex_chars[j:j + 2].to_array())
-    let value = @strconv.parse_int(hex_str, base=16)
-    bytes.push(value.to_byte())
-    j = j + 2
-  }
-  (@pdfio.string_of_bytes(bytes), i + 1)
+  @pdfio.string_of_int_array(bytes.rev())
 }
 
 ///|
-fn read_number_opt(chars : Array[Char], start : Int) -> (Int, Int)? raise {
-  Some(read_number(chars, start)) catch {
-    Failure::Failure("Not_found") => None
-    err => raise err
-  }
-}
-
-///|
-fn increment_final(code : String, delta : Int) -> String {
+fn increment_code(code : String, delta : Int) -> String {
   if code.length() == 0 {
     return ""
   }
-  let bytes = @pdfio.bytes_of_string(code)
-  let last = bytes.length() - 1
-  bytes[last] = (bytes[last].to_int() + delta).to_byte()
-  @pdfio.string_of_bytes(bytes)
+  let length = @pdfio.bytes_of_string(code).length()
+  code_string_of_int(code_int_of_string(code) + delta, length)
 }
 
 ///|
-fn pairs_of_section(section : Section) -> Array[(Int, String)] raise {
+fn pairs_of_section(section : Section) -> Array[(String, String)] raise {
   match section {
     Section::BfChar(numbers) => {
       let results = Array::new()
       let mut pos = 0
       while true {
-        match read_number_opt(numbers, pos) {
+        match read_code_opt(numbers, pos) {
           None => break
-          Some((number, rest)) => {
-            let (str, rest2) = read_unicode(numbers, rest)
-            results.push((number, str))
-            pos = rest2
-          }
+          Some((code, rest)) =>
+            match read_unicode_opt(numbers, rest) {
+              Some((str, rest2)) => {
+                results.push((code, str))
+                pos = rest2
+              }
+              None => pos = rest
+            }
         }
       }
       results
@@ -194,46 +235,89 @@ fn pairs_of_section(section : Section) -> Array[(Int, String)] raise {
     Section::BfRange(numbers) => {
       let results = Array::new()
       let mut pos = 0
-      while true {
-        match read_number_opt(numbers, pos) {
-          None => break
-          Some((src1, rest1)) => {
-            let (src2, rest2) = read_number(numbers, rest1)
-            if src1 > src2 {
-              raise @pdf.PdfError::Msg("Bad /ToUnicode")
-            }
-            let mut rest = skip_whitespace(numbers, rest2)
-            if rest >= numbers.length() {
-              raise @pdf.PdfError::Msg("Bad BfRange")
-            }
-            match numbers[rest] {
-              '<' => {
-                let (code, rest3) = read_unicode(numbers, rest2)
-                let mut d = 0
-                while d <= src2 - src1 {
-                  results.push((src1 + d, increment_final(code, d)))
-                  d = d + 1
-                }
-                pos = rest3
-              }
-              '[' => {
-                rest = rest + 1
-                let mut d = 0
-                while d <= src2 - src1 {
-                  let (num, rest3) = read_unicode(numbers, rest)
-                  results.push((src1 + d, num))
-                  rest = rest3
-                  d = d + 1
-                }
-                rest = skip_whitespace(numbers, rest)
-                if rest < numbers.length() && numbers[rest] == ']' {
-                  rest = rest + 1
-                }
-                pos = rest
-              }
-              _ => raise @pdf.PdfError::Msg("Bad BfRange")
-            }
+      fn find_dest_marker(chars : Array[Char], start : Int) -> (Char, Int)? {
+        let mut i = skip_whitespace(chars, start)
+        while i < chars.length() {
+          match chars[i] {
+            '<' | '[' => return Some((chars[i], i))
+            _ => i = i + 1
           }
+        }
+        None
+      }
+
+      fn skip_to_close_bracket(chars : Array[Char], start : Int) -> Int {
+        let mut i = start
+        while i < chars.length() && chars[i] != ']' {
+          i = i + 1
+        }
+        if i < chars.length() {
+          i + 1
+        } else {
+          chars.length()
+        }
+      }
+
+      while true {
+        match read_code_opt(numbers, pos) {
+          None => break
+          Some((src1, rest1)) =>
+            match read_code_opt(numbers, rest1) {
+              None => break
+              Some((src2, rest2)) => {
+                let src1_value = code_int_of_string(src1)
+                let src2_value = code_int_of_string(src2)
+                if src1_value > src2_value {
+                  pos = rest2
+                  continue
+                }
+                match find_dest_marker(numbers, rest2) {
+                  None => break
+                  Some((marker, idx)) =>
+                    match marker {
+                      '<' =>
+                        match read_unicode_opt(numbers, idx) {
+                          Some((code, rest3)) => {
+                            let src_len = @pdfio.bytes_of_string(src1).length()
+                            let dest_len = @pdfio.bytes_of_string(code).length()
+                            let mut d = 0
+                            while d <= src2_value - src1_value {
+                              results.push(
+                                (
+                                  code_string_of_int(src1_value + d, src_len),
+                                  code_string_of_int(
+                                    code_int_of_string(code) + d,
+                                    dest_len,
+                                  ),
+                                ),
+                              )
+                              d = d + 1
+                            }
+                            pos = rest3
+                          }
+                          None => pos = idx + 1
+                        }
+                      '[' => {
+                        let mut rest = idx + 1
+                        let mut d = 0
+                        while d <= src2_value - src1_value {
+                          match read_unicode_opt(numbers, rest) {
+                            Some((num, rest3)) => {
+                              let src_code = increment_code(src1, d)
+                              results.push((src_code, num))
+                              rest = rest3
+                              d = d + 1
+                            }
+                            None => break
+                          }
+                        }
+                        pos = skip_to_close_bracket(numbers, rest)
+                      }
+                      _ => pos = rest2
+                    }
+                }
+              }
+            }
         }
       }
       results

@@ -4,6 +4,8 @@
 ///|
 pub struct TextExtractor {
   convert : (Int) -> (String, Array[Int])
+  tounicode : Map[String, String]?
+  tounicode_lengths : Array[Int]
   font : Font
 }
 
@@ -19,6 +21,45 @@ fn flatten_int_arrays(arrays : Array[Array[Int]]) -> Array[Int] {
     out.append(arr)
   }
   out
+}
+
+///|
+fn tounicode_length_list(map : Map[String, String]) -> Array[Int] {
+  let lengths = Array::new()
+  let pairs = @pdfutil.list_of_hashtbl(map)
+  for pair in pairs {
+    let len = @pdfio.bytes_of_string(pair.0).length()
+    if !lengths.contains(len) {
+      lengths.push(len)
+    }
+  }
+  lengths.sort_by((a, b) => b - a)
+  lengths
+}
+
+///|
+fn bytes_slice_to_string(
+  bytes : Array[Int],
+  start : Int,
+  length : Int,
+) -> String {
+  let out = Array::new(capacity=length)
+  let mut i = 0
+  while i < length {
+    out.push(bytes[start + i])
+    i = i + 1
+  }
+  @pdfio.string_of_int_array(out)
+}
+
+///|
+fn code_int_of_string(code : String) -> Int {
+  let bytes = @pdfio.bytes_of_string(code)
+  let mut value = 0
+  for b in bytes {
+    value = (value << 8) | b.to_int()
+  }
+  value
 }
 
 ///|
@@ -151,36 +192,24 @@ pub fn text_extractor_of_font_real(font : Font) -> TextExtractor {
     _ => Encoding::ImplicitInFontFile
   }
   let table = table_of_encoding(encoding)
-  let tounicode_table = find_tounicode(font)
-  let use_tounicode = tounicode_table != None
-  let tounicode_values = match tounicode_table {
-    Some(tu) => tu
-    None => @pdfutil.null_hash()
-  }
-  let convert = if use_tounicode {
-    (i : Int) => try {
-      match tounicode_values.get(i) {
-        Some(value) => ("/" + value, codepoints_of_utf16be(value))
-        None => (".notdef", [i])
-      }
-    } catch {
-      _ => (".notdef", [i])
+  let convert = (i : Int) => try {
+    match table.get(i) {
+      Some(decoded) =>
+        match @pdfglyphlist.glyph_hashes().get(decoded) {
+          Some(codepoints) => (decoded, codepoints)
+          None => ("/" + decoded, [i])
+        }
+      None => (".notdef", [i])
     }
-  } else {
-    (i : Int) => try {
-      match table.get(i) {
-        Some(decoded) =>
-          match @pdfglyphlist.glyph_hashes().get(decoded) {
-            Some(codepoints) => (decoded, codepoints)
-            None => ("/" + decoded, [i])
-          }
-        None => (".notdef", [i])
-      }
-    } catch {
-      _ => (".notdef", [i])
-    }
+  } catch {
+    _ => (".notdef", [i])
   }
-  { convert, font }
+  let tounicode = find_tounicode_bytes(font)
+  let tounicode_lengths = match tounicode {
+    Some(map) => tounicode_length_list(map)
+    None => []
+  }
+  { convert, tounicode, tounicode_lengths, font }
 }
 
 ///|
@@ -200,25 +229,88 @@ pub fn is_identity_h(font : Font) -> Bool {
 }
 
 ///|
+fn is_shift_jis_cmap(name : String) -> Bool {
+  match name {
+    "/83pv-RKSJ-H"
+    | "/83pv-RKSJ-V"
+    | "/90ms-RKSJ-H"
+    | "/90ms-RKSJ-V"
+    | "/90msp-RKSJ-H"
+    | "/90msp-RKSJ-V"
+    | "/90pv-RKSJ-H"
+    | "/90pv-RKSJ-V" => true
+    _ => false
+  }
+}
+
+///|
+fn codepoints_of_predefined_cmap(font : Font, text : String) -> Array[Int]? {
+  match font {
+    Font::CIDKeyedFont(_, _, CMapEncoding::Predefined(name)) =>
+      if is_shift_jis_cmap(name) {
+        let bytes = @pdfio.int_array_of_bytes(@pdfio.bytes_of_string(text))
+        Some(codepoints_of_shift_jis(bytes))
+      } else {
+        None
+      }
+    _ => None
+  }
+}
+
+///|
 pub fn glyphnames_and_codepoints_of_text(
   extractor : TextExtractor,
   text : String,
 ) -> Array[(String, Array[Int])] raise {
-  if is_identity_h(extractor.font) {
-    let bytes = @pdfio.int_array_of_bytes(@pdfio.bytes_of_string(text))
-    if odd(bytes.length()) {
-      raise @pdf.PdfError::Msg("Bad Text")
+  match extractor.tounicode {
+    Some(map) => {
+      let bytes = @pdfio.int_array_of_bytes(@pdfio.bytes_of_string(text))
+      let out = Array::new()
+      let mut i = 0
+      while i < bytes.length() {
+        let mut matched = false
+        for length in extractor.tounicode_lengths {
+          if i + length <= bytes.length() {
+            let key = bytes_slice_to_string(bytes, i, length)
+            match map.get(key) {
+              Some(value) => {
+                out.push(("/" + value, codepoints_of_utf16be(value)))
+                i = i + length
+                matched = true
+                break
+              }
+              None => ()
+            }
+          }
+        }
+        if !matched {
+          out.push((".notdef", [bytes[i]]))
+          i = i + 1
+        }
+      }
+      out
     }
-    let out = Array::new()
-    let mut i = 0
-    while i < bytes.length() {
-      let code = (bytes[i] << 8) | bytes[i + 1]
-      out.push((extractor.convert)(code))
-      i = i + 2
-    }
-    out
-  } else {
-    text.to_array().map(c => (extractor.convert)(c.to_int()))
+    None =>
+      match codepoints_of_predefined_cmap(extractor.font, text) {
+        Some(codepoints) => codepoints.map(cp => (".notdef", [cp]))
+        None =>
+          if is_identity_h(extractor.font) {
+            let bytes = @pdfio.int_array_of_bytes(@pdfio.bytes_of_string(text))
+            if odd(bytes.length()) {
+              raise @pdf.PdfError::Msg("Bad Text")
+            }
+            let out = Array::new()
+            let mut i = 0
+            while i < bytes.length() {
+              let code = (bytes[i] << 8) | bytes[i + 1]
+              out.push((extractor.convert)(code))
+              i = i + 2
+            }
+            out
+          } else {
+            text.to_array().map(c => (extractor.convert)(c.to_int()))
+          }
+      }
   }
 }
 
@@ -256,7 +348,7 @@ pub fn charcode_extractor_of_font_real(
     Font::SimpleFont(simple) => simple.encoding
     _ => Encoding::ImplicitInFontFile
   }
-  let tounicode_reverse_table = match find_tounicode(font) {
+  let tounicode_reverse_table = match find_tounicode_bytes(font) {
     Some(parsed) => {
       if debug {
         @pdfutil.flprint("Found a /ToUnicode table here.\n")
@@ -265,7 +357,7 @@ pub fn charcode_extractor_of_font_real(
       try {
         let reversed = parsed_list.map(pair => (
           codepoints_of_utf16be(pair.1),
-          pair.0,
+          code_int_of_string(pair.0),
         ))
         (@pdfutil.hashtable_of_dictionary(reversed), true)
       } catch {
@@ -388,8 +480,10 @@ pub fn get_utf8_chars(c : Int) -> Array[Int] raise {
 
 ///|
 pub fn utf8_of_codepoints(codepoints : Array[Int]) -> String raise {
-  let bytes = flatten_int_arrays(codepoints.map(get_utf8_chars))
-  @pdfio.string_of_bytes(@pdfio.bytes_of_int_array(bytes))
+  let bytes = @pdfio.bytes_of_int_array(
+    flatten_int_arrays(codepoints.map(get_utf8_chars)),
+  )
+  @utf8.decode(Bytes::from_array(bytes[:])[:], ignore_bom=true)
 }
 
 ///|

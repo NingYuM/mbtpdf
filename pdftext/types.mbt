@@ -42,6 +42,7 @@ pub struct FontDescriptor {
   fontfile : FontFile?
   charset : Array[String]?
   tounicode : Map[Int, String]?
+  tounicode_bytes : Map[String, String]?
 }
 
 ///|
