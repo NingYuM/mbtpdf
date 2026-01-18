@@ -743,9 +743,95 @@ pub fn encode_ccitt(
     @pdfio.align_write(output)
     @pdfio.bytes_of_write_bitstream(output)
   } catch {
-    Failure(_) =>
+    Failure::Failure(_) =>
       raise CodecError::CouldntDecodeStream("encode_ccitt: not enough data")
     _ => raise CodecError::CouldntDecodeStream("encode_ccitt: not enough data")
+  }
+}
+
+///|
+fn[T] run_async_mapped(
+  context : String,
+  load : async () -> T,
+) -> T raise CodecError {
+  let result : Ref[Result[T, Error]] = Ref::new(
+    Err(Failure::Failure("uninitialized async run")),
+  )
+  @async.run_async_main(() => {
+    let res : Result[T, Error] = try? load()
+    result.val = res
+  })
+  match result.val {
+    Ok(value) => value
+    Err(err) => raise CodecError::CouldntDecodeStream("\{context}: \{err}")
+  }
+}
+
+///|
+fn remove_file(path : String) -> Unit {
+  run_async_mapped("remove file", () => @fs.remove(path)) catch {
+    _ => ()
+  }
+}
+
+///|
+fn extract_ccittg4_stream(
+  pdf : @pdf.Pdf,
+) -> @pdfio.MutableBytes raise CodecError {
+  fn fail_obj() -> @pdf.PdfObject raise CodecError {
+    raise CodecError::DecodeNotSupported("malformed PDF from imagemagick")
+  }
+
+  fn fail_bytes() -> @pdfio.MutableBytes raise CodecError {
+    raise CodecError::DecodeNotSupported("malformed PDF from imagemagick")
+  }
+
+  let root = match @pdf.lookup_direct(pdf, "/Root", pdf.trailerdict) {
+    Some(obj) => obj
+    None => fail_obj()
+  }
+  let pages = match @pdf.lookup_direct(pdf, "/Pages", root) {
+    Some(obj) => obj
+    None => fail_obj()
+  }
+  let kids_obj = match @pdf.lookup_direct(pdf, "/Kids", pages) {
+    Some(obj) => obj
+    None => fail_obj()
+  }
+  let kid0 = match kids_obj {
+    @pdf.PdfObject::Array(kids) =>
+      if kids.length() > 0 {
+        @pdf.direct(pdf, kids[0])
+      } else {
+        fail_obj()
+      }
+    _ => fail_obj()
+  }
+  let resources = match @pdf.lookup_direct(pdf, "/Resources", kid0) {
+    Some(obj) => obj
+    None => fail_obj()
+  }
+  let xobject = match @pdf.lookup_direct(pdf, "/XObject", resources) {
+    Some(obj) => obj
+    None => fail_obj()
+  }
+  let im0 = match @pdf.lookup_direct(pdf, "/Im0", xobject) {
+    Some(obj) => obj
+    None => fail_obj()
+  }
+  match im0 {
+    @pdf.PdfObject::Stream(r) => {
+      ignore(@pdf.getstream(im0)) catch {
+        _ =>
+          raise CodecError::DecodeNotSupported("malformed PDF from imagemagick")
+      }
+      let (_, stream_data) = r.val
+      match stream_data {
+        @pdf.Stream::Got(data) => data
+        _ => fail_bytes()
+      }
+    }
+    _ => fail_bytes()
   }
 }
 
@@ -757,8 +843,69 @@ pub fn encode_ccittg4(
   _data : @pdfio.MutableBytes,
   im? : String,
 ) -> @pdfio.MutableBytes raise CodecError {
-  let _ = im
-  raise CodecError::DecodeNotSupported("encode_ccittg4 not implemented")
+  let columns = _columns
+  let rows = _rows
+  let data = _data
+  match im {
+    None => raise CodecError::DecodeNotSupported("no imagemagick provided.")
+    Some(im_path) => {
+      let dir = match @env.current_dir() {
+        Some(path) => path
+        None => "."
+      }
+      let stamp = @env.now().to_string()
+      let input_path = "\{dir}/mbtpdf_ccittg4_\{stamp}.raw"
+      let output_path = "\{dir}/mbtpdf_ccittg4_\{stamp}.pdf"
+      let bytes = try {
+        run_async_mapped("write ccittg4 input", () => @fs.write_file(
+          input_path,
+          Bytes::from_array(data),
+        ))
+        let args = [
+          "-depth",
+          "1",
+          "-size",
+          "\{columns}x\{rows}",
+          input_path,
+          "-compress",
+          "GROUP4",
+          output_path,
+        ]
+        let exit_code = run_async_mapped("run imagemagick", () => @process.run(
+          im_path, args,
+        ))
+        if exit_code > 0 {
+          raise CodecError::DecodeNotSupported("magick return code non-zero")
+        }
+        let pdf = (pdf_of_file.val)(None, None, None, output_path) catch {
+          _ =>
+            raise CodecError::DecodeNotSupported(
+              "malformed PDF from imagemagick",
+            )
+        }
+        extract_ccittg4_stream(pdf)
+      } catch {
+        CodecError::CouldntDecodeStream(msg) => {
+          remove_file(input_path)
+          remove_file(output_path)
+          raise CodecError::CouldntDecodeStream(msg)
+        }
+        CodecError::DecodeNotSupported(msg) => {
+          remove_file(input_path)
+          remove_file(output_path)
+          raise CodecError::DecodeNotSupported(msg)
+        }
+        _ => {
+          remove_file(input_path)
+          remove_file(output_path)
+          raise CodecError::CouldntDecodeStream("encode_ccittg4 failed")
+        }
+      }
+      remove_file(input_path)
+      remove_file(output_path)
+      bytes
+    }
+  }
 }
 
 ///|
