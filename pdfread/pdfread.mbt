@@ -1084,6 +1084,7 @@ fn parse_object_stream(
   user_password : String?,
   owner_password : String?,
   partial_pdf : @pdf.Pdf,
+  indexes? : Array[Int],
 ) -> Array[(Int, @pdf.PdfObject)] raise {
   let lexemes = lex_object_for_xref(input, xrefs, true, objstm)
   let (_, stmobj) = parse(lexemes)
@@ -1132,19 +1133,46 @@ fn parse_object_stream(
     rawnums.push(read_int_from_stream(stm_input))
     i = i + 1
   }
+  let (use_indexes, sorted_indexes) = match indexes {
+    Some(values) => {
+      let ordered = values.copy()
+      ordered.sort_by((a, b) => a - b)
+      (true, ordered)
+    }
+    None => (false, Array::new())
+  }
   let objects = Array::new()
   let mut idx = 0
+  let mut current_index = 0
+  let mut wanted_pos = 0
   while idx < rawnums.length() {
+    if use_indexes && wanted_pos >= sorted_indexes.length() {
+      break
+    }
     let objnum = rawnums[idx]
     let offset = rawnums[idx + 1]
-    (stm_input.seek_in)(offset + first)
-    let lexemes = lex_object_at(true, stm_input, true, fn(
-      _ : Int,
-    ) -> Array[@pdfgenlex.Token] raise {
-      Array::new()
-    })
-    let (_, obj) = parse(lexemes)
-    objects.push((objnum, obj))
+    let should_parse = if use_indexes {
+      let want = sorted_indexes[wanted_pos]
+      if current_index == want {
+        wanted_pos = wanted_pos + 1
+        true
+      } else {
+        false
+      }
+    } else {
+      true
+    }
+    if should_parse {
+      (stm_input.seek_in)(offset + first)
+      let lexemes = lex_object_at(true, stm_input, true, fn(
+        _ : Int,
+      ) -> Array[@pdfgenlex.Token] raise {
+        Array::new()
+      })
+      let (_, obj) = parse(lexemes)
+      objects.push((objnum, obj))
+    }
+    current_index = current_index + 1
     idx = idx + 2
   }
   objects
@@ -1262,10 +1290,15 @@ fn build_pdf_objects(
       stream_objnum : Int,
       indexes : Array[Int],
     ) -> Array[(Int, (Ref[@pdf.ObjectData], Int))] {
-      let _ = indexes
       try {
         let parsed = parse_object_stream(
-          input, xrefs, stream_objnum, user_password, owner_password, partial_pdf,
+          input,
+          xrefs,
+          stream_objnum,
+          user_password,
+          owner_password,
+          partial_pdf,
+          indexes~,
         )
         let out = Array::new(capacity=parsed.length())
         for pair in parsed {
