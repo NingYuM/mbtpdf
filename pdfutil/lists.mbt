@@ -744,6 +744,69 @@ pub fn[A, B] map_lol(
 }
 
 ///|
+pub fn[A, B] conspair(
+  pair_and_rest : ((A, B), (Array[A], Array[B])),
+) -> (Array[A], Array[B]) {
+  let (pair, rest) = pair_and_rest
+  let (x, y) = pair
+  let (xs, ys) = rest
+  let xs_out : Array[A] = Array::new(capacity=xs.length() + 1)
+  xs_out.push(x)
+  for item in xs {
+    xs_out.push(item)
+  }
+  let ys_out : Array[B] = Array::new(capacity=ys.length() + 1)
+  ys_out.push(y)
+  for item in ys {
+    ys_out.push(item)
+  }
+  (xs_out, ys_out)
+}
+
+///|
+pub fn[A, B] conspairopt(
+  pair_and_rest : ((A?, B?), (Array[A], Array[B])),
+) -> (Array[A], Array[B]) {
+  let (pair, rest) = pair_and_rest
+  let (xo, yo) = pair
+  let (xs, ys) = rest
+  let xextra = if xo is Some(_) { 1 } else { 0 }
+  let yextra = if yo is Some(_) { 1 } else { 0 }
+  let xs_out : Array[A] = Array::new(capacity=xs.length() + xextra)
+  let ys_out : Array[B] = Array::new(capacity=ys.length() + yextra)
+  match xo {
+    Some(x) => xs_out.push(x)
+    None => ()
+  }
+  for item in xs {
+    xs_out.push(item)
+  }
+  match yo {
+    Some(y) => ys_out.push(y)
+    None => ()
+  }
+  for item in ys {
+    ys_out.push(item)
+  }
+  (xs_out, ys_out)
+}
+
+///|
+pub fn[A] pairs_of_list(xs : Array[A]) -> Array[(A, A)] raise {
+  let len = xs.length()
+  if len % 2 != 0 {
+    invalid_arg("Pdfutil.pairs_of_list")
+  }
+  let out : Array[(A, A)] = Array::new(capacity=len / 2)
+  let mut i = 0
+  while i + 1 < len {
+    out.push((xs[i], xs[i + 1]))
+    i += 2
+  }
+  out
+}
+
+///|
 pub fn[A] pairs(xs : Array[A]) -> Array[(A, A)] {
   let len = xs.length()
   if len < 2 {

@@ -50,6 +50,10 @@ pub fn[A, B, C] combine3(Array[A], Array[B], Array[C]) -> Array[(A, B, C)] raise
 
 pub fn compare_i(Int, Int) -> Int
 
+pub fn[A, B] conspair(((A, B), (Array[A], Array[B]))) -> (Array[A], Array[B])
+
+pub fn[A, B] conspairopt(((A?, B?), (Array[A], Array[B]))) -> (Array[A], Array[B])
+
 pub fn contents_of_file(String) -> Array[Byte] raise
 
 pub fn contents_to_file(String, Array[Byte]) -> Unit raise
@@ -317,6 +321,8 @@ pub fn[A, B] pair_ext((A, A) -> B raise?, (A) -> B raise?, Array[A]) -> Array[B]
 pub fn[A] pair_reduce((A, A) -> A raise?, Array[A]) -> A raise
 
 pub fn[A] pairs(Array[A]) -> Array[(A, A)]
+
+pub fn[A] pairs_of_list(Array[A]) -> Array[(A, A)] raise
 
 pub fn perpendicular((Double, Double)) -> (Double, Double)
 
