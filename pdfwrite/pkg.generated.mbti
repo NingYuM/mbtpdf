@@ -36,7 +36,7 @@ pub struct Encryption {
   permissions : Array[String]
 }
 
-pub enum EncryptionMethod {
+pub(all) enum EncryptionMethod {
   PDF40bit
   PDF128bit
   AES128bit(Bool)

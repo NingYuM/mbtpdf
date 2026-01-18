@@ -3,8 +3,10 @@ package "bobzhang/mbtpdf/pdfread"
 
 import {
   "bobzhang/mbtpdf/pdf",
+  "bobzhang/mbtpdf/pdfcrypt",
   "bobzhang/mbtpdf/pdfgenlex",
   "bobzhang/mbtpdf/pdfio",
+  "bobzhang/mbtpdf/pdfwrite",
   "moonbitlang/async/fs",
 }
 
@@ -55,7 +57,7 @@ pub fn pdf_of_input(revision? : Int, String?, String?, @pdfio.Input) -> @pdf.Pdf
 
 pub fn pdf_of_input_lazy(revision? : Int, String?, String?, @pdfio.Input) -> @pdf.Pdf raise
 
-pub fn permissions(@pdf.Pdf) -> Array[Unit]
+pub fn permissions(@pdf.Pdf) -> Array[@pdfcrypt.Permission]
 
 pub fn print_lexeme(@pdfgenlex.Token) -> Unit
 
@@ -67,7 +69,7 @@ pub fn revisions(@pdfio.Input) -> Int raise
 
 pub fn string_of_lexeme(@pdfgenlex.Token) -> String
 
-pub fn what_encryption(@pdf.Pdf) -> Unit?
+pub fn what_encryption(@pdf.Pdf) -> @pdfwrite.EncryptionMethod?
 
 // Errors
 

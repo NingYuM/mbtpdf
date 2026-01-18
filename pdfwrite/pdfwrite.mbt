@@ -735,7 +735,7 @@ fn write_pdf_object(
 
 ///|
 /// Encryption methods.
-pub enum EncryptionMethod {
+pub(all) enum EncryptionMethod {
   PDF40bit
   PDF128bit
   AES128bit(Bool)

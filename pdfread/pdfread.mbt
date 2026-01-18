@@ -318,15 +318,79 @@ pub fn revisions(input : @pdfio.Input) -> Int raise {
 }
 
 ///|
-/// Return encryption method in use (placeholder).
-pub fn what_encryption(_pdf : @pdf.Pdf) -> Unit? {
-  None
+/// Return encryption method in use.
+pub fn what_encryption(pdf : @pdf.Pdf) -> @pdfwrite.EncryptionMethod? {
+  if @pdfcrypt.is_encrypted(pdf) {
+    let values : Result[
+      (
+        @pdfcryptprimitives.Encryption,
+        String,
+        String,
+        Int,
+        String,
+        String?,
+        String?,
+      ),
+      Error,
+    ] = try? @pdfcrypt.get_encryption_values(pdf)
+    match values {
+      Ok((crypt, _, _, _, _, _, _)) => {
+        let metadata = match
+          @pdf.lookup_direct(pdf, "/Encrypt", pdf.trailerdict) {
+          Some(encrypt_dict) =>
+            match @pdf.lookup_direct(pdf, "/EncryptMetadata", encrypt_dict) {
+              Some(@pdf.PdfObject::Boolean(false)) => false
+              _ => true
+            }
+          None => true
+        }
+        match crypt {
+          @pdfcryptprimitives.Encryption::ARC4(bits, _) =>
+            match bits {
+              40 => Some(@pdfwrite.EncryptionMethod::PDF40bit)
+              128 => Some(@pdfwrite.EncryptionMethod::PDF128bit)
+              _ => None
+            }
+          @pdfcryptprimitives.Encryption::AESV2 =>
+            Some(@pdfwrite.EncryptionMethod::AES128bit(metadata))
+          @pdfcryptprimitives.Encryption::AESV3(is_iso) =>
+            if is_iso {
+              Some(@pdfwrite.EncryptionMethod::AES256bitISO(metadata))
+            } else {
+              Some(@pdfwrite.EncryptionMethod::AES256bit(metadata))
+            }
+        }
+      }
+      Err(_) => None
+    }
+  } else {
+    None
+  }
 }
 
 ///|
-/// Return list of permissions (placeholder).
-pub fn permissions(_pdf : @pdf.Pdf) -> Array[Unit] {
-  []
+/// Return list of permissions.
+pub fn permissions(pdf : @pdf.Pdf) -> Array[@pdfcrypt.Permission] {
+  if @pdfcrypt.is_encrypted(pdf) {
+    let values : Result[
+      (
+        @pdfcryptprimitives.Encryption,
+        String,
+        String,
+        Int,
+        String,
+        String?,
+        String?,
+      ),
+      Error,
+    ] = try? @pdfcrypt.get_encryption_values(pdf)
+    match values {
+      Ok((_, _, _, p, _, _, _)) => @pdfcrypt.banlist_of_p(p)
+      Err(_) => []
+    }
+  } else {
+    []
+  }
 }
 
 ///|
