@@ -6,9 +6,19 @@ import {
 }
 
 // Values
+pub fn align(Bitstream) -> Unit
+
+pub fn align_write(BitstreamWrite) -> Unit
+
 pub fn bget(Array[Byte], Int) -> Int
 
 pub fn bget_unsafe(Array[Byte], Int) -> Int
+
+pub fn bitbytes_of_input(Input) -> Bitstream
+
+pub fn bitstream_pos(Bitstream) -> BitstreamPosition
+
+pub fn bitstream_seek(Bitstream, BitstreamPosition) -> Unit
 
 pub fn bset(Array[Byte], Int, Int) -> Unit
 
@@ -30,6 +40,8 @@ pub fn bytes_of_list(Array[Int]) -> Array[Byte]
 
 pub fn bytes_of_string(String) -> Array[Byte]
 
+pub fn bytes_of_write_bitstream(BitstreamWrite) -> Array[Byte]
+
 pub fn bytes_selfmap((Int) -> Int, Array[Byte]) -> Unit
 
 pub fn bytes_size(Array[Byte]) -> Int
@@ -44,7 +56,15 @@ pub fn extract_bytes_from_input_output(Output, Ref[Array[Byte]]) -> Array[Byte]
 
 pub fn fillbytes(Int, Array[Byte]) -> Unit
 
+pub fn getbit(Bitstream) -> Bool raise
+
+pub fn getbitint(Bitstream) -> Int raise
+
 pub fn getinit(Output, Array[Byte], Int, Int) -> Unit raise
+
+pub fn getval_31(Bitstream, Int) -> Int raise
+
+pub fn getval_32(Bitstream, Int) -> Int raise
 
 pub fn input_of_bytes(Array[Byte], source? : String) -> Input
 
@@ -60,6 +80,8 @@ pub fn int_array_of_bytes(Array[Byte]) -> Array[Int]
 
 pub fn int_array_of_string(String) -> Array[Int]
 
+pub fn make_write_bitstream() -> BitstreamWrite
+
 pub fn mkbytes(Int) -> Array[Byte]
 
 pub let no_more : Int
@@ -73,6 +95,10 @@ pub fn peek_byte(Input) -> Int
 pub fn peek_char(Input) -> Char?
 
 pub fn print_bytes(Array[Byte]) -> Unit
+
+pub fn putbit(BitstreamWrite, Int) -> Unit
+
+pub fn putval(BitstreamWrite, Int, Int) -> Unit raise
 
 pub fn read_char_back(Input) -> Char?
 
@@ -94,14 +120,16 @@ pub fn string_of_int_array(Array[Int]) -> String
 
 pub fn string_of_int_arrays(Array[Array[Int]]) -> String
 
+pub fn write_bitstream_append_aligned(BitstreamWrite, BitstreamWrite) -> BitstreamWrite
+
 // Errors
 
 // Types and methods
 pub struct Bitstream {
   input : Input
-  curr_byte : Int
-  bit : Int
-  bits_read : Int
+  mut curr_byte : Int
+  mut bit : Int
+  mut bits_read : Int
 }
 
 pub struct BitstreamPosition {
@@ -113,7 +141,7 @@ pub struct BitstreamPosition {
 
 pub struct BitstreamWrite {
   bytes : Array[Byte]
-  bit : Int
+  mut bit : Int
 }
 
 pub struct Input {

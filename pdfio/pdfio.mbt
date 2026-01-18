@@ -502,9 +502,9 @@ pub fn bytes_to_output_channel(
 /// Most-significant-bit-first bitstream over an Input.
 pub struct Bitstream {
   input : Input
-  curr_byte : Int
-  bit : Int
-  bits_read : Int
+  mut curr_byte : Int
+  mut bit : Int
+  mut bits_read : Int
 }
 
 ///|
@@ -520,7 +520,194 @@ pub struct BitstreamPosition {
 /// Most-significant-bit-first write bitstream (placeholder).
 pub struct BitstreamWrite {
   bytes : MutableBytes
-  bit : Int
+  mut bit : Int
+}
+
+///|
+/// Build a bitstream from an input.
+pub fn bitbytes_of_input(input : Input) -> Bitstream {
+  { input, curr_byte: 0, bit: 0, bits_read: 0 }
+}
+
+///|
+/// Get the current position of a bitstream.
+pub fn bitstream_pos(b : Bitstream) -> BitstreamPosition {
+  {
+    pos: (b.input.pos_in)(),
+    curr_byte: b.curr_byte,
+    bit: b.bit,
+    bits_read: b.bits_read,
+  }
+}
+
+///|
+/// Seek to a previous bitstream position.
+pub fn bitstream_seek(b : Bitstream, pos : BitstreamPosition) -> Unit {
+  (b.input.seek_in)(pos.pos)
+  b.curr_byte = pos.curr_byte
+  b.bit = pos.bit
+  b.bits_read = pos.bits_read
+}
+
+///|
+/// Read the next bit from a bitstream.
+pub fn getbit(b : Bitstream) -> Bool raise {
+  if b.bit == 0 {
+    let value = (b.input.input_byte)()
+    if value == no_more {
+      fail("End_of_file")
+    }
+    b.curr_byte = value
+    b.bit = 128
+  }
+  let result = (b.curr_byte & b.bit) > 0
+  b.bits_read = b.bits_read + 1
+  b.bit = b.bit / 2
+  result
+}
+
+///|
+/// Read the next bit as an integer, 0 or 1.
+pub fn getbitint(b : Bitstream) -> Int raise {
+  if getbit(b) {
+    1
+  } else {
+    0
+  }
+}
+
+///|
+fn getbitsint(b : Bitstream, n : Int) -> Int raise {
+  if n < 0 {
+    fail("getbitsint")
+  }
+  let mut value = 0
+  for i = 0; i < n; i = i + 1 {
+    value = (value << 1) | getbitint(b)
+  }
+  value
+}
+
+///|
+/// Align a bitstream to the next byte boundary.
+pub fn align(b : Bitstream) -> Unit {
+  if b.bit > 0 {
+    b.bits_read = (b.bits_read / 8 + 1) * 8
+    b.bit = 0
+  }
+}
+
+///|
+/// Read up to 32 bits as an integer.
+pub fn getval_32(b : Bitstream, n : Int) -> Int raise {
+  if n < 0 {
+    fail("Pdfio.getval_32 - n < 0")
+  }
+  getbitsint(b, n)
+}
+
+///|
+/// Read up to 31 bits as an integer.
+pub fn getval_31(b : Bitstream, n : Int) -> Int raise {
+  if n < 0 {
+    fail("Pdfio.getval_31 - n < 0")
+  }
+  getbitsint(b, n)
+}
+
+///|
+/// Make a new write bitstream.
+pub fn make_write_bitstream() -> BitstreamWrite {
+  { bytes: Array::new(), bit: 0 }
+}
+
+///|
+fn bitstream_bits(b : BitstreamWrite) -> Int {
+  let count = b.bytes.length()
+  if count == 0 {
+    0
+  } else if b.bit == 0 {
+    count * 8
+  } else {
+    (count - 1) * 8 + b.bit
+  }
+}
+
+///|
+/// Put a single bit into a write bitstream.
+pub fn putbit(b : BitstreamWrite, bit : Int) -> Unit {
+  if b.bit == 0 {
+    b.bytes.push((0).to_byte())
+  }
+  let idx = b.bytes.length() - 1
+  if bit == 1 {
+    let curr = b.bytes[idx].to_int()
+    let mask = 1 << (7 - b.bit)
+    b.bytes[idx] = (curr | mask).to_byte()
+  }
+  b.bit = b.bit + 1
+  if b.bit == 8 {
+    b.bit = 0
+  }
+}
+
+///|
+/// Put a multi-bit value into a write bitstream.
+pub fn putval(b : BitstreamWrite, bits : Int, value : Int) -> Unit raise {
+  if bits < 0 || bits > 32 {
+    fail("putval")
+  }
+  let mut i = bits - 1
+  while i >= 0 {
+    let bit = (value >> i) & 1
+    putbit(b, bit)
+    i = i - 1
+  }
+}
+
+///|
+/// Align a write bitstream to the next byte boundary.
+pub fn align_write(b : BitstreamWrite) -> Unit {
+  if b.bit > 0 {
+    while b.bit != 0 {
+      putbit(b, 0)
+    }
+  }
+}
+
+///|
+/// Extract bytes from a write bitstream, padding with zeros.
+pub fn bytes_of_write_bitstream(b : BitstreamWrite) -> MutableBytes {
+  align_write(b)
+  b.bytes.copy()
+}
+
+///|
+fn append_bits(dest : BitstreamWrite, src : BitstreamWrite) -> Unit {
+  let total = bitstream_bits(src)
+  if total == 0 {
+    return
+  }
+  for i = 0; i < total; i = i + 1 {
+    let byte_index = i / 8
+    let bit_index = i % 8
+    let curr = src.bytes[byte_index].to_int()
+    let mask = 1 << (7 - bit_index)
+    let bit = if (curr & mask) > 0 { 1 } else { 0 }
+    putbit(dest, bit)
+  }
+}
+
+///|
+/// Append two write bitstreams, aligning at the join.
+pub fn write_bitstream_append_aligned(
+  a : BitstreamWrite,
+  b : BitstreamWrite,
+) -> BitstreamWrite {
+  let out = { bytes: a.bytes.copy(), bit: a.bit }
+  align_write(out)
+  append_bits(out, b)
+  out
 }
 
 ///|
