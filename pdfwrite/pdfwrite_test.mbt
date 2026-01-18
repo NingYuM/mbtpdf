@@ -26,7 +26,7 @@ test "string_of_pdf escapes names" {
 test "pdf_to_output writes binary header" {
   let pdf = build_minimal_pdf()
   let (output, buffer) = @pdfio.input_output_of_bytes(128)
-  @pdfwrite.pdf_to_output(_encryption=None, _build_new_id=false, pdf, output)
+  @pdfwrite.pdf_to_output(None, false, pdf, output)
   let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let expected = [
     '%'.to_int(),
@@ -59,7 +59,7 @@ test "pdf_to_output writes binary header" {
 
 ///|
 test "string_of_pdf formats reals without exponent" {
-  let s = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(1e-6))
+  let s = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(1.0e-6))
   assert_true(!s.contains("e") && !s.contains("E"))
 }
 

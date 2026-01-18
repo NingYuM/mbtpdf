@@ -64,15 +64,10 @@ fn build_minimal_pdf() -> @pdf.Pdf {
 ///|
 fn roundtrip(pdf : @pdf.Pdf) -> @pdf.Pdf raise {
   let (output, buffer) = @pdfio.input_output_of_bytes(512)
-  @pdfwrite.pdf_to_output(_encryption=None, _build_new_id=false, pdf, output)
+  @pdfwrite.pdf_to_output(None, false, pdf, output)
   let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let input = @pdfio.input_of_bytes(pdf_bytes, source="roundtrip")
-  @pdfread.pdf_of_input(
-    revision=None,
-    user_password=None,
-    owner_password=None,
-    input,
-  )
+  @pdfread.pdf_of_input(None, None, input)
 }
 
 ///|
@@ -90,23 +85,12 @@ test "pdf roundtrip read/write/read" {
 test "pdf roundtrip with xref stream" {
   let pdf1 = build_minimal_pdf()
   let (output, buffer) = @pdfio.input_output_of_bytes(512)
-  @pdfwrite.pdf_to_output(
-    preserve_objstm=true,
-    _encryption=None,
-    _build_new_id=false,
-    pdf1,
-    output,
-  )
+  @pdfwrite.pdf_to_output(preserve_objstm=true, None, false, pdf1, output)
   let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let pdf_text = @pdfio.string_of_bytes(pdf_bytes)
   assert_true(pdf_text.contains("/Type /XRef"))
   let input = @pdfio.input_of_bytes(pdf_bytes, source="xref-stream")
-  let parsed = @pdfread.pdf_of_input(
-    revision=None,
-    user_password=None,
-    owner_password=None,
-    input,
-  )
+  let parsed = @pdfread.pdf_of_input(None, None, input)
   assert_eq(@pdf.objcard(parsed), 4)
   assert_eq(parsed.root, 4)
 }
@@ -119,8 +103,8 @@ test "pdf roundtrip with generated object streams" {
     generate_objstm=true,
     preserve_objstm=false,
     compress_objstm=true,
-    _encryption=None,
-    _build_new_id=false,
+    None,
+    false,
     pdf1,
     output,
   )
@@ -128,12 +112,7 @@ test "pdf roundtrip with generated object streams" {
   let pdf_text = @pdfio.string_of_bytes(pdf_bytes)
   assert_true(pdf_text.contains("/ObjStm"))
   let input = @pdfio.input_of_bytes(pdf_bytes, source="objstm")
-  let parsed = @pdfread.pdf_of_input(
-    revision=None,
-    user_password=None,
-    owner_password=None,
-    input,
-  )
+  let parsed = @pdfread.pdf_of_input(None, None, input)
   assert_true(parsed.objects.object_stream_ids.length() > 0)
 }
 
@@ -145,26 +124,21 @@ test "pdf roundtrip with preserved object streams" {
     generate_objstm=true,
     preserve_objstm=false,
     compress_objstm=true,
-    _encryption=None,
-    _build_new_id=false,
+    None,
+    false,
     pdf1,
     output1,
   )
   let bytes1 = @pdfio.extract_bytes_from_input_output(output1, buffer1)
   let input1 = @pdfio.input_of_bytes(bytes1, source="objstm-preserve")
-  let parsed = @pdfread.pdf_of_input(
-    revision=None,
-    user_password=None,
-    owner_password=None,
-    input1,
-  )
+  let parsed = @pdfread.pdf_of_input(None, None, input1)
   let (output2, buffer2) = @pdfio.input_output_of_bytes(512)
   @pdfwrite.pdf_to_output(
     preserve_objstm=true,
     generate_objstm=false,
     compress_objstm=true,
-    _encryption=None,
-    _build_new_id=false,
+    None,
+    false,
     parsed,
     output2,
   )
