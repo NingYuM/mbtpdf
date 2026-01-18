@@ -17,7 +17,7 @@ fn matrix_is_identity(m : @pdftransform.TransformMatrix) -> Bool {
 }
 
 ///|
-fn pagenumber_of_target(
+pub fn pagenumber_of_target(
   pdf : @pdf.Pdf,
   target : @pdfdest.Destination,
   fastrefnums? : Map[Int, Int],
@@ -73,6 +73,16 @@ fn pagenumber_of_target(
           }
       }
   }
+}
+
+///|
+/// For page processing without matrices, return the identity matrix.
+pub fn[A, B, C] ppstub(
+  f : (A, B) -> C raise?,
+  n : A,
+  p : B,
+) -> (C, A, @pdftransform.TransformMatrix) raise? {
+  (f(n, p), n, @pdftransform.i_matrix)
 }
 
 ///|

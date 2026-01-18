@@ -42,6 +42,8 @@ pub fn minimum_valid_pdf() -> @pdf.Pdf raise
 
 pub fn page_object_number(@pdf.Pdf, Int) -> Int? raise
 
+pub fn pagenumber_of_target(@pdf.Pdf, @pdfdest.Destination, fastrefnums? : Map[Int, Int]) -> Int raise
+
 pub fn pages_of_pagetree(@pdf.Pdf) -> Array[Page] raise
 
 pub fn pages_of_pagetree_quick(@pdf.Pdf) -> Int raise
@@ -49,6 +51,8 @@ pub fn pages_of_pagetree_quick(@pdf.Pdf) -> Int raise
 pub fn pdf_of_pages(@pdf.Pdf, Array[Int], retain_numbering? : Bool, process_struct_tree? : Bool) -> @pdf.Pdf raise
 
 pub fn postpend_operators(@pdf.Pdf, Array[@pdfops.Op], Page, fast? : Bool) -> Page raise
+
+pub fn[A, B, C] ppstub((A, B) -> C raise?, A, B) -> (C, A, @pdftransform.TransformMatrix) raise?
 
 pub fn prepend_operators(@pdf.Pdf, Array[@pdfops.Op], Page, fast? : Bool) -> Page raise
 
