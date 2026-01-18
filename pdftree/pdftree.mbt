@@ -171,9 +171,8 @@ fn remove_duplicates(
     return []
   }
   let out = Array::new()
-  let mut prev = items[0]
-  out.push(prev)
   let mut i = 1
+  let mut prev = items[0]
   while i < items.length() {
     let current = items[i]
     let same = if isnum {
@@ -181,12 +180,15 @@ fn remove_duplicates(
     } else {
       key_string(prev.0) == key_string(current.0)
     }
-    if !same {
-      out.push(current)
+    if same {
+      prev = current
+    } else {
+      out.push(prev)
       prev = current
     }
     i = i + 1
   }
+  out.push(prev)
   out
 }
 
