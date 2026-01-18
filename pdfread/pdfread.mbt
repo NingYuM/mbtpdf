@@ -240,6 +240,7 @@ fn read_pdf_internal(
         raise @pdf.PdfError::Msg(message)
       }
     }
+    let mut used_encryption_fallback = false
     let objects = build_pdf_objects(
       input,
       xrefs.to_array(),
@@ -247,7 +248,22 @@ fn read_pdf_internal(
       trailerdict,
       user_password,
       owner_password,
-    )
+    ) catch {
+      err =>
+        if read_stream_data && is_encryption_error(err) {
+          used_encryption_fallback = true
+          build_pdf_objects(
+            input,
+            xrefs.to_array(),
+            false,
+            trailerdict,
+            user_password,
+            owner_password,
+          )
+        } else {
+          raise err
+        }
+    }
     let sanitized_trailer = sanitize_trailerdict(
       objects.objects.length(),
       trailerdict,
@@ -261,9 +277,13 @@ fn read_pdf_internal(
       was_linearized,
       saved_encryption: None,
     }
-    let (major, minor) = match version_from_catalog(pdf_tmp) {
-      Some(pair) => pair
-      None => (major_header, minor_header)
+    let (major, minor) = if used_encryption_fallback {
+      (major_header, minor_header)
+    } else {
+      match version_from_catalog(pdf_tmp) {
+        Some(pair) => pair
+        None => (major_header, minor_header)
+      }
     }
     let pdf_final = @pdf.Pdf::{
       major,

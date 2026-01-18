@@ -172,3 +172,38 @@ test "pdfread lazy decrypts object streams for encrypted PDFs" {
     _ => ()
   }
 }
+
+///|
+test "pdfread returns pdf for encrypted objstm without password" {
+  let pdf = build_minimal_pdf_for_encrypt()
+  let permissions : Array[@pdfcrypt.Permission] = []
+  let enc = @pdfwrite.make_encryption(
+    @pdfwrite.EncryptionMethod::PDF128bit,
+    "owner",
+    "user",
+    permissions,
+  )
+  let (output, buffer) = @pdfio.input_output_of_bytes(1024)
+  @pdfwrite.pdf_to_output(
+    generate_objstm=true,
+    compress_objstm=false,
+    Some(enc),
+    false,
+    pdf,
+    output,
+  )
+  let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let input = @pdfio.input_of_bytes(pdf_bytes, source="encrypt-objstm-nopw")
+  let res : Result[@pdf.Pdf, Error] = try? @pdfread.pdf_of_input(
+    None,
+    None,
+    input,
+  )
+  match res {
+    Ok(parsed) =>
+      if @pdfread.what_encryption(parsed) is None {
+        fail("expected encryption info")
+      }
+    Err(_) => fail("expected read to succeed without password")
+  }
+}
