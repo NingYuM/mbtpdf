@@ -26,6 +26,14 @@ pub fn between((Double, Double), (Double, Double)) -> (Double, Double)
 
 pub fn bool_xor(Bool, Bool) -> Bool
 
+pub fn box_overlap(Int, Int, Int, Int, Int, Int, Int, Int) -> (Int, Int, Int, Int)?
+
+pub fn box_overlap_float(Double, Double, Double, Double, Double, Double, Double, Double) -> (Double, Double, Double, Double)?
+
+pub fn box_union((Int, Int, Int, Int), (Int, Int, Int, Int)) -> (Int, Int, Int, Int)
+
+pub fn box_union_float((Double, Double, Double, Double), (Double, Double, Double, Double)) -> (Double, Double, Double, Double)
+
 pub fn clear(Ref[Bool]) -> Unit
 
 pub fn[A] cleave(Array[A], Int) -> (Array[A], Array[A]) raise
