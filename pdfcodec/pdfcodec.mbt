@@ -1235,18 +1235,12 @@ pub fn decode_pdfstream_onestage(
             }
             _ => raise CodecError::DecodeNotSupported("invalid filter")
           }
-          if filter_name != "/FlateDecode" && filter_name != "/Fl" {
-            raise CodecError::DecodeNotSupported(
-              "filter not supported: \{filter_name}",
-            )
-          }
           map_pdf_error("getstream", fn() raise { @pdf.getstream(obj) })
           let data = match r.val {
             (_, @pdf.Stream::Got(bytes)) => bytes
             _ =>
               raise CodecError::CouldntDecodeStream("stream data not available")
           }
-          let mut decoded = decode_flate(data)
           let parms_first = match parms {
             Some(@pdf.PdfObject::Array(arr)) =>
               if arr.length() > 0 {
@@ -1258,21 +1252,53 @@ pub fn decode_pdfstream_onestage(
             Some(other) => Some(other)
             None => None
           }
-          match parms_first {
-            Some(@pdf.PdfObject::Dictionary(_)) => {
-              let predictor = get_int_param(pdf, parms_first, "/Predictor", 1)
-              if predictor != 1 {
-                let colors = get_int_param(pdf, parms_first, "/Colors", 1)
-                let bpc = get_int_param(
-                  pdf, parms_first, "/BitsPerComponent", 8,
-                )
-                let columns = get_int_param(pdf, parms_first, "/Columns", 1)
-                decoded = decode_predictor(
-                  predictor, colors, bpc, columns, decoded,
-                )
+          let decoded = if filter_name == "/FlateDecode" || filter_name == "/Fl" {
+            let mut decoded = decode_flate(data)
+            match parms_first {
+              Some(@pdf.PdfObject::Dictionary(_)) => {
+                let predictor = get_int_param(pdf, parms_first, "/Predictor", 1)
+                if predictor != 1 {
+                  let colors = get_int_param(pdf, parms_first, "/Colors", 1)
+                  let bpc = get_int_param(
+                    pdf, parms_first, "/BitsPerComponent", 8,
+                  )
+                  let columns = get_int_param(pdf, parms_first, "/Columns", 1)
+                  decoded = decode_predictor(
+                    predictor, colors, bpc, columns, decoded,
+                  )
+                }
               }
+              _ => ()
             }
-            _ => ()
+            decoded
+          } else if filter_name == "/CCITTFaxDecode" || filter_name == "/CCF" {
+            let k = get_int_param(pdf, parms_first, "/K", 0)
+            let eol = get_bool_param(pdf, parms_first, "/EndOfLine", false)
+            let eba = get_bool_param(
+              pdf, parms_first, "/EncodedByteAlign", false,
+            )
+            let columns = get_int_param(pdf, parms_first, "/Columns", 1728)
+            let rows = get_int_param(pdf, parms_first, "/Rows", 0)
+            let eob = get_bool_param(pdf, parms_first, "/EndOfBlock", true)
+            let bone = get_bool_param(pdf, parms_first, "/BlackIs1", false)
+            let dra = get_int_param(
+              pdf, parms_first, "/DamagedRowsBeforeError", 0,
+            )
+            decode_ccittfax(
+              k,
+              eol,
+              eba,
+              columns,
+              rows,
+              eob,
+              bone,
+              dra,
+              @pdfio.input_of_bytes(data, source="ccitt"),
+            )
+          } else {
+            raise CodecError::DecodeNotSupported(
+              "filter not supported: \{filter_name}",
+            )
           }
           let mut new_dict = dict
           new_dict = match remaining_filters {
@@ -1385,25 +1411,42 @@ pub fn decode_from_input(
     filter_name : String,
     parms : @pdf.PdfObject?,
   ) -> @pdfio.MutableBytes? {
-    if filter_name != "/FlateDecode" && filter_name != "/Fl" {
-      return None
-    }
-    let mut decoded = decode_flate(bytes) catch { _ => return None }
-    match parms {
-      Some(@pdf.PdfObject::Dictionary(_)) => {
-        let predictor = get_int_param(pdf, parms, "/Predictor", 1)
-        if predictor != 1 {
-          let colors = get_int_param(pdf, parms, "/Colors", 1)
-          let bpc = get_int_param(pdf, parms, "/BitsPerComponent", 8)
-          let columns = get_int_param(pdf, parms, "/Columns", 1)
-          decoded = decode_predictor(predictor, colors, bpc, columns, decoded) catch {
-            _ => return None
+    if filter_name == "/FlateDecode" || filter_name == "/Fl" {
+      let mut decoded = decode_flate(bytes) catch { _ => return None }
+      match parms {
+        Some(@pdf.PdfObject::Dictionary(_)) => {
+          let predictor = get_int_param(pdf, parms, "/Predictor", 1)
+          if predictor != 1 {
+            let colors = get_int_param(pdf, parms, "/Colors", 1)
+            let bpc = get_int_param(pdf, parms, "/BitsPerComponent", 8)
+            let columns = get_int_param(pdf, parms, "/Columns", 1)
+            decoded = decode_predictor(predictor, colors, bpc, columns, decoded) catch {
+              _ => return None
+            }
           }
         }
+        _ => ()
       }
-      _ => ()
+      Some(decoded)
+    } else if filter_name == "/CCITTFaxDecode" || filter_name == "/CCF" {
+      let k = get_int_param(pdf, parms, "/K", 0)
+      let eol = get_bool_param(pdf, parms, "/EndOfLine", false)
+      let eba = get_bool_param(pdf, parms, "/EncodedByteAlign", false)
+      let columns = get_int_param(pdf, parms, "/Columns", 1728)
+      let rows = get_int_param(pdf, parms, "/Rows", 0)
+      let eob = get_bool_param(pdf, parms, "/EndOfBlock", true)
+      let bone = get_bool_param(pdf, parms, "/BlackIs1", false)
+      let dra = get_int_param(pdf, parms, "/DamagedRowsBeforeError", 0)
+      let input = @pdfio.input_of_bytes(bytes, source="ccitt")
+      let decoded = decode_ccittfax(
+        k, eol, eba, columns, rows, eob, bone, dra, input,
+      ) catch {
+        _ => return None
+      }
+      Some(decoded)
+    } else {
+      None
     }
-    Some(decoded)
   }
 
   match filter_opt {
@@ -1570,6 +1613,23 @@ fn get_int_param(
       match @pdf.lookup_direct(pdf, key, obj) {
         Some(@pdf.PdfObject::Integer(i)) => i
         Some(@pdf.PdfObject::Real(r)) => r.to_int()
+        _ => default_value
+      }
+    None => default_value
+  }
+}
+
+///|
+fn get_bool_param(
+  pdf : @pdf.Pdf,
+  parms : @pdf.PdfObject?,
+  key : String,
+  default_value : Bool,
+) -> Bool {
+  match parms {
+    Some(obj) =>
+      match @pdf.lookup_direct(pdf, key, obj) {
+        Some(@pdf.PdfObject::Boolean(b)) => b
         _ => default_value
       }
     None => default_value
