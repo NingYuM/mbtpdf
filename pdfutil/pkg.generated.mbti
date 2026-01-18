@@ -6,11 +6,15 @@ import {
 }
 
 // Values
+pub fn[K : Eq, V] add(K, V, Array[(K, V)]) -> Array[(K, V)]
+
 pub fn[A] all_but_last(Array[A]) -> Array[A]
 
 pub fn[A] append(Array[A], Array[A]) -> Array[A]
 
 pub fn[A] append_rev(Array[A], Array[A]) -> Array[A]
+
+pub fn clear(Ref[Bool]) -> Unit
 
 pub fn[A] cleave(Array[A], Int) -> (Array[A], Array[A]) raise
 
@@ -53,6 +57,8 @@ pub fn firstchar(String) -> Char?
 pub fn[A] flatten(Array[Array[A]]) -> Array[A]
 
 pub fn fleprint(String) -> Unit
+
+pub fn flip(Ref[Bool]) -> Unit
 
 pub fn flprint(String) -> Unit
 
@@ -166,6 +172,10 @@ pub fn lnot32(Int) -> Int
 
 pub fn lnot64(Int64) -> Int64
 
+pub fn[K : Eq, V] lookup(K, Array[(K, V)]) -> V?
+
+pub fn[K : Eq, V] lookup_failnull(K, Array[(K, V)]) -> V raise
+
 pub fn lor32(Int, Int) -> Int
 
 pub fn lor64(Int64, Int64) -> Int64
@@ -210,6 +220,8 @@ pub fn[A : Eq] mem_swapped(Array[A], A) -> Bool
 
 pub fn[T] memoize(() -> T raise) -> () -> T raise
 
+pub fn[K : Eq, V] mergedict(Array[(K, V)], Array[(K, V)]) -> Array[(K, V)]
+
 pub fn[A] notnull(Array[A]) -> Bool
 
 pub fn[K, V] null_hash() -> Map[K, V]
@@ -238,6 +250,30 @@ pub fn print_ints(Array[Int]) -> Unit
 
 pub fn[A] really_drop_evens(Array[A]) -> Array[A]
 
+pub fn ref_add_double(Ref[Double], Double) -> Unit
+
+pub fn ref_add_int(Ref[Int], Int) -> Unit
+
+pub fn[A] ref_cons(Ref[Array[A]], A) -> Unit
+
+pub fn ref_div_double(Ref[Double], Double) -> Unit
+
+pub fn ref_div_int(Ref[Int], Int) -> Unit
+
+pub fn ref_mul_double(Ref[Double], Double) -> Unit
+
+pub fn ref_mul_int(Ref[Int], Int) -> Unit
+
+pub fn[A] ref_prepend(Ref[Array[A]], Array[A]) -> Unit
+
+pub fn ref_sub_double(Ref[Double], Double) -> Unit
+
+pub fn ref_sub_int(Ref[Int], Int) -> Unit
+
+pub fn[K : Eq, V] remove(K, Array[(K, V)]) -> Array[(K, V)]
+
+pub fn[K : Eq, V] replace(K, V, Array[(K, V)]) -> Array[(K, V)] raise
+
 pub fn[A] replace_number(Int, A, Array[A]) -> Array[A]
 
 pub fn[A] replaceinlist((A) -> Bool raise?, A, Array[A]) -> Array[A] raise?
@@ -255,6 +291,8 @@ pub fn[A, B, C, D, E, F] rev_map5((A, B, C, D, E) -> F raise?, Array[A], Array[B
 pub fn[A, B, C, D, E, F, G] rev_map6((A, B, C, D, E, F) -> G raise?, Array[A], Array[B], Array[C], Array[D], Array[E], Array[F]) -> Array[G] raise
 
 pub fn[A] select(Int, Array[A]) -> A raise
+
+pub fn set(Ref[Bool]) -> Unit
 
 pub fn[A : Compare] setify(Array[A]) -> Array[A]
 
