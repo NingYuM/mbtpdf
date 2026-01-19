@@ -5,6 +5,14 @@ fn assert_close(a : Double, b : Double) -> Unit raise {
 }
 
 ///|
+fn[T] assert_is_err(res : Result[T, Error]) -> Unit raise {
+  match res {
+    Err(_) => ()
+    Ok(_) => fail("expected error")
+  }
+}
+
+///|
 test "annotation border dash array" {
   let pdf = @pdf.empty()
   let rect = @pdf.PdfObject::Array([
@@ -242,4 +250,232 @@ test "read_annotation uses /BS style" {
     _ => fail("expected dashed style")
   }
   assert_eq(annots[0].border.dasharray.length(), 2)
+}
+
+///|
+test "read_annotation parses styles and extras" {
+  let pdf = @pdf.empty()
+  let rect = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(10.0),
+    @pdf.PdfObject::Real(10.0),
+  ])
+  let solid = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Highlight")),
+    ("/Rect", rect),
+    (
+      "/BS",
+      @pdf.PdfObject::Dictionary([
+        ("/S", @pdf.PdfObject::Name("/S")),
+        ("/W", @pdf.PdfObject::Real(3.0)),
+        (
+          "/D",
+          @pdf.PdfObject::Array([
+            @pdf.PdfObject::Integer(1),
+            @pdf.PdfObject::Integer(2),
+          ]),
+        ),
+      ]),
+    ),
+  ])
+  let underline = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Underline")),
+    ("/Rect", rect),
+    ("/BS", @pdf.PdfObject::Dictionary([("/S", @pdf.PdfObject::Name("/U"))])),
+  ])
+  let border = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Link")),
+    ("/Rect", rect),
+    (
+      "/Border",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Real(1.0),
+        @pdf.PdfObject::Real(2.0),
+        @pdf.PdfObject::Real(3.0),
+      ]),
+    ),
+  ])
+  let extras = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Text")),
+    ("/Rect", rect),
+    ("/Contents", @pdf.PdfObject::String("Note")),
+    ("/Subj", @pdf.PdfObject::String("Subject")),
+    (
+      "/C",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Integer(1),
+        @pdf.PdfObject::Integer(2),
+        @pdf.PdfObject::Integer(3),
+      ]),
+    ),
+    ("/Foo", @pdf.PdfObject::Integer(7)),
+  ])
+  let nums = [
+    @pdf.addobj(pdf, solid),
+    @pdf.addobj(pdf, underline),
+    @pdf.addobj(pdf, border),
+    @pdf.addobj(pdf, extras),
+  ]
+  let rest = @pdf.PdfObject::Dictionary([
+    (
+      "/Annots",
+      @pdf.PdfObject::Array(nums.map(n => @pdf.PdfObject::Indirect(n))),
+    ),
+  ])
+  let base = @pdfpage.custompage(rect)
+  let page : @pdfpage.Page = {
+    content: base.content,
+    mediabox: base.mediabox,
+    resources: base.resources,
+    rotate: base.rotate,
+    rest,
+  }
+  let annots = @pdfannot.annotations_of_page(pdf, page)
+  assert_eq(annots.length(), 4)
+  match annots[0].border.style {
+    @pdfannot.Style::Solid => ()
+    _ => fail("expected solid style")
+  }
+  assert_eq(annots[0].border.dasharray.length(), 2)
+  match annots[1].border.style {
+    @pdfannot.Style::UnderlineStyle => ()
+    _ => fail("expected underline style")
+  }
+  assert_close(annots[2].border.hradius, 1.0)
+  assert_close(annots[2].border.vradius, 2.0)
+  assert_close(annots[2].border.width, 3.0)
+  match annots[3].annot_contents {
+    Some("Note") => ()
+    _ => fail("expected contents")
+  }
+  match annots[3].subject {
+    Some("Subject") => ()
+    _ => fail("expected subject")
+  }
+  match annots[3].colour {
+    Some((1, 2, 3)) => ()
+    _ => fail("expected colour")
+  }
+  match @pdf.lookup_direct(pdf, "/Foo", annots[3].annotrest) {
+    Some(@pdf.PdfObject::Integer(7)) => ()
+    _ => fail("expected extra field")
+  }
+}
+
+///|
+test "read_annotation handles unknown subtype and missing strings" {
+  let pdf = @pdf.empty()
+  let rect = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(10.0),
+    @pdf.PdfObject::Real(10.0),
+  ])
+  let annot_dict = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Weird")),
+    ("/Rect", rect),
+    ("/Contents", @pdf.PdfObject::Name("/Nope")),
+    ("/Subj", @pdf.PdfObject::Name("/Nope")),
+  ])
+  let objnum = @pdf.addobj(pdf, annot_dict)
+  let rest = @pdf.PdfObject::Dictionary([
+    ("/Annots", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(objnum)])),
+  ])
+  let base = @pdfpage.custompage(rect)
+  let page : @pdfpage.Page = {
+    content: base.content,
+    mediabox: base.mediabox,
+    resources: base.resources,
+    rotate: base.rotate,
+    rest,
+  }
+  let annots = @pdfannot.annotations_of_page(pdf, page)
+  match annots[0].subtype {
+    @pdfannot.Subtype::Unknown("/Weird") => ()
+    _ => fail("expected unknown subtype")
+  }
+  match annots[0].annot_contents {
+    None => ()
+    _ => fail("expected no contents")
+  }
+  match annots[0].subject {
+    None => ()
+    _ => fail("expected no subject")
+  }
+}
+
+///|
+test "annotations_of_page handles non-array and add_annotation rejects" {
+  let rect = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(10.0),
+    @pdf.PdfObject::Real(10.0),
+  ])
+  let base = @pdfpage.custompage(rect)
+  let page : @pdfpage.Page = {
+    content: base.content,
+    mediabox: base.mediabox,
+    resources: base.resources,
+    rotate: base.rotate,
+    rest: @pdf.PdfObject::Dictionary([("/Annots", @pdf.PdfObject::Null)]),
+  }
+  let pdf = @pdf.empty()
+  let annots = @pdfannot.annotations_of_page(pdf, page)
+  assert_eq(annots.length(), 0)
+  let annot = @pdfannot.make(@pdfannot.Subtype::Text)
+  assert_is_err(try? @pdfannot.add_annotation(pdf, page, annot))
+}
+
+///|
+test "transform_annotations keeps malformed quadpoints" {
+  let pdf = @pdf.empty()
+  let annot_dict = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Link")),
+    (
+      "/Rect",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(10.0),
+        @pdf.PdfObject::Real(20.0),
+      ]),
+    ),
+    (
+      "/QuadPoints",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(10.0),
+        @pdf.PdfObject::Real(0.0),
+      ]),
+    ),
+  ])
+  let objnum = @pdf.addobj(pdf, annot_dict)
+  let rest = @pdf.PdfObject::Dictionary([
+    ("/Annots", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(objnum)])),
+  ])
+  let tr = @pdftransform.mktranslate(5.0, 5.0)
+  @pdfannot.transform_annotations(pdf, tr, rest)
+  let updated = @pdf.lookup_obj(pdf, objnum)
+  match @pdf.lookup_direct(pdf, "/Rect", updated) {
+    Some(rect) => {
+      let (x0, y0, x1, y1) = @pdf.parse_rectangle(pdf, rect)
+      assert_close(x0, 5.0)
+      assert_close(y0, 5.0)
+      assert_close(x1, 15.0)
+      assert_close(y1, 25.0)
+    }
+    _ => fail("expected rect update")
+  }
+  match @pdf.lookup_direct(pdf, "/QuadPoints", updated) {
+    Some(@pdf.PdfObject::Array(values)) => {
+      assert_close(@pdf.getnum(pdf, values[0]), 0.0)
+      assert_close(@pdf.getnum(pdf, values[1]), 0.0)
+      assert_close(@pdf.getnum(pdf, values[2]), 10.0)
+      assert_close(@pdf.getnum(pdf, values[3]), 0.0)
+    }
+    _ => fail("expected quadpoints")
+  }
 }
