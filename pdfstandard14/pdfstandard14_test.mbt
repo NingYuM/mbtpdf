@@ -33,3 +33,46 @@ test "afm_data returns tables" {
   assert_true(kerns.to_array().length() >= 0)
   assert_true(widths_prime.to_array().length() > 0)
 }
+
+///|
+test "flags and stemv by font" {
+  assert_eq(flags_of_standard_font(@pdftext.StandardFont::Symbol), 65541)
+  assert_eq(flags_of_standard_font(@pdftext.StandardFont::ZapfDingbats), 4)
+  assert_eq(flags_of_standard_font(@pdftext.StandardFont::Courier), 33)
+  assert_eq(flags_of_standard_font(@pdftext.StandardFont::Helvetica), 32)
+  assert_eq(stemv_of_standard_font(@pdftext.StandardFont::TimesRoman), 116)
+  assert_eq(stemv_of_standard_font(@pdftext.StandardFont::Symbol), 0)
+}
+
+///|
+test "textwidth handles empty and repeated strings" {
+  let encoding = winansi_encoding()
+  let empty = textwidth(false, encoding, @pdftext.StandardFont::Helvetica, "")
+  assert_eq(empty, 0)
+  let width_a = textwidth(
+    false,
+    encoding,
+    @pdftext.StandardFont::Helvetica,
+    "A",
+  )
+  let width_aa = textwidth(
+    false,
+    encoding,
+    @pdftext.StandardFont::Helvetica,
+    "AA",
+  )
+  assert_eq(width_aa, width_a * 2)
+  let implicit = textwidth(
+    false,
+    @pdftext.read_encoding(
+      @pdf.empty(),
+      @pdf.PdfObject::Dictionary([
+        ("/Subtype", @pdf.PdfObject::Name("/Type1")),
+        ("/BaseFont", @pdf.PdfObject::Name("/Helvetica")),
+      ]),
+    ),
+    @pdftext.StandardFont::Helvetica,
+    "A",
+  )
+  assert_true(implicit >= 0)
+}
