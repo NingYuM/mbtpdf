@@ -38,3 +38,58 @@ test "malformed pdf without trailer infers root" {
     _ => fail("expected /Root in trailer")
   }
 }
+
+///|
+test "malformed pdf honors error_on_malformed" {
+  let prev = @pdfread.error_on_malformed.val
+  @pdfread.error_on_malformed.val = true
+  defer {
+    @pdfread.error_on_malformed.val = prev
+  }
+  let data =
+    #|%PDF-1.4
+    #|1 0 obj
+    #|<< /Type /Catalog /Pages 2 0 R >>
+    #|endobj
+    #|2 0 obj
+    #|<< /Type /Pages /Count 0 /Kids [] >>
+    #|endobj
+    #|%%EOF
+  let res : Result[@pdf.Pdf, Error] = try? @pdfread.pdf_of_input(
+    None,
+    None,
+    @pdfio.input_of_string(data),
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "malformed pdf skips bad objects and trailers" {
+  let data =
+    #|trailer %PDF-1.4
+    #|1 0 obj
+    #|<< /Type /Catalog /Pages 2 0 R >>
+    #|endobj
+    #|2 0 obj
+    #|<< /Type /Pages /Count 0 /Kids [] >>
+    #|endobj
+    #|3 0 obj
+    #|>
+    #|endobj
+    #|trailer
+    #|<< /Root 1 0 R
+  let pdf = @pdfread.pdf_of_input(None, None, @pdfio.input_of_string(data))
+  assert_eq(pdf.root, 1)
+  assert_eq(@pdf.objcard(pdf), 2)
+}
+
+///|
+async test "revision -1 returns revisions error" {
+  let res : Result[@pdf.Pdf, Error] = try? @pdfread.pdf_of_file(
+    revision=-1,
+    None,
+    None,
+    "testdata/pdfjs_identity_tounicode.pdf",
+  )
+  assert_true(res is Err(_))
+}

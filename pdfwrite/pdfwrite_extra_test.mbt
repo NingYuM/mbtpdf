@@ -32,12 +32,42 @@ test "string_of_pdf expands negative exponent" {
 }
 
 ///|
+test "string_of_pdf expands large positive exponent" {
+  let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(1.2e100))
+  assert_eq(rendered.length(), 101)
+  assert_true(rendered.has_prefix("12"))
+  assert_true(rendered.has_suffix("0"))
+}
+
+///|
+test "string_of_pdf expands tiny exponent with leading zeros" {
+  let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(1.2e-20))
+  assert_eq(rendered.length(), 23)
+  assert_true(rendered.has_prefix("0."))
+  assert_true(rendered.has_suffix("12"))
+}
+
+///|
+test "string_of_pdf expands negative scientific values" {
+  let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(-1.2e-20))
+  assert_eq(rendered.length(), 24)
+  assert_true(rendered.has_prefix("-0."))
+  assert_true(rendered.has_suffix("12"))
+}
+
+///|
 test "string_of_pdf encodes control and delimiter bytes" {
-  let bytes = @pdfio.bytes_of_list([0x2f, 0x14, 0x28, 0x25])
+  let bytes = @pdfio.bytes_of_list([
+    0x2f, 0x14, 0x16, 0x1a, 0x28, 0x29, 0x3c, 0x25,
+  ])
   let name = @pdfio.string_of_bytes(bytes)
   let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Name(name))
   assert_true(rendered.contains("#14"))
+  assert_true(rendered.contains("#16"))
+  assert_true(rendered.contains("#1A"))
   assert_true(rendered.contains("#28"))
+  assert_true(rendered.contains("#29"))
+  assert_true(rendered.contains("#3C"))
   assert_true(rendered.contains("#25"))
 }
 
