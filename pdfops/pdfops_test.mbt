@@ -118,3 +118,48 @@ test "parse_single_stream TJ array" {
     _ => fail("expected TJ array op")
   }
 }
+
+///|
+test "string_of_op and concat_bytess" {
+  assert_eq(string_of_op(Op::Opq), "q")
+  assert_eq(string_of_ops([Op::Opq, Op::OpQ]), "q Q")
+  let bytes = concat_bytess([
+    @pdfio.bytes_of_string("A"),
+    @pdfio.bytes_of_string("BC"),
+  ])
+  assert_eq(@pdfio.string_of_bytes(bytes), "A BC ")
+}
+
+///|
+test "parse_stream combines byte streams" {
+  let pdf = @pdf.empty()
+  let resources = make_resources()
+  let streams = [
+    @pdfio.bytes_of_string("1 2 m"),
+    @pdfio.bytes_of_string("3 4 l S"),
+  ]
+  let ops = parse_stream(pdf, resources, streams)
+  match ops {
+    [Op::Opm(_, _), Op::Opl(_, _), Op::OpS] => ()
+    _ => fail("unexpected combined stream ops")
+  }
+}
+
+///|
+test "parse_operators handles stream objects" {
+  let pdf = @pdf.empty()
+  let resources = make_resources()
+  let bytes1 = @pdfio.bytes_of_string("1 2 m ")
+  let bytes2 = @pdfio.bytes_of_string("3 4 l S")
+  let stream1 = @pdf.PdfObject::Stream(
+    Ref::new((@pdf.PdfObject::Dictionary([]), @pdf.Stream::Got(bytes1))),
+  )
+  let stream2 = @pdf.PdfObject::Stream(
+    Ref::new((@pdf.PdfObject::Dictionary([]), @pdf.Stream::Got(bytes2))),
+  )
+  let ops = parse_operators(pdf, resources, [stream1, stream2])
+  match ops {
+    [Op::Opm(_, _), Op::Opl(_, _), Op::OpS] => ()
+    _ => fail("unexpected parsed operators")
+  }
+}
