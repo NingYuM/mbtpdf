@@ -100,3 +100,52 @@ test "textwidth handles missing widths and kerning" {
   let custom_width = @pdfstandard14.textwidth(false, encoding, font, "A")
   assert_eq(custom_width, 0)
 }
+
+///|
+test "textwidth handles empty string and unicode fallback" {
+  let font = @pdftext.StandardFont::Helvetica
+  let pdf = @pdf.empty()
+  let winansi_font = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Type1")),
+    ("/Encoding", @pdf.PdfObject::Name("/WinAnsiEncoding")),
+  ])
+  let encoding = @pdftext.read_encoding(pdf, winansi_font)
+  let width_empty = @pdfstandard14.textwidth(false, encoding, font, "")
+  assert_eq(width_empty, 0)
+  let unicode = String::from_array([Int::unsafe_to_char(256)])
+  let width_space = @pdfstandard14.textwidth(false, encoding, font, unicode)
+  assert_true(width_space > 0)
+}
+
+///|
+test "textwidth applies kerning for standard fonts" {
+  let font = @pdftext.StandardFont::TimesRoman
+  let pdf = @pdf.empty()
+  let implicit_font = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Type1")),
+  ])
+  let encoding = @pdftext.read_encoding(pdf, implicit_font)
+  let kerned = @pdfstandard14.textwidth(true, encoding, font, "AV")
+  let plain = @pdfstandard14.textwidth(false, encoding, font, "AV")
+  assert_true(kerned <= plain)
+  let single = @pdfstandard14.textwidth(false, encoding, font, "A")
+  assert_true(single > 0)
+}
+
+///|
+test "flags_of_standard_font covers branches" {
+  assert_eq(
+    @pdfstandard14.flags_of_standard_font(@pdftext.StandardFont::Symbol),
+    65541,
+  )
+  assert_eq(
+    @pdfstandard14.flags_of_standard_font(
+      @pdftext.StandardFont::CourierBoldOblique,
+    ),
+    33,
+  )
+  assert_eq(
+    @pdfstandard14.flags_of_standard_font(@pdftext.StandardFont::Helvetica),
+    32,
+  )
+}
