@@ -25,6 +25,23 @@ test "string_of_pdf expands scientific notation" {
 }
 
 ///|
+test "string_of_pdf expands negative exponent" {
+  let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(1.2e-5))
+  assert_true(!rendered.contains("e") && !rendered.contains("E"))
+  assert_true(rendered.has_prefix("0."))
+}
+
+///|
+test "string_of_pdf encodes control and delimiter bytes" {
+  let bytes = @pdfio.bytes_of_list([0x2f, 0x14, 0x28, 0x25])
+  let name = @pdfio.string_of_bytes(bytes)
+  let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Name(name))
+  assert_true(rendered.contains("#14"))
+  assert_true(rendered.contains("#28"))
+  assert_true(rendered.contains("#25"))
+}
+
+///|
 test "string_of_pdf handles short names" {
   let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Name("/"))
   assert_eq(rendered, "/")
@@ -39,6 +56,40 @@ test "make_hex_pdf_string encodes bytes" {
 test "debug_whole_pdf runs" {
   let pdf = @pdfpage.minimum_valid_pdf()
   @pdfwrite.debug_whole_pdf(pdf)
+}
+
+///|
+test "pdf_to_output generates object streams with indirect lengths" {
+  let pdf = @pdfpage.minimum_valid_pdf()
+  let length_obj = @pdf.addobj(pdf, @pdf.PdfObject::Integer(3))
+  let data = @pdfio.bytes_of_string("abc")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Indirect(length_obj)),
+  ])
+  let stream_num = @pdf.addobj(
+    pdf,
+    @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data)))),
+  )
+  let marked_obj = @pdf.addobj(pdf, @pdf.PdfObject::Integer(123))
+  pdf.objects.object_stream_ids.set(marked_obj, stream_num)
+  pdf.objects.object_stream_ids.set(stream_num, stream_num)
+  let payload = "A".repeat(200)
+  for _ in 0 ..<= 20 {
+    ignore(@pdf.addobj(pdf, @pdf.PdfObject::String(payload)))
+  }
+  let (output, buffer) = @pdfio.input_output_of_bytes(4096)
+  @pdfwrite.pdf_to_output(
+    generate_objstm=true,
+    preserve_objstm=false,
+    compress_objstm=true,
+    None,
+    false,
+    pdf,
+    output,
+  )
+  let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let text = @pdfio.string_of_bytes(bytes)
+  assert_true(text.contains("/ObjStm"))
 }
 
 ///|
