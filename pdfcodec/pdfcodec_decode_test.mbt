@@ -141,3 +141,73 @@ test "decode_from_input rejects non-name filters" {
   let res = decode_from_input(input, dict)
   assert_true(res is None)
 }
+
+///|
+test "decode_from_input handles Crypt filter" {
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Filter", @pdf.PdfObject::Name("/Crypt")),
+  ])
+  let input = @pdfio.input_of_bytes(@pdfio.bytes_of_string("hi"))
+  match decode_from_input(input, dict) {
+    Some(decoded) => assert_eq(@pdfio.string_of_bytes(decoded), "hi")
+    None => fail("expected Crypt passthrough")
+  }
+}
+
+///|
+test "pdfcodec uses placeholder string_of_pdf" {
+  let rendered = (@pdfcodec.string_of_pdf.val)(@pdf.PdfObject::Null)
+  assert_eq(rendered, "")
+}
+
+///|
+async test "pdfcodec uses placeholder pdf_of_file" {
+  let pdf = (@pdfcodec.pdf_of_file.val)(None, None, None, "missing.pdf")
+  assert_eq(pdf.root, 0)
+}
+
+///|
+async test "decode_pdfstream_async reports JBIG2 error with globals" {
+  let pdf = @pdf.empty()
+  let globals_bytes = @pdfio.bytes_of_string("globals")
+  let globals_dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(globals_bytes))),
+  ])
+  let globals_stream = @pdf.PdfObject::Stream(
+    Ref::new((globals_dict, @pdf.Stream::Got(globals_bytes))),
+  )
+  let globals_id = @pdf.addobj(pdf, globals_stream)
+  let parms = @pdf.PdfObject::Dictionary([
+    ("/JBIG2Globals", @pdf.PdfObject::Indirect(globals_id)),
+  ])
+  let data = @pdfio.bytes_of_string("data")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Filter", @pdf.PdfObject::Name("/JBIG2Decode")),
+    ("/DecodeParms", parms),
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+  ])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let res : Result[Unit, Error] = try? decode_pdfstream_async(
+    pdf,
+    stream,
+    jbig2dec="/usr/bin/false",
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+async test "decode_pdfstream_async reports JBIG2 error without globals" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("data")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Filter", @pdf.PdfObject::Name("/JBIG2Decode")),
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+  ])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let res : Result[Unit, Error] = try? decode_pdfstream_async(
+    pdf,
+    stream,
+    jbig2dec="/usr/bin/false",
+  )
+  assert_true(res is Err(_))
+}

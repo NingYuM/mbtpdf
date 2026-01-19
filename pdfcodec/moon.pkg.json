@@ -7,5 +7,8 @@
     "moonbitlang/async/io",
     "moonbitlang/async/process",
     "moonbitlang/core/env"
+  ],
+  "test-import": [
+    "moonbitlang/async"
   ]
 }
