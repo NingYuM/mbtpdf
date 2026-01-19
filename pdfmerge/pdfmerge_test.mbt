@@ -20,6 +20,8 @@ fn count_streams(pdf : @pdf.Pdf) -> Int {
 }
 
 ///|
+
+///|
 test "merge_pdfs combines pages" {
   let pdf1 = @pdfpage.minimum_valid_pdf()
   let pdf2 = @pdfpage.minimum_valid_pdf()
@@ -89,4 +91,38 @@ test "remove_duplicate_fonts merges identical streams" {
   let after = count_streams(pdf)
   assert_eq(before, 2)
   assert_eq(after, 1)
+}
+
+///|
+
+///|
+test "merge_pdfs processes structure trees" {
+  let pdf1 = @pdfpage.minimum_valid_pdf()
+  let pdf2 = @pdfpage.minimum_valid_pdf()
+  let merged = merge_pdfs(
+    false,
+    false,
+    process_struct_trees=true,
+    add_toplevel_document=true,
+    ["one", "two"],
+    [pdf1, pdf2],
+    [[1], [1]],
+  )
+  assert_eq(@pdfpage.pages_of_pagetree_quick(merged), 2)
+}
+
+///|
+test "merge_pdfs rejects length mismatch" {
+  let pdf1 = @pdfpage.minimum_valid_pdf()
+  let pdf2 = @pdfpage.minimum_valid_pdf()
+  let result : Result[@pdf.Pdf, Error] = try? merge_pdfs(
+    false,
+    false,
+    process_struct_trees=false,
+    add_toplevel_document=false,
+    ["one"],
+    [pdf1, pdf2],
+    [[1], [1]],
+  )
+  assert_true(result is Err(_))
 }
