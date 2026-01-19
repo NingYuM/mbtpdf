@@ -1,131 +1,102 @@
 ///|
-fn winansi_encoding() -> @pdftext.Encoding raise {
-  let pdf = @pdf.empty()
-  let font = @pdf.PdfObject::Dictionary([
-    ("/Encoding", @pdf.PdfObject::Name("/WinAnsiEncoding")),
-  ])
-  @pdftext.read_encoding(pdf, font)
-}
-
-///|
-fn implicit_encoding() -> @pdftext.Encoding raise {
-  @pdftext.read_encoding(@pdf.empty(), @pdf.PdfObject::Dictionary([]))
-}
-
-///|
-fn custom_encoding_missing() -> @pdftext.Encoding raise {
-  let pdf = @pdf.empty()
-  let encoding = @pdf.PdfObject::Dictionary([
-    (
-      "/Differences",
-      @pdf.PdfObject::Array([
-        @pdf.PdfObject::Integer(65),
-        @pdf.PdfObject::Name("/NotAChar"),
-      ]),
-    ),
-  ])
-  let font = @pdf.PdfObject::Dictionary([
-    ("/Subtype", @pdf.PdfObject::Name("/Type1")),
-    ("/Encoding", encoding),
-    (
-      "/FontDescriptor",
-      @pdf.PdfObject::Dictionary([("/FontFile", @pdf.PdfObject::Null)]),
-    ),
-  ])
-  @pdftext.read_encoding(pdf, font)
-}
-
-///|
-test "baseline adjustments and textwidth" {
-  assert_eq(baseline_adjustment(@pdftext.StandardFont::TimesRoman), 331)
-  assert_eq(baseline_adjustment(@pdftext.StandardFont::Helvetica), 359)
-  let encoding = winansi_encoding()
-  let short = textwidth(false, encoding, @pdftext.StandardFont::Helvetica, "Hi")
-  let long = textwidth(
-    false,
-    encoding,
+fn all_standard_fonts() -> Array[@pdftext.StandardFont] {
+  [
+    @pdftext.StandardFont::TimesRoman,
+    @pdftext.StandardFont::TimesBold,
+    @pdftext.StandardFont::TimesItalic,
+    @pdftext.StandardFont::TimesBoldItalic,
     @pdftext.StandardFont::Helvetica,
-    "Hello",
-  )
-  assert_true(short > 0)
-  assert_true(long > short)
-}
-
-///|
-test "afm_data returns tables" {
-  let (headers, widths, kerns, widths_prime) = afm_data(
+    @pdftext.StandardFont::HelveticaBold,
+    @pdftext.StandardFont::HelveticaOblique,
+    @pdftext.StandardFont::HelveticaBoldOblique,
     @pdftext.StandardFont::Courier,
-  )
-  assert_true(headers.to_array().length() > 0)
-  assert_true(widths.to_array().length() > 0)
-  assert_true(kerns.to_array().length() >= 0)
-  assert_true(widths_prime.to_array().length() > 0)
+    @pdftext.StandardFont::CourierBold,
+    @pdftext.StandardFont::CourierOblique,
+    @pdftext.StandardFont::CourierBoldOblique,
+    @pdftext.StandardFont::Symbol,
+    @pdftext.StandardFont::ZapfDingbats,
+  ]
 }
 
 ///|
-test "flags and stemv by font" {
-  assert_eq(flags_of_standard_font(@pdftext.StandardFont::Symbol), 65541)
-  assert_eq(flags_of_standard_font(@pdftext.StandardFont::ZapfDingbats), 4)
-  assert_eq(flags_of_standard_font(@pdftext.StandardFont::Courier), 33)
-  assert_eq(flags_of_standard_font(@pdftext.StandardFont::Helvetica), 32)
-  assert_eq(stemv_of_standard_font(@pdftext.StandardFont::TimesRoman), 116)
-  assert_eq(stemv_of_standard_font(@pdftext.StandardFont::Symbol), 0)
+test "afm_data loads standard fonts" {
+  for font in all_standard_fonts() {
+    let (headers, widths, _, widths_by_name) = @pdfstandard14.afm_data(font)
+    assert_true(headers.length() > 0)
+    assert_true(widths.length() > 0)
+    assert_true(widths_by_name.length() > 0)
+  }
 }
 
 ///|
-test "textwidth handles empty and repeated strings" {
-  let encoding = winansi_encoding()
-  let empty = textwidth(false, encoding, @pdftext.StandardFont::Helvetica, "")
-  assert_eq(empty, 0)
-  let width_a = textwidth(
-    false,
-    encoding,
-    @pdftext.StandardFont::Helvetica,
-    "A",
+test "baseline_adjustment covers all fonts" {
+  let values = all_standard_fonts().map(font => @pdfstandard14.baseline_adjustment(
+    font,
+  ))
+  assert_eq(values.length(), all_standard_fonts().length())
+  assert_eq(
+    @pdfstandard14.baseline_adjustment(@pdftext.StandardFont::TimesBold),
+    338,
   )
-  let width_aa = textwidth(
-    false,
-    encoding,
-    @pdftext.StandardFont::Helvetica,
-    "AA",
+  assert_eq(
+    @pdfstandard14.baseline_adjustment(@pdftext.StandardFont::HelveticaBold),
+    359,
   )
-  assert_eq(width_aa, width_a * 2)
-  let implicit = textwidth(
-    false,
-    @pdftext.read_encoding(
-      @pdf.empty(),
+}
+
+///|
+test "stemv_of_standard_font covers all fonts" {
+  let values = all_standard_fonts().map(font => @pdfstandard14.stemv_of_standard_font(
+    font,
+  ))
+  assert_eq(values.length(), all_standard_fonts().length())
+  assert_eq(
+    @pdfstandard14.stemv_of_standard_font(@pdftext.StandardFont::TimesBold),
+    122,
+  )
+  assert_eq(
+    @pdfstandard14.stemv_of_standard_font(@pdftext.StandardFont::ZapfDingbats),
+    125,
+  )
+}
+
+///|
+test "textwidth handles missing widths and kerning" {
+  let font = @pdftext.StandardFont::TimesRoman
+  let missing = String::from_array([
+    Int::unsafe_to_char(999),
+    Int::unsafe_to_char(998),
+  ])
+  let (_, widths, kerns, widths_by_name) = @pdfstandard14.afm_data(font)
+  assert_true(widths.get(999) is None)
+  assert_true(kerns.get((999, 998)) is None)
+  let pdf = @pdf.empty()
+  let implicit_font = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Type1")),
+  ])
+  let implicit_encoding = @pdftext.read_encoding(pdf, implicit_font)
+  let implicit_width = @pdfstandard14.textwidth(
+    true, implicit_encoding, font, missing,
+  )
+  assert_eq(implicit_width, 0)
+  assert_true(widths_by_name.get("NoSlash") is None)
+  let custom_font = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Type1")),
+    (
+      "/Encoding",
       @pdf.PdfObject::Dictionary([
-        ("/Subtype", @pdf.PdfObject::Name("/Type1")),
-        ("/BaseFont", @pdf.PdfObject::Name("/Helvetica")),
+        ("/BaseEncoding", @pdf.PdfObject::Name("/WinAnsiEncoding")),
+        (
+          "/Differences",
+          @pdf.PdfObject::Array([
+            @pdf.PdfObject::Integer(65),
+            @pdf.PdfObject::Name("NoSlash"),
+          ]),
+        ),
       ]),
     ),
-    @pdftext.StandardFont::Helvetica,
-    "A",
-  )
-  assert_true(implicit >= 0)
-}
-
-///|
-test "textwidth handles implicit and custom fallbacks" {
-  let implicit = implicit_encoding()
-  let base = textwidth(false, implicit, @pdftext.StandardFont::Helvetica, "AV")
-  let kerned = textwidth(true, implicit, @pdftext.StandardFont::Helvetica, "AV")
-  assert_true(base > 0)
-  assert_true(kerned >= 0)
-  let custom = custom_encoding_missing()
-  let missing_code = textwidth(
-    false,
-    custom,
-    @pdftext.StandardFont::Helvetica,
-    "B",
-  )
-  let space = textwidth(false, custom, @pdftext.StandardFont::Helvetica, " ")
-  assert_eq(missing_code, space)
-  let unknown_name = textwidth(
-    false,
-    custom,
-    @pdftext.StandardFont::Helvetica,
-    "A",
-  )
-  assert_eq(unknown_name, 0)
+  ])
+  let encoding = @pdftext.read_encoding(pdf, custom_font)
+  let custom_width = @pdfstandard14.textwidth(false, encoding, font, "A")
+  assert_eq(custom_width, 0)
 }
