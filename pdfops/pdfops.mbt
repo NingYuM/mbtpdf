@@ -816,7 +816,10 @@ fn lex_inline_image(
     )
     tokens.push(@pdfgenlex.Token::LexLeftDict)
     for token in lexemes {
-      tokens.push(token)
+      match token {
+        @pdfgenlex.Token::StopLexing => ()
+        _ => tokens.push(token)
+      }
     }
     tokens.push(@pdfgenlex.Token::LexRightDict)
     let dict = @pdfread.parse(tokens).1
