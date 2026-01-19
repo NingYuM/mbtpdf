@@ -198,3 +198,60 @@ test "extract text visits xobjects once" {
   assert_eq(pages.length(), 1)
   assert_eq(pages[0], "X1X2")
 }
+
+///|
+test "extract text ignores missing or invalid fonts" {
+  let bad_font = @pdf.PdfObject::Dictionary([])
+  let resources_bad = @pdf.PdfObject::Dictionary([
+    ("/Font", @pdf.PdfObject::Dictionary([("/Bad", bad_font)])),
+  ])
+  let ops_missing_font = [
+    @pdfops.Op::OpBT,
+    @pdfops.Op::OpTf("/F0", 12.0),
+    @pdfops.Op::OpTj("A"),
+    @pdfops.Op::OpET,
+  ]
+  let ops_bad_font = [
+    @pdfops.Op::OpBT,
+    @pdfops.Op::OpTf("/Bad", 12.0),
+    @pdfops.Op::OpTj("B"),
+    @pdfops.Op::OpET,
+  ]
+  let ops_unknown_font = [
+    @pdfops.Op::OpBT,
+    @pdfops.Op::OpTf("/Missing", 12.0),
+    @pdfops.Op::OpTj("C"),
+    @pdfops.Op::OpET,
+  ]
+  let page1 = extract_test_page(
+    ops_missing_font,
+    @pdf.PdfObject::Dictionary([]),
+  )
+  let page2 = extract_test_page(ops_bad_font, resources_bad)
+  let page3 = extract_test_page(ops_unknown_font, resources_bad)
+  let pdf = add_pages_to_pdf([page1, page2, page3], @pdf.empty())
+  let pages = extract_text_by_page(pdf)
+  assert_eq(pages.length(), 3)
+  assert_eq(pages[0], "A")
+  assert_eq(pages[1], "B")
+  assert_eq(pages[2], "C")
+}
+
+///|
+test "extract text falls back for odd identity-h text bytes" {
+  let font = cid_font_dict("/Identity-H")
+  let resources = @pdf.PdfObject::Dictionary([
+    ("/Font", @pdf.PdfObject::Dictionary([("/F1", font)])),
+  ])
+  let ops = [
+    @pdfops.Op::OpBT,
+    @pdfops.Op::OpTf("/F1", 12.0),
+    @pdfops.Op::OpTj("A"),
+    @pdfops.Op::OpET,
+  ]
+  let page = extract_test_page(ops, resources)
+  let pdf = add_pages_to_pdf([page], @pdf.empty())
+  let pages = extract_text_by_page(pdf)
+  assert_eq(pages.length(), 1)
+  assert_eq(pages[0], "A")
+}

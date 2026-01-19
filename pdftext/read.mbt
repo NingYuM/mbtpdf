@@ -3,7 +3,8 @@
 
 ///|
 fn find_indirect(pdf : @pdf.Pdf, key : String, dict : @pdf.PdfObject) -> Int? {
-  match @pdf.lookup_direct(pdf, key, dict) {
+  let dict_obj = @pdf.direct(pdf, dict)
+  match @pdf.lookup_immediate(key, dict_obj) {
     Some(@pdf.PdfObject::Indirect(i)) => Some(i)
     _ => None
   }
