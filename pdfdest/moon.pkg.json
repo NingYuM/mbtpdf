@@ -4,5 +4,8 @@
     "bobzhang/mbtpdf/pdfe",
     "bobzhang/mbtpdf/pdftransform",
     "bobzhang/mbtpdf/pdfwrite"
+  ],
+  "test-import": [
+    "bobzhang/mbtpdf/pdfpage"
   ]
 }

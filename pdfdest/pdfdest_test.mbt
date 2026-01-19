@@ -84,3 +84,57 @@ test "transform_destination translate" {
     _ => fail("expected transformed XYZ destination")
   }
 }
+
+///|
+test "read_destination from dictionary /D" {
+  let pdf = @pdf.empty()
+  let inner = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Integer(0),
+    @pdf.PdfObject::Name("/XYZ"),
+    @pdf.PdfObject::Real(10.0),
+    @pdf.PdfObject::Real(20.0),
+    @pdf.PdfObject::Real(1.0),
+  ])
+  let obj = @pdf.PdfObject::Dictionary([("/D", inner)])
+  let dest = read_destination(pdf, obj)
+  match dest {
+    Destination::XYZ(
+      TargetPage::OtherDocPageNumber(0),
+      Some(left),
+      Some(top),
+      Some(zoom)
+    ) => {
+      assert_close(left, 10.0)
+      assert_close(top, 20.0)
+      assert_close(zoom, 1.0)
+    }
+    _ => fail("expected XYZ destination")
+  }
+}
+
+///|
+test "read_destination resolves named dests in catalog" {
+  let rect = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(100.0),
+    @pdf.PdfObject::Real(100.0),
+  ])
+  let page = @pdfpage.custompage(rect)
+  let (pdf0, pageroot) = @pdfpage.add_pagetree([page], @pdf.empty())
+  let pdf = @pdfpage.add_root(pageroot, [], pdf0)
+  let refs = @pdf.page_reference_numbers(pdf)
+  let dest = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Indirect(refs[0]),
+    @pdf.PdfObject::Name("/Fit"),
+  ])
+  let dests = @pdf.PdfObject::Dictionary([("/Chapter1", dest)])
+  let root_obj = @pdf.lookup_obj(pdf, pdf.root)
+  let updated_root = @pdf.add_dict_entry(root_obj, "/Dests", dests)
+  @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
+  let resolved = read_destination(pdf, @pdf.PdfObject::Name("/Chapter1"))
+  match resolved {
+    Destination::Fit(TargetPage::PageObject(n)) => assert_eq(n, refs[0])
+    _ => fail("expected Fit destination")
+  }
+}

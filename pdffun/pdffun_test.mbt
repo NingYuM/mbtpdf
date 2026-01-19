@@ -82,3 +82,62 @@ test "serialize calculator function" {
   assert_eq(output.length(), 1)
   assert_close(output[0], 9.0)
 }
+
+///|
+test "eval stitching function" {
+  let pdf = @pdf.empty()
+  let f1 = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(2)),
+    (
+      "/Domain",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(1.0),
+      ]),
+    ),
+    ("/C0", @pdf.PdfObject::Array([@pdf.PdfObject::Real(0.0)])),
+    ("/C1", @pdf.PdfObject::Array([@pdf.PdfObject::Real(1.0)])),
+    ("/N", @pdf.PdfObject::Real(1.0)),
+  ])
+  let f2 = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(2)),
+    (
+      "/Domain",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(1.0),
+      ]),
+    ),
+    ("/C0", @pdf.PdfObject::Array([@pdf.PdfObject::Real(1.0)])),
+    ("/C1", @pdf.PdfObject::Array([@pdf.PdfObject::Real(2.0)])),
+    ("/N", @pdf.PdfObject::Real(1.0)),
+  ])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(3)),
+    (
+      "/Domain",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(1.0),
+      ]),
+    ),
+    ("/Functions", @pdf.PdfObject::Array([f1, f2])),
+    ("/Bounds", @pdf.PdfObject::Array([@pdf.PdfObject::Real(0.5)])),
+    (
+      "/Encode",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(1.0),
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(1.0),
+      ]),
+    ),
+  ])
+  let fun = parse_function(pdf, dict)
+  let out1 = eval_function(fun, [0.25])
+  let out2 = eval_function(fun, [0.75])
+  assert_eq(out1.length(), 1)
+  assert_eq(out2.length(), 1)
+  assert_close(out1[0], 0.5)
+  assert_close(out2[0], 1.5)
+}
