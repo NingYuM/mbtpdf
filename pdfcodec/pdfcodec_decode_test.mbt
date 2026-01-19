@@ -270,6 +270,73 @@ test "decode_pdfstream_onestage trims filter and decode parms arrays" {
 }
 
 ///|
+test "decode_pdfstream_onestage handles Crypt filter" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("plain")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+    ("/Filter", @pdf.PdfObject::Name("/Crypt")),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  decode_pdfstream_onestage(pdf, stream_obj)
+  let (updated_dict, stream_data) = stream_ref.val
+  assert_true(@pdf.lookup_direct(pdf, "/Filter", updated_dict) is None)
+  match stream_data {
+    @pdf.Stream::Got(bytes) => assert_eq(@pdfio.string_of_bytes(bytes), "plain")
+    _ => fail("expected got bytes")
+  }
+}
+
+///|
+test "decode_pdfstream_onestage rejects JBIG2 in sync path" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("data")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+    ("/Filter", @pdf.PdfObject::Name("/JBIG2Decode")),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(
+    pdf, stream_obj,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "decode_pdfstream_onestage reports CCITT errors" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("data")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+    ("/Filter", @pdf.PdfObject::Name("/CCITTFaxDecode")),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(
+    pdf, stream_obj,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "decode_pdfstream_onestage reports LZW errors" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("data")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+    ("/Filter", @pdf.PdfObject::Name("/LZWDecode")),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(
+    pdf, stream_obj,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
 async test "decode_pdfstream_onestage_async handles filter arrays" {
   let pdf = @pdf.empty()
   let data = @pdfio.bytes_of_string("4869>")
@@ -295,6 +362,35 @@ async test "decode_pdfstream_onestage_async handles filter arrays" {
     Some(@pdf.PdfObject::Array(filters)) => assert_eq(filters.length(), 1)
     _ => fail("expected updated filter array")
   }
+}
+
+///|
+async test "decode_pdfstream_onestage_async rejects missing jbig2dec" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("data")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+    ("/Filter", @pdf.PdfObject::Name("/JBIG2Decode")),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  let res : Result[Unit, Error] = try? decode_pdfstream_onestage_async(
+    pdf, stream_obj,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "decode_pdfstream_until_unknown ignores unsupported filters" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("data")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+    ("/Filter", @pdf.PdfObject::Name("/JBIG2Decode")),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  decode_pdfstream_until_unknown(pdf, stream_obj)
 }
 
 ///|
