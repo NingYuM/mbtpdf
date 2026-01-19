@@ -206,3 +206,66 @@ test "print_document_ocg handles missing ocg" {
   let pdf = @pdfpage.minimum_valid_pdf()
   print_document_ocg(pdf)
 }
+
+///|
+test "read_ocg handles direct ocgs and usage defaults" {
+  let pdf = @pdfpage.minimum_valid_pdf()
+  let ocg_obj = @pdf.PdfObject::Dictionary([
+    ("/Name", @pdf.PdfObject::String("Layer 4")),
+    ("/Usage", @pdf.PdfObject::Dictionary([])),
+  ])
+  let default_config = @pdf.PdfObject::Dictionary([
+    ("/BaseState", @pdf.PdfObject::Name("/ON")),
+    (
+      "/OFF",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Integer(12),
+        @pdf.PdfObject::Name("/Bad"),
+      ]),
+    ),
+    ("/Locked", @pdf.PdfObject::Array([@pdf.PdfObject::Integer(1)])),
+  ])
+  let ocprops = @pdf.PdfObject::Dictionary([
+    ("/OCGs", @pdf.PdfObject::Array([ocg_obj])),
+    ("/D", default_config),
+  ])
+  let root = @pdf.lookup_obj(pdf, pdf.root)
+  let updated_root = @pdf.add_dict_entry(root, "/OCProperties", ocprops)
+  @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
+  let props = match read_ocg(pdf) {
+    Some(result) => result
+    None => fail("expected ocproperties")
+  }
+  assert_eq(props.ocgs.length(), 1)
+  let (num, ocg) = props.ocgs[0]
+  assert_eq(num, 0)
+  assert_eq(ocg.ocg_name, "Layer 4")
+  assert_eq(ocg.ocg_intent.length(), 1)
+  assert_eq(ocg.ocg_intent[0], "/View")
+  assert_true(ocg.ocg_usage is None)
+  match props.ocg_default_config.ocgconfig_basestate {
+    OcgState::On => ()
+    _ => fail("expected On basestate")
+  }
+  match props.ocg_default_config.ocgconfig_off {
+    Some(values) => {
+      assert_eq(values.length(), 2)
+      assert_eq(values[0], 0)
+      assert_eq(values[1], 0)
+    }
+    None => fail("expected OFF list")
+  }
+}
+
+///|
+test "read_ocg raises without default config" {
+  let pdf = @pdfpage.minimum_valid_pdf()
+  let ocprops = @pdf.PdfObject::Dictionary([
+    ("/OCGs", @pdf.PdfObject::Name("/NotArray")),
+  ])
+  let root = @pdf.lookup_obj(pdf, pdf.root)
+  let updated_root = @pdf.add_dict_entry(root, "/OCProperties", ocprops)
+  @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
+  let res : Result[@pdfocg.OcgProperties?, Error] = try? read_ocg(pdf)
+  assert_true(res is Err(_))
+}
