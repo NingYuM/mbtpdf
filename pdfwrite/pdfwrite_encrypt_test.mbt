@@ -275,3 +275,41 @@ test "pdfread skips malformed object stream" {
     Err(_) => fail("expected read to succeed despite malformed objstm")
   }
 }
+
+///|
+test "pdf_to_output encrypts with AES256" {
+  let pdf = build_minimal_pdf_for_encrypt()
+  let permissions : Array[@pdfcrypt.Permission] = []
+  let enc = @pdfwrite.make_encryption(
+    @pdfwrite.EncryptionMethod::AES256bit(true),
+    "owner",
+    "user",
+    permissions,
+  )
+  let (output, buffer) = @pdfio.input_output_of_bytes(1024)
+  @pdfwrite.pdf_to_output(Some(enc), false, pdf, output)
+  let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let input = @pdfio.input_of_bytes(bytes, source="aes256-encrypt")
+  let parsed = @pdfread.pdf_of_input(Some("user"), None, input)
+  let (decrypted_opt, _) = @pdfcrypt.decrypt_pdf("user", parsed)
+  assert_true(decrypted_opt is Some(_))
+}
+
+///|
+test "pdf_to_output encrypts with AES256 ISO" {
+  let pdf = build_minimal_pdf_for_encrypt()
+  let permissions : Array[@pdfcrypt.Permission] = []
+  let enc = @pdfwrite.make_encryption(
+    @pdfwrite.EncryptionMethod::AES256bitISO(true),
+    "owner",
+    "user",
+    permissions,
+  )
+  let (output, buffer) = @pdfio.input_output_of_bytes(1024)
+  @pdfwrite.pdf_to_output(Some(enc), false, pdf, output)
+  let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let input = @pdfio.input_of_bytes(bytes, source="aes256iso-encrypt")
+  let parsed = @pdfread.pdf_of_input(Some("user"), None, input)
+  let (decrypted_opt, _) = @pdfcrypt.decrypt_pdf("user", parsed)
+  assert_true(decrypted_opt is Some(_))
+}

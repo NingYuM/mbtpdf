@@ -11,6 +11,21 @@ test "string_of_pdf_including_data includes stream bytes" {
 }
 
 ///|
+test "string_of_pdf_including_data warns on toget streams" {
+  let data = @pdfio.bytes_of_string("a")
+  let input = @pdfio.input_of_bytes(data, source="toget-warn")
+  let toget = @pdf.toget(input, 0, 4)
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(4)),
+  ])
+  let stream = @pdf.PdfObject::Stream(
+    Ref::new((dict, @pdf.Stream::ToGet(toget))),
+  )
+  let rendered = @pdfwrite.string_of_pdf_including_data(stream)
+  assert_true(rendered.contains("stream"))
+}
+
+///|
 test "string_of_pdf escapes carriage return and form feed" {
   let obj = @pdf.PdfObject::String("a\r\f")
   let rendered = @pdfwrite.string_of_pdf(obj)
@@ -104,7 +119,7 @@ test "pdf_to_output generates object streams with indirect lengths" {
   pdf.objects.object_stream_ids.set(marked_obj, stream_num)
   pdf.objects.object_stream_ids.set(stream_num, stream_num)
   let payload = "A".repeat(200)
-  for _ in 0 ..<= 20 {
+  for _ in 0..<=20 {
     ignore(@pdf.addobj(pdf, @pdf.PdfObject::String(payload)))
   }
   let (output, buffer) = @pdfio.input_output_of_bytes(4096)
@@ -120,6 +135,39 @@ test "pdf_to_output generates object streams with indirect lengths" {
   let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let text = @pdfio.string_of_bytes(bytes)
   assert_true(text.contains("/ObjStm"))
+}
+
+///|
+
+///|
+test "pdf_to_output drops invalid object stream ids and writes toget" {
+  let pdf = @pdfpage.minimum_valid_pdf()
+  let data = @pdfio.bytes_of_string("a")
+  let input = @pdfio.input_of_bytes(data, source="toget-output")
+  let toget = @pdf.toget(input, 0, 4)
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(4)),
+  ])
+  let stream = @pdf.PdfObject::Stream(
+    Ref::new((dict, @pdf.Stream::ToGet(toget))),
+  )
+  let stream_num = @pdf.addobj(pdf, stream)
+  pdf.objects.object_stream_ids.set(9999, stream_num)
+  pdf.objects.object_stream_ids.set(stream_num, stream_num)
+  let (output, buffer) = @pdfio.input_output_of_bytes(4096)
+  @pdfwrite.pdf_to_output(
+    preserve_objstm=true,
+    generate_objstm=false,
+    compress_objstm=false,
+    None,
+    false,
+    pdf,
+    output,
+  )
+  assert_true(pdf.objects.object_stream_ids.get(9999) is None)
+  assert_true(pdf.objects.object_stream_ids.get(stream_num) is None)
+  let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+  assert_true(bytes.length() > 0)
 }
 
 ///|
