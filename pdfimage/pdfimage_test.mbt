@@ -797,3 +797,291 @@ test "get_image_24bpp rejects missing width" {
   let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
   assert_is_err(try? @pdfimage.get_image_24bpp(pdf, resources, stream))
 }
+
+///|
+fn make_indexed_colorspace(
+  base : @pdf.PdfObject,
+  hival : Int,
+  table_bytes : Array[Int],
+) -> @pdf.PdfObject {
+  let table = @pdfio.string_of_bytes(@pdfio.bytes_of_list(table_bytes))
+  @pdf.PdfObject::Array([
+    @pdf.PdfObject::Name("/Indexed"),
+    base,
+    @pdf.PdfObject::Integer(hival),
+    @pdf.PdfObject::String(table),
+  ])
+}
+
+///|
+test "get_image_24bpp raw with empty filter array" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let data = @pdfio.bytes_of_list([128])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/ColorSpace", @pdf.PdfObject::Name("/DeviceGray")),
+    ("/Filter", @pdf.PdfObject::Array([])),
+  ])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::Raw(_, _, _, bytes) => assert_eq(bytes[0].to_int(), 128)
+    _ => fail("expected raw image")
+  }
+}
+
+///|
+test "get_image_24bpp accepts DCT filter array" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let data = @pdfio.bytes_of_list([4, 5, 6])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/ColorSpace", @pdf.PdfObject::Name("/DeviceRGB")),
+    ("/Filter", @pdf.PdfObject::Array([@pdf.PdfObject::Name("/DCTDecode")])),
+  ])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::JPEG(bytes, _) => assert_eq(bytes.length(), 3)
+    _ => fail("expected JPEG image")
+  }
+}
+
+///|
+test "get_image_24bpp rejects flate filter" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let raw = @pdfio.bytes_of_list([1, 2, 3])
+  let encoded = @pdfcodec.encode_flate(raw)
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/ColorSpace", @pdf.PdfObject::Name("/DeviceRGB")),
+    ("/Filter", @pdf.PdfObject::Name("/FlateDecode")),
+  ])
+  let stream = @pdf.PdfObject::Stream(
+    Ref::new((dict, @pdf.Stream::Got(encoded))),
+  )
+  assert_is_err(try? @pdfimage.get_image_24bpp(pdf, resources, stream))
+}
+
+///|
+test "get_image_24bpp indexed 8bpp rgb" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let colorspace = make_indexed_colorspace(
+    @pdf.PdfObject::Name("/DeviceRGB"),
+    1,
+    [0, 0, 0, 255, 0, 0],
+  )
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(2)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/ColorSpace", colorspace),
+  ])
+  let data = @pdfio.bytes_of_list([0, 1])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::Raw(_, _, _, bytes) => {
+      assert_eq(bytes.length(), 6)
+      assert_eq(bytes[0].to_int(), 0)
+      assert_eq(bytes[3].to_int(), 255)
+    }
+    _ => fail("expected raw indexed image")
+  }
+}
+
+///|
+test "get_image_24bpp indexed 8bpp cmyk" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let colorspace = make_indexed_colorspace(
+    @pdf.PdfObject::Name("/DeviceCMYK"),
+    0,
+    [0, 0, 0, 0],
+  )
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/ColorSpace", colorspace),
+  ])
+  let data = @pdfio.bytes_of_list([0])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::Raw(_, _, _, bytes) => {
+      assert_eq(bytes.length(), 3)
+      assert_eq(bytes[0].to_int(), 255)
+      assert_eq(bytes[1].to_int(), 255)
+    }
+    _ => fail("expected raw cmyk indexed image")
+  }
+}
+
+///|
+test "get_image_24bpp indexed 4bpp rgb" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let colorspace = make_indexed_colorspace(
+    @pdf.PdfObject::Name("/DeviceRGB"),
+    1,
+    [0, 0, 0, 255, 0, 0],
+  )
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(2)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(4)),
+    ("/ColorSpace", colorspace),
+  ])
+  let data = @pdfio.bytes_of_list([0x01])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::Raw(_, _, _, bytes) => {
+      assert_eq(bytes.length(), 6)
+      assert_eq(bytes[0].to_int(), 0)
+      assert_eq(bytes[3].to_int(), 255)
+    }
+    _ => fail("expected raw indexed image")
+  }
+}
+
+///|
+test "get_image_24bpp indexed 4bpp cmyk" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let colorspace = make_indexed_colorspace(
+    @pdf.PdfObject::Name("/DeviceCMYK"),
+    0,
+    [0, 0, 0, 0],
+  )
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(2)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(4)),
+    ("/ColorSpace", colorspace),
+  ])
+  let data = @pdfio.bytes_of_list([0x00])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::Raw(_, _, _, bytes) => {
+      assert_eq(bytes.length(), 6)
+      assert_eq(bytes[0].to_int(), 255)
+      assert_eq(bytes[3].to_int(), 255)
+    }
+    _ => fail("expected raw indexed image")
+  }
+}
+
+///|
+test "get_image_24bpp indexed 4bpp rejects missing entry" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let colorspace = make_indexed_colorspace(
+    @pdf.PdfObject::Name("/DeviceRGB"),
+    1,
+    [0, 0, 0, 255, 0, 0],
+  )
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(2)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(4)),
+    ("/ColorSpace", colorspace),
+  ])
+  let data = @pdfio.bytes_of_list([0x20])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  assert_is_err(try? @pdfimage.get_image_24bpp(pdf, resources, stream))
+}
+
+///|
+test "get_image_24bpp 4bpp gray decode no-op" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(2)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(4)),
+    ("/ColorSpace", @pdf.PdfObject::Name("/DeviceGray")),
+    (
+      "/Decode",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Real(1.0),
+        @pdf.PdfObject::Real(0.0),
+      ]),
+    ),
+  ])
+  let data = @pdfio.bytes_of_list([0x0f])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::Raw(_, _, _, bytes) => {
+      assert_eq(bytes.length(), 6)
+      assert_eq(bytes[0].to_int(), 0)
+      assert_eq(bytes[3].to_int(), 255)
+    }
+    _ => fail("expected raw gray image")
+  }
+}
+
+///|
+test "get_image_24bpp rejects odd decode length" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/ColorSpace", @pdf.PdfObject::Name("/DeviceRGB")),
+    ("/Decode", @pdf.PdfObject::Array([@pdf.PdfObject::Real(0.0)])),
+  ])
+  let data = @pdfio.bytes_of_list([0, 0, 0])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  assert_is_err(try? @pdfimage.get_image_24bpp(pdf, resources, stream))
+}
+
+///|
+test "get_image_24bpp decode defaults to none without colorspace" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/Filter", @pdf.PdfObject::Name("/DCTDecode")),
+  ])
+  let data = @pdfio.bytes_of_list([1, 2, 3])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::JPEG(_, decode) => assert_true(decode is None)
+    _ => fail("expected JPEG image")
+  }
+}
+
+///|
+test "get_image_24bpp keeps decode when colorspace missing" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/Filter", @pdf.PdfObject::Name("/DCTDecode")),
+    (
+      "/Decode",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(1.0),
+      ]),
+    ),
+  ])
+  let data = @pdfio.bytes_of_list([1, 2, 3])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::JPEG(_, Some(decode)) => assert_eq(decode.length(), 2)
+    _ => fail("expected JPEG image")
+  }
+}
