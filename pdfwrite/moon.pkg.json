@@ -8,6 +8,8 @@
     "moonbitlang/async/fs"
   ],
   "test-import": [
-    "bobzhang/mbtpdf/pdfread"
+    "bobzhang/mbtpdf/pdfread",
+    "bobzhang/mbtpdf/pdfpage",
+    "moonbitlang/async"
   ]
 }
