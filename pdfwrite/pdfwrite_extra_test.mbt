@@ -14,7 +14,21 @@ test "string_of_pdf_including_data includes stream bytes" {
 test "string_of_pdf_including_data warns on toget streams" {
   let data = @pdfio.bytes_of_string("a")
   let input = @pdfio.input_of_bytes(data, source="toget-warn")
-  let toget = @pdf.toget(input, 0, 4)
+  let deferred : @pdf.DeferredEncryption = {
+    crypt_type: @pdfcryptprimitives.Encryption::AESV2,
+    file_encryption_key: None,
+    obj: 1,
+    gen: 0,
+    key: [],
+    keylength: 128,
+    r: 5,
+  }
+  let toget = @pdf.toget(
+    input,
+    0,
+    4,
+    crypt=@pdf.ToGetCrypt::ToDecrypt(deferred),
+  )
   let dict = @pdf.PdfObject::Dictionary([
     ("/Length", @pdf.PdfObject::Integer(4)),
   ])
@@ -144,7 +158,21 @@ test "pdf_to_output drops invalid object stream ids and writes toget" {
   let pdf = @pdfpage.minimum_valid_pdf()
   let data = @pdfio.bytes_of_string("a")
   let input = @pdfio.input_of_bytes(data, source="toget-output")
-  let toget = @pdf.toget(input, 0, 4)
+  let deferred : @pdf.DeferredEncryption = {
+    crypt_type: @pdfcryptprimitives.Encryption::AESV2,
+    file_encryption_key: None,
+    obj: 1,
+    gen: 0,
+    key: [],
+    keylength: 128,
+    r: 5,
+  }
+  let toget = @pdf.toget(
+    input,
+    0,
+    4,
+    crypt=@pdf.ToGetCrypt::ToDecrypt(deferred),
+  )
   let dict = @pdf.PdfObject::Dictionary([
     ("/Length", @pdf.PdfObject::Integer(4)),
   ])

@@ -8,6 +8,7 @@
     "moonbitlang/async/fs"
   ],
   "test-import": [
+    "bobzhang/mbtpdf/pdfcryptprimitives",
     "bobzhang/mbtpdf/pdfread",
     "bobzhang/mbtpdf/pdfpage",
     "moonbitlang/async"
