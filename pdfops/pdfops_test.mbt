@@ -38,3 +38,83 @@ test "components device spaces" {
   assert_eq(components(pdf, resources, @pdf.PdfObject::Name("/DeviceRGB")), 3)
   assert_eq(components(pdf, resources, @pdf.PdfObject::Name("/DeviceCMYK")), 4)
 }
+
+///|
+test "components complex spaces" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([
+    (
+      "/ColorSpace",
+      @pdf.PdfObject::Dictionary([
+        (
+          "/CS1",
+          @pdf.PdfObject::Array([
+            @pdf.PdfObject::Name("/Indexed"),
+            @pdf.PdfObject::Name("/DeviceRGB"),
+          ]),
+        ),
+      ]),
+    ),
+  ])
+  assert_eq(components(pdf, resources, @pdf.PdfObject::Name("/CS1")), 1)
+  let icc = @pdf.PdfObject::Dictionary([("/N", @pdf.PdfObject::Integer(4))])
+  assert_eq(
+    components(
+      pdf,
+      resources,
+      @pdf.PdfObject::Array([@pdf.PdfObject::Name("/ICCBased"), icc]),
+    ),
+    4,
+  )
+  assert_eq(
+    components(
+      pdf,
+      resources,
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Name("/DeviceN"),
+        @pdf.PdfObject::Array([
+          @pdf.PdfObject::Name("/C1"),
+          @pdf.PdfObject::Name("/C2"),
+        ]),
+      ]),
+    ),
+    2,
+  )
+  assert_eq(
+    components(
+      pdf,
+      resources,
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Name("/Separation"),
+        @pdf.PdfObject::Name("/Spot"),
+        @pdf.PdfObject::Name("/DeviceCMYK"),
+        @pdf.PdfObject::Null,
+      ]),
+    ),
+    1,
+  )
+}
+
+///|
+test "parse_single_stream text ops" {
+  let pdf = @pdf.empty()
+  let resources = make_resources()
+  let content = "BT /F1 12 Tf 10 20 Td (Hi) Tj ET"
+  let ops = parse_single_stream(pdf, resources, @pdfio.bytes_of_string(content))
+  match ops {
+    [Op::OpBT, Op::OpTf(_, _), Op::OpTd(_, _), Op::OpTj(_), Op::OpET] => ()
+    _ => fail("unexpected text ops sequence")
+  }
+}
+
+///|
+test "parse_single_stream TJ array" {
+  let pdf = @pdf.empty()
+  let resources = make_resources()
+  let content = "[(A) 120 (B)] TJ"
+  let ops = parse_single_stream(pdf, resources, @pdfio.bytes_of_string(content))
+  match ops {
+    [Op::OpTJ(@pdf.PdfObject::Array(_))] => ()
+    _ => fail("expected TJ array op")
+  }
+}

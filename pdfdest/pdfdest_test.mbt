@@ -113,6 +113,36 @@ test "read_destination from dictionary /D" {
 }
 
 ///|
+test "read_destination array Fit and FitR" {
+  let pdf = @pdf.empty()
+  let fit = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Indirect(5),
+    @pdf.PdfObject::Name("/Fit"),
+  ])
+  match read_destination(pdf, fit) {
+    Destination::Fit(TargetPage::PageObject(5)) => ()
+    _ => fail("expected Fit destination")
+  }
+  let fitr = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Indirect(7),
+    @pdf.PdfObject::Name("/FitR"),
+    @pdf.PdfObject::Real(1.0),
+    @pdf.PdfObject::Real(2.0),
+    @pdf.PdfObject::Real(3.0),
+    @pdf.PdfObject::Real(4.0),
+  ])
+  match read_destination(pdf, fitr) {
+    Destination::FitR(TargetPage::PageObject(7), left, top, right, bottom) => {
+      assert_close(left, 1.0)
+      assert_close(top, 2.0)
+      assert_close(right, 3.0)
+      assert_close(bottom, 4.0)
+    }
+    _ => fail("expected FitR destination")
+  }
+}
+
+///|
 test "read_destination resolves named dests in catalog" {
   let rect = @pdf.PdfObject::Array([
     @pdf.PdfObject::Real(0.0),

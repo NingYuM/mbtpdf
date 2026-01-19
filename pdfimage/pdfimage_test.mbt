@@ -141,3 +141,49 @@ test "get_image_24bpp returns jpeg for DCT filter" {
     _ => fail("expected JPEG image")
   }
 }
+
+///|
+test "get_image_24bpp converts gray to rgb" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let data = @pdfio.bytes_of_list([128])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/ColorSpace", @pdf.PdfObject::Name("/DeviceGray")),
+  ])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::Raw(_, _, _, bytes) => {
+      assert_eq(bytes.length(), 3)
+      assert_eq(bytes[0].to_int(), 128)
+      assert_eq(bytes[1].to_int(), 128)
+      assert_eq(bytes[2].to_int(), 128)
+    }
+    _ => fail("expected Raw gray image")
+  }
+}
+
+///|
+test "get_image_24bpp converts cmyk to rgb" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let data = @pdfio.bytes_of_list([0, 0, 0, 0])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/ColorSpace", @pdf.PdfObject::Name("/DeviceCMYK")),
+  ])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::Raw(_, _, _, bytes) => {
+      assert_eq(bytes.length(), 3)
+      assert_eq(bytes[0].to_int(), 255)
+      assert_eq(bytes[1].to_int(), 255)
+      assert_eq(bytes[2].to_int(), 255)
+    }
+    _ => fail("expected Raw cmyk image")
+  }
+}

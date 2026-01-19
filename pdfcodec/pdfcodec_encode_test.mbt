@@ -46,3 +46,50 @@ test "encode/decode flate stream" {
     _ => fail("expected /Length entry")
   }
 }
+
+///|
+fn roundtrip_encoding(
+  encoding : Encoding,
+  original : @pdfio.MutableBytes,
+) -> @pdfio.MutableBytes raise {
+  let pdf = @pdf.empty()
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(original))),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(original)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  encode_pdfstream(pdf, encoding, stream_obj, only_if_smaller=false)
+  decode_pdfstream_onestage(pdf, stream_obj)
+  match stream_ref.val {
+    (_, @pdf.Stream::Got(bytes)) => bytes
+    _ => fail("expected decoded bytes")
+  }
+}
+
+///|
+test "encode/decode ASCIIHex stream" {
+  let original = @pdfio.bytes_of_string("hello hex")
+  let decoded = roundtrip_encoding(Encoding::ASCIIHex, original)
+  assert_eq(@pdfio.string_of_bytes(decoded), "hello hex")
+}
+
+///|
+test "encode/decode ASCII85 stream" {
+  let original = @pdfio.bytes_of_string("ascii85 data")
+  let decoded = roundtrip_encoding(Encoding::ASCII85, original)
+  assert_eq(@pdfio.string_of_bytes(decoded), "ascii85 data")
+}
+
+///|
+test "encode/decode RunLength stream" {
+  let original = @pdfio.bytes_of_string("runlength data")
+  let decoded = roundtrip_encoding(Encoding::RunLength, original)
+  assert_eq(@pdfio.string_of_bytes(decoded), "runlength data")
+}
+
+///|
+test "encode/decode LZW stream" {
+  let original = @pdfio.bytes_of_string("TOBEORNOTTOBEORTOBEORNOT")
+  let decoded = roundtrip_encoding(Encoding::LZW(1), original)
+  assert_eq(@pdfio.string_of_bytes(decoded), "TOBEORNOTTOBEORTOBEORNOT")
+}
