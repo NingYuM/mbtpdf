@@ -143,6 +143,54 @@ test "get_image_24bpp returns jpeg for DCT filter" {
 }
 
 ///|
+test "get_image_24bpp returns jpeg2000 for JPX filter" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let data = @pdfio.bytes_of_list([1, 2, 3])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/ColorSpace", @pdf.PdfObject::Name("/DeviceRGB")),
+    ("/Filter", @pdf.PdfObject::Name("/JPXDecode")),
+  ])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::JPEG2000(bytes, _) => assert_eq(bytes.length(), 3)
+    _ => fail("expected JPEG2000 image")
+  }
+}
+
+///|
+test "get_image_24bpp returns JBIG2 with globals" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let globals = @pdf.addobj(pdf, @pdf.PdfObject::Dictionary([]))
+  let data = @pdfio.bytes_of_list([9, 8, 7])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(1)),
+    ("/ColorSpace", @pdf.PdfObject::Name("/DeviceGray")),
+    ("/Filter", @pdf.PdfObject::Name("/JBIG2Decode")),
+    (
+      "/DecodeParms",
+      @pdf.PdfObject::Dictionary([
+        ("/JBIG2Globals", @pdf.PdfObject::Indirect(globals)),
+      ]),
+    ),
+  ])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::JBIG2(bytes, _, globals_ref) => {
+      assert_eq(bytes.length(), 3)
+      assert_eq(globals_ref, None)
+    }
+    _ => fail("expected JBIG2 image")
+  }
+}
+
+///|
 test "get_image_24bpp converts gray to rgb" {
   let pdf = @pdf.empty()
   let resources = @pdf.PdfObject::Dictionary([])
