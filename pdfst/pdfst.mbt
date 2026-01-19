@@ -279,18 +279,71 @@ pub fn renumber_parent_trees(pdfs : Array[@pdf.Pdf]) -> Unit raise {
     }
     renumbered.push(out)
   }
+  fn update_struct_root(
+    pdf : @pdf.Pdf,
+    root_obj : @pdf.PdfObject,
+    parent_tree : @pdf.PdfObject,
+  ) -> (@pdf.PdfObject, Bool) raise {
+    match root_obj {
+      @pdf.PdfObject::Dictionary(_) | @pdf.PdfObject::Stream(_) =>
+        match @pdf.lookup_immediate("/StructTreeRoot", root_obj) {
+          None => (root_obj, false)
+          Some(@pdf.PdfObject::Indirect(struct_num)) => {
+            let struct_obj = @pdf.lookup_obj(pdf, struct_num)
+            match struct_obj {
+              @pdf.PdfObject::Dictionary(_) | @pdf.PdfObject::Stream(_) => {
+                let updated = @pdf.add_dict_entry(
+                  struct_obj, "/ParentTree", parent_tree,
+                )
+                @pdf.addobj_given_num(pdf, (struct_num, updated))
+                (root_obj, true)
+              }
+              _ => (root_obj, false)
+            }
+          }
+          Some(struct_root) =>
+            match struct_root {
+              @pdf.PdfObject::Dictionary(_) | @pdf.PdfObject::Stream(_) => {
+                let updated_struct = @pdf.add_dict_entry(
+                  struct_root, "/ParentTree", parent_tree,
+                )
+                let updated_root = @pdf.add_dict_entry(
+                  root_obj, "/StructTreeRoot", updated_struct,
+                )
+                (updated_root, true)
+              }
+              _ => (root_obj, false)
+            }
+        }
+      _ => (root_obj, false)
+    }
+  }
+
   for i, pdf in pdfs {
-    match
-      @pdf.lookup_chain(pdf, pdf.trailerdict, [
-        "/Root", "/StructTreeRoot", "/ParentTree",
-      ]) {
-      None => ()
-      Some(_) =>
-        @pdf.replace_chain(
-          pdf,
-          ["/Root", "/StructTreeRoot", "/ParentTree"],
-          @pdftree.build_name_tree(true, pdf, renumbered[i]),
+    let parent_tree = @pdftree.build_name_tree(true, pdf, renumbered[i])
+    match @pdf.lookup_immediate("/Root", pdf.trailerdict) {
+      Some(@pdf.PdfObject::Indirect(root_num)) => {
+        let root_obj = @pdf.lookup_obj(pdf, root_num)
+        let (updated_root, changed) = update_struct_root(
+          pdf, root_obj, parent_tree,
         )
+        if changed {
+          @pdf.addobj_given_num(pdf, (root_num, updated_root))
+        }
+      }
+      Some(root_obj) => {
+        let (updated_root, changed) = update_struct_root(
+          pdf, root_obj, parent_tree,
+        )
+        if changed {
+          pdf.trailerdict = @pdf.add_dict_entry(
+            pdf.trailerdict,
+            "/Root",
+            updated_root,
+          )
+        }
+      }
+      None => ()
     }
   }
 }
