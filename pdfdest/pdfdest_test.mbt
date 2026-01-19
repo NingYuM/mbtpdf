@@ -86,6 +86,64 @@ test "transform_destination translate" {
 }
 
 ///|
+test "transform_destination clips FitV/FitBH" {
+  let pdf = @pdf.empty()
+  let tr = @pdftransform.i_matrix
+  let fitv = transform_destination(
+    pdf,
+    tr,
+    Destination::FitV(TargetPage::PageObject(1), Some(40000.0)),
+  )
+  match fitv {
+    Destination::FitV(_, Some(left)) => assert_close(left, 32768.0)
+    _ => fail("expected FitV clipped")
+  }
+  let fitbh = transform_destination(
+    pdf,
+    tr,
+    Destination::FitBH(TargetPage::PageObject(1), Some(-40000.0)),
+  )
+  match fitbh {
+    Destination::FitBH(_, Some(top)) => assert_close(top, -32768.0)
+    _ => fail("expected FitBH clipped")
+  }
+}
+
+///|
+test "transform_destination updates GoTo action" {
+  let pdf = @pdfpage.minimum_valid_pdf()
+  let refs = @pdf.page_reference_numbers(pdf)
+  let action = @pdf.PdfObject::Dictionary([
+    ("/S", @pdf.PdfObject::Name("/GoTo")),
+    (
+      "/D",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Indirect(refs[0]),
+        @pdf.PdfObject::Name("/XYZ"),
+        @pdf.PdfObject::Real(10.0),
+        @pdf.PdfObject::Real(20.0),
+        @pdf.PdfObject::Null,
+      ]),
+    ),
+  ])
+  let tr = @pdftransform.mktranslate(5.0, -3.0)
+  let updated = transform_destination(pdf, tr, Destination::Action(action))
+  match updated {
+    Destination::Action(dict) =>
+      match @pdf.lookup_direct(pdf, "/D", dict) {
+        Some(
+          @pdf.PdfObject::Array([_, @pdf.PdfObject::Name("/XYZ"), left, top, _])
+        ) => {
+          assert_close(@pdf.getnum(pdf, left), 15.0)
+          assert_close(@pdf.getnum(pdf, top), 17.0)
+        }
+        _ => fail("expected updated action destination")
+      }
+    _ => fail("expected action destination")
+  }
+}
+
+///|
 test "read_destination from dictionary /D" {
   let pdf = @pdf.empty()
   let inner = @pdf.PdfObject::Array([
