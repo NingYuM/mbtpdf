@@ -7,5 +7,8 @@
     "moonbitlang/core/env",
     "moonbitlang/core/random",
     "moonbitlang/core/builtin"
+  ],
+  "test-import": [
+    "bobzhang/mbtpdf/pdfpage"
   ]
 }

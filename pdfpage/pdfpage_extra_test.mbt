@@ -89,3 +89,67 @@ test "rotation_of_int rejects invalid" {
     _ => fail("expected error")
   }
 }
+
+///|
+test "fixup_duplicate_pages creates unique refs" {
+  let pdf0 = @pdf.empty()
+  let rect = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(100.0),
+    @pdf.PdfObject::Real(100.0),
+  ])
+  let page = @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/Page")),
+    ("/MediaBox", rect),
+    ("/Parent", @pdf.PdfObject::Indirect(2)),
+  ])
+  let pages = @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/Pages")),
+    (
+      "/Kids",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Indirect(1),
+        @pdf.PdfObject::Indirect(1),
+      ]),
+    ),
+    ("/Count", @pdf.PdfObject::Integer(2)),
+  ])
+  @pdf.addobj_given_num(pdf0, (1, page))
+  @pdf.addobj_given_num(pdf0, (2, pages))
+  let pdf = @pdfpage.add_root(2, [], pdf0)
+  @pdfpage.fixup_duplicate_pages(pdf)
+  let refs = @pdf.page_reference_numbers(pdf)
+  assert_eq(refs.length(), 2)
+  assert_true(refs[0] != refs[1])
+}
+
+///|
+test "replace_inherit fills mediabox" {
+  let pdf0 = @pdf.empty()
+  let rect = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(100.0),
+    @pdf.PdfObject::Real(100.0),
+  ])
+  let page = @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/Page")),
+    ("/Parent", @pdf.PdfObject::Indirect(2)),
+  ])
+  let pages = @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/Pages")),
+    ("/Kids", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(1)])),
+    ("/Count", @pdf.PdfObject::Integer(1)),
+    ("/MediaBox", rect),
+  ])
+  @pdf.addobj_given_num(pdf0, (1, page))
+  @pdf.addobj_given_num(pdf0, (2, pages))
+  let pdf = @pdfpage.add_root(2, [], pdf0)
+  @pdfpage.replace_inherit(pdf, [1])
+  let updated = @pdf.lookup_obj(pdf, 1)
+  match @pdf.lookup_direct(pdf, "/MediaBox", updated) {
+    Some(_) => ()
+    _ => fail("expected MediaBox to be inherited")
+  }
+}
