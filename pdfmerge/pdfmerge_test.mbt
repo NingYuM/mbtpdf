@@ -94,6 +94,40 @@ test "remove_duplicate_fonts merges identical streams" {
 }
 
 ///|
+test "remove_duplicate_fonts keeps distinct streams" {
+  let pdf = @pdf.empty()
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(1)),
+  ])
+  let dict_alt = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(1)),
+    ("/Subtype", @pdf.PdfObject::Name("/XObject")),
+  ])
+  let stream1 = @pdf.PdfObject::Stream(
+    Ref::new((dict, @pdf.Stream::Got([0x01]))),
+  )
+  let stream2 = @pdf.PdfObject::Stream(
+    Ref::new((dict, @pdf.Stream::Got([0x01, 0x02]))),
+  )
+  let stream3 = @pdf.PdfObject::Stream(
+    Ref::new((dict, @pdf.Stream::Got([0x02]))),
+  )
+  let stream4 = @pdf.PdfObject::Stream(
+    Ref::new((dict, @pdf.Stream::Got([0x01]))),
+  )
+  let stream5 = @pdf.PdfObject::Stream(
+    Ref::new((dict_alt, @pdf.Stream::Got([0x01]))),
+  )
+  ignore(@pdf.addobj(pdf, stream1))
+  ignore(@pdf.addobj(pdf, stream2))
+  ignore(@pdf.addobj(pdf, stream3))
+  ignore(@pdf.addobj(pdf, stream4))
+  ignore(@pdf.addobj(pdf, stream5))
+  remove_duplicate_fonts(pdf)
+  assert_eq(count_streams(pdf), 4)
+}
+
+///|
 
 ///|
 test "merge_pdfs processes structure trees" {
