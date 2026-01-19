@@ -8,6 +8,34 @@ fn winansi_encoding() -> @pdftext.Encoding raise {
 }
 
 ///|
+fn implicit_encoding() -> @pdftext.Encoding raise {
+  @pdftext.read_encoding(@pdf.empty(), @pdf.PdfObject::Dictionary([]))
+}
+
+///|
+fn custom_encoding_missing() -> @pdftext.Encoding raise {
+  let pdf = @pdf.empty()
+  let encoding = @pdf.PdfObject::Dictionary([
+    (
+      "/Differences",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Integer(65),
+        @pdf.PdfObject::Name("/NotAChar"),
+      ]),
+    ),
+  ])
+  let font = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Type1")),
+    ("/Encoding", encoding),
+    (
+      "/FontDescriptor",
+      @pdf.PdfObject::Dictionary([("/FontFile", @pdf.PdfObject::Null)]),
+    ),
+  ])
+  @pdftext.read_encoding(pdf, font)
+}
+
+///|
 test "baseline adjustments and textwidth" {
   assert_eq(baseline_adjustment(@pdftext.StandardFont::TimesRoman), 331)
   assert_eq(baseline_adjustment(@pdftext.StandardFont::Helvetica), 359)
@@ -75,4 +103,29 @@ test "textwidth handles empty and repeated strings" {
     "A",
   )
   assert_true(implicit >= 0)
+}
+
+///|
+test "textwidth handles implicit and custom fallbacks" {
+  let implicit = implicit_encoding()
+  let base = textwidth(false, implicit, @pdftext.StandardFont::Helvetica, "AV")
+  let kerned = textwidth(true, implicit, @pdftext.StandardFont::Helvetica, "AV")
+  assert_true(base > 0)
+  assert_true(kerned >= 0)
+  let custom = custom_encoding_missing()
+  let missing_code = textwidth(
+    false,
+    custom,
+    @pdftext.StandardFont::Helvetica,
+    "B",
+  )
+  let space = textwidth(false, custom, @pdftext.StandardFont::Helvetica, " ")
+  assert_eq(missing_code, space)
+  let unknown_name = textwidth(
+    false,
+    custom,
+    @pdftext.StandardFont::Helvetica,
+    "A",
+  )
+  assert_eq(unknown_name, 0)
 }
