@@ -88,3 +88,108 @@ test "malformed pdf ignores invalid /Version name" {
   assert_eq(pdf.major, 1)
   assert_eq(pdf.minor, 4)
 }
+
+///|
+test "malformed pdf ignores short /Version name" {
+  let prev = @pdfread.debug_always_treat_malformed.val
+  @pdfread.debug_always_treat_malformed.val = true
+  defer {
+    @pdfread.debug_always_treat_malformed.val = prev
+  }
+  let data =
+    #|%PDF-1.4
+    #|1 0 obj
+    #|<< /Type /Catalog /Pages 2 0 R /Version / >>
+    #|endobj
+    #|2 0 obj
+    #|<< /Type /Pages /Count 0 /Kids [] >>
+    #|endobj
+    #|trailer
+    #|<< /Root 1 0 R >>
+    #|%%EOF
+  let pdf = @pdfread.pdf_of_input(None, None, @pdfio.input_of_string(data))
+  assert_eq(pdf.major, 1)
+  assert_eq(pdf.minor, 4)
+}
+
+///|
+test "malformed pdf errors on missing startxref digits" {
+  let prev = @pdfread.error_on_malformed.val
+  @pdfread.error_on_malformed.val = true
+  defer {
+    @pdfread.error_on_malformed.val = prev
+  }
+  let data =
+    #|%PDF-1.4
+    #|1 0 obj
+    #|<< /Type /Catalog /Pages 2 0 R >>
+    #|endobj
+    #|2 0 obj
+    #|<< /Type /Pages /Count 0 /Kids [] >>
+    #|endobj
+    #|startxref
+    #|%%EOF
+  let res : Result[@pdf.Pdf, Error] = try? @pdfread.pdf_of_input(
+    None,
+    None,
+    @pdfio.input_of_string(data),
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "malformed pdf errors on missing root and trailer" {
+  let prev = @pdfread.debug_always_treat_malformed.val
+  @pdfread.debug_always_treat_malformed.val = true
+  defer {
+    @pdfread.debug_always_treat_malformed.val = prev
+  }
+  let res : Result[@pdf.Pdf, Error] = try? @pdfread.pdf_of_input(
+    None,
+    None,
+    @pdfio.input_of_string("trailer"),
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "malformed pdf parses stream with indirect length" {
+  let prev = @pdfread.debug_always_treat_malformed.val
+  @pdfread.debug_always_treat_malformed.val = true
+  defer {
+    @pdfread.debug_always_treat_malformed.val = prev
+  }
+  let data =
+    #|%PDF-1.4
+    #|1 0 obj
+    #|<< /Length 2 0 R >>
+    #|stream
+    #|AB
+    #|endstream
+    #|endobj
+    #|2 0 obj
+    #|2
+    #|endobj
+    #|3 0 obj
+    #|<< /Type /Catalog /Pages 4 0 R >>
+    #|endobj
+    #|4 0 obj
+    #|<< /Type /Pages /Count 0 /Kids [] >>
+    #|endobj
+    #|trailer
+    #|<< /Root 3 0 R >>
+    #|%%EOF
+  let pdf = @pdfread.pdf_of_input(None, None, @pdfio.input_of_string(data))
+  assert_eq(pdf.root, 3)
+}
+
+///|
+test "pdf_of_input rejects invalid revision" {
+  let res : Result[@pdf.Pdf, Error] = try? @pdfread.pdf_of_input(
+    revision=0,
+    None,
+    None,
+    @pdfio.input_of_string("%PDF-1.4"),
+  )
+  assert_true(res is Err(_))
+}

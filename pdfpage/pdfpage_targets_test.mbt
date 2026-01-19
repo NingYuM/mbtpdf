@@ -65,6 +65,22 @@ test "pagenumber_of_target handles action edge cases" {
 }
 
 ///|
+test "pagenumber_of_target follows GoTo action without fastrefnums" {
+  let pdf = @pdfpage.minimum_valid_pdf()
+  let refs = @pdf.page_reference_numbers(pdf)
+  let dest_array = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Indirect(refs[0]),
+    @pdf.PdfObject::Name("/Fit"),
+  ])
+  let action = @pdf.PdfObject::Dictionary([
+    ("/S", @pdf.PdfObject::Name("/GoTo")),
+    ("/D", dest_array),
+  ])
+  let dest = @pdfdest.Destination::Action(action)
+  assert_eq(@pdfpage.pagenumber_of_target(pdf, dest), 1)
+}
+
+///|
 test "pagenumber_of_target handles target page variants" {
   let pdf = @pdfpage.minimum_valid_pdf()
   let other = @pdfdest.Destination::Fit(

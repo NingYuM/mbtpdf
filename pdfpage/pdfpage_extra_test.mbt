@@ -31,6 +31,129 @@ test "add_pagetree builds page objects" {
 }
 
 ///|
+test "change_pages rewrites bookmarks and mixed annotations" {
+  let pdf0 = @pdf.empty()
+  let rect = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(100.0),
+    @pdf.PdfObject::Real(100.0),
+  ])
+  let pages_in = [@pdfpage.custompage(rect), @pdfpage.custompage(rect)]
+  let (pdf1, pageroot) = @pdfpage.add_pagetree(pages_in, pdf0)
+  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
+  let refs = @pdf.page_reference_numbers(pdf)
+  let dest1 = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Indirect(refs[0]),
+    @pdf.PdfObject::Name("/Fit"),
+  ])
+  let dest2 = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Indirect(refs[1]),
+    @pdf.PdfObject::Name("/Fit"),
+  ])
+  let annot_dest1 = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Link")),
+    ("/Rect", rect),
+    ("/Dest", dest1),
+  ])
+  let annot_dest2 = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Link")),
+    ("/Rect", rect),
+    ("/Dest", dest2),
+  ])
+  let annot_action_missing = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Link")),
+    ("/Rect", rect),
+    ("/A", @pdf.PdfObject::Dictionary([("/S", @pdf.PdfObject::Name("/GoTo"))])),
+  ])
+  let annot_action_other = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Link")),
+    ("/Rect", rect),
+    ("/A", @pdf.PdfObject::Dictionary([("/S", @pdf.PdfObject::Name("/URI"))])),
+  ])
+  let annot_action_none = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Link")),
+    ("/Rect", rect),
+    (
+      "/A",
+      @pdf.PdfObject::Dictionary([
+        ("/S", @pdf.PdfObject::Name("/GoTo")),
+        ("/D", dest2),
+      ]),
+    ),
+  ])
+  let annot_nums = [
+    @pdf.addobj(pdf, annot_dest1),
+    @pdf.addobj(pdf, annot_dest2),
+    @pdf.addobj(pdf, annot_action_missing),
+    @pdf.addobj(pdf, annot_action_other),
+    @pdf.addobj(pdf, annot_action_none),
+  ]
+  let annots = @pdf.PdfObject::Array(
+    annot_nums.map(n => @pdf.PdfObject::Indirect(n)),
+  )
+  let page1_obj = @pdf.lookup_obj(pdf, refs[0])
+  let page1_updated = @pdf.add_dict_entry(page1_obj, "/Annots", annots)
+  @pdf.addobj_given_num(pdf, (refs[0], page1_updated))
+  let bookmarks : Array[@pdfmarks.Bookmark] = [
+    {
+      level: 0,
+      text: "P1",
+      target: @pdfdest.Destination::Fit(
+        @pdfdest.TargetPage::PageObject(refs[0]),
+      ),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "P2",
+      target: @pdfdest.Destination::Fit(
+        @pdfdest.TargetPage::PageObject(refs[1]),
+      ),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "Missing",
+      target: @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(9999)),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "Other",
+      target: @pdfdest.Destination::Fit(
+        @pdfdest.TargetPage::OtherDocPageNumber(2),
+      ),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "Named",
+      target: @pdfdest.Destination::NamedDestination("/Named"),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+  ]
+  let pdf = @pdfmarks.add_bookmarks(bookmarks, pdf)
+  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = @pdf.add_dict_entry(catalog, "/OpenAction", dest1)
+  @pdf.addobj_given_num(pdf, (pdf.root, catalog))
+  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let matrix = @pdftransform.mktranslate(10.0, 0.0)
+  let updated = @pdfpage.change_pages(true, pdf, pages, matrices=[(1, matrix)])
+  assert_eq(@pdfpage.endpage(updated), 2)
+}
+
+///|
 test "pdf_of_pages extracts subset" {
   let rect = @pdf.PdfObject::Array([
     @pdf.PdfObject::Real(0.0),
