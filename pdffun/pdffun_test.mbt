@@ -236,6 +236,160 @@ test "eval stitching function" {
 }
 
 ///|
+test "print_function covers kinds and array sizes" {
+  let empty_doubles : Array[Double] = []
+  let some_doubles : Array[Double] = [0.0, 1.0]
+  let empty_ints : Array[Int] = []
+  let some_ints : Array[Int] = [1, 2]
+  let sampled_empty : PdfFunction = {
+    func: PdfFunctionKind::Sampled({
+      size: empty_ints,
+      order: 1,
+      encode: empty_doubles,
+      decode: empty_doubles,
+      bps: 8,
+      samples: empty_ints,
+    }),
+    domain: empty_doubles,
+    range: None,
+  }
+  let sampled_full : PdfFunction = {
+    func: PdfFunctionKind::Sampled({
+      size: some_ints,
+      order: 1,
+      encode: some_doubles,
+      decode: some_doubles,
+      bps: 8,
+      samples: some_ints,
+    }),
+    domain: some_doubles,
+    range: Some(some_doubles),
+  }
+  let interpolation : PdfFunction = {
+    func: PdfFunctionKind::Interpolation({
+      c0: empty_doubles,
+      c1: empty_doubles,
+      n: 1.0,
+    }),
+    domain: empty_doubles,
+    range: None,
+  }
+  let stitching : PdfFunction = {
+    func: PdfFunctionKind::Stitching({
+      functions: [interpolation],
+      bounds: empty_doubles,
+      stitch_encode: empty_doubles,
+    }),
+    domain: empty_doubles,
+    range: None,
+  }
+  let calculator : PdfFunction = {
+    func: PdfFunctionKind::Calculator([
+      Calculator::Bool(true),
+      Calculator::Bool(false),
+      Calculator::Add,
+      Calculator::Atan,
+      Calculator::Ceiling,
+      Calculator::Cos,
+      Calculator::If([Calculator::Int(1)]),
+      Calculator::IfElse([Calculator::Int(0)], [Calculator::Int(1)]),
+      Calculator::Neg,
+      Calculator::Index,
+      Calculator::Round,
+      Calculator::Sin,
+      Calculator::Sqrt,
+      Calculator::Sub,
+      Calculator::Roll,
+    ]),
+    domain: empty_doubles,
+    range: None,
+  }
+  print_function(sampled_empty)
+  print_function(sampled_full)
+  print_function(interpolation)
+  print_function(stitching)
+  print_function(calculator)
+}
+
+///|
+test "parse calculator keywords from stream" {
+  let pdf = @pdf.empty()
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(4)),
+    (
+      "/Domain",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(1.0),
+      ]),
+    ),
+  ])
+  let data = @pdfio.bytes_of_string(
+    "{ true 1.5 add 2 round 3 1 roll 2 atan 30 sin ceiling sqrt cos sub 2 abs 1 neg 0 index { 1 } if { 0 } { 1 } ifelse }",
+  )
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let fun = parse_function(pdf, stream)
+  match fun.func {
+    PdfFunctionKind::Calculator(ops) => {
+      assert_true(ops.length() >= 10)
+      match ops[0] {
+        Calculator::Bool(true) => ()
+        _ => fail("expected boolean literal")
+      }
+      match ops[1] {
+        Calculator::Float(f) => assert_close(f, 1.5)
+        _ => fail("expected float literal")
+      }
+      match ops[2] {
+        Calculator::Add => ()
+        _ => fail("expected add operator")
+      }
+      match ops[3] {
+        Calculator::Int(2) => ()
+        _ => fail("expected int literal")
+      }
+      match ops[4] {
+        Calculator::Round => ()
+        _ => fail("expected round operator")
+      }
+      match ops[5] {
+        Calculator::Int(3) => ()
+        _ => fail("expected int literal")
+      }
+      match ops[6] {
+        Calculator::Int(1) => ()
+        _ => fail("expected int literal")
+      }
+      match ops[7] {
+        Calculator::Roll => ()
+        _ => fail("expected roll operator")
+      }
+    }
+    _ => fail("expected calculator function")
+  }
+  print_function(fun)
+}
+
+///|
+test "parse calculator rejects multi-token group" {
+  let pdf = @pdf.empty()
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(4)),
+    (
+      "/Domain",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(1.0),
+      ]),
+    ),
+  ])
+  let data = @pdfio.bytes_of_string("{ 0 { 1 2 } }")
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let res : Result[PdfFunction, Error] = try? parse_function(pdf, stream)
+  assert_true(res is Err(_))
+}
+
+///|
 test "calculator arithmetic ops" {
   let add = eval_calc([Calculator::Int(2), Calculator::Int(3), Calculator::Add])
   assert_eq(add.length(), 1)
