@@ -84,6 +84,89 @@ test "serialize calculator function" {
 }
 
 ///|
+test "parse sampled function stream" {
+  let pdf = @pdf.empty()
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(0)),
+    (
+      "/Domain",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(1.0),
+      ]),
+    ),
+    (
+      "/Range",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(1.0),
+      ]),
+    ),
+    ("/Size", @pdf.PdfObject::Array([@pdf.PdfObject::Integer(2)])),
+    ("/BitsPerSample", @pdf.PdfObject::Integer(8)),
+  ])
+  let data = @pdfio.bytes_of_list([0, 255])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let fun = parse_function(pdf, stream)
+  match fun.func {
+    PdfFunctionKind::Sampled(sample) => {
+      assert_eq(sample.size.length(), 1)
+      assert_eq(sample.samples.length(), 2)
+      assert_eq(sample.samples[0], 0)
+      assert_eq(sample.samples[1], 255)
+    }
+    _ => fail("expected sampled function")
+  }
+}
+
+///|
+test "serialize interpolation function" {
+  let fun : PdfFunction = {
+    func: PdfFunctionKind::Interpolation({ c0: [0.0], c1: [2.0], n: 1.0 }),
+    domain: [0.0, 1.0],
+    range: Some([0.0, 2.0]),
+  }
+  let pdf = @pdf.empty()
+  let obj = pdfobject_of_function(pdf, fun)
+  let parsed = parse_function(pdf, obj)
+  let output = eval_function(parsed, [0.5])
+  assert_eq(output.length(), 1)
+  assert_close(output[0], 1.0)
+}
+
+///|
+test "serialize stitching function" {
+  let f1 : PdfFunction = {
+    func: PdfFunctionKind::Interpolation({ c0: [0.0], c1: [1.0], n: 1.0 }),
+    domain: [0.0, 1.0],
+    range: Some([0.0, 1.0]),
+  }
+  let f2 : PdfFunction = {
+    func: PdfFunctionKind::Interpolation({ c0: [1.0], c1: [2.0], n: 1.0 }),
+    domain: [0.0, 1.0],
+    range: Some([1.0, 2.0]),
+  }
+  let fun : PdfFunction = {
+    func: PdfFunctionKind::Stitching({
+      functions: [f1, f2],
+      bounds: [0.5],
+      stitch_encode: [0.0, 1.0, 0.0, 1.0],
+    }),
+    domain: [0.0, 1.0],
+    range: Some([0.0, 2.0]),
+  }
+  let pdf = @pdf.empty()
+  let obj = pdfobject_of_function(pdf, fun)
+  let parsed = parse_function(pdf, obj)
+  let out1 = eval_function(parsed, [0.25])
+  let out2 = eval_function(parsed, [0.75])
+  assert_eq(out1.length(), 1)
+  assert_eq(out2.length(), 1)
+  assert_close(out1[0], 0.5)
+  assert_close(out2[0], 1.5)
+}
+
+///|
 test "eval stitching function" {
   let pdf = @pdf.empty()
   let f1 = @pdf.PdfObject::Dictionary([
