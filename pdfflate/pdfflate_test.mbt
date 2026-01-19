@@ -57,6 +57,18 @@ fn run_compress(
 }
 
 ///|
+fn[T] assert_flate_error(
+  result : Result[T, Error],
+  expected : String,
+) -> Unit raise {
+  match result {
+    Err(FlateError::Error(_stage, msg)) => assert_eq(msg, expected)
+    Ok(_) => fail("expected flate error")
+    Err(_) => fail("unexpected error")
+  }
+}
+
+///|
 test "uncompress stored zlib" {
   let data : @pdfio.MutableBytes = [
     120, 1, 1, 11, 0, 244, 255, 104, 101, 108, 108, 111, 32, 119, 111, 114, 108,
@@ -123,4 +135,97 @@ test "compress/uncompress roundtrip raw" {
     FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
   }
   assert_eq(@pdfio.string_of_bytes(decoded), "hello flate raw")
+}
+
+///|
+test "uncompress rejects empty data" {
+  let data : @pdfio.MutableBytes = []
+  let result : Result[@pdfio.MutableBytes, Error] = try? run_uncompress(
+    data, false,
+  )
+  assert_flate_error(result, "unexpected end of input")
+}
+
+///|
+test "uncompress rejects short zlib header" {
+  let data : @pdfio.MutableBytes = [120]
+  let result : Result[@pdfio.MutableBytes, Error] = try? run_uncompress(
+    data, true,
+  )
+  assert_flate_error(result, "zlib header too short")
+}
+
+///|
+test "uncompress rejects unsupported method" {
+  let data : @pdfio.MutableBytes = [0, 0]
+  let result : Result[@pdfio.MutableBytes, Error] = try? run_uncompress(
+    data, true,
+  )
+  assert_flate_error(result, "unsupported compression method")
+}
+
+///|
+test "uncompress rejects invalid header checksum" {
+  let data : @pdfio.MutableBytes = [0x78, 0x00]
+  let result : Result[@pdfio.MutableBytes, Error] = try? run_uncompress(
+    data, true,
+  )
+  assert_flate_error(result, "invalid zlib header")
+}
+
+///|
+test "uncompress rejects preset dictionary flag" {
+  let data : @pdfio.MutableBytes = [0x78, 0x20]
+  let result : Result[@pdfio.MutableBytes, Error] = try? run_uncompress(
+    data, true,
+  )
+  assert_flate_error(result, "preset dictionary not supported")
+}
+
+///|
+test "uncompress rejects invalid block type" {
+  let data : @pdfio.MutableBytes = [0x07]
+  let result : Result[@pdfio.MutableBytes, Error] = try? run_uncompress(
+    data, false,
+  )
+  assert_flate_error(result, "invalid block type")
+}
+
+///|
+test "uncompress rejects stored length mismatch" {
+  let data : @pdfio.MutableBytes = [0x01, 0x01, 0x00, 0x00, 0x00]
+  let result : Result[@pdfio.MutableBytes, Error] = try? run_uncompress(
+    data, false,
+  )
+  assert_flate_error(result, "stored block length mismatch")
+}
+
+///|
+test "uncompress rejects invalid literal/length symbol" {
+  let data : @pdfio.MutableBytes = [0x1B, 0x03]
+  let result : Result[@pdfio.MutableBytes, Error] = try? run_uncompress(
+    data, false,
+  )
+  assert_flate_error(result, "invalid literal/length symbol")
+}
+
+///|
+test "uncompress rejects invalid distance symbol" {
+  let data : @pdfio.MutableBytes = [0x03, 0x3E]
+  let result : Result[@pdfio.MutableBytes, Error] = try? run_uncompress(
+    data, false,
+  )
+  assert_flate_error(result, "invalid distance symbol")
+}
+
+///|
+test "compress handles empty input" {
+  let data : @pdfio.MutableBytes = []
+  let encoded = run_compress(data, true) catch {
+    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+  }
+  let decoded = run_uncompress(encoded, true) catch {
+    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+  }
+  assert_eq(decoded.length(), 0)
 }

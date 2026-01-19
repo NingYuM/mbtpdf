@@ -127,6 +127,38 @@ test "components handles extra branches and errors" {
 }
 
 ///|
+test "components handles /I alias" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  assert_eq(
+    @pdfops.components(
+      pdf,
+      resources,
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Name("/I"),
+        @pdf.PdfObject::Name("/DeviceRGB"),
+      ]),
+    ),
+    1,
+  )
+}
+
+///|
+test "components errors on array without name leader" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let res : Result[Int, Error] = try? @pdfops.components(
+    pdf,
+    resources,
+    @pdf.PdfObject::Array([
+      @pdf.PdfObject::Integer(1),
+      @pdf.PdfObject::Name("/DeviceRGB"),
+    ]),
+  )
+  assert_true(res is Err(_))
+}
+
+///|
 test "string_of_ops covers operator variants" {
   let ops = [
     @pdfops.Op::Opw(1.5),

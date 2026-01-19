@@ -41,3 +41,75 @@ test "lex_hexstring reads hex bytes" {
     _ => fail("expected LexString")
   }
 }
+
+///|
+test "lex_name errors on truncated hex escape" {
+  let res : Result[@pdfgenlex.Token, Error] = try? @pdfread.lex_name(
+    @pdfio.input_of_string("/A#1"),
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "lex_name errors on invalid hex escape" {
+  let res : Result[@pdfgenlex.Token, Error] = try? @pdfread.lex_name(
+    @pdfio.input_of_string("/A#GG"),
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "lex_number drops extra leading dash" {
+  let input = @pdfio.input_of_string("--2")
+  match @pdfread.lex_number(input) {
+    @pdfgenlex.Token::LexInt(-2) => ()
+    _ => fail("expected LexInt -2")
+  }
+}
+
+///|
+test "lex_string handles octal escape with rewind" {
+  let input = @pdfio.input_of_string("(\\12X)")
+  let token = @pdfread.lex_string(input)
+  match token {
+    @pdfgenlex.Token::LexString(value) => assert_eq(value, "\nX")
+    _ => fail("expected LexString")
+  }
+}
+
+///|
+test "lex_string handles short octal escape" {
+  let input = @pdfio.input_of_string("(\\1Z)")
+  let token = @pdfread.lex_string(input)
+  match token {
+    @pdfgenlex.Token::LexString(value) => {
+      match value.get_char(0) {
+        Some(ch) => assert_eq(ch.to_int(), 1)
+        _ => fail("expected first char")
+      }
+      match value.get_char(1) {
+        Some('Z') => ()
+        _ => fail("expected trailing Z")
+      }
+    }
+    _ => fail("expected LexString")
+  }
+}
+
+///|
+test "lex_hexstring handles odd nibble at EOF" {
+  let input = @pdfio.input_of_string("<4")
+  let token = @pdfread.lex_hexstring(input)
+  match token {
+    @pdfgenlex.Token::LexString(value) => assert_eq(value, "@")
+    _ => fail("expected LexString")
+  }
+}
+
+///|
+test "lex_hexstring errors on invalid hex digit" {
+  let res : Result[@pdfgenlex.Token, Error] = try? @pdfread.lex_hexstring(
+    @pdfio.input_of_string("<GG>"),
+  )
+  assert_true(res is Err(_))
+}

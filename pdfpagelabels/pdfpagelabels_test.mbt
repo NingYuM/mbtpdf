@@ -225,3 +225,242 @@ test "write/read pagelabels roundtrip" {
   @pdfpagelabels.remove(pdf)
   assert_eq(@pdfpagelabels.read(pdf).length(), 0)
 }
+
+///|
+test "string_of_labelstyle covers all styles" {
+  assert_eq(string_of_labelstyle(LabelStyle::DecimalArabic), "DecimalArabic")
+  assert_eq(string_of_labelstyle(LabelStyle::UppercaseRoman), "UppercaseRoman")
+  assert_eq(string_of_labelstyle(LabelStyle::LowercaseRoman), "LowercaseRoman")
+  assert_eq(
+    string_of_labelstyle(LabelStyle::UppercaseLetters),
+    "UppercaseLetters",
+  )
+  assert_eq(
+    string_of_labelstyle(LabelStyle::LowercaseLetters),
+    "LowercaseLetters",
+  )
+  assert_eq(
+    string_of_labelstyle(LabelStyle::NoLabelPrefixOnly),
+    "NoLabelPrefixOnly",
+  )
+}
+
+///|
+fn set_page_labels(pdf : @pdf.Pdf, nums : Array[@pdf.PdfObject]) -> Unit raise {
+  let rootnum = pdf.root
+  let root = @pdf.lookup_obj(pdf, rootnum)
+  let labels = @pdf.PdfObject::Dictionary([
+    ("/Nums", @pdf.PdfObject::Array(nums)),
+  ])
+  let updated = @pdf.add_dict_entry(root, "/PageLabels", labels)
+  @pdf.addobj_given_num(pdf, (rootnum, updated))
+  pdf.trailerdict = @pdf.add_dict_entry(
+    pdf.trailerdict,
+    "/Root",
+    @pdf.PdfObject::Indirect(rootnum),
+  )
+}
+
+///|
+test "read handles label styles and bad startpage" {
+  let pdf = @pdfpage.minimum_valid_pdf()
+  let nums : Array[@pdf.PdfObject] = [
+    @pdf.PdfObject::Name("/Bad"),
+    @pdf.PdfObject::Dictionary([("/S", @pdf.PdfObject::Name("/R"))]),
+    @pdf.PdfObject::Integer(0),
+    @pdf.PdfObject::Dictionary([("/S", @pdf.PdfObject::Name("/r"))]),
+    @pdf.PdfObject::Integer(1),
+    @pdf.PdfObject::Dictionary([("/S", @pdf.PdfObject::Name("/A"))]),
+    @pdf.PdfObject::Integer(2),
+    @pdf.PdfObject::Dictionary([("/S", @pdf.PdfObject::Name("/a"))]),
+    @pdf.PdfObject::Integer(3),
+    @pdf.PdfObject::Dictionary([("/S", @pdf.PdfObject::Name("/D"))]),
+    @pdf.PdfObject::Integer(4),
+    @pdf.PdfObject::Dictionary([("/P", @pdf.PdfObject::String("P"))]),
+  ]
+  set_page_labels(pdf, nums)
+  let labels = @pdfpagelabels.read(pdf)
+  assert_eq(labels.length(), 6)
+  assert_eq(labels[0].startpage, 1)
+  match labels[0].labelstyle {
+    LabelStyle::UppercaseRoman => ()
+    _ => fail("expected UppercaseRoman")
+  }
+  match labels[1].labelstyle {
+    LabelStyle::LowercaseRoman => ()
+    _ => fail("expected LowercaseRoman")
+  }
+  match labels[2].labelstyle {
+    LabelStyle::UppercaseLetters => ()
+    _ => fail("expected UppercaseLetters")
+  }
+  match labels[3].labelstyle {
+    LabelStyle::LowercaseLetters => ()
+    _ => fail("expected LowercaseLetters")
+  }
+  match labels[4].labelstyle {
+    LabelStyle::DecimalArabic => ()
+    _ => fail("expected DecimalArabic")
+  }
+  match labels[5].labelstyle {
+    LabelStyle::NoLabelPrefixOnly => ()
+    _ => fail("expected NoLabelPrefixOnly")
+  }
+}
+
+///|
+test "pagelabeltext and pagelabel_of_pagenumber error on missing labels" {
+  let labels : Array[PageLabel] = []
+  let text_res : Result[String, Error] = try? pagelabeltext_of_pagenumber(
+    1, labels,
+  )
+  assert_true(text_res is Err(_))
+  let label_res : Result[PageLabel, Error] = try? pagelabel_of_pagenumber(
+    1, labels,
+  )
+  assert_true(label_res is Err(_))
+}
+
+///|
+test "pagelabeltext handles empty roman and letter values" {
+  let labels = [
+    PageLabel::{
+      labelstyle: LabelStyle::UppercaseRoman,
+      labelprefix: Some("R-"),
+      startpage: 5,
+      startvalue: 1,
+    },
+  ]
+  assert_eq(pagelabeltext_of_pagenumber(1, labels), "R-")
+  let letter_labels = [
+    PageLabel::{
+      labelstyle: LabelStyle::LowercaseLetters,
+      labelprefix: Some("L-"),
+      startpage: 4,
+      startvalue: 1,
+    },
+  ]
+  assert_eq(pagelabeltext_of_pagenumber(1, letter_labels), "L-")
+}
+
+///|
+test "add_label replica branches" {
+  let base = [
+    PageLabel::{
+      labelstyle: LabelStyle::DecimalArabic,
+      labelprefix: None,
+      startpage: 1,
+      startvalue: 1,
+    },
+  ]
+  let no_replica = add_label(
+    3,
+    base,
+    PageLabel::{
+      labelstyle: LabelStyle::UppercaseRoman,
+      labelprefix: None,
+      startpage: 2,
+      startvalue: 1,
+    },
+    3,
+  )
+  assert_eq(no_replica.length(), 2)
+  let with_after = add_label(
+    10,
+    [
+      PageLabel::{
+        labelstyle: LabelStyle::DecimalArabic,
+        labelprefix: None,
+        startpage: 1,
+        startvalue: 1,
+      },
+      PageLabel::{
+        labelstyle: LabelStyle::DecimalArabic,
+        labelprefix: None,
+        startpage: 5,
+        startvalue: 5,
+      },
+    ],
+    PageLabel::{
+      labelstyle: LabelStyle::UppercaseRoman,
+      labelprefix: None,
+      startpage: 2,
+      startvalue: 1,
+    },
+    4,
+  )
+  assert_eq(with_after.length(), 3)
+  let empty_before = add_label(
+    5,
+    [
+      PageLabel::{
+        labelstyle: LabelStyle::DecimalArabic,
+        labelprefix: None,
+        startpage: 5,
+        startvalue: 5,
+      },
+    ],
+    PageLabel::{
+      labelstyle: LabelStyle::UppercaseRoman,
+      labelprefix: None,
+      startpage: 1,
+      startvalue: 1,
+    },
+    2,
+  )
+  assert_eq(empty_before.length(), 2)
+}
+
+///|
+test "coalesce handles single label" {
+  let labels = [
+    PageLabel::{
+      labelstyle: LabelStyle::DecimalArabic,
+      labelprefix: None,
+      startpage: 1,
+      startvalue: 1,
+    },
+  ]
+  let merged = coalesce(labels)
+  assert_eq(merged.length(), 1)
+}
+
+///|
+test "write handles all labelstyle variants" {
+  let pdf = make_pdf_with_pages(3)
+  let labels = [
+    PageLabel::{
+      labelstyle: LabelStyle::NoLabelPrefixOnly,
+      labelprefix: None,
+      startpage: 1,
+      startvalue: 1,
+    },
+    PageLabel::{
+      labelstyle: LabelStyle::UppercaseRoman,
+      labelprefix: None,
+      startpage: 2,
+      startvalue: 1,
+    },
+    PageLabel::{
+      labelstyle: LabelStyle::LowercaseLetters,
+      labelprefix: Some("P"),
+      startpage: 3,
+      startvalue: 2,
+    },
+  ]
+  @pdfpagelabels.write(pdf, labels)
+  let read_back = @pdfpagelabels.read(pdf)
+  assert_eq(read_back.length(), 3)
+  match read_back[0].labelstyle {
+    LabelStyle::NoLabelPrefixOnly => ()
+    _ => fail("expected NoLabelPrefixOnly")
+  }
+  match read_back[1].labelstyle {
+    LabelStyle::UppercaseRoman => ()
+    _ => fail("expected UppercaseRoman")
+  }
+  match read_back[2].labelstyle {
+    LabelStyle::LowercaseLetters => ()
+    _ => fail("expected LowercaseLetters")
+  }
+}

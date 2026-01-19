@@ -31,6 +31,69 @@ test "add_pagetree builds page objects" {
 }
 
 ///|
+test "pages_of_pagetree handles missing mediabox and non-stream contents" {
+  let rect1 = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(100.0),
+    @pdf.PdfObject::Real(120.0),
+  ])
+  let rect2 = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(200.0),
+    @pdf.PdfObject::Real(220.0),
+  ])
+  let pages = [@pdfpage.custompage(rect1), @pdfpage.custompage(rect2)]
+  let (pdf1, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
+  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
+  let page1_num = match @pdfpage.page_object_number(pdf, 1) {
+    Some(n) => n
+    None => fail("expected page object number")
+  }
+  let page2_num = match @pdfpage.page_object_number(pdf, 2) {
+    Some(n) => n
+    None => fail("expected page object number")
+  }
+  let page1_obj = @pdf.lookup_obj(pdf, page1_num)
+  let page1_updated = @pdf.add_dict_entry(
+    page1_obj,
+    "/Contents",
+    @pdf.PdfObject::Array([@pdf.PdfObject::Integer(1)]),
+  )
+  @pdf.addobj_given_num(pdf, (page1_num, page1_updated))
+  let page2_obj = @pdf.lookup_obj(pdf, page2_num)
+  let page2_updated = @pdf.add_dict_entry(
+    @pdf.remove_dict_entry(
+      @pdf.remove_dict_entry(page2_obj, "/MediaBox"),
+      "/Resources",
+    ),
+    "/Contents",
+    @pdf.PdfObject::Integer(2),
+  )
+  @pdf.addobj_given_num(pdf, (page2_num, page2_updated))
+  let out_pages = @pdfpage.pages_of_pagetree(pdf)
+  assert_eq(out_pages.length(), 2)
+  assert_eq(out_pages[0].content.length(), 0)
+  assert_eq(out_pages[1].content.length(), 0)
+  match out_pages[1].mediabox {
+    @pdf.PdfObject::Array(vals) =>
+      match (vals[2], vals[3]) {
+        (@pdf.PdfObject::Real(w), @pdf.PdfObject::Real(h)) => {
+          assert_close(w, 100.0)
+          assert_close(h, 120.0)
+        }
+        _ => fail("expected mediabox numbers")
+      }
+    _ => fail("expected mediabox array")
+  }
+  match out_pages[1].resources {
+    @pdf.PdfObject::Dictionary(entries) => assert_eq(entries.length(), 0)
+    _ => fail("expected resources dictionary")
+  }
+}
+
+///|
 test "change_pages rewrites bookmarks and mixed annotations" {
   let pdf0 = @pdf.empty()
   let rect = @pdf.PdfObject::Array([

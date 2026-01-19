@@ -185,6 +185,59 @@ test "serialize stitching function" {
 }
 
 ///|
+test "serialize calculator covers opcode strings" {
+  let ops = [
+    Calculator::Cvi,
+    Calculator::Cvr,
+    Calculator::Div,
+    Calculator::Exp,
+    Calculator::Floor,
+    Calculator::Idiv,
+    Calculator::Ln,
+    Calculator::Log,
+    Calculator::Mod,
+    Calculator::Truncate,
+    Calculator::And,
+    Calculator::Bitshift,
+    Calculator::Eq,
+    Calculator::Ge,
+    Calculator::Gt,
+    Calculator::Le,
+    Calculator::Lt,
+    Calculator::Ne,
+    Calculator::Not,
+    Calculator::Or,
+    Calculator::Xor,
+    Calculator::Copy,
+    Calculator::Exch,
+    Calculator::Pop,
+    Calculator::Dup,
+    Calculator::Index,
+    Calculator::Roll,
+  ]
+  let fun : PdfFunction = {
+    func: PdfFunctionKind::Calculator(ops),
+    domain: [0.0, 1.0],
+    range: None,
+  }
+  let pdf = @pdf.empty()
+  let obj = pdfobject_of_function(pdf, fun)
+  match obj {
+    @pdf.PdfObject::Stream(r) =>
+      match r.val.1 {
+        @pdf.Stream::Got(bytes) => {
+          let text = @pdfio.string_of_bytes(bytes)
+          assert_true(text.contains("cvi"))
+          assert_true(text.contains("bitshift"))
+          assert_true(text.contains("roll"))
+        }
+        _ => fail("expected stream bytes")
+      }
+    _ => fail("expected stream object")
+  }
+}
+
+///|
 test "eval stitching function" {
   let pdf = @pdf.empty()
   let f1 = @pdf.PdfObject::Dictionary([

@@ -54,3 +54,86 @@ test "lex_string ignores whitespace-only input" {
   let tokens = @pdfgenlex.lex_string(" \n\t ")
   assert_eq(tokens.length(), 0)
 }
+
+///|
+test "string_of_token covers extra variants" {
+  assert_eq(
+    @pdfgenlex.string_of_token(@pdfgenlex.Token::LexString("hi")),
+    "String hi",
+  )
+  assert_eq(@pdfgenlex.string_of_token(@pdfgenlex.Token::LexNull), "Nothing")
+  assert_eq(
+    @pdfgenlex.string_of_token(@pdfgenlex.Token::LexLeftDict),
+    "GenLexNone",
+  )
+}
+
+///|
+test "string_of_tokens handles empty list" {
+  assert_eq(@pdfgenlex.string_of_tokens([]), "")
+}
+
+///|
+test "lex_string tokenizes delimiter characters" {
+  let tokens = @pdfgenlex.lex_string("()<>[]{}%/")
+  let expected = ["(", ")", "<", ">", "[", "]", "{", "}", "%", "/"]
+  assert_eq(tokens.length(), expected.length())
+  for i in 0..<expected.length() {
+    match tokens[i] {
+      @pdfgenlex.Token::LexName(value) => assert_eq(value, expected[i])
+      _ => fail("expected LexName token")
+    }
+  }
+}
+
+///|
+test "lex_string handles malformed strings" {
+  let cases = [("\"x", ""), ("\"a\\", ""), ("\"a\\n\"", "a\\n")]
+  for pair in cases {
+    let tokens = @pdfgenlex.lex_string(pair.0)
+    if tokens.length() != 1 {
+      fail("expected single token")
+    }
+    match tokens[0] {
+      @pdfgenlex.Token::LexString(value) => assert_eq(value, pair.1)
+      _ => fail("expected LexString token")
+    }
+  }
+}
+
+///|
+test "lex_string treats invalid exponential as name" {
+  let tokens = @pdfgenlex.lex_string("1e--2")
+  if tokens.length() != 1 {
+    fail("expected single token")
+  }
+  match tokens[0] {
+    @pdfgenlex.Token::LexName("1e--2") => ()
+    _ => fail("expected LexName token")
+  }
+}
+
+///|
+test "lex_string parses huge integer as real" {
+  let big = "999999999999999999999999999999999999999999"
+  let tokens = @pdfgenlex.lex_string(big)
+  if tokens.length() != 1 {
+    fail("expected single token")
+  }
+  match tokens[0] {
+    @pdfgenlex.Token::LexReal(_) => ()
+    _ => fail("expected LexReal token")
+  }
+}
+
+///|
+test "lex_string handles double dash numbers" {
+  let tokens = @pdfgenlex.lex_string("--5")
+  if tokens.length() != 1 {
+    fail("expected single token")
+  }
+  match tokens[0] {
+    @pdfgenlex.Token::LexInt(-5) => ()
+    _ => fail("expected LexInt -5")
+  }
+}

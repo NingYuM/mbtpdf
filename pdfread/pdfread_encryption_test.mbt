@@ -1,0 +1,60 @@
+///|
+test "what_encryption returns None for unencrypted" {
+  let pdf = @pdfpage.minimum_valid_pdf()
+  assert_true(@pdfread.what_encryption(pdf) is None)
+  assert_eq(@pdfread.permissions(pdf).length(), 0)
+}
+
+///|
+test "what_encryption detects ARC4 and AES methods" {
+  let base = @pdfpage.minimum_valid_pdf()
+  let arc4 = @pdfcrypt.encrypt_pdf_40bit(
+    "user",
+    "owner",
+    [],
+    @pdf.deep_copy(base),
+  )
+  match @pdfread.what_encryption(arc4) {
+    Some(@pdfwrite.EncryptionMethod::PDF40bit) => ()
+    _ => fail("expected PDF40bit encryption")
+  }
+  let aes128 = @pdfcrypt.encrypt_pdf_AES(
+    true,
+    "user",
+    "owner",
+    [],
+    @pdf.deep_copy(base),
+  )
+  match @pdfread.what_encryption(aes128) {
+    Some(@pdfwrite.EncryptionMethod::AES128bit(_)) => ()
+    _ => fail("expected AES128bit encryption")
+  }
+}
+
+///|
+test "what_encryption detects AES256 variants" {
+  let base = @pdfpage.minimum_valid_pdf()
+  let aes256 = @pdfcrypt.encrypt_pdf_AES256(
+    true,
+    "user",
+    "owner",
+    [],
+    @pdf.deep_copy(base),
+  )
+  match @pdfread.what_encryption(aes256) {
+    Some(@pdfwrite.EncryptionMethod::AES256bit(_)) => ()
+    _ => fail("expected AES256bit encryption")
+  }
+  let aes256iso = @pdfcrypt.encrypt_pdf_AES256ISO(
+    true,
+    "user",
+    "owner",
+    [],
+    @pdf.deep_copy(base),
+  )
+  match @pdfread.what_encryption(aes256iso) {
+    Some(@pdfwrite.EncryptionMethod::AES256bitISO(_)) => ()
+    _ => fail("expected AES256bitISO encryption")
+  }
+  assert_eq(@pdfread.permissions(aes256iso).length(), 0)
+}

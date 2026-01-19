@@ -223,6 +223,9 @@ pub fn remove_duplicate_fonts(pdf : @pdf.Pdf) -> Unit {
   sorted.sort_by((a, b) => stream_compare(pdf, a, b))
   let groups = collate(sorted, (a, b) => stream_compare(pdf, a, b))
   let toprocess = groups.filter(group => group.length() > 1)
+  if toprocess.length() == 0 {
+    return
+  }
   let mut current = pdf
   for group in toprocess {
     let changetable : Map[Int, Int] = Map::new()

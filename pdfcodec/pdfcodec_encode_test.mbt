@@ -93,3 +93,101 @@ test "encode/decode LZW stream" {
   let decoded = roundtrip_encoding(Encoding::LZW(1), original)
   assert_eq(@pdfio.string_of_bytes(decoded), "TOBEORNOTTOBEORTOBEORNOT")
 }
+
+///|
+test "encode_pdfstream prepends filter when name already set" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("filter chain")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+    ("/Filter", @pdf.PdfObject::Name("/ASCII85Decode")),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  encode_pdfstream(pdf, Encoding::Flate, stream_obj)
+  match @pdf.lookup_direct(pdf, "/Filter", stream_ref.val.0) {
+    Some(@pdf.PdfObject::Array(filters)) => {
+      assert_true(filters.length() >= 2)
+      match filters[0] {
+        @pdf.PdfObject::Name("/FlateDecode") => ()
+        _ => fail("expected /FlateDecode to be first")
+      }
+    }
+    _ => fail("expected filter array")
+  }
+}
+
+///|
+test "encode_pdfstream prepends filter when array already set" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("array filter")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+    (
+      "/Filter",
+      @pdf.PdfObject::Array([@pdf.PdfObject::Name("/ASCIIHexDecode")]),
+    ),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  encode_pdfstream(pdf, Encoding::Flate, stream_obj)
+  match @pdf.lookup_direct(pdf, "/Filter", stream_ref.val.0) {
+    Some(@pdf.PdfObject::Array(filters)) =>
+      match filters[0] {
+        @pdf.PdfObject::Name("/FlateDecode") => ()
+        _ => fail("expected /FlateDecode to be first")
+      }
+    _ => fail("expected filter array")
+  }
+}
+
+///|
+test "encode_pdfstream keeps data when only_if_smaller" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("x")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  encode_pdfstream(pdf, Encoding::Flate, stream_obj, only_if_smaller=true)
+  match @pdf.lookup_direct(pdf, "/Filter", stream_ref.val.0) {
+    None => ()
+    _ => fail("expected no /Filter when not smaller")
+  }
+}
+
+///|
+test "decode_pdfstream handles filter arrays" {
+  let pdf = @pdf.empty()
+  let old = @pdfcodec.string_of_pdf.val
+  @pdfcodec.string_of_pdf.val = obj => match
+    @pdf.lookup_direct(@pdf.empty(), "/Filter", obj) {
+    Some(@pdf.PdfObject::Array(filters)) => "\{filters.length()}"
+    Some(@pdf.PdfObject::Name(name)) => name
+    None => ""
+    _ => "other"
+  }
+  defer {
+    @pdfcodec.string_of_pdf.val = old
+  }
+  let original = @pdfio.bytes_of_string("decode chain")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(original))),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(original)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  encode_pdfstream(pdf, Encoding::ASCII85, stream_obj, only_if_smaller=false)
+  encode_pdfstream(pdf, Encoding::ASCIIHex, stream_obj, only_if_smaller=false)
+  decode_pdfstream(pdf, stream_obj)
+  match stream_ref.val {
+    (decoded_dict, @pdf.Stream::Got(bytes)) => {
+      assert_eq(@pdfio.string_of_bytes(bytes), "decode chain")
+      match @pdf.lookup_immediate("/Filter", decoded_dict) {
+        None => ()
+        _ => fail("expected /Filter removed")
+      }
+    }
+    _ => fail("expected decoded bytes")
+  }
+}

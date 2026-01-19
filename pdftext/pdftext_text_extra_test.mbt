@@ -49,6 +49,26 @@ fn embedded_font_with_custom_encoding() -> @pdf.PdfObject {
 }
 
 ///|
+fn font_with_difference(name : String) -> @pdf.PdfObject {
+  @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Type1")),
+    ("/BaseFont", @pdf.PdfObject::Name("/CustomFont")),
+    (
+      "/Encoding",
+      @pdf.PdfObject::Dictionary([
+        (
+          "/Differences",
+          @pdf.PdfObject::Array([
+            @pdf.PdfObject::Integer(70),
+            @pdf.PdfObject::Name(name),
+          ]),
+        ),
+      ]),
+    ),
+  ])
+}
+
+///|
 test "encoding tables include mac variants and filled standards" {
   let pdf = @pdf.empty()
   let macroman_encoding = @pdftext.read_encoding(
@@ -104,6 +124,31 @@ test "reverse tables handle implicit and mac encodings" {
 }
 
 ///|
+test "reverse table handles custom differences" {
+  let pdf = @pdf.empty()
+  let encoding = @pdftext.read_encoding(pdf, font_with_difference("/NotAGlyph"))
+  let reversed = @pdftext.reverse_table_of_encoding(encoding)
+  assert_eq(reversed.get("/NotAGlyph"), Some(70))
+}
+
+///|
+test "text extractor handles missing glyph hashes" {
+  let hashes = @pdfglyphlist.glyph_hashes()
+  assert_true(hashes.get("/NotAGlyph") is None)
+  let pdf = @pdf.empty()
+  let extractor = @pdftext.text_extractor_of_font(
+    pdf,
+    font_with_difference("/NotAGlyph"),
+  )
+  let pairs = @pdftext.glyphnames_and_codepoints_of_text(extractor, "F")
+  assert_eq(pairs.length(), 1)
+  assert_true(pairs[0].0.contains("NotAGlyph"))
+  inspect(pairs[0].1, content="[70]")
+  let names = @pdftext.glyphnames_of_text(extractor, "F")
+  assert_eq(names.length(), 1)
+}
+
+///|
 test "charcode extractor uses tounicode bytes map" {
   let pdf = @pdf.empty()
   let tounicode : Map[Int, String] = Map::new()
@@ -136,6 +181,52 @@ test "codepoints_of_utf16be rejects invalid surrogate pairs" {
 }
 
 ///|
+test "codepoints_of_utf8 handles two byte sequences" {
+  let utf8 = @pdftext.utf8_of_codepoints([0x00e9])
+  inspect(@pdftext.codepoints_of_utf8(utf8), content="[233]")
+}
+
+///|
 test "simplify_utf16be keeps non-unicode text" {
   assert_eq(@pdftext.simplify_utf16be("plain"), "plain")
+}
+
+///|
+test "pdfdocstring_of_codepoints falls back for missing glyphs" {
+  let pdfdoc = @pdftext.pdfdocstring_of_codepoints([0x1f600])
+  assert_true(@pdftext.is_unicode(pdfdoc))
+}
+
+///|
+test "pdfdocencoding rejects missing glyph mappings" {
+  let mut missing : Int? = None
+  let mut i = 0
+  while i < 256 {
+    if @pdfglyphlist.reverse_name_to_pdf_hashes.get(i) is None {
+      missing = Some(i)
+      break
+    }
+    i = i + 1
+  }
+  match missing {
+    Some(code) => {
+      let res : Result[Int, Error] = try? @pdftext.codepoint_of_pdfdocencoding_character(
+        code,
+      )
+      assert_true(res is Err(_))
+    }
+    None => {
+      let code = 0
+      let previous = @pdfglyphlist.reverse_name_to_pdf_hashes.get(code)
+      @pdfglyphlist.reverse_name_to_pdf_hashes.set(code, "/NotARealGlyph")
+      defer (match previous {
+        Some(name) => @pdfglyphlist.reverse_name_to_pdf_hashes.set(code, name)
+        None => @pdfglyphlist.reverse_name_to_pdf_hashes.remove(code)
+      })
+      let res : Result[Int, Error] = try? @pdftext.codepoint_of_pdfdocencoding_character(
+        code,
+      )
+      assert_true(res is Err(_))
+    }
+  }
 }

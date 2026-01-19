@@ -48,6 +48,13 @@ test "string_of_pdf escapes carriage return and form feed" {
 }
 
 ///|
+test "string_of_pdf escapes newline" {
+  let obj = @pdf.PdfObject::String("a\nb")
+  let rendered = @pdfwrite.string_of_pdf(obj)
+  assert_true(rendered.contains("\\n"))
+}
+
+///|
 test "string_of_pdf expands scientific notation" {
   let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(1.2e20))
   assert_true(!rendered.contains("e") && !rendered.contains("E"))
@@ -101,6 +108,21 @@ test "string_of_pdf encodes control and delimiter bytes" {
 }
 
 ///|
+test "string_of_pdf encodes greater-than in names" {
+  let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Name("/A>"))
+  assert_true(rendered.contains("#3E"))
+}
+
+///|
+test "string_of_pdf encodes delimiter bytes in names" {
+  let cases = [("/[", "/#5B"), ("/]", "/#5D"), ("/{", "/#7B"), ("/}", "/#7D")]
+  for pair in cases {
+    let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Name(pair.0))
+    assert_eq(rendered, pair.1)
+  }
+}
+
+///|
 test "string_of_pdf handles short names" {
   let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Name("/"))
   assert_eq(rendered, "/")
@@ -109,6 +131,12 @@ test "string_of_pdf handles short names" {
 ///|
 test "make_hex_pdf_string encodes bytes" {
   assert_eq(@pdfwrite.make_hex_pdf_string("Hi"), "<4869>")
+}
+
+///|
+test "make_hex_pdf_string covers hex digits" {
+  let raw = @pdfio.string_of_int_array([0x7B, 0xBD, 0xD0])
+  assert_eq(@pdfwrite.make_hex_pdf_string(raw), "<7bbdd0>")
 }
 
 ///|
@@ -132,15 +160,83 @@ test "pdf_to_output generates object streams with indirect lengths" {
   let marked_obj = @pdf.addobj(pdf, @pdf.PdfObject::Integer(123))
   pdf.objects.object_stream_ids.set(marked_obj, stream_num)
   pdf.objects.object_stream_ids.set(stream_num, stream_num)
-  let payload = "A".repeat(200)
-  for _ in 0..<=20 {
-    ignore(@pdf.addobj(pdf, @pdf.PdfObject::String(payload)))
+  let payload = "A".repeat(1000)
+  let payload_ids = Array::new()
+  for _ in 0..<=30 {
+    let objnum = @pdf.addobj(pdf, @pdf.PdfObject::String(payload))
+    payload_ids.push(objnum)
   }
+  for objnum in payload_ids {
+    pdf.objects.object_stream_ids.set(objnum, stream_num)
+  }
+  let objs_in_stream = payload_ids.copy()
+  objs_in_stream.push(marked_obj)
+  objs_in_stream.sort_by((a, b) => a - b)
+  let object_strings = Array::new()
+  let offsets = Array::new()
+  let mut offset = 0
+  for objnum in objs_in_stream {
+    let obj = @pdf.lookup_obj(pdf, objnum)
+    let s = @pdfwrite.string_of_pdf(obj) + " "
+    object_strings.push(s)
+    offsets.push(offset)
+    offset = offset + s.length()
+  }
+  let header = StringBuilder::new()
+  let mut i = 0
+  while i < objs_in_stream.length() {
+    header.write_string(objs_in_stream[i].to_string())
+    header.write_char(' ')
+    header.write_string(offsets[i].to_string())
+    header.write_char(' ')
+    i = i + 1
+  }
+  let header_str = header.to_string()
+  let data_sb = StringBuilder::new()
+  data_sb.write_string(header_str)
+  for s in object_strings {
+    data_sb.write_string(s)
+  }
+  let objstm_data = @pdfio.bytes_of_string(data_sb.to_string())
+  let encoded = @pdfcodec.encode_flate(objstm_data)
+  let should_compress = @pdfio.bytes_size(encoded) + 20 <
+    @pdfio.bytes_size(objstm_data)
   let (output, buffer) = @pdfio.input_output_of_bytes(4096)
   @pdfwrite.pdf_to_output(
     generate_objstm=true,
-    preserve_objstm=false,
+    preserve_objstm=true,
     compress_objstm=true,
+    None,
+    false,
+    pdf,
+    output,
+  )
+  let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let text = @pdfio.string_of_bytes(bytes)
+  assert_true(text.contains("/ObjStm"))
+  let has_flate = text.contains("/FlateDecode")
+  assert_eq(has_flate, should_compress)
+}
+
+///|
+test "pdf_to_output skips indirect length objects for objstm hints" {
+  let pdf = @pdfpage.minimum_valid_pdf()
+  let length_obj = @pdf.addobj(pdf, @pdf.PdfObject::Integer(4))
+  let data = @pdfio.bytes_of_string("data")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Indirect(length_obj)),
+  ])
+  let stream_num = @pdf.addobj(
+    pdf,
+    @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data)))),
+  )
+  pdf.objects.object_stream_ids.set(stream_num, stream_num)
+  pdf.objects.object_stream_ids.set(length_obj, stream_num)
+  let (output, buffer) = @pdfio.input_output_of_bytes(1024)
+  @pdfwrite.pdf_to_output(
+    generate_objstm=true,
+    preserve_objstm=false,
+    compress_objstm=false,
     None,
     false,
     pdf,

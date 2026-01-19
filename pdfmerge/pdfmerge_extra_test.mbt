@@ -231,3 +231,66 @@ test "remove_duplicate_fonts updates object_stream_ids" {
   remove_duplicate_fonts(pdf)
   assert_eq(pdf.objects.object_stream_ids.length(), 1)
 }
+
+///|
+test "remove_duplicate_fonts keeps distinct stream lengths" {
+  let pdf = @pdf.empty()
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(1)),
+  ])
+  let stream1 = @pdf.PdfObject::Stream(
+    Ref::new((dict, @pdf.Stream::Got([0x01]))),
+  )
+  let stream2 = @pdf.PdfObject::Stream(
+    Ref::new((dict, @pdf.Stream::Got([0x01, 0x02]))),
+  )
+  ignore(@pdf.addobj(pdf, stream1))
+  ignore(@pdf.addobj(pdf, stream2))
+  let before = @pdf.objcard(pdf)
+  remove_duplicate_fonts(pdf)
+  assert_eq(@pdf.objcard(pdf), before)
+}
+
+///|
+test "merge_pdfs errors on empty inputs" {
+  let res : Result[@pdf.Pdf, Error] = try? merge_pdfs(
+    false,
+    false,
+    process_struct_trees=false,
+    add_toplevel_document=false,
+    [],
+    [],
+    [],
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "merge_pdfs errors on mismatched names" {
+  let pdf = make_pdf_pages(1)
+  let res : Result[@pdf.Pdf, Error] = try? merge_pdfs(
+    false,
+    false,
+    process_struct_trees=false,
+    add_toplevel_document=false,
+    ["one", "two"],
+    [pdf],
+    [[1]],
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "merge_pdfs errors on page out of range" {
+  let pdf = make_pdf_pages(1)
+  let res : Result[@pdf.Pdf, Error] = try? merge_pdfs(
+    false,
+    false,
+    process_struct_trees=false,
+    add_toplevel_document=false,
+    ["one"],
+    [pdf],
+    [[2]],
+  )
+  assert_true(res is Err(_))
+}

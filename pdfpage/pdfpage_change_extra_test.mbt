@@ -1,0 +1,248 @@
+///|
+fn page_objnum(pdf : @pdf.Pdf, index : Int) -> Int raise {
+  match @pdfpage.page_object_number(pdf, index) {
+    Some(objnum) => objnum
+    None => raise @pdf.PdfError::Msg("missing page")
+  }
+}
+
+///|
+fn build_two_page_pdf() -> @pdf.Pdf raise {
+  let pdf = @pdf.empty()
+  let pages = [
+    @pdfpage.blankpage(@pdfpaper.a4),
+    @pdfpage.blankpage(@pdfpaper.a4),
+  ]
+  let (pdf, pagetree) = @pdfpage.add_pagetree(pages, pdf)
+  @pdfpage.add_root(pagetree, [], pdf)
+}
+
+///|
+fn set_catalog_entry(
+  pdf : @pdf.Pdf,
+  key : String,
+  value : @pdf.PdfObject,
+) -> Unit raise {
+  let catalog = @pdf.catalog_of_pdf(pdf)
+  let updated = @pdf.add_dict_entry(catalog, key, value)
+  @pdf.addobj_given_num(pdf, (pdf.root, updated))
+}
+
+///|
+fn dest_for_page(page_objnum : Int) -> @pdf.PdfObject {
+  @pdf.PdfObject::Array([
+    @pdf.PdfObject::Indirect(page_objnum),
+    @pdf.PdfObject::Name("/Fit"),
+  ])
+}
+
+///|
+fn xyz_dest_for_page(page_objnum : Int) -> @pdf.PdfObject {
+  @pdfdest.pdfobject_of_destination(
+    @pdfdest.Destination::XYZ(
+      @pdfdest.TargetPage::PageObject(page_objnum),
+      Some(0.0),
+      Some(0.0),
+      Some(1.0),
+    ),
+  )
+}
+
+///|
+fn action_for_dest(dest : @pdf.PdfObject) -> @pdf.PdfObject {
+  @pdf.PdfObject::Dictionary([
+    ("/S", @pdf.PdfObject::Name("/GoTo")),
+    ("/D", dest),
+  ])
+}
+
+///|
+fn update_page_annots(
+  pdf : @pdf.Pdf,
+  page_objnum : Int,
+  annots : Array[@pdf.PdfObject],
+) -> Unit raise {
+  let page_obj = @pdf.lookup_obj(pdf, page_objnum)
+  match page_obj {
+    @pdf.PdfObject::Dictionary(_) => {
+      let updated = @pdf.add_dict_entry(
+        page_obj,
+        "/Annots",
+        @pdf.PdfObject::Array(annots),
+      )
+      @pdf.addobj_given_num(pdf, (page_objnum, updated))
+    }
+    _ => raise @pdf.PdfError::Msg("page object not a dictionary")
+  }
+}
+
+///|
+fn add_bookmarks_for_pages(
+  pdf : @pdf.Pdf,
+  page1 : Int,
+  page2 : Int,
+) -> @pdf.Pdf raise {
+  let marks : Array[@pdfmarks.Bookmark] = [
+    {
+      level: 1,
+      text: "Page 1",
+      target: @pdfdest.Destination::XYZ(
+        @pdfdest.TargetPage::PageObject(page1),
+        Some(0.0),
+        Some(0.0),
+        Some(1.0),
+      ),
+      isopen: true,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 1,
+      text: "Page 2",
+      target: @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(page2)),
+      isopen: true,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+  ]
+  @pdfmarks.add_bookmarks(marks, pdf)
+}
+
+///|
+test "pagenumber_of_target resolves action destinations" {
+  let pdf = build_two_page_pdf()
+  let page1 = page_objnum(pdf, 1)
+  let dest = dest_for_page(page1)
+  let action = action_for_dest(dest)
+  let target = @pdfdest.Destination::Action(action)
+  assert_eq(@pdfpage.pagenumber_of_target(pdf, target), 1)
+}
+
+///|
+test "change_pages returns pdf when references are unchanged" {
+  let pdf = build_two_page_pdf()
+  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let updated = @pdfpage.change_pages(false, pdf, pages)
+  assert_eq(@pdfpage.pages_of_pagetree_quick(updated), 2)
+}
+
+///|
+test "change_pages with references and no matrices" {
+  let pdf = build_two_page_pdf()
+  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let updated = @pdfpage.change_pages(true, pdf, pages)
+  assert_eq(@pdfpage.pages_of_pagetree_quick(updated), 2)
+}
+
+///|
+test "change_pages rewrites bookmarks annotations and openaction" {
+  let mut pdf = build_two_page_pdf()
+  let page1 = page_objnum(pdf, 1)
+  let page2 = page_objnum(pdf, 2)
+  pdf.objects.object_stream_ids.set(page1, page1)
+  pdf = add_bookmarks_for_pages(pdf, page1, page2)
+  let dest_page2 = dest_for_page(page2)
+  let annot_dest = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Link")),
+    ("/Dest", dest_page2),
+  ])
+  let annot_dest_num = @pdf.addobj(pdf, annot_dest)
+  let annot_action = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Link")),
+    ("/A", action_for_dest(dest_page2)),
+  ])
+  let annot_action_num = @pdf.addobj(pdf, annot_action)
+  let annot_action_invalid = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Link")),
+    ("/A", @pdf.PdfObject::Null),
+  ])
+  let annot_action_invalid_num = @pdf.addobj(pdf, annot_action_invalid)
+  let annot_not_link = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Text")),
+  ])
+  let annot_not_link_num = @pdf.addobj(pdf, annot_not_link)
+  update_page_annots(pdf, page1, [
+    @pdf.PdfObject::Indirect(annot_dest_num),
+    @pdf.PdfObject::Indirect(annot_action_num),
+    @pdf.PdfObject::Indirect(annot_action_invalid_num),
+    @pdf.PdfObject::Indirect(annot_not_link_num),
+    @pdf.PdfObject::Null,
+  ])
+  set_catalog_entry(
+    pdf,
+    "/OpenAction",
+    action_for_dest(xyz_dest_for_page(page1)),
+  )
+  let scale : @pdftransform.TransformMatrix = {
+    a: 2.0,
+    b: 0.0,
+    c: 0.0,
+    d: 2.0,
+    e: 0.0,
+    f: 0.0,
+  }
+  let matrices = [(1, scale), (2, @pdftransform.i_matrix)]
+  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let updated = @pdfpage.change_pages(true, pdf, pages, matrices~)
+  assert_eq(@pdfpage.pages_of_pagetree_quick(updated), 2)
+  let catalog = @pdf.catalog_of_pdf(updated)
+  match @pdf.lookup_direct(updated, "/OpenAction", catalog) {
+    Some(@pdf.PdfObject::Dictionary(entries)) =>
+      match entries.search_by(pair => pair.0 == "/D") {
+        Some(idx) =>
+          match entries[idx].1 {
+            @pdf.PdfObject::Indirect(_) => ()
+            _ => fail("expected indirect /D in /OpenAction")
+          }
+        None => fail("missing /D in /OpenAction")
+      }
+    _ => fail("expected /OpenAction dictionary")
+  }
+}
+
+///|
+test "change_pages keeps array openaction for identity matrices" {
+  let pdf = build_two_page_pdf()
+  let page1 = page_objnum(pdf, 1)
+  set_catalog_entry(pdf, "/OpenAction", dest_for_page(page1))
+  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let matrices = [(1, @pdftransform.i_matrix), (2, @pdftransform.i_matrix)]
+  let updated = @pdfpage.change_pages(true, pdf, pages, matrices~)
+  let catalog = @pdf.catalog_of_pdf(updated)
+  match @pdf.lookup_direct(updated, "/OpenAction", catalog) {
+    Some(@pdf.PdfObject::Array(_)) => ()
+    _ => fail("expected array /OpenAction")
+  }
+}
+
+///|
+test "change_pages logs when lengths differ with matrices" {
+  let pdf = build_two_page_pdf()
+  let pages = [@pdfpage.blankpage(@pdfpaper.a4)]
+  let matrices = [(1, @pdftransform.i_matrix)]
+  let updated = @pdfpage.change_pages(true, pdf, pages, matrices~)
+  assert_eq(@pdfpage.pages_of_pagetree_quick(updated), 1)
+}
+
+///|
+test "change_pages rejects invalid change indices" {
+  let pdf = build_two_page_pdf()
+  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let res : Result[@pdf.Pdf, Error] = try? @pdfpage.change_pages(
+    true,
+    pdf,
+    pages,
+    changes=[(0, 1)],
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "target_of_pagenumber returns fit destination" {
+  let pdf = build_two_page_pdf()
+  let dest = @pdfpage.target_of_pagenumber(pdf, 1)
+  match dest {
+    @pdfdest.Destination::Fit(_) => ()
+    _ => fail("expected Fit destination")
+  }
+}
