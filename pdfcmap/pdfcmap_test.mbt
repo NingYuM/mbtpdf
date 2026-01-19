@@ -30,3 +30,22 @@ test "parse_cmap parses bfchar and bfrange" {
   assert_eq(find_value(parsed.map, key02), Some(u0042))
   assert_eq(find_value(parsed.map, key03), Some(u0043))
 }
+
+///|
+test "parse_cmap parses bfrange array mapping" {
+  let data = @pdfio.bytes_of_string(
+    "beginbfrange<01><02>[<0041><0042>]endbfrange",
+  )
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+  ])
+  let cmap = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let parsed = @pdfcmap.parse_cmap(@pdf.empty(), cmap)
+  assert_eq(parsed.wmode, None)
+  let key01 = @pdfio.string_of_int_array([0x01])
+  let key02 = @pdfio.string_of_int_array([0x02])
+  let u0041 = @pdfio.string_of_int_array([0x00, 0x41])
+  let u0042 = @pdfio.string_of_int_array([0x00, 0x42])
+  assert_eq(find_value(parsed.map, key01), Some(u0041))
+  assert_eq(find_value(parsed.map, key02), Some(u0042))
+}
