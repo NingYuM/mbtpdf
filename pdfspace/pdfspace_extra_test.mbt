@@ -186,3 +186,129 @@ test "write_colourspace DeviceN omits empty attributes" {
     _ => fail("expected DeviceN array")
   }
 }
+
+///|
+test "string_of_colourspace covers variants" {
+  let icc = ICCBased::{
+    icc_n: 3,
+    icc_alternate: ColourSpace::DeviceRGB,
+    icc_range: [0.0, 1.0, 0.0, 1.0, 0.0, 1.0],
+    icc_metadata: None,
+    icc_stream: @pdf.PdfObject::Null,
+  }
+  assert_eq(string_of_colourspace(ColourSpace::DeviceGray), "/DeviceGray")
+  assert_eq(string_of_colourspace(ColourSpace::DeviceCMYK), "/DeviceCMYK")
+  assert_eq(
+    string_of_colourspace(ColourSpace::ICCBased(icc)),
+    "ICCBased (/DeviceRGB)",
+  )
+  assert_eq(
+    string_of_colourspace(
+      ColourSpace::PatternWithBaseColourspace(ColourSpace::DeviceRGB),
+    ),
+    "PatternWithBaseColourspace (/DeviceRGB)",
+  )
+  assert_eq(
+    string_of_colourspace(
+      ColourSpace::Separation(
+        "Spot",
+        ColourSpace::DeviceRGB,
+        sample_tint_function(),
+      ),
+    ),
+    "Separation (/DeviceRGB)",
+  )
+  assert_eq(
+    string_of_colourspace(
+      ColourSpace::DeviceN(
+        ["C1"],
+        ColourSpace::DeviceRGB,
+        sample_tint_function(),
+        @pdf.PdfObject::Dictionary([]),
+      ),
+    ),
+    "DeviceN (/DeviceRGB)",
+  )
+}
+
+///|
+test "name_of_colourspace returns none for non-separation" {
+  let name = name_of_colourspace(ColourSpace::DeviceRGB)
+  match name {
+    None => ()
+    _ => fail("expected none")
+  }
+}
+
+///|
+test "read_colourspace missing whitepoint defaults to zeros" {
+  let pdf = @pdf.empty()
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/BlackPoint", mk_point(0.0, 0.0, 0.0)),
+  ])
+  let space = read_colourspace(
+    pdf,
+    @pdf.PdfObject::Dictionary([]),
+    @pdf.PdfObject::Array([@pdf.PdfObject::Name("/CalGray"), dict]),
+  )
+  match space {
+    ColourSpace::CalGray(white, _, _) => assert_eq(white, (0.0, 0.0, 0.0))
+    _ => fail("expected CalGray")
+  }
+}
+
+///|
+test "read_colourspace indexed handles ICCBased base" {
+  let pdf = @pdf.empty()
+  let icc_dict = @pdf.PdfObject::Dictionary([("/N", @pdf.PdfObject::Integer(3))])
+  let icc_stream = @pdf.PdfObject::Stream(
+    Ref::new((icc_dict, @pdf.Stream::Got(@pdfio.bytes_of_list([0])))),
+  )
+  let base = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Name("/ICCBased"),
+    icc_stream,
+  ])
+  let lookup = @pdf.PdfObject::String(
+    @pdfio.string_of_bytes(@pdfio.bytes_of_list([1, 2, 3])),
+  )
+  let space = read_colourspace(
+    pdf,
+    @pdf.PdfObject::Dictionary([]),
+    @pdf.PdfObject::Array([
+      @pdf.PdfObject::Name("/Indexed"),
+      base,
+      @pdf.PdfObject::Integer(0),
+      lookup,
+    ]),
+  )
+  match space {
+    ColourSpace::Indexed(ColourSpace::ICCBased(_), table) =>
+      match table.get(0) {
+        Some(values) => assert_eq(values, [1, 2, 3])
+        _ => fail("expected indexed table entry")
+      }
+    _ => fail("expected indexed ICCBased")
+  }
+}
+
+///|
+test "read_colourspace indexed rejects short table" {
+  let pdf = @pdf.empty()
+  let lookup = @pdf.PdfObject::String(
+    @pdfio.string_of_bytes(@pdfio.bytes_of_list([1, 2, 3])),
+  )
+  let res : Result[ColourSpace, Error] = try? read_colourspace(
+    pdf,
+    @pdf.PdfObject::Dictionary([]),
+    @pdf.PdfObject::Array([
+      @pdf.PdfObject::Name("/Indexed"),
+      @pdf.PdfObject::Name("/DeviceRGB"),
+      @pdf.PdfObject::Integer(1),
+      lookup,
+    ]),
+  )
+  match res {
+    Err(_) => ()
+    _ => fail("expected short table error")
+  }
+}
