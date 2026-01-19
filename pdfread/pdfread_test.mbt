@@ -31,3 +31,27 @@ test "parse_single_object collections" {
     _ => fail("expected dictionary")
   }
 }
+
+///|
+test "parse_single_object names, strings, and atoms" {
+  let name_obj = @pdfread.parse_single_object("/A#20B")
+  match name_obj {
+    @pdf.PdfObject::Name(name) => assert_eq(name, "/A B")
+    _ => fail("expected name")
+  }
+  let str_obj = @pdfread.parse_single_object("(hello\\nworld)")
+  match str_obj {
+    @pdf.PdfObject::String(value) => assert_eq(value, "hello\nworld")
+    _ => fail("expected string")
+  }
+  let bool_obj = @pdfread.parse_single_object("true")
+  match bool_obj {
+    @pdf.PdfObject::Boolean(true) => ()
+    _ => fail("expected true")
+  }
+  let null_obj = @pdfread.parse_single_object("null")
+  match null_obj {
+    @pdf.PdfObject::Null => ()
+    _ => fail("expected null")
+  }
+}
