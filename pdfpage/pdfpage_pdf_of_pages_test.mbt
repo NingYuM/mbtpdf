@@ -1,0 +1,176 @@
+///|
+fn pdf_of_pages_rect() -> @pdf.PdfObject {
+  @pdf.PdfObject::Array([
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(100.0),
+    @pdf.PdfObject::Real(100.0),
+  ])
+}
+
+///|
+fn pdf_of_pages_make_pdf(count : Int) -> @pdf.Pdf raise {
+  let rect = pdf_of_pages_rect()
+  let pages = Array::new(capacity=count)
+  for _ in 0..<count {
+    pages.push(@pdfpage.custompage(rect))
+  }
+  let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
+  @pdfpage.add_root(pageroot, [], pdf0)
+}
+
+///|
+fn pdf_of_pages_with_bookmarks(count : Int) -> @pdf.Pdf raise {
+  let pdf = pdf_of_pages_make_pdf(count)
+  let refs = @pdf.page_reference_numbers(pdf)
+  let marks : Array[@pdfmarks.Bookmark] = [
+    {
+      level: 0,
+      text: "Root",
+      target: @pdfdest.Destination::Fit(
+        @pdfdest.TargetPage::PageObject(refs[0]),
+      ),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 1,
+      text: "Child",
+      target: @pdfdest.Destination::Fit(
+        @pdfdest.TargetPage::PageObject(refs[1]),
+      ),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 1,
+      text: "Other",
+      target: @pdfdest.Destination::Fit(
+        @pdfdest.TargetPage::PageObject(refs[2]),
+      ),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+  ]
+  @pdfmarks.add_bookmarks(marks, pdf)
+}
+
+///|
+test "pdf_of_pages rejects empty range" {
+  let pdf = pdf_of_pages_make_pdf(1)
+  let res : Result[@pdf.Pdf, Error] = try? @pdfpage.pdf_of_pages(pdf, [])
+  match res {
+    Err(_) => ()
+    _ => fail("expected error for empty range")
+  }
+}
+
+///|
+test "pdf_of_pages errors on invalid page index" {
+  let pdf = pdf_of_pages_make_pdf(2)
+  let res : Result[@pdf.Pdf, Error] = try? @pdfpage.pdf_of_pages(pdf, [3])
+  match res {
+    Err(_) => ()
+    _ => fail("expected invalid page error")
+  }
+}
+
+///|
+test "pdf_of_pages builds pagetree for many pages" {
+  let pdf = pdf_of_pages_make_pdf(12)
+  let subset = @pdfpage.pdf_of_pages(pdf, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+  let root = @pdf.catalog_of_pdf(subset)
+  let pages = match @pdf.lookup_direct(subset, "/Pages", root) {
+    Some(obj) => obj
+    None => fail("expected /Pages")
+  }
+  match @pdf.lookup_direct(subset, "/Type", pages) {
+    Some(@pdf.PdfObject::Name("/Pages")) => ()
+    _ => fail("expected /Type /Pages")
+  }
+  let count = match @pdf.lookup_direct(subset, "/Count", pages) {
+    Some(@pdf.PdfObject::Integer(n)) => n
+    _ => fail("expected /Count")
+  }
+  assert_eq(count, 11)
+}
+
+///|
+test "pdf_of_pages keeps bookmark prefix chain" {
+  let pdf = pdf_of_pages_with_bookmarks(3)
+  let subset = @pdfpage.pdf_of_pages(pdf, [2])
+  let marks = @pdfmarks.read_bookmarks(subset)
+  assert_eq(marks.length(), 2)
+  assert_eq(marks[0].text, "Root")
+  assert_eq(marks[1].text, "Child")
+}
+
+///|
+test "pdf_of_pages retains page labels when requested" {
+  let pdf = pdf_of_pages_make_pdf(3)
+  let labels = [
+    @pdfpagelabels.PageLabel::{
+      labelstyle: @pdfpagelabels.LabelStyle::DecimalArabic,
+      labelprefix: Some("A"),
+      startpage: 1,
+      startvalue: 1,
+    },
+  ]
+  @pdfpagelabels.write(pdf, labels)
+  let subset = @pdfpage.pdf_of_pages(pdf, [1, 2], retain_numbering=true)
+  let read_back = @pdfpagelabels.read(subset)
+  assert_true(read_back.length() > 0)
+}
+
+///|
+test "pdf_of_pages trims structure tree" {
+  let pdf = pdf_of_pages_make_pdf(2)
+  let struct_tree = @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/StructTreeRoot")),
+  ])
+  let struct_num = @pdf.addobj(pdf, struct_tree)
+  let root = @pdf.catalog_of_pdf(pdf)
+  let updated_root = @pdf.add_dict_entry(
+    root,
+    "/StructTreeRoot",
+    @pdf.PdfObject::Indirect(struct_num),
+  )
+  @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
+  let subset = @pdfpage.pdf_of_pages(pdf, [1], process_struct_tree=true)
+  let root2 = @pdf.catalog_of_pdf(subset)
+  match @pdf.lookup_direct(subset, "/StructTreeRoot", root2) {
+    Some(_) => ()
+    None => fail("expected StructTreeRoot to remain")
+  }
+}
+
+///|
+test "pdf_of_pages fails without root" {
+  let pdf = @pdf.empty()
+  let res : Result[@pdf.Pdf, Error] = try? @pdfpage.pdf_of_pages(pdf, [1])
+  match res {
+    Err(_) => ()
+    _ => fail("expected missing /Root error")
+  }
+}
+
+///|
+test "endpage_fast handles missing count" {
+  let pdf0 = @pdf.empty()
+  let rect = pdf_of_pages_rect()
+  let page = @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/Page")),
+    ("/MediaBox", rect),
+  ])
+  let page_num = @pdf.addobj(pdf0, page)
+  let pages = @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/Pages")),
+    ("/Kids", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(page_num)])),
+  ])
+  let pages_num = @pdf.addobj(pdf0, pages)
+  let pdf = @pdfpage.add_root(pages_num, [], pdf0)
+  assert_eq(@pdfpage.endpage_fast(pdf), 0)
+}
