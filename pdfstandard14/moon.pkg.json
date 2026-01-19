@@ -6,5 +6,8 @@
     "bobzhang/mbtpdf/pdfio",
     "bobzhang/mbtpdf/pdftext",
     "bobzhang/mbtpdf/pdfutil"
+  ],
+  "test-import": [
+    "bobzhang/mbtpdf/pdf"
   ]
 }

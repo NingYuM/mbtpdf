@@ -4,11 +4,19 @@
 ///|
 fn split_whitespace(line : String) -> Array[String] {
   let out = Array::new()
-  for part_view in line.split(" ") {
-    let token = part_view.to_string().trim().to_string()
-    if token.length() > 0 {
-      out.push(token)
+  let mut current = StringBuilder::new()
+  for ch in line {
+    if ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' {
+      if !current.is_empty() {
+        out.push(current.to_string())
+        current = StringBuilder::new()
+      }
+    } else {
+      current.write_char(ch)
     }
+  }
+  if !current.is_empty() {
+    out.push(current.to_string())
   }
   out
 }
@@ -24,19 +32,25 @@ fn read_char_metrics_line(line : String) -> (String, (Int, Int)) raise {
   let mut name = ""
   let mut charnum : Int? = None
   let mut width : Int? = None
+  fn is_field_label(parts : Array[String], idx : Int) -> Bool {
+    idx == 0 || parts[idx - 1] == ";"
+  }
+
   let mut i = 0
   while i < parts.length() {
-    match parts[i] {
-      "C" =>
-        if i + 1 < parts.length() {
-          charnum = Some(parse_int(parts[i + 1]))
-        }
-      "WX" =>
-        if i + 1 < parts.length() {
-          width = Some(parse_int(parts[i + 1]))
-        }
-      "N" => if i + 1 < parts.length() { name = parts[i + 1] }
-      _ => ()
+    if is_field_label(parts, i) {
+      match parts[i] {
+        "C" =>
+          if i + 1 < parts.length() {
+            charnum = Some(parse_int(parts[i + 1]))
+          }
+        "WX" =>
+          if i + 1 < parts.length() {
+            width = Some(parse_int(parts[i + 1]))
+          }
+        "N" => if i + 1 < parts.length() { name = parts[i + 1] }
+        _ => ()
+      }
     }
     i = i + 1
   }

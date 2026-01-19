@@ -4,5 +4,9 @@
     "bobzhang/mbtpdf/pdfe",
     "bobzhang/mbtpdf/pdftree",
     "moonbitlang/core/strconv"
+  ],
+  "test-import": [
+    "bobzhang/mbtpdf/pdfpage",
+    "bobzhang/mbtpdf/pdfpaper"
   ]
 }
