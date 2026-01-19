@@ -96,12 +96,32 @@ test "decrypt_pdf returns original when unencrypted" {
 test "recrypt_pdf requires correct password" {
   let pdf = @pdfpage.minimum_valid_pdf()
   let enc = @pdfcrypt.encrypt_pdf_AES256(true, "user", "owner", [], pdf)
-  let reenc : Result[@pdf.Pdf, Error] = try? @pdfcrypt.recrypt_pdf(
+  let reenc_user : Result[@pdf.Pdf, Error] = try? @pdfcrypt.recrypt_pdf(
     @pdf.deep_copy(enc),
     "user",
     renumber=false,
   )
-  assert_true(reenc is Err(_))
+  match reenc_user {
+    Ok(pdf_reenc) =>
+      match @pdfcrypt.decrypt_pdf("user", @pdf.deep_copy(pdf_reenc)) {
+        (Some(_), _) => ()
+        _ => fail("expected user decrypt after recrypt")
+      }
+    Err(_) => fail("expected user recrypt to succeed")
+  }
+  let reenc_owner : Result[@pdf.Pdf, Error] = try? @pdfcrypt.recrypt_pdf(
+    @pdf.deep_copy(enc),
+    "owner",
+    renumber=false,
+  )
+  match reenc_owner {
+    Ok(pdf_reenc) =>
+      match @pdfcrypt.decrypt_pdf_owner("owner", @pdf.deep_copy(pdf_reenc)) {
+        Some(_) => ()
+        None => fail("expected owner decrypt after recrypt")
+      }
+    Err(_) => fail("expected owner recrypt to succeed")
+  }
   let bad : Result[@pdf.Pdf, Error] = try? @pdfcrypt.recrypt_pdf(
     @pdf.deep_copy(enc),
     "wrong",
