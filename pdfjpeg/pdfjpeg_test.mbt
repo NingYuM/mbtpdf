@@ -1,27 +1,21 @@
 ///|
-fn[T] assert_is_err(res : Result[T, Error]) -> Unit raise {
-  match res {
-    Err(_) => ()
-    Ok(_) => fail("expected error")
-  }
+test "get_jpeg_data reads until EOI marker" {
+  let bytes = @pdfio.bytes_of_list([0xff, 0xd8, 0x00, 0xff, 0xd9, 0x00])
+  let input = @pdfio.input_of_bytes(bytes)
+  let data = @pdfjpeg.get_jpeg_data(input)
+  assert_eq(@pdfio.bytes_size(data), 5)
+  assert_eq(@pdfio.bget_unsafe(data, 0), 0xff)
+  assert_eq(@pdfio.bget_unsafe(data, 1), 0xd8)
+  assert_eq(@pdfio.bget_unsafe(data, 3), 0xff)
+  assert_eq(@pdfio.bget_unsafe(data, 4), 0xd9)
 }
 
 ///|
-test "get_jpeg_data reads until marker" {
-  let bytes : Array[Byte] = [
-    b'\xff', b'\xd8', b'\x00', b'\xff', b'\xd9', b'\x11',
-  ]
-  let input = @pdfio.input_of_bytes(bytes, source="jpeg")
-  let data = get_jpeg_data(input)
-  assert_eq(data.length(), 5)
-  assert_eq(data[0].to_int(), 0xff)
-  assert_eq(data[4].to_int(), 0xd9)
-  assert_eq((input.pos_in)(), 5)
-}
-
-///|
-test "get_jpeg_data errors on missing end" {
-  let bytes : Array[Byte] = [b'\xff', b'\xd8', b'\x00']
-  let input = @pdfio.input_of_bytes(bytes, source="jpeg")
-  assert_is_err(try? get_jpeg_data(input))
+test "get_jpeg_data errors on missing EOI" {
+  let bytes = @pdfio.bytes_of_list([0x00, 0x01, 0x02])
+  let input = @pdfio.input_of_bytes(bytes)
+  let res : Result[@pdfio.MutableBytes, Error] = try? @pdfjpeg.get_jpeg_data(
+    input,
+  )
+  assert_true(res is Err(_))
 }
