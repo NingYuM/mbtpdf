@@ -5,6 +5,16 @@ fn assert_close(a : Double, b : Double) -> Unit raise {
 }
 
 ///|
+fn eval_calc(ops : Array[Calculator]) -> Array[Double] raise {
+  let fun : PdfFunction = {
+    func: PdfFunctionKind::Calculator(ops),
+    domain: [],
+    range: None,
+  }
+  eval_function(fun, [])
+}
+
+///|
 test "eval calculator function" {
   let pdf = @pdf.empty()
   let dict = @pdf.PdfObject::Dictionary([
@@ -223,4 +233,363 @@ test "eval stitching function" {
   assert_eq(out2.length(), 1)
   assert_close(out1[0], 0.5)
   assert_close(out2[0], 1.5)
+}
+
+///|
+test "calculator arithmetic ops" {
+  let add = eval_calc([Calculator::Int(2), Calculator::Int(3), Calculator::Add])
+  assert_eq(add.length(), 1)
+  assert_close(add[0], 5.0)
+  let sub = eval_calc([Calculator::Int(10), Calculator::Int(3), Calculator::Sub])
+  assert_close(sub[0], 7.0)
+  let mul = eval_calc([Calculator::Int(4), Calculator::Int(5), Calculator::Mul])
+  assert_close(mul[0], 20.0)
+  let div = eval_calc([Calculator::Int(8), Calculator::Int(2), Calculator::Div])
+  assert_close(div[0], 0.25)
+  let exp = eval_calc([Calculator::Int(3), Calculator::Int(2), Calculator::Exp])
+  assert_close(exp[0], 8.0)
+  let idiv = eval_calc([
+    Calculator::Int(3),
+    Calculator::Int(10),
+    Calculator::Idiv,
+  ])
+  assert_close(idiv[0], 3.0)
+  let mod = eval_calc([Calculator::Int(3), Calculator::Int(10), Calculator::Mod])
+  assert_close(mod[0], 1.0)
+}
+
+///|
+test "calculator rounding and conversion ops" {
+  let abs = eval_calc([Calculator::Float(-1.4), Calculator::Abs])
+  assert_close(abs[0], 1.4)
+  let neg = eval_calc([Calculator::Int(5), Calculator::Neg])
+  assert_close(neg[0], -5.0)
+  let ceil = eval_calc([Calculator::Float(1.1), Calculator::Ceiling])
+  assert_close(ceil[0], 2.0)
+  let floor = eval_calc([Calculator::Float(1.9), Calculator::Floor])
+  assert_close(floor[0], 1.0)
+  let round = eval_calc([Calculator::Float(1.6), Calculator::Round])
+  assert_close(round[0], 2.0)
+  let trunc = eval_calc([Calculator::Float(1.9), Calculator::Truncate])
+  assert_close(trunc[0], 1.0)
+  let cvi = eval_calc([Calculator::Float(2.9), Calculator::Cvi])
+  assert_close(cvi[0], 2.0)
+  let cvr = eval_calc([Calculator::Int(5), Calculator::Cvr])
+  assert_close(cvr[0], 5.0)
+}
+
+///|
+test "calculator trig and log ops" {
+  let sin = eval_calc([Calculator::Float(90.0), Calculator::Sin])
+  assert_close(sin[0], 1.0)
+  let cos = eval_calc([Calculator::Float(0.0), Calculator::Cos])
+  assert_close(cos[0], 1.0)
+  let atan = eval_calc([
+    Calculator::Int(1),
+    Calculator::Int(0),
+    Calculator::Atan,
+  ])
+  assert_close(atan[0], 0.0)
+  let ln = eval_calc([Calculator::Float(1.0), Calculator::Ln])
+  assert_close(ln[0], 0.0)
+  let log = eval_calc([Calculator::Float(1.0), Calculator::Log])
+  assert_close(log[0], 0.0)
+  let sqrt = eval_calc([Calculator::Int(9), Calculator::Sqrt])
+  assert_close(sqrt[0], 3.0)
+}
+
+///|
+test "calculator stack ops" {
+  let dup = eval_calc([Calculator::Int(3), Calculator::Dup])
+  assert_eq(dup.length(), 2)
+  assert_close(dup[0], 3.0)
+  assert_close(dup[1], 3.0)
+  let exch = eval_calc([
+    Calculator::Int(1),
+    Calculator::Int(2),
+    Calculator::Exch,
+  ])
+  assert_eq(exch.length(), 2)
+  assert_close(exch[0], 1.0)
+  assert_close(exch[1], 2.0)
+  let pop = eval_calc([Calculator::Int(1), Calculator::Int(2), Calculator::Pop])
+  assert_eq(pop.length(), 1)
+  assert_close(pop[0], 1.0)
+  let copy = eval_calc([
+    Calculator::Int(1),
+    Calculator::Int(2),
+    Calculator::Int(3),
+    Calculator::Int(2),
+    Calculator::Copy,
+  ])
+  assert_eq(copy.length(), 5)
+  assert_close(copy[0], 3.0)
+  assert_close(copy[1], 2.0)
+  assert_close(copy[2], 3.0)
+  assert_close(copy[3], 2.0)
+  assert_close(copy[4], 1.0)
+  let index = eval_calc([
+    Calculator::Int(7),
+    Calculator::Int(8),
+    Calculator::Int(9),
+    Calculator::Int(1),
+    Calculator::Index,
+  ])
+  assert_eq(index.length(), 4)
+  assert_close(index[0], 8.0)
+  assert_close(index[1], 9.0)
+  assert_close(index[2], 8.0)
+  assert_close(index[3], 7.0)
+  let roll = eval_calc([
+    Calculator::Int(1),
+    Calculator::Int(2),
+    Calculator::Int(3),
+    Calculator::Int(3),
+    Calculator::Int(1),
+    Calculator::Roll,
+  ])
+  assert_eq(roll.length(), 3)
+  assert_close(roll[0], 1.0)
+  assert_close(roll[1], 3.0)
+  assert_close(roll[2], 2.0)
+}
+
+///|
+test "calculator boolean and comparison ops" {
+  let and_int = eval_calc([
+    Calculator::Int(6),
+    Calculator::Int(3),
+    Calculator::And,
+  ])
+  assert_close(and_int[0], 2.0)
+  let or_int = eval_calc([
+    Calculator::Int(2),
+    Calculator::Int(1),
+    Calculator::Or,
+  ])
+  assert_close(or_int[0], 3.0)
+  let xor_int = eval_calc([
+    Calculator::Int(6),
+    Calculator::Int(3),
+    Calculator::Xor,
+  ])
+  assert_close(xor_int[0], 5.0)
+  let not_int = eval_calc([Calculator::Int(0), Calculator::Not])
+  assert_close(not_int[0], -1.0)
+  let bitshift = eval_calc([
+    Calculator::Int(1),
+    Calculator::Int(2),
+    Calculator::Bitshift,
+  ])
+  assert_close(bitshift[0], 1.0)
+  let bitshift_neg = eval_calc([
+    Calculator::Int(-1),
+    Calculator::Int(4),
+    Calculator::Bitshift,
+  ])
+  assert_close(bitshift_neg[0], 2.0)
+  let and_bool = eval_calc([
+    Calculator::Bool(true),
+    Calculator::Bool(false),
+    Calculator::And,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(and_bool[0], 0.0)
+  let or_bool = eval_calc([
+    Calculator::Bool(false),
+    Calculator::Bool(true),
+    Calculator::Or,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(or_bool[0], 1.0)
+  let xor_bool = eval_calc([
+    Calculator::Bool(true),
+    Calculator::Bool(true),
+    Calculator::Xor,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(xor_bool[0], 0.0)
+  let not_bool = eval_calc([
+    Calculator::Bool(false),
+    Calculator::Bool(true),
+    Calculator::Not,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(not_bool[0], 0.0)
+  let eq_true = eval_calc([
+    Calculator::Int(2),
+    Calculator::Int(2),
+    Calculator::Eq,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(eq_true[0], 1.0)
+  let eq_false = eval_calc([
+    Calculator::Int(1),
+    Calculator::Float(1.0),
+    Calculator::Eq,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(eq_false[0], 0.0)
+  let gt = eval_calc([
+    Calculator::Int(1),
+    Calculator::Int(2),
+    Calculator::Gt,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(gt[0], 1.0)
+  let ge = eval_calc([
+    Calculator::Int(2),
+    Calculator::Int(2),
+    Calculator::Ge,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(ge[0], 1.0)
+  let lt = eval_calc([
+    Calculator::Int(3),
+    Calculator::Int(2),
+    Calculator::Lt,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(lt[0], 1.0)
+  let le = eval_calc([
+    Calculator::Int(2),
+    Calculator::Int(2),
+    Calculator::Le,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(le[0], 1.0)
+  let ne = eval_calc([
+    Calculator::Int(1),
+    Calculator::Int(2),
+    Calculator::Ne,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(ne[0], 1.0)
+  let gt_cross = eval_calc([
+    Calculator::Int(2),
+    Calculator::Float(1.0),
+    Calculator::Gt,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(gt_cross[0], 0.0)
+}
+
+///|
+test "calculator if and ifelse parse" {
+  let pdf = @pdf.empty()
+  let dict_if = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(4)),
+    ("/Domain", @pdf.PdfObject::Array([])),
+  ])
+  let data_if = @pdfio.bytes_of_string("{ true { 5 } if }")
+  let if_stream = @pdf.PdfObject::Stream(
+    Ref::new((dict_if, @pdf.Stream::Got(data_if))),
+  )
+  let fun_if = parse_function(pdf, if_stream)
+  let out_if = eval_function(fun_if, [])
+  assert_eq(out_if.length(), 1)
+  assert_close(out_if[0], 5.0)
+  let dict_ifelse = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(4)),
+    ("/Domain", @pdf.PdfObject::Array([])),
+  ])
+  let data_ifelse = @pdfio.bytes_of_string("{ false { 1 } { 2 } ifelse }")
+  let ifelse_stream = @pdf.PdfObject::Stream(
+    Ref::new((dict_ifelse, @pdf.Stream::Got(data_ifelse))),
+  )
+  let fun_ifelse = parse_function(pdf, ifelse_stream)
+  let out_ifelse = eval_function(fun_ifelse, [])
+  assert_eq(out_ifelse.length(), 1)
+  assert_close(out_ifelse[0], 2.0)
+}
+
+///|
+test "calculator errors on bad stack usage" {
+  let bad_copy : Result[Array[Double], Error] = try? eval_calc([
+    Calculator::Int(1),
+    Calculator::Int(2),
+    Calculator::Int(3),
+    Calculator::Int(5),
+    Calculator::Copy,
+  ])
+  assert_true(bad_copy is Err(_))
+  let bad_index : Result[Array[Double], Error] = try? eval_calc([
+    Calculator::Int(1),
+    Calculator::Int(1),
+    Calculator::Index,
+  ])
+  assert_true(bad_index is Err(_))
+  let bad_roll : Result[Array[Double], Error] = try? eval_calc([
+    Calculator::Int(0),
+    Calculator::Int(1),
+    Calculator::Roll,
+  ])
+  assert_true(bad_roll is Err(_))
+}
+
+///|
+test "eval_function clamps range and rejects bad domain" {
+  let clamped_fun : PdfFunction = {
+    func: PdfFunctionKind::Calculator([Calculator::Int(2)]),
+    domain: [],
+    range: Some([0.0, 1.0]),
+  }
+  let clamped = eval_function(clamped_fun, [])
+  assert_eq(clamped.length(), 1)
+  assert_close(clamped[0], 1.0)
+  let bad_domain : PdfFunction = {
+    func: PdfFunctionKind::Calculator([Calculator::Int(1)]),
+    domain: [0.0],
+    range: None,
+  }
+  let bad_domain_result : Result[Array[Double], Error] = try? eval_function(
+    bad_domain,
+    [0.0],
+  )
+  assert_true(bad_domain_result is Err(_))
+}
+
+///|
+test "parse function rejects bad inputs" {
+  let pdf = @pdf.empty()
+  let bad_type = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(9)),
+    ("/Domain", @pdf.PdfObject::Array([])),
+  ])
+  let bad_type_result : Result[PdfFunction, Error] = try? parse_function(
+    pdf, bad_type,
+  )
+  assert_true(bad_type_result is Err(_))
+  let bad_calc_dict = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(4)),
+    ("/Domain", @pdf.PdfObject::Array([])),
+  ])
+  let bad_calc_data = @pdfio.bytes_of_string("{ nope }")
+  let bad_calc_stream = @pdf.PdfObject::Stream(
+    Ref::new((bad_calc_dict, @pdf.Stream::Got(bad_calc_data))),
+  )
+  let bad_calc_result : Result[PdfFunction, Error] = try? parse_function(
+    pdf, bad_calc_stream,
+  )
+  assert_true(bad_calc_result is Err(_))
+  let sampled_dict = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(0)),
+    (
+      "/Domain",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Real(0.0),
+        @pdf.PdfObject::Real(1.0),
+      ]),
+    ),
+    ("/Size", @pdf.PdfObject::Array([@pdf.PdfObject::Integer(2)])),
+    ("/BitsPerSample", @pdf.PdfObject::Integer(1)),
+  ])
+  let sampled_data = @pdfio.bytes_of_list([0, 1])
+  let sampled_stream = @pdf.PdfObject::Stream(
+    Ref::new((sampled_dict, @pdf.Stream::Got(sampled_data))),
+  )
+  let sampled_result : Result[PdfFunction, Error] = try? parse_function(
+    pdf, sampled_stream,
+  )
+  assert_true(sampled_result is Err(_))
 }
