@@ -3,5 +3,10 @@
     "bobzhang/mbtpdf/pdfe",
     "moonbitlang/async/fs",
     "moonbitlang/async/io"
+  ],
+  "test-import": [
+    "moonbitlang/async",
+    "moonbitlang/async/fs",
+    "moonbitlang/async/io"
   ]
 }
