@@ -325,7 +325,8 @@ test "change_pages rewrites annotation and openaction" {
     (1, @pdftransform.mktranslate(5.0, -3.0)),
   ])
   let catalog2 = @pdf.catalog_of_pdf(translated)
-  let openaction = match @pdf.lookup_direct(translated, "/OpenAction", catalog2) {
+  let openaction = match
+    @pdf.lookup_direct(translated, "/OpenAction", catalog2) {
     Some(dest) => dest
     None => fail("expected OpenAction")
   }
