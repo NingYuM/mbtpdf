@@ -108,3 +108,66 @@ test "components resolves color spaces" {
   )
   assert_true(pattern_err is Err(_))
 }
+
+///|
+test "parse_single_stream reads basic ops" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let data = @pdfio.bytes_of_string("1 w q 0 0 m 10 0 l S Q")
+  let ops = @pdfops.parse_single_stream(pdf, resources, data)
+  match ops[0] {
+    @pdfops.Op::Opw(value) => assert_eq(value, 1.0)
+    _ => fail("expected Opw")
+  }
+  match ops[1] {
+    @pdfops.Op::Opq => ()
+    _ => fail("expected Opq")
+  }
+  assert_true(
+    ops.exists(op => match op {
+      @pdfops.Op::OpS => true
+      _ => false
+    }),
+  )
+}
+
+///|
+test "parse_operators roundtrips stream_of_ops" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let ops_in = [@pdfops.Op::Opq, @pdfops.Op::Opw(2.0), @pdfops.Op::OpQ]
+  let stream = @pdfops.stream_of_ops(ops_in)
+  let ops = @pdfops.parse_operators(pdf, resources, [stream])
+  assert_true(ops.length() >= 3)
+  match ops[0] {
+    @pdfops.Op::Opq => ()
+    _ => fail("expected Opq")
+  }
+  match ops[1] {
+    @pdfops.Op::Opw(value) => assert_eq(value, 2.0)
+    _ => fail("expected Opw")
+  }
+  match ops[2] {
+    @pdfops.Op::OpQ => ()
+    _ => fail("expected OpQ")
+  }
+}
+
+///|
+test "parse_stream concatenates multiple streams" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let ops = @pdfops.parse_stream(pdf, resources, [
+    @pdfio.bytes_of_string("q"),
+    @pdfio.bytes_of_string("Q"),
+  ])
+  assert_true(ops.length() >= 2)
+  match ops[0] {
+    @pdfops.Op::Opq => ()
+    _ => fail("expected Opq")
+  }
+  match ops[1] {
+    @pdfops.Op::OpQ => ()
+    _ => fail("expected OpQ")
+  }
+}
