@@ -75,3 +75,126 @@ test "extract unicode from generated pdf" {
   let expected = utf8_of_codepoints([0x4f60, 0x597d, 0x4e16, 0x754c, 0x263a])
   assert_eq(extract_text(pdf), expected)
 }
+
+///|
+fn extract_test_mediabox() -> @pdf.PdfObject {
+  @pdf.PdfObject::Array([
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(100.0),
+    @pdf.PdfObject::Real(100.0),
+  ])
+}
+
+///|
+fn extract_test_page(
+  ops : Array[@pdfops.Op],
+  resources : @pdf.PdfObject,
+) -> @pdfpage.Page raise {
+  let stream = @pdfops.stream_of_ops(ops)
+  {
+    content: [stream],
+    mediabox: extract_test_mediabox(),
+    resources,
+    rotate: @pdfpage.Rotation::Rotate0,
+    rest: @pdf.PdfObject::Dictionary([]),
+  }
+}
+
+///|
+fn add_pages_to_pdf(
+  pages : Array[@pdfpage.Page],
+  pdf : @pdf.Pdf,
+) -> @pdf.Pdf raise {
+  let (pdf, pageroot) = @pdfpage.add_pagetree(pages, pdf)
+  @pdfpage.add_root(pageroot, [], pdf)
+}
+
+///|
+fn form_xobject_stream(text : String) -> @pdf.PdfObject raise {
+  let ops = [@pdfops.Op::OpBT, @pdfops.Op::OpTj(text), @pdfops.Op::OpET]
+  let stream = @pdfops.stream_of_ops(ops)
+  let stream = @pdf.add_dict_entry(
+    stream,
+    "/Type",
+    @pdf.PdfObject::Name("/XObject"),
+  )
+  @pdf.add_dict_entry(stream, "/Subtype", @pdf.PdfObject::Name("/Form"))
+}
+
+///|
+test "extract text handles text ops and arrays" {
+  let ops = [
+    @pdfops.Op::OpBT,
+    @pdfops.Op::OpTj("A"),
+    @pdfops.Op::OpTj(""),
+    @pdfops.Op::OpSingleQuote("B"),
+    @pdfops.Op::OpDoubleQuote(0.0, 0.0, "C"),
+    @pdfops.Op::OpTStar,
+    @pdfops.Op::OpTj("D"),
+    @pdfops.Op::OpTd(0.0, 10.0),
+    @pdfops.Op::OpTj("E"),
+    @pdfops.Op::OpTD(0.0, 10.0),
+    @pdfops.Op::OpTJ(
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::String("F"),
+        @pdf.PdfObject::Integer(120),
+        @pdf.PdfObject::String(""),
+      ]),
+    ),
+    @pdfops.Op::OpET,
+  ]
+  let page = extract_test_page(ops, @pdf.PdfObject::Dictionary([]))
+  let pdf = add_pages_to_pdf([page], @pdf.empty())
+  let pages = extract_text_by_page(pdf)
+  assert_eq(pages.length(), 1)
+  assert_eq(pages[0], "A\nB\nC\nD\nE\nF")
+}
+
+///|
+test "extract text handles invalid unicode and missing xobjects" {
+  let invalid_unicode = @pdfio.string_of_bytes(
+    @pdfio.bytes_of_int_array([0xfe, 0xff, 0x00]),
+  )
+  let ops = [
+    @pdfops.Op::OpBT,
+    @pdfops.Op::OpTj(invalid_unicode),
+    @pdfops.Op::OpET,
+    @pdfops.Op::OpDo("/NoXObject"),
+  ]
+  let page = extract_test_page(ops, @pdf.PdfObject::Dictionary([]))
+  let pdf = add_pages_to_pdf([page], @pdf.empty())
+  let pages = extract_text_by_page(pdf)
+  assert_eq(pages.length(), 1)
+  let bytes = @pdfio.int_array_of_bytes(@pdfio.bytes_of_string(pages[0]))
+  inspect(bytes, content="[254, 255, 0]")
+}
+
+///|
+test "extract text visits xobjects once" {
+  let pdf = @pdf.empty()
+  let form_indirect = form_xobject_stream("X1")
+  let form_indirect_id = @pdf.addobj(pdf, form_indirect)
+  let form_direct = form_xobject_stream("X2")
+  let xobjects = @pdf.PdfObject::Dictionary([
+    ("/X1", @pdf.PdfObject::Indirect(form_indirect_id)),
+    ("/X2", form_direct),
+    (
+      "/X3",
+      @pdf.PdfObject::Dictionary([("/Subtype", @pdf.PdfObject::Name("/Image"))]),
+    ),
+  ])
+  let resources = @pdf.PdfObject::Dictionary([("/XObject", xobjects)])
+  let ops = [
+    @pdfops.Op::OpDo("/X1"),
+    @pdfops.Op::OpDo("/X1"),
+    @pdfops.Op::OpDo("/X2"),
+    @pdfops.Op::OpDo("/X3"),
+    @pdfops.Op::OpDo("/Missing"),
+  ]
+  let page = extract_test_page(ops, resources)
+  let pdf = add_pages_to_pdf([page], pdf)
+  let pages = extract_text_by_page(pdf)
+  assert_eq(pages.length(), 1)
+  assert_eq(pages[0], "X1X2")
+}
