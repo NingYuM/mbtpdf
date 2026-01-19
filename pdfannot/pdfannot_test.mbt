@@ -146,3 +146,100 @@ test "transform_annotations updates rect and quadpoints" {
     _ => fail("expected line updated")
   }
 }
+
+///|
+test "annotations_of_page skips popup parent" {
+  let pdf = @pdf.empty()
+  let rect = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(10.0),
+    @pdf.PdfObject::Real(10.0),
+  ])
+  let parent_dict = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Text")),
+    ("/Rect", rect),
+  ])
+  let parent_num = @pdf.addobj(pdf, parent_dict)
+  let popup_dict = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Popup")),
+    ("/Rect", rect),
+    ("/Parent", @pdf.PdfObject::Indirect(parent_num)),
+  ])
+  let popup_num = @pdf.addobj(pdf, popup_dict)
+  let rest = @pdf.PdfObject::Dictionary([
+    (
+      "/Annots",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Indirect(parent_num),
+        @pdf.PdfObject::Indirect(popup_num),
+      ]),
+    ),
+  ])
+  let base = @pdfpage.custompage(rect)
+  let page : @pdfpage.Page = {
+    content: base.content,
+    mediabox: base.mediabox,
+    resources: base.resources,
+    rotate: base.rotate,
+    rest,
+  }
+  let annots = @pdfannot.annotations_of_page(pdf, page)
+  assert_eq(annots.length(), 1)
+  match annots[0].subtype {
+    @pdfannot.Subtype::Popup(inner) =>
+      match inner.subtype {
+        @pdfannot.Subtype::Text => ()
+        _ => fail("expected popup parent text subtype")
+      }
+    _ => fail("expected popup subtype")
+  }
+}
+
+///|
+test "read_annotation uses /BS style" {
+  let pdf = @pdf.empty()
+  let rect = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(10.0),
+    @pdf.PdfObject::Real(10.0),
+  ])
+  let annot_dict = @pdf.PdfObject::Dictionary([
+    ("/Subtype", @pdf.PdfObject::Name("/Link")),
+    ("/Rect", rect),
+    (
+      "/BS",
+      @pdf.PdfObject::Dictionary([
+        ("/W", @pdf.PdfObject::Real(2.0)),
+        ("/S", @pdf.PdfObject::Name("/D")),
+        (
+          "/D",
+          @pdf.PdfObject::Array([
+            @pdf.PdfObject::Integer(2),
+            @pdf.PdfObject::Integer(1),
+          ]),
+        ),
+      ]),
+    ),
+  ])
+  let objnum = @pdf.addobj(pdf, annot_dict)
+  let rest = @pdf.PdfObject::Dictionary([
+    ("/Annots", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(objnum)])),
+  ])
+  let base = @pdfpage.custompage(rect)
+  let page : @pdfpage.Page = {
+    content: base.content,
+    mediabox: base.mediabox,
+    resources: base.resources,
+    rotate: base.rotate,
+    rest,
+  }
+  let annots = @pdfannot.annotations_of_page(pdf, page)
+  assert_eq(annots.length(), 1)
+  match annots[0].border.style {
+    @pdfannot.Style::Dashed => ()
+    _ => fail("expected dashed style")
+  }
+  assert_eq(annots[0].border.dasharray.length(), 2)
+}
