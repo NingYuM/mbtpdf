@@ -5,6 +5,14 @@ fn assert_close(a : Double, b : Double) -> Unit raise {
 }
 
 ///|
+fn[T] assert_is_err(res : Result[T, Error]) -> Unit raise {
+  match res {
+    Err(_) => ()
+    Ok(_) => fail("expected error")
+  }
+}
+
+///|
 fn eval_calc(ops : Array[Calculator]) -> Array[Double] raise {
   let fun : PdfFunction = {
     func: PdfFunctionKind::Calculator(ops),
@@ -746,4 +754,364 @@ test "parse function rejects bad inputs" {
     pdf, sampled_stream,
   )
   assert_true(sampled_result is Err(_))
+}
+
+///|
+test "print_function covers extra calculator strings" {
+  let fun : PdfFunction = {
+    func: PdfFunctionKind::Calculator([
+      Calculator::Cvi,
+      Calculator::Cvr,
+      Calculator::Div,
+      Calculator::Exp,
+      Calculator::Floor,
+      Calculator::Idiv,
+      Calculator::Ln,
+      Calculator::Log,
+      Calculator::Mod,
+      Calculator::Mul,
+      Calculator::Truncate,
+      Calculator::And,
+      Calculator::Bitshift,
+      Calculator::Eq,
+      Calculator::Ge,
+      Calculator::Gt,
+      Calculator::Le,
+      Calculator::Lt,
+      Calculator::Ne,
+      Calculator::Not,
+      Calculator::Or,
+      Calculator::Xor,
+      Calculator::Copy,
+      Calculator::Exch,
+      Calculator::Pop,
+      Calculator::Dup,
+    ]),
+    domain: [],
+    range: None,
+  }
+  print_function(fun)
+}
+
+///|
+test "parse calculator keywords covers remaining ops" {
+  let pdf = @pdf.empty()
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(4)),
+    ("/Domain", @pdf.PdfObject::Array([])),
+  ])
+  let data = @pdfio.bytes_of_string(
+    "{ cvi cvr div exp floor idiv ln log mod mul truncate and bitshift eq ge gt le lt ne not or xor copy exch pop dup index roll }",
+  )
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let fun = parse_function(pdf, stream)
+  match fun.func {
+    PdfFunctionKind::Calculator(ops) => assert_true(ops.length() > 0)
+    _ => fail("expected calculator function")
+  }
+}
+
+///|
+test "sampled function covers size multiplication" {
+  let fun : PdfFunction = {
+    func: PdfFunctionKind::Sampled({
+      size: [2, 2],
+      order: 1,
+      encode: [0.0, 1.0, 0.0, 1.0],
+      decode: [0.0, 1.0],
+      bps: 8,
+      samples: [0, 255, 255, 0],
+    }),
+    domain: [0.0, 1.0, 0.0, 1.0],
+    range: Some([0.0, 1.0]),
+  }
+  let out = eval_function(fun, [0.5, 0.5])
+  assert_eq(out.length(), 1)
+}
+
+///|
+test "sampled function errors on incompatible size" {
+  let fun : PdfFunction = {
+    func: PdfFunctionKind::Sampled({
+      size: [2, 2],
+      order: 1,
+      encode: [0.0, 1.0, 0.0, 1.0],
+      decode: [0.0, 1.0],
+      bps: 8,
+      samples: [0, 255, 255, 0],
+    }),
+    domain: [0.0, 1.0],
+    range: Some([0.0, 1.0]),
+  }
+  assert_is_err(try? eval_function(fun, [0.5]))
+}
+
+///|
+test "sampled function errors on missing range" {
+  let fun : PdfFunction = {
+    func: PdfFunctionKind::Sampled({
+      size: [2],
+      order: 1,
+      encode: [0.0, 1.0],
+      decode: [0.0, 1.0],
+      bps: 8,
+      samples: [0, 255],
+    }),
+    domain: [0.0, 1.0],
+    range: None,
+  }
+  assert_is_err(try? eval_function(fun, [0.5]))
+}
+
+///|
+test "sampled function errors on bad encode length" {
+  let fun : PdfFunction = {
+    func: PdfFunctionKind::Sampled({
+      size: [2],
+      order: 1,
+      encode: [0.0, 1.0, 2.0],
+      decode: [0.0, 1.0],
+      bps: 8,
+      samples: [0, 255],
+    }),
+    domain: [0.0, 1.0],
+    range: Some([0.0, 1.0]),
+  }
+  assert_is_err(try? eval_function(fun, [0.5]))
+}
+
+///|
+test "eval_function rejects bad domain length" {
+  let fun : PdfFunction = {
+    func: PdfFunctionKind::Calculator([Calculator::Int(1)]),
+    domain: [0.0, 1.0],
+    range: None,
+  }
+  assert_is_err(try? eval_function(fun, [0.5, 0.5]))
+}
+
+///|
+test "clamp_double clamps to min" {
+  let fun : PdfFunction = {
+    func: PdfFunctionKind::Calculator([Calculator::Int(-1)]),
+    domain: [],
+    range: Some([0.0, 1.0]),
+  }
+  let out = eval_function(fun, [])
+  assert_close(out[0], 0.0)
+}
+
+///|
+test "calculator type error cases" {
+  assert_is_err(try? eval_calc([Calculator::Add]))
+  assert_is_err(
+    try? eval_calc([Calculator::Int(1), Calculator::If([Calculator::Int(1)])]),
+  )
+  assert_is_err(try? eval_calc([Calculator::Bool(true), Calculator::Sin]))
+  assert_is_err(
+    try? eval_calc([
+      Calculator::Float(1.0),
+      Calculator::Int(2),
+      Calculator::Idiv,
+    ]),
+  )
+}
+
+///|
+test "calculator abs/add branches and ceiling int" {
+  let abs_int = eval_calc([Calculator::Int(-3), Calculator::Abs])
+  assert_close(abs_int[0], 3.0)
+  let add_ff = eval_calc([
+    Calculator::Float(1.0),
+    Calculator::Float(2.0),
+    Calculator::Add,
+  ])
+  assert_close(add_ff[0], 3.0)
+  let add_if = eval_calc([
+    Calculator::Int(1),
+    Calculator::Float(2.0),
+    Calculator::Add,
+  ])
+  assert_close(add_if[0], 3.0)
+  let add_fi = eval_calc([
+    Calculator::Float(1.0),
+    Calculator::Int(2),
+    Calculator::Add,
+  ])
+  assert_close(add_fi[0], 3.0)
+  let ceil_int = eval_calc([Calculator::Int(3), Calculator::Ceiling])
+  assert_close(ceil_int[0], 3.0)
+}
+
+///|
+test "calculator comparisons over bool and floats" {
+  let bool_eq = eval_calc([
+    Calculator::Bool(true),
+    Calculator::Bool(true),
+    Calculator::Eq,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(bool_eq[0], 1.0)
+  let bool_gt = eval_calc([
+    Calculator::Bool(false),
+    Calculator::Bool(true),
+    Calculator::Gt,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(bool_gt[0], 1.0)
+  let bool_lt = eval_calc([
+    Calculator::Bool(true),
+    Calculator::Bool(false),
+    Calculator::Lt,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(bool_lt[0], 1.0)
+  let float_lt = eval_calc([
+    Calculator::Float(2.0),
+    Calculator::Float(1.0),
+    Calculator::Lt,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(float_lt[0], 1.0)
+  let float_gt = eval_calc([
+    Calculator::Float(1.0),
+    Calculator::Float(2.0),
+    Calculator::Gt,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(float_gt[0], 1.0)
+  let float_eq = eval_calc([
+    Calculator::Float(1.0),
+    Calculator::Float(1.0),
+    Calculator::Ge,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(float_eq[0], 1.0)
+}
+
+///|
+test "calculator comparisons across types" {
+  let bool_int = eval_calc([
+    Calculator::Int(1),
+    Calculator::Bool(false),
+    Calculator::Lt,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(bool_int[0], 1.0)
+  let float_int = eval_calc([
+    Calculator::Int(2),
+    Calculator::Float(1.0),
+    Calculator::Lt,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(float_int[0], 1.0)
+  let float_bool = eval_calc([
+    Calculator::Bool(false),
+    Calculator::Float(1.0),
+    Calculator::Gt,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(float_bool[0], 1.0)
+  let int_bool = eval_calc([
+    Calculator::Bool(false),
+    Calculator::Int(1),
+    Calculator::Gt,
+    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+  ])
+  assert_close(int_bool[0], 1.0)
+}
+
+///|
+test "parse_function hits error branches" {
+  let pdf = @pdf.empty()
+  let bad_domain = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(2)),
+    ("/Domain", @pdf.PdfObject::Integer(1)),
+    ("/N", @pdf.PdfObject::Real(1.0)),
+  ])
+  assert_is_err(try? parse_function(pdf, bad_domain))
+  let bad_size = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(0)),
+    ("/Domain", @pdf.PdfObject::Array([])),
+    ("/Size", @pdf.PdfObject::Array([@pdf.PdfObject::Real(2.0)])),
+    ("/BitsPerSample", @pdf.PdfObject::Integer(8)),
+  ])
+  assert_is_err(try? parse_function(pdf, bad_size))
+  let bad_size_type = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(0)),
+    ("/Domain", @pdf.PdfObject::Array([])),
+    ("/Size", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerSample", @pdf.PdfObject::Integer(8)),
+  ])
+  assert_is_err(try? parse_function(pdf, bad_size_type))
+  let bad_bps = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(0)),
+    ("/Domain", @pdf.PdfObject::Array([])),
+    ("/Size", @pdf.PdfObject::Array([@pdf.PdfObject::Integer(2)])),
+    ("/BitsPerSample", @pdf.PdfObject::Name("/Bad")),
+  ])
+  assert_is_err(try? parse_function(pdf, bad_bps))
+  let to_get = @pdf.toget(@pdfio.input_of_string("x"), 0, 1)
+  let sample_dict = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(0)),
+    ("/Domain", @pdf.PdfObject::Array([])),
+    ("/Size", @pdf.PdfObject::Array([@pdf.PdfObject::Integer(1)])),
+    ("/BitsPerSample", @pdf.PdfObject::Integer(8)),
+    ("/Decode", @pdf.PdfObject::Array([@pdf.PdfObject::Real(0.0)])),
+  ])
+  let sample_stream = @pdf.PdfObject::Stream(
+    Ref::new((sample_dict, @pdf.Stream::ToGet(to_get))),
+  )
+  assert_is_err(try? parse_function(pdf, sample_stream))
+  let calc_dict = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(4)),
+    ("/Domain", @pdf.PdfObject::Array([])),
+  ])
+  let calc_stream = @pdf.PdfObject::Stream(
+    Ref::new((calc_dict, @pdf.Stream::ToGet(to_get))),
+  )
+  assert_is_err(try? parse_function(pdf, calc_stream))
+  let bad_functions = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(3)),
+    ("/Domain", @pdf.PdfObject::Array([])),
+    ("/Functions", @pdf.PdfObject::Integer(1)),
+    ("/Bounds", @pdf.PdfObject::Array([])),
+    ("/Encode", @pdf.PdfObject::Array([])),
+  ])
+  assert_is_err(try? parse_function(pdf, bad_functions))
+  let bad_bounds = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(3)),
+    ("/Domain", @pdf.PdfObject::Array([])),
+    ("/Functions", @pdf.PdfObject::Array([])),
+    ("/Bounds", @pdf.PdfObject::Integer(1)),
+    ("/Encode", @pdf.PdfObject::Array([])),
+  ])
+  assert_is_err(try? parse_function(pdf, bad_bounds))
+  let bad_encode = @pdf.PdfObject::Dictionary([
+    ("/FunctionType", @pdf.PdfObject::Integer(3)),
+    ("/Domain", @pdf.PdfObject::Array([])),
+    ("/Functions", @pdf.PdfObject::Array([])),
+    ("/Bounds", @pdf.PdfObject::Array([])),
+    ("/Encode", @pdf.PdfObject::Integer(1)),
+  ])
+  assert_is_err(try? parse_function(pdf, bad_encode))
+}
+
+///|
+test "stitching eval errors on encode length" {
+  let f : PdfFunction = {
+    func: PdfFunctionKind::Calculator([Calculator::Int(1)]),
+    domain: [0.0, 1.0],
+    range: None,
+  }
+  let fun : PdfFunction = {
+    func: PdfFunctionKind::Stitching({
+      functions: [f],
+      bounds: [0.5],
+      stitch_encode: [],
+    }),
+    domain: [0.0, 1.0],
+    range: None,
+  }
+  assert_is_err(try? eval_function(fun, [0.25]))
 }
