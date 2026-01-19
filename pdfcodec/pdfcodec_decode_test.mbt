@@ -155,6 +155,149 @@ test "decode_from_input handles Crypt filter" {
 }
 
 ///|
+test "decode_pdfstream_onestage rejects missing filter" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("4869>")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(
+    pdf, stream_obj,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "decode_pdfstream_onestage rejects empty filter array" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("4869>")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+    ("/Filter", @pdf.PdfObject::Array([])),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(
+    pdf, stream_obj,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "decode_pdfstream_onestage rejects invalid filter entry" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("4869>")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+    ("/Filter", @pdf.PdfObject::Array([@pdf.PdfObject::Integer(1)])),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(
+    pdf, stream_obj,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "decode_pdfstream_onestage rejects invalid filter type" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("4869>")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+    ("/Filter", @pdf.PdfObject::Integer(1)),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(
+    pdf, stream_obj,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "decode_pdfstream_onestage handles /F and /DP keys" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("4869>")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+    ("/F", @pdf.PdfObject::Name("/ASCIIHexDecode")),
+    ("/DP", @pdf.PdfObject::Array([@pdf.PdfObject::Null, @pdf.PdfObject::Null])),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  decode_pdfstream_onestage(pdf, stream_obj)
+  let (updated_dict, _) = stream_ref.val
+  assert_true(@pdf.lookup_direct(pdf, "/F", updated_dict) is None)
+  match @pdf.lookup_direct(pdf, "/DP", updated_dict) {
+    Some(@pdf.PdfObject::Array(values)) => assert_eq(values.length(), 1)
+    _ => fail("expected trimmed /DP array")
+  }
+}
+
+///|
+test "decode_pdfstream_onestage trims filter and decode parms arrays" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("4869>")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+    (
+      "/Filter",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Name("/ASCIIHexDecode"),
+        @pdf.PdfObject::Name("/ASCIIHexDecode"),
+      ]),
+    ),
+    (
+      "/DecodeParms",
+      @pdf.PdfObject::Array([@pdf.PdfObject::Null, @pdf.PdfObject::Null]),
+    ),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  decode_pdfstream_onestage(pdf, stream_obj)
+  let (updated_dict, _) = stream_ref.val
+  match @pdf.lookup_direct(pdf, "/Filter", updated_dict) {
+    Some(@pdf.PdfObject::Array(filters)) => assert_eq(filters.length(), 1)
+    _ => fail("expected updated filter array")
+  }
+  match @pdf.lookup_direct(pdf, "/DecodeParms", updated_dict) {
+    Some(@pdf.PdfObject::Array(parms)) => assert_eq(parms.length(), 1)
+    _ => fail("expected updated decode parms array")
+  }
+}
+
+///|
+async test "decode_pdfstream_onestage_async handles filter arrays" {
+  let pdf = @pdf.empty()
+  let data = @pdfio.bytes_of_string("4869>")
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+    (
+      "/Filter",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Name("/ASCIIHexDecode"),
+        @pdf.PdfObject::Name("/ASCIIHexDecode"),
+      ]),
+    ),
+    (
+      "/DecodeParms",
+      @pdf.PdfObject::Array([@pdf.PdfObject::Null, @pdf.PdfObject::Null]),
+    ),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  decode_pdfstream_onestage_async(pdf, stream_obj)
+  let (updated_dict, _) = stream_ref.val
+  match @pdf.lookup_direct(pdf, "/Filter", updated_dict) {
+    Some(@pdf.PdfObject::Array(filters)) => assert_eq(filters.length(), 1)
+    _ => fail("expected updated filter array")
+  }
+}
+
+///|
 test "pdfcodec uses placeholder string_of_pdf" {
   let rendered = (@pdfcodec.string_of_pdf.val)(@pdf.PdfObject::Null)
   assert_eq(rendered, "")
