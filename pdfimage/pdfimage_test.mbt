@@ -237,6 +237,27 @@ fn sample_tint_function() -> @pdffun.PdfFunction {
 }
 
 ///|
+fn sample_cmyk_function() -> @pdffun.PdfFunction {
+  {
+    func: @pdffun.PdfFunctionKind::Interpolation({
+      c0: [0.0, 0.0, 0.0, 0.0],
+      c1: [0.0, 0.0, 0.0, 1.0],
+      n: 1.0,
+    }),
+    domain: [0.0, 1.0],
+    range: Some([0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0]),
+  }
+}
+
+///|
+fn[T] assert_is_err(res : Result[T, Error]) -> Unit raise {
+  match res {
+    Err(_) => ()
+    Ok(_) => fail("expected error")
+  }
+}
+
+///|
 test "get_image_24bpp default decode for Lab" {
   let pdf = @pdf.empty()
   let resources = @pdf.PdfObject::Dictionary([])
@@ -627,4 +648,152 @@ test "get_image_24bpp rejects bad decode" {
     pdf, resources, stream,
   )
   assert_true(result is Err(_))
+}
+
+///|
+test "get_image_24bpp handles ICCBased raw" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let icc_dict = @pdf.PdfObject::Dictionary([("/N", @pdf.PdfObject::Integer(3))])
+  let icc_stream = @pdf.PdfObject::Stream(
+    Ref::new((icc_dict, @pdf.Stream::Got(@pdfio.bytes_of_list([0])))),
+  )
+  let colorspace = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Name("/ICCBased"),
+    icc_stream,
+  ])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/ColorSpace", colorspace),
+  ])
+  let data = @pdfio.bytes_of_list([0, 0, 0])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::Raw(w, h, layout, bytes) => {
+      assert_eq(w, 1)
+      assert_eq(h, 1)
+      match layout {
+        @pdfimage.PixelLayout::BPP24 => ()
+        _ => fail("expected BPP24")
+      }
+      assert_eq(bytes.length(), 3)
+    }
+    _ => fail("expected raw ICCBased image")
+  }
+}
+
+///|
+test "get_image_24bpp handles separation cmyk" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let tint = @pdffun.pdfobject_of_function(pdf, sample_cmyk_function())
+  let colorspace = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Name("/Separation"),
+    @pdf.PdfObject::Name("/Spot"),
+    @pdf.PdfObject::Name("/DeviceCMYK"),
+    tint,
+  ])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/ColorSpace", colorspace),
+  ])
+  let data = @pdfio.bytes_of_list([0])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::Raw(_, _, _, bytes) => assert_eq(bytes.length(), 3)
+    _ => fail("expected separation image")
+  }
+}
+
+///|
+test "get_image_24bpp rejects bad separation function" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let tint = @pdffun.pdfobject_of_function(pdf, sample_tint_function())
+  let colorspace = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Name("/Separation"),
+    @pdf.PdfObject::Name("/Spot"),
+    @pdf.PdfObject::Name("/DeviceCMYK"),
+    tint,
+  ])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/ColorSpace", colorspace),
+  ])
+  let data = @pdfio.bytes_of_list([0])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  assert_is_err(try? @pdfimage.get_image_24bpp(pdf, resources, stream))
+}
+
+///|
+test "get_image_24bpp default decode for separation DCT" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let tint = @pdffun.pdfobject_of_function(pdf, sample_tint_function())
+  let colorspace = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Name("/Separation"),
+    @pdf.PdfObject::Name("/Spot"),
+    @pdf.PdfObject::Name("/DeviceGray"),
+    tint,
+  ])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/ColorSpace", colorspace),
+    ("/Filter", @pdf.PdfObject::Name("/DCTDecode")),
+  ])
+  let data = @pdfio.bytes_of_list([1, 2, 3])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::JPEG(_, Some(decode)) => {
+      assert_eq(decode.length(), 2)
+      assert_eq(decode[0], 0.0)
+      assert_eq(decode[1], 1.0)
+    }
+    _ => fail("expected JPEG decode")
+  }
+}
+
+///|
+test "get_image_24bpp loads ToGet stream" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Width", @pdf.PdfObject::Integer(1)),
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/ColorSpace", @pdf.PdfObject::Name("/DeviceRGB")),
+    ("/Length", @pdf.PdfObject::Integer(3)),
+  ])
+  let data = @pdfio.bytes_of_list([0, 255, 0])
+  let input = @pdfio.input_of_bytes(data)
+  let toget = @pdf.toget(input, 0, 3)
+  let stream = @pdf.PdfObject::Stream(
+    Ref::new((dict, @pdf.Stream::ToGet(toget))),
+  )
+  match @pdfimage.get_image_24bpp(pdf, resources, stream) {
+    @pdfimage.Image::Raw(_, _, _, bytes) => assert_eq(bytes.length(), 3)
+    _ => fail("expected raw image")
+  }
+}
+
+///|
+test "get_image_24bpp rejects missing width" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Height", @pdf.PdfObject::Integer(1)),
+    ("/BitsPerComponent", @pdf.PdfObject::Integer(8)),
+    ("/ColorSpace", @pdf.PdfObject::Name("/DeviceRGB")),
+  ])
+  let data = @pdfio.bytes_of_list([0, 0, 0])
+  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  assert_is_err(try? @pdfimage.get_image_24bpp(pdf, resources, stream))
 }
