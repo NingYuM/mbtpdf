@@ -225,6 +225,64 @@ test "add_prefix rewrites inline image colorspace names" {
 }
 
 ///|
+test "add_prefix handles filtered inline images with trailing ops" {
+  let pdf0 = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([
+    (
+      "/ColorSpace",
+      @pdf.PdfObject::Dictionary([("/CS1", @pdf.PdfObject::Name("/DeviceRGB"))]),
+    ),
+  ])
+  let raw = @pdfio.bytes_of_list([0x11, 0x22, 0x33])
+  let encoded = @pdfcodec.encode_flate(raw)
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/W", @pdf.PdfObject::Integer(1)),
+    ("/H", @pdf.PdfObject::Integer(1)),
+    ("/BPC", @pdf.PdfObject::Integer(8)),
+    ("/CS", @pdf.PdfObject::Name("/CS1")),
+    ("/Filter", @pdf.PdfObject::Name("/FlateDecode")),
+  ])
+  let ops : Array[@pdfops.Op] = [
+    @pdfops.Op::InlineImage((dict, None, encoded)),
+    @pdfops.Op::Opq,
+    @pdfops.Op::OpQ,
+  ]
+  let page : @pdfpage.Page = {
+    content: [@pdfops.stream_of_ops(ops)],
+    mediabox: prefix_sample_rect(),
+    resources,
+    rotate: @pdfpage.Rotation::Rotate0,
+    rest: @pdf.PdfObject::Dictionary([]),
+  }
+  let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
+  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
+  @pdfpage.add_prefix(pdf, "p")
+  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let ops_out = @pdfops.parse_operators(
+    pdf,
+    pages[0].resources,
+    pages[0].content,
+  )
+  let mut saw_inline = false
+  let mut saw_q = false
+  for op in ops_out {
+    match op {
+      @pdfops.Op::InlineImage((inline_dict, _, _)) =>
+        match @pdf.lookup_direct(pdf, "/CS", inline_dict) {
+          Some(@pdf.PdfObject::Name(name)) => {
+            assert_eq(name, "/pCS1")
+            saw_inline = true
+          }
+          _ => fail("expected prefixed inline colorspace")
+        }
+      @pdfops.Op::Opq | @pdfops.Op::OpQ => saw_q = true
+      _ => ()
+    }
+  }
+  assert_true(saw_inline && saw_q)
+}
+
+///|
 test "add_prefix rejects blank resource names" {
   let pdf0 = @pdf.empty()
   let resources = @pdf.PdfObject::Dictionary([

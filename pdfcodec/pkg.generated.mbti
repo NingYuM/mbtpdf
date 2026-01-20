@@ -11,6 +11,8 @@ pub let debug : Ref[Bool]
 
 pub fn decode_flate(Array[Byte]) -> Array[Byte] raise CodecError
 
+pub fn decode_from_bytes(Array[Byte], @pdf.PdfObject) -> Array[Byte]?
+
 pub fn decode_from_input(@pdfio.Input, @pdf.PdfObject) -> Array[Byte]?
 
 pub fn decode_pdfstream(@pdf.Pdf, @pdf.PdfObject, jbig2dec? : String) -> Unit raise CodecError

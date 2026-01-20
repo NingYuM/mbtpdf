@@ -213,6 +213,33 @@ test "parse inline image decodes flate filter" {
 }
 
 ///|
+test "parse inline image flate handles trailing operators" {
+  let pdf = @pdf.empty()
+  let resources = @pdf.PdfObject::Dictionary([])
+  let raw = @pdfio.bytes_of_list([0x7f])
+  let encoded = @pdfcodec.encode_flate(raw)
+  let header = @pdfio.bytes_of_string(
+    "BI /W 1 /H 1 /BPC 8 /CS /DeviceGray /Filter /FlateDecode ID ",
+  )
+  let footer = @pdfio.bytes_of_string(" EI q")
+  let stream = concat_bytes([header, encoded, footer])
+  let ops = @pdfops.parse_single_stream(pdf, resources, stream)
+  let mut saw_inline = false
+  let mut saw_q = false
+  for op in ops {
+    match op {
+      @pdfops.Op::InlineImage((_, _, data)) => {
+        assert_eq(@pdfio.bytes_size(data), 1)
+        saw_inline = true
+      }
+      @pdfops.Op::Opq => saw_q = true
+      _ => ()
+    }
+  }
+  assert_true(saw_inline && saw_q)
+}
+
+///|
 fn parse_inline_image_error(dict : @pdf.PdfObject) -> Unit raise {
   let pdf = @pdf.empty()
   let resources = @pdf.PdfObject::Dictionary([])

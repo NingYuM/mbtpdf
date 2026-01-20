@@ -1680,26 +1680,14 @@ pub async fn decode_pdfstream_until_unknown_async(
 }
 
 ///|
-/// Decode from input; returns None when decoder unsupported.
-pub fn decode_from_input(
-  input : @pdfio.Input,
+/// Decode bytes using filters in dict; returns None when decoder unsupported.
+pub fn decode_from_bytes(
+  bytes : @pdfio.MutableBytes,
   dict : @pdf.PdfObject,
 ) -> @pdfio.MutableBytes? {
   let pdf = @pdf.empty()
   let filter_opt = @pdf.lookup_direct_orelse(pdf, "/F", "/Filter", dict)
   let parms_opt = @pdf.lookup_direct_orelse(pdf, "/DP", "/DecodeParms", dict)
-  let start = (input.pos_in)()
-  let length = input.in_channel_length - start
-  if length < 0 {
-    return None
-  }
-  let data_res : Result[@pdfio.MutableBytes, Error] = try? @pdfio.bytes_of_input(
-    input, start, length,
-  )
-  let data = match data_res {
-    Ok(bytes) => bytes
-    Err(_) => return None
-  }
   fn parms_at(index : Int) -> @pdf.PdfObject? {
     match parms_opt {
       Some(@pdf.PdfObject::Array(arr)) =>
@@ -1776,12 +1764,12 @@ pub fn decode_from_input(
   }
 
   match filter_opt {
-    Some(@pdf.PdfObject::Name(name)) => decode_stage(data, name, parms_at(0))
+    Some(@pdf.PdfObject::Name(name)) => decode_stage(bytes, name, parms_at(0))
     Some(@pdf.PdfObject::Array(filters)) => {
       if filters.length() == 0 {
         return None
       }
-      let mut current = data
+      let mut current = bytes
       for i = 0; i < filters.length(); i = i + 1 {
         let filter_name = match filters[i] {
           @pdf.PdfObject::Name(name) => name
@@ -1796,6 +1784,27 @@ pub fn decode_from_input(
     }
     _ => None
   }
+}
+
+///|
+/// Decode from input; returns None when decoder unsupported.
+pub fn decode_from_input(
+  input : @pdfio.Input,
+  dict : @pdf.PdfObject,
+) -> @pdfio.MutableBytes? {
+  let start = (input.pos_in)()
+  let length = input.in_channel_length - start
+  if length < 0 {
+    return None
+  }
+  let data_res : Result[@pdfio.MutableBytes, Error] = try? @pdfio.bytes_of_input(
+    input, start, length,
+  )
+  let data = match data_res {
+    Ok(bytes) => bytes
+    Err(_) => return None
+  }
+  decode_from_bytes(data, dict)
 }
 
 ///|

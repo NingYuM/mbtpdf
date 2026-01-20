@@ -471,6 +471,67 @@ fn is_delimiter_char(chr : Char) -> Bool {
 }
 
 ///|
+fn is_inline_image_whitespace(chr : Char) -> Bool {
+  let v = chr.to_int()
+  v == 0 || v == 9 || v == 10 || v == 12 || v == 13 || v == 32
+}
+
+///|
+fn is_inline_image_delimiter(chr : Char) -> Bool {
+  is_inline_image_whitespace(chr) || is_delimiter_char(chr)
+}
+
+///|
+fn inline_image_end_ahead(input : @pdfio.Input) -> Bool {
+  let pos = (input.pos_in)()
+  let b1 = (input.input_byte)()
+  let b2 = (input.input_byte)()
+  let b3 = (input.input_byte)()
+  (input.seek_in)(pos)
+  if b1 == @pdfio.no_more || b2 == @pdfio.no_more {
+    return false
+  }
+  if b1 != 'E'.to_int() || b2 != 'I'.to_int() {
+    return false
+  }
+  if b3 == @pdfio.no_more {
+    return true
+  }
+  match b3.to_char() {
+    Some(ch) => is_inline_image_delimiter(ch)
+    None => false
+  }
+}
+
+///|
+fn read_inline_image_encoded_data(
+  input : @pdfio.Input,
+) -> @pdfio.MutableBytes raise {
+  let (output, data) = @pdfio.input_output_of_bytes(4096)
+  let mut done = false
+  while !done {
+    let pos = (input.pos_in)()
+    let b = (input.input_byte)()
+    if b == @pdfio.no_more {
+      raise @pdf.PdfError::Msg(
+        "Could not read inline image data - end of stream",
+      )
+    }
+    match b.to_char() {
+      Some(ch) if is_inline_image_whitespace(ch) =>
+        if inline_image_end_ahead(input) {
+          (input.seek_in)(pos)
+          done = true
+        } else {
+          (output.output_byte)(b)
+        }
+      _ => (output.output_byte)(b)
+    }
+  }
+  @pdfio.extract_bytes_from_input_output(output, data)
+}
+
+///|
 fn string_first_char(value : String) -> Char? {
   value.get_char(0)
 }
@@ -945,10 +1006,11 @@ fn lex_inline_image(
         if name == "/DCT" || name == "/DCTDecode" {
           get_jpeg_data(input)
         } else {
-          match @pdfcodec.decode_from_input(input, dict) {
+          let encoded = read_inline_image_encoded_data(input)
+          match @pdfcodec.decode_from_bytes(encoded, dict) {
             Some(decoded) => decoded
             None => {
-              @pdfe.log("decode_from_input failed\n")
+              @pdfe.log("decode_from_bytes failed\n")
               nocontent(input)
               @pdfio.mkbytes(0)
             }
@@ -961,44 +1023,50 @@ fn lex_inline_image(
               if name == "/DCT" || name == "/DCTDecode" {
                 get_jpeg_data(input)
               } else {
-                match @pdfcodec.decode_from_input(input, dict) {
+                let encoded = read_inline_image_encoded_data(input)
+                match @pdfcodec.decode_from_bytes(encoded, dict) {
                   Some(decoded) => decoded
                   None => {
-                    @pdfe.log("decode_from_input failed\n")
+                    @pdfe.log("decode_from_bytes failed\n")
                     nocontent(input)
                     @pdfio.mkbytes(0)
                   }
                 }
               }
-            _ =>
-              match @pdfcodec.decode_from_input(input, dict) {
+            _ => {
+              let encoded = read_inline_image_encoded_data(input)
+              match @pdfcodec.decode_from_bytes(encoded, dict) {
                 Some(decoded) => decoded
                 None => {
-                  @pdfe.log("decode_from_input failed\n")
+                  @pdfe.log("decode_from_bytes failed\n")
                   nocontent(input)
                   @pdfio.mkbytes(0)
                 }
               }
+            }
           }
         } else {
-          match @pdfcodec.decode_from_input(input, dict) {
+          let encoded = read_inline_image_encoded_data(input)
+          match @pdfcodec.decode_from_bytes(encoded, dict) {
             Some(decoded) => decoded
             None => {
-              @pdfe.log("decode_from_input failed\n")
+              @pdfe.log("decode_from_bytes failed\n")
               nocontent(input)
               @pdfio.mkbytes(0)
             }
           }
         }
-      Some(_) =>
-        match @pdfcodec.decode_from_input(input, dict) {
+      Some(_) => {
+        let encoded = read_inline_image_encoded_data(input)
+        match @pdfcodec.decode_from_bytes(encoded, dict) {
           Some(decoded) => decoded
           None => {
-            @pdfe.log("decode_from_input failed\n")
+            @pdfe.log("decode_from_bytes failed\n")
             nocontent(input)
             @pdfio.mkbytes(0)
           }
         }
+      }
     }
     @pdfread.dropwhite(input)
     let end1 = (input.input_byte)()
