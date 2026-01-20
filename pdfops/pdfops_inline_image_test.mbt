@@ -39,8 +39,6 @@ test "parse inline image uses resources for colorspace" {
       @pdf.PdfObject::Dictionary([("/Cs1", @pdf.PdfObject::Name("/DeviceRGB"))]),
     ),
   ])
-  let old = @pdfops.debug.val
-  @pdfops.debug.val = true
   let dict = @pdf.PdfObject::Dictionary([
     ("/W", @pdf.PdfObject::Integer(1)),
     ("/H", @pdf.PdfObject::Integer(1)),
@@ -52,7 +50,6 @@ test "parse inline image uses resources for colorspace" {
   ])
   let stream = @pdfio.bytes_of_string(rendered)
   let ops = @pdfops.parse_single_stream(pdf, resources, stream)
-  @pdfops.debug.val = old
   let mut saw = false
   for op in ops {
     match op {

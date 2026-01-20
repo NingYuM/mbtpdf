@@ -59,7 +59,16 @@ pub fn fillbytes(value : Int, bytes : MutableBytes) -> Unit {
 ///|
 /// Print bytes to standard output (debug format).
 pub fn print_bytes(bytes : MutableBytes) -> Unit {
-  println(bytes.map(b => b.to_int()))
+  let sb = StringBuilder::new()
+  sb.write_char('[')
+  for i, value in bytes {
+    if i > 0 {
+      sb.write_string(", ")
+    }
+    sb.write_object(value.to_int())
+  }
+  sb.write_char(']')
+  @pdfe.log(sb.to_string() + "\n")
 }
 
 ///|

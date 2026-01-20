@@ -33,6 +33,11 @@ test "getval_31 reads bits" {
 ///|
 test "debug_next_n_chars rewinds input" {
   let input = @pdfio.input_of_string("abc")
+  let prev_logger = @pdfe.logger.val
+  @pdfe.logger.val = _ => ()
+  defer {
+    @pdfe.logger.val = prev_logger
+  }
   @pdfio.debug_next_n_chars(2, input)
   match (input.input_char)() {
     Some('a') => ()

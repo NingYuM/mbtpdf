@@ -5,6 +5,11 @@ test "fillbytes and bytes_selfmap" {
   assert_eq(@pdfio.string_of_bytes(bytes), "AAA")
   @pdfio.bytes_selfmap(value => value + 1, bytes)
   assert_eq(@pdfio.string_of_bytes(bytes), "BBB")
+  let prev_logger = @pdfe.logger.val
+  @pdfe.logger.val = _ => ()
+  defer {
+    @pdfe.logger.val = prev_logger
+  }
   @pdfio.print_bytes(bytes)
 }
 

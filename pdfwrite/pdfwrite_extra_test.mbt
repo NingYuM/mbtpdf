@@ -12,6 +12,11 @@ test "string_of_pdf_including_data includes stream bytes" {
 
 ///|
 test "string_of_pdf_including_data warns on toget streams" {
+  let prev_logger = @pdfe.logger.val
+  @pdfe.logger.val = _ => ()
+  defer {
+    @pdfe.logger.val = prev_logger
+  }
   let data = @pdfio.bytes_of_string("a")
   let input = @pdfio.input_of_bytes(data, source="toget-warn")
   let deferred : @pdf.DeferredEncryption = {
@@ -142,6 +147,11 @@ test "make_hex_pdf_string covers hex digits" {
 ///|
 test "debug_whole_pdf runs" {
   let pdf = @pdfpage.minimum_valid_pdf()
+  let prev_logger = @pdfe.logger.val
+  @pdfe.logger.val = _ => ()
+  defer {
+    @pdfe.logger.val = prev_logger
+  }
   @pdfwrite.debug_whole_pdf(pdf)
 }
 
