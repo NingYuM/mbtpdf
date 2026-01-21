@@ -203,6 +203,31 @@ fn add_embedded_file(
 }
 
 ///|
+fn make_url_action(uri : String) -> @pdf.PdfObject {
+  @pdf.PdfObject::Dictionary([
+    ("/S", @pdf.PdfObject::Name("/URI")),
+    ("/URI", @pdf.PdfObject::String(uri)),
+  ])
+}
+
+///|
+fn assert_url_action(
+  pdf : @pdf.Pdf,
+  action_obj : @pdf.PdfObject,
+  expected_uri : String,
+) -> Unit raise {
+  let action = @pdf.direct(pdf, action_obj)
+  match @pdf.lookup_direct(pdf, "/S", action) {
+    Some(@pdf.PdfObject::Name("/URI")) => ()
+    _ => fail("expected /S /URI")
+  }
+  match @pdf.lookup_direct(pdf, "/URI", action) {
+    Some(@pdf.PdfObject::String(uri)) => assert_eq(uri, expected_uri)
+    _ => fail("expected /URI string")
+  }
+}
+
+///|
 fn read_name_tree_entries(
   pdf : @pdf.Pdf,
   key : String,
@@ -299,6 +324,19 @@ fn assert_embedded_file_entry(
     Some(idx) =>
       assert_embedded_file_spec(pdf, entries[idx].1, filename, payload)
     None => fail("missing embedded file: " + name)
+  }
+}
+
+///|
+fn assert_url_entry(
+  pdf : @pdf.Pdf,
+  entries : Array[(String, @pdf.PdfObject)],
+  name : String,
+  expected_uri : String,
+) -> Unit raise {
+  match entries.search_by(pair => pair.0 == name) {
+    Some(idx) => assert_url_action(pdf, entries[idx].1, expected_uri)
+    None => fail("missing url entry: " + name)
   }
 }
 
@@ -855,6 +893,43 @@ async test "e2e merge preserves /Names /EmbeddedFiles" {
   )
   assert_embedded_file_entry(
     parsed, parsed_entries, "RightFile", "right.txt", "right payload",
+  )
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
+async test "e2e merge preserves /Names /URLS" {
+  let left = @pdfpage.minimum_valid_pdf()
+  let right = @pdfpage.minimum_valid_pdf()
+  add_names_tree(left, "/URLS", [
+    ("LeftURL", make_url_action("https://example.com/left")),
+  ])
+  add_names_tree(right, "/URLS", [
+    ("RightURL", make_url_action("https://example.com/right")),
+  ])
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["urls_left", "urls_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  )
+  let entries = read_name_tree_entries(merged, "/URLS")
+  assert_url_entry(merged, entries, "LeftURL", "https://example.com/left")
+  assert_url_entry(merged, entries, "RightURL", "https://example.com/right")
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_urls.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let parsed_entries = read_name_tree_entries(parsed, "/URLS")
+  assert_url_entry(
+    parsed, parsed_entries, "LeftURL", "https://example.com/left",
+  )
+  assert_url_entry(
+    parsed, parsed_entries, "RightURL", "https://example.com/right",
   )
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
