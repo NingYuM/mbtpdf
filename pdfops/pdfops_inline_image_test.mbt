@@ -240,12 +240,14 @@ test "parse inline image flate handles trailing operators" {
 fn parse_inline_image_error(dict : @pdf.PdfObject) -> Unit raise {
   let pdf = @pdf.empty()
   let resources = @pdf.PdfObject::Dictionary([])
-  let rendered = match
-    (try? @pdfops.string_of_ops([
+  let rendered = try
+    @pdfops.string_of_ops([
       @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x00]))),
-    ])) {
-    Ok(value) => value
-    Err(_) => fail("expected inline image serialization")
+    ])
+  catch {
+    _ => fail("expected inline image serialization")
+  } noraise {
+    value => value
   }
   let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
     pdf,

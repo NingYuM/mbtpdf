@@ -551,9 +551,10 @@ fn strip_dict_markers(value : String) -> String {
   if value.length() < 4 {
     value
   } else {
-    match (try? value[2:value.length() - 2]) {
-      Ok(view) => view.to_string()
-      Err(_) => value
+    try value[2:value.length() - 2] catch {
+      _ => value
+    } noraise {
+      view => view.to_string()
     }
   }
 }
