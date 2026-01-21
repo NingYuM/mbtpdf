@@ -369,7 +369,7 @@ fn lex_malformed_stream_data(input : @pdfio.Input) -> @pdfgenlex.Token raise {
   (input.seek_in)(curr)
   let len = pos - curr
   let bytes = @pdfio.mkbytes(len)
-  for i = 0; i < len; i = i + 1 {
+  for i in 0..<len {
     bytes[i] = (input.input_byte)().to_byte()
   }
   @pdfgenlex.Token::LexStream(@pdf.Stream::Got(bytes))

@@ -29,7 +29,7 @@ fn read_bit(reader : BitReader) -> Int raise FlateError {
 ///|
 fn read_bits(reader : BitReader, count : Int) -> Int raise FlateError {
   let mut value = 0
-  for i = 0; i < count; i = i + 1 {
+  for i in 0..<count {
     let bit = read_bit(reader)
     value = value | (bit << i)
   }
@@ -60,7 +60,7 @@ priv struct Huffman {
 ///|
 fn reverse_bits(code : Int, length : Int) -> Int {
   let mut rev = 0
-  for i = 0; i < length; i = i + 1 {
+  for i in 0..<length {
     let bit = (code >> i) & 1
     rev = (rev << 1) | bit
   }
@@ -88,7 +88,7 @@ fn build_huffman(lengths : Array[Int]) -> Huffman {
     next[bits] = code
   }
   let table = Array::makei(max_len + 1, _i => Map::new())
-  for i = 0; i < lengths.length(); i = i + 1 {
+  for i in 0..<lengths.length() {
     let len = lengths[i]
     if len > 0 {
       let code_val = next[len]
@@ -117,16 +117,16 @@ fn decode_symbol(reader : BitReader, huff : Huffman) -> Int raise FlateError {
 ///|
 fn fixed_literal_lengths() -> Array[Int] {
   let lengths = Array::make(288, 0)
-  for i = 0; i <= 143; i = i + 1 {
+  for i in 0..<=143 {
     lengths[i] = 8
   }
-  for i = 144; i <= 255; i = i + 1 {
+  for i in 144..<=255 {
     lengths[i] = 9
   }
-  for i = 256; i <= 279; i = i + 1 {
+  for i in 256..<=279 {
     lengths[i] = 7
   }
-  for i = 280; i <= 287; i = i + 1 {
+  for i in 280..<=287 {
     lengths[i] = 8
   }
   lengths
@@ -176,7 +176,7 @@ fn copy_from_output(
   if distance <= 0 {
     raise FlateError::Error("uncompress", "invalid distance")
   }
-  for _i = 0; _i < length; _i = _i + 1 {
+  for _ in 0..<length {
     let src = out.length() - distance
     if src < 0 {
       raise FlateError::Error("uncompress", "distance beyond output")
@@ -196,7 +196,7 @@ fn inflate_stored(
   if ((len ^ 0xFFFF) & 0xFFFF) != nlen {
     raise FlateError::Error("uncompress", "stored block length mismatch")
   }
-  for _i = 0; _i < len; _i = _i + 1 {
+  for _ in 0..<len {
     let b = read_bits(reader, 8)
     out.push(b.to_byte())
   }
@@ -254,7 +254,7 @@ fn inflate_dynamic(
     16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15,
   ]
   let code_lengths = Array::make(19, 0)
-  for i = 0; i < hclen; i = i + 1 {
+  for i in 0..<hclen {
     let symbol = code_length_order[i]
     code_lengths[symbol] = read_bits(reader, 3)
   }
@@ -274,7 +274,7 @@ fn inflate_dynamic(
         )
       }
       let repeat = 3 + read_bits(reader, 2)
-      for _i = 0; _i < repeat; _i = _i + 1 {
+      for _ in 0..<repeat {
         if lengths.length() >= total {
           raise FlateError::Error("uncompress", "code length overflow")
         }
@@ -282,7 +282,7 @@ fn inflate_dynamic(
       }
     } else if sym == 17 {
       let repeat = 3 + read_bits(reader, 3)
-      for _i = 0; _i < repeat; _i = _i + 1 {
+      for _ in 0..<repeat {
         if lengths.length() >= total {
           raise FlateError::Error("uncompress", "code length overflow")
         }
@@ -291,7 +291,7 @@ fn inflate_dynamic(
       prev = 0
     } else if sym == 18 {
       let repeat = 11 + read_bits(reader, 7)
-      for _i = 0; _i < repeat; _i = _i + 1 {
+      for _ in 0..<repeat {
         if lengths.length() >= total {
           raise FlateError::Error("uncompress", "code length overflow")
         }
@@ -303,11 +303,11 @@ fn inflate_dynamic(
     }
   }
   let lit_lengths = Array::new(capacity=hlit)
-  for i = 0; i < hlit; i = i + 1 {
+  for i in 0..<hlit {
     lit_lengths.push(lengths[i])
   }
   let dist_lengths = Array::new(capacity=hdist)
-  for i = 0; i < hdist; i = i + 1 {
+  for i in 0..<hdist {
     dist_lengths.push(lengths[hlit + i])
   }
   let lit_huff = build_huffman(lit_lengths)
@@ -360,7 +360,7 @@ fn read_all_input(input : (@pdfio.MutableBytes) -> Int) -> @pdfio.MutableBytes {
     if n <= 0 {
       return
     }
-    for i = 0; i < n; i = i + 1 {
+    for i in 0..<n {
       out.push(buf[i])
     }
     read_more(out, buf, input)
@@ -419,7 +419,7 @@ pub fn compress(
       return
     }
     let chunk = @pdfio.mkbytes(length)
-    for i = 0; i < length; i = i + 1 {
+    for i in 0..<length {
       chunk[i] = data[offset + i]
     }
     output(chunk, length)

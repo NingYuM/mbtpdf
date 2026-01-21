@@ -43,7 +43,7 @@ fn encode_ascii85(stream : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
         digits.push(digit.to_int())
       }
       let count = if chunk_len < 4 { chunk_len + 1 } else { 5 }
-      for i = 0; i < count; i = i + 1 {
+      for i in 0..<count {
         output.push((digits[i] + 33).to_byte())
       }
     }
@@ -65,7 +65,7 @@ fn decode_ascii85(input : @pdfio.Input) -> @pdfio.MutableBytes raise CodecError 
       return
     }
     let mut value = Int64::from_int(0)
-    for i = 0; i < 5; i = i + 1 {
+    for i in 0..<5 {
       let digit = if i < len { group[i] } else { 84 }
       value = value + Int64::from_int(digit) * pow85[i]
     }
@@ -76,7 +76,7 @@ fn decode_ascii85(input : @pdfio.Input) -> @pdfio.MutableBytes raise CodecError 
       ascii85_byte(value, 0),
     ]
     let count = len - 1
-    for i = 0; i < count; i = i + 1 {
+    for i in 0..<count {
       output.push(bytes[i])
     }
   }

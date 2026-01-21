@@ -301,7 +301,7 @@ pub fn output_of_channel(ch : @fs.File) -> Output {
       if pos > buffer.val.length() - 1 {
         let new_len = if pos * 2 > 0 { pos * 2 } else { 1 }
         let new_bytes = mkbytes(new_len)
-        for i = 0; i < buffer.val.length(); i = i + 1 {
+        for i in 0..<buffer.val.length() {
           bset_unsafe(new_bytes, i, bget_unsafe(buffer.val, i))
         }
         buffer.val = new_bytes
@@ -318,7 +318,7 @@ pub fn output_of_channel(ch : @fs.File) -> Output {
   }
   async fn flush_output() -> Unit {
     let out = mkbytes(pos)
-    for i = 0; i < pos; i = i + 1 {
+    for i in 0..<pos {
       bset_unsafe(out, i, bget_unsafe(buffer.val, i))
     }
     let bytes = Bytes::from_array(out)
@@ -358,7 +358,7 @@ pub fn extract_bytes_from_input_output(
 ) -> MutableBytes {
   let len = (output.pos_out)()
   let out = mkbytes(len)
-  for i = 0; i < len; i = i + 1 {
+  for i in 0..<len {
     bset_unsafe(out, i, bget_unsafe(data.val, i))
   }
   out
@@ -613,7 +613,7 @@ fn getbitsint(b : Bitstream, n : Int) -> Int raise {
     fail("getbitsint")
   }
   let mut value = 0
-  for i = 0; i < n; i = i + 1 {
+  for _ in 0..<n {
     value = (value << 1) | getbitint(b)
   }
   value
@@ -719,7 +719,7 @@ fn append_bits(dest : BitstreamWrite, src : BitstreamWrite) -> Unit {
   if total == 0 {
     return
   }
-  for i = 0; i < total; i = i + 1 {
+  for i in 0..<total {
     let byte_index = i / 8
     let bit_index = i % 8
     let curr = src.bytes[byte_index].to_int()
@@ -749,7 +749,7 @@ fn output_of_bytes(data : Ref[MutableBytes]) -> Output {
   let output_int = (value : Int) => if pos > data.val.length() - 1 {
     let new_len = if pos * 2 > 0 { pos * 2 } else { 1 }
     let new_bytes = mkbytes(new_len)
-    for i = 0; i < data.val.length(); i = i + 1 {
+    for i in 0..<data.val.length() {
       bset_unsafe(new_bytes, i, bget_unsafe(data.val, i))
     }
     bset_unsafe(new_bytes, pos, value)

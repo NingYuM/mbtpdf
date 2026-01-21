@@ -24,7 +24,7 @@ fn match_at(chars : Array[Char], index : Int, token : Array[Char]) -> Bool {
   if index + token.length() > chars.length() {
     return false
   }
-  for i = 0; i < token.length(); i = i + 1 {
+  for i in 0..<token.length() {
     if chars[index + i] != token[i] {
       return false
     }

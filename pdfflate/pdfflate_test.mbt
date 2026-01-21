@@ -10,7 +10,7 @@ fn run_uncompress(
       0
     } else {
       let n = if remaining < buf.length() { remaining } else { buf.length() }
-      for i = 0; i < n; i = i + 1 {
+      for i in 0..<n {
         buf[i] = data[pos + i]
       }
       pos = pos + n
@@ -18,9 +18,7 @@ fn run_uncompress(
     }
   }
   let out : @pdfio.MutableBytes = Array::new()
-  let output = (buf : @pdfio.MutableBytes, length : Int) => for i = 0
-                                                                i < length
-                                                                i = i + 1 {
+  let output = (buf : @pdfio.MutableBytes, length : Int) => for i in 0..<length {
     out.push(buf[i])
   }
   uncompress(header~, input, output)
@@ -39,7 +37,7 @@ fn run_compress(
       0
     } else {
       let n = if remaining < buf.length() { remaining } else { buf.length() }
-      for i = 0; i < n; i = i + 1 {
+      for i in 0..<n {
         buf[i] = data[pos + i]
       }
       pos = pos + n
@@ -47,9 +45,7 @@ fn run_compress(
     }
   }
   let out : @pdfio.MutableBytes = Array::new()
-  let output = (buf : @pdfio.MutableBytes, length : Int) => for i = 0
-                                                                i < length
-                                                                i = i + 1 {
+  let output = (buf : @pdfio.MutableBytes, length : Int) => for i in 0..<length {
     out.push(buf[i])
   }
   compress(header~, input, output)

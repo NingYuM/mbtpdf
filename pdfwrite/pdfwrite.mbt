@@ -604,7 +604,7 @@ fn write_pdf_object_to_output(
     @pdf.PdfObject::Name(n) => write_str(make_pdf_name(n))
     @pdf.PdfObject::Array(values) => {
       write_str("[")
-      for i = 0; i < values.length(); i = i + 1 {
+      for i in 0..<values.length() {
         if i > 0 {
           write_str(" ")
         }
@@ -619,7 +619,7 @@ fn write_pdf_object_to_output(
     }
     @pdf.PdfObject::Dictionary(entries) => {
       write_str("<<")
-      for i = 0; i < entries.length(); i = i + 1 {
+      for i in 0..<entries.length() {
         let (key, value) = entries[i]
         if i > 0 {
           write_str(" ")
@@ -671,7 +671,7 @@ fn write_pdf_object(
     @pdf.PdfObject::Name(n) => sb.write_string(make_pdf_name(n))
     @pdf.PdfObject::Array(values) => {
       sb.write_char('[')
-      for i = 0; i < values.length(); i = i + 1 {
+      for i in 0..<values.length() {
         if i > 0 {
           sb.write_char(' ')
         }
@@ -681,7 +681,7 @@ fn write_pdf_object(
     }
     @pdf.PdfObject::Dictionary(entries) => {
       sb.write_string("<<")
-      for i = 0; i < entries.length(); i = i + 1 {
+      for i in 0..<entries.length() {
         let (key, value) = entries[i]
         if i > 0 {
           sb.write_char(' ')

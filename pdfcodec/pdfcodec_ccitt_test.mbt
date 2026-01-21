@@ -4,7 +4,7 @@ fn assert_bytes_eq(
   actual : @pdfio.MutableBytes,
 ) -> Unit raise {
   assert_eq(@pdfio.bytes_size(actual), @pdfio.bytes_size(expected))
-  for i = 0; i < expected.length(); i = i + 1 {
+  for i in 0..<expected.length() {
     assert_eq(actual[i].to_int(), expected[i].to_int())
   }
 }

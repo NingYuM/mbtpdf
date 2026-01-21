@@ -166,7 +166,7 @@ fn width(
     return 0
   }
   let mut total = 0
-  for i = 0; i < codes.length(); i = i + 1 {
+  for i in 0..<codes.length() {
     let h = codes[i]
     total = total +
       find_width(widths, charname_to_width, encoding, encoding_table, h)

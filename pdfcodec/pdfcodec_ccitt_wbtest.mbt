@@ -20,7 +20,7 @@ fn assert_bytes_eq(
   right : @pdfio.MutableBytes,
 ) -> Unit raise {
   assert_eq(left.length(), right.length())
-  for i = 0; i < left.length(); i = i + 1 {
+  for i in 0..<left.length() {
     assert_eq(left[i], right[i])
   }
 }

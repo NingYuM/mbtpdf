@@ -70,7 +70,7 @@ pub fn encode_flate(
       0
     } else {
       let n = if remaining < buf.length() { remaining } else { buf.length() }
-      for i = 0; i < n; i = i + 1 {
+      for i in 0..<n {
         buf[i] = data[pos + i]
       }
       pos = pos + n
@@ -78,9 +78,7 @@ pub fn encode_flate(
     }
   }
   let out : @pdfio.MutableBytes = Array::new()
-  let output = (buf : @pdfio.MutableBytes, length : Int) => for i = 0
-                                                                i < length
-                                                                i = i + 1 {
+  let output = (buf : @pdfio.MutableBytes, length : Int) => for i in 0..<length {
     out.push(buf[i])
   }
   try {
@@ -104,7 +102,7 @@ pub fn decode_flate(
       0
     } else {
       let n = if remaining < buf.length() { remaining } else { buf.length() }
-      for i = 0; i < n; i = i + 1 {
+      for i in 0..<n {
         buf[i] = data[pos + i]
       }
       pos = pos + n
@@ -112,9 +110,7 @@ pub fn decode_flate(
     }
   }
   let out : @pdfio.MutableBytes = Array::new()
-  let output = (buf : @pdfio.MutableBytes, length : Int) => for i = 0
-                                                                i < length
-                                                                i = i + 1 {
+  let output = (buf : @pdfio.MutableBytes, length : Int) => for i in 0..<length {
     out.push(buf[i])
   }
   try {
@@ -1770,7 +1766,7 @@ pub fn decode_from_bytes(
         return None
       }
       let mut current = bytes
-      for i = 0; i < filters.length(); i = i + 1 {
+      for i in 0..<filters.length() {
         let filter_name = match filters[i] {
           @pdf.PdfObject::Name(name) => name
           _ => return None
@@ -2142,7 +2138,7 @@ fn decode_png_predictor(
     for v in decoded {
       output.push(v.to_byte())
     }
-    for i = 0; i < scanline_width; i = i + 1 {
+    for i in 0..<scanline_width {
       prev_decoded[i] = decoded[i]
     }
     if i < scanline_width {
@@ -2164,15 +2160,15 @@ fn decode_scanline_pair(
   match pred {
     0 => ()
     1 =>
-      for i = 0; i < output.length(); i = i + 1 {
+      for i in 0..<output.length() {
         output[i] = (get0(current, i) + get0(output, i - bytes_per_pixel)) % 256
       }
     2 =>
-      for i = 0; i < output.length(); i = i + 1 {
+      for i in 0..<output.length() {
         output[i] = (get0(current, i) + get0(prior_decoded, i)) % 256
       }
     3 =>
-      for i = 0; i < output.length(); i = i + 1 {
+      for i in 0..<output.length() {
         let left = get0(output, i - bytes_per_pixel)
         let up = get0(prior_decoded, i)
         output[i] = (get0(current, i) + (left + up) / 2) % 256
@@ -2191,7 +2187,7 @@ fn decode_scanline_pair(
           c
         }
       }
-      for i = 0; i < output.length(); i = i + 1 {
+      for i in 0..<output.length() {
         let curr = get0(current, i)
         let left = get0(output, i - bytes_per_pixel)
         let up = get0(prior_decoded, i)

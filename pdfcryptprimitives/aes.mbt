@@ -79,7 +79,7 @@ fn gmul(a0 : Int, b0 : Int) -> Int {
 ///|
 fn sub_bytes(state : Array[Int]) -> Array[Int] {
   let out = Array::make(16, 0)
-  for i = 0; i < 16; i = i + 1 {
+  for i in 0..<16 {
     out[i] = sbox[state[i]]
   }
   out
@@ -88,7 +88,7 @@ fn sub_bytes(state : Array[Int]) -> Array[Int] {
 ///|
 fn inv_sub_bytes(state : Array[Int]) -> Array[Int] {
   let out = Array::make(16, 0)
-  for i = 0; i < 16; i = i + 1 {
+  for i in 0..<16 {
     out[i] = inv_sbox[state[i]]
   }
   out
@@ -176,7 +176,7 @@ fn add_round_key(
 ) -> Array[Int] {
   let out = Array::make(16, 0)
   let offset = round * 16
-  for i = 0; i < 16; i = i + 1 {
+  for i in 0..<16 {
     out[i] = byte(state[i] ^ key_schedule[offset + i])
   }
   out

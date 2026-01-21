@@ -8,11 +8,11 @@ fn swap(s : Array[Int], i : Int, j : Int) -> Unit {
 ///|
 fn ksa(s : Array[Int], key : Array[Int]) -> Unit {
   let keylength = key.length()
-  for i = 0; i < 256; i = i + 1 {
+  for i in 0..<256 {
     s[i] = i
   }
   let mut j = 0
-  for i = 0; i < 256; i = i + 1 {
+  for i in 0..<256 {
     j = (j + s[i] + key[i % keylength]) % 256
     swap(s, i, j)
   }
