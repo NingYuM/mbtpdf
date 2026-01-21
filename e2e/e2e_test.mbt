@@ -175,6 +175,34 @@ fn add_names_tree(
 }
 
 ///|
+fn add_embedded_file(
+  pdf : @pdf.Pdf,
+  entry_name : String,
+  filename : String,
+  payload : String,
+) -> Unit raise {
+  let bytes = @pdfio.bytes_of_string(payload)
+  let stream_dict = @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/EmbeddedFile")),
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(bytes))),
+  ])
+  let stream_obj = @pdf.PdfObject::Stream(
+    Ref::new((stream_dict, @pdf.Stream::Got(bytes))),
+  )
+  let stream_num = @pdf.addobj(pdf, stream_obj)
+  let filespec = @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/Filespec")),
+    ("/F", @pdf.PdfObject::String(filename)),
+    ("/UF", @pdf.PdfObject::String(filename)),
+    (
+      "/EF",
+      @pdf.PdfObject::Dictionary([("/F", @pdf.PdfObject::Indirect(stream_num))]),
+    ),
+  ])
+  add_names_tree(pdf, "/EmbeddedFiles", [(entry_name, filespec)])
+}
+
+///|
 fn read_name_tree_entries(
   pdf : @pdf.Pdf,
   key : String,
@@ -209,6 +237,68 @@ fn read_named_destination(
   match entries.search_by(pair => pair.0 == name) {
     Some(idx) => @pdfdest.read_destination(pdf, entries[idx].1)
     None => fail("missing destination: " + name)
+  }
+}
+
+///|
+fn assert_embedded_file_stream(
+  pdf : @pdf.Pdf,
+  stream_obj : @pdf.PdfObject,
+  expected_payload : String,
+) -> Unit raise {
+  match @pdf.lookup_direct(pdf, "/Type", stream_obj) {
+    Some(@pdf.PdfObject::Name("/EmbeddedFile")) => ()
+    _ => fail("expected /Type /EmbeddedFile")
+  }
+  let bytes = @pdf.bigarray_of_stream(stream_obj)
+  let payload = @pdfio.string_of_bytes(bytes)
+  assert_eq(payload, expected_payload)
+  match @pdf.lookup_direct(pdf, "/Length", stream_obj) {
+    Some(@pdf.PdfObject::Integer(length)) =>
+      assert_eq(length, @pdfio.bytes_size(bytes))
+    _ => fail("expected /Length")
+  }
+}
+
+///|
+fn assert_embedded_file_spec(
+  pdf : @pdf.Pdf,
+  filespec_obj : @pdf.PdfObject,
+  expected_filename : String,
+  expected_payload : String,
+) -> Unit raise {
+  let spec = @pdf.direct(pdf, filespec_obj)
+  match @pdf.lookup_direct(pdf, "/Type", spec) {
+    Some(@pdf.PdfObject::Name("/Filespec")) => ()
+    _ => fail("expected /Type /Filespec")
+  }
+  match @pdf.lookup_direct(pdf, "/F", spec) {
+    Some(@pdf.PdfObject::String(name)) => assert_eq(name, expected_filename)
+    _ => fail("expected /F filename")
+  }
+  let ef = match @pdf.lookup_direct(pdf, "/EF", spec) {
+    Some(obj) => obj
+    None => fail("missing /EF dictionary")
+  }
+  let stream_obj = match @pdf.lookup_direct(pdf, "/F", ef) {
+    Some(obj) => obj
+    None => fail("missing /EF /F")
+  }
+  assert_embedded_file_stream(pdf, stream_obj, expected_payload)
+}
+
+///|
+fn assert_embedded_file_entry(
+  pdf : @pdf.Pdf,
+  entries : Array[(String, @pdf.PdfObject)],
+  name : String,
+  filename : String,
+  payload : String,
+) -> Unit raise {
+  match entries.search_by(pair => pair.0 == name) {
+    Some(idx) =>
+      assert_embedded_file_spec(pdf, entries[idx].1, filename, payload)
+    None => fail("missing embedded file: " + name)
   }
 }
 
@@ -728,6 +818,43 @@ async test "e2e merge preserves /Names JavaScript" {
   )
   assert_true(
     parsed_entries.search_by(pair => pair.0 == "RightScript") is Some(_),
+  )
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
+async test "e2e merge preserves /Names /EmbeddedFiles" {
+  let left = @pdfpage.minimum_valid_pdf()
+  let right = @pdfpage.minimum_valid_pdf()
+  add_embedded_file(left, "LeftFile", "left.txt", "left payload")
+  add_embedded_file(right, "RightFile", "right.txt", "right payload")
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["embed_left", "embed_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  )
+  let entries = read_name_tree_entries(merged, "/EmbeddedFiles")
+  assert_embedded_file_entry(
+    merged, entries, "LeftFile", "left.txt", "left payload",
+  )
+  assert_embedded_file_entry(
+    merged, entries, "RightFile", "right.txt", "right payload",
+  )
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_embedded_files.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let parsed_entries = read_name_tree_entries(parsed, "/EmbeddedFiles")
+  assert_embedded_file_entry(
+    parsed, parsed_entries, "LeftFile", "left.txt", "left payload",
+  )
+  assert_embedded_file_entry(
+    parsed, parsed_entries, "RightFile", "right.txt", "right payload",
   )
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 

@@ -57,6 +57,9 @@ result to `tmp/e2e`, then reads the output back to validate the roundtrip.
 - Merge /Names JavaScript
   - Creates minimal PDFs with /Names /JavaScript name trees, merges them, and
     verifies both script names survive the roundtrip.
+- Merge /Names /EmbeddedFiles
+  - Creates minimal PDFs with /Names /EmbeddedFiles name trees, merges them, and
+    verifies file specs and embedded streams survive the roundtrip.
 
 ## Running
 - `moon test e2e` to run only the end-to-end tests.
