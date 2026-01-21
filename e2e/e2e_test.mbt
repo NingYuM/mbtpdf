@@ -184,6 +184,46 @@ async test "e2e annotation roundtrip" {
 }
 
 ///|
+async test "e2e merge preserves annotations" {
+  let left = read_pdf(MERGE_LEFT_PATH)
+  let right = read_pdf(MERGE_RIGHT_PATH)
+  let left_pages = @pdfpage.pages_of_pagetree(left)
+  assert_true(left_pages.length() > 0)
+  let annot = @pdfannot.make(
+    @pdfannot.Subtype::Text,
+    content="Merged note",
+    rectangle=(15.0, 25.0, 35.0, 45.0),
+  )
+  let updated_page = @pdfannot.add_annotation(left, left_pages[0], annot)
+  left_pages[0] = updated_page
+  let updated_left = @pdfpage.change_pages(true, left, left_pages)
+  let left_count = page_count(updated_left)
+  let right_count = page_count(right)
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["merge_annot_left", "merge_annot_right"],
+    [updated_left, right],
+    [full_range(left_count), full_range(right_count)],
+  )
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_annot.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let parsed_pages = @pdfpage.pages_of_pagetree(parsed)
+  let annots = @pdfannot.annotations_of_page(parsed, parsed_pages[0])
+  assert_eq(annots.length(), 1)
+  match annots[0].annot_contents {
+    Some("Merged note") => ()
+    _ => fail("expected merged annotation contents")
+  }
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
 async test "e2e bookmarks roundtrip" {
   let pdf = read_pdf(BOOKMARK_PATH)
   let count = page_count(pdf)
