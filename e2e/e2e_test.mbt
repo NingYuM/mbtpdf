@@ -147,6 +147,51 @@ fn set_catalog_entry(
 }
 
 ///|
+fn add_names_tree(
+  pdf : @pdf.Pdf,
+  key : String,
+  entries : Array[(String, @pdf.PdfObject)],
+) -> Unit raise {
+  let tree = @pdftree.build_name_tree(false, pdf, entries)
+  let tree_num = @pdf.addobj(pdf, tree)
+  let rootnum = pdf.root
+  let root = @pdf.lookup_obj(pdf, rootnum)
+  let names = match @pdf.lookup_direct(pdf, "/Names", root) {
+    Some(obj) => obj
+    None => @pdf.PdfObject::Dictionary([])
+  }
+  let names = @pdf.add_dict_entry(
+    names,
+    key,
+    @pdf.PdfObject::Indirect(tree_num),
+  )
+  let updated_root = @pdf.add_dict_entry(root, "/Names", names)
+  @pdf.addobj_given_num(pdf, (rootnum, updated_root))
+  pdf.trailerdict = @pdf.add_dict_entry(
+    pdf.trailerdict,
+    "/Root",
+    @pdf.PdfObject::Indirect(rootnum),
+  )
+}
+
+///|
+fn read_name_tree_entries(
+  pdf : @pdf.Pdf,
+  key : String,
+) -> Array[(String, @pdf.PdfObject)] raise {
+  let catalog = @pdf.catalog_of_pdf(pdf)
+  let names = match @pdf.lookup_direct(pdf, "/Names", catalog) {
+    Some(obj) => obj
+    None => fail("missing /Names dictionary")
+  }
+  let tree = match @pdf.lookup_direct(pdf, key, names) {
+    Some(obj) => obj
+    None => fail("missing name tree: " + key)
+  }
+  @pdftree.read_name_tree(pdf, tree)
+}
+
+///|
 fn read_named_destination(
   pdf : @pdf.Pdf,
   name : String,
@@ -643,6 +688,47 @@ async test "e2e merge preserves AcroForm entries" {
     Some(@pdf.PdfObject::Integer(1)) => ()
     _ => fail("expected parsed /SigFlags 1")
   }
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
+async test "e2e merge preserves /Names JavaScript" {
+  let left = @pdfpage.minimum_valid_pdf()
+  let right = @pdfpage.minimum_valid_pdf()
+  let left_action = @pdf.PdfObject::Dictionary([
+    ("/S", @pdf.PdfObject::Name("/JavaScript")),
+    ("/JS", @pdf.PdfObject::String("app.alert('left')")),
+  ])
+  let right_action = @pdf.PdfObject::Dictionary([
+    ("/S", @pdf.PdfObject::Name("/JavaScript")),
+    ("/JS", @pdf.PdfObject::String("app.alert('right')")),
+  ])
+  add_names_tree(left, "/JavaScript", [("LeftScript", left_action)])
+  add_names_tree(right, "/JavaScript", [("RightScript", right_action)])
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["js_left", "js_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  )
+  let entries = read_name_tree_entries(merged, "/JavaScript")
+  assert_true(entries.search_by(pair => pair.0 == "LeftScript") is Some(_))
+  assert_true(entries.search_by(pair => pair.0 == "RightScript") is Some(_))
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_javascript_names.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let parsed_entries = read_name_tree_entries(parsed, "/JavaScript")
+  assert_true(
+    parsed_entries.search_by(pair => pair.0 == "LeftScript") is Some(_),
+  )
+  assert_true(
+    parsed_entries.search_by(pair => pair.0 == "RightScript") is Some(_),
+  )
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
 }
