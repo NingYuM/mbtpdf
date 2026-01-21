@@ -416,13 +416,17 @@ fn many(value : Double, count : Int) -> Array[Double] {
 }
 
 ///|
+fn min(a : Int, b : Int) -> Int {
+  if a < b { a } else { b }
+}
+
+///|
 fn interleave_lists(a : Array[Double], b : Array[Double]) -> Array[Double] {
   let out = Array::new(capacity=a.length() + b.length())
-  let mut i = 0
-  while i < a.length() && i < b.length() {
+  let len = min(a.length(), b.length())
+  for i in 0..<len {
     out.push(a[i])
     out.push(b[i])
-    i = i + 1
   }
   out
 }
@@ -438,11 +442,10 @@ fn product(values : Array[Int]) -> Int {
 
 ///|
 fn[A, B, C] map2(a : Array[A], b : Array[B], f : (A, B) -> C) -> Array[C] {
-  let out = Array::new(capacity=a.length())
-  let mut i = 0
-  while i < a.length() && i < b.length() {
+  let len = min(a.length(), b.length())
+  let out = Array::new(capacity=len)
+  for i in 0..<len {
     out.push(f(a[i], b[i]))
-    i = i + 1
   }
   out
 }
@@ -454,11 +457,10 @@ fn[A, B, C, D] map3(
   c : Array[C],
   f : (A, B, C) -> D,
 ) -> Array[D] {
-  let out = Array::new(capacity=a.length())
-  let mut i = 0
-  while i < a.length() && i < b.length() && i < c.length() {
+  let len = min(min(a.length(), b.length()), c.length())
+  let out = Array::new(capacity=len)
+  for i in 0..<len {
     out.push(f(a[i], b[i], c[i]))
-    i = i + 1
   }
   out
 }
@@ -472,15 +474,13 @@ fn[A, B, C, D, E, F] map5(
   e : Array[E],
   f : (A, B, C, D, E) -> F,
 ) -> Array[F] {
-  let out = Array::new(capacity=a.length())
-  let mut i = 0
-  while i < a.length() &&
-        i < b.length() &&
-        i < c.length() &&
-        i < d.length() &&
-        i < e.length() {
+  let len = min(
+    min(min(a.length(), b.length()), c.length()),
+    min(d.length(), e.length()),
+  )
+  let out = Array::new(capacity=len)
+  for i in 0..<len {
     out.push(f(a[i], b[i], c[i], d[i], e[i]))
-    i = i + 1
   }
   out
 }
@@ -498,11 +498,10 @@ fn[T] flatten(lists : Array[Array[T]]) -> Array[T] {
 
 ///|
 fn[T] take(items : Array[T], count : Int) -> Array[T] {
-  let out = Array::new(capacity=count)
-  let mut i = 0
-  while i < count && i < items.length() {
+  let len = min(count, items.length())
+  let out = Array::new(capacity=len)
+  for i in 0..<len {
     out.push(items[i])
-    i = i + 1
   }
   out
 }
