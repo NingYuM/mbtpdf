@@ -735,19 +735,12 @@ fn write_pdf_object(
 
 ///|
 /// Encryption methods.
-pub(all) enum EncryptionMethod {
-  PDF40bit
-  PDF128bit
-  AES128bit(Bool)
-  AES256bit(Bool)
-  AES256bitISO(Bool)
-  AlreadyEncrypted
-}
+pub type EncryptionMethod = @pdfcrypt.EncryptionMethod
 
 ///|
 /// Encryption settings.
 pub struct Encryption {
-  encryption_method : EncryptionMethod
+  encryption_method : @pdfcrypt.EncryptionMethod
   owner_password : String
   user_password : String
   permissions : Array[@pdfcrypt.Permission]
@@ -755,7 +748,7 @@ pub struct Encryption {
 
 ///|
 pub fn make_encryption(
-  encryption_method : EncryptionMethod,
+  encryption_method : @pdfcrypt.EncryptionMethod,
   owner_password : String,
   user_password : String,
   permissions : Array[@pdfcrypt.Permission],
@@ -765,7 +758,7 @@ pub fn make_encryption(
 
 ///|
 let dummy_encryption : Encryption = {
-  encryption_method: EncryptionMethod::AlreadyEncrypted,
+  encryption_method: @pdfcrypt.EncryptionMethod::AlreadyEncrypted,
   owner_password: "",
   user_password: "",
   permissions: [],
@@ -780,21 +773,21 @@ fn crypt_if_necessary(
     None => pdf
     Some(enc) =>
       match enc.encryption_method {
-        EncryptionMethod::PDF40bit =>
+        @pdfcrypt.EncryptionMethod::PDF40bit =>
           @pdfcrypt.encrypt_pdf_40bit(
             enc.user_password,
             enc.owner_password,
             enc.permissions,
             pdf,
           )
-        EncryptionMethod::PDF128bit =>
+        @pdfcrypt.EncryptionMethod::PDF128bit =>
           @pdfcrypt.encrypt_pdf_128bit(
             enc.user_password,
             enc.owner_password,
             enc.permissions,
             pdf,
           )
-        EncryptionMethod::AES128bit(encrypt_metadata) =>
+        @pdfcrypt.EncryptionMethod::AES128bit(encrypt_metadata) =>
           @pdfcrypt.encrypt_pdf_AES(
             encrypt_metadata,
             enc.user_password,
@@ -802,7 +795,7 @@ fn crypt_if_necessary(
             enc.permissions,
             pdf,
           )
-        EncryptionMethod::AES256bit(encrypt_metadata) =>
+        @pdfcrypt.EncryptionMethod::AES256bit(encrypt_metadata) =>
           @pdfcrypt.encrypt_pdf_AES256(
             encrypt_metadata,
             enc.user_password,
@@ -810,7 +803,7 @@ fn crypt_if_necessary(
             enc.permissions,
             pdf,
           )
-        EncryptionMethod::AES256bitISO(encrypt_metadata) =>
+        @pdfcrypt.EncryptionMethod::AES256bitISO(encrypt_metadata) =>
           @pdfcrypt.encrypt_pdf_AES256ISO(
             encrypt_metadata,
             enc.user_password,
@@ -818,7 +811,7 @@ fn crypt_if_necessary(
             enc.permissions,
             pdf,
           )
-        EncryptionMethod::AlreadyEncrypted => pdf
+        @pdfcrypt.EncryptionMethod::AlreadyEncrypted => pdf
       }
   }
 }
@@ -868,7 +861,7 @@ pub fn pdf_to_output(
     match encryption_value {
       Some(enc) =>
         match enc.encryption_method {
-          EncryptionMethod::AlreadyEncrypted => ()
+          @pdfcrypt.EncryptionMethod::AlreadyEncrypted => ()
           _ => pdf = @pdf.renumber(@pdf.changes(pdf), pdf)
         }
       None => ()

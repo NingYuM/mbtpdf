@@ -84,7 +84,7 @@ pub fn revisions(input : @pdfio.Input) -> Int raise {
 
 ///|
 /// Return encryption method in use.
-pub fn what_encryption(pdf : @pdf.Pdf) -> @pdfwrite.EncryptionMethod? {
+pub fn what_encryption(pdf : @pdf.Pdf) -> @pdfcrypt.EncryptionMethod? {
   if @pdfcrypt.is_encrypted(pdf) {
     let values : Result[
       (
@@ -112,17 +112,17 @@ pub fn what_encryption(pdf : @pdf.Pdf) -> @pdfwrite.EncryptionMethod? {
         match crypt {
           @pdfcryptprimitives.Encryption::ARC4(bits, _) =>
             match bits {
-              40 => Some(@pdfwrite.EncryptionMethod::PDF40bit)
-              128 => Some(@pdfwrite.EncryptionMethod::PDF128bit)
+              40 => Some(@pdfcrypt.EncryptionMethod::PDF40bit)
+              128 => Some(@pdfcrypt.EncryptionMethod::PDF128bit)
               _ => None
             }
           @pdfcryptprimitives.Encryption::AESV2 =>
-            Some(@pdfwrite.EncryptionMethod::AES128bit(metadata))
+            Some(@pdfcrypt.EncryptionMethod::AES128bit(metadata))
           @pdfcryptprimitives.Encryption::AESV3(is_iso) =>
             if is_iso {
-              Some(@pdfwrite.EncryptionMethod::AES256bitISO(metadata))
+              Some(@pdfcrypt.EncryptionMethod::AES256bitISO(metadata))
             } else {
-              Some(@pdfwrite.EncryptionMethod::AES256bit(metadata))
+              Some(@pdfcrypt.EncryptionMethod::AES256bit(metadata))
             }
         }
       }

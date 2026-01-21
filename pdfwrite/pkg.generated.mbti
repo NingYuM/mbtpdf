@@ -11,7 +11,7 @@ import {
 // Values
 pub fn debug_whole_pdf(@pdf.Pdf) -> Unit
 
-pub fn make_encryption(EncryptionMethod, String, String, Array[@pdfcrypt.Permission]) -> Encryption
+pub fn make_encryption(@pdfcrypt.EncryptionMethod, String, String, Array[@pdfcrypt.Permission]) -> Encryption
 
 pub fn make_hex_pdf_string(String) -> String
 
@@ -33,22 +33,14 @@ pub let write_debug : Ref[Bool]
 
 // Types and methods
 pub struct Encryption {
-  encryption_method : EncryptionMethod
+  encryption_method : @pdfcrypt.EncryptionMethod
   owner_password : String
   user_password : String
   permissions : Array[@pdfcrypt.Permission]
 }
 
-pub(all) enum EncryptionMethod {
-  PDF40bit
-  PDF128bit
-  AES128bit(Bool)
-  AES256bit(Bool)
-  AES256bitISO(Bool)
-  AlreadyEncrypted
-}
-
 // Type aliases
+pub using @pdfcrypt {type EncryptionMethod}
 
 // Traits
 

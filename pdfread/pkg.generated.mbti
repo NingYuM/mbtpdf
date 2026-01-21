@@ -6,7 +6,6 @@ import {
   "bobzhang/mbtpdf/pdfcrypt",
   "bobzhang/mbtpdf/pdfgenlex",
   "bobzhang/mbtpdf/pdfio",
-  "bobzhang/mbtpdf/pdfwrite",
   "moonbitlang/async/fs",
 }
 
@@ -65,7 +64,7 @@ pub fn revisions(@pdfio.Input) -> Int raise
 
 pub fn string_of_lexeme(@pdfgenlex.Token) -> String
 
-pub fn what_encryption(@pdf.Pdf) -> @pdfwrite.EncryptionMethod?
+pub fn what_encryption(@pdf.Pdf) -> @pdfcrypt.EncryptionMethod?
 
 // Errors
 

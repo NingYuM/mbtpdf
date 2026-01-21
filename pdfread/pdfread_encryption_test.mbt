@@ -15,7 +15,7 @@ test "what_encryption detects ARC4 and AES methods" {
     @pdf.deep_copy(base),
   )
   match @pdfread.what_encryption(arc4) {
-    Some(@pdfwrite.EncryptionMethod::PDF40bit) => ()
+    Some(@pdfcrypt.EncryptionMethod::PDF40bit) => ()
     _ => fail("expected PDF40bit encryption")
   }
   let aes128 = @pdfcrypt.encrypt_pdf_AES(
@@ -26,7 +26,7 @@ test "what_encryption detects ARC4 and AES methods" {
     @pdf.deep_copy(base),
   )
   match @pdfread.what_encryption(aes128) {
-    Some(@pdfwrite.EncryptionMethod::AES128bit(_)) => ()
+    Some(@pdfcrypt.EncryptionMethod::AES128bit(_)) => ()
     _ => fail("expected AES128bit encryption")
   }
 }
@@ -42,7 +42,7 @@ test "what_encryption detects AES256 variants" {
     @pdf.deep_copy(base),
   )
   match @pdfread.what_encryption(aes256) {
-    Some(@pdfwrite.EncryptionMethod::AES256bit(_)) => ()
+    Some(@pdfcrypt.EncryptionMethod::AES256bit(_)) => ()
     _ => fail("expected AES256bit encryption")
   }
   let aes256iso = @pdfcrypt.encrypt_pdf_AES256ISO(
@@ -53,7 +53,7 @@ test "what_encryption detects AES256 variants" {
     @pdf.deep_copy(base),
   )
   match @pdfread.what_encryption(aes256iso) {
-    Some(@pdfwrite.EncryptionMethod::AES256bitISO(_)) => ()
+    Some(@pdfcrypt.EncryptionMethod::AES256bitISO(_)) => ()
     _ => fail("expected AES256bitISO encryption")
   }
   assert_eq(@pdfread.permissions(aes256iso).length(), 0)

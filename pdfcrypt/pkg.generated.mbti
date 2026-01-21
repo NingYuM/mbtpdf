@@ -38,6 +38,15 @@ pub let string_of_pdf : Ref[(@pdf.PdfObject) -> String]
 // Errors
 
 // Types and methods
+pub(all) enum EncryptionMethod {
+  PDF40bit
+  PDF128bit
+  AES128bit(Bool)
+  AES256bit(Bool)
+  AES256bitISO(Bool)
+  AlreadyEncrypted
+}
+
 pub(all) enum Permission {
   NoEdit
   NoPrint

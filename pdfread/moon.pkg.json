@@ -6,13 +6,13 @@
     "bobzhang/mbtpdf/pdfcryptprimitives",
     "bobzhang/mbtpdf/pdfio",
     "bobzhang/mbtpdf/pdfgenlex",
-    "bobzhang/mbtpdf/pdfwrite",
     "bobzhang/mbtpdf/pdfe",
     "moonbitlang/async/fs",
     "moonbitlang/core/strconv"
   ],
   "test-import": [
     "bobzhang/mbtpdf/pdfpage",
+    "bobzhang/mbtpdf/pdfwrite",
     "moonbitlang/async"
   ]
 }
