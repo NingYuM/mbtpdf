@@ -166,9 +166,10 @@ fn lex_item(s : String) -> Token {
     match s.get_char(0) {
       Some(c) if c.is_ascii_alphabetic() => LexName(s)
       Some('"') if len >= 2 => {
-        let inner = match (try? s[1:len - 1]) {
-          Ok(view) => view.to_string()
-          Err(_) => ""
+        let inner = try s[1:len - 1] catch {
+          _ => ""
+        } noraise {
+          view => view.to_string()
         }
         LexString(inner)
       }
@@ -177,9 +178,10 @@ fn lex_item(s : String) -> Token {
         if number.length() > 1 {
           match (number.get_char(0), number.get_char(1)) {
             (Some('-'), Some('-')) =>
-              number = match (try? number[1:]) {
-                Ok(view) => view.to_string()
-                Err(_) => number
+              number = try number[1:] catch {
+                _ => number
+              } noraise {
+                view => view.to_string()
               }
             _ => ()
           }
@@ -188,18 +190,21 @@ fn lex_item(s : String) -> Token {
           number.contains("e") ||
           number.contains("E")
         if !has_decimal {
-          match (try? @strconv.parse_int(number)) {
-            Ok(i) => LexInt(i)
-            Err(_) =>
-              match (try? @strconv.parse_double(number)) {
-                Ok(f) => LexReal(f)
-                Err(_) => LexName(s)
+          try @strconv.parse_int(number) catch {
+            _ =>
+              try @strconv.parse_double(number) catch {
+                _ => LexName(s)
+              } noraise {
+                f => LexReal(f)
               }
+          } noraise {
+            i => LexInt(i)
           }
         } else {
-          match (try? @strconv.parse_double(number)) {
-            Ok(f) => LexReal(f)
-            Err(_) => LexName(s)
+          try @strconv.parse_double(number) catch {
+            _ => LexName(s)
+          } noraise {
+            f => LexReal(f)
           }
         }
       }
