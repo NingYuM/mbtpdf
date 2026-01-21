@@ -235,6 +235,15 @@ fn make_ap_entry(
 }
 
 ///|
+fn make_rendition_dict(name : String, tag : String) -> @pdf.PdfObject {
+  @pdf.PdfObject::Dictionary([
+    ("/S", @pdf.PdfObject::Name("/MR")),
+    ("/N", @pdf.PdfObject::String(name)),
+    ("/T", @pdf.PdfObject::String(tag)),
+  ])
+}
+
+///|
 fn make_url_action(uri : String) -> @pdf.PdfObject {
   @pdf.PdfObject::Dictionary([
     ("/S", @pdf.PdfObject::Name("/URI")),
@@ -407,6 +416,32 @@ fn assert_ap_entry(
   match entries.search_by(pair => pair.0 == name) {
     Some(idx) => assert_ap_stream(pdf, entries[idx].1, expected_payload)
     None => fail("missing ap entry: " + name)
+  }
+}
+
+///|
+fn assert_rendition_entry(
+  pdf : @pdf.Pdf,
+  entries : Array[(String, @pdf.PdfObject)],
+  name : String,
+  tag : String,
+) -> Unit raise {
+  let entry = match entries.search_by(pair => pair.0 == name) {
+    Some(idx) => entries[idx].1
+    None => fail("missing rendition entry: " + name)
+  }
+  let dict = @pdf.direct(pdf, entry)
+  match @pdf.lookup_direct(pdf, "/S", dict) {
+    Some(@pdf.PdfObject::Name("/MR")) => ()
+    _ => fail("expected /S /MR")
+  }
+  match @pdf.lookup_direct(pdf, "/N", dict) {
+    Some(@pdf.PdfObject::String(value)) => assert_eq(value, name)
+    _ => fail("expected /N string")
+  }
+  match @pdf.lookup_direct(pdf, "/T", dict) {
+    Some(@pdf.PdfObject::String(value)) => assert_eq(value, tag)
+    _ => fail("expected /T string")
   }
 }
 
@@ -1034,6 +1069,39 @@ async test "e2e merge preserves /Names /AP" {
   let parsed_entries = read_name_tree_entries(parsed, "/AP")
   assert_ap_entry(parsed, parsed_entries, "LeftAP", "left ap")
   assert_ap_entry(parsed, parsed_entries, "RightAP", "right ap")
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
+async test "e2e merge preserves /Names /Renditions" {
+  let left = @pdfpage.minimum_valid_pdf()
+  let right = @pdfpage.minimum_valid_pdf()
+  add_names_tree(left, "/Renditions", [
+    ("LeftRendition", make_rendition_dict("LeftRendition", "left")),
+  ])
+  add_names_tree(right, "/Renditions", [
+    ("RightRendition", make_rendition_dict("RightRendition", "right")),
+  ])
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["rend_left", "rend_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  )
+  let entries = read_name_tree_entries(merged, "/Renditions")
+  assert_rendition_entry(merged, entries, "LeftRendition", "left")
+  assert_rendition_entry(merged, entries, "RightRendition", "right")
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_renditions.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let parsed_entries = read_name_tree_entries(parsed, "/Renditions")
+  assert_rendition_entry(parsed, parsed_entries, "LeftRendition", "left")
+  assert_rendition_entry(parsed, parsed_entries, "RightRendition", "right")
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
 }
