@@ -8,6 +8,9 @@ const MERGE_LEFT_PATH : String = "testdata/e2e/merge_dummy.pdf"
 const MERGE_RIGHT_PATH : String = "testdata/pdfjs_identity_tounicode.pdf"
 
 ///|
+const MERGE_THIRD_PATH : String = "testdata/e2e/pdfjs_tracemonkey.pdf"
+
+///|
 const LARGE_PATH : String = "testdata/SFAA_Japanese.pdf"
 
 ///|
@@ -58,24 +61,27 @@ fn full_range(count : Int) -> Array[Int] {
 async test "e2e merge writes and reads back" {
   let left = read_pdf(MERGE_LEFT_PATH)
   let right = read_pdf(MERGE_RIGHT_PATH)
+  let third = read_pdf(MERGE_THIRD_PATH)
   let left_count = page_count(left)
   let right_count = page_count(right)
+  let third_count = page_count(third)
   assert_true(left_count > 0)
   assert_true(right_count > 0)
+  assert_true(third_count > 0)
   let merged = @pdfmerge.merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["merge_left", "merge_right"],
-    [left, right],
-    [full_range(left_count), full_range(right_count)],
+    ["merge_left", "merge_right", "merge_third"],
+    [left, right, third],
+    [full_range(left_count), full_range(right_count), full_range(third_count)],
   )
   ensure_dir(OUTPUT_DIR)
   let out_path = OUTPUT_DIR + "/merged.pdf"
   write_pdf(out_path, merged)
   let parsed = read_pdf(out_path)
-  assert_eq(page_count(parsed), left_count + right_count)
+  assert_eq(page_count(parsed), left_count + right_count + third_count)
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
 }
