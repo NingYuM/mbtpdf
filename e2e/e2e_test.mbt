@@ -58,6 +58,37 @@ fn full_range(count : Int) -> Array[Int] {
 }
 
 ///|
+fn assert_merged_label_prefixes(
+  labels : Array[@pdfpagelabels.PageLabel],
+  left_count : Int,
+) -> Unit raise {
+  let mut found_left = false
+  let mut found_right = false
+  for label in labels {
+    match label.labelprefix {
+      Some("L-") => {
+        found_left = true
+        assert_eq(label.startpage, 1)
+      }
+      Some("R-") => {
+        found_right = true
+        assert_eq(label.startpage, left_count + 1)
+      }
+      _ => ()
+    }
+  }
+  let rendered = labels
+    .map(label => @pdfpagelabels.string_of_pagelabel(label))
+    .join(", ")
+  if !found_left {
+    fail("missing L- label: " + rendered)
+  }
+  if !found_right {
+    fail("missing R- label: " + rendered)
+  }
+}
+
+///|
 async test "e2e merge writes and reads back" {
   let left = read_pdf(MERGE_LEFT_PATH)
   let right = read_pdf(MERGE_RIGHT_PATH)
@@ -256,6 +287,76 @@ async test "e2e merge preserves annotations" {
     Some("Merged note") => ()
     _ => fail("expected merged annotation contents")
   }
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
+async test "e2e merge preserves page labels" {
+  let left = read_pdf(MERGE_LEFT_PATH)
+  let right = read_pdf(MERGE_RIGHT_PATH)
+  let left_count = page_count(left)
+  let right_count = page_count(right)
+  assert_true(left_count > 0)
+  assert_true(right_count > 0)
+  let left_labels = [
+    @pdfpagelabels.PageLabel::{
+      labelstyle: @pdfpagelabels.LabelStyle::DecimalArabic,
+      labelprefix: Some("L-"),
+      startpage: 1,
+      startvalue: 1,
+    },
+  ]
+  let right_labels = [
+    @pdfpagelabels.PageLabel::{
+      labelstyle: @pdfpagelabels.LabelStyle::DecimalArabic,
+      labelprefix: Some("R-"),
+      startpage: 1,
+      startvalue: 1,
+    },
+  ]
+  @pdfpagelabels.write(left, left_labels)
+  @pdfpagelabels.write(right, right_labels)
+  let left_read = @pdfpagelabels.read(left)
+  let right_read = @pdfpagelabels.read(right)
+  match left_read {
+    [label, ..] =>
+      match label.labelprefix {
+        Some("L-") => ()
+        _ => fail("expected left label prefix")
+      }
+    _ => fail("missing left labels")
+  }
+  match right_read {
+    [label, ..] =>
+      match label.labelprefix {
+        Some("R-") => ()
+        _ => fail("expected right label prefix")
+      }
+    _ => fail("missing right labels")
+  }
+  let merged_labels = @pdfpagelabels.merge_pagelabels([left, right], [
+    full_range(left_count),
+    full_range(right_count),
+  ])
+  assert_merged_label_prefixes(merged_labels, left_count)
+  let merged = @pdfmerge.merge_pdfs(
+    true,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["merge_labels_left", "merge_labels_right"],
+    [left, right],
+    [full_range(left_count), full_range(right_count)],
+  )
+  let in_memory_labels = @pdfpagelabels.read(merged)
+  assert_merged_label_prefixes(in_memory_labels, left_count)
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_labels.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let labels = @pdfpagelabels.read(parsed)
+  assert_merged_label_prefixes(labels, left_count)
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
 }
