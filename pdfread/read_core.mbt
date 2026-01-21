@@ -81,14 +81,16 @@ fn version_from_catalog(pdf : @pdf.Pdf) -> (Int, Int)? {
       if s.length() < 2 {
         return None
       }
-      let version = match (try? s[1:]) {
-        Ok(view) => view.to_string()
-        Err(_) => return None
+      let version = try s[1:] catch {
+        _ => return None
+      } noraise {
+        view => view.to_string()
       }
       let header = "%PDF-\{version}"
-      match (try? read_header(@pdfio.input_of_string(header))) {
-        Ok(pair) => Some(pair)
-        Err(_) => None
+      try read_header(@pdfio.input_of_string(header)) catch {
+        _ => None
+      } noraise {
+        pair => Some(pair)
       }
     }
     _ => None
@@ -278,20 +280,16 @@ fn read_pdf_internal(
       saved_encryption: None,
     }
     fn remove_postdelete(pdf : @pdf.Pdf, objnum : Int) -> Unit {
-      try {
-        match @pdf.lookup_obj(pdf, objnum) {
-          @pdf.PdfObject::Stream(r) => {
-            let (dict, _) = r.val
-            match @pdf.lookup_direct(pdf, "/Type", dict) {
-              Some(@pdf.PdfObject::Name("/XRef"))
-              | Some(@pdf.PdfObject::Name("/ObjStm")) =>
-                @pdf.removeobj(pdf, objnum)
-              _ => ()
-            }
+      match @pdf.lookup_obj(pdf, objnum) {
+        @pdf.PdfObject::Stream(r) => {
+          let (dict, _) = r.val
+          match @pdf.lookup_direct(pdf, "/Type", dict) {
+            Some(@pdf.PdfObject::Name("/XRef"))
+            | Some(@pdf.PdfObject::Name("/ObjStm")) =>
+              @pdf.removeobj(pdf, objnum)
+            _ => ()
           }
-          _ => ()
         }
-      } catch {
         _ => ()
       }
     }

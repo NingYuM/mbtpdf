@@ -52,15 +52,16 @@ pub fn lex_name(input : @pdfio.Input) -> @pdfgenlex.Token raise {
           raise @pdf.PdfError::Msg(message)
         }
         let hex = String::from_array([c1, c2])
-        match (try? @strconv.parse_int("0x\{hex}")) {
-          Ok(v) => bytes.push(v.to_byte())
-          Err(_) => {
+        try @strconv.parse_int("0x\{hex}") catch {
+          _ => {
             let message = @pdf.input_pdferror(
               input,
               "lex_name: bad hex escape #\{hex}",
             )
             raise @pdf.PdfError::Msg(message)
           }
+        } noraise {
+          v => bytes.push(v.to_byte())
         }
       } else {
         bytes.push(b.to_byte())
@@ -78,9 +79,10 @@ pub fn lex_number(input : @pdfio.Input) -> @pdfgenlex.Token raise {
   if number.length() > 1 {
     match (number.get_char(0), number.get_char(1)) {
       (Some('-'), Some('-')) =>
-        number = match (try? number[1:]) {
-          Ok(view) => view.to_string()
-          Err(_) => number
+        number = try number[1:] catch {
+          _ => number
+        } noraise {
+          view => view.to_string()
         }
       _ => ()
     }
@@ -89,18 +91,21 @@ pub fn lex_number(input : @pdfio.Input) -> @pdfgenlex.Token raise {
     number.contains("e") ||
     number.contains("E")
   if !has_decimal {
-    match (try? @strconv.parse_int(number)) {
-      Ok(i) => @pdfgenlex.Token::LexInt(i)
-      Err(_) =>
-        match (try? @strconv.parse_double(number)) {
-          Ok(f) => @pdfgenlex.Token::LexReal(f)
-          Err(_) => @pdfgenlex.Token::LexNone
+    try @strconv.parse_int(number) catch {
+      _ =>
+        try @strconv.parse_double(number) catch {
+          _ => @pdfgenlex.Token::LexNone
+        } noraise {
+          f => @pdfgenlex.Token::LexReal(f)
         }
+    } noraise {
+      i => @pdfgenlex.Token::LexInt(i)
     }
   } else {
-    match (try? @strconv.parse_double(number)) {
-      Ok(f) => @pdfgenlex.Token::LexReal(f)
-      Err(_) => @pdfgenlex.Token::LexNone
+    try @strconv.parse_double(number) catch {
+      _ => @pdfgenlex.Token::LexNone
+    } noraise {
+      f => @pdfgenlex.Token::LexReal(f)
     }
   }
 }
@@ -171,9 +176,10 @@ pub fn lex_string(input : @pdfio.Input) -> @pdfgenlex.Token raise {
               }
             }
             let octal = digits.map(c => c.to_string()).join("")
-            match (try? @strconv.parse_int("0o\{octal}")) {
-              Ok(v) => bytes.push(v.to_byte())
-              Err(_) => ()
+            try @strconv.parse_int("0o\{octal}") catch {
+              _ => ()
+            } noraise {
+              v => bytes.push(v.to_byte())
             }
           }
           other => bytes.push(other.to_int().to_byte())
