@@ -158,7 +158,7 @@ pub fn pdf_of_pages(
     for mark in marks {
       index = index + 1
       let page_num = pagenumber_of_target(basepdf, mark.target, fastrefnums~)
-      if range_set.get(page_num) != None {
+      if range_set.get(page_num) is Some(_) {
         if first_index == -1 {
           first_index = index
           first_level = mark.level

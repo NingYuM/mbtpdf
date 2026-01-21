@@ -97,7 +97,7 @@ pub fn trim_structure_tree(pdf : @pdf.Pdf, range : Array[Int]) -> Unit raise {
       @pdf.PdfObject::Dictionary(d) =>
         match @pdf.lookup_immediate("/Pg", @pdf.PdfObject::Dictionary(d)) {
           Some(@pdf.PdfObject::Indirect(i)) =>
-            if remove_set.get(i) != None {
+            if remove_set.get(i) is Some(_) {
               del.val.push(n)
             }
           _ => ()
@@ -109,19 +109,15 @@ pub fn trim_structure_tree(pdf : @pdf.Pdf, range : Array[Int]) -> Unit raise {
   fn survives(obj : @pdf.PdfObject) -> Bool {
     match obj {
       @pdf.PdfObject::Indirect(i) => {
-        let exists = match @pdf.lookup_obj(pdf, i) {
-          @pdf.PdfObject::Null => false
-          _ => true
-        }
-        if !exists {
+        if @pdf.lookup_obj(pdf, i) is @pdf.PdfObject::Null {
           return false
         }
         match @pdf.indirect_number(pdf, "/Pg", @pdf.PdfObject::Indirect(i)) {
-          Some(p) if remove_set.get(p) != None => false
+          Some(p) if remove_set.get(p) is Some(_) => false
           _ =>
             match
               @pdf.indirect_number(pdf, "/Obj", @pdf.PdfObject::Indirect(i)) {
-              Some(p) if remove_set.get(p) != None => false
+              Some(p) if remove_set.get(p) is Some(_) => false
               _ => true
             }
         }

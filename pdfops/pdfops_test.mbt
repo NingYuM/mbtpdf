@@ -123,12 +123,7 @@ test "parse_single_stream reads basic ops" {
     @pdfops.Op::Opq => ()
     _ => fail("expected Opq")
   }
-  assert_true(
-    ops.exists(op => match op {
-      @pdfops.Op::OpS => true
-      _ => false
-    }),
-  )
+  assert_true(ops.exists(fn(op) { op is @pdfops.Op::OpS }))
 }
 
 ///|

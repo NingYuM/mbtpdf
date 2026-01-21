@@ -33,24 +33,9 @@ test "parse_single_stream ignores comments and yields unknown" {
   let resources = @pdf.PdfObject::Dictionary([])
   let data = @pdfio.bytes_of_string("%c\ntrue false ZZ q Q")
   let ops = @pdfops.parse_single_stream(pdf, resources, data)
-  assert_true(
-    ops.exists(op => match op {
-      @pdfops.Op::OpUnknown(_) => true
-      _ => false
-    }),
-  )
-  assert_true(
-    ops.exists(op => match op {
-      @pdfops.Op::Opq => true
-      _ => false
-    }),
-  )
-  assert_true(
-    ops.exists(op => match op {
-      @pdfops.Op::OpQ => true
-      _ => false
-    }),
-  )
+  assert_true(ops.exists(fn(op) { op is @pdfops.Op::OpUnknown(_) }))
+  assert_true(ops.exists(fn(op) { op is @pdfops.Op::Opq }))
+  assert_true(ops.exists(fn(op) { op is @pdfops.Op::OpQ }))
 }
 
 ///|
