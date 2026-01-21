@@ -594,21 +594,15 @@ fn is_rgb_base(space : @pdfspace.ColourSpace) -> Bool {
     @pdfspace.ColourSpace::DeviceRGB
     | @pdfspace.ColourSpace::CalRGB(_, _, _, _) => true
     @pdfspace.ColourSpace::ICCBased(icc) =>
-      match icc.icc_alternate {
-        @pdfspace.ColourSpace::DeviceRGB
-        | @pdfspace.ColourSpace::CalRGB(_, _, _, _) => true
-        _ => false
-      }
+      icc.icc_alternate is (@pdfspace.ColourSpace::DeviceRGB
+        | @pdfspace.ColourSpace::CalRGB(_, _, _, _))
     @pdfspace.ColourSpace::DeviceN(_, base, _, _) =>
       match base {
         @pdfspace.ColourSpace::DeviceRGB
         | @pdfspace.ColourSpace::CalRGB(_, _, _, _) => true
         @pdfspace.ColourSpace::ICCBased(icc) =>
-          match icc.icc_alternate {
-            @pdfspace.ColourSpace::DeviceRGB
-            | @pdfspace.ColourSpace::CalRGB(_, _, _, _) => true
-            _ => false
-          }
+          icc.icc_alternate is (@pdfspace.ColourSpace::DeviceRGB
+            | @pdfspace.ColourSpace::CalRGB(_, _, _, _))
         _ => false
       }
     _ => false
@@ -620,18 +614,12 @@ fn is_cmyk_base(space : @pdfspace.ColourSpace) -> Bool {
   match space {
     @pdfspace.ColourSpace::DeviceCMYK => true
     @pdfspace.ColourSpace::ICCBased(icc) =>
-      match icc.icc_alternate {
-        @pdfspace.ColourSpace::DeviceCMYK => true
-        _ => false
-      }
+      icc.icc_alternate is @pdfspace.ColourSpace::DeviceCMYK
     @pdfspace.ColourSpace::DeviceN(_, base, _, _) =>
       match base {
         @pdfspace.ColourSpace::DeviceCMYK => true
         @pdfspace.ColourSpace::ICCBased(icc) =>
-          match icc.icc_alternate {
-            @pdfspace.ColourSpace::DeviceCMYK => true
-            _ => false
-          }
+          icc.icc_alternate is @pdfspace.ColourSpace::DeviceCMYK
         _ => false
       }
     _ => false
