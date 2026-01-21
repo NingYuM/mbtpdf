@@ -231,7 +231,7 @@ pub fn pdf_of_pages(
         match @pdf.lookup_direct(pdf, "/Type", o) {
           Some(@pdf.PdfObject::Name("/Pages")) => @pdf.removeobj(pdf, i)
           Some(@pdf.PdfObject::Name("/Page")) =>
-            if objnumbers_set.get(i) == None {
+            if objnumbers_set.get(i) is None {
               @pdf.removeobj(pdf, i)
             }
           _ => ()

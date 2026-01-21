@@ -24,7 +24,7 @@ fn setminus(full : Array[Int], remove : Array[Int]) -> Array[Int] {
   }
   let out = Array::new()
   for v in full {
-    if remove_set.get(v) == None {
+    if remove_set.get(v) is None {
       out.push(v)
     }
   }

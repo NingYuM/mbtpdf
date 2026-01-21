@@ -387,10 +387,8 @@ fn pairs_of_list_eval(
     raise BadFunctionEvaluation::Msg("Bad list length")
   }
   let out = Array::new()
-  let mut i = 0
-  while i + 1 < values.length() {
+  for i = 0; i + 1 < values.length(); i = i + 2 {
     out.push((values[i], values[i + 1]))
-    i = i + 2
   }
   out
 }
@@ -745,23 +743,17 @@ fn eval_function_sampled(
     }
     let multipliers = Array::new(capacity=inputs.length())
     multipliers.push(1)
-    let mut idx = 1
-    while idx < inputs.length() {
+    for idx in 1..<inputs.length() {
       multipliers.push(product(take(s.size, idx)))
-      idx = idx + 1
     }
     let mut pos = 0
-    let mut i = 0
-    while i < inputs.length() {
+    for i in 0..<inputs.length() {
       pos = pos + inputs[i] * multipliers[i]
-      i = i + 1
     }
     pos = pos * vals_to_read
     let out = Array::new(capacity=vals_to_read)
-    let mut j = 0
-    while j < vals_to_read {
+    for j in 0..<vals_to_read {
       out.push(s.samples[pos + j])
-      j = j + 1
     }
     out
   }
@@ -875,9 +867,7 @@ fn eval_function_calculator(
   ops : Array[Calculator],
 ) -> Array[Double] raise BadFunctionEvaluation {
   let stack = Array::new()
-  let mut idx = clamped_inputs.length()
-  while idx > 0 {
-    idx = idx - 1
+  for idx in (clamped_inputs.length() - 1)>=..0 {
     stack.push(Calculator::Float(clamped_inputs[idx]))
   }
   fn eval(
@@ -1184,20 +1174,16 @@ fn eval_function_calculator(
         stack.truncate(start)
         let mut rotated = Array::new(capacity=slice.length())
         if j > 0 {
-          let mut k = 0
-          while k < slice.length() {
+          for k in 0..<slice.length() {
             rotated.push(slice[(k + j) % slice.length()])
-            k = k + 1
           }
         } else if j < 0 {
           let shift = -j
-          let mut k = 0
-          while k < slice.length() {
+          for k in 0..<slice.length() {
             rotated.push(
               slice[(k + slice.length() - shift % slice.length()) %
               slice.length()],
             )
-            k = k + 1
           }
         } else {
           rotated = slice
@@ -1213,9 +1199,7 @@ fn eval_function_calculator(
     eval(op, stack)
   }
   let out = Array::new(capacity=stack.length())
-  let mut i = stack.length()
-  while i > 0 {
-    i = i - 1
+  for i in (stack.length() - 1)>=..0 {
     match stack[i] {
       Calculator::Float(x) => out.push(x)
       Calculator::Int(i) => out.push(i.to_double())
@@ -1310,10 +1294,8 @@ fn mkint(x : Int) -> @pdf.PdfObject {
 ///|
 fn max_value_for_bits(bits : Int) -> Int {
   let mut value = 0
-  let mut i = 0
-  while i < bits {
+  for _ in 0..<bits {
     value = (value << 1) | 1
-    i = i + 1
   }
   value
 }

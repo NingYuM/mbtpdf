@@ -124,7 +124,7 @@ fn setify_strings(values : Array[String]) -> Array[String] {
   let seen = Map::new(capacity=values.length())
   let out = Array::new()
   for value in values {
-    if seen.get(value) == None {
+    if seen.get(value) is None {
       seen.set(value, ())
       out.push(value)
     }

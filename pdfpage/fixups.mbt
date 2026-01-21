@@ -284,7 +284,7 @@ pub fn fixup_duplicate_annots(pdf : @pdf.Pdf) -> Unit raise {
   let new_annots = existing_annots.map(annots => {
     let out = Array::new()
     for i in annots {
-      if seen.get(i) == None {
+      if seen.get(i) is None {
         out.push(i)
         seen.set(i, ())
       } else {

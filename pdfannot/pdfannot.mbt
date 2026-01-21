@@ -266,7 +266,7 @@ pub fn annotations_of_page(
       for annot in annotations {
         match annot {
           @pdf.PdfObject::Indirect(i) =>
-            if popup_parents.get(i) == None {
+            if popup_parents.get(i) is None {
               out.push(read_annotation(pdf, annot))
             }
           _ => out.push(read_annotation(pdf, annot))

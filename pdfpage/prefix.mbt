@@ -200,7 +200,7 @@ fn fix_stream(
 ) -> Unit raise {
   match obj {
     @pdf.PdfObject::Indirect(i) =>
-      if fixed_streams.get(i) == None {
+      if fixed_streams.get(i) is None {
         let operators = @pdfops.parse_operators(pdf, resources, [obj])
         let operators_updated = operators.map(op => prefix_operator(
           pdf, prefix, op,
