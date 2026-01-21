@@ -1,15 +1,15 @@
 ///|
 test "string_of_pdf basic" {
-  let obj = @pdf.PdfObject::String("a(b)\\c")
+  let obj : @pdf.PdfObject = String("a(b)\\c")
   let s = @pdfwrite.string_of_pdf(obj)
   assert_eq(s, "(a\\(b\\)\\\\c)")
 }
 
 ///|
 test "string_of_pdf dictionary" {
-  let obj = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name("/Example")),
-    ("/Count", @pdf.PdfObject::Integer(2)),
+  let obj : @pdf.PdfObject = Dictionary([
+    ("/Type", Name("/Example")),
+    ("/Count", Integer(2)),
   ])
   let s = @pdfwrite.string_of_pdf(obj)
   assert_eq(s, "<</Type /Example /Count 2>>")
@@ -17,7 +17,7 @@ test "string_of_pdf dictionary" {
 
 ///|
 test "string_of_pdf escapes names" {
-  let obj = @pdf.PdfObject::Name("/A B#C/D")
+  let obj : @pdf.PdfObject = Name("/A B#C/D")
   let s = @pdfwrite.string_of_pdf(obj)
   assert_eq(s, "/A#20B#23C#2FD")
 }
@@ -59,13 +59,13 @@ test "pdf_to_output writes binary header" {
 
 ///|
 test "string_of_pdf formats reals without exponent" {
-  let s = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(1.0e-6))
+  let s = @pdfwrite.string_of_pdf(Real(1.0e-6))
   assert_true(!s.contains("e") && !s.contains("E"))
 }
 
 ///|
 test "string_of_pdf trims trailing zeros" {
-  let s = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(2.0))
+  let s = @pdfwrite.string_of_pdf(Real(2.0))
   assert_eq(s, "2")
 }
 
@@ -76,12 +76,12 @@ test "string_of_pdf invalid name" {
   defer {
     @pdfe.logger.val = prev_logger
   }
-  let s = @pdfwrite.string_of_pdf(@pdf.PdfObject::Name("Example"))
+  let s = @pdfwrite.string_of_pdf(Name("Example"))
   assert_eq(s, "/Example")
 }
 
 ///|
 test "string_of_pdf normalizes -0.0" {
-  let s = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(-0.0))
+  let s = @pdfwrite.string_of_pdf(Real(-0.0))
   assert_eq(s, "0")
 }
