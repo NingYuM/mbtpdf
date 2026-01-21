@@ -1373,6 +1373,87 @@ async test "e2e merge mixed feature pipeline" {
 }
 
 ///|
+async test "e2e merge multi-copy mixed stress" {
+  let copies = 4
+  let names = Array::new(capacity=copies)
+  let pdfs = Array::new(capacity=copies)
+  let ranges = Array::new(capacity=copies)
+  let mut i = 0
+  while i < copies {
+    let base = @pdfpage.minimum_valid_pdf()
+    let pages = @pdfpage.pages_of_pagetree(base)
+    let annot = @pdfannot.make(
+      @pdfannot.Subtype::Text,
+      content="Stress note " + i.to_string(),
+      rectangle=(10.0 + i.to_double(), 10.0, 30.0, 40.0),
+    )
+    let updated_page = @pdfannot.add_annotation(base, pages[0], annot)
+    pages[0] = updated_page
+    let pdf = @pdfpage.change_pages(true, base, pages)
+    let page1 = match @pdfpage.page_object_number(pdf, 1) {
+      Some(objnum) => objnum
+      None => fail("missing page in stress copy")
+    }
+    let marks : Array[@pdfmarks.Bookmark] = [
+      {
+        level: 0,
+        text: "Stress bookmark " + i.to_string(),
+        target: @pdfdest.Destination::Fit(
+          @pdfdest.TargetPage::PageObject(page1),
+        ),
+        isopen: true,
+        colour: (0.0, 0.0, 0.0),
+        flags: 0,
+      },
+    ]
+    let pdf = @pdfmarks.add_bookmarks(marks, pdf)
+    let url_name = "StressURL-" + i.to_string()
+    add_names_tree(pdf, "/URLS", [
+      (url_name, make_url_action("https://example.com/stress/" + i.to_string())),
+    ])
+    names.push("stress_copy_" + i.to_string())
+    pdfs.push(pdf)
+    ranges.push(full_range(page_count(pdf)))
+    i = i + 1
+  }
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    names,
+    pdfs,
+    ranges,
+  )
+  let merged_marks = @pdfmarks.read_bookmarks(merged)
+  assert_eq(merged_marks.length(), copies)
+  let merged_urls = read_name_tree_entries(merged, "/URLS")
+  for i in 0..<copies {
+    let name = "StressURL-" + i.to_string()
+    match merged_urls.search_by(pair => pair.0 == name) {
+      Some(_) => ()
+      None => fail("missing merged stress url: " + name)
+    }
+  }
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_mixed_stress.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let parsed_marks = @pdfmarks.read_bookmarks(parsed)
+  assert_eq(parsed_marks.length(), copies)
+  let parsed_urls = read_name_tree_entries(parsed, "/URLS")
+  for i in 0..<copies {
+    let name = "StressURL-" + i.to_string()
+    match parsed_urls.search_by(pair => pair.0 == name) {
+      Some(_) => ()
+      None => fail("missing parsed stress url: " + name)
+    }
+  }
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
 async test "e2e merge preserves bookmark targets" {
   let left = read_pdf(MERGE_LEFT_PATH)
   let right = read_pdf(MERGE_RIGHT_PATH)

@@ -78,6 +78,9 @@ result to `tmp/e2e`, then reads the output back to validate the roundtrip.
 - Merge mixed feature pipeline
   - Adds annotations, bookmarks, /URLS entries, and embedded files before
     merge, then verifies all mixed metadata survives the roundtrip.
+- Merge multi-copy mixed stress
+  - Merges multiple minimal PDFs with annotations, bookmarks, and /URLS entries,
+    then verifies bookmarks and URL entries survive the roundtrip.
 
 ## Running
 - `moon test e2e` to run only the end-to-end tests.
