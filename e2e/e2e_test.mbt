@@ -113,6 +113,33 @@ async test "e2e merge stress repeated" {
 }
 
 ///|
+async test "e2e merge preserves text extraction" {
+  let left = read_pdf(MERGE_LEFT_PATH)
+  let right = read_pdf(MERGE_RIGHT_PATH)
+  let left_count = page_count(left)
+  let right_count = page_count(right)
+  assert_true(left_count > 0)
+  assert_true(right_count > 0)
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["merge_text_left", "merge_text_right"],
+    [left, right],
+    [full_range(left_count), full_range(right_count)],
+  )
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merge_text.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let extracted = @pdftext.extract_text(parsed)
+  assert_true(extracted.contains("ABCdef"))
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
 async test "e2e split subset of large pdf" {
   let pdf = read_pdf(LARGE_PATH)
   let count = page_count(pdf)

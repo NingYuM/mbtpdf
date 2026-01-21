@@ -9,6 +9,7 @@
     "bobzhang/mbtpdf/pdfpage",
     "bobzhang/mbtpdf/pdfpagelabels",
     "bobzhang/mbtpdf/pdfread",
+    "bobzhang/mbtpdf/pdftext",
     "bobzhang/mbtpdf/pdfwrite",
     "moonbitlang/async",
     "moonbitlang/async/fs"
