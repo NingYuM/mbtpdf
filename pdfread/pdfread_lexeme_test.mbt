@@ -66,8 +66,3 @@ test "string_of_lexeme formats scientific real" {
   let formatted = @pdfread.string_of_lexeme(@pdfgenlex.Token::LexReal(value))
   assert_true(!formatted.contains("e") && !formatted.contains("E"))
 }
-
-///|
-test "print_lexeme emits output" {
-  @pdfread.print_lexeme(@pdfgenlex.Token::LexNull)
-}

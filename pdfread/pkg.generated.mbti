@@ -21,8 +21,6 @@ pub let error_on_malformed : Ref[Bool]
 
 pub fn getuntil(Bool, (Char) -> Bool, @pdfio.Input) -> Array[Char] raise
 
-pub fn getuntil_white_or_delimiter(@pdfio.Input) -> Array[Char] raise
-
 pub fn getuntil_white_or_delimiter_string(@pdfio.Input) -> String raise
 
 pub fn ignoreuntil(Bool, (Char) -> Bool, @pdfio.Input) -> Unit raise
@@ -58,8 +56,6 @@ pub fn pdf_of_input(revision? : Int, String?, String?, @pdfio.Input) -> @pdf.Pdf
 pub fn pdf_of_input_lazy(revision? : Int, String?, String?, @pdfio.Input) -> @pdf.Pdf raise
 
 pub fn permissions(@pdf.Pdf) -> Array[@pdfcrypt.Permission]
-
-pub fn print_lexeme(@pdfgenlex.Token) -> Unit
 
 pub let read_debug : Ref[Bool]
 
