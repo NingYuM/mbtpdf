@@ -48,6 +48,9 @@ result to `tmp/e2e`, then reads the output back to validate the roundtrip.
 - Merge named destinations
   - Creates minimal PDFs with /Names /Dests entries, merges them, and reads back
     destinations to confirm targets point at the expected merged pages.
+- Merge /Dests dictionary
+  - Creates minimal PDFs with old-style /Dests dictionaries, merges them, and
+    resolves named destinations to confirm targets survive the merge/roundtrip.
 
 ## Running
 - `moon test e2e` to run only the end-to-end tests.

@@ -122,6 +122,26 @@ fn add_named_destination(
 }
 
 ///|
+fn add_dests_dictionary(
+  pdf : @pdf.Pdf,
+  entries : Array[(String, @pdf.PdfObject)],
+) -> Unit raise {
+  let rootnum = pdf.root
+  let root = @pdf.lookup_obj(pdf, rootnum)
+  let updated_root = @pdf.add_dict_entry(
+    root,
+    "/Dests",
+    @pdf.PdfObject::Dictionary(entries),
+  )
+  @pdf.addobj_given_num(pdf, (rootnum, updated_root))
+  pdf.trailerdict = @pdf.add_dict_entry(
+    pdf.trailerdict,
+    "/Root",
+    @pdf.PdfObject::Indirect(rootnum),
+  )
+}
+
+///|
 fn read_named_destination(
   pdf : @pdf.Pdf,
   name : String,
@@ -485,6 +505,73 @@ async test "e2e merge preserves named destinations" {
   let parsed_right_dest = read_named_destination(parsed, "RightDest")
   assert_destination_page(parsed_left_dest, parsed_left)
   assert_destination_page(parsed_right_dest, parsed_right)
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
+async test "e2e merge preserves /Dests dictionary" {
+  let left = @pdfpage.minimum_valid_pdf()
+  let right = @pdfpage.minimum_valid_pdf()
+  let left_count = page_count(left)
+  let right_count = page_count(right)
+  assert_eq(left_count, 1)
+  assert_eq(right_count, 1)
+  let left_page = match @pdfpage.page_object_number(left, 1) {
+    Some(objnum) => objnum
+    None => fail("missing left page")
+  }
+  let right_page = match @pdfpage.page_object_number(right, 1) {
+    Some(objnum) => objnum
+    None => fail("missing right page")
+  }
+  let left_dest = @pdfdest.pdfobject_of_destination(
+    @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(left_page)),
+  )
+  let right_dest = @pdfdest.pdfobject_of_destination(
+    @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(right_page)),
+  )
+  add_dests_dictionary(left, [("/LeftDest", left_dest)])
+  add_dests_dictionary(right, [("/RightDest", right_dest)])
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["dests_left", "dests_right"],
+    [left, right],
+    [full_range(left_count), full_range(right_count)],
+  )
+  let merged_pages = @pdf.page_reference_numbers(merged)
+  let left_expected = merged_pages[0]
+  let right_expected = merged_pages[left_count]
+  let left_read = @pdfdest.read_destination(
+    merged,
+    @pdf.PdfObject::Name("/LeftDest"),
+  )
+  let right_read = @pdfdest.read_destination(
+    merged,
+    @pdf.PdfObject::Name("/RightDest"),
+  )
+  assert_destination_page(left_read, left_expected)
+  assert_destination_page(right_read, right_expected)
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_dests_dict.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let parsed_pages = @pdf.page_reference_numbers(parsed)
+  let parsed_left = parsed_pages[0]
+  let parsed_right = parsed_pages[left_count]
+  let parsed_left_read = @pdfdest.read_destination(
+    parsed,
+    @pdf.PdfObject::Name("/LeftDest"),
+  )
+  let parsed_right_read = @pdfdest.read_destination(
+    parsed,
+    @pdf.PdfObject::Name("/RightDest"),
+  )
+  assert_destination_page(parsed_left_read, parsed_left)
+  assert_destination_page(parsed_right_read, parsed_right)
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
 }
