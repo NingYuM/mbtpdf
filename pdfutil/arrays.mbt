@@ -15,10 +15,8 @@ pub fn[A, B] array_iter2(
   if len != ys.length() {
     invalid_arg("Pdfutil.array_iter2")
   }
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     f(xs[i], ys[i])
-    i += 1
   }
 }
 
@@ -34,10 +32,8 @@ pub fn[A, B, C] array_map2(
     invalid_arg("Pdfutil.array_map2")
   }
   let out : Array[C] = Array::new(capacity=len)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     out.push(f(xs[i], ys[i]))
-    i += 1
   }
   out
 }

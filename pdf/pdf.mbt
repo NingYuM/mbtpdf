@@ -705,12 +705,11 @@ pub fn lookup_direct_orelse(
 fn compare_string(a : String, b : String) -> Int {
   let ac = a.to_array()
   let bc = b.to_array()
-  let mut i = 0
-  while i < ac.length() && i < bc.length() {
+  let min_len = if ac.length() < bc.length() { ac.length() } else { bc.length() }
+  for i in 0..<min_len {
     if ac[i] != bc[i] {
       return ac[i].to_int() - bc[i].to_int()
     }
-    i = i + 1
   }
   ac.length() - bc.length()
 }
@@ -736,12 +735,10 @@ fn key_eq(a : PdfObject, b : PdfObject) -> Bool {
 fn array_lookup(key : PdfObject, array : PdfObject) -> PdfObject? raise {
   match array {
     Array(elts) => {
-      let mut i = 0
-      while i + 1 < elts.length() {
+      for i = 0; i + 1 < elts.length(); i = i + 2 {
         if key_eq(key, elts[i]) {
           return Some(elts[i + 1])
         }
-        i = i + 2
       }
       None
     }
@@ -828,10 +825,8 @@ pub fn contents_of_nametree(
   match lookup_direct_orelse(pdf, "/Names", "/Nums", tree) {
     Some(Array(names)) => {
       let out = Array::new()
-      let mut i = 0
-      while i + 1 < names.length() {
+      for i = 0; i + 1 < names.length(); i = i + 2 {
         out.push((names[i], names[i + 1]))
-        i = i + 2
       }
       if names.length() % 2 == 1 {
         @pdfe.log("warning: contents_of_nametree: odd number of /Names\n")
@@ -1059,16 +1054,14 @@ fn transform_quadpoint_single(
 ///|
 fn[T] split_into(values : Array[T], size : Int) -> Array[Array[T]] {
   let out = Array::new()
-  let mut i = 0
-  while i < values.length() {
+  for i = 0; i < values.length(); i = i + size {
     let part = Array::new(capacity=size)
-    let mut j = 0
-    while j < size && i + j < values.length() {
-      part.push(values[i + j])
-      j = j + 1
+    for j in 0..<size {
+      if i + j < values.length() {
+        part.push(values[i + j])
+      }
     }
     out.push(part)
-    i = i + size
   }
   out
 }

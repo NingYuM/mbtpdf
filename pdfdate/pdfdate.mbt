@@ -71,14 +71,12 @@ fn parse_digits(
     raise BadDate
   }
   let mut value = 0
-  let mut i = 0
-  while i < count {
+  for i in 0..<count {
     let ch = chars[pos + i]
     if !is_digit(ch) {
       raise BadDate
     }
     value = value * 10 + (ch.to_int() - '0'.to_int())
-    i = i + 1
   }
   (value, pos + count)
 }

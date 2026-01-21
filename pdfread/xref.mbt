@@ -22,14 +22,12 @@ fn parse_digits(chars : Array[Char], start : Int, len : Int) -> Int? {
     return None
   }
   let mut value = 0
-  let mut i = start
-  while i < start + len {
+  for i in start..<(start + len) {
     let c = chars[i]
     if c < '0' || c > '9' {
       return None
     }
     value = value * 10 + (c.to_int() - '0'.to_int())
-    i = i + 1
   }
   Some(value)
 }
@@ -164,15 +162,13 @@ fn read_xref_line_stream(
       return 0
     }
     let mut value = 0
-    let mut i = 0
-    while i < bytes {
+    for _ in 0..<bytes {
       let b = (input.input_byte)()
       if b == @pdfio.no_more {
         let message = @pdf.input_pdferror(input, "Bad xref stream")
         raise @pdf.PdfError::Msg(message)
       }
       value = value * 256 + b
-      i = i + 1
     }
     value
   }

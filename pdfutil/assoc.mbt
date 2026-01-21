@@ -33,8 +33,7 @@ pub fn[K : Eq, V] add(
   let len = dict.length()
   let mut found = false
   let out : Array[(K, V)] = Array::new(capacity=len + 1)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     let pair = dict[i]
     if !found && pair.0 == key {
       out.push((key, value))
@@ -42,7 +41,6 @@ pub fn[K : Eq, V] add(
     } else {
       out.push(pair)
     }
-    i += 1
   }
   if !found {
     out.push((key, value))
@@ -60,8 +58,7 @@ pub fn[K : Eq, V] replace(
   let len = dict.length()
   let mut found = false
   let out : Array[(K, V)] = Array::new(capacity=len)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     let pair = dict[i]
     if !found && pair.0 == key {
       out.push((key, value))
@@ -69,7 +66,6 @@ pub fn[K : Eq, V] replace(
     } else {
       out.push(pair)
     }
-    i += 1
   }
   if !found {
     not_found()
@@ -83,15 +79,13 @@ pub fn[K : Eq, V] remove(key : K, dict : Array[(K, V)]) -> Array[(K, V)] {
   let len = dict.length()
   let out : Array[(K, V)] = Array::new(capacity=len)
   let mut removed = false
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     let pair = dict[i]
     if !removed && pair.0 == key {
       removed = true
     } else {
       out.push(pair)
     }
-    i += 1
   }
   out
 }

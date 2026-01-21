@@ -6,14 +6,12 @@ fn compare_bytes(left : Array[Byte], right : Array[Byte]) -> Int {
   } else {
     right.length()
   }
-  let mut i = 0
-  while i < min_len {
+  for i in 0..<min_len {
     let a = left[i].to_int()
     let b = right[i].to_int()
     if a != b {
       return a - b
     }
-    i = i + 1
   }
   if left.length() == right.length() {
     0
@@ -39,10 +37,8 @@ fn ilist(start : Int, finish : Int) -> Array[Int] {
     return []
   }
   let out = Array::new(capacity=finish - start + 1)
-  let mut i = start
-  while i <= finish {
+  for i in start..<=finish {
     out.push(i)
-    i = i + 1
   }
   out
 }
@@ -63,10 +59,8 @@ fn[T] slice(values : Array[T], start : Int, count : Int) -> Array[T] raise {
     raise @pdf.PdfError::Msg("slice: out of bounds")
   }
   let out = Array::new(capacity=count)
-  let mut i = 0
-  while i < count {
+  for i in 0..<count {
     out.push(values[start + i])
-    i = i + 1
   }
   out
 }
@@ -99,10 +93,8 @@ fn[A, B] combine(left : Array[A], right : Array[B]) -> Array[(A, B)] raise {
     raise @pdf.PdfError::Msg("combine: length mismatch")
   }
   let out = Array::new(capacity=left.length())
-  let mut i = 0
-  while i < left.length() {
+  for i in 0..<left.length() {
     out.push((left[i], right[i]))
-    i = i + 1
   }
   out
 }
@@ -230,10 +222,8 @@ pub fn remove_duplicate_fonts(pdf : @pdf.Pdf) -> Unit {
   for group in toprocess {
     let changetable : Map[Int, Int] = Map::new()
     let keep = group[0]
-    let mut i = 1
-    while i < group.length() {
+    for i in 1..<group.length() {
       changetable.set(group[i], keep)
-      i = i + 1
     }
     current = @pdf.renumber(changetable, current)
   }
@@ -282,10 +272,8 @@ fn merge_pdfs_renumber(
     raise @pdf.PdfError::Msg("merge_pdfs_renumber: length mismatch")
   }
   let table : Map[String, @pdf.Pdf] = Map::new()
-  let mut i = 0
-  while i < names.length() {
+  for i in 0..<names.length() {
     table.set(names[i], pdfs[i])
-    i = i + 1
   }
   let unique_names = Array::new()
   let unique_pdfs = Array::new()
@@ -512,8 +500,7 @@ fn merge_bookmarks(
 
     let bookmarks = Array::new()
     let mut offset = 0
-    let mut i = 0
-    while i < pdfs.length() {
+    for i in 0..<pdfs.length() {
       let range = ranges[i]
       let subset_changes = slice(changes, offset, range.length())
       let subset_oldnums = subset_changes.map(pair => pair.0)
@@ -525,7 +512,6 @@ fn merge_bookmarks(
         }
       }
       offset = offset + range.length()
-      i = i + 1
     }
     @pdfmarks.add_bookmarks(bookmarks, pdf)
   } catch {
@@ -564,10 +550,8 @@ fn apply_namechanges_to_destination_nametree(
       return None
     }
     let out = Array::new()
-    let mut i = 0
-    while i + 1 < values.length() {
+    for i = 0; i + 1 < values.length(); i = i + 2 {
       out.push((values[i], values[i + 1]))
-      i = i + 2
     }
     Some(out)
   }
@@ -666,14 +650,9 @@ fn apply_namechanges_at_destination_callsites(
     changes_map.set(pair.0, pair.1)
   }
   let allchanges_map : Map[String, String] = Map::new()
-  let mut i = allchanges.length() - 1
-  while i >= 0 {
+  for i in (allchanges.length() - 1)>=..0 {
     let pair = allchanges[i]
     allchanges_map.set(pair.0, pair.1)
-    if i == 0 {
-      break
-    }
-    i = i - 1
   }
   fn rewrite_string(s : String) -> String {
     match changes_map.get(s) {

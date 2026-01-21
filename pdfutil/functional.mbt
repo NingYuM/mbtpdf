@@ -88,9 +88,7 @@ pub fn do_many(f : () -> Unit raise?, n : Int) -> Unit raise {
   if n < 0 {
     fail("Invalid_argument: Pdfutil.do_many")
   }
-  let mut i = 0
-  while i < n {
+  for _ in 0..<n {
     f()
-    i += 1
   }
 }

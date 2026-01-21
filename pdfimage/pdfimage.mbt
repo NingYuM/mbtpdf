@@ -38,10 +38,8 @@ fn toint(f : Double) -> Int {
 
 ///|
 fn invert_bits(bytes : @pdfio.MutableBytes) -> Unit {
-  let mut i = 0
-  while i < @pdfio.bytes_size(bytes) {
+  for i in 0..<@pdfio.bytes_size(bytes) {
     @pdfio.bset(bytes, i, @pdfio.bget(bytes, i) ^ 255)
-    i = i + 1
   }
 }
 
@@ -58,12 +56,10 @@ fn decode(
     raise @pdf.PdfError::Msg("Bad /Decode")
   }
   let mut ident = true
-  let mut i = 0
-  while i < fs.length() / 2 {
+  for i in 0..<(fs.length() / 2) {
     if fs[i * 2] != 0.0 || fs[i * 2 + 1] != 1.0 {
       ident = false
     }
-    i = i + 1
   }
   if ident {
     return
@@ -76,22 +72,18 @@ fn decode(
     (dmin + numerator / Double::from_int(max_val)).to_int()
   }
   let pairs = Array::new(capacity=fs.length() / 2)
-  i = 0
-  while i < fs.length() / 2 {
+  for i in 0..<(fs.length() / 2) {
     pairs.push((fs[i * 2], fs[i * 2 + 1]))
-    i = i + 1
   }
   match bpc {
     1 => invert_bits(image)
     2 => ()
     4 => ()
     8 => {
-      let mut p = 0
-      while p < @pdfio.bytes_size(image) {
+      for p in 0..<@pdfio.bytes_size(image) {
         let pair = pairs[p % pairs.length()]
         let value = interpolate(pair.0, pair.1, @pdfio.bget(image, p))
         @pdfio.bset(image, p, value)
-        p = p + 1
       }
     }
     16 => ()
@@ -111,11 +103,9 @@ fn real_array(values : Array[Double]) -> Array[@pdf.PdfObject] {
 ///|
 fn repeat_decode_pairs(count : Int) -> Array[@pdf.PdfObject] {
   let out = Array::new(capacity=count * 2)
-  let mut i = 0
-  while i < count {
+  for _ in 0..<count {
     out.push(@pdf.PdfObject::Real(0.0))
     out.push(@pdf.PdfObject::Real(1.0))
-    i = i + 1
   }
   out
 }
@@ -258,8 +248,7 @@ fn read_cmyk_8bpp_as_rgb24(
   data : @pdfio.MutableBytes,
 ) -> @pdfio.MutableBytes {
   let out = @pdfio.mkbytes(width * height * 3)
-  let mut p = 0
-  while p < width * height {
+  for p in 0..<(width * height) {
     let c = @pdfio.bget(data, p * 4)
     let m = @pdfio.bget(data, p * 4 + 1)
     let y = @pdfio.bget(data, p * 4 + 2)
@@ -268,7 +257,6 @@ fn read_cmyk_8bpp_as_rgb24(
     @pdfio.bset(out, p * 3, r)
     @pdfio.bset(out, p * 3 + 1, g)
     @pdfio.bset(out, p * 3 + 2, b)
-    p = p + 1
   }
   out
 }
@@ -280,13 +268,11 @@ fn read_gray_8bpp_as_rgb24(
   data : @pdfio.MutableBytes,
 ) -> @pdfio.MutableBytes {
   let out = @pdfio.mkbytes(width * height * 3)
-  let mut p = 0
-  while p < width * height {
+  for p in 0..<(width * height) {
     let v = @pdfio.bget(data, p)
     @pdfio.bset(out, p * 3, v)
     @pdfio.bset(out, p * 3 + 1, v)
     @pdfio.bset(out, p * 3 + 2, v)
-    p = p + 1
   }
   out
 }
@@ -300,11 +286,9 @@ fn read_1bpp_as_rgb24(
   let out = @pdfio.mkbytes(width * height * 3)
   let row_bytes = (width + 7) / 8
   let mut out_pos = 0
-  let mut row = 0
-  while row < height {
+  for row in 0..<height {
     let row_base = row * row_bytes
-    let mut x = 0
-    while x < width {
+    for x in 0..<width {
       let byte = @pdfio.bget(data, row_base + x / 8)
       let bit = 7 - x % 8
       let v = if ((byte >> bit) & 1) == 1 { 255 } else { 0 }
@@ -312,9 +296,7 @@ fn read_1bpp_as_rgb24(
       @pdfio.bset(out, out_pos + 1, v)
       @pdfio.bset(out, out_pos + 2, v)
       out_pos = out_pos + 3
-      x = x + 1
     }
-    row = row + 1
   }
   out
 }
@@ -328,11 +310,9 @@ fn read_4bpp_gray_as_rgb24(
   let out = @pdfio.mkbytes(width * height * 3)
   let row_bytes = (width + 1) / 2
   let mut out_pos = 0
-  let mut row = 0
-  while row < height {
+  for row in 0..<height {
     let row_base = row * row_bytes
-    let mut x = 0
-    while x < width {
+    for x in 0..<width {
       let byte = @pdfio.bget(data, row_base + x / 2)
       let nibble = if x % 2 == 0 { byte >> 4 } else { byte & 15 }
       let col = nibble * 17
@@ -340,9 +320,7 @@ fn read_4bpp_gray_as_rgb24(
       @pdfio.bset(out, out_pos + 1, col)
       @pdfio.bset(out, out_pos + 2, col)
       out_pos = out_pos + 3
-      x = x + 1
     }
-    row = row + 1
   }
   out
 }
@@ -355,8 +333,7 @@ fn read_8bpp_indexed_as_rgb24(
   data : @pdfio.MutableBytes,
 ) -> @pdfio.MutableBytes raise {
   let out = @pdfio.mkbytes(width * height * 3)
-  let mut x = 0
-  while x < width * height {
+  for x in 0..<(width * height) {
     let key = @pdfio.bget(data, x)
     match table.get(key) {
       Some([r, g, b]) => {
@@ -366,7 +343,6 @@ fn read_8bpp_indexed_as_rgb24(
       }
       _ => raise @pdf.PdfError::Msg("read_8bpp_indexed_as_rgb24")
     }
-    x = x + 1
   }
   out
 }
@@ -421,8 +397,7 @@ fn convert_lab_to_rgb(
   data : @pdfio.MutableBytes,
 ) -> Unit {
   let (xw, yw, zw) = p
-  let mut idx = 0
-  while idx < width * height {
+  for idx in 0..<(width * height) {
     let l = @pdfio.bget(data, idx * 3) - 127
     let a = @pdfio.bget(data, idx * 3 + 1) - 127
     let b = @pdfio.bget(data, idx * 3 + 2) - 127
@@ -437,7 +412,6 @@ fn convert_lab_to_rgb(
     @pdfio.bset(data, idx * 3, r_out)
     @pdfio.bset(data, idx * 3 + 1, g_out)
     @pdfio.bset(data, idx * 3 + 2, b_out)
-    idx = idx + 1
   }
 }
 
@@ -464,8 +438,7 @@ fn read_8bpp_cmyk_indexed_as_rgb24(
   data : @pdfio.MutableBytes,
 ) -> @pdfio.MutableBytes raise {
   let out = @pdfio.mkbytes(width * height * 3)
-  let mut x = 0
-  while x < width * height {
+  for x in 0..<(width * height) {
     let key = @pdfio.bget(data, x)
     match table.get(key) {
       Some([c, m, y, k]) => {
@@ -476,7 +449,6 @@ fn read_8bpp_cmyk_indexed_as_rgb24(
       }
       _ => raise @pdf.PdfError::Msg("read_8bpp_indexed_as_rgb24")
     }
-    x = x + 1
   }
   out
 }
@@ -591,8 +563,7 @@ fn read_separation_cmyk_as_rgb24(
   data : @pdfio.MutableBytes,
 ) -> @pdfio.MutableBytes raise {
   let out = @pdfio.mkbytes(width * height * 3)
-  let mut p = 0
-  while p < width * height {
+  for p in 0..<(width * height) {
     let v = @pdfio.bget(data, p)
     try {
       match @pdffun.eval_function(fnn, [Double::from_int(v) / 255.0]) {
@@ -613,7 +584,6 @@ fn read_separation_cmyk_as_rgb24(
         raise @pdf.PdfError::Msg("Bad tint transform function " + msg)
       _ => raise @pdf.PdfError::Msg("Bad tint transform function")
     }
-    p = p + 1
   }
   out
 }

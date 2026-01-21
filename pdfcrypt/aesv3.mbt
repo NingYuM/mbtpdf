@@ -5,10 +5,8 @@ fn bytes_slice(
   len : Int,
 ) -> @pdfio.MutableBytes {
   let out = @pdfio.mkbytes(len)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     out[i] = bytes[start + i]
-    i = i + 1
   }
   out
 }
@@ -22,11 +20,9 @@ fn bytes_concat(parts : Array[@pdfio.MutableBytes]) -> @pdfio.MutableBytes {
   let out = @pdfio.mkbytes(total)
   let mut pos = 0
   for part in parts {
-    let mut i = 0
-    while i < part.length() {
+    for i in 0..<part.length() {
       out[pos] = part[i]
       pos = pos + 1
-      i = i + 1
     }
   }
   out
@@ -35,10 +31,8 @@ fn bytes_concat(parts : Array[@pdfio.MutableBytes]) -> @pdfio.MutableBytes {
 ///|
 fn mod3_bytes(bytes : @pdfio.MutableBytes) -> Int {
   let mut x = 0
-  let mut i = 0
-  while i < 16 {
+  for i in 0..<16 {
     x = x + @pdfio.bget(bytes, i)
-    i = i + 1
   }
   x % 3
 }
@@ -249,11 +243,9 @@ fn perms_of_p(
     UInt64::extend_uint(p.reinterpret_as_uint()),
   )
   let b = Array::make(16, 0)
-  let mut n = 0
-  while n < 8 {
+  for n in 0..<8 {
     let v = (extendedp >> (n * 8)).to_int()
     b[n] = Int::land(v, 0xff)
-    n = n + 1
   }
   b[8] = if encrypt_metadata { 'T'.to_int() } else { 'F'.to_int() }
   b[9] = 'a'.to_int()

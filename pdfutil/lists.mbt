@@ -115,10 +115,8 @@ pub fn[A, B] iter2(
 ) -> Unit raise {
   let len = xs.length()
   check_len2("Pdfutil.iter2", len, ys.length())
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     f(xs[i], ys[i])
-    i += 1
   }
 }
 
@@ -131,10 +129,8 @@ pub fn[A, B, C] iter3(
 ) -> Unit raise {
   let len = xs.length()
   check_len3("Pdfutil.iter3", len, ys.length(), zs.length())
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     f(xs[i], ys[i], zs[i])
-    i += 1
   }
 }
 
@@ -174,10 +170,8 @@ pub fn[A, B, C] map2(
   let len = xs.length()
   check_len2("Pdfutil.map2", len, ys.length())
   let out : Array[C] = Array::new(capacity=len)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     out.push(f(xs[i], ys[i]))
-    i += 1
   }
   out
 }
@@ -287,10 +281,8 @@ pub fn[A, B] combine(xs : Array[A], ys : Array[B]) -> Array[(A, B)] raise {
   let len = xs.length()
   check_len2("Pdfutil.combine", len, ys.length())
   let out : Array[(A, B)] = Array::new(capacity=len)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     out.push((xs[i], ys[i]))
-    i += 1
   }
   out
 }
@@ -304,10 +296,8 @@ pub fn[A, B, C] combine3(
   let len = xs.length()
   check_len3("Pdfutil.combine3", len, ys.length(), zs.length())
   let out : Array[(A, B, C)] = Array::new(capacity=len)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     out.push((xs[i], ys[i], zs[i]))
-    i += 1
   }
   out
 }
@@ -407,13 +397,11 @@ pub fn[A, B, C] option_map2(
   let len = xs.length()
   check_len2("Pdfutil.option_map2", len, ys.length())
   let out : Array[C] = Array::new(capacity=len)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     match f(xs[i], ys[i]) {
       Some(v) => out.push(v)
       None => ()
     }
-    i += 1
   }
   out
 }
@@ -453,10 +441,8 @@ pub fn[A, B, C, D] rev_map3(
   let len = xs.length()
   check_len3("Pdfutil.rev_map3", len, ys.length(), zs.length())
   let out : Array[D] = Array::new(capacity=len)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     out.push(f(xs[i], ys[i], zs[i]))
-    i += 1
   }
   out.rev()
 }
@@ -482,10 +468,8 @@ pub fn[A, B, C, D, E] rev_map4(
   let len = xs.length()
   check_len4("Pdfutil.rev_map4", len, ys.length(), zs.length(), ws.length())
   let out : Array[E] = Array::new(capacity=len)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     out.push(f(xs[i], ys[i], zs[i], ws[i]))
-    i += 1
   }
   out.rev()
 }
@@ -520,10 +504,8 @@ pub fn[A, B, C, D, E, F] rev_map5(
     vs.length(),
   )
   let out : Array[F] = Array::new(capacity=len)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     out.push(f(xs[i], ys[i], zs[i], ws[i], vs[i]))
-    i += 1
   }
   out.rev()
 }
@@ -561,10 +543,8 @@ pub fn[A, B, C, D, E, F, G] rev_map6(
     us.length(),
   )
   let out : Array[G] = Array::new(capacity=len)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     out.push(f(xs[i], ys[i], zs[i], ws[i], vs[i], us[i]))
-    i += 1
   }
   out.rev()
 }
@@ -693,11 +673,9 @@ pub fn[A] interleave(element : A, xs : Array[A]) -> Array[A] {
   }
   let out : Array[A] = Array::new(capacity=len * 2 - 1)
   out.push(xs[0])
-  let mut i = 1
-  while i < len {
+  for i in 1..<len {
     out.push(element)
     out.push(xs[i])
-    i += 1
   }
   out
 }
@@ -707,11 +685,9 @@ pub fn[A] interleave_lists(xs : Array[A], ys : Array[A]) -> Array[A] raise {
   let len = xs.length()
   check_len2("Pdfutil.interleave_lists", len, ys.length())
   let out : Array[A] = Array::new(capacity=len * 2)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     out.push(xs[i])
     out.push(ys[i])
-    i += 1
   }
   out
 }
@@ -798,10 +774,8 @@ pub fn[A] pairs_of_list(xs : Array[A]) -> Array[(A, A)] raise {
     invalid_arg("Pdfutil.pairs_of_list")
   }
   let out : Array[(A, A)] = Array::new(capacity=len / 2)
-  let mut i = 0
-  while i + 1 < len {
+  for i = 0; i + 1 < len; i = i + 2 {
     out.push((xs[i], xs[i + 1]))
-    i += 2
   }
   out
 }
@@ -813,10 +787,8 @@ pub fn[A] pairs(xs : Array[A]) -> Array[(A, A)] {
     return Array::new()
   }
   let out : Array[(A, A)] = Array::new(capacity=len - 1)
-  let mut i = 0
-  while i + 1 < len {
+  for i in 0..<(len - 1) {
     out.push((xs[i], xs[i + 1]))
-    i += 1
   }
   out
 }
@@ -835,14 +807,12 @@ pub fn[A : Compare] setify(xs : Array[A]) -> Array[A] {
   let out : Array[A] = Array::new(capacity=sorted.length())
   let mut current = sorted[0]
   out.push(current)
-  let mut i = 1
-  while i < sorted.length() {
+  for i in 1..<sorted.length() {
     let value = sorted[i]
     if compare_values(value, current) != 0 {
       out.push(value)
       current = value
     }
-    i += 1
   }
   out
 }
@@ -935,10 +905,8 @@ pub fn[A, B] couple(f : (A, A) -> B raise?, xs : Array[A]) -> Array[B] raise? {
     return Array::new()
   }
   let out : Array[B] = Array::new(capacity=len - 1)
-  let mut i = 0
-  while i + 1 < len {
+  for i in 0..<(len - 1) {
     out.push(f(xs[i], xs[i + 1]))
-    i += 1
   }
   out
 }
@@ -951,10 +919,8 @@ pub fn[A, B] couple_ext(
 ) -> Array[B] raise? {
   let len = xs.length()
   let out : Array[B] = Array::new(capacity=len)
-  let mut i = 0
-  while i + 1 < len {
+  for i in 0..<(if len > 0 { len - 1 } else { 0 }) {
     out.push(f(xs[i], xs[i + 1]))
-    i += 1
   }
   if len % 2 == 1 {
     out.push(g(xs[len - 1]))
@@ -1048,10 +1014,8 @@ pub fn[A] manyunique(f : () -> A raise?, n : Int) -> Array[A] raise {
     invalid_arg("Pdfutil.manyunique")
   }
   let out : Array[A] = Array::new(capacity=n)
-  let mut i = 0
-  while i < n {
+  for _ in 0..<n {
     out.push(f())
-    i += 1
   }
   out
 }
@@ -1181,10 +1145,8 @@ pub fn ilist(start : Int, finish : Int) -> Array[Int] raise {
     return [start]
   }
   let out : Array[Int] = Array::new(capacity=finish - start + 1)
-  let mut i = start
-  while i <= finish {
+  for i in start..<=finish {
     out.push(i)
-    i += 1
   }
   out
 }
@@ -1209,10 +1171,8 @@ pub fn ilist_fail_null(start : Int, finish : Int) -> Array[Int] {
     return Array::new()
   }
   let out : Array[Int] = Array::new(capacity=finish - start + 1)
-  let mut i = start
-  while i <= finish {
+  for i in start..<=finish {
     out.push(i)
-    i += 1
   }
   out
 }
@@ -1230,10 +1190,8 @@ pub fn[A] indx0(xs : Array[A]) -> Array[Int] {
 ///|
 pub fn[A] indxn(base : Int, xs : Array[A]) -> Array[Int] {
   let out : Array[Int] = Array::new(capacity=xs.length())
-  let mut i = 0
-  while i < xs.length() {
+  for i in 0..<xs.length() {
     out.push(base + i)
-    i += 1
   }
   out
 }
@@ -1242,12 +1200,10 @@ pub fn[A] indxn(base : Int, xs : Array[A]) -> Array[Int] {
 pub fn[A] drop_evens(xs : Array[A]) -> Array[A] {
   let len = xs.length()
   let out : Array[A] = Array::new(capacity=len)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     if i % 2 == 0 || (i == len - 1 && len % 2 == 0) {
       out.push(xs[i])
     }
-    i += 1
   }
   out
 }
@@ -1256,12 +1212,10 @@ pub fn[A] drop_evens(xs : Array[A]) -> Array[A] {
 pub fn[A] really_drop_evens(xs : Array[A]) -> Array[A] {
   let len = xs.length()
   let out : Array[A] = Array::new(capacity=len)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     if i % 2 == 0 {
       out.push(xs[i])
     }
-    i += 1
   }
   out
 }
@@ -1270,12 +1224,10 @@ pub fn[A] really_drop_evens(xs : Array[A]) -> Array[A] {
 pub fn[A] drop_odds(xs : Array[A]) -> Array[A] {
   let len = xs.length()
   let out : Array[A] = Array::new(capacity=len / 2)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     if i % 2 == 1 {
       out.push(xs[i])
     }
-    i += 1
   }
   out
 }

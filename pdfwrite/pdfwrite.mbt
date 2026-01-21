@@ -20,10 +20,8 @@ fn trim_trailing_zeros(value : String) -> String {
         "0"
       } else {
         let sb = StringBuilder::new()
-        let mut i = 0
-        while i <= end {
+        for i in 0..<=end {
           sb.write_char(chars[i])
-          i = i + 1
         }
         sb.to_string()
       }
@@ -114,10 +112,8 @@ fn expand_scientific(value : String) -> String {
         sb.write_string(sign)
         if new_pos <= 0 {
           sb.write_string("0.")
-          let mut z = 0
-          while z < -new_pos {
+          for _ in 0..<(-new_pos) {
             sb.write_char('0')
-            z = z + 1
           }
           for ch in digits {
             sb.write_char(ch)
@@ -126,19 +122,15 @@ fn expand_scientific(value : String) -> String {
           for ch in digits {
             sb.write_char(ch)
           }
-          let mut z = 0
-          while z < new_pos - digits.length() {
+          for _ in 0..<(new_pos - digits.length()) {
             sb.write_char('0')
-            z = z + 1
           }
         } else {
-          let mut i = 0
-          while i < digits.length() {
+          for i in 0..<digits.length() {
             if i == new_pos {
               sb.write_char('.')
             }
             sb.write_char(digits[i])
-            i = i + 1
           }
         }
         trim_trailing_zeros(sb.to_string())
@@ -205,13 +197,11 @@ fn needs_processing_name(bytes : @pdfio.MutableBytes) -> Bool {
   if bytes.length() < 2 {
     return false
   }
-  let mut i = 1
-  while i < bytes.length() {
+  for i in 1..<bytes.length() {
     let b = bytes[i].to_int()
     if b < 33 || b > 126 || is_delimiter_byte(b) || b == '#'.to_int() {
       return true
     }
-    i = i + 1
   }
   false
 }
@@ -231,8 +221,7 @@ fn make_pdf_name(name : String) -> String {
   }
   let sb = StringBuilder::new()
   sb.write_char('/')
-  let mut i = 1
-  while i < bytes.length() {
+  for i in 1..<bytes.length() {
     let b = bytes[i].to_int()
     if b < 33 || b > 126 || is_delimiter_byte(b) || b == '#'.to_int() {
       sb.write_char('#')
@@ -241,7 +230,6 @@ fn make_pdf_name(name : String) -> String {
     } else {
       sb.write_char(b.to_byte().to_char())
     }
-    i = i + 1
   }
   sb.to_string()
 }
@@ -304,12 +292,10 @@ fn bytes_required(value : Int) -> Int {
 
 ///|
 fn write_int_be(output : @pdfio.Output, value : Int, width : Int) -> Unit {
-  let mut pos = width - 1
-  while pos >= 0 {
+  for pos in (width - 1)>=..0 {
     let shift = pos * 8
     let byte = (value >> shift) & 0xff
     (output.output_byte)(byte)
-    pos = pos - 1
   }
 }
 
@@ -459,13 +445,11 @@ fn bake_object_streams(
       @pdf.removeobj(pdf, objnum)
     }
     let header = StringBuilder::new()
-    let mut i = 0
-    while i < objs.length() {
+    for i in 0..<objs.length() {
       header.write_string(objs[i].to_string())
       header.write_char(' ')
       header.write_string(offsets[i].to_string())
       header.write_char(' ')
-      i = i + 1
     }
     let header_str = header.to_string()
     let first = header_str.length()
@@ -519,8 +503,7 @@ fn build_xref_stream(
   let mut max_type = 1
   let mut max_field2 = 0
   let mut max_field3 = 0
-  let mut i = 0
-  while i < size {
+  for i in 0..<size {
     let (typ, field2, field3) = match object_stream_entries.get(i) {
       Some((stream_id, index)) => (2, stream_id, index)
       None =>
@@ -539,14 +522,12 @@ fn build_xref_stream(
     if field3 > max_field3 {
       max_field3 = field3
     }
-    i = i + 1
   }
   let w1 = bytes_required(max_type)
   let w2 = bytes_required(max_field2)
   let w3 = bytes_required(max_field3)
   let (output, buffer) = @pdfio.input_output_of_bytes(256)
-  i = 0
-  while i < size {
+  for i in 0..<size {
     let (typ, field2, field3) = match object_stream_entries.get(i) {
       Some((stream_id, index)) => (2, stream_id, index)
       None =>
@@ -559,7 +540,6 @@ fn build_xref_stream(
     write_int_be(output, typ, w1)
     write_int_be(output, field2, w2)
     write_int_be(output, field3, w3)
-    i = i + 1
   }
   let data = @pdfio.extract_bytes_from_input_output(output, buffer)
   let dict_with_type = @pdf.add_dict_entry(
@@ -922,15 +902,13 @@ pub fn pdf_to_output(
   } else {
     (output.output_string)("xref\n")
     (output.output_string)("0 \{size}\n")
-    let mut i = 0
-    while i < size {
+    for i in 0..<size {
       if i == 0 || !used[i] {
         (output.output_string)("0000000000 65535 f \n")
       } else {
         let line = "\{pad_int(offsets[i], 10)} \{pad_int(gens[i], 5)} n \n"
         (output.output_string)(line)
       }
-      i = i + 1
     }
     (output.output_string)("trailer\n")
     let trailerdict = @pdf.add_dict_entry(

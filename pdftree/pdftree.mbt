@@ -171,9 +171,8 @@ fn remove_duplicates(
     return []
   }
   let out = Array::new()
-  let mut i = 1
   let mut prev = items[0]
-  while i < items.length() {
+  for i in 1..<items.length() {
     let current = items[i]
     let same = if isnum {
       key_int(prev.0) == key_int(current.0)
@@ -186,7 +185,6 @@ fn remove_duplicates(
       out.push(prev)
       prev = current
     }
-    i = i + 1
   }
   out.push(prev)
   out
@@ -197,10 +195,8 @@ fn pairs_of_array(
   arr : Array[@pdf.PdfObject],
 ) -> Array[(@pdf.PdfObject, @pdf.PdfObject)] {
   let out = Array::new()
-  let mut i = 0
-  while i + 1 < arr.length() {
+  for i = 0; i + 1 < arr.length(); i = i + 2 {
     out.push((arr[i], arr[i + 1]))
-    i = i + 2
   }
   out
 }

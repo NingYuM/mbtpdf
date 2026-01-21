@@ -168,10 +168,8 @@ pub fn read_fontdescriptor(
 ///|
 fn repeat_double(value : Double, count : Int) -> Array[Double] {
   let out = Array::new(capacity=if count > 0 { count } else { 0 })
-  let mut i = 0
-  while i < count {
+  for _ in 0..<count {
     out.push(value)
-    i = i + 1
   }
   out
 }
@@ -261,10 +259,8 @@ pub fn pairs_of_differences(
                 _ => break
               }
             }
-            let mut idx = 0
-            while idx < names.length() {
+            for idx in 0..<names.length() {
               out.push((names[idx], n + idx))
-              idx = idx + 1
             }
           }
           _ => raise @pdf.PdfError::Msg("Malformed /Differences")
@@ -509,10 +505,8 @@ pub fn read_cid_widths(
                 @pdf.PdfObject::Real(r) => r
                 _ => raise @pdf.PdfError::Msg("Bad /W array")
               })
-              let mut j = 0
-              while j < nums.length() {
+              for j in 0..<nums.length() {
                 out.push((c + j, nums[j]))
-                j = j + 1
               }
               i = i + 2
             }
@@ -528,10 +522,8 @@ pub fn read_cid_widths(
               if c_last < c {
                 raise @pdf.PdfError::Msg("Bad /W array")
               }
-              let mut code = c
-              while code <= c_last {
+              for code in c..<=c_last {
                 out.push((code, w))
-                code = code + 1
               }
               i = i + 3
             }

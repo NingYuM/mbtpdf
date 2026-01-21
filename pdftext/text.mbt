@@ -44,10 +44,8 @@ fn bytes_slice_to_string(
   length : Int,
 ) -> String {
   let out = Array::new(capacity=length)
-  let mut i = 0
-  while i < length {
+  for i in 0..<length {
     out.push(bytes[start + i])
-    i = i + 1
   }
   @pdfio.string_of_int_array(out)
 }

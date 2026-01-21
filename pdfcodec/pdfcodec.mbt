@@ -1841,8 +1841,7 @@ fn encode_png_filter(
 ) -> Array[Int] {
   let out = Array::new(capacity=current.length())
   let get0 = (arr : Array[Int], idx : Int) => if idx < 0 { 0 } else { arr[idx] }
-  let mut i = 0
-  while i < current.length() {
+  for i in 0..<current.length() {
     let left = if i < bytes_per_pixel {
       0
     } else {
@@ -1863,7 +1862,6 @@ fn encode_png_filter(
       _ => 0
     }
     out.push(sub_mod(current[i], predicted))
-    i = i + 1
   }
   out
 }
@@ -1893,8 +1891,7 @@ fn encode_png_line(
   let mut best_filter = 0
   let mut best_encoded = encode_png_filter(current, prior, bytes_per_pixel, 0)
   let mut best_cost = predictor_cost(best_encoded)
-  let mut f = 1
-  while f <= 4 {
+  for f in 1..<=4 {
     let candidate = encode_png_filter(current, prior, bytes_per_pixel, f)
     let cost = predictor_cost(candidate)
     if cost < best_cost {
@@ -1902,7 +1899,6 @@ fn encode_png_line(
       best_filter = f
       best_encoded = candidate
     }
-    f = f + 1
   }
   (best_filter, best_encoded)
 }
@@ -1927,13 +1923,10 @@ fn encode_png_predictor(
     @pdfio.bytes_size(stream) / scanline_width
   }
   let prior = Array::make(scanline_width, 0)
-  let mut line = 0
-  while line < lines {
+  for line in 0..<lines {
     let current = Array::make(scanline_width, 0)
-    let mut i = 0
-    while i < scanline_width {
+    for i in 0..<scanline_width {
       current[i] = @pdfio.bget(stream, line * scanline_width + i)
-      i = i + 1
     }
     let (filter, encoded) = encode_png_line(
       current, prior, bytes_per_pixel, pred,
@@ -1942,10 +1935,9 @@ fn encode_png_predictor(
     for v in encoded {
       (output.output_byte)(v)
     }
-    for i = 0; i < scanline_width; i = i + 1 {
+    for i in 0..<scanline_width {
       prior[i] = current[i]
     }
-    line = line + 1
   }
   @pdfio.extract_bytes_from_input_output(output, data)
 }
@@ -1968,17 +1960,13 @@ fn encode_tiff_predictor(
   } else {
     @pdfio.bytes_size(stream) / scanline_width
   }
-  let mut line = 0
-  while line < lines {
+  for line in 0..<lines {
     let line_start = line * scanline_width
-    let mut p = bytes_per_pixel
-    while p < scanline_width {
+    for p in bytes_per_pixel..<scanline_width {
       let curr = @pdfio.bget(stream, line_start + p)
       let left = @pdfio.bget(stream, line_start + p - bytes_per_pixel)
       out[line_start + p] = sub_mod(curr, left).to_byte()
-      p = p + 1
     }
-    line = line + 1
   }
   out
 }
@@ -2110,16 +2098,14 @@ fn decode_tiff_predictor(
   } else {
     out.length() / scanline_width
   }
-  for line = 0; line < lines; line = line + 1 {
+  for line in 0..<lines {
     let line_start = line * scanline_width
-    let mut p = colors
-    while p < scanline_width {
+    for p in colors..<scanline_width {
       let val = (
           out[line_start + p - colors].to_int() + out[line_start + p].to_int()
         ) %
         256
       out[line_start + p] = val.to_byte()
-      p = p + 1
     }
   }
   out

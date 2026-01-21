@@ -121,10 +121,8 @@ fn letter_string(n : Int) -> String {
   let code = (n - 1) % 26 + 65
   let c = code.unsafe_to_char()
   let sb = StringBuilder::new()
-  let mut i = 0
-  while i < count {
+  for _ in 0..<count {
     sb.write_char(c)
-    i = i + 1
   }
   sb.to_string()
 }
@@ -301,8 +299,7 @@ pub fn coalesce(labels : Array[PageLabel]) -> Array[PageLabel] {
   }
   let out = Array::new()
   out.push(labels[0])
-  let mut i = 1
-  while i < labels.length() {
+  for i in 1..<labels.length() {
     let current = labels[i]
     let prev = out[out.length() - 1]
     let same = labelstyle_eq(prev.labelstyle, current.labelstyle) &&
@@ -311,7 +308,6 @@ pub fn coalesce(labels : Array[PageLabel]) -> Array[PageLabel] {
     if !same {
       out.push(current)
     }
-    i = i + 1
   }
   out
 }
@@ -327,8 +323,7 @@ pub fn merge_pagelabels(
     completed.push(complete(read(pdf)))
   }
   let new_labels = Array::new(capacity=completed.length())
-  let mut i = 0
-  while i < completed.length() {
+  for i in 0..<completed.length() {
     let labels = completed[i]
     let range = ranges[i]
     let mapped = Array::new(capacity=range.length())
@@ -336,7 +331,6 @@ pub fn merge_pagelabels(
       mapped.push(pagelabel_of_pagenumber(page, labels))
     }
     new_labels.push(mapped)
-    i = i + 1
   }
   let flattened_labels = flatten(new_labels)
   let flat_ranges = flatten(ranges)
@@ -472,10 +466,8 @@ fn[T] flatten(lists : Array[Array[T]]) -> Array[T] {
 ///|
 fn indices_for_length(length : Int) -> Array[Int] {
   let out = Array::new(capacity=length)
-  let mut i = 1
-  while i <= length {
+  for i in 1..<=length {
     out.push(i)
-    i = i + 1
   }
   out
 }
@@ -490,10 +482,8 @@ fn[A, B, C] map2(
     fail("map2: length mismatch")
   }
   let out = Array::new(capacity=left.length())
-  let mut i = 0
-  while i < left.length() {
+  for i in 0..<left.length() {
     out.push(f(left[i], right[i]))
-    i = i + 1
   }
   out
 }

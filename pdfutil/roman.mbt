@@ -29,10 +29,8 @@ pub fn roman(n : Int) -> String {
   } else if n >= 1000 {
     let count = n / 1000
     let sb = StringBuilder::new(size_hint=count)
-    let mut i = 0
-    while i < count {
+    for _ in 0..<count {
       sb.write_char('M')
-      i += 1
     }
     sb.to_string() + roman(n % 1000)
   } else {

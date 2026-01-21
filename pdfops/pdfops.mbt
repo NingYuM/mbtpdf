@@ -652,11 +652,9 @@ pub fn concat_bytess(ss : Array[@pdfio.MutableBytes]) -> @pdfio.MutableBytes {
   let mut pos = 0
   for bytes in ss {
     let len = @pdfio.bytes_size(bytes)
-    let mut i = 0
-    while i < len {
+    for i in 0..<len {
       @pdfio.bset_unsafe(out, pos, @pdfio.bget_unsafe(bytes, i))
       pos = pos + 1
-      i = i + 1
     }
     @pdfio.bset_unsafe(out, pos, ' '.to_int())
     pos = pos + 1
@@ -996,10 +994,8 @@ fn lex_inline_image(
     let data = match filter_opt {
       None | Some(@pdf.PdfObject::Array([])) => {
         let out = @pdfio.mkbytes(bytes)
-        let mut i = 0
-        while i < bytes {
+        for i in 0..<bytes {
           @pdfio.bset_unsafe(out, i, (input.input_byte)())
-          i = i + 1
         }
         out
       }
@@ -1349,25 +1345,21 @@ fn parse_dash_op(section : Array[Lexeme]) -> Op raise {
     let right = section[section.length() - 3]
     if right is Lexeme::Obj(@pdfgenlex.Token::LexRightSquare) {
       let mut left_index = -1
-      let mut i = 0
-      while i < section.length() - 3 {
+      for i in 0..<(section.length() - 3) {
         match section[i] {
           Lexeme::Obj(@pdfgenlex.Token::LexLeftSquare) => left_index = i
           _ => ()
         }
-        i = i + 1
       }
       if left_index < 0 {
         raise @pdf.PdfError::Msg("malformed 'd' op")
       }
       let values : Array[Double] = Array::new()
-      let mut idx = left_index + 1
-      while idx < section.length() - 3 {
+      for idx in (left_index + 1)..<(section.length() - 3) {
         match lexeme_real(section[idx]) {
           Some(value) => values.push(value)
           None => raise @pdf.PdfError::Msg("malformed 'd' op")
         }
-        idx = idx + 1
       }
       match phase {
         Some(value) => return Op::Opd(values, value)
@@ -1388,20 +1380,17 @@ fn parse_tj_op(section : Array[Lexeme]) -> Op raise {
     let right = section[section.length() - 2]
     if right is Lexeme::Obj(@pdfgenlex.Token::LexRightSquare) {
       let mut left_index = -1
-      let mut i = 0
-      while i < section.length() - 2 {
+      for i in 0..<(section.length() - 2) {
         match section[i] {
           Lexeme::Obj(@pdfgenlex.Token::LexLeftSquare) => left_index = i
           _ => ()
         }
-        i = i + 1
       }
       if left_index < 0 {
         raise @pdf.PdfError::Msg("malformed TJ op")
       }
       let elements : Array[@pdf.PdfObject] = Array::new()
-      let mut idx = left_index + 1
-      while idx < section.length() - 2 {
+      for idx in (left_index + 1)..<(section.length() - 2) {
         match section[idx] {
           Lexeme::Obj(@pdfgenlex.Token::LexReal(value)) =>
             elements.push(@pdf.PdfObject::Real(value))
@@ -1411,7 +1400,6 @@ fn parse_tj_op(section : Array[Lexeme]) -> Op raise {
             elements.push(@pdf.PdfObject::String(text))
           _ => @pdfe.log("Warning: malformed TJ element; skipping\n")
         }
-        idx = idx + 1
       }
       return Op::OpTJ(@pdf.PdfObject::Array(elements))
     }

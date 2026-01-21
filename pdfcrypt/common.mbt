@@ -23,11 +23,9 @@ fn bytes_of_int_arrays(values : Array[Array[Int]]) -> @pdfio.MutableBytes {
   let out = @pdfio.mkbytes(total)
   let mut pos = 0
   for v in values {
-    let mut i = 0
-    while i < v.length() {
+    for i in 0..<v.length() {
       @pdfio.bset(out, pos, v[i])
       pos = pos + 1
-      i = i + 1
     }
   }
   out
@@ -36,10 +34,8 @@ fn bytes_of_int_arrays(values : Array[Array[Int]]) -> @pdfio.MutableBytes {
 ///|
 fn int_array_prefix(values : Array[Int], len : Int) -> Array[Int] {
   let out = Array::make(len, 0)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     out[i] = values[i]
-    i = i + 1
   }
   out
 }
@@ -47,10 +43,8 @@ fn int_array_prefix(values : Array[Int], len : Int) -> Array[Int] {
 ///|
 fn bytes_prefix(values : @pdfio.MutableBytes, len : Int) -> @pdfio.MutableBytes {
   let out = @pdfio.mkbytes(len)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     out[i] = values[i]
-    i = i + 1
   }
   out
 }
@@ -60,12 +54,10 @@ fn array_equal(a : Array[Int], b : Array[Int]) -> Bool {
   if a.length() != b.length() {
     return false
   }
-  let mut i = 0
-  while i < a.length() {
+  for i in 0..<a.length() {
     if a[i] != b[i] {
       return false
     }
-    i = i + 1
   }
   true
 }
@@ -75,12 +67,10 @@ fn bytes_equal(a : @pdfio.MutableBytes, b : @pdfio.MutableBytes) -> Bool {
   if a.length() != b.length() {
     return false
   }
-  let mut i = 0
-  while i < a.length() {
+  for i in 0..<a.length() {
     if a[i] != b[i] {
       return false
     }
-    i = i + 1
   }
   true
 }
@@ -89,16 +79,12 @@ fn bytes_equal(a : @pdfio.MutableBytes, b : @pdfio.MutableBytes) -> Bool {
 fn pad_password(password : Array[Int]) -> Array[Int] {
   let pw = Array::make(32, 0)
   let len = Int::min(password.length(), 32)
-  let mut i = 0
-  while i < len {
+  for i in 0..<len {
     pw[i] = password[i]
-    i = i + 1
   }
   if len < 32 {
-    let mut j = len
-    while j < 32 {
+    for j in len..<32 {
       pw[j] = paddings[j - len]
-      j = j + 1
     }
   }
   pw
@@ -107,10 +93,8 @@ fn pad_password(password : Array[Int]) -> Array[Int] {
 ///|
 fn mkkey(key : Array[Int], x : Int) -> Array[Int] {
   let out = key.copy()
-  let mut k = 0
-  while k < out.length() {
+  for k in 0..<out.length() {
     out[k] = out[k] ^ x
-    k = k + 1
   }
   out
 }
@@ -136,10 +120,8 @@ let rand_state : Ref[@random.Rand] = Ref::new(@random.Rand::new())
 ///|
 fn mksalt() -> String {
   let out = @pdfio.mkbytes(8)
-  let mut i = 0
-  while i < 8 {
+  for i in 0..<8 {
     out[i] = rand_state.val.int(limit=256).to_byte()
-    i = i + 1
   }
   @pdfio.string_of_bytes(out)
 }
@@ -147,10 +129,8 @@ fn mksalt() -> String {
 ///|
 fn mkfilekey() -> String {
   let out = @pdfio.mkbytes(32)
-  let mut i = 0
-  while i < 32 {
+  for i in 0..<32 {
     out[i] = rand_state.val.int(limit=256).to_byte()
-    i = i + 1
   }
   @pdfio.string_of_bytes(out)
 }

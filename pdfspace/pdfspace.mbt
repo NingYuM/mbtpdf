@@ -97,17 +97,13 @@ fn build_table(
   }
   let table : Map[Int, Array[Int]] = Map::new()
   let mut offset = 0
-  let mut x = 0
-  while x <= hival {
+  for x in 0..<=hival {
     let row = Array::new(capacity=components)
-    let mut i = 0
-    while i < components {
+    for _ in 0..<components {
       row.push(@pdfio.bget_unsafe(data, offset))
       offset = offset + 1
-      i = i + 1
     }
     table.set(x, row)
-    x = x + 1
   }
   table
 }
@@ -361,11 +357,9 @@ pub fn read_colourspace(
 ///|
 fn interleave_defaults(n : Int) -> Array[Double] {
   let out = Array::new(capacity=2 * n)
-  let mut i = 0
-  while i < n {
+  for _ in 0..<n {
     out.push(0.0)
     out.push(1.0)
-    i = i + 1
   }
   out
 }

@@ -119,12 +119,10 @@ fn read_hex_bytes(chars : Array[Char], start : Int) -> (Array[Int], Int) raise {
     raise @pdf.PdfError::Msg("Bad hex value")
   }
   let bytes = Array::new()
-  let mut j = 0
-  while j < hex_chars.length() {
+  for j = 0; j < hex_chars.length(); j = j + 2 {
     let hex_str = String::from_array(hex_chars[j:j + 2].to_array())
     let value = @strconv.parse_int(hex_str, base=16)
     bytes.push(value)
-    j = j + 2
   }
   (bytes, i + 1)
 }
@@ -193,11 +191,9 @@ fn code_int_of_string(code : String) -> Int {
 fn code_string_of_int(value : Int, length : Int) -> String {
   let bytes = Array::new(capacity=length)
   let mut v = value
-  let mut i = 0
-  while i < length {
+  for _ in 0..<length {
     bytes.push(v & 0xff)
     v = v >> 8
-    i = i + 1
   }
   @pdfio.string_of_int_array(bytes.rev())
 }

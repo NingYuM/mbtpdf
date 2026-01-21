@@ -411,10 +411,8 @@ fn split_pairs(
 ///|
 fn many(value : Double, count : Int) -> Array[Double] {
   let out = Array::new(capacity=count)
-  let mut i = 0
-  while i < count {
+  for _ in 0..<count {
     out.push(value)
-    i = i + 1
   }
   out
 }
@@ -659,10 +657,8 @@ fn read_samples(
 ) -> Array[Int] {
   let out = Array::new(capacity=count)
   let bit_pos = Ref::new(0)
-  let mut i = 0
-  while i < count {
+  for _ in 0..<count {
     out.push(read_bits(data, bit_pos, bits_per_sample))
-    i = i + 1
   }
   out
 }
@@ -670,15 +666,13 @@ fn read_samples(
 ///|
 fn read_bits(data : @pdfio.MutableBytes, bit_pos : Ref[Int], bits : Int) -> Int {
   let mut value = 0
-  let mut i = 0
-  while i < bits {
+  for _ in 0..<bits {
     let byte_index = bit_pos.val / 8
     let bit_index = 7 - bit_pos.val % 8
     let byte = @pdfio.bget_unsafe(data, byte_index)
     let bit = (byte >> bit_index) & 1
     value = (value << 1) | bit
     bit_pos.val = bit_pos.val + 1
-    i = i + 1
   }
   value
 }
@@ -714,14 +708,12 @@ fn clampvals(
     raise BadFunctionEvaluation::Msg("Domain wrong")
   }
   let out = Array::new(capacity=values.length())
-  let mut i = 0
-  while i < values.length() {
+  for i in 0..<values.length() {
     let d = i * 2
     if d + 1 >= domain.length() {
       raise BadFunctionEvaluation::Msg("Domain wrong")
     }
     out.push(clamp_double(values[i], domain[d], domain[d + 1]))
-    i = i + 1
   }
   out
 }
@@ -778,12 +770,10 @@ fn eval_function_sampled(
   let ceiling_results = read_table(ceilings)
   let floor_results = read_table(floors)
   let outputs = Array::new(capacity=ceiling_results.length())
-  let mut i = 0
-  while i < ceiling_results.length() {
+  for i in 0..<ceiling_results.length() {
     let value = ceiling_results[i].to_double() / 2.0 +
       floor_results[i].to_double() / 2.0
     outputs.push(value)
-    i = i + 1
   }
   let outputs_decoded = map5(
     outputs,
