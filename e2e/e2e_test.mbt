@@ -253,6 +253,41 @@ fn make_alt_presentation_dict(name : String, tag : String) -> @pdf.PdfObject {
 }
 
 ///|
+fn make_bulk_named_dest_entries(
+  pdf : @pdf.Pdf,
+  prefix : String,
+  count : Int,
+) -> Array[(String, @pdf.PdfObject)] raise {
+  let page_obj = match @pdfpage.page_object_number(pdf, 1) {
+    Some(objnum) => objnum
+    None => fail("missing page 1")
+  }
+  let entries = Array::new(capacity=count)
+  for i in 0..<count {
+    let name = prefix + i.to_string()
+    let dest = @pdfdest.Destination::Fit(
+      @pdfdest.TargetPage::PageObject(page_obj),
+    )
+    entries.push((name, @pdfdest.pdfobject_of_destination(dest)))
+  }
+  entries
+}
+
+///|
+fn make_bulk_url_entries(
+  prefix : String,
+  count : Int,
+) -> Array[(String, @pdf.PdfObject)] {
+  let entries = Array::new(capacity=count)
+  for i in 0..<count {
+    let name = prefix + i.to_string()
+    let uri = "https://example.com/" + prefix + i.to_string()
+    entries.push((name, make_url_action(uri)))
+  }
+  entries
+}
+
+///|
 fn make_url_action(uri : String) -> @pdf.PdfObject {
   @pdf.PdfObject::Dictionary([
     ("/S", @pdf.PdfObject::Name("/URI")),
@@ -1170,6 +1205,80 @@ async test "e2e merge preserves /Names /AlternatePresentations" {
   let parsed_entries = read_name_tree_entries(parsed, "/AlternatePresentations")
   assert_alt_presentation_entry(parsed, parsed_entries, "LeftAlt", "left")
   assert_alt_presentation_entry(parsed, parsed_entries, "RightAlt", "right")
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
+async test "e2e merge stress large name trees" {
+  let left = @pdfpage.minimum_valid_pdf()
+  let right = @pdfpage.minimum_valid_pdf()
+  let count = 40
+  let left_dests = make_bulk_named_dest_entries(left, "L-Dest-", count)
+  let right_dests = make_bulk_named_dest_entries(right, "R-Dest-", count)
+  add_names_tree(left, "/Dests", left_dests)
+  add_names_tree(right, "/Dests", right_dests)
+  let left_urls = make_bulk_url_entries("L-URL-", count)
+  let right_urls = make_bulk_url_entries("R-URL-", count)
+  add_names_tree(left, "/URLS", left_urls)
+  add_names_tree(right, "/URLS", right_urls)
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["bulk_left", "bulk_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  )
+  let merged_dests = read_name_tree_entries(merged, "/Dests")
+  let merged_urls = read_name_tree_entries(merged, "/URLS")
+  let entries_to_check = [
+    "L-Dest-0",
+    "L-Dest-" + (count / 2).to_string(),
+    "L-Dest-" + (count - 1).to_string(),
+    "R-Dest-0",
+    "R-Dest-" + (count / 2).to_string(),
+    "R-Dest-" + (count - 1).to_string(),
+  ]
+  for name in entries_to_check {
+    match merged_dests.search_by(pair => pair.0 == name) {
+      Some(_) => ()
+      None => fail("missing bulk dest: " + name)
+    }
+  }
+  let urls_to_check = [
+    "L-URL-0",
+    "L-URL-" + (count / 2).to_string(),
+    "L-URL-" + (count - 1).to_string(),
+    "R-URL-0",
+    "R-URL-" + (count / 2).to_string(),
+    "R-URL-" + (count - 1).to_string(),
+  ]
+  for name in urls_to_check {
+    match merged_urls.search_by(pair => pair.0 == name) {
+      Some(_) => ()
+      None => fail("missing bulk url: " + name)
+    }
+  }
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_bulk_names.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let parsed_dests = read_name_tree_entries(parsed, "/Dests")
+  let parsed_urls = read_name_tree_entries(parsed, "/URLS")
+  for name in entries_to_check {
+    match parsed_dests.search_by(pair => pair.0 == name) {
+      Some(_) => ()
+      None => fail("missing parsed bulk dest: " + name)
+    }
+  }
+  for name in urls_to_check {
+    match parsed_urls.search_by(pair => pair.0 == name) {
+      Some(_) => ()
+      None => fail("missing parsed bulk url: " + name)
+    }
+  }
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
 }
