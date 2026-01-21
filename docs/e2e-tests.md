@@ -45,6 +45,9 @@ result to `tmp/e2e`, then reads the output back to validate the roundtrip.
 - Merge/split/merge pipeline
   - Merges two PDFs, extracts a subset, then merges the subset with a third PDF.
   - Checks the final page count matches the expected total.
+- Merge named destinations
+  - Creates minimal PDFs with /Names /Dests entries, merges them, and reads back
+    destinations to confirm targets point at the expected merged pages.
 
 ## Running
 - `moon test e2e` to run only the end-to-end tests.

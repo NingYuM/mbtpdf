@@ -8,6 +8,7 @@
     "bobzhang/mbtpdf/pdfops",
     "bobzhang/mbtpdf/pdfpage",
     "bobzhang/mbtpdf/pdfpagelabels",
+    "bobzhang/mbtpdf/pdftree",
     "bobzhang/mbtpdf/pdfread",
     "bobzhang/mbtpdf/pdftext",
     "bobzhang/mbtpdf/pdfwrite",
