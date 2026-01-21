@@ -4,7 +4,6 @@ package "bobzhang/mbtpdf/pdfread"
 import {
   "bobzhang/mbtpdf/pdf",
   "bobzhang/mbtpdf/pdfcrypt",
-  "bobzhang/mbtpdf/pdfgenlex",
   "bobzhang/mbtpdf/pdfio",
   "moonbitlang/async/fs",
 }
@@ -17,8 +16,6 @@ pub let endpage : Ref[(@pdf.Pdf) -> Int]
 pub let error_on_malformed : Ref[Bool]
 
 pub fn is_linearized(@pdfio.Input) -> Bool
-
-pub fn parse_single_object(String) -> @pdf.PdfObject raise
 
 pub async fn pdf_of_channel(revision? : Int, source? : String, String?, String?, @fs.File) -> @pdf.Pdf
 
@@ -37,8 +34,6 @@ pub let read_debug : Ref[Bool]
 pub fn read_header(@pdfio.Input) -> (Int, Int) raise
 
 pub fn revisions(@pdfio.Input) -> Int raise
-
-pub fn string_of_lexeme(@pdfgenlex.Token) -> String
 
 pub fn what_encryption(@pdf.Pdf) -> @pdfcrypt.EncryptionMethod?
 

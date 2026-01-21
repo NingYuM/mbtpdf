@@ -562,7 +562,7 @@ fn strip_dict_markers(value : String) -> String {
 fn string_of_lexeme(lexeme : Lexeme) -> String raise {
   match lexeme {
     Lexeme::LexComment(_) => ""
-    Lexeme::Obj(token) => @pdfread.string_of_lexeme(token)
+    Lexeme::Obj(token) => @pdfsyntax.string_of_lexeme(token)
     Lexeme::Op(op) => op
     Lexeme::PdfObj(obj) => @pdfwrite.string_of_pdf(obj)
     Lexeme::LexInlineImage((dict, dp, data)) => {

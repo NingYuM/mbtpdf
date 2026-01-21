@@ -464,7 +464,7 @@ fn parse_object_stream(
     }
     if should_parse {
       (stm_input.seek_in)(offset + first)
-      let lexemes = lex_object_at(true, stm_input, true, fn(
+      let lexemes = @pdfsyntax.lex_object_at(true, stm_input, true, fn(
         _ : Int,
       ) -> Array[@pdfgenlex.Token] raise {
         Array::new()

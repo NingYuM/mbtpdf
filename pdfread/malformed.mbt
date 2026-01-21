@@ -79,7 +79,9 @@ fn read_malformed_pdf_objects(
     }
     let parsed = try {
       (input.seek_in)(start)
-      let lexemes = lex_object_at(false, input, read_stream_data, dummy_lexobj)
+      let lexemes = @pdfsyntax.lex_object_at(
+        false, input, read_stream_data, dummy_lexobj,
+      )
       let (_, obj) = @pdfsyntax.parse(lexemes, failure_is_ok=true)
       Some(obj)
     } catch {

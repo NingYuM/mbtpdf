@@ -48,7 +48,7 @@ fn read_trailer_dict_from_table(
   input : @pdfio.Input,
   read_stream_data : Bool,
 ) -> @pdf.PdfObject raise {
-  let lexemes = lex_object_at(true, input, read_stream_data, fn(
+  let lexemes = @pdfsyntax.lex_object_at(true, input, read_stream_data, fn(
     _ : Int,
   ) -> Array[@pdfgenlex.Token] raise {
     Array::new()
