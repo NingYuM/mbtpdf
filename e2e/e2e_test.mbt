@@ -87,6 +87,32 @@ async test "e2e merge writes and reads back" {
 }
 
 ///|
+async test "e2e merge stress repeated" {
+  let base = read_pdf(MERGE_LEFT_PATH)
+  let count = page_count(base)
+  assert_true(count > 0)
+  let copies = 8
+  let names = Array::new(capacity=copies)
+  let pdfs = Array::new(capacity=copies)
+  let ranges = Array::new(capacity=copies)
+  for i in 0..<copies {
+    names.push("stress_" + i.to_string())
+    pdfs.push(read_pdf(MERGE_LEFT_PATH))
+    ranges.push(full_range(count))
+  }
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    names,
+    pdfs,
+    ranges,
+  )
+  assert_eq(page_count(merged), count * copies)
+}
+
+///|
 async test "e2e split subset of large pdf" {
   let pdf = read_pdf(LARGE_PATH)
   let count = page_count(pdf)
