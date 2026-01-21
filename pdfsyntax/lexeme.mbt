@@ -35,15 +35,13 @@ pub fn lex_object_at(
       other => {
         tokens.push(other)
         if oneonly && dict_level.val == 0 && array_level.val == 0 {
-          let is_atom = match other {
-            @pdfgenlex.Token::LexBool(_)
+          let is_atom =
+            other is (@pdfgenlex.Token::LexBool(_)
             | @pdfgenlex.Token::LexReal(_)
             | @pdfgenlex.Token::LexString(_)
             | @pdfgenlex.Token::LexName(_)
             | @pdfgenlex.Token::LexNull
-            | @pdfgenlex.Token::LexInt(_) => true
-            _ => false
-          }
+            | @pdfgenlex.Token::LexInt(_))
           if is_atom {
             done = true
           }

@@ -859,10 +859,7 @@ pub fn decrypt_single_stream(
 ///|
 /// Is a PDF encrypted?
 pub fn is_encrypted(pdf : @pdf.Pdf) -> Bool {
-  match @pdf.lookup_direct(pdf, "/Encrypt", pdf.trailerdict) {
-    Some(_) => true
-    None => false
-  }
+  @pdf.lookup_direct(pdf, "/Encrypt", pdf.trailerdict) is Some(_)
 }
 
 ///|

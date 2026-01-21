@@ -407,14 +407,8 @@ pub fn charcode_extractor_of_font(
 
 ///|
 pub fn is_unicode(s : String) -> Bool {
-  if s.length() < 2 {
-    false
-  } else {
-    let bytes = @pdfio.bytes_of_string(s)
-    bytes.length() >= 2 &&
-    bytes[0].to_int() == 0xfe &&
-    bytes[1].to_int() == 0xff
-  }
+  let bytes = @pdfio.bytes_of_string(s)
+  bytes is [b'\xfe', b'\xff', ..]
 }
 
 ///|

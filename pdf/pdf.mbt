@@ -7,10 +7,7 @@ pub(all) suberror PdfError {
 ///|
 /// PDF delimiter predicate.
 pub fn is_delimiter(c : Char) -> Bool {
-  match c {
-    '(' | ')' | '<' | '>' | '[' | ']' | '{' | '}' | '%' | '/' => true
-    _ => false
-  }
+  c is ('(' | ')' | '<' | '>' | '[' | ']' | '{' | '}' | '%' | '/')
 }
 
 ///|

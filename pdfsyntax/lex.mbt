@@ -1,9 +1,6 @@
 ///|
 fn is_hex_digit(c : Char) -> Bool {
-  match c {
-    '0'..='9' | 'a'..='f' | 'A'..='F' => true
-    _ => false
-  }
+  c is ('0'..='9' | 'a'..='f' | 'A'..='F')
 }
 
 ///|

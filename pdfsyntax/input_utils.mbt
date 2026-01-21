@@ -12,15 +12,12 @@ fn is_not_whitespace(c : Char) -> Bool {
 
 ///|
 fn is_newline(c : Char) -> Bool {
-  c == '\n' || c == '\r'
+  c is ('\n' | '\r')
 }
 
 ///|
 fn is_delimiter(c : Char) -> Bool {
-  match c {
-    '(' | ')' | '<' | '>' | '[' | ']' | '{' | '}' | '%' | '/' => true
-    _ => false
-  }
+  c is ('(' | ')' | '<' | '>' | '[' | ']' | '{' | '}' | '%' | '/')
 }
 
 ///|
