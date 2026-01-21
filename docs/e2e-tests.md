@@ -81,6 +81,9 @@ result to `tmp/e2e`, then reads the output back to validate the roundtrip.
 - Merge multi-copy mixed stress
   - Merges multiple minimal PDFs with annotations, bookmarks, and /URLS entries,
     then verifies bookmarks and URL entries survive the roundtrip.
+- Merge varied page counts stress
+  - Splits a multi-page PDF into varied ranges, merges them, and verifies page
+    counts and /URLS name-tree entries survive the roundtrip.
 
 ## Running
 - `moon test e2e` to run only the end-to-end tests.

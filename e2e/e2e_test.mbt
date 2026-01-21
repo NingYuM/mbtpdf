@@ -1454,6 +1454,71 @@ async test "e2e merge multi-copy mixed stress" {
 }
 
 ///|
+async test "e2e merge varied page counts stress" {
+  let base = read_pdf(MERGE_THIRD_PATH)
+  let base_count = page_count(base)
+  assert_true(base_count >= 3)
+  let ranges = [[1], [1, base_count], [base_count / 2 + 1]]
+  let names = ["varied_one", "varied_two", "varied_three"]
+  let pdfs = Array::new(capacity=ranges.length())
+  for i in 0..<ranges.length() {
+    let subset = @pdfpage.pdf_of_pages(base, ranges[i])
+    pdfs.push(subset)
+  }
+  let merge_ranges = Array::new(capacity=pdfs.length())
+  for pdf in pdfs {
+    merge_ranges.push(full_range(page_count(pdf)))
+  }
+  add_names_tree(pdfs[0], "/URLS", [
+    ("VariedURL-1", make_url_action("https://example.com/varied/1")),
+  ])
+  add_names_tree(pdfs[1], "/URLS", [
+    ("VariedURL-2", make_url_action("https://example.com/varied/2")),
+  ])
+  add_names_tree(pdfs[2], "/URLS", [
+    ("VariedURL-3", make_url_action("https://example.com/varied/3")),
+  ])
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    names,
+    pdfs,
+    merge_ranges,
+  )
+  let merged_count = page_count(merged)
+  assert_eq(merged_count, 1 + 2 + 1)
+  let merged_urls = read_name_tree_entries(merged, "/URLS")
+  assert_url_entry(
+    merged, merged_urls, "VariedURL-1", "https://example.com/varied/1",
+  )
+  assert_url_entry(
+    merged, merged_urls, "VariedURL-2", "https://example.com/varied/2",
+  )
+  assert_url_entry(
+    merged, merged_urls, "VariedURL-3", "https://example.com/varied/3",
+  )
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_varied_pages.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  assert_eq(page_count(parsed), merged_count)
+  let parsed_urls = read_name_tree_entries(parsed, "/URLS")
+  assert_url_entry(
+    parsed, parsed_urls, "VariedURL-1", "https://example.com/varied/1",
+  )
+  assert_url_entry(
+    parsed, parsed_urls, "VariedURL-2", "https://example.com/varied/2",
+  )
+  assert_url_entry(
+    parsed, parsed_urls, "VariedURL-3", "https://example.com/varied/3",
+  )
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
 async test "e2e merge preserves bookmark targets" {
   let left = read_pdf(MERGE_LEFT_PATH)
   let right = read_pdf(MERGE_RIGHT_PATH)
