@@ -73,8 +73,8 @@ fn parse_uint_string(s : String) -> Int? {
 ///|
 fn read_xref_line(input : @pdfio.Input) -> XRefLine raise {
   let pos = (input.pos_in)()
-  dropwhite(input)
-  let line = input_line(input)
+  @pdfsyntax.dropwhite(input)
+  let line = @pdfsyntax.input_line(input)
   if line == "xref" || line == "xref " {
     return read_xref_line(input)
   }
@@ -202,7 +202,7 @@ fn read_xref_stream(
   let dict_level : Ref[Int] = { val: 0 }
   let array_level : Ref[Int] = { val: 0 }
   let xrefstream_objectnumber = match
-    lex_next(
+    @pdfsyntax.lex_next(
       dict_level,
       array_level,
       false,
@@ -232,7 +232,7 @@ fn read_xref_stream(
     let array_level : Ref[Int] = { val: 0 }
     let mut done = false
     while !done {
-      let t = lex_next(
+      let t = @pdfsyntax.lex_next(
         dict_level, array_level, true, input, lexemes, read_stream_data, dummy_lexobj,
       )
       match t {
@@ -255,7 +255,7 @@ fn read_xref_stream(
     @pdfgenlex.Token::LexInt(i) => i
     _ => raise err
   }
-  let stream_token = lex_stream(input, dictlex, dummy_lexobj, true)
+  let stream_token = @pdfsyntax.lex_stream(input, dictlex, dummy_lexobj, true)
   let tokens = Array::new()
   for t in dictlex {
     tokens.push(t)
@@ -263,7 +263,7 @@ fn read_xref_stream(
   tokens.push(stream_token)
   tokens.push(@pdfgenlex.Token::LexEndStream)
   tokens.push(@pdfgenlex.Token::LexEndObj)
-  let (_, parsed) = parse(tokens)
+  let (_, parsed) = @pdfsyntax.parse(tokens)
   let stream_obj = match parsed {
     @pdf.PdfObject::Stream(_) => parsed
     _ => raise err
@@ -366,8 +366,8 @@ fn read_xref_stream(
 
 ///|
 fn read_int_from_stream(input : @pdfio.Input) -> Int raise {
-  dropwhite(input)
-  match lex_number(input) {
+  @pdfsyntax.dropwhite(input)
+  match @pdfsyntax.lex_number(input) {
     @pdfgenlex.Token::LexInt(i) => i
     _ => {
       let message = @pdf.input_pdferror(input, "objstm offset problem")
@@ -387,7 +387,7 @@ fn parse_object_stream(
   indexes? : Array[Int],
 ) -> Array[(Int, @pdf.PdfObject)] raise {
   let lexemes = lex_object_for_xref(input, xrefs, true, objstm)
-  let (_, stmobj) = parse(lexemes)
+  let (_, stmobj) = @pdfsyntax.parse(lexemes)
   let gen = match xrefs.get(objstm) {
     Some(XRef::Plain(_, g)) => g
     _ => 0
@@ -469,7 +469,7 @@ fn parse_object_stream(
       ) -> Array[@pdfgenlex.Token] raise {
         Array::new()
       })
-      let (_, obj) = parse(lexemes)
+      let (_, obj) = @pdfsyntax.parse(lexemes)
       objects.push((objnum, obj))
     }
     current_index = current_index + 1
@@ -527,7 +527,7 @@ fn build_pdf_objects(
   fn parse_obj(num : Int) -> @pdf.PdfObject {
     try {
       let lexemes = lex_object_for_xref(input, xrefs, read_stream_data, num)
-      let (_, obj) = parse(lexemes)
+      let (_, obj) = @pdfsyntax.parse(lexemes)
       obj
     } catch {
       _ => {

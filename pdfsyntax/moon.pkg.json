@@ -1,0 +1,9 @@
+{
+  "import": [
+    "bobzhang/mbtpdf/pdf",
+    "bobzhang/mbtpdf/pdfio",
+    "bobzhang/mbtpdf/pdfgenlex",
+    "bobzhang/mbtpdf/pdfe",
+    "moonbitlang/core/strconv"
+  ]
+}

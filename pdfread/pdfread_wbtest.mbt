@@ -1,19 +1,19 @@
 ///|
-test "lex_keyword rewinds endobj suffix" {
+test "@pdfsyntax.lex_keyword rewinds endobj suffix" {
   let input = @pdfio.input_of_string("endobj123 0 obj")
-  let token = lex_keyword(input)
+  let token = @pdfsyntax.lex_keyword(input)
   match token {
     @pdfgenlex.Token::LexEndObj => ()
     _ => fail("expected LexEndObj")
   }
-  match lex_number(input) {
+  match @pdfsyntax.lex_number(input) {
     @pdfgenlex.Token::LexInt(123) => ()
     _ => fail("expected 123")
   }
 }
 
 ///|
-test "lex_next returns LexNone for unknown uppercase" {
+test "@pdfsyntax.lex_next returns LexNone for unknown uppercase" {
   let input = @pdfio.input_of_string("T")
   let dict_level : Ref[Int] = { val: 0 }
   let array_level : Ref[Int] = { val: 0 }
@@ -21,7 +21,7 @@ test "lex_next returns LexNone for unknown uppercase" {
   let dummy_lexobj = fn(_ : Int) -> Array[@pdfgenlex.Token] raise {
     Array::new()
   }
-  let token = lex_next(
+  let token = @pdfsyntax.lex_next(
     dict_level, array_level, false, input, previous, true, dummy_lexobj,
   )
   match token {
@@ -31,7 +31,7 @@ test "lex_next returns LexNone for unknown uppercase" {
 }
 
 ///|
-test "lex_next recovers from lex errors" {
+test "@pdfsyntax.lex_next recovers from lex errors" {
   let input = @pdfio.input_of_string("(")
   let dict_level : Ref[Int] = { val: 0 }
   let array_level : Ref[Int] = { val: 0 }
@@ -39,7 +39,7 @@ test "lex_next recovers from lex errors" {
   let dummy_lexobj = fn(_ : Int) -> Array[@pdfgenlex.Token] raise {
     Array::new()
   }
-  let token = lex_next(
+  let token = @pdfsyntax.lex_next(
     dict_level, array_level, false, input, previous, true, dummy_lexobj,
   )
   match token {
@@ -49,19 +49,21 @@ test "lex_next recovers from lex errors" {
 }
 
 ///|
-test "lex_hexstring rejects invalid hex" {
+test "@pdfsyntax.lex_hexstring rejects invalid hex" {
   let input = @pdfio.input_of_string("<G>")
-  let res : Result[@pdfgenlex.Token, Error] = try? lex_hexstring(input)
+  let res : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.lex_hexstring(
+    input,
+  )
   match res {
     Err(_) => ()
-    _ => fail("expected lex_hexstring failure")
+    _ => fail("expected @pdfsyntax.lex_hexstring failure")
   }
 }
 
 ///|
-test "lex_hexstring pads odd nibble" {
+test "@pdfsyntax.lex_hexstring pads odd nibble" {
   let input = @pdfio.input_of_string("<F>")
-  let token = lex_hexstring(input)
+  let token = @pdfsyntax.lex_hexstring(input)
   match token {
     @pdfgenlex.Token::LexString(s) => {
       let bytes = @pdfio.bytes_of_string(s)
@@ -73,9 +75,9 @@ test "lex_hexstring pads odd nibble" {
 }
 
 ///|
-test "lex_hexstring ignores whitespace" {
+test "@pdfsyntax.lex_hexstring ignores whitespace" {
   let input = @pdfio.input_of_string("<0F 0A>")
-  let token = lex_hexstring(input)
+  let token = @pdfsyntax.lex_hexstring(input)
   match token {
     @pdfgenlex.Token::LexString(s) => {
       let bytes = @pdfio.bytes_of_string(s)
@@ -88,9 +90,9 @@ test "lex_hexstring ignores whitespace" {
 }
 
 ///|
-test "lex_dictionary minus_one stops after closing dict" {
+test "@pdfsyntax.lex_dictionary minus_one stops after closing dict" {
   let input = @pdfio.input_of_string("/Type /Example >> trailer")
-  let tokens = lex_dictionary(true, input)
+  let tokens = @pdfsyntax.lex_dictionary(true, input)
   if tokens.length() == 0 {
     fail("expected tokens")
   }
@@ -102,21 +104,21 @@ test "lex_dictionary minus_one stops after closing dict" {
 }
 
 ///|
-test "lex_name rejects invalid hex" {
+test "@pdfsyntax.lex_name rejects invalid hex" {
   let input = @pdfio.input_of_string("/#GZ")
-  let res : Result[@pdfgenlex.Token, Error] = try? lex_name(input)
+  let res : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.lex_name(input)
   match res {
     Err(_) => ()
-    _ => fail("expected lex_name failure")
+    _ => fail("expected @pdfsyntax.lex_name failure")
   }
 }
 
 ///|
-test "lex_name rejects truncated hex" {
+test "@pdfsyntax.lex_name rejects truncated hex" {
   let input = @pdfio.input_of_string("/#1")
-  let res : Result[@pdfgenlex.Token, Error] = try? lex_name(input)
+  let res : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.lex_name(input)
   match res {
     Err(_) => ()
-    _ => fail("expected lex_name failure")
+    _ => fail("expected @pdfsyntax.lex_name failure")
   }
 }

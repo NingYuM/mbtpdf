@@ -10,7 +10,7 @@ fn lex_object_at(
   let tokens = Array::new()
   let mut done = false
   while !done {
-    let t = lex_next(
+    let t = @pdfsyntax.lex_next(
       dict_level, array_level, false, input, tokens, read_stream_data, lexobj,
     )
     match t {
@@ -87,7 +87,7 @@ fn lex_object_for_xref(
 /// Parse a single object from a string.
 pub fn parse_single_object(s : String) -> @pdf.PdfObject raise {
   let input = @pdfio.input_of_string(s)
-  let (_, obj) = parse(
+  let (_, obj) = @pdfsyntax.parse(
     lex_object_at(true, input, true, fn(
       _ : Int,
     ) -> Array[@pdfgenlex.Token] raise {

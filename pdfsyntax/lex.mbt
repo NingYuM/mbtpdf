@@ -246,7 +246,7 @@ fn ignoreuntilwhite(input : @pdfio.Input) -> Unit raise {
 }
 
 ///|
-fn read_chunk(count : Int, input : @pdfio.Input) -> String raise {
+pub fn read_chunk(count : Int, input : @pdfio.Input) -> String raise {
   let pos = (input.pos_in)()
   let sb = StringBuilder::new()
   let mut i = 0
@@ -336,7 +336,7 @@ fn find_endstream(input : @pdfio.Input) -> Int raise {
 }
 
 ///|
-fn lex_keyword(input : @pdfio.Input) -> @pdfgenlex.Token raise {
+pub fn lex_keyword(input : @pdfio.Input) -> @pdfgenlex.Token raise {
   let kw = getuntil_white_or_delimiter_string(input)
   match kw {
     "obj" => @pdfgenlex.Token::LexObj
@@ -455,7 +455,7 @@ fn take_dict_lexemes(
 }
 
 ///|
-fn lex_stream(
+pub fn lex_stream(
   input : @pdfio.Input,
   previous_lexemes : Array[@pdfgenlex.Token],
   lexobj : (Int) -> Array[@pdfgenlex.Token] raise,
@@ -499,7 +499,7 @@ fn lex_stream(
 }
 
 ///|
-fn lex_next(
+pub fn lex_next(
   dict_level : Ref[Int],
   array_level : Ref[Int],
   end_on_stream : Bool,

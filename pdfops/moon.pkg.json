@@ -6,6 +6,7 @@
     "bobzhang/mbtpdf/pdfgenlex",
     "bobzhang/mbtpdf/pdfio",
     "bobzhang/mbtpdf/pdfread",
+    "bobzhang/mbtpdf/pdfsyntax",
     "bobzhang/mbtpdf/pdftransform",
     "bobzhang/mbtpdf/pdfwrite"
   ]

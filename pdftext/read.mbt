@@ -86,8 +86,8 @@ pub fn parse_charset(s : String) -> Array[String] {
   let out = Array::new()
   while true {
     try {
-      @pdfread.dropwhite(input)
-      match @pdfread.lex_name(input) {
+      @pdfsyntax.dropwhite(input)
+      match @pdfsyntax.lex_name(input) {
         @pdfgenlex.Token::LexName(name) =>
           if name == "/" {
             break

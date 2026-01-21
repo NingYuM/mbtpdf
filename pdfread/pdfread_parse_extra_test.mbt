@@ -6,14 +6,14 @@ test "parse errors on non-name dictionary key" {
     @pdfgenlex.Token::LexInt(2),
     @pdfgenlex.Token::LexRightDict,
   ]
-  let res : Result[(Int, @pdf.PdfObject), Error] = try? @pdfread.parse(tokens)
+  let res : Result[(Int, @pdf.PdfObject), Error] = try? @pdfsyntax.parse(tokens)
   assert_true(res is Err(_))
 }
 
 ///|
 test "parse errors on invalid array element" {
   let tokens = [@pdfgenlex.Token::LexLeftSquare, @pdfgenlex.Token::LexRightDict]
-  let res : Result[(Int, @pdf.PdfObject), Error] = try? @pdfread.parse(tokens)
+  let res : Result[(Int, @pdf.PdfObject), Error] = try? @pdfsyntax.parse(tokens)
   assert_true(res is Err(_))
 }
 
@@ -25,7 +25,7 @@ test "parse returns null for empty object" {
     @pdfgenlex.Token::LexObj,
     @pdfgenlex.Token::LexEndObj,
   ]
-  let (objnum, obj) = @pdfread.parse(tokens)
+  let (objnum, obj) = @pdfsyntax.parse(tokens)
   assert_eq(objnum, 10)
   match obj {
     @pdf.PdfObject::Null => ()
@@ -44,7 +44,7 @@ test "parse skips unmatched stream pattern" {
     @pdfgenlex.Token::LexInt(3),
     @pdfgenlex.Token::LexInt(4),
   ]
-  let (objnum, obj) = @pdfread.parse(tokens)
+  let (objnum, obj) = @pdfsyntax.parse(tokens)
   assert_eq(objnum, 1)
   match obj {
     @pdf.PdfObject::Boolean(false) => ()
@@ -55,7 +55,7 @@ test "parse skips unmatched stream pattern" {
 ///|
 test "parse returns null when failure_is_ok" {
   let tokens = [@pdfgenlex.Token::LexObj, @pdfgenlex.Token::LexEndObj]
-  let (objnum, obj) = @pdfread.parse(tokens, failure_is_ok=true)
+  let (objnum, obj) = @pdfsyntax.parse(tokens, failure_is_ok=true)
   assert_eq(objnum, 0)
   match obj {
     @pdf.PdfObject::Null => ()

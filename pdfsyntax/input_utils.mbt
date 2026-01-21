@@ -24,7 +24,7 @@ fn is_delimiter(c : Char) -> Bool {
 }
 
 ///|
-fn is_whitespace_or_delimiter(c : Char) -> Bool {
+pub fn is_whitespace_or_delimiter(c : Char) -> Bool {
   is_whitespace(c) || is_delimiter(c)
 }
 
@@ -65,7 +65,10 @@ pub fn getuntil(
 }
 
 ///|
-fn getuntil_string(
+
+///|
+/// Read chars until predicate is true, returning a string.
+pub fn getuntil_string(
   eof_is_delimiter : Bool,
   pred : (Char) -> Bool,
   input : @pdfio.Input,
@@ -127,7 +130,10 @@ pub fn dropwhite(input : @pdfio.Input) -> Unit raise {
 
 ///|
 /// Read a line from input (newline not included).
-fn input_line(input : @pdfio.Input) -> String {
+
+///|
+/// Read a line from input (newline not included).
+pub fn input_line(input : @pdfio.Input) -> String {
   let sb = StringBuilder::new()
   let mut got_eol = false
   let mut finished = false
@@ -161,7 +167,10 @@ fn read_back_until(pred : (Char) -> Bool, input : @pdfio.Input) -> Unit raise {
 
 ///|
 /// Go back one line.
-fn backline(input : @pdfio.Input) -> Unit raise {
+
+///|
+/// Go back one line.
+pub fn backline(input : @pdfio.Input) -> Unit raise {
   read_back_until(is_newline, input)
   read_back_until(c => !is_newline(c), input)
   read_back_until(is_newline, input)
@@ -170,7 +179,10 @@ fn backline(input : @pdfio.Input) -> Unit raise {
 
 ///|
 /// Find the EOF marker and position input there.
-fn find_eof(input : @pdfio.Input) -> Unit raise {
+
+///|
+/// Find the EOF marker and position input there.
+pub fn find_eof(input : @pdfio.Input) -> Unit raise {
   fn fail_find() -> Unit raise {
     let message = @pdf.input_pdferror(input, "Could not find EOF marker")
     raise @pdf.PdfError::Msg(message)

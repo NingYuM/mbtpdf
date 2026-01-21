@@ -163,8 +163,8 @@ pub fn permissions(pdf : @pdf.Pdf) -> Array[@pdfcrypt.Permission] {
 pub fn is_linearized(input : @pdfio.Input) -> Bool {
   try {
     let _ = read_header(input)
-    let lexemes = lex_dictionary(false, input)
-    let (_, parsed) = parse(lexemes, failure_is_ok=true)
+    let lexemes = @pdfsyntax.lex_dictionary(false, input)
+    let (_, parsed) = @pdfsyntax.parse(lexemes, failure_is_ok=true)
     match @pdf.lookup_direct(@pdf.empty(), "/Linearized", parsed) {
       Some(@pdf.PdfObject::Integer(_)) | Some(@pdf.PdfObject::Real(_)) => true
       _ => false

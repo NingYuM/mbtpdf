@@ -6,9 +6,9 @@
     "bobzhang/mbtpdf/pdfcryptprimitives",
     "bobzhang/mbtpdf/pdfio",
     "bobzhang/mbtpdf/pdfgenlex",
+    "bobzhang/mbtpdf/pdfsyntax",
     "bobzhang/mbtpdf/pdfe",
-    "moonbitlang/async/fs",
-    "moonbitlang/core/strconv"
+    "moonbitlang/async/fs"
   ],
   "test-import": [
     "bobzhang/mbtpdf/pdfpage",
