@@ -61,14 +61,14 @@ test "decode_from_input CCITT Group3 roundtrip" {
   let rows = 2
   let raw = @pdfio.bytes_of_list([0xF0, 0x0F])
   let encoded = encode_ccitt(columns, rows, raw)
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Filter", @pdf.PdfObject::Name("/CCITTFaxDecode")),
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Filter", Name("/CCITTFaxDecode")),
     (
       "/DecodeParms",
-      @pdf.PdfObject::Dictionary([
-        ("/K", @pdf.PdfObject::Integer(0)),
-        ("/Columns", @pdf.PdfObject::Integer(columns)),
-        ("/Rows", @pdf.PdfObject::Integer(rows)),
+      Dictionary([
+        ("/K", Integer(0)),
+        ("/Columns", Integer(columns)),
+        ("/Rows", Integer(rows)),
       ]),
     ),
   ])
@@ -85,14 +85,14 @@ test "decode_from_input CCITT Group4 roundtrip" {
   let rows = 2
   let raw = @pdfio.bytes_of_list([0xAA, 0xAA])
   let encoded = encode_ccittg4(columns, rows, raw)
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Filter", @pdf.PdfObject::Name("/CCITTFaxDecode")),
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Filter", Name("/CCITTFaxDecode")),
     (
       "/DecodeParms",
-      @pdf.PdfObject::Dictionary([
-        ("/K", @pdf.PdfObject::Integer(-1)),
-        ("/Columns", @pdf.PdfObject::Integer(columns)),
-        ("/Rows", @pdf.PdfObject::Integer(rows)),
+      Dictionary([
+        ("/K", Integer(-1)),
+        ("/Columns", Integer(columns)),
+        ("/Rows", Integer(rows)),
       ]),
     ),
   ])
@@ -109,14 +109,14 @@ test "decode_from_input CCITT Group4 triggers pass mode" {
   let rows = 2
   let raw = bytes_from_rows([[4, 2, 10], [8, 2, 6]])
   let encoded = encode_ccittg4(columns, rows, raw)
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Filter", @pdf.PdfObject::Name("/CCITTFaxDecode")),
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Filter", Name("/CCITTFaxDecode")),
     (
       "/DecodeParms",
-      @pdf.PdfObject::Dictionary([
-        ("/K", @pdf.PdfObject::Integer(-1)),
-        ("/Columns", @pdf.PdfObject::Integer(columns)),
-        ("/Rows", @pdf.PdfObject::Integer(rows)),
+      Dictionary([
+        ("/K", Integer(-1)),
+        ("/Columns", Integer(columns)),
+        ("/Rows", Integer(rows)),
       ]),
     ),
   ])
@@ -133,14 +133,14 @@ test "decode_from_input CCITT Group4 triggers vertical modes" {
   let rows = 4
   let raw = bytes_from_rows([[5, 5, 6], [7, 3, 6], [10, 1, 5], [7, 3, 6]])
   let encoded = encode_ccittg4(columns, rows, raw)
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Filter", @pdf.PdfObject::Name("/CCITTFaxDecode")),
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Filter", Name("/CCITTFaxDecode")),
     (
       "/DecodeParms",
-      @pdf.PdfObject::Dictionary([
-        ("/K", @pdf.PdfObject::Integer(-1)),
-        ("/Columns", @pdf.PdfObject::Integer(columns)),
-        ("/Rows", @pdf.PdfObject::Integer(rows)),
+      Dictionary([
+        ("/K", Integer(-1)),
+        ("/Columns", Integer(columns)),
+        ("/Rows", Integer(rows)),
       ]),
     ),
   ])
@@ -160,14 +160,14 @@ test "decode_from_input CCITT Group3 varied runs" {
   }
   let raw = bytes_from_runs(true, runs)
   let encoded = encode_ccitt(columns, 1, raw)
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Filter", @pdf.PdfObject::Name("/CCITTFaxDecode")),
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Filter", Name("/CCITTFaxDecode")),
     (
       "/DecodeParms",
-      @pdf.PdfObject::Dictionary([
-        ("/K", @pdf.PdfObject::Integer(0)),
-        ("/Columns", @pdf.PdfObject::Integer(columns)),
-        ("/Rows", @pdf.PdfObject::Integer(1)),
+      Dictionary([
+        ("/K", Integer(0)),
+        ("/Columns", Integer(columns)),
+        ("/Rows", Integer(1)),
       ]),
     ),
   ])
@@ -187,14 +187,14 @@ test "decode_from_input CCITT Group3 shifted runs" {
   }
   let raw = bytes_from_runs(false, runs)
   let encoded = encode_ccitt(columns, 1, raw)
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Filter", @pdf.PdfObject::Name("/CCITTFaxDecode")),
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Filter", Name("/CCITTFaxDecode")),
     (
       "/DecodeParms",
-      @pdf.PdfObject::Dictionary([
-        ("/K", @pdf.PdfObject::Integer(0)),
-        ("/Columns", @pdf.PdfObject::Integer(columns)),
-        ("/Rows", @pdf.PdfObject::Integer(1)),
+      Dictionary([
+        ("/K", Integer(0)),
+        ("/Columns", Integer(columns)),
+        ("/Rows", Integer(1)),
       ]),
     ),
   ])
@@ -219,9 +219,7 @@ test "encode_ccittg4 rejects imagemagick path" {
 
 ///|
 test "decode_from_input returns None on unknown filter" {
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Filter", @pdf.PdfObject::Name("/JBIG2Decode")),
-  ])
+  let dict : @pdf.PdfObject = Dictionary([("/Filter", Name("/JBIG2Decode"))])
   let input = @pdfio.input_of_bytes(@pdfio.bytes_of_string("data"))
   let res = decode_from_input(input, dict)
   assert_true(res is None)
@@ -229,15 +227,11 @@ test "decode_from_input returns None on unknown filter" {
 
 ///|
 test "decode_from_input CCITT rejects k > 0" {
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Filter", @pdf.PdfObject::Name("/CCITTFaxDecode")),
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Filter", Name("/CCITTFaxDecode")),
     (
       "/DecodeParms",
-      @pdf.PdfObject::Dictionary([
-        ("/K", @pdf.PdfObject::Integer(1)),
-        ("/Columns", @pdf.PdfObject::Integer(8)),
-        ("/Rows", @pdf.PdfObject::Integer(1)),
-      ]),
+      Dictionary([("/K", Integer(1)), ("/Columns", Integer(8)), ("/Rows", Integer(1))]),
     ),
   ])
   let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0xff]))
@@ -247,15 +241,11 @@ test "decode_from_input CCITT rejects k > 0" {
 
 ///|
 test "decode_from_input CCITT rejects malformed data" {
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Filter", @pdf.PdfObject::Name("/CCITTFaxDecode")),
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Filter", Name("/CCITTFaxDecode")),
     (
       "/DecodeParms",
-      @pdf.PdfObject::Dictionary([
-        ("/K", @pdf.PdfObject::Integer(0)),
-        ("/Columns", @pdf.PdfObject::Integer(8)),
-        ("/Rows", @pdf.PdfObject::Integer(1)),
-      ]),
+      Dictionary([("/K", Integer(0)), ("/Columns", Integer(8)), ("/Rows", Integer(1))]),
     ),
   ])
   let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0x00, 0x00]))
