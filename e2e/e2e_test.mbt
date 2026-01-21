@@ -244,6 +244,15 @@ fn make_rendition_dict(name : String, tag : String) -> @pdf.PdfObject {
 }
 
 ///|
+fn make_alt_presentation_dict(name : String, tag : String) -> @pdf.PdfObject {
+  @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/AlternatePresentations")),
+    ("/Title", @pdf.PdfObject::String(name)),
+    ("/T", @pdf.PdfObject::String(tag)),
+  ])
+}
+
+///|
 fn make_url_action(uri : String) -> @pdf.PdfObject {
   @pdf.PdfObject::Dictionary([
     ("/S", @pdf.PdfObject::Name("/URI")),
@@ -438,6 +447,32 @@ fn assert_rendition_entry(
   match @pdf.lookup_direct(pdf, "/N", dict) {
     Some(@pdf.PdfObject::String(value)) => assert_eq(value, name)
     _ => fail("expected /N string")
+  }
+  match @pdf.lookup_direct(pdf, "/T", dict) {
+    Some(@pdf.PdfObject::String(value)) => assert_eq(value, tag)
+    _ => fail("expected /T string")
+  }
+}
+
+///|
+fn assert_alt_presentation_entry(
+  pdf : @pdf.Pdf,
+  entries : Array[(String, @pdf.PdfObject)],
+  name : String,
+  tag : String,
+) -> Unit raise {
+  let entry = match entries.search_by(pair => pair.0 == name) {
+    Some(idx) => entries[idx].1
+    None => fail("missing alternate presentation entry: " + name)
+  }
+  let dict = @pdf.direct(pdf, entry)
+  match @pdf.lookup_direct(pdf, "/Type", dict) {
+    Some(@pdf.PdfObject::Name("/AlternatePresentations")) => ()
+    _ => fail("expected /Type /AlternatePresentations")
+  }
+  match @pdf.lookup_direct(pdf, "/Title", dict) {
+    Some(@pdf.PdfObject::String(value)) => assert_eq(value, name)
+    _ => fail("expected /Title string")
   }
   match @pdf.lookup_direct(pdf, "/T", dict) {
     Some(@pdf.PdfObject::String(value)) => assert_eq(value, tag)
@@ -1102,6 +1137,39 @@ async test "e2e merge preserves /Names /Renditions" {
   let parsed_entries = read_name_tree_entries(parsed, "/Renditions")
   assert_rendition_entry(parsed, parsed_entries, "LeftRendition", "left")
   assert_rendition_entry(parsed, parsed_entries, "RightRendition", "right")
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
+async test "e2e merge preserves /Names /AlternatePresentations" {
+  let left = @pdfpage.minimum_valid_pdf()
+  let right = @pdfpage.minimum_valid_pdf()
+  add_names_tree(left, "/AlternatePresentations", [
+    ("LeftAlt", make_alt_presentation_dict("LeftAlt", "left")),
+  ])
+  add_names_tree(right, "/AlternatePresentations", [
+    ("RightAlt", make_alt_presentation_dict("RightAlt", "right")),
+  ])
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["alt_left", "alt_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  )
+  let entries = read_name_tree_entries(merged, "/AlternatePresentations")
+  assert_alt_presentation_entry(merged, entries, "LeftAlt", "left")
+  assert_alt_presentation_entry(merged, entries, "RightAlt", "right")
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_alternate_presentations.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let parsed_entries = read_name_tree_entries(parsed, "/AlternatePresentations")
+  assert_alt_presentation_entry(parsed, parsed_entries, "LeftAlt", "left")
+  assert_alt_presentation_entry(parsed, parsed_entries, "RightAlt", "right")
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
 }
