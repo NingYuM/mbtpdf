@@ -6,6 +6,7 @@
     "bobzhang/mbtpdf/pdfmarks",
     "bobzhang/mbtpdf/pdfmerge",
     "bobzhang/mbtpdf/pdfops",
+    "bobzhang/mbtpdf/pdfocg",
     "bobzhang/mbtpdf/pdfio",
     "bobzhang/mbtpdf/pdfpaper",
     "bobzhang/mbtpdf/pdfpage",

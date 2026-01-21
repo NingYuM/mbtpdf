@@ -317,6 +317,38 @@ fn add_ocg_properties(pdf : @pdf.Pdf, ocg_name : String) -> Unit raise {
 }
 
 ///|
+fn add_ocg_properties_with_config(
+  pdf : @pdf.Pdf,
+  ocg_name : String,
+  config_name : String,
+) -> Unit raise {
+  let ocg = @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/OCG")),
+    ("/Name", @pdf.PdfObject::String(ocg_name)),
+  ])
+  let ocg_num = @pdf.addobj(pdf, ocg)
+  let default_dict = @pdf.PdfObject::Dictionary([
+    ("/BaseState", @pdf.PdfObject::Name("/ON")),
+    ("/Intent", @pdf.PdfObject::Name("/View")),
+    ("/Name", @pdf.PdfObject::String("Default")),
+    ("/ON", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(ocg_num)])),
+  ])
+  let config_dict = @pdf.PdfObject::Dictionary([
+    ("/Name", @pdf.PdfObject::String(config_name)),
+    ("/BaseState", @pdf.PdfObject::Name("/OFF")),
+    ("/Intent", @pdf.PdfObject::Name("/View")),
+    ("/ON", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(ocg_num)])),
+  ])
+  let ocprops = @pdf.PdfObject::Dictionary([
+    ("/OCGs", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(ocg_num)])),
+    ("/D", default_dict),
+    ("/Configs", @pdf.PdfObject::Array([config_dict])),
+  ])
+  let ocprops_num = @pdf.addobj(pdf, ocprops)
+  set_catalog_entry(pdf, "/OCProperties", @pdf.PdfObject::Indirect(ocprops_num))
+}
+
+///|
 fn read_ocg_names(pdf : @pdf.Pdf) -> Array[String] raise {
   let catalog = @pdf.catalog_of_pdf(pdf)
   let ocprops = match @pdf.lookup_direct(pdf, "/OCProperties", catalog) {
@@ -338,6 +370,28 @@ fn read_ocg_names(pdf : @pdf.Pdf) -> Array[String] raise {
         }
       }
       _ => ()
+    }
+  }
+  names
+}
+
+///|
+fn read_ocg_config_names(pdf : @pdf.Pdf) -> Array[String] raise {
+  let catalog = @pdf.catalog_of_pdf(pdf)
+  let ocprops = match @pdf.lookup_direct(pdf, "/OCProperties", catalog) {
+    Some(obj) => obj
+    None => fail("missing /OCProperties")
+  }
+  let configs = match @pdf.lookup_direct(pdf, "/Configs", ocprops) {
+    Some(@pdf.PdfObject::Array(arr)) => arr
+    _ => fail("missing /Configs array")
+  }
+  let names = Array::new(capacity=configs.length())
+  for config in configs {
+    let config = @pdf.direct(pdf, config)
+    match @pdf.lookup_direct(pdf, "/Name", config) {
+      Some(@pdf.PdfObject::String(name)) => names.push(name)
+      _ => fail("missing /Name in /Configs")
     }
   }
   names
@@ -1101,6 +1155,61 @@ async test "e2e merge preserves /OCProperties" {
   match parsed_names.search_by(name => name == "LayerRight") {
     Some(_) => ()
     None => fail("missing parsed OCG LayerRight")
+  }
+  assert_eq(read_ocg_on_count(parsed), 2)
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
+async test "e2e merge preserves OCG configs" {
+  let left_page = @pdfpage.blankpage(@pdfpaper.a4)
+  let (left0, left_root) = @pdfpage.add_pagetree([left_page], @pdf.empty())
+  let left = @pdfpage.add_root(left_root, [], left0)
+  let right_page = @pdfpage.blankpage(@pdfpaper.a4)
+  let (right0, right_root) = @pdfpage.add_pagetree([right_page], @pdf.empty())
+  let right = @pdfpage.add_root(right_root, [], right0)
+  add_ocg_properties_with_config(left, "LayerLeft", "ConfigLeft")
+  add_ocg_properties_with_config(right, "LayerRight", "ConfigRight")
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=false,
+    add_toplevel_document=false,
+    ["ocg_left", "ocg_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  )
+  match @pdfocg.read_ocg(merged) {
+    Some(_) => ()
+    None => fail("expected ocg properties")
+  }
+  let config_names = read_ocg_config_names(merged)
+  match config_names.search_by(name => name == "ConfigLeft") {
+    Some(_) => ()
+    None => fail("missing config ConfigLeft")
+  }
+  match config_names.search_by(name => name == "ConfigRight") {
+    Some(_) => ()
+    None => fail("missing config ConfigRight")
+  }
+  assert_eq(read_ocg_on_count(merged), 2)
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_ocg_configs.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  match @pdfocg.read_ocg(parsed) {
+    Some(_) => ()
+    None => fail("expected parsed ocg properties")
+  }
+  let parsed_configs = read_ocg_config_names(parsed)
+  match parsed_configs.search_by(name => name == "ConfigLeft") {
+    Some(_) => ()
+    None => fail("missing parsed config ConfigLeft")
+  }
+  match parsed_configs.search_by(name => name == "ConfigRight") {
+    Some(_) => ()
+    None => fail("missing parsed config ConfigRight")
   }
   assert_eq(read_ocg_on_count(parsed), 2)
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
