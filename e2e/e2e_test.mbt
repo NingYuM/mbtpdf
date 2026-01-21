@@ -126,13 +126,18 @@ fn add_dests_dictionary(
   pdf : @pdf.Pdf,
   entries : Array[(String, @pdf.PdfObject)],
 ) -> Unit raise {
+  set_catalog_entry(pdf, "/Dests", @pdf.PdfObject::Dictionary(entries))
+}
+
+///|
+fn set_catalog_entry(
+  pdf : @pdf.Pdf,
+  key : String,
+  value : @pdf.PdfObject,
+) -> Unit raise {
   let rootnum = pdf.root
   let root = @pdf.lookup_obj(pdf, rootnum)
-  let updated_root = @pdf.add_dict_entry(
-    root,
-    "/Dests",
-    @pdf.PdfObject::Dictionary(entries),
-  )
+  let updated_root = @pdf.add_dict_entry(root, key, value)
   @pdf.addobj_given_num(pdf, (rootnum, updated_root))
   pdf.trailerdict = @pdf.add_dict_entry(
     pdf.trailerdict,
@@ -572,6 +577,72 @@ async test "e2e merge preserves /Dests dictionary" {
   )
   assert_destination_page(parsed_left_read, parsed_left)
   assert_destination_page(parsed_right_read, parsed_right)
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
+async test "e2e merge preserves AcroForm entries" {
+  let left = @pdfpage.minimum_valid_pdf()
+  let right = @pdfpage.minimum_valid_pdf()
+  let left_form = @pdf.PdfObject::Dictionary([
+    ("/Fields", @pdf.PdfObject::Array([@pdf.PdfObject::Null])),
+    ("/NeedAppearances", @pdf.PdfObject::Boolean(true)),
+  ])
+  let right_form = @pdf.PdfObject::Dictionary([
+    ("/Fields", @pdf.PdfObject::Array([@pdf.PdfObject::Null])),
+    ("/SigFlags", @pdf.PdfObject::Integer(1)),
+  ])
+  set_catalog_entry(left, "/AcroForm", left_form)
+  set_catalog_entry(right, "/AcroForm", right_form)
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["acro_left", "acro_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  )
+  let catalog = @pdf.catalog_of_pdf(merged)
+  let form = match @pdf.lookup_direct(merged, "/AcroForm", catalog) {
+    Some(obj) => obj
+    None => fail("missing /AcroForm")
+  }
+  match @pdf.lookup_direct(merged, "/Fields", form) {
+    Some(@pdf.PdfObject::Array(arr)) => assert_eq(arr.length(), 2)
+    _ => fail("expected /Fields array")
+  }
+  match @pdf.lookup_direct(merged, "/NeedAppearances", form) {
+    Some(@pdf.PdfObject::Boolean(true)) => ()
+    _ => fail("expected /NeedAppearances true")
+  }
+  match @pdf.lookup_direct(merged, "/SigFlags", form) {
+    Some(@pdf.PdfObject::Integer(1)) => ()
+    _ => fail("expected /SigFlags 1")
+  }
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_acroform.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let parsed_catalog = @pdf.catalog_of_pdf(parsed)
+  let parsed_form = match
+    @pdf.lookup_direct(parsed, "/AcroForm", parsed_catalog) {
+    Some(obj) => obj
+    None => fail("missing parsed /AcroForm")
+  }
+  match @pdf.lookup_direct(parsed, "/Fields", parsed_form) {
+    Some(@pdf.PdfObject::Array(arr)) => assert_eq(arr.length(), 2)
+    _ => fail("expected parsed /Fields array")
+  }
+  match @pdf.lookup_direct(parsed, "/NeedAppearances", parsed_form) {
+    Some(@pdf.PdfObject::Boolean(true)) => ()
+    _ => fail("expected parsed /NeedAppearances true")
+  }
+  match @pdf.lookup_direct(parsed, "/SigFlags", parsed_form) {
+    Some(@pdf.PdfObject::Integer(1)) => ()
+    _ => fail("expected parsed /SigFlags 1")
+  }
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
 }

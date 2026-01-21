@@ -51,6 +51,9 @@ result to `tmp/e2e`, then reads the output back to validate the roundtrip.
 - Merge /Dests dictionary
   - Creates minimal PDFs with old-style /Dests dictionaries, merges them, and
     resolves named destinations to confirm targets survive the merge/roundtrip.
+- Merge AcroForm entries
+  - Creates minimal PDFs with /AcroForm dictionaries, merges them, and checks
+    /Fields and key entries survive the roundtrip.
 
 ## Running
 - `moon test e2e` to run only the end-to-end tests.
