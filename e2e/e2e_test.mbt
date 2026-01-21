@@ -263,3 +263,39 @@ async test "e2e merge split merge pipeline" {
   )
   assert_eq(page_count(remerged), subset.length() + third_count)
 }
+
+///|
+async test "e2e page labels roundtrip" {
+  let pdf = read_pdf(LARGE_PATH)
+  let count = page_count(pdf)
+  assert_true(count >= 3)
+  let labels = [
+    @pdfpagelabels.PageLabel::{
+      labelstyle: @pdfpagelabels.LabelStyle::DecimalArabic,
+      labelprefix: Some("E2E-"),
+      startpage: 1,
+      startvalue: 1,
+    },
+    @pdfpagelabels.PageLabel::{
+      labelstyle: @pdfpagelabels.LabelStyle::LowercaseRoman,
+      labelprefix: None,
+      startpage: 3,
+      startvalue: 1,
+    },
+  ]
+  @pdfpagelabels.write(pdf, labels)
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/pagelabels.pdf"
+  write_pdf(out_path, pdf)
+  let parsed = read_pdf(out_path)
+  let read_back = @pdfpagelabels.read(parsed)
+  assert_eq(read_back.length(), 2)
+  match read_back[0].labelprefix {
+    Some("E2E-") => ()
+    _ => fail("expected prefix E2E-")
+  }
+  assert_eq(read_back[1].startpage, 3)
+  assert_eq(@pdfpagelabels.pagelabeltext_of_pagenumber(1, read_back), "E2E-1")
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}

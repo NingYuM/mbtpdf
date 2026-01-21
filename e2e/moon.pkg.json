@@ -6,6 +6,7 @@
     "bobzhang/mbtpdf/pdfmarks",
     "bobzhang/mbtpdf/pdfmerge",
     "bobzhang/mbtpdf/pdfpage",
+    "bobzhang/mbtpdf/pdfpagelabels",
     "bobzhang/mbtpdf/pdfread",
     "bobzhang/mbtpdf/pdfwrite",
     "moonbitlang/async",
