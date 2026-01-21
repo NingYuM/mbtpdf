@@ -1,11 +1,6 @@
 ///|
 fn ops_sample_rect() -> @pdf.PdfObject {
-  @pdf.PdfObject::Array([
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(100.0),
-    @pdf.PdfObject::Real(100.0),
-  ])
+  @pdf.PdfObject::Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
 }
 
 ///|
@@ -22,17 +17,12 @@ fn ops_page_with_ops(ops : Array[@pdfops.Op]) -> @pdfpage.Page raise {
 ///|
 test "prepend_operators fast path inserts ops" {
   let pdf = @pdf.empty()
-  let base_ops = [@pdfops.Op::Opq, @pdfops.Op::OpQ]
+  let base_ops : Array[@pdfops.Op] = [Opq, OpQ]
   let page = ops_page_with_ops(base_ops)
-  let updated = @pdfpage.prepend_operators(
-    pdf,
-    [@pdfops.Op::Opw(2.0)],
-    page,
-    fast=true,
-  )
+  let updated = @pdfpage.prepend_operators(pdf, [Opw(2.0)], page, fast=true)
   let ops = @pdfops.parse_operators(pdf, updated.resources, updated.content)
-  match ops[0] {
-    @pdfops.Op::Opw(2.0) => ()
+  match (ops[0] : @pdfops.Op) {
+    Opw(2.0) => ()
     _ => fail("expected prepended op")
   }
 }
@@ -40,18 +30,13 @@ test "prepend_operators fast path inserts ops" {
 ///|
 test "postpend_operators fast path wraps ops" {
   let pdf = @pdf.empty()
-  let base_ops = [@pdfops.Op::OpBT, @pdfops.Op::OpET]
+  let base_ops : Array[@pdfops.Op] = [OpBT, OpET]
   let page = ops_page_with_ops(base_ops)
-  let updated = @pdfpage.postpend_operators(
-    pdf,
-    [@pdfops.Op::Opw(3.0)],
-    page,
-    fast=true,
-  )
+  let updated = @pdfpage.postpend_operators(pdf, [Opw(3.0)], page, fast=true)
   let ops = @pdfops.parse_operators(pdf, updated.resources, updated.content)
   let len = ops.length()
-  match (ops[len - 3], ops[len - 2], ops[len - 1]) {
-    (@pdfops.Op::Opq, @pdfops.Op::Opw(3.0), @pdfops.Op::OpQ) => ()
+  match ((ops[len - 3], ops[len - 2], ops[len - 1]) : (@pdfops.Op, _, _)) {
+    (Opq, Opw(3.0), OpQ) => ()
     _ => fail("expected wrapped ops at end")
   }
 }
@@ -60,20 +45,20 @@ test "postpend_operators fast path wraps ops" {
 test "postpend_operators handles empty content" {
   let pdf = @pdf.empty()
   let page = @pdfpage.custompage(ops_sample_rect())
-  let updated = @pdfpage.postpend_operators(pdf, [@pdfops.Op::Opw(1.0)], page)
+  let updated = @pdfpage.postpend_operators(pdf, [Opw(1.0)], page)
   let ops = @pdfops.parse_operators(pdf, updated.resources, updated.content)
-  match ops {
-    [@pdfops.Op::Opw(1.0)] => ()
+  match (ops : Array[@pdfops.Op]) {
+    [Opw(1.0)] => ()
     _ => fail("expected single op")
   }
 }
 
 ///|
 test "protect adds missing Q operators" {
-  let fixed = @pdfpage.protect([@pdfops.Op::Opq, @pdfops.Op::Opq])
+  let fixed = @pdfpage.protect([Opq, Opq])
   assert_eq(fixed.length(), 2)
-  match fixed {
-    [@pdfops.Op::OpQ, @pdfops.Op::OpQ] => ()
+  match (fixed : Array[@pdfops.Op]) {
+    [OpQ, OpQ] => ()
     _ => fail("expected OpQ fixes")
   }
 }
