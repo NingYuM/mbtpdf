@@ -156,6 +156,43 @@ async test "e2e split subset of large pdf" {
 }
 
 ///|
+async test "e2e split then bookmark" {
+  let pdf = read_pdf(LARGE_PATH)
+  let count = page_count(pdf)
+  assert_true(count >= 2)
+  let subset = [1, 2]
+  let split = @pdfpage.pdf_of_pages(pdf, subset)
+  let page1 = match @pdfpage.page_object_number(split, 1) {
+    Some(objnum) => objnum
+    None => fail("missing split page 1")
+  }
+  let marks : Array[@pdfmarks.Bookmark] = [
+    {
+      level: 0,
+      text: "Split bookmark",
+      target: @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(page1)),
+      isopen: true,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+  ]
+  let split_with = @pdfmarks.add_bookmarks(marks, split)
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/split_bookmark.pdf"
+  write_pdf(out_path, split_with)
+  let parsed = read_pdf(out_path)
+  let parsed_marks = @pdfmarks.read_bookmarks(parsed)
+  assert_eq(parsed_marks.length(), 1)
+  let target_page = @pdfpage.pagenumber_of_target(
+    parsed,
+    parsed_marks[0].target,
+  )
+  assert_eq(target_page, 1)
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
 async test "e2e annotation roundtrip" {
   let pdf = read_pdf(MERGE_LEFT_PATH)
   let pages = @pdfpage.pages_of_pagetree(pdf)
