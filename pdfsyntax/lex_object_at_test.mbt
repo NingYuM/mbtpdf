@@ -39,3 +39,13 @@ test "lex_object_at captures dictionary tokens" {
   }
   assert_eq(rendered, ["<<", "/Type", "/Example", "/Count", "2", ">>"])
 }
+
+///|
+test "lex_object_at reads until endobj when not oneonly" {
+  let tokens = lex_from_string(false, "1 0 obj 7 endobj")
+  let rendered : Array[String] = Array::new()
+  for token in tokens {
+    rendered.push(string_of_lexeme(token))
+  }
+  assert_eq(rendered, ["1", "0", "obj", "7", "endobj"])
+}
