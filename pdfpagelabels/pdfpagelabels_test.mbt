@@ -29,17 +29,10 @@ test "pagelabel_of_pagenumber" {
 
 ///|
 fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
-  let rect = @pdf.PdfObject::Array([
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(100.0),
-    @pdf.PdfObject::Real(100.0),
-  ])
+  let rect : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
   let pages = Array::new(capacity=count)
-  let mut i = 0
-  while i < count {
+  for i in 0..<count {
     pages.push(@pdfpage.custompage(rect))
-    i = i + 1
   }
   let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
   @pdfpage.add_root(pageroot, [], pdf0)
@@ -187,12 +180,7 @@ test "merge_pagelabels combines ranges" {
 
 ///|
 test "write/read pagelabels roundtrip" {
-  let rect = @pdf.PdfObject::Array([
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(100.0),
-    @pdf.PdfObject::Real(100.0),
-  ])
+  let rect : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
   let pages = [
     @pdfpage.custompage(rect),
     @pdfpage.custompage(rect),
@@ -249,15 +237,13 @@ test "string_of_labelstyle covers all styles" {
 fn set_page_labels(pdf : @pdf.Pdf, nums : Array[@pdf.PdfObject]) -> Unit raise {
   let rootnum = pdf.root
   let root = @pdf.lookup_obj(pdf, rootnum)
-  let labels = @pdf.PdfObject::Dictionary([
-    ("/Nums", @pdf.PdfObject::Array(nums)),
-  ])
+  let labels : @pdf.PdfObject = Dictionary([("/Nums", Array(nums))])
   let updated = @pdf.add_dict_entry(root, "/PageLabels", labels)
   @pdf.addobj_given_num(pdf, (rootnum, updated))
   pdf.trailerdict = @pdf.add_dict_entry(
     pdf.trailerdict,
     "/Root",
-    @pdf.PdfObject::Indirect(rootnum),
+    Indirect(rootnum),
   )
 }
 
@@ -265,18 +251,18 @@ fn set_page_labels(pdf : @pdf.Pdf, nums : Array[@pdf.PdfObject]) -> Unit raise {
 test "read handles label styles and bad startpage" {
   let pdf = @pdfpage.minimum_valid_pdf()
   let nums : Array[@pdf.PdfObject] = [
-    @pdf.PdfObject::Name("/Bad"),
-    @pdf.PdfObject::Dictionary([("/S", @pdf.PdfObject::Name("/R"))]),
-    @pdf.PdfObject::Integer(0),
-    @pdf.PdfObject::Dictionary([("/S", @pdf.PdfObject::Name("/r"))]),
-    @pdf.PdfObject::Integer(1),
-    @pdf.PdfObject::Dictionary([("/S", @pdf.PdfObject::Name("/A"))]),
-    @pdf.PdfObject::Integer(2),
-    @pdf.PdfObject::Dictionary([("/S", @pdf.PdfObject::Name("/a"))]),
-    @pdf.PdfObject::Integer(3),
-    @pdf.PdfObject::Dictionary([("/S", @pdf.PdfObject::Name("/D"))]),
-    @pdf.PdfObject::Integer(4),
-    @pdf.PdfObject::Dictionary([("/P", @pdf.PdfObject::String("P"))]),
+    Name("/Bad"),
+    Dictionary([("/S", Name("/R"))]),
+    Integer(0),
+    Dictionary([("/S", Name("/r"))]),
+    Integer(1),
+    Dictionary([("/S", Name("/A"))]),
+    Integer(2),
+    Dictionary([("/S", Name("/a"))]),
+    Integer(3),
+    Dictionary([("/S", Name("/D"))]),
+    Integer(4),
+    Dictionary([("/P", String("P"))]),
   ]
   set_page_labels(pdf, nums)
   let labels = @pdfpagelabels.read(pdf)

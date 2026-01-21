@@ -71,28 +71,20 @@ test "textwidth handles missing widths and kerning" {
   assert_true(widths.get(999) is None)
   assert_true(kerns.get((999, 998)) is None)
   let pdf = @pdf.empty()
-  let implicit_font = @pdf.PdfObject::Dictionary([
-    ("/Subtype", @pdf.PdfObject::Name("/Type1")),
-  ])
+  let implicit_font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type1"))])
   let implicit_encoding = @pdftext.read_encoding(pdf, implicit_font)
   let implicit_width = @pdfstandard14.textwidth(
     true, implicit_encoding, font, missing,
   )
   assert_eq(implicit_width, 0)
   assert_true(widths_by_name.get("NoSlash") is None)
-  let custom_font = @pdf.PdfObject::Dictionary([
-    ("/Subtype", @pdf.PdfObject::Name("/Type1")),
+  let custom_font : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name("/Type1")),
     (
       "/Encoding",
-      @pdf.PdfObject::Dictionary([
-        ("/BaseEncoding", @pdf.PdfObject::Name("/WinAnsiEncoding")),
-        (
-          "/Differences",
-          @pdf.PdfObject::Array([
-            @pdf.PdfObject::Integer(65),
-            @pdf.PdfObject::Name("NoSlash"),
-          ]),
-        ),
+      Dictionary([
+        ("/BaseEncoding", Name("/WinAnsiEncoding")),
+        ("/Differences", Array([Integer(65), Name("NoSlash")])),
       ]),
     ),
   ])
@@ -105,9 +97,9 @@ test "textwidth handles missing widths and kerning" {
 test "textwidth handles empty string and unicode fallback" {
   let font = @pdftext.StandardFont::Helvetica
   let pdf = @pdf.empty()
-  let winansi_font = @pdf.PdfObject::Dictionary([
-    ("/Subtype", @pdf.PdfObject::Name("/Type1")),
-    ("/Encoding", @pdf.PdfObject::Name("/WinAnsiEncoding")),
+  let winansi_font : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name("/Type1")),
+    ("/Encoding", Name("/WinAnsiEncoding")),
   ])
   let encoding = @pdftext.read_encoding(pdf, winansi_font)
   let width_empty = @pdfstandard14.textwidth(false, encoding, font, "")
@@ -121,9 +113,7 @@ test "textwidth handles empty string and unicode fallback" {
 test "textwidth applies kerning for standard fonts" {
   let font = @pdftext.StandardFont::TimesRoman
   let pdf = @pdf.empty()
-  let implicit_font = @pdf.PdfObject::Dictionary([
-    ("/Subtype", @pdf.PdfObject::Name("/Type1")),
-  ])
+  let implicit_font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type1"))])
   let encoding = @pdftext.read_encoding(pdf, implicit_font)
   let kerned = @pdfstandard14.textwidth(true, encoding, font, "AV")
   let plain = @pdfstandard14.textwidth(false, encoding, font, "AV")

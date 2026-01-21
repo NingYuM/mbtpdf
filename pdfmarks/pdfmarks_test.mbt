@@ -153,7 +153,7 @@ test "add_bookmarks links siblings and counts" {
   let pdf_with = @pdfmarks.add_bookmarks(marks, pdf)
   let outlines = outlines_root(pdf_with)
   match @pdf.lookup_direct(pdf_with, "/Count", outlines) {
-    Some(@pdf.PdfObject::Integer(i)) => assert_eq(i, 4)
+    Some(Integer(i)) => assert_eq(i, 4)
     _ => fail("expected /Count on outlines")
   }
   let first = match @pdf.lookup_direct(pdf_with, "/First", outlines) {
@@ -169,7 +169,7 @@ test "add_bookmarks links siblings and counts" {
       @pdf.lookup_direct(pdf_with, "/Title", first),
       @pdf.lookup_direct(pdf_with, "/Title", last),
     ) {
-    (Some(@pdf.PdfObject::String(a)), Some(@pdf.PdfObject::String(b))) => {
+    (Some(String(a)), Some(String(b))) => {
       assert_eq(a, "A")
       assert_eq(b, "B")
     }
@@ -178,7 +178,7 @@ test "add_bookmarks links siblings and counts" {
   match @pdf.lookup_direct(pdf_with, "/Next", first) {
     Some(next) =>
       match @pdf.lookup_direct(pdf_with, "/Title", next) {
-        Some(@pdf.PdfObject::String(s)) => assert_eq(s, "B")
+        Some(String(s)) => assert_eq(s, "B")
         _ => fail("expected /Next title")
       }
     None => fail("expected /Next")
@@ -186,17 +186,17 @@ test "add_bookmarks links siblings and counts" {
   match @pdf.lookup_direct(pdf_with, "/Prev", last) {
     Some(prev) =>
       match @pdf.lookup_direct(pdf_with, "/Title", prev) {
-        Some(@pdf.PdfObject::String(s)) => assert_eq(s, "A")
+        Some(String(s)) => assert_eq(s, "A")
         _ => fail("expected /Prev title")
       }
     None => fail("expected /Prev")
   }
   match @pdf.lookup_direct(pdf_with, "/Count", first) {
-    Some(@pdf.PdfObject::Integer(i)) => assert_eq(i, -1)
+    Some(Integer(i)) => assert_eq(i, -1)
     _ => fail("expected negative /Count for closed node")
   }
   match @pdf.lookup_direct(pdf_with, "/Count", last) {
-    Some(@pdf.PdfObject::Integer(i)) => assert_eq(i, 2)
+    Some(Integer(i)) => assert_eq(i, 2)
     _ => fail("expected positive /Count for open node")
   }
   let marks_read = @pdfmarks.read_bookmarks(pdf_with)
@@ -215,9 +215,9 @@ test "add_bookmarks links siblings and counts" {
 ///|
 test "read_bookmarks toggles action preservation" {
   let pdf = @pdfpage.minimum_valid_pdf()
-  let action = @pdf.PdfObject::Dictionary([
-    ("/S", @pdf.PdfObject::Name("/GoTo")),
-    ("/D", @pdf.PdfObject::String("dest")),
+  let action : @pdf.PdfObject = Dictionary([
+    ("/S", Name("/GoTo")),
+    ("/D", String("dest")),
   ])
   let marks : Array[@pdfmarks.Bookmark] = [
     {
