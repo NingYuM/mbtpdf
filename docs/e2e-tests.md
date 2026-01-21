@@ -36,6 +36,15 @@ result to `tmp/e2e`, then reads the output back to validate the roundtrip.
   - Reads `SFAA_Japanese.pdf`.
   - Adds two bookmarks targeting pages 1 and 2, writes to `tmp/e2e/bookmarks.pdf`,
     reads back, and checks the bookmark texts.
+- Object stream roundtrip
+  - Writes `pdfjs_tracemonkey.pdf` with generated/compressed object streams.
+  - Reads back and confirms object stream IDs are present.
+- Encryption roundtrip
+  - Writes `merge_dummy.pdf` encrypted with AES256.
+  - Verifies read without a password fails and read with the user password succeeds.
+- Merge/split/merge pipeline
+  - Merges two PDFs, extracts a subset, then merges the subset with a third PDF.
+  - Checks the final page count matches the expected total.
 
 ## Running
 - `moon test e2e` to run only the end-to-end tests.

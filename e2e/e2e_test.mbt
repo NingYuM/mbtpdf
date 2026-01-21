@@ -173,3 +173,93 @@ async test "e2e bookmarks roundtrip" {
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
 }
+
+///|
+async test "e2e write object streams and read back" {
+  let pdf = read_pdf(MERGE_THIRD_PATH)
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/objstm.pdf"
+  let file = @fs.open(out_path, mode=WriteOnly, create=0o644, truncate=true)
+  defer file.close()
+  @pdfwrite.pdf_to_channel(
+    generate_objstm=true,
+    compress_objstm=true,
+    None,
+    true,
+    pdf,
+    file,
+  )
+  let parsed = read_pdf(out_path)
+  assert_true(parsed.objects.object_stream_ids.length() > 0)
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
+async test "e2e encrypt pdf and require password" {
+  let pdf = read_pdf(MERGE_LEFT_PATH)
+  let enc = @pdfwrite.make_encryption(
+    @pdfwrite.EncryptionMethod::AES256bit(true),
+    "owner-pass",
+    "user-pass",
+    [],
+  )
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/encrypted.pdf"
+  let file = @fs.open(out_path, mode=WriteOnly, create=0o644, truncate=true)
+  defer file.close()
+  @pdfwrite.pdf_to_channel(Some(enc), true, pdf, file)
+  let res : Result[@pdf.Pdf, Error] = try? @pdfread.pdf_of_file(
+    None,
+    None,
+    out_path,
+  )
+  match res {
+    Ok(parsed) =>
+      if @pdfread.what_encryption(parsed) is None {
+        fail("expected encryption info")
+      }
+    Err(_) => fail("expected read to succeed without password")
+  }
+  let parsed_pw = @pdfread.pdf_of_file(Some("user-pass"), None, out_path)
+  assert_eq(page_count(parsed_pw), page_count(pdf))
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
+async test "e2e merge split merge pipeline" {
+  let left = read_pdf(MERGE_LEFT_PATH)
+  let right = read_pdf(MERGE_RIGHT_PATH)
+  let third = read_pdf(MERGE_THIRD_PATH)
+  let left_count = page_count(left)
+  let right_count = page_count(right)
+  let third_count = page_count(third)
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["pipeline_left", "pipeline_right"],
+    [left, right],
+    [full_range(left_count), full_range(right_count)],
+  )
+  let merged_count = page_count(merged)
+  assert_true(merged_count > 1)
+  let subset = if merged_count > 2 {
+    [1, merged_count / 2, merged_count]
+  } else {
+    [1, merged_count]
+  }
+  let subset_pdf = @pdfpage.pdf_of_pages(merged, subset)
+  let remerged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["pipeline_subset", "pipeline_third"],
+    [subset_pdf, third],
+    [full_range(subset.length()), full_range(third_count)],
+  )
+  assert_eq(page_count(remerged), subset.length() + third_count)
+}
