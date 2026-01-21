@@ -224,6 +224,53 @@ async test "e2e merge preserves annotations" {
 }
 
 ///|
+async test "e2e merge preserves bookmark targets" {
+  let left = read_pdf(MERGE_LEFT_PATH)
+  let right = read_pdf(MERGE_RIGHT_PATH)
+  let left_count = page_count(left)
+  let right_count = page_count(right)
+  assert_true(left_count > 0)
+  assert_true(right_count > 0)
+  let page1 = match @pdfpage.page_object_number(left, 1) {
+    Some(objnum) => objnum
+    None => fail("missing page 1")
+  }
+  let marks : Array[@pdfmarks.Bookmark] = [
+    {
+      level: 0,
+      text: "Merged bookmark",
+      target: @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(page1)),
+      isopen: true,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+  ]
+  let left_with = @pdfmarks.add_bookmarks(marks, left)
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["merge_marks_left", "merge_marks_right"],
+    [left_with, right],
+    [full_range(left_count), full_range(right_count)],
+  )
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_marks.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let parsed_marks = @pdfmarks.read_bookmarks(parsed)
+  assert_eq(parsed_marks.length(), 1)
+  let target_page = @pdfpage.pagenumber_of_target(
+    parsed,
+    parsed_marks[0].target,
+  )
+  assert_eq(target_page, 1)
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
 async test "e2e bookmarks roundtrip" {
   let pdf = read_pdf(BOOKMARK_PATH)
   let count = page_count(pdf)
