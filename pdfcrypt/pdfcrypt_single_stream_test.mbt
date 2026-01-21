@@ -2,8 +2,8 @@
 fn first_stream(pdf : @pdf.Pdf) -> (Int, Int, @pdf.PdfObject) raise {
   let mut found : (Int, Int, @pdf.PdfObject)? = None
   @pdf.objiter_gen(
-    (objnum, gen, obj) => match obj {
-      @pdf.PdfObject::Stream(_) =>
+    (objnum, gen, obj) => match (obj : @pdf.PdfObject) {
+      Stream(_) =>
         if found is None {
           found = Some((objnum, gen, obj))
         }
@@ -20,22 +20,15 @@ fn first_stream(pdf : @pdf.Pdf) -> (Int, Int, @pdf.PdfObject) raise {
 ///|
 fn pdf_with_stream() -> @pdf.Pdf raise {
   let data = @pdfio.bytes_of_string("q Q")
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
-  ])
-  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let mediabox = @pdf.PdfObject::Array([
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(100.0),
-    @pdf.PdfObject::Real(100.0),
-  ])
+  let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(@pdfio.bytes_size(data)))])
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let mediabox : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
   let page : @pdfpage.Page = {
     content: [stream],
     mediabox,
-    resources: @pdf.PdfObject::Dictionary([]),
+    resources: Dictionary([]),
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
   let (pdf0, pageroot) = @pdfpage.add_pagetree([page], @pdf.empty())
   @pdfpage.add_root(pageroot, [], pdf0)
@@ -45,16 +38,9 @@ fn pdf_with_stream() -> @pdf.Pdf raise {
 test "decrypt_single_stream passes through unencrypted stream" {
   let pdf = pdf_with_stream()
   let (objnum, gen, stream) = first_stream(pdf)
-  let decrypted = @pdfcrypt.decrypt_single_stream(
-    None,
-    None,
-    pdf,
-    objnum,
-    gen,
-    stream,
-  )
-  match decrypted {
-    @pdf.PdfObject::Stream(_) => ()
+  let decrypted = @pdfcrypt.decrypt_single_stream(None, None, pdf, objnum, gen, stream)
+  match (decrypted : @pdf.PdfObject) {
+    Stream(_) => ()
     _ => fail("expected stream object")
   }
 }
@@ -64,8 +50,8 @@ test "decrypt_single_stream restores AES256 stream bytes" {
   let pdf = pdf_with_stream()
   let (_orig_objnum, _orig_gen, orig_stream) = first_stream(pdf)
   @pdf.getstream(orig_stream)
-  let orig_bytes = match orig_stream {
-    @pdf.PdfObject::Stream(r) =>
+  let orig_bytes = match (orig_stream : @pdf.PdfObject) {
+    Stream(r) =>
       match r.val.1 {
         @pdf.Stream::Got(bytes) => bytes
         _ => fail("expected stream bytes")
@@ -74,17 +60,10 @@ test "decrypt_single_stream restores AES256 stream bytes" {
   }
   let enc = @pdfcrypt.encrypt_pdf_AES256(true, "user", "owner", [], pdf)
   let (objnum, gen, stream) = first_stream(enc)
-  let decrypted = @pdfcrypt.decrypt_single_stream(
-    Some("user"),
-    None,
-    enc,
-    objnum,
-    gen,
-    stream,
-  )
+  let decrypted = @pdfcrypt.decrypt_single_stream(Some("user"), None, enc, objnum, gen, stream)
   @pdf.getstream(decrypted)
-  match decrypted {
-    @pdf.PdfObject::Stream(r) =>
+  match (decrypted : @pdf.PdfObject) {
+    Stream(r) =>
       match r.val.1 {
         @pdf.Stream::Got(bytes) => {
           assert_eq(@pdfio.bytes_size(bytes), @pdfio.bytes_size(orig_bytes))
