@@ -81,18 +81,18 @@ fn[A : Compare] compare_values(left : A, right : A) -> Int {
 
 ///|
 pub fn[A] hd(xs : Array[A]) -> A raise {
-  if xs.is_empty() {
-    invalid_arg("Pdfutil.hd")
+  match xs {
+    [head, ..] => head
+    [] => invalid_arg("Pdfutil.hd")
   }
-  xs[0]
 }
 
 ///|
 pub fn[A] tl(xs : Array[A]) -> Array[A] raise {
-  if xs.is_empty() {
-    invalid_arg("Pdfutil.tl")
+  match xs {
+    [_, ..tail] => tail.to_array()
+    [] => invalid_arg("Pdfutil.tl")
   }
-  xs.sub(start=1).to_array()
 }
 
 ///|
@@ -1101,39 +1101,27 @@ pub fn[A] last(xs : Array[A]) -> A raise {
 
 ///|
 pub fn[A] all_but_last(xs : Array[A]) -> Array[A] {
-  let len = xs.length()
-  if len <= 1 {
-    Array::new()
-  } else {
-    xs.sub(end=len - 1).to_array()
+  match xs {
+    [] | [_] => []
+    [..init, _] => init.to_array()
   }
 }
 
 ///|
 pub fn[A] extremes(xs : Array[A]) -> (A, A) raise {
-  let len = xs.length()
-  if len == 0 {
-    invalid_arg("Pdfutil.extremes")
+  match xs {
+    [] => invalid_arg("Pdfutil.extremes")
+    [single] => (single, single)
+    [first, .., last] => (first, last)
   }
-  if len == 1 {
-    let value = xs[0]
-    return (value, value)
-  }
-  (xs[0], xs[len - 1])
 }
 
 ///|
 pub fn[A] extremes_and_middle(xs : Array[A]) -> (A, Array[A], A) raise {
-  let len = xs.length()
-  if len < 2 {
-    invalid_arg("Pdfutil.extremes_and_middle")
+  match xs {
+    [] | [_] => invalid_arg("Pdfutil.extremes_and_middle")
+    [first, ..middle, last] => (first, middle.to_array(), last)
   }
-  let middle = if len == 2 {
-    Array::new()
-  } else {
-    xs.sub(start=1, end=len - 1).to_array()
-  }
-  (xs[0], middle, xs[len - 1])
 }
 
 ///|
@@ -1234,10 +1222,9 @@ pub fn[A] drop_odds(xs : Array[A]) -> Array[A] {
 
 ///|
 pub fn[A] tail_no_fail(xs : Array[A]) -> Array[A] {
-  if xs.is_empty() {
-    Array::new()
-  } else {
-    xs.sub(start=1).to_array()
+  match xs {
+    [] => []
+    [_, ..tail] => tail.to_array()
   }
 }
 

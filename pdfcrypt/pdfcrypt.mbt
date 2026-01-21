@@ -20,11 +20,7 @@ fn is_identity(
   let identity_crypt_filter_present = match
     @pdf.lookup_direct(pdf, "/Filter", dict) {
     Some(@pdf.PdfObject::Name("/Crypt")) => true
-    Some(@pdf.PdfObject::Array(values)) =>
-      match values[0] {
-        @pdf.PdfObject::Name("/Crypt") => true
-        _ => false
-      }
+    Some(@pdf.PdfObject::Array([@pdf.PdfObject::Name("/Crypt"), ..])) => true
     _ => false
   }
   let identity_param = if identity_crypt_filter_present {
@@ -39,20 +35,17 @@ fn is_identity(
           Some(@pdf.PdfObject::Name("/Identity")) | None => true
           _ => false
         }
-      Some(@pdf.PdfObject::Array(values)) =>
-        match values[0] {
-          @pdf.PdfObject::Dictionary(decodeparms) =>
-            match
-              @pdf.lookup_direct(
-                pdf,
-                "/Name",
-                @pdf.PdfObject::Dictionary(decodeparms),
-              ) {
-              Some(@pdf.PdfObject::Name("/Identity")) | None => true
-              _ => false
-            }
-          _ => true
+      Some(@pdf.PdfObject::Array([@pdf.PdfObject::Dictionary(decodeparms), ..])) =>
+        match
+          @pdf.lookup_direct(
+            pdf,
+            "/Name",
+            @pdf.PdfObject::Dictionary(decodeparms),
+          ) {
+          Some(@pdf.PdfObject::Name("/Identity")) | None => true
+          _ => false
         }
+      Some(@pdf.PdfObject::Array(_)) => true
       _ => true
     }
   } else {

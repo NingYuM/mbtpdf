@@ -359,11 +359,12 @@ fn make_outline_ntree(
   pdf : @pdf.Pdf,
   marks : Array[Bookmark],
 ) -> Array[Ntree] {
-  if marks.length() == 0 {
-    return []
+  match marks {
+    [] => return []
+    _ => ()
   }
   let head = marks[0]
-  let rest = marks.sub(start=1).to_array()
+  let rest = marks[1:].to_array()
   let mut split = 0
   while split < rest.length() && rest[split].level > head.level {
     split = split + 1

@@ -1259,19 +1259,12 @@ pub fn decode_pdfstream_onestage(
             Array[@pdf.PdfObject]?,
           ) = match filter_obj {
             @pdf.PdfObject::Name(name) => (name, None)
-            @pdf.PdfObject::Array(filters) => {
-              if filters.length() == 0 {
-                raise CodecError::DecodeNotSupported("empty filter array")
-              }
-              match filters[0] {
-                @pdf.PdfObject::Name(name) => {
-                  let rest = filters.sub(start=1).to_array()
-                  (name, Some(rest))
-                }
-                _ =>
-                  raise CodecError::DecodeNotSupported("invalid filter entry")
-              }
-            }
+            @pdf.PdfObject::Array([]) =>
+              raise CodecError::DecodeNotSupported("empty filter array")
+            @pdf.PdfObject::Array([@pdf.PdfObject::Name(name), ..rest]) =>
+              (name, Some(rest.to_array()))
+            @pdf.PdfObject::Array(_) =>
+              raise CodecError::DecodeNotSupported("invalid filter entry")
             _ => raise CodecError::DecodeNotSupported("invalid filter")
           }
           map_pdf_error("getstream", fn() raise { @pdf.getstream(obj) })
@@ -1500,19 +1493,12 @@ pub async fn decode_pdfstream_onestage_async(
             Array[@pdf.PdfObject]?,
           ) = match filter_obj {
             @pdf.PdfObject::Name(name) => (name, None)
-            @pdf.PdfObject::Array(filters) => {
-              if filters.length() == 0 {
-                raise CodecError::DecodeNotSupported("empty filter array")
-              }
-              match filters[0] {
-                @pdf.PdfObject::Name(name) => {
-                  let rest = filters.sub(start=1).to_array()
-                  (name, Some(rest))
-                }
-                _ =>
-                  raise CodecError::DecodeNotSupported("invalid filter entry")
-              }
-            }
+            @pdf.PdfObject::Array([]) =>
+              raise CodecError::DecodeNotSupported("empty filter array")
+            @pdf.PdfObject::Array([@pdf.PdfObject::Name(name), ..rest]) =>
+              (name, Some(rest.to_array()))
+            @pdf.PdfObject::Array(_) =>
+              raise CodecError::DecodeNotSupported("invalid filter entry")
             _ => raise CodecError::DecodeNotSupported("invalid filter")
           }
           map_pdf_error("getstream", fn() raise { @pdf.getstream(obj) })

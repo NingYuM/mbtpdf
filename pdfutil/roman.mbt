@@ -35,16 +35,14 @@ pub fn roman(n : Int) -> String {
     sb.to_string() + roman(n % 1000)
   } else {
     fn roman_recurse(value : Int, vals : Array[(Int, String)]) -> String {
-      if vals.is_empty() {
-        ""
-      } else {
-        let head = vals[0]
-        let tail = vals.sub(start=1).to_array()
-        if value >= head.0 {
-          head.1 + roman_recurse(value - head.0, tail)
-        } else {
-          roman_recurse(value, tail)
-        }
+      match vals {
+        [] => ""
+        [head, ..tail] =>
+          if value >= head.0 {
+            head.1 + roman_recurse(value - head.0, tail.to_array())
+          } else {
+            roman_recurse(value, tail.to_array())
+          }
       }
     }
 
