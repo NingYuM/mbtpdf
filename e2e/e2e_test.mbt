@@ -415,6 +415,55 @@ fn read_ocg_on_count(pdf : @pdf.Pdf) -> Int raise {
 }
 
 ///|
+fn add_struct_tree_root(
+  pdf : @pdf.Pdf,
+  page_ref : Int,
+  parent_key : Int,
+) -> Unit raise {
+  let struct_elem = @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/StructElem")),
+    ("/S", @pdf.PdfObject::Name("/P")),
+    ("/Pg", @pdf.PdfObject::Indirect(page_ref)),
+  ])
+  let struct_elem_num = @pdf.addobj(pdf, struct_elem)
+  let parent_tree = @pdftree.build_name_tree(true, pdf, [
+    (parent_key.to_string(), @pdf.PdfObject::Indirect(struct_elem_num)),
+  ])
+  let struct_root = @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/StructTreeRoot")),
+    ("/K", @pdf.PdfObject::Indirect(struct_elem_num)),
+    ("/ParentTree", parent_tree),
+  ])
+  let struct_root_num = @pdf.addobj(pdf, struct_root)
+  set_catalog_entry(
+    pdf,
+    "/StructTreeRoot",
+    @pdf.PdfObject::Indirect(struct_root_num),
+  )
+  let page_obj = @pdf.lookup_obj(pdf, page_ref)
+  let updated_page = @pdf.add_dict_entry(
+    page_obj,
+    "/StructParents",
+    @pdf.PdfObject::Integer(parent_key),
+  )
+  @pdf.addobj_given_num(pdf, (page_ref, updated_page))
+}
+
+///|
+fn read_parent_tree_keys(pdf : @pdf.Pdf) -> Array[String] raise {
+  let catalog = @pdf.catalog_of_pdf(pdf)
+  let struct_root = match @pdf.lookup_direct(pdf, "/StructTreeRoot", catalog) {
+    Some(obj) => obj
+    None => fail("missing /StructTreeRoot")
+  }
+  let parent_tree = match @pdf.lookup_direct(pdf, "/ParentTree", struct_root) {
+    Some(obj) => obj
+    None => fail("missing /ParentTree")
+  }
+  @pdftree.read_number_tree(pdf, parent_tree).map(pair => pair.0)
+}
+
+///|
 fn assert_url_action(
   pdf : @pdf.Pdf,
   action_obj : @pdf.PdfObject,
@@ -1212,6 +1261,45 @@ async test "e2e merge preserves OCG configs" {
     None => fail("missing parsed config ConfigRight")
   }
   assert_eq(read_ocg_on_count(parsed), 2)
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
+async test "e2e merge preserves structure trees" {
+  let left_page = @pdfpage.blankpage(@pdfpaper.a4)
+  let (left0, left_root) = @pdfpage.add_pagetree([left_page], @pdf.empty())
+  let left = @pdfpage.add_root(left_root, [], left0)
+  let left_refs = @pdf.page_reference_numbers(left)
+  assert_true(left_refs.length() > 0)
+  add_struct_tree_root(left, left_refs[0], 0)
+  let right_page = @pdfpage.blankpage(@pdfpaper.a4)
+  let (right0, right_root) = @pdfpage.add_pagetree([right_page], @pdf.empty())
+  let right = @pdfpage.add_root(right_root, [], right0)
+  let right_refs = @pdf.page_reference_numbers(right)
+  assert_true(right_refs.length() > 0)
+  add_struct_tree_root(right, right_refs[0], 0)
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["struct_left", "struct_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  )
+  let parent_keys = read_parent_tree_keys(merged)
+  assert_eq(parent_keys.length(), 2)
+  assert_true(parent_keys.contains("0"))
+  assert_true(parent_keys.contains("1"))
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_struct_trees.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let parsed_keys = read_parent_tree_keys(parsed)
+  assert_eq(parsed_keys.length(), 2)
+  assert_true(parsed_keys.contains("0"))
+  assert_true(parsed_keys.contains("1"))
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
 }

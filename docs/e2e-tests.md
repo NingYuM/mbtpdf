@@ -60,6 +60,9 @@ result to `tmp/e2e`, then reads the output back to validate the roundtrip.
 - Merge OCG configs
   - Adds /OCProperties /Configs arrays to PDFs, merges them, and verifies
     config names survive the roundtrip.
+- Merge structure trees
+  - Adds minimal /StructTreeRoot + /ParentTree data to PDFs, merges them with
+    structure processing enabled, and verifies parent tree keys survive the roundtrip.
 - Merge /Names JavaScript
   - Creates minimal PDFs with /Names /JavaScript name trees, merges them, and
     verifies both script names survive the roundtrip.
