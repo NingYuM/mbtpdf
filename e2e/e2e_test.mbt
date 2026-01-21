@@ -299,3 +299,51 @@ async test "e2e page labels roundtrip" {
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
 }
+
+///|
+async test "e2e page ops roundtrip" {
+  let rect = @pdf.PdfObject::Array([
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(100.0),
+    @pdf.PdfObject::Real(100.0),
+  ])
+  let page : @pdfpage.Page = {
+    content: [@pdfops.stream_of_ops([@pdfops.Op::Opq, @pdfops.Op::OpQ])],
+    mediabox: rect,
+    resources: @pdf.PdfObject::Dictionary([]),
+    rotate: @pdfpage.Rotation::Rotate0,
+    rest: @pdf.PdfObject::Dictionary([]),
+  }
+  let (pdf0, pageroot) = @pdfpage.add_pagetree([page], @pdf.empty())
+  let pdf = @pdfpage.add_root(pageroot, [], pdf0)
+  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let updated = @pdfpage.postpend_operators(
+    pdf,
+    [@pdfops.Op::Opw(5.0)],
+    pages[0],
+    fast=true,
+  )
+  pages[0] = updated
+  let updated_pdf = @pdfpage.change_pages(true, pdf, pages)
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/page_ops.pdf"
+  write_pdf(out_path, updated_pdf)
+  let parsed = read_pdf(out_path)
+  let parsed_page = @pdfpage.pages_of_pagetree(parsed)[0]
+  let parsed_ops = @pdfops.parse_operators(
+    parsed,
+    parsed_page.resources,
+    parsed_page.content,
+  )
+  let mut found = false
+  for op in parsed_ops {
+    match op {
+      @pdfops.Op::Opw(5.0) => found = true
+      _ => ()
+    }
+  }
+  assert_true(found)
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
