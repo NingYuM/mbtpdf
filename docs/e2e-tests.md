@@ -63,6 +63,9 @@ result to `tmp/e2e`, then reads the output back to validate the roundtrip.
 - Merge /Names /URLS
   - Creates minimal PDFs with /Names /URLS name trees, merges them, and
     verifies URI actions survive the roundtrip.
+- Merge /Names /AP
+  - Creates minimal PDFs with /Names /AP name trees, merges them, and
+    verifies appearance streams survive the roundtrip.
 
 ## Running
 - `moon test e2e` to run only the end-to-end tests.

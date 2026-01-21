@@ -203,6 +203,38 @@ fn add_embedded_file(
 }
 
 ///|
+fn make_ap_stream(payload : String) -> @pdf.PdfObject {
+  let bytes = @pdfio.bytes_of_string(payload)
+  let dict = @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/XObject")),
+    ("/Subtype", @pdf.PdfObject::Name("/Form")),
+    (
+      "/BBox",
+      @pdf.PdfObject::Array([
+        @pdf.PdfObject::Integer(0),
+        @pdf.PdfObject::Integer(0),
+        @pdf.PdfObject::Integer(10),
+        @pdf.PdfObject::Integer(10),
+      ]),
+    ),
+    ("/Resources", @pdf.PdfObject::Dictionary([])),
+    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(bytes))),
+  ])
+  @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(bytes))))
+}
+
+///|
+fn make_ap_entry(
+  pdf : @pdf.Pdf,
+  name : String,
+  payload : String,
+) -> (String, @pdf.PdfObject) {
+  let stream_obj = make_ap_stream(payload)
+  let objnum = @pdf.addobj(pdf, stream_obj)
+  (name, @pdf.PdfObject::Indirect(objnum))
+}
+
+///|
 fn make_url_action(uri : String) -> @pdf.PdfObject {
   @pdf.PdfObject::Dictionary([
     ("/S", @pdf.PdfObject::Name("/URI")),
@@ -224,6 +256,31 @@ fn assert_url_action(
   match @pdf.lookup_direct(pdf, "/URI", action) {
     Some(@pdf.PdfObject::String(uri)) => assert_eq(uri, expected_uri)
     _ => fail("expected /URI string")
+  }
+}
+
+///|
+fn assert_ap_stream(
+  pdf : @pdf.Pdf,
+  stream_obj : @pdf.PdfObject,
+  expected_payload : String,
+) -> Unit raise {
+  let stream = @pdf.direct(pdf, stream_obj)
+  match @pdf.lookup_direct(pdf, "/Type", stream) {
+    Some(@pdf.PdfObject::Name("/XObject")) => ()
+    _ => fail("expected /Type /XObject")
+  }
+  match @pdf.lookup_direct(pdf, "/Subtype", stream) {
+    Some(@pdf.PdfObject::Name("/Form")) => ()
+    _ => fail("expected /Subtype /Form")
+  }
+  let bytes = @pdf.bigarray_of_stream(stream)
+  let payload = @pdfio.string_of_bytes(bytes)
+  assert_eq(payload, expected_payload)
+  match @pdf.lookup_direct(pdf, "/Length", stream) {
+    Some(@pdf.PdfObject::Integer(length)) =>
+      assert_eq(length, @pdfio.bytes_size(bytes))
+    _ => fail("expected /Length")
   }
 }
 
@@ -337,6 +394,19 @@ fn assert_url_entry(
   match entries.search_by(pair => pair.0 == name) {
     Some(idx) => assert_url_action(pdf, entries[idx].1, expected_uri)
     None => fail("missing url entry: " + name)
+  }
+}
+
+///|
+fn assert_ap_entry(
+  pdf : @pdf.Pdf,
+  entries : Array[(String, @pdf.PdfObject)],
+  name : String,
+  expected_payload : String,
+) -> Unit raise {
+  match entries.search_by(pair => pair.0 == name) {
+    Some(idx) => assert_ap_stream(pdf, entries[idx].1, expected_payload)
+    None => fail("missing ap entry: " + name)
   }
 }
 
@@ -931,6 +1001,39 @@ async test "e2e merge preserves /Names /URLS" {
   assert_url_entry(
     parsed, parsed_entries, "RightURL", "https://example.com/right",
   )
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
+async test "e2e merge preserves /Names /AP" {
+  let left = @pdfpage.minimum_valid_pdf()
+  let right = @pdfpage.minimum_valid_pdf()
+  add_names_tree(left, "/AP", [make_ap_entry(left, "LeftAP", "left ap")])
+  add_names_tree(right, "/AP", [make_ap_entry(right, "RightAP", "right ap")])
+  let left_entries = read_name_tree_entries(left, "/AP")
+  let right_entries = read_name_tree_entries(right, "/AP")
+  assert_ap_entry(left, left_entries, "LeftAP", "left ap")
+  assert_ap_entry(right, right_entries, "RightAP", "right ap")
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["ap_left", "ap_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  )
+  let entries = read_name_tree_entries(merged, "/AP")
+  assert_ap_entry(merged, entries, "LeftAP", "left ap")
+  assert_ap_entry(merged, entries, "RightAP", "right ap")
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_ap.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let parsed_entries = read_name_tree_entries(parsed, "/AP")
+  assert_ap_entry(parsed, parsed_entries, "LeftAP", "left ap")
+  assert_ap_entry(parsed, parsed_entries, "RightAP", "right ap")
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
 }
