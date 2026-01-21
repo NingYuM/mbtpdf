@@ -75,6 +75,9 @@ result to `tmp/e2e`, then reads the output back to validate the roundtrip.
 - Merge stress large name trees
   - Creates large /Names /Dests and /Names /URLS trees, merges them, and checks
     representative entries survive the roundtrip.
+- Merge mixed feature pipeline
+  - Adds annotations, bookmarks, /URLS entries, and embedded files before
+    merge, then verifies all mixed metadata survives the roundtrip.
 
 ## Running
 - `moon test e2e` to run only the end-to-end tests.

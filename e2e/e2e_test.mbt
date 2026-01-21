@@ -1284,6 +1284,95 @@ async test "e2e merge stress large name trees" {
 }
 
 ///|
+async test "e2e merge mixed feature pipeline" {
+  let left0 = @pdfpage.minimum_valid_pdf()
+  let pages = @pdfpage.pages_of_pagetree(left0)
+  let annot = @pdfannot.make(
+    @pdfannot.Subtype::Text,
+    content="Mixed note",
+    rectangle=(12.0, 18.0, 40.0, 52.0),
+  )
+  let updated_page = @pdfannot.add_annotation(left0, pages[0], annot)
+  pages[0] = updated_page
+  let left1 = @pdfpage.change_pages(true, left0, pages)
+  let page1 = match @pdfpage.page_object_number(left1, 1) {
+    Some(objnum) => objnum
+    None => fail("missing left page")
+  }
+  let marks : Array[@pdfmarks.Bookmark] = [
+    {
+      level: 0,
+      text: "Mixed bookmark",
+      target: @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(page1)),
+      isopen: true,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+  ]
+  let left = @pdfmarks.add_bookmarks(marks, left1)
+  add_names_tree(left, "/URLS", [
+    ("MixURL", make_url_action("https://example.com/mixed")),
+  ])
+  let right = @pdfpage.minimum_valid_pdf()
+  add_embedded_file(right, "MixFile", "mixed.txt", "mix payload")
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=true,
+    add_toplevel_document=false,
+    ["mixed_left", "mixed_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  )
+  let merged_pages = @pdfpage.pages_of_pagetree(merged)
+  let merged_annots = @pdfannot.annotations_of_page(merged, merged_pages[0])
+  match merged_annots {
+    [first, ..] =>
+      match first.annot_contents {
+        Some("Mixed note") => ()
+        _ => fail("missing mixed annotation")
+      }
+    _ => fail("missing mixed annotation")
+  }
+  let merged_marks = @pdfmarks.read_bookmarks(merged)
+  assert_true(
+    merged_marks.search_by(mark => mark.text == "Mixed bookmark") is Some(_),
+  )
+  let merged_urls = read_name_tree_entries(merged, "/URLS")
+  assert_url_entry(merged, merged_urls, "MixURL", "https://example.com/mixed")
+  let merged_embedded = read_name_tree_entries(merged, "/EmbeddedFiles")
+  assert_embedded_file_entry(
+    merged, merged_embedded, "MixFile", "mixed.txt", "mix payload",
+  )
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_mixed.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let parsed_pages = @pdfpage.pages_of_pagetree(parsed)
+  let parsed_annots = @pdfannot.annotations_of_page(parsed, parsed_pages[0])
+  match parsed_annots {
+    [first, ..] =>
+      match first.annot_contents {
+        Some("Mixed note") => ()
+        _ => fail("missing parsed mixed annotation")
+      }
+    _ => fail("missing parsed mixed annotation")
+  }
+  let parsed_marks = @pdfmarks.read_bookmarks(parsed)
+  assert_true(
+    parsed_marks.search_by(mark => mark.text == "Mixed bookmark") is Some(_),
+  )
+  let parsed_urls = read_name_tree_entries(parsed, "/URLS")
+  assert_url_entry(parsed, parsed_urls, "MixURL", "https://example.com/mixed")
+  let parsed_embedded = read_name_tree_entries(parsed, "/EmbeddedFiles")
+  assert_embedded_file_entry(
+    parsed, parsed_embedded, "MixFile", "mixed.txt", "mix payload",
+  )
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
 async test "e2e merge preserves bookmark targets" {
   let left = read_pdf(MERGE_LEFT_PATH)
   let right = read_pdf(MERGE_RIGHT_PATH)
