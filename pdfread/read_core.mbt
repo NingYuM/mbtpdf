@@ -10,21 +10,16 @@ fn is_digit(c : Char) -> Bool {
 }
 
 ///|
-fn digits_to_string(chars : Array[Char]) -> String {
-  String::from_array(chars)
-}
-
-///|
 fn read_startxref(input : @pdfio.Input) -> Int raise {
   find_eof(input)
   backline(input)
   ignoreuntil(false, is_digit, input)
-  let digits = getuntil(false, c => !is_digit(c), input)
+  let digits = getuntil_string(false, c => !is_digit(c), input)
   if digits.length() == 0 {
     let message = @pdf.input_pdferror(input, "Could not find xref pointer")
     raise @pdf.PdfError::Msg(message)
   }
-  match parse_uint_string(digits_to_string(digits)) {
+  match parse_uint_string(digits) {
     Some(value) => value
     None => {
       let message = @pdf.input_pdferror(input, "Could not parse xref pointer")

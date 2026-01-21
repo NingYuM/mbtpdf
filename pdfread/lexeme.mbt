@@ -103,13 +103,22 @@ fn trim_trailing_zeros(value : String) -> String {
   match dot {
     None => value
     Some(_) => {
-      let chars = value.to_array()
-      let mut end = chars.length() - 1
-      while end >= 0 && chars[end] == '0' {
-        end = end - 1
+      let len = value.length()
+      if len == 0 {
+        return value
       }
-      if end >= 0 && chars[end] == '.' {
-        end = end - 1
+      let mut end = len - 1
+      while end >= 0 {
+        match value.get_char(end) {
+          Some('0') => end = end - 1
+          _ => break
+        }
+      }
+      if end >= 0 {
+        match value.get_char(end) {
+          Some('.') => end = end - 1
+          _ => ()
+        }
       }
       if end < 0 {
         "0"
@@ -117,7 +126,10 @@ fn trim_trailing_zeros(value : String) -> String {
         let sb = StringBuilder::new()
         let mut i = 0
         while i <= end {
-          sb.write_char(chars[i])
+          match value.get_char(i) {
+            Some(ch) => sb.write_char(ch)
+            None => break
+          }
           i = i + 1
         }
         sb.to_string()
@@ -146,27 +158,31 @@ fn slice_range(value : String, start : Int, end : Int) -> String {
 
 ///|
 fn parse_signed_int(value : String) -> Int {
-  let chars = value.to_array()
-  if chars.length() == 0 {
+  let len = value.length()
+  if len == 0 {
     return 0
   }
   let mut sign = 1
   let mut i = 0
-  match chars[0] {
-    '-' => {
+  match value.get_char(0) {
+    Some('-') => {
       sign = -1
       i = 1
     }
-    '+' => i = 1
+    Some('+') => i = 1
     _ => ()
   }
   let mut result = 0
-  while i < chars.length() {
-    let c = chars[i]
-    if c < '0' || c > '9' {
-      break
+  while i < len {
+    match value.get_char(i) {
+      Some(c) => {
+        if c < '0' || c > '9' {
+          break
+        }
+        result = result * 10 + (c.to_int() - '0'.to_int())
+      }
+      None => break
     }
-    result = result * 10 + (c.to_int() - '0'.to_int())
     i = i + 1
   }
   sign * result
