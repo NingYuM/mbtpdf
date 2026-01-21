@@ -1,0 +1,14 @@
+{
+  "test-import": [
+    "bobzhang/mbtpdf/pdf",
+    "bobzhang/mbtpdf/pdfannot",
+    "bobzhang/mbtpdf/pdfdest",
+    "bobzhang/mbtpdf/pdfmarks",
+    "bobzhang/mbtpdf/pdfmerge",
+    "bobzhang/mbtpdf/pdfpage",
+    "bobzhang/mbtpdf/pdfread",
+    "bobzhang/mbtpdf/pdfwrite",
+    "moonbitlang/async",
+    "moonbitlang/async/fs"
+  ]
+}

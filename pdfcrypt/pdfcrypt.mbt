@@ -1302,7 +1302,8 @@ pub fn encrypt_pdf_AES256ISO(
 ///|
 fn load_saved_encryption_from_pdf(pdf : @pdf.Pdf) -> @pdf.SavedEncryption raise {
   let (crypt_type, u, o, p, id, ue, oe) = get_encryption_values(pdf)
-  let encrypt_dict = match @pdf.lookup_direct(pdf, "/Encrypt", pdf.trailerdict) {
+  let encrypt_dict = match
+    @pdf.lookup_direct(pdf, "/Encrypt", pdf.trailerdict) {
     Some(value) => value
     None => raise @pdf.PdfError::Msg("recrypt_pdf: unencrypted pdf")
   }
@@ -1435,19 +1436,24 @@ pub fn recrypt_pdf(
 ) -> @pdf.Pdf raise {
   let mut pdf = pdf
   if pdf.saved_encryption is None && is_encrypted(pdf) {
-    let saved_result : Result[@pdf.SavedEncryption, Error] = try?
-      load_saved_encryption_from_pdf(pdf)
+    let saved_result : Result[@pdf.SavedEncryption, Error] = try? load_saved_encryption_from_pdf(
+      pdf,
+    )
     match saved_result {
       Ok(saved) => pdf.saved_encryption = Some(saved)
       Err(_) => ()
     }
-    let dec_result : Result[(@pdf.Pdf?, Array[Permission]), Error] = try?
-      decrypt_pdf(pw, @pdf.deep_copy(pdf))
+    let dec_result : Result[(@pdf.Pdf?, Array[Permission]), Error] = try? decrypt_pdf(
+      pw,
+      @pdf.deep_copy(pdf),
+    )
     match dec_result {
       Ok((Some(pdf_dec), _)) => pdf = pdf_dec
       _ => {
-        let owner_result : Result[@pdf.Pdf?, Error] = try?
-          decrypt_pdf_owner(pw, @pdf.deep_copy(pdf))
+        let owner_result : Result[@pdf.Pdf?, Error] = try? decrypt_pdf_owner(
+          pw,
+          @pdf.deep_copy(pdf),
+        )
         match owner_result {
           Ok(Some(pdf_dec)) => pdf = pdf_dec
           _ => ()
