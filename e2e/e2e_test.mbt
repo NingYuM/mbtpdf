@@ -296,6 +296,71 @@ fn make_url_action(uri : String) -> @pdf.PdfObject {
 }
 
 ///|
+fn add_ocg_properties(pdf : @pdf.Pdf, ocg_name : String) -> Unit raise {
+  let ocg = @pdf.PdfObject::Dictionary([
+    ("/Type", @pdf.PdfObject::Name("/OCG")),
+    ("/Name", @pdf.PdfObject::String(ocg_name)),
+  ])
+  let ocg_num = @pdf.addobj(pdf, ocg)
+  let default_dict = @pdf.PdfObject::Dictionary([
+    ("/BaseState", @pdf.PdfObject::Name("/ON")),
+    ("/Intent", @pdf.PdfObject::Name("/View")),
+    ("/Name", @pdf.PdfObject::String("Default")),
+    ("/ON", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(ocg_num)])),
+  ])
+  let ocprops = @pdf.PdfObject::Dictionary([
+    ("/OCGs", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(ocg_num)])),
+    ("/D", default_dict),
+  ])
+  let ocprops_num = @pdf.addobj(pdf, ocprops)
+  set_catalog_entry(pdf, "/OCProperties", @pdf.PdfObject::Indirect(ocprops_num))
+}
+
+///|
+fn read_ocg_names(pdf : @pdf.Pdf) -> Array[String] raise {
+  let catalog = @pdf.catalog_of_pdf(pdf)
+  let ocprops = match @pdf.lookup_direct(pdf, "/OCProperties", catalog) {
+    Some(obj) => obj
+    None => fail("missing /OCProperties")
+  }
+  let ocgs = match @pdf.lookup_direct(pdf, "/OCGs", ocprops) {
+    Some(@pdf.PdfObject::Array(arr)) => arr
+    _ => fail("missing /OCGs array")
+  }
+  let names = Array::new(capacity=ocgs.length())
+  for ocg in ocgs {
+    match @pdf.direct(pdf, ocg) {
+      @pdf.PdfObject::Dictionary(entries) => {
+        let dict = @pdf.PdfObject::Dictionary(entries)
+        match @pdf.lookup_direct(pdf, "/Name", dict) {
+          Some(@pdf.PdfObject::String(name)) => names.push(name)
+          _ => ()
+        }
+      }
+      _ => ()
+    }
+  }
+  names
+}
+
+///|
+fn read_ocg_on_count(pdf : @pdf.Pdf) -> Int raise {
+  let catalog = @pdf.catalog_of_pdf(pdf)
+  let ocprops = match @pdf.lookup_direct(pdf, "/OCProperties", catalog) {
+    Some(obj) => obj
+    None => fail("missing /OCProperties")
+  }
+  let default_dict = match @pdf.lookup_direct(pdf, "/D", ocprops) {
+    Some(obj) => obj
+    None => fail("missing /D")
+  }
+  match @pdf.lookup_direct(pdf, "/ON", default_dict) {
+    Some(@pdf.PdfObject::Array(arr)) => arr.length()
+    _ => 0
+  }
+}
+
+///|
 fn assert_url_action(
   pdf : @pdf.Pdf,
   action_obj : @pdf.PdfObject,
@@ -991,6 +1056,53 @@ async test "e2e merge preserves AcroForm entries" {
     Some(@pdf.PdfObject::Integer(1)) => ()
     _ => fail("expected parsed /SigFlags 1")
   }
+  let _ : Result[Unit, Error] = try? @fs.remove(out_path)
+
+}
+
+///|
+async test "e2e merge preserves /OCProperties" {
+  let left_page = @pdfpage.blankpage(@pdfpaper.a4)
+  let (left0, left_root) = @pdfpage.add_pagetree([left_page], @pdf.empty())
+  let left = @pdfpage.add_root(left_root, [], left0)
+  let right_page = @pdfpage.blankpage(@pdfpaper.a4)
+  let (right0, right_root) = @pdfpage.add_pagetree([right_page], @pdf.empty())
+  let right = @pdfpage.add_root(right_root, [], right0)
+  add_ocg_properties(left, "LayerLeft")
+  add_ocg_properties(right, "LayerRight")
+  let merged = @pdfmerge.merge_pdfs(
+    false,
+    true,
+    process_struct_trees=false,
+    add_toplevel_document=false,
+    ["ocg_left", "ocg_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  )
+  let merged_names = read_ocg_names(merged)
+  match merged_names.search_by(name => name == "LayerLeft") {
+    Some(_) => ()
+    None => fail("missing OCG LayerLeft")
+  }
+  match merged_names.search_by(name => name == "LayerRight") {
+    Some(_) => ()
+    None => fail("missing OCG LayerRight")
+  }
+  assert_eq(read_ocg_on_count(merged), 2)
+  ensure_dir(OUTPUT_DIR)
+  let out_path = OUTPUT_DIR + "/merged_ocg.pdf"
+  write_pdf(out_path, merged)
+  let parsed = read_pdf(out_path)
+  let parsed_names = read_ocg_names(parsed)
+  match parsed_names.search_by(name => name == "LayerLeft") {
+    Some(_) => ()
+    None => fail("missing parsed OCG LayerLeft")
+  }
+  match parsed_names.search_by(name => name == "LayerRight") {
+    Some(_) => ()
+    None => fail("missing parsed OCG LayerRight")
+  }
+  assert_eq(read_ocg_on_count(parsed), 2)
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
 }

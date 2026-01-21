@@ -54,6 +54,9 @@ result to `tmp/e2e`, then reads the output back to validate the roundtrip.
 - Merge AcroForm entries
   - Creates minimal PDFs with /AcroForm dictionaries, merges them, and checks
     /Fields and key entries survive the roundtrip.
+- Merge /OCProperties
+  - Adds optional content groups to PDFs, merges them, and verifies /OCGs and
+    default config /ON entries survive the roundtrip.
 - Merge /Names JavaScript
   - Creates minimal PDFs with /Names /JavaScript name trees, merges them, and
     verifies both script names survive the roundtrip.
