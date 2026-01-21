@@ -1,11 +1,6 @@
 ///|
 fn merge_rect() -> @pdf.PdfObject {
-  @pdf.PdfObject::Array([
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(100.0),
-    @pdf.PdfObject::Real(100.0),
-  ])
+  @pdf.PdfObject::Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
 }
 
 ///|
@@ -27,7 +22,7 @@ fn add_names_dests(
   entries : Array[(String, @pdf.PdfObject)],
 ) -> Unit raise {
   let tree = @pdftree.build_name_tree(false, pdf, entries)
-  let names_dict = @pdf.PdfObject::Dictionary([("/Dests", tree)])
+  let names_dict : @pdf.PdfObject = Dictionary([("/Dests", tree)])
   set_catalog_entry(pdf, "/Names", names_dict)
 }
 
@@ -41,7 +36,7 @@ fn page_ref(pdf : @pdf.Pdf, index : Int) -> Int raise {
 fn dest_dict_for_page(pdf : @pdf.Pdf, index : Int) -> @pdf.PdfObject raise {
   let target = @pdfdest.TargetPage::PageObject(page_ref(pdf, index))
   let dest = @pdfdest.Destination::Fit(target)
-  @pdf.PdfObject::Dictionary([("/D", @pdfdest.pdfobject_of_destination(dest))])
+  Dictionary([("/D", @pdfdest.pdfobject_of_destination(dest))])
 }
 
 ///|
@@ -65,9 +60,9 @@ test "merge_pdfs keeps named and action bookmarks while dropping out of range" {
     ("DestB", dest_dict_for_page(pdf, 1)),
   ]
   add_names_dests(pdf, entries)
-  let action = @pdf.PdfObject::Dictionary([
-    ("/S", @pdf.PdfObject::Name("/GoTo")),
-    ("/D", @pdf.PdfObject::String("DestB")),
+  let action : @pdf.PdfObject = Dictionary([
+    ("/S", Name("/GoTo")),
+    ("/D", String("DestB")),
   ])
   let bookmarks : Array[@pdfmarks.Bookmark] = [
     {
@@ -115,32 +110,21 @@ test "merge_pdfs keeps named and action bookmarks while dropping out of range" {
 test "merge_pdfs handles malformed names and optional catalog entries" {
   let pdf1 = make_pdf_pages(1)
   let pdf2 = make_pdf_pages(1)
-  let bad_tree = @pdf.PdfObject::Dictionary([
-    (
-      "/Names",
-      @pdf.PdfObject::Array([
-        @pdf.PdfObject::String("A"),
-        @pdf.PdfObject::Null,
-        @pdf.PdfObject::String("B"),
-      ]),
-    ),
+  let bad_tree : @pdf.PdfObject = Dictionary([
+    ("/Names", Array([String("A"), Null, String("B")])),
   ])
-  let names_dict = @pdf.PdfObject::Dictionary([("/Dests", bad_tree)])
+  let names_dict : @pdf.PdfObject = Dictionary([("/Dests", bad_tree)])
   set_catalog_entry(pdf1, "/Names", names_dict)
   set_catalog_entry(
     pdf1,
     "/OCProperties",
-    @pdf.PdfObject::Dictionary([
-      ("/OCGs", @pdf.PdfObject::Array([@pdf.PdfObject::Name("/OCG1")])),
-    ]),
+    Dictionary([("/OCGs", Array([Name("/OCG1")]))]),
   )
-  set_catalog_entry(pdf1, "/AcroForm", @pdf.PdfObject::Null)
+  set_catalog_entry(pdf1, "/AcroForm", Null)
   set_catalog_entry(
     pdf2,
     "/AcroForm",
-    @pdf.PdfObject::Dictionary([
-      ("/Fields", @pdf.PdfObject::Array([@pdf.PdfObject::Null])),
-    ]),
+    Dictionary([("/Fields", Array([Null]))]),
   )
   let merged = merge_pdfs(
     false,
@@ -155,7 +139,7 @@ test "merge_pdfs handles malformed names and optional catalog entries" {
   match @pdf.lookup_direct(merged, "/OCProperties", catalog) {
     Some(ocp) =>
       match @pdf.lookup_direct(merged, "/OCGs", ocp) {
-        Some(@pdf.PdfObject::Array(arr)) => assert_eq(arr.length(), 1)
+        Some(Array(arr)) => assert_eq(arr.length(), 1)
         _ => fail("expected /OCGs array")
       }
     _ => fail("expected /OCProperties")
@@ -163,7 +147,7 @@ test "merge_pdfs handles malformed names and optional catalog entries" {
   match @pdf.lookup_direct(merged, "/AcroForm", catalog) {
     Some(form) =>
       match @pdf.lookup_direct(merged, "/Fields", form) {
-        Some(@pdf.PdfObject::Array(arr)) => assert_eq(arr.length(), 1)
+        Some(Array(arr)) => assert_eq(arr.length(), 1)
         _ => fail("expected /Fields array")
       }
     _ => fail("expected /AcroForm")
@@ -215,15 +199,9 @@ test "merge_pdfs uses highest version and removes duplicates" {
 ///|
 test "remove_duplicate_fonts updates object_stream_ids" {
   let pdf = @pdf.empty()
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Length", @pdf.PdfObject::Integer(1)),
-  ])
-  let stream1 = @pdf.PdfObject::Stream(
-    Ref::new((dict, @pdf.Stream::Got([0x01]))),
-  )
-  let stream2 = @pdf.PdfObject::Stream(
-    Ref::new((dict, @pdf.Stream::Got([0x01]))),
-  )
+  let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(1))])
+  let stream1 : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got([0x01]))))
+  let stream2 : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got([0x01]))))
   let obj1 = @pdf.addobj(pdf, stream1)
   let obj2 = @pdf.addobj(pdf, stream2)
   pdf.objects.object_stream_ids.set(obj1, 10)
@@ -235,15 +213,9 @@ test "remove_duplicate_fonts updates object_stream_ids" {
 ///|
 test "remove_duplicate_fonts keeps distinct stream lengths" {
   let pdf = @pdf.empty()
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Length", @pdf.PdfObject::Integer(1)),
-  ])
-  let stream1 = @pdf.PdfObject::Stream(
-    Ref::new((dict, @pdf.Stream::Got([0x01]))),
-  )
-  let stream2 = @pdf.PdfObject::Stream(
-    Ref::new((dict, @pdf.Stream::Got([0x01, 0x02]))),
-  )
+  let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(1))])
+  let stream1 : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got([0x01]))))
+  let stream2 : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got([0x01, 0x02]))))
   ignore(@pdf.addobj(pdf, stream1))
   ignore(@pdf.addobj(pdf, stream2))
   let before = @pdf.objcard(pdf)

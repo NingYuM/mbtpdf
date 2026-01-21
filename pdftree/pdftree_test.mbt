@@ -1,10 +1,10 @@
 ///|
 test "build and read name tree" {
   let pdf = @pdf.empty()
-  let entries = [
-    ("A", @pdf.PdfObject::Integer(1)),
-    ("B", @pdf.PdfObject::Integer(2)),
-    ("C", @pdf.PdfObject::Integer(3)),
+  let entries : Array[(String, @pdf.PdfObject)] = [
+    ("A", Integer(1)),
+    ("B", Integer(2)),
+    ("C", Integer(3)),
   ]
   let tree = @pdftree.build_name_tree(false, pdf, entries)
   let read = @pdftree.read_name_tree(pdf, tree)
@@ -17,10 +17,10 @@ test "build and read name tree" {
 ///|
 test "build and read number tree" {
   let pdf = @pdf.empty()
-  let entries = [
-    ("1", @pdf.PdfObject::Name("/One")),
-    ("3", @pdf.PdfObject::Name("/Three")),
-    ("2", @pdf.PdfObject::Name("/Two")),
+  let entries : Array[(String, @pdf.PdfObject)] = [
+    ("1", Name("/One")),
+    ("3", Name("/Three")),
+    ("2", Name("/Two")),
   ]
   let tree = @pdftree.build_name_tree(true, pdf, entries)
   let read = @pdftree.read_number_tree(pdf, tree)
@@ -35,12 +35,12 @@ test "build_name_tree handles empty input" {
   let pdf = @pdf.empty()
   let name_tree = @pdftree.build_name_tree(false, pdf, [])
   match @pdf.lookup_direct(pdf, "/Names", name_tree) {
-    Some(@pdf.PdfObject::Array(items)) => assert_eq(items.length(), 0)
+    Some(Array(items)) => assert_eq(items.length(), 0)
     _ => fail("expected empty /Names")
   }
   let num_tree = @pdftree.build_name_tree(true, pdf, [])
   match @pdf.lookup_direct(pdf, "/Nums", num_tree) {
-    Some(@pdf.PdfObject::Array(items)) => assert_eq(items.length(), 0)
+    Some(Array(items)) => assert_eq(items.length(), 0)
     _ => fail("expected empty /Nums")
   }
 }
@@ -48,10 +48,10 @@ test "build_name_tree handles empty input" {
 ///|
 test "build_name_tree uses kids for large inputs" {
   let pdf = @pdf.empty()
-  let entries = Array::makei(11, i => ("Key\{i}", @pdf.PdfObject::Integer(i)))
+  let entries : Array[(String, @pdf.PdfObject)] = Array::makei(11, i => ("Key\{i}", Integer(i)))
   let tree = @pdftree.build_name_tree(false, pdf, entries)
   match @pdf.lookup_direct(pdf, "/Kids", tree) {
-    Some(@pdf.PdfObject::Array(kids)) => assert_true(kids.length() > 0)
+    Some(Array(kids)) => assert_true(kids.length() > 0)
     _ => fail("expected /Kids on large tree")
   }
   let read = @pdftree.read_name_tree(pdf, tree)
@@ -69,15 +69,7 @@ test "build_name_tree uses kids for large inputs" {
 ///|
 test "read_name_tree skips malformed keys" {
   let pdf = @pdf.empty()
-  let tree = @pdf.PdfObject::Dictionary([
-    (
-      "/Names",
-      @pdf.PdfObject::Array([
-        @pdf.PdfObject::Integer(1),
-        @pdf.PdfObject::Name("/One"),
-      ]),
-    ),
-  ])
+  let tree : @pdf.PdfObject = Dictionary([("/Names", Array([Integer(1), Name("/One")]))])
   let read = @pdftree.read_name_tree(pdf, tree)
   assert_eq(read.length(), 0)
 }
@@ -85,16 +77,16 @@ test "read_name_tree skips malformed keys" {
 ///|
 test "read_number_tree handles duplicate keys" {
   let pdf = @pdf.empty()
-  let tree = @pdf.PdfObject::Dictionary([
+  let tree : @pdf.PdfObject = Dictionary([
     (
       "/Nums",
-      @pdf.PdfObject::Array([
-        @pdf.PdfObject::Integer(1),
-        @pdf.PdfObject::Name("/One"),
-        @pdf.PdfObject::Integer(1),
-        @pdf.PdfObject::Name("/Uno"),
-        @pdf.PdfObject::Integer(2),
-        @pdf.PdfObject::Name("/Two"),
+      Array([
+        Integer(1),
+        Name("/One"),
+        Integer(1),
+        Name("/Uno"),
+        Integer(2),
+        Name("/Two"),
       ]),
     ),
   ])
@@ -103,9 +95,8 @@ test "read_number_tree handles duplicate keys" {
   let mut found = false
   for pair in read {
     if pair.0 == "1" {
-      match pair.1 {
-        @pdf.PdfObject::Name("/One") | @pdf.PdfObject::Name("/Uno") =>
-          found = true
+      match (pair.1 : @pdf.PdfObject) {
+        Name("/One") | Name("/Uno") => found = true
         _ => ()
       }
     }
@@ -116,13 +107,8 @@ test "read_number_tree handles duplicate keys" {
 ///|
 test "merge name trees combines entries" {
   let pdf = @pdf.empty()
-  let tree1 = @pdftree.build_name_tree(false, pdf, [
-    ("A", @pdf.PdfObject::Integer(1)),
-    ("C", @pdf.PdfObject::Integer(3)),
-  ])
-  let tree2 = @pdftree.build_name_tree(false, pdf, [
-    ("B", @pdf.PdfObject::Integer(2)),
-  ])
+  let tree1 = @pdftree.build_name_tree(false, pdf, [("A", Integer(1)), ("C", Integer(3))])
+  let tree2 = @pdftree.build_name_tree(false, pdf, [("B", Integer(2))])
   let merged = @pdftree.merge_name_trees_no_clash(pdf, [tree1, tree2])
   let read = @pdftree.read_name_tree(pdf, merged)
   assert_eq(read.length(), 3)
