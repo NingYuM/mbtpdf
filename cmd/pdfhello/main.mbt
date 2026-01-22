@@ -6,16 +6,16 @@ async fn main {
       ("/Subtype", @pdf.PdfObject::Name("/Type1")),
       ("/BaseFont", @pdf.PdfObject::Name("/Times-Italic")),
     ])
-    let ops = [
-      @pdfops.Op::Opcm(
+    let ops : Array[@pdfops.Op] = [
+      Opcm(
         @pdftransform.matrix_of_transform([
           @pdftransform.TransformOp::Translate(50.0, 770.0),
         ]),
       ),
-      @pdfops.Op::OpBT,
-      @pdfops.Op::OpTf("/F0", 36.0),
-      @pdfops.Op::OpTj("Hello, World!"),
-      @pdfops.Op::OpET,
+      OpBT,
+      OpTf("/F0", 36.0),
+      OpTj("Hello, World!"),
+      OpET,
     ]
     let stream = @pdfops.stream_of_ops(ops)
     let page : @pdfpage.Page = {

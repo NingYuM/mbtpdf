@@ -365,9 +365,8 @@ fn merge_bookmarks(
       let changes_rev = changes.map(pair => (pair.1, pair.0))
       fn pageobjectnumber_of_target(t : @pdfdest.Destination) -> Int raise {
         match t {
-          @pdfdest.Destination::NullDestination => 0
-          @pdfdest.Destination::NamedDestination(s)
-          | @pdfdest.Destination::StringDestination(s) =>
+          NullDestination => 0
+          NamedDestination(s) | StringDestination(s) =>
             match lookup(s, dest_nametree) {
               Some(dest) =>
                 match @pdf.lookup_direct(pdf, "/D", dest) {
@@ -384,7 +383,7 @@ fn merge_bookmarks(
                 }
               None => 0
             }
-          @pdfdest.Destination::Action(a) =>
+          Action(a) =>
             match @pdf.lookup_direct(pdf, "/S", a) {
               Some(@pdf.PdfObject::Name("/GoTo")) =>
                 match @pdf.lookup_direct(pdf, "/D", a) {
@@ -409,36 +408,31 @@ fn merge_bookmarks(
                 }
               _ => 0
             }
-          @pdfdest.Destination::XYZ(tp, _, _, _)
-          | @pdfdest.Destination::Fit(tp)
-          | @pdfdest.Destination::FitH(tp, _)
-          | @pdfdest.Destination::FitV(tp, _)
-          | @pdfdest.Destination::FitR(tp, _, _, _, _)
-          | @pdfdest.Destination::FitB(tp)
-          | @pdfdest.Destination::FitBH(tp, _)
-          | @pdfdest.Destination::FitBV(tp, _) =>
-            match tp {
-              @pdfdest.TargetPage::OtherDocPageNumber(_) => 0
-              @pdfdest.TargetPage::PageObject(i) => i
+          XYZ(tp, _, _, _)
+          | Fit(tp)
+          | FitH(tp, _)
+          | FitV(tp, _)
+          | FitR(tp, _, _, _, _)
+          | FitB(tp)
+          | FitBH(tp, _)
+          | FitBV(tp, _) =>
+            match (tp : @pdfdest.TargetPage) {
+              OtherDocPageNumber(_) => 0
+              PageObject(i) => i
             }
         }
       }
 
       let objnum = pageobjectnumber_of_target(mark.target)
-      let is_null = match mark.target {
-        @pdfdest.Destination::NullDestination => true
-        _ => false
-      }
+      let is_null = (mark.target : @pdfdest.Destination) is NullDestination
       if contains_int(oldnums, objnum) || is_null {
         let change_targetpage = fn(
           target : @pdfdest.TargetPage,
           newnum : Int,
         ) -> @pdfdest.TargetPage {
           match target {
-            @pdfdest.TargetPage::OtherDocPageNumber(n) =>
-              @pdfdest.TargetPage::OtherDocPageNumber(n)
-            @pdfdest.TargetPage::PageObject(_) =>
-              @pdfdest.TargetPage::PageObject(newnum)
+            OtherDocPageNumber(n) => OtherDocPageNumber(n)
+            PageObject(_) => PageObject(newnum)
           }
         }
         let change_target_destinationpage = fn(
@@ -446,39 +440,23 @@ fn merge_bookmarks(
           newnum : Int,
         ) -> @pdfdest.Destination {
           match target {
-            @pdfdest.Destination::Action(a) => @pdfdest.Destination::Action(a)
-            @pdfdest.Destination::NullDestination =>
-              @pdfdest.Destination::NullDestination
-            @pdfdest.Destination::NamedDestination(s) =>
-              @pdfdest.Destination::NamedDestination(s)
-            @pdfdest.Destination::StringDestination(s) =>
-              @pdfdest.Destination::StringDestination(s)
-            @pdfdest.Destination::XYZ(tp, a, b, c) =>
-              @pdfdest.Destination::XYZ(change_targetpage(tp, newnum), a, b, c)
-            @pdfdest.Destination::Fit(tp) =>
-              @pdfdest.Destination::Fit(change_targetpage(tp, newnum))
-            @pdfdest.Destination::FitH(tp, a) =>
-              @pdfdest.Destination::FitH(change_targetpage(tp, newnum), a)
-            @pdfdest.Destination::FitV(tp, a) =>
-              @pdfdest.Destination::FitV(change_targetpage(tp, newnum), a)
-            @pdfdest.Destination::FitR(tp, a, b, c, d) =>
-              @pdfdest.Destination::FitR(
-                change_targetpage(tp, newnum),
-                a,
-                b,
-                c,
-                d,
-              )
-            @pdfdest.Destination::FitB(tp) =>
-              @pdfdest.Destination::FitB(change_targetpage(tp, newnum))
-            @pdfdest.Destination::FitBH(tp, a) =>
-              @pdfdest.Destination::FitBH(change_targetpage(tp, newnum), a)
-            @pdfdest.Destination::FitBV(tp, a) =>
-              @pdfdest.Destination::FitBV(change_targetpage(tp, newnum), a)
+            Action(a) => Action(a)
+            NullDestination => NullDestination
+            NamedDestination(s) => NamedDestination(s)
+            StringDestination(s) => StringDestination(s)
+            XYZ(tp, a, b, c) => XYZ(change_targetpage(tp, newnum), a, b, c)
+            Fit(tp) => Fit(change_targetpage(tp, newnum))
+            FitH(tp, a) => FitH(change_targetpage(tp, newnum), a)
+            FitV(tp, a) => FitV(change_targetpage(tp, newnum), a)
+            FitR(tp, a, b, c, d) =>
+              FitR(change_targetpage(tp, newnum), a, b, c, d)
+            FitB(tp) => FitB(change_targetpage(tp, newnum))
+            FitBH(tp, a) => FitBH(change_targetpage(tp, newnum), a)
+            FitBV(tp, a) => FitBV(change_targetpage(tp, newnum), a)
           }
         }
-        let new_target = if is_null {
-          @pdfdest.Destination::NullDestination
+        let new_target : @pdfdest.Destination = if is_null {
+          NullDestination
         } else {
           let newnum = lookup_fail(
             objnum, changes, "merge_bookmarks: missing change",

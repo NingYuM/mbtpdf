@@ -116,33 +116,33 @@ fn prefix_operator(
   op : @pdfops.Op,
 ) -> @pdfops.Op raise {
   match op {
-    @pdfops.Op::OpTf(f, s) => @pdfops.Op::OpTf(addp(prefix, f), s)
-    @pdfops.Op::Opgs(n) => @pdfops.Op::Opgs(addp(prefix, n))
-    @pdfops.Op::OpCS(n) =>
-      @pdfops.Op::OpCS(
+    OpTf(f, s) => OpTf(addp(prefix, f), s)
+    Opgs(n) => Opgs(addp(prefix, n))
+    OpCS(n) =>
+      OpCS(
         if direct_cs_names.contains(n) {
           n
         } else {
           addp(prefix, n)
         },
       )
-    @pdfops.Op::Opcs(n) =>
-      @pdfops.Op::Opcs(
+    Opcs(n) =>
+      Opcs(
         if direct_cs_names.contains(n) {
           n
         } else {
           addp(prefix, n)
         },
       )
-    @pdfops.Op::OpSCNName(s, ns) => @pdfops.Op::OpSCNName(addp(prefix, s), ns)
-    @pdfops.Op::OpscnName(s, ns) => @pdfops.Op::OpscnName(addp(prefix, s), ns)
-    @pdfops.Op::Opsh(s) => @pdfops.Op::Opsh(addp(prefix, s))
-    @pdfops.Op::OpDo(x) => @pdfops.Op::OpDo(addp(prefix, x))
-    @pdfops.Op::OpDP(n, @pdf.PdfObject::Name(x)) =>
-      @pdfops.Op::OpDP(n, @pdf.PdfObject::Name(addp(prefix, x)))
-    @pdfops.Op::OpBDC(n, @pdf.PdfObject::Name(x)) =>
-      @pdfops.Op::OpBDC(n, @pdf.PdfObject::Name(addp(prefix, x)))
-    @pdfops.Op::InlineImage((dict, dp, bytes)) => {
+    OpSCNName(s, ns) => OpSCNName(addp(prefix, s), ns)
+    OpscnName(s, ns) => OpscnName(addp(prefix, s), ns)
+    Opsh(s) => Opsh(addp(prefix, s))
+    OpDo(x) => OpDo(addp(prefix, x))
+    OpDP(n, @pdf.PdfObject::Name(x)) =>
+      OpDP(n, @pdf.PdfObject::Name(addp(prefix, x)))
+    OpBDC(n, @pdf.PdfObject::Name(x)) =>
+      OpBDC(n, @pdf.PdfObject::Name(addp(prefix, x)))
+    InlineImage((dict, dp, bytes)) => {
       let dict_updated = match
         @pdf.lookup_direct_orelse(pdf, "/CS", "/ColorSpace", dict) {
         Some(@pdf.PdfObject::Name(n)) if direct_cs_names_inline.contains(n) =>
@@ -160,7 +160,7 @@ fn prefix_operator(
         }
         _ => dict
       }
-      @pdfops.Op::InlineImage((dict_updated, dp, bytes))
+      InlineImage((dict_updated, dp, bytes))
     }
     _ => op
   }

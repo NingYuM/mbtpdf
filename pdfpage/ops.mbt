@@ -32,9 +32,9 @@ pub fn protect(ops : Array[@pdfops.Op]) -> Array[@pdfops.Op] {
   let mut qs = 0
   let mut bigqs = 0
   for op in ops {
-    match op {
-      @pdfops.Op::Opq => qs = qs + 1
-      @pdfops.Op::OpQ => bigqs = bigqs + 1
+    match (op : @pdfops.Op) {
+      Opq => qs = qs + 1
+      OpQ => bigqs = bigqs + 1
       _ => ()
     }
   }
@@ -42,11 +42,12 @@ pub fn protect(ops : Array[@pdfops.Op]) -> Array[@pdfops.Op] {
   if deficit != 0 {
     @pdfe.log("Q Deficit was nonzero. Fixing. \{deficit}\n")
   }
-  if deficit == 0 {
+  let result : Array[@pdfops.Op] = if deficit == 0 {
     []
   } else {
-    Array::make(deficit, @pdfops.Op::OpQ)
+    Array::make(deficit, OpQ)
   }
+  result
 }
 
 ///|
@@ -58,10 +59,10 @@ pub fn postpend_operators(
   fast? : Bool = false,
 ) -> Page raise {
   if fast {
-    let wrapped = Array::new()
-    wrapped.push(@pdfops.Op::Opq)
+    let wrapped : Array[@pdfops.Op] = Array::new()
+    wrapped.push(Opq)
     wrapped.append(ops[:])
-    wrapped.push(@pdfops.Op::OpQ)
+    wrapped.push(OpQ)
     {
       content: page.content + [@pdfops.stream_of_ops(wrapped)],
       mediabox: page.mediabox,
@@ -86,10 +87,10 @@ pub fn postpend_operators(
     } else {
       let protected_ops = protect(existing_ops)
       let combined : Array[@pdfops.Op] = Array::new()
-      combined.push(@pdfops.Op::Opq)
+      combined.push(Opq)
       combined.append(existing_ops[:])
       combined.append(protected_ops[:])
-      combined.push(@pdfops.Op::OpQ)
+      combined.push(OpQ)
       combined.append(ops[:])
       {
         content: [@pdfops.stream_of_ops(combined)],

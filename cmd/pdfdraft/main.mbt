@@ -51,16 +51,8 @@ fn remove_image_xobjects(
 
 ///|
 let substitute : Array[@pdfops.Op] = [
-  @pdfops.Op::Opq,
-  @pdfops.Op::Opw(0.0),
-  @pdfops.Op::OpG(0.0),
-  @pdfops.Op::Opre(0.0, 0.0, 1.0, 1.0),
-  @pdfops.Op::Opm(0.0, 0.0),
-  @pdfops.Op::Opl(1.0, 1.0),
-  @pdfops.Op::Opm(0.0, 1.0),
-  @pdfops.Op::Opl(1.0, 0.0),
-  @pdfops.Op::OpS,
-  @pdfops.Op::OpQ,
+  Opq, Opw(0.0), OpG(0.0), Opre(0.0, 0.0, 1.0, 1.0), Opm(0.0, 0.0),
+  Opl(1.0, 1.0), Opm(0.0, 1.0), Opl(1.0, 0.0), OpS, OpQ,
 ]
 
 ///|
@@ -78,14 +70,14 @@ fn remove_images_stream(
 ) -> Array[@pdfops.Op] raise {
   let out = Array::new(capacity=ops.length())
   for op in ops {
-    match op {
-      @pdfops.Op::OpDo(name) =>
+    match (op : @pdfops.Op) {
+      OpDo(name) =>
         if xobject_isimage(pdf, resources, name) {
           append_ops(out, substitute)
         } else {
           out.push(op)
         }
-      @pdfops.Op::InlineImage(_) => append_ops(out, substitute)
+      InlineImage(_) => append_ops(out, substitute)
       _ => out.push(op)
     }
   }

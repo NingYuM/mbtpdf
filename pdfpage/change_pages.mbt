@@ -23,10 +23,8 @@ pub fn pagenumber_of_target(
   fastrefnums? : Map[Int, Int],
 ) -> Int raise {
   match target {
-    @pdfdest.Destination::NullDestination
-    | @pdfdest.Destination::NamedDestination(_)
-    | @pdfdest.Destination::StringDestination(_) => 0
-    @pdfdest.Destination::Action(a) =>
+    NullDestination | NamedDestination(_) | StringDestination(_) => 0
+    Action(a) =>
       match @pdf.lookup_direct(pdf, "/S", a) {
         Some(@pdf.PdfObject::Name("/GoTo")) =>
           match @pdf.lookup_direct(pdf, "/D", a) {
@@ -48,17 +46,17 @@ pub fn pagenumber_of_target(
           }
         _ => 0
       }
-    @pdfdest.Destination::XYZ(tp, _, _, _)
-    | @pdfdest.Destination::Fit(tp)
-    | @pdfdest.Destination::FitH(tp, _)
-    | @pdfdest.Destination::FitV(tp, _)
-    | @pdfdest.Destination::FitR(tp, _, _, _, _)
-    | @pdfdest.Destination::FitB(tp)
-    | @pdfdest.Destination::FitBH(tp, _)
-    | @pdfdest.Destination::FitBV(tp, _) =>
-      match tp {
-        @pdfdest.TargetPage::OtherDocPageNumber(i) => i + 1
-        @pdfdest.TargetPage::PageObject(i) =>
+    XYZ(tp, _, _, _)
+    | Fit(tp)
+    | FitH(tp, _)
+    | FitV(tp, _)
+    | FitR(tp, _, _, _, _)
+    | FitB(tp)
+    | FitBH(tp, _)
+    | FitBV(tp, _) =>
+      match (tp : @pdfdest.TargetPage) {
+        OtherDocPageNumber(i) => i + 1
+        PageObject(i) =>
           match fastrefnums {
             Some(table) =>
               match table.get(i) {
@@ -92,14 +90,14 @@ fn change_pages_find_matrix(
   refnumstable : Map[Int, Int],
 ) -> @pdftransform.TransformMatrix {
   match dest {
-    @pdfdest.Destination::XYZ(tp, _, _, _)
-    | @pdfdest.Destination::FitH(tp, _)
-    | @pdfdest.Destination::FitV(tp, _)
-    | @pdfdest.Destination::FitR(tp, _, _, _, _)
-    | @pdfdest.Destination::FitBH(tp, _)
-    | @pdfdest.Destination::FitBV(tp, _) =>
-      match tp {
-        @pdfdest.TargetPage::PageObject(i) =>
+    XYZ(tp, _, _, _)
+    | FitH(tp, _)
+    | FitV(tp, _)
+    | FitR(tp, _, _, _, _)
+    | FitBH(tp, _)
+    | FitBV(tp, _) =>
+      match (tp : @pdfdest.TargetPage) {
+        PageObject(i) =>
           match refnumstable.get(i) {
             Some(pagenumber) =>
               match mattable.get(pagenumber) {

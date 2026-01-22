@@ -434,7 +434,7 @@ pub fn target_of_pagenumber(
   index : Int,
 ) -> @pdfdest.Destination raise {
   match page_object_number(pdf, index) {
-    None => @pdfdest.Destination::NullDestination
-    Some(p) => @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(p))
+    None => NullDestination
+    Some(p) => Fit(PageObject(p))
   }
 }

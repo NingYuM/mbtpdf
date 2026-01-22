@@ -165,32 +165,32 @@ fn append_text_from_streams(
   }
 
   for op in ops {
-    match op {
-      @pdfops.Op::OpBT => {
+    match (op : @pdfops.Op) {
+      OpBT => {
         in_text = true
         current_extractor = None
       }
-      @pdfops.Op::OpET => {
+      OpET => {
         in_text = false
         current_extractor = None
       }
-      @pdfops.Op::OpTf(name, _) => if in_text { maybe_update_font(name) }
-      @pdfops.Op::OpTj(text) => if in_text { append_text_value(text) }
-      @pdfops.Op::OpTJ(obj) => if in_text { append_text_array(obj) }
-      @pdfops.Op::OpSingleQuote(text) =>
+      OpTf(name, _) => if in_text { maybe_update_font(name) }
+      OpTj(text) => if in_text { append_text_value(text) }
+      OpTJ(obj) => if in_text { append_text_array(obj) }
+      OpSingleQuote(text) =>
         if in_text {
           append_newline()
           append_text_value(text)
         }
-      @pdfops.Op::OpDoubleQuote(_, _, text) =>
+      OpDoubleQuote(_, _, text) =>
         if in_text {
           append_newline()
           append_text_value(text)
         }
-      @pdfops.Op::OpTStar => if in_text { append_newline() }
-      @pdfops.Op::OpTd(_, ty) => if in_text && ty != 0.0 { append_newline() }
-      @pdfops.Op::OpTD(_, ty) => if in_text && ty != 0.0 { append_newline() }
-      @pdfops.Op::OpDo(name) => append_text_from_xobject(name)
+      OpTStar => if in_text { append_newline() }
+      OpTd(_, ty) => if in_text && ty != 0.0 { append_newline() }
+      OpTD(_, ty) => if in_text && ty != 0.0 { append_newline() }
+      OpDo(name) => append_text_from_xobject(name)
       _ => ()
     }
   }

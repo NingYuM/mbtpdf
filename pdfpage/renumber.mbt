@@ -50,39 +50,33 @@ fn change_operator(
   op : @pdfops.Op,
 ) -> @pdfops.Op raise {
   match op {
-    @pdfops.Op::OpTf(f, size) =>
-      @pdfops.Op::OpTf(lookup("/Font", seqnum, f), size)
-    @pdfops.Op::Opgs(n) => @pdfops.Op::Opgs(lookup("/ExtGState", seqnum, n))
-    @pdfops.Op::OpCS(n) =>
+    OpTf(f, size) => OpTf(lookup("/Font", seqnum, f), size)
+    Opgs(n) => Opgs(lookup("/ExtGState", seqnum, n))
+    OpCS(n) =>
       match lookup_option("/ColorSpace", seqnum, n) {
-        Some(x) => @pdfops.Op::OpCS(x)
-        None => @pdfops.Op::OpCS(n)
+        Some(x) => OpCS(x)
+        None => OpCS(n)
       }
-    @pdfops.Op::Opcs(n) =>
+    Opcs(n) =>
       match lookup_option("/ColorSpace", seqnum, n) {
-        Some(x) => @pdfops.Op::Opcs(x)
-        None => @pdfops.Op::Opcs(n)
+        Some(x) => Opcs(x)
+        None => Opcs(n)
       }
-    @pdfops.Op::OpSCNName(s, ns) =>
-      @pdfops.Op::OpSCNName(lookup("/Pattern", seqnum, s), ns)
-    @pdfops.Op::OpscnName(s, ns) =>
-      @pdfops.Op::OpscnName(lookup("/Pattern", seqnum, s), ns)
-    @pdfops.Op::Opsh(s) => @pdfops.Op::Opsh(lookup("/Shading", seqnum, s))
-    @pdfops.Op::OpDo(x) => @pdfops.Op::OpDo(lookup("/XObject", seqnum, x))
-    @pdfops.Op::OpDP(n, @pdf.PdfObject::Name(p)) =>
-      @pdfops.Op::OpDP(
-        n,
-        @pdf.PdfObject::Name(lookup("/Properties", seqnum, p)),
-      )
-    @pdfops.Op::OpBDC(n, @pdf.PdfObject::Name(p)) =>
+    OpSCNName(s, ns) => OpSCNName(lookup("/Pattern", seqnum, s), ns)
+    OpscnName(s, ns) => OpscnName(lookup("/Pattern", seqnum, s), ns)
+    Opsh(s) => Opsh(lookup("/Shading", seqnum, s))
+    OpDo(x) => OpDo(lookup("/XObject", seqnum, x))
+    OpDP(n, @pdf.PdfObject::Name(p)) =>
+      OpDP(n, @pdf.PdfObject::Name(lookup("/Properties", seqnum, p)))
+    OpBDC(n, @pdf.PdfObject::Name(p)) =>
       match lookup_option("/Properties", seqnum, p) {
-        Some(x) => @pdfops.Op::OpBDC(n, @pdf.PdfObject::Name(x))
+        Some(x) => OpBDC(n, @pdf.PdfObject::Name(x))
         None => {
           @pdfe.log("Warning: Missing OpBDC /Properties entry\n")
-          @pdfops.Op::OpBDC(n, @pdf.PdfObject::Name(p))
+          OpBDC(n, @pdf.PdfObject::Name(p))
         }
       }
-    @pdfops.Op::InlineImage((dict, dp, bytes)) => {
+    InlineImage((dict, dp, bytes)) => {
       let dict_updated = match
         @pdf.lookup_direct_orelse(pdf, "/CS", "/ColorSpace", dict) {
         Some(@pdf.PdfObject::Name("/DeviceGray"))
@@ -104,7 +98,7 @@ fn change_operator(
         }
         _ => dict
       }
-      @pdfops.Op::InlineImage((dict_updated, dp, bytes))
+      InlineImage((dict_updated, dp, bytes))
     }
     _ => op
   }

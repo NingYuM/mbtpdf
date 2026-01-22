@@ -326,11 +326,11 @@ fn node_of_line(
     ("/Title", @pdf.PdfObject::String(title)),
   ]
   let dest = @pdfdest.pdfobject_of_destination(target)
-  match dest {
-    @pdf.PdfObject::Null => ()
+  match (dest : @pdf.PdfObject) {
+    Null => ()
     _ =>
-      match target {
-        @pdfdest.Destination::Action(action) => entries.push(("/A", action))
+      match (target : @pdfdest.Destination) {
+        Action(action) => entries.push(("/A", action))
         _ => entries.push(("/Dest", dest))
       }
   }
@@ -461,23 +461,23 @@ fn do_until_no_next_lb(
       ""
     }
   }
-  let page = match @pdf.lookup_direct(pdf, "/Dest", outline) {
+  let page : @pdfdest.Destination = match @pdf.lookup_direct(pdf, "/Dest", outline) {
     Some(@pdf.PdfObject::String(stringdest)) if preserve_actions =>
-      @pdfdest.Destination::StringDestination(stringdest)
+      StringDestination(stringdest)
     Some(dest) => @pdfdest.read_destination(pdf, dest, shallow=preserve_actions)
     None =>
       match @pdf.lookup_direct(pdf, "/A", outline) {
-        None => @pdfdest.Destination::NullDestination
+        None => NullDestination
         Some(action) =>
           if preserve_actions {
             match @pdf.lookup_direct(pdf, "/D", action) {
               Some(@pdf.PdfObject::Array(_) as dest) =>
                 @pdfdest.read_destination(pdf, dest, shallow=preserve_actions)
-              _ => @pdfdest.Destination::Action(@pdf.direct(pdf, action))
+              _ => Action(@pdf.direct(pdf, action))
             }
           } else {
             match @pdf.lookup_direct(pdf, "/D", action) {
-              None => @pdfdest.Destination::Action(@pdf.direct(pdf, action))
+              None => Action(@pdf.direct(pdf, action))
               Some(dest) =>
                 @pdfdest.read_destination(pdf, dest, shallow=preserve_actions)
             }
