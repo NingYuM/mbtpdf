@@ -35,10 +35,8 @@ test "write_encoding handles builtins and custom diffs" {
       }
     _ => fail("expected encoding dictionary")
   }
-  let implicit = @pdftext.read_encoding(
-    pdf,
-    @pdf.PdfObject::Dictionary([("/Subtype", Name("/Type0"))]),
-  )
+  let implicit_dict : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type0"))])
+  let implicit = @pdftext.read_encoding(pdf, implicit_dict)
   let implicit_result : Result[Int, Error] = try? @pdftext.write_encoding(
     pdf, implicit,
   )

@@ -43,13 +43,11 @@ test "write_encoding covers mac and custom encodings" {
     }
     _ => fail("expected custom encoding dictionary")
   }
-  let implicit_encoding = @pdftext.read_encoding(
-    pdf,
-    @pdf.PdfObject::Dictionary([
-      ("/Subtype", Name("/Type1")),
-      ("/BaseFont", Name("/CustomFont")),
-    ]),
-  )
+  let font_dict : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name("/Type1")),
+    ("/BaseFont", Name("/CustomFont")),
+  ])
+  let implicit_encoding = @pdftext.read_encoding(pdf, font_dict)
   let implicit_result : Result[Int, Error] = try? @pdftext.write_encoding(
     pdf, implicit_encoding,
   )
@@ -59,13 +57,11 @@ test "write_encoding covers mac and custom encodings" {
 ///|
 test "write_font errors on unsupported fonts" {
   let pdf = @pdf.empty()
-  let simple_font = @pdftext.read_font(
-    pdf,
-    @pdf.PdfObject::Dictionary([
-      ("/Subtype", Name("/Type1")),
-      ("/BaseFont", Name("/CustomFont")),
-    ]),
-  )
+  let simple_dict : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name("/Type1")),
+    ("/BaseFont", Name("/CustomFont")),
+  ])
+  let simple_font = @pdftext.read_font(pdf, simple_dict)
   let simple_result : Result[Int, Error] = try? @pdftext.write_font(
     pdf, simple_font,
   )

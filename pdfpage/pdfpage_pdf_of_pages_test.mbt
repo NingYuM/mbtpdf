@@ -1,11 +1,6 @@
 ///|
 fn pdf_of_pages_rect() -> @pdf.PdfObject {
-  @pdf.PdfObject::Array([
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(100.0),
-    @pdf.PdfObject::Real(100.0),
-  ])
+  Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
 }
 
 ///|
@@ -87,12 +82,12 @@ test "pdf_of_pages builds pagetree for many pages" {
     Some(obj) => obj
     None => fail("expected /Pages")
   }
-  match @pdf.lookup_direct(subset, "/Type", pages) {
-    Some(@pdf.PdfObject::Name("/Pages")) => ()
+  match (@pdf.lookup_direct(subset, "/Type", pages) : @pdf.PdfObject?) {
+    Some(Name("/Pages")) => ()
     _ => fail("expected /Type /Pages")
   }
-  let count = match @pdf.lookup_direct(subset, "/Count", pages) {
-    Some(@pdf.PdfObject::Integer(n)) => n
+  let count = match (@pdf.lookup_direct(subset, "/Count", pages) : @pdf.PdfObject?) {
+    Some(Integer(n)) => n
     _ => fail("expected /Count")
   }
   assert_eq(count, 11)
@@ -128,16 +123,12 @@ test "pdf_of_pages retains page labels when requested" {
 ///|
 test "pdf_of_pages trims structure tree" {
   let pdf = pdf_of_pages_make_pdf(2)
-  let struct_tree = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name("/StructTreeRoot")),
+  let struct_tree : @pdf.PdfObject = Dictionary([
+    ("/Type", Name("/StructTreeRoot")),
   ])
   let struct_num = @pdf.addobj(pdf, struct_tree)
   let root = @pdf.catalog_of_pdf(pdf)
-  let updated_root = @pdf.add_dict_entry(
-    root,
-    "/StructTreeRoot",
-    @pdf.PdfObject::Indirect(struct_num),
-  )
+  let updated_root = @pdf.add_dict_entry(root, "/StructTreeRoot", Indirect(struct_num))
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
   let subset = @pdfpage.pdf_of_pages(pdf, [1], process_struct_tree=true)
   let root2 = @pdf.catalog_of_pdf(subset)
@@ -161,14 +152,14 @@ test "pdf_of_pages fails without root" {
 test "endpage_fast handles missing count" {
   let pdf0 = @pdf.empty()
   let rect = pdf_of_pages_rect()
-  let page = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name("/Page")),
+  let page : @pdf.PdfObject = Dictionary([
+    ("/Type", Name("/Page")),
     ("/MediaBox", rect),
   ])
   let page_num = @pdf.addobj(pdf0, page)
-  let pages = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name("/Pages")),
-    ("/Kids", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(page_num)])),
+  let pages : @pdf.PdfObject = Dictionary([
+    ("/Type", Name("/Pages")),
+    ("/Kids", Array([Indirect(page_num)])),
   ])
   let pages_num = @pdf.addobj(pdf0, pages)
   let pdf = @pdfpage.add_root(pages_num, [], pdf0)

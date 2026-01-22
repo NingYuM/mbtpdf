@@ -1,6 +1,6 @@
 ///|
 fn merge_rect() -> @pdf.PdfObject {
-  @pdf.PdfObject::Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
 }
 
 ///|

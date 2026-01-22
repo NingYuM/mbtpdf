@@ -13,11 +13,11 @@ test "string_of_ops renders basic operators" {
 ///|
 test "stream_of_ops builds a stream" {
   let stream = @pdfops.stream_of_ops([@pdfops.Op::Opq, @pdfops.Op::OpQ])
-  match stream {
-    @pdf.PdfObject::Stream(r) => {
+  match (stream : @pdf.PdfObject) {
+    Stream(r) => {
       let (dict, contents) = r.val
-      match @pdf.lookup_direct(@pdf.empty(), "/Length", dict) {
-        Some(@pdf.PdfObject::Integer(length)) => assert_true(length > 0)
+      match (@pdf.lookup_direct(@pdf.empty(), "/Length", dict) : @pdf.PdfObject?) {
+        Some(Integer(length)) => assert_true(length > 0)
         _ => fail("expected /Length")
       }
       match contents {
@@ -198,9 +198,7 @@ test "parse_operators handles diverse ops" {
     }),
     OpTStar,
     OpTj("Hello"),
-    OpTJ(
-      @pdf.PdfObject::Array([String("A"), Integer(-120), String("B")]),
-    ),
+    OpTJ(Array([String("A"), Integer(-120), String("B")])),
     OpSingleQuote("World"),
     OpDoubleQuote(1.0, 2.0, "Quote"),
     Opd0(0.0, 1.0),
@@ -222,9 +220,9 @@ test "parse_operators handles diverse ops" {
     Opsh("/Sh1"),
     OpDo("/X1"),
     OpMP("/Tag"),
-    OpDP("/Tag", @pdf.PdfObject::Dictionary([("/K", Integer(1))])),
+    OpDP("/Tag", Dictionary([("/K", Integer(1))])),
     OpBMC("/Span"),
-    OpBDC("/Span", @pdf.PdfObject::Dictionary([("/Lang", String("en"))])),
+    OpBDC("/Span", Dictionary([("/Lang", String("en"))])),
     OpEMC,
     OpBX,
     OpEX,

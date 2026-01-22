@@ -20,9 +20,9 @@ test "ppstub returns identity matrix" {
 ///|
 test "pages_of_pagetree_quick detects cycle" {
   let pdf0 = @pdf.empty()
-  let pages = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name("/Pages")),
-    ("/Kids", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(1)])),
+  let pages : @pdf.PdfObject = Dictionary([
+    ("/Type", Name("/Pages")),
+    ("/Kids", Array([Indirect(1)])),
   ])
   @pdf.addobj_given_num(pdf0, (1, pages))
   let pdf = add_root(1, [], pdf0)

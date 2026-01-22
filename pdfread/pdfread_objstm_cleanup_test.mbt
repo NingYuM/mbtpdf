@@ -15,14 +15,12 @@ test "pdf_of_input removes xref and objstm objects after eager parse" {
   let parsed = @pdfread.pdf_of_input(None, None, input)
   for objnum in @pdf.objnumbers(parsed) {
     let obj = @pdf.lookup_obj(parsed, objnum)
-    match obj {
-      @pdf.PdfObject::Stream(r) => {
+    match (obj : @pdf.PdfObject) {
+      Stream(r) => {
         let (dict, _) = r.val
-        match @pdf.lookup_direct(parsed, "/Type", dict) {
-          Some(@pdf.PdfObject::Name("/XRef")) =>
-            fail("expected xref streams removed")
-          Some(@pdf.PdfObject::Name("/ObjStm")) =>
-            fail("expected objstm streams removed")
+        match (@pdf.lookup_direct(parsed, "/Type", dict) : @pdf.PdfObject?) {
+          Some(Name("/XRef")) => fail("expected xref streams removed")
+          Some(Name("/ObjStm")) => fail("expected objstm streams removed")
           _ => ()
         }
       }

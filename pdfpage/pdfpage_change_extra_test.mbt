@@ -30,10 +30,7 @@ fn set_catalog_entry(
 
 ///|
 fn dest_for_page(page_objnum : Int) -> @pdf.PdfObject {
-  @pdf.PdfObject::Array([
-    @pdf.PdfObject::Indirect(page_objnum),
-    @pdf.PdfObject::Name("/Fit"),
-  ])
+  Array([Indirect(page_objnum), Name("/Fit")])
 }
 
 ///|
@@ -50,10 +47,7 @@ fn xyz_dest_for_page(page_objnum : Int) -> @pdf.PdfObject {
 
 ///|
 fn action_for_dest(dest : @pdf.PdfObject) -> @pdf.PdfObject {
-  @pdf.PdfObject::Dictionary([
-    ("/S", @pdf.PdfObject::Name("/GoTo")),
-    ("/D", dest),
-  ])
+  Dictionary([("/S", Name("/GoTo")), ("/D", dest)])
 }
 
 ///|
@@ -63,13 +57,9 @@ fn update_page_annots(
   annots : Array[@pdf.PdfObject],
 ) -> Unit raise {
   let page_obj = @pdf.lookup_obj(pdf, page_objnum)
-  match page_obj {
-    @pdf.PdfObject::Dictionary(_) => {
-      let updated = @pdf.add_dict_entry(
-        page_obj,
-        "/Annots",
-        @pdf.PdfObject::Array(annots),
-      )
+  match (page_obj : @pdf.PdfObject) {
+    Dictionary(_) => {
+      let updated = @pdf.add_dict_entry(page_obj, "/Annots", Array(annots))
       @pdf.addobj_given_num(pdf, (page_objnum, updated))
     }
     _ => raise @pdf.PdfError::Msg("page object not a dictionary")
@@ -142,32 +132,31 @@ test "change_pages rewrites bookmarks annotations and openaction" {
   pdf.objects.object_stream_ids.set(page1, page1)
   pdf = add_bookmarks_for_pages(pdf, page1, page2)
   let dest_page2 = dest_for_page(page2)
-  let annot_dest = @pdf.PdfObject::Dictionary([
-    ("/Subtype", @pdf.PdfObject::Name("/Link")),
+  let annot_dest : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name("/Link")),
     ("/Dest", dest_page2),
   ])
   let annot_dest_num = @pdf.addobj(pdf, annot_dest)
-  let annot_action = @pdf.PdfObject::Dictionary([
-    ("/Subtype", @pdf.PdfObject::Name("/Link")),
+  let annot_action : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name("/Link")),
     ("/A", action_for_dest(dest_page2)),
   ])
   let annot_action_num = @pdf.addobj(pdf, annot_action)
-  let annot_action_invalid = @pdf.PdfObject::Dictionary([
-    ("/Subtype", @pdf.PdfObject::Name("/Link")),
-    ("/A", @pdf.PdfObject::Null),
+  let annot_action_invalid : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name("/Link")),
+    ("/A", Null),
   ])
   let annot_action_invalid_num = @pdf.addobj(pdf, annot_action_invalid)
-  let annot_not_link = @pdf.PdfObject::Dictionary([
-    ("/Subtype", @pdf.PdfObject::Name("/Text")),
-  ])
+  let annot_not_link : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Text"))])
   let annot_not_link_num = @pdf.addobj(pdf, annot_not_link)
-  update_page_annots(pdf, page1, [
-    @pdf.PdfObject::Indirect(annot_dest_num),
-    @pdf.PdfObject::Indirect(annot_action_num),
-    @pdf.PdfObject::Indirect(annot_action_invalid_num),
-    @pdf.PdfObject::Indirect(annot_not_link_num),
-    @pdf.PdfObject::Null,
-  ])
+  let annots : Array[@pdf.PdfObject] = [
+    Indirect(annot_dest_num),
+    Indirect(annot_action_num),
+    Indirect(annot_action_invalid_num),
+    Indirect(annot_not_link_num),
+    Null,
+  ]
+  update_page_annots(pdf, page1, annots)
   set_catalog_entry(
     pdf,
     "/OpenAction",
@@ -186,12 +175,12 @@ test "change_pages rewrites bookmarks annotations and openaction" {
   let updated = @pdfpage.change_pages(true, pdf, pages, matrices~)
   assert_eq(@pdfpage.pages_of_pagetree_quick(updated), 2)
   let catalog = @pdf.catalog_of_pdf(updated)
-  match @pdf.lookup_direct(updated, "/OpenAction", catalog) {
-    Some(@pdf.PdfObject::Dictionary(entries)) =>
+  match (@pdf.lookup_direct(updated, "/OpenAction", catalog) : @pdf.PdfObject?) {
+    Some(Dictionary(entries)) =>
       match entries.search_by(pair => pair.0 == "/D") {
         Some(idx) =>
-          match entries[idx].1 {
-            @pdf.PdfObject::Indirect(_) => ()
+          match (entries[idx].1 : @pdf.PdfObject) {
+            Indirect(_) => ()
             _ => fail("expected indirect /D in /OpenAction")
           }
         None => fail("missing /D in /OpenAction")
@@ -209,8 +198,8 @@ test "change_pages keeps array openaction for identity matrices" {
   let matrices = [(1, @pdftransform.i_matrix), (2, @pdftransform.i_matrix)]
   let updated = @pdfpage.change_pages(true, pdf, pages, matrices~)
   let catalog = @pdf.catalog_of_pdf(updated)
-  match @pdf.lookup_direct(updated, "/OpenAction", catalog) {
-    Some(@pdf.PdfObject::Array(_)) => ()
+  match (@pdf.lookup_direct(updated, "/OpenAction", catalog) : @pdf.PdfObject?) {
+    Some(Array(_)) => ()
     _ => fail("expected array /OpenAction")
   }
 }

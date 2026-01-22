@@ -1,21 +1,20 @@
 ///|
 fn fixups_sample_rect() -> @pdf.PdfObject {
-  @pdf.PdfObject::Array([
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(100.0),
-    @pdf.PdfObject::Real(100.0),
-  ])
+  Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
 }
 
 ///|
 fn annot_numbers(pdf : @pdf.Pdf, page_obj : @pdf.PdfObject) -> Array[Int] {
-  match @pdf.lookup_direct(pdf, "/Annots", page_obj) {
-    Some(@pdf.PdfObject::Array(arr)) =>
-      arr.filter_map(obj => match obj {
-        @pdf.PdfObject::Indirect(i) => Some(i)
-        _ => None
-      })
+  match (@pdf.lookup_direct(pdf, "/Annots", page_obj) : @pdf.PdfObject?) {
+    Some(Array(arr)) =>
+      arr.filter_map(
+        fn(obj) {
+          match (obj : @pdf.PdfObject) {
+            Indirect(i) => Some(i)
+            _ => None
+          }
+        },
+      )
     _ => []
   }
 }
@@ -37,24 +36,15 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
   let page = @pdfpage.custompage(fixups_sample_rect())
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page, page], pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
-  let annot_base = @pdf.PdfObject::Dictionary([
-    ("/Subtype", @pdf.PdfObject::Name("/Text")),
-  ])
+  let annot_base : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Text"))])
   let annot_num = @pdf.addobj(pdf, annot_base)
-  let annot_with_popup = @pdf.add_dict_entry(
-    annot_base,
-    "/Popup",
-    @pdf.PdfObject::Indirect(annot_num),
-  )
+  let annot_with_popup = @pdf.add_dict_entry(annot_base, "/Popup", Indirect(annot_num))
   @pdf.addobj_given_num(pdf, (annot_num, annot_with_popup))
   let refs = @pdf.page_reference_numbers(pdf)
   for refnum in refs {
     let page_obj = @pdf.lookup_obj(pdf, refnum)
-    let updated = @pdf.add_dict_entry(
-      page_obj,
-      "/Annots",
-      @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(annot_num)]),
-    )
+    let annots : @pdf.PdfObject = Array([Indirect(annot_num)])
+    let updated = @pdf.add_dict_entry(page_obj, "/Annots", annots)
     @pdf.addobj_given_num(pdf, (refnum, updated))
   }
   @pdfpage.fixup_duplicate_annots(pdf)
@@ -64,8 +54,8 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
   assert_eq(annots1.length(), 1)
   assert_eq(annots2.length(), 1)
   assert_true(annots1[0] != annots2[0])
-  match @pdf.lookup_obj(pdf, annots2[0]) {
-    @pdf.PdfObject::Null => fail("expected copied annotation")
+  match (@pdf.lookup_obj(pdf, annots2[0]) : @pdf.PdfObject) {
+    Null => fail("expected copied annotation")
     _ => ()
   }
 }
@@ -73,13 +63,10 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
 ///|
 test "fixup_destinations removes nulled entries" {
   let pdf = @pdfpage.minimum_valid_pdf()
-  let null_num = @pdf.addobj(pdf, @pdf.PdfObject::Null)
-  let dead_dest = @pdf.PdfObject::Array([
-    @pdf.PdfObject::Indirect(null_num),
-    @pdf.PdfObject::Name("/Fit"),
-  ])
+  let null_num = @pdf.addobj(pdf, Null)
+  let dead_dest : @pdf.PdfObject = Array([Indirect(null_num), Name("/Fit")])
   let tree = @pdftree.build_name_tree(false, pdf, [("Dead", dead_dest)])
-  let names = @pdf.PdfObject::Dictionary([("/Dests", tree)])
+  let names : @pdf.PdfObject = Dictionary([("/Dests", tree)])
   let catalog = @pdf.catalog_of_pdf(pdf)
   let updated_catalog = @pdf.add_dict_entry(catalog, "/Names", names)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_catalog))
@@ -121,15 +108,15 @@ test "fixup_parents raises without page tree" {
 ///|
 test "fixup_parents skips direct kids" {
   let pdf0 = @pdf.empty()
-  let page = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name("/Page")),
-    ("/Resources", @pdf.PdfObject::Dictionary([])),
+  let page : @pdf.PdfObject = Dictionary([
+    ("/Type", Name("/Page")),
+    ("/Resources", Dictionary([])),
     ("/MediaBox", fixups_sample_rect()),
   ])
-  let pages = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name("/Pages")),
-    ("/Kids", @pdf.PdfObject::Array([page])),
-    ("/Count", @pdf.PdfObject::Integer(1)),
+  let pages : @pdf.PdfObject = Dictionary([
+    ("/Type", Name("/Pages")),
+    ("/Kids", Array([page])),
+    ("/Count", Integer(1)),
   ])
   let pages_num = @pdf.addobj(pdf0, pages)
   let pdf = @pdfpage.add_root(pages_num, [], pdf0)

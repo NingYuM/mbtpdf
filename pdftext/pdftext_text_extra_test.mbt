@@ -70,13 +70,11 @@ test "encoding tables include mac variants and filled standards" {
 ///|
 test "reverse tables handle implicit and mac encodings" {
   let pdf = @pdf.empty()
-  let implicit_encoding = @pdftext.read_encoding(
-    pdf,
-    @pdf.PdfObject::Dictionary([
-      ("/Subtype", Name("/Type1")),
-      ("/BaseFont", Name("/CustomFont")),
-    ]),
-  )
+  let font_dict : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name("/Type1")),
+    ("/BaseFont", Name("/CustomFont")),
+  ])
+  let implicit_encoding = @pdftext.read_encoding(pdf, font_dict)
   let implicit = @pdftext.reverse_table_of_encoding(implicit_encoding)
   assert_eq(implicit.get("/A"), None)
   let macroman_encoding = @pdftext.read_encoding(

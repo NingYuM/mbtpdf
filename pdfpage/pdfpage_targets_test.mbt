@@ -25,12 +25,9 @@ test "pagenumber_of_target handles non-page targets" {
 test "pagenumber_of_target follows GoTo action and fastrefnums" {
   let pdf = @pdfpage.minimum_valid_pdf()
   let refs = @pdf.page_reference_numbers(pdf)
-  let dest_array = @pdf.PdfObject::Array([
-    @pdf.PdfObject::Indirect(refs[0]),
-    @pdf.PdfObject::Name("/Fit"),
-  ])
-  let action = @pdf.PdfObject::Dictionary([
-    ("/S", @pdf.PdfObject::Name("/GoTo")),
+  let dest_array : @pdf.PdfObject = Array([Indirect(refs[0]), Name("/Fit")])
+  let action : @pdf.PdfObject = Dictionary([
+    ("/S", Name("/GoTo")),
     ("/D", dest_array),
   ])
   let table : Map[Int, Int] = Map::new()
@@ -42,12 +39,8 @@ test "pagenumber_of_target follows GoTo action and fastrefnums" {
 ///|
 test "pagenumber_of_target handles action edge cases" {
   let pdf = @pdfpage.minimum_valid_pdf()
-  let action_missing = @pdf.PdfObject::Dictionary([
-    ("/S", @pdf.PdfObject::Name("/GoTo")),
-  ])
-  let action_other = @pdf.PdfObject::Dictionary([
-    ("/S", @pdf.PdfObject::Name("/URI")),
-  ])
+  let action_missing : @pdf.PdfObject = Dictionary([("/S", Name("/GoTo"))])
+  let action_other : @pdf.PdfObject = Dictionary([("/S", Name("/URI"))])
   assert_eq(
     @pdfpage.pagenumber_of_target(
       pdf,
@@ -68,12 +61,9 @@ test "pagenumber_of_target handles action edge cases" {
 test "pagenumber_of_target follows GoTo action without fastrefnums" {
   let pdf = @pdfpage.minimum_valid_pdf()
   let refs = @pdf.page_reference_numbers(pdf)
-  let dest_array = @pdf.PdfObject::Array([
-    @pdf.PdfObject::Indirect(refs[0]),
-    @pdf.PdfObject::Name("/Fit"),
-  ])
-  let action = @pdf.PdfObject::Dictionary([
-    ("/S", @pdf.PdfObject::Name("/GoTo")),
+  let dest_array : @pdf.PdfObject = Array([Indirect(refs[0]), Name("/Fit")])
+  let action : @pdf.PdfObject = Dictionary([
+    ("/S", Name("/GoTo")),
     ("/D", dest_array),
   ])
   let dest = @pdfdest.Destination::Action(action)

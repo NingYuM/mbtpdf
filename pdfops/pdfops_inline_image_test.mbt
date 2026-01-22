@@ -246,38 +246,34 @@ fn parse_inline_image_error(dict : @pdf.PdfObject) -> Unit raise {
 
 ///|
 test "parse inline image errors on missing width/height/BPC" {
-  parse_inline_image_error(
-    @pdf.PdfObject::Dictionary([
-      ("/H", Integer(1)),
-      ("/BPC", Integer(8)),
-      ("/CS", Name("/DeviceGray")),
-    ]),
-  )
-  parse_inline_image_error(
-    @pdf.PdfObject::Dictionary([
-      ("/W", Integer(1)),
-      ("/BPC", Integer(8)),
-      ("/CS", Name("/DeviceGray")),
-    ]),
-  )
-  parse_inline_image_error(
-    @pdf.PdfObject::Dictionary([
-      ("/W", Integer(1)),
-      ("/H", Integer(1)),
-      ("/CS", Name("/DeviceGray")),
-    ]),
-  )
+  let dict1 : @pdf.PdfObject = Dictionary([
+    ("/H", Integer(1)),
+    ("/BPC", Integer(8)),
+    ("/CS", Name("/DeviceGray")),
+  ])
+  parse_inline_image_error(dict1)
+  let dict2 : @pdf.PdfObject = Dictionary([
+    ("/W", Integer(1)),
+    ("/BPC", Integer(8)),
+    ("/CS", Name("/DeviceGray")),
+  ])
+  parse_inline_image_error(dict2)
+  let dict3 : @pdf.PdfObject = Dictionary([
+    ("/W", Integer(1)),
+    ("/H", Integer(1)),
+    ("/CS", Name("/DeviceGray")),
+  ])
+  parse_inline_image_error(dict3)
 }
 
 ///|
 test "parse inline image errors on missing colorspace" {
-  parse_inline_image_error(
-    @pdf.PdfObject::Dictionary([
-      ("/W", Integer(1)),
-      ("/H", Integer(1)),
-      ("/BPC", Integer(8)),
-    ]),
-  )
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/W", Integer(1)),
+    ("/H", Integer(1)),
+    ("/BPC", Integer(8)),
+  ])
+  parse_inline_image_error(dict)
 }
 
 ///|
@@ -349,15 +345,17 @@ test "parse inline image errors on missing colorspace entry and type" {
   let rendered = @pdfops.string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x00]))),
   ])
+  let resources1 : @pdf.PdfObject = Dictionary([("/ColorSpace", Dictionary([]))])
   let missing_entry : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
     pdf,
-    @pdf.PdfObject::Dictionary([("/ColorSpace", Dictionary([]))]),
+    resources1,
     @pdfio.bytes_of_string(rendered),
   )
   assert_true(missing_entry is Err(_))
+  let resources2 : @pdf.PdfObject = Dictionary([("/ColorSpace", Integer(1))])
   let bad_type : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
     pdf,
-    @pdf.PdfObject::Dictionary([("/ColorSpace", Integer(1))]),
+    resources2,
     @pdfio.bytes_of_string(rendered),
   )
   assert_true(bad_type is Err(_))
@@ -370,9 +368,10 @@ test "parse inline image errors on missing colorspace entry and type" {
   let bad_rendered = @pdfops.string_of_ops([
     @pdfops.Op::InlineImage((bad_cs, None, @pdfio.bytes_of_list([0x00]))),
   ])
+  let resources3 : @pdf.PdfObject = Dictionary([])
   let bad_res : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
     pdf,
-    @pdf.PdfObject::Dictionary([]),
+    resources3,
     @pdfio.bytes_of_string(bad_rendered),
   )
   assert_true(bad_res is Err(_))

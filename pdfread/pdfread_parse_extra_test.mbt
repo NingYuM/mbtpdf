@@ -27,8 +27,8 @@ test "parse returns null for empty object" {
   ]
   let (objnum, obj) = @pdfsyntax.parse(tokens)
   assert_eq(objnum, 10)
-  match obj {
-    @pdf.PdfObject::Null => ()
+  match (obj : @pdf.PdfObject) {
+    Null => ()
     _ => fail("expected null object")
   }
 }
@@ -46,8 +46,8 @@ test "parse skips unmatched stream pattern" {
   ]
   let (objnum, obj) = @pdfsyntax.parse(tokens)
   assert_eq(objnum, 1)
-  match obj {
-    @pdf.PdfObject::Boolean(false) => ()
+  match (obj : @pdf.PdfObject) {
+    Boolean(false) => ()
     _ => fail("expected boolean object")
   }
 }
@@ -57,8 +57,8 @@ test "parse returns null when failure_is_ok" {
   let tokens = [@pdfgenlex.Token::LexObj, @pdfgenlex.Token::LexEndObj]
   let (objnum, obj) = @pdfsyntax.parse(tokens, failure_is_ok=true)
   assert_eq(objnum, 0)
-  match obj {
-    @pdf.PdfObject::Null => ()
+  match (obj : @pdf.PdfObject) {
+    Null => ()
     _ => fail("expected null fallback object")
   }
 }

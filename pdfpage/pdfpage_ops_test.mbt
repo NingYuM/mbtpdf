@@ -1,6 +1,6 @@
 ///|
 fn ops_sample_rect() -> @pdf.PdfObject {
-  @pdf.PdfObject::Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
 }
 
 ///|
@@ -8,9 +8,9 @@ fn ops_page_with_ops(ops : Array[@pdfops.Op]) -> @pdfpage.Page raise {
   {
     content: [@pdfops.stream_of_ops(ops)],
     mediabox: ops_sample_rect(),
-    resources: @pdf.PdfObject::Dictionary([]),
+    resources: Dictionary([]),
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
 }
 

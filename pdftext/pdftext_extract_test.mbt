@@ -54,7 +54,7 @@ fn build_unicode_pdf() -> @pdf.Pdf raise {
   let page : @pdfpage.Page = {
     content: [stream],
     mediabox,
-    resources: @pdf.PdfObject::Dictionary([("/Font", Dictionary([("/F0", font)]))]),
+    resources: Dictionary([("/Font", Dictionary([("/F0", font)]))]),
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
@@ -119,7 +119,7 @@ test "extract text handles text ops and arrays" {
     OpTd(0.0, 10.0),
     OpTj("E"),
     OpTD(0.0, 10.0),
-    OpTJ(@pdf.PdfObject::Array([String("F"), Integer(120), String("")])),
+    OpTJ(Array([String("F"), Integer(120), String("")])),
     OpET,
   ]
   let page = extract_test_page(ops, Dictionary([]))

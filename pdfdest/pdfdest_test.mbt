@@ -231,7 +231,7 @@ test "read_destination handles missing and invalid objects" {
 ///|
 test "read_destination name resolution" {
   let pdf_no_root = @pdf.empty()
-  pdf_no_root.trailerdict = @pdf.PdfObject::Dictionary([])
+  pdf_no_root.trailerdict = Dictionary([])
   let no_root : Result[Destination, Error] = try? read_destination(
     pdf_no_root,
     Name("/Missing"),

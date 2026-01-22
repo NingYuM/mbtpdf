@@ -1,11 +1,11 @@
 ///|
 fn prefix_sample_rect() -> @pdf.PdfObject {
-  @pdf.PdfObject::Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
 }
 
 ///|
 fn prefix_resources() -> @pdf.PdfObject {
-  @pdf.PdfObject::Dictionary([
+  Dictionary([
     ("/Font", Dictionary([("/F1", Null)])),
     ("/ExtGState", Dictionary([("/GS1", Null)])),
     ("/ColorSpace", Dictionary([("/Cs1", Name("/DeviceRGB"))])),
@@ -34,7 +34,7 @@ test "shortest_unused_prefix handles dense prefixes" {
     mediabox: prefix_sample_rect(),
     resources,
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
@@ -57,8 +57,8 @@ test "add_prefix rewrites resources and operators" {
     OpscnName("/P1", [0.2]),
     Opsh("/S1"),
     OpDo("/X1"),
-    OpDP("/Tag", @pdf.PdfObject::Name("/Prop1")),
-    OpBDC("/Tag", @pdf.PdfObject::Name("/Prop1")),
+    OpDP("/Tag", Name("/Prop1")),
+    OpBDC("/Tag", Name("/Prop1")),
   ]
   let ops_secondary : Array[@pdfops.Op] = [Opq, OpQ]
   let page : @pdfpage.Page = {
@@ -69,7 +69,7 @@ test "add_prefix rewrites resources and operators" {
     mediabox: prefix_sample_rect(),
     resources,
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
@@ -179,7 +179,7 @@ test "add_prefix rewrites inline image colorspace names" {
     mediabox: prefix_sample_rect(),
     resources,
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
@@ -228,7 +228,7 @@ test "add_prefix handles filtered inline images with trailing ops" {
     mediabox: prefix_sample_rect(),
     resources,
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
@@ -267,7 +267,7 @@ test "add_prefix rejects blank resource names" {
     mediabox: prefix_sample_rect(),
     resources,
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
@@ -285,7 +285,7 @@ test "add_prefix handles single indirect contents" {
     mediabox: prefix_sample_rect(),
     resources,
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
@@ -328,9 +328,9 @@ test "add_prefix keeps direct inline colorspace names" {
   let page : @pdfpage.Page = {
     content: [@pdfops.stream_of_ops(ops)],
     mediabox: prefix_sample_rect(),
-    resources: @pdf.PdfObject::Dictionary([]),
+    resources: Dictionary([]),
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
@@ -371,9 +371,9 @@ test "add_prefix preserves inline colorspace arrays" {
   let page : @pdfpage.Page = {
     content: [@pdfops.stream_of_ops(ops)],
     mediabox: prefix_sample_rect(),
-    resources: @pdf.PdfObject::Dictionary([]),
+    resources: Dictionary([]),
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
@@ -422,9 +422,9 @@ test "add_prefix merges non-iso content streams" {
   let page : @pdfpage.Page = {
     content: [stream1, stream2],
     mediabox: prefix_sample_rect(),
-    resources: @pdf.PdfObject::Dictionary([]),
+    resources: Dictionary([]),
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page], @pdf.empty())
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)

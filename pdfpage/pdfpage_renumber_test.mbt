@@ -1,6 +1,6 @@
 ///|
 fn renumber_resources() -> @pdf.PdfObject {
-  @pdf.PdfObject::Dictionary([
+  Dictionary([
     ("/Font", Dictionary([("/F1", Null)])),
     ("/ExtGState", Dictionary([("/GS1", Null)])),
     ("/ColorSpace", Dictionary([("/CS1", Name("/DeviceRGB"))])),
@@ -24,16 +24,16 @@ fn renumber_page(rect : @pdf.PdfObject) -> @pdfpage.Page raise {
     OpscnName("/P1", [0.2]),
     Opsh("/Sh1"),
     OpDo("/X1"),
-    OpDP("/Span", @pdf.PdfObject::Name("/Prop1")),
-    OpBDC("/Span", @pdf.PdfObject::Name("/Prop1")),
-    OpBDC("/Span", @pdf.PdfObject::Name("/PropMissing")),
+    OpDP("/Span", Name("/Prop1")),
+    OpBDC("/Span", Name("/Prop1")),
+    OpBDC("/Span", Name("/PropMissing")),
   ]
   {
     content: [@pdfops.stream_of_ops(ops)],
     mediabox: rect,
     resources: renumber_resources(),
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
 }
 

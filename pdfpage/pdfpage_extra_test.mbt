@@ -41,11 +41,7 @@ test "pages_of_pagetree handles missing mediabox and non-stream contents" {
     None => fail("expected page object number")
   }
   let page1_obj = @pdf.lookup_obj(pdf, page1_num)
-  let page1_updated = @pdf.add_dict_entry(
-    page1_obj,
-    "/Contents",
-    @pdf.PdfObject::Array([Integer(1)]),
-  )
+  let page1_updated = @pdf.add_dict_entry(page1_obj, "/Contents", Array([Integer(1)]))
   @pdf.addobj_given_num(pdf, (page1_num, page1_updated))
   let page2_obj = @pdf.lookup_obj(pdf, page2_num)
   let page2_updated = @pdf.add_dict_entry(
@@ -293,10 +289,10 @@ test "renumber_pages updates resources and operators" {
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F1", 12.0), OpTj("Hi"), OpET]
   let page : @pdfpage.Page = {
     content: [@pdfops.stream_of_ops(ops)],
-    mediabox: @pdf.PdfObject::Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
+    mediabox: Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
     resources,
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
   let updated = @pdfpage.renumber_pages(pdf, [page])
   let renamed = updated[0]
@@ -325,10 +321,10 @@ test "add_prefix rewrites resources and content" {
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F1", 12.0), OpTj("Hi"), OpET]
   let page : @pdfpage.Page = {
     content: [@pdfops.stream_of_ops(ops)],
-    mediabox: @pdf.PdfObject::Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
+    mediabox: Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
     resources,
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
@@ -355,10 +351,10 @@ test "shortest_unused_prefix skips used names" {
   let resources : @pdf.PdfObject = Dictionary([("/Font", Dictionary([("/a1", Null)]))])
   let page : @pdfpage.Page = {
     content: [],
-    mediabox: @pdf.PdfObject::Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
+    mediabox: Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
     resources,
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
@@ -391,11 +387,8 @@ test "change_pages rewrites annotation and openaction" {
   let annot1 = @pdf.addobj(pdf, annot_dest)
   let annot2 = @pdf.addobj(pdf, annot_action)
   let page_obj = @pdf.lookup_obj(pdf, refs[0])
-  let updated_page = @pdf.add_dict_entry(
-    page_obj,
-    "/Annots",
-    @pdf.PdfObject::Array([Indirect(annot1), Indirect(annot2)]),
-  )
+  let annots : @pdf.PdfObject = Array([Indirect(annot1), Indirect(annot2)])
+  let updated_page = @pdf.add_dict_entry(page_obj, "/Annots", annots)
   @pdf.addobj_given_num(pdf, (refs[0], updated_page))
   let catalog = @pdf.catalog_of_pdf(pdf)
   let updated_catalog = @pdf.add_dict_entry(catalog, "/OpenAction", dest_array)
