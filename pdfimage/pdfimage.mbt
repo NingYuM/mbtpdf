@@ -193,31 +193,15 @@ fn decode_defaults(
 
 ///|
 fn decode_to_image(pdf : @pdf.Pdf, stream : @pdf.PdfObject) -> Unit raise {
-  match stream {
-    @pdf.PdfObject::Stream(r) => {
+  match (stream : @pdf.PdfObject) {
+    Stream(r) => {
       let (dict, _) = r.val
       match @pdf.lookup_direct(pdf, "/Filter", dict) {
         None => ()
-        Some(@pdf.PdfObject::Array([])) => ()
+        Some(Array([])) => ()
+        Some(Name("/DCTDecode" | "/DCT" | "/JBIG2Decode" | "/JPXDecode")) => ()
         Some(
-          @pdf.PdfObject::Name(
-            "/DCTDecode"
-            | "/DCT"
-            | "/JBIG2Decode"
-            | "/JPXDecode"
-          )
-        ) => ()
-        Some(
-          @pdf.PdfObject::Array(
-            [
-              @pdf.PdfObject::Name(
-                "/DCTDecode"
-                | "/DCT"
-                | "/JBIG2Decode"
-                | "/JPXDecode"
-              ),
-            ]
-          )
+          Array([Name("/DCTDecode" | "/DCT" | "/JBIG2Decode" | "/JPXDecode")])
         ) => ()
         _ => {
           @pdfcodec.decode_pdfstream_onestage(pdf, stream)
@@ -629,7 +613,7 @@ fn is_cmyk_base(space : @pdfspace.ColourSpace) -> Bool {
 ///|
 fn bpc_value(bpc : @pdf.PdfObject?) -> Int? {
   match bpc {
-    Some(@pdf.PdfObject::Integer(n)) => Some(n)
+    Some(Integer(n)) => Some(n)
     _ => None
   }
 }
@@ -772,13 +756,13 @@ pub fn colspace(
   resources : @pdf.PdfObject,
 ) -> @pdfspace.ColourSpace raise {
   match @pdf.lookup_direct_orelse(pdf, "/ImageMask", "/IM", dict) {
-    Some(@pdf.PdfObject::Boolean(true)) => @pdfspace.ColourSpace::DeviceGray
+    Some(Boolean(true)) => @pdfspace.ColourSpace::DeviceGray
     _ => {
       let colspace = @pdf.lookup_direct_orelse(pdf, "/ColorSpace", "/CS", dict)
       let space = match @pdf.lookup_direct(pdf, "/ColorSpace", resources) {
-        Some(@pdf.PdfObject::Dictionary(_) as dict_obj) =>
+        Some(Dictionary(_) as dict_obj) =>
           match colspace {
-            Some(@pdf.PdfObject::Name(name)) =>
+            Some(Name(name)) =>
               match @pdf.lookup_direct(pdf, name, dict_obj) {
                 Some(found) => found
                 None => @pdf.PdfObject::Name(name)
@@ -803,7 +787,7 @@ pub fn bpc(pdf : @pdf.Pdf, dict : @pdf.PdfObject) -> @pdf.PdfObject? {
     Some(bpc) => Some(bpc)
     None =>
       match @pdf.lookup_direct(pdf, "/ImageMask", dict) {
-        Some(@pdf.PdfObject::Boolean(true)) => Some(@pdf.PdfObject::Integer(1))
+        Some(Boolean(true)) => Some(@pdf.PdfObject::Integer(1))
         _ => None
       }
   }
@@ -832,28 +816,28 @@ pub fn get_image_24bpp(
 ) -> Image raise {
   let stream = @pdf.direct(pdf, stream)
   @pdf.getstream(stream)
-  let (streamdict, data) = match stream {
-    @pdf.PdfObject::Stream(r) => {
+  let (streamdict, data) = match (stream : @pdf.PdfObject) {
+    Stream(r) => {
       let (dict, payload) = r.val
-      match payload {
-        @pdf.Stream::Got(bytes) => (dict, bytes)
+      match (payload : @pdf.Stream) {
+        Got(bytes) => (dict, bytes)
         _ => raise @pdf.PdfError::Msg("get_image_24bpp: bad stream")
       }
     }
     _ => raise @pdf.PdfError::Msg("get_image_24bpp: bad stream")
   }
   let width = match @pdf.lookup_direct_orelse(pdf, "/Width", "/W", streamdict) {
-    Some(@pdf.PdfObject::Integer(x)) => x
+    Some(Integer(x)) => x
     _ => raise @pdf.PdfError::Msg("Malformed /Image width")
   }
   let height = match
     @pdf.lookup_direct_orelse(pdf, "/Height", "/H", streamdict) {
-    Some(@pdf.PdfObject::Integer(x)) => x
+    Some(Integer(x)) => x
     _ => raise @pdf.PdfError::Msg("Malformed /Image height")
   }
   let bpc_val = match
     @pdf.lookup_direct_orelse(pdf, "/BitsPerComponent", "/BPC", streamdict) {
-    Some(@pdf.PdfObject::Integer(n)) => n
+    Some(Integer(n)) => n
     _ => 0
   }
   decode_to_image(pdf, stream)
@@ -863,13 +847,12 @@ pub fn get_image_24bpp(
     )
     let decode_entry = decode_defaults(pdf, resources, decode_entry, streamdict)
     match decode_entry {
-      Some(@pdf.PdfObject::Array(nums)) =>
-        Some(nums.map(n => @pdf.getnum(pdf, n)))
+      Some(Array(nums)) => Some(nums.map(n => @pdf.getnum(pdf, n)))
       _ => None
     }
   }
   match @pdf.lookup_direct_orelse(pdf, "/Filter", "/F", streamdict) {
-    None | Some(@pdf.PdfObject::Array([])) => {
+    None | Some(Array([])) => {
       let raw = get_raw_image(pdf, resources, width, height, streamdict, data)
       let decode_entry = @pdf.lookup_direct_orelse(
         pdf, "/Decode", "/D", streamdict,
@@ -878,7 +861,7 @@ pub fn get_image_24bpp(
         pdf, resources, decode_entry, streamdict,
       )
       let floats = match decode_entry {
-        Some(@pdf.PdfObject::Array(elts)) => elts.map(e => @pdf.getnum(pdf, e))
+        Some(Array(elts)) => elts.map(e => @pdf.getnum(pdf, e))
         None => []
         _ => raise @pdf.PdfError::Msg("Bad /Decode")
       }
@@ -891,28 +874,21 @@ pub fn get_image_24bpp(
       }
       raw
     }
-    Some(@pdf.PdfObject::Name("/DCTDecode" | "/DCT"))
-    | Some(@pdf.PdfObject::Array([@pdf.PdfObject::Name("/DCTDecode" | "/DCT")])) =>
+    Some(Name("/DCTDecode" | "/DCT"))
+    | Some(Array([Name("/DCTDecode" | "/DCT")])) =>
       Image::JPEG(data, get_decode())
-    Some(@pdf.PdfObject::Name("/JBIG2Decode"))
-    | Some(@pdf.PdfObject::Array([@pdf.PdfObject::Name("/JBIG2Decode")])) => {
+    Some(Name("/JBIG2Decode")) | Some(Array([Name("/JBIG2Decode")])) => {
       let globals = match @pdf.lookup_direct(pdf, "/DecodeParms", streamdict) {
-        Some(@pdf.PdfObject::Dictionary(parms)) =>
-          match
-            @pdf.lookup_direct(
-              pdf,
-              "/JBIG2Globals",
-              @pdf.PdfObject::Dictionary(parms),
-            ) {
-            Some(@pdf.PdfObject::Indirect(i)) => Some(i)
+        Some(Dictionary(parms)) =>
+          match @pdf.lookup_direct(pdf, "/JBIG2Globals", Dictionary(parms)) {
+            Some(Indirect(i)) => Some(i)
             _ => None
           }
         _ => None
       }
       Image::JBIG2(data, get_decode(), globals)
     }
-    Some(@pdf.PdfObject::Name("/JPXDecode"))
-    | Some(@pdf.PdfObject::Array([@pdf.PdfObject::Name("/JPXDecode")])) =>
+    Some(Name("/JPXDecode")) | Some(Array([Name("/JPXDecode")])) =>
       Image::JPEG2000(data, get_decode())
     _ => raise @pdf.PdfError::Msg("decode_to_image")
   }
