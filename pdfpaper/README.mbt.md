@@ -70,6 +70,7 @@ test "paper accessors" {
   let w = @pdfpaper.width(paper)
   let h = @pdfpaper.height(paper)
   assert_true(w < h) // Portrait
+  debug_inspect((u,w,h), content="(Millimetre, 210, 297)")
 }
 ```
 
