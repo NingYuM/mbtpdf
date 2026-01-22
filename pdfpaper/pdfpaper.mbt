@@ -4,7 +4,7 @@ pub struct Paper {
   unit : @pdfunits.LengthUnit
   width : Double
   height : Double
-}
+} derive(Debug)
 
 ///|
 /// Make a paper size from unit, width, and height.

@@ -7,7 +7,7 @@ pub(all) enum PixelLayout {
   BPP8
   BPP24
   BPP48
-}
+} derive(Debug)
 
 ///|
 pub(all) enum Image {
@@ -15,7 +15,7 @@ pub(all) enum Image {
   JPEG2000(@pdfio.MutableBytes, Array[Double]?)
   JBIG2(@pdfio.MutableBytes, Array[Double]?, Int?)
   Raw(Int, Int, PixelLayout, @pdfio.MutableBytes)
-}
+} derive(Debug)
 
 ///|
 fn odd(n : Int) -> Bool {

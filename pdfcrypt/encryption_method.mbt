@@ -7,4 +7,4 @@ pub(all) enum EncryptionMethod {
   AES256bit(Bool)
   AES256bitISO(Bool)
   AlreadyEncrypted
-}
+} derive(Debug)

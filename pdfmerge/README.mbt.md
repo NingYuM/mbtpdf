@@ -47,6 +47,7 @@ Page ranges are 1-indexed arrays:
 
 ```mbt nocheck
 // All pages from document with 10 pages
+
 ///|
 let all_pages = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
@@ -134,6 +135,7 @@ async fn merge_two_files(
 
 ```mbt nocheck
 // Merge odd pages from doc1, even pages from doc2
+
 ///|
 let merged = @pdfmerge.merge_pdfs(
   false,

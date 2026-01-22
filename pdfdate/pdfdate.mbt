@@ -9,7 +9,7 @@ pub struct Date {
   second : Int
   hour_offset : Int
   minute_offset : Int
-}
+} derive(Debug)
 
 ///|
 /// Raised when parsing a PDF date fails.

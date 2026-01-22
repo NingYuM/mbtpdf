@@ -6,7 +6,7 @@ pub(all) enum TransformOp {
   Translate(Double, Double)
   ShearX((Double, Double), Double)
   ShearY((Double, Double), Double)
-}
+} derive(Debug)
 
 ///|
 /// A list of transformations, stored with the most recent op at the head.
@@ -21,7 +21,7 @@ pub(all) struct TransformMatrix {
   d : Double
   e : Double
   f : Double
-}
+} derive(Debug)
 
 ///|
 /// The identity transform.

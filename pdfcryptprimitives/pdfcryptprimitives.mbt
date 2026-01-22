@@ -4,7 +4,7 @@ pub(all) enum Encryption {
   ARC4(Int, Int)
   AESV2
   AESV3(Bool)
-}
+} derive(Debug)
 
 ///|
 fn bytes_of_int_arrays(values : Array[Array[Int]]) -> @pdfio.MutableBytes {

@@ -9,7 +9,7 @@ pub(all) enum Permission {
   NoExtract
   NoAssemble
   NoHqPrint
-} derive(Eq)
+} derive(Eq, Debug)
 
 ///|
 fn contains_perm(perms : Array[Permission], perm : Permission) -> Bool {

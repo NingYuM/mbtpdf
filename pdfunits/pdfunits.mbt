@@ -5,7 +5,7 @@ pub(all) enum LengthUnit {
   Inch
   Centimetre
   Millimetre
-}
+} derive(Debug)
 
 ///|
 /// Convert a measurement to points.

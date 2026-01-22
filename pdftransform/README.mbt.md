@@ -63,6 +63,7 @@ test "mktranslate" {
 
 ```mbt nocheck
 // Scale by (sx, sy) around center point
+
 ///|
 let m = @pdftransform.mkscale((0.0, 0.0), 2.0, 2.0)
 ```
@@ -71,6 +72,7 @@ let m = @pdftransform.mkscale((0.0, 0.0), 2.0, 2.0)
 
 ```mbt nocheck
 // Rotate by angle (radians) around center point
+
 ///|
 let m = @pdftransform.mkrotate((0.0, 0.0), 1.5708) // 90 degrees
 ```
@@ -79,6 +81,7 @@ let m = @pdftransform.mkrotate((0.0, 0.0), 1.5708) // 90 degrees
 
 ```mbt nocheck
 // Horizontal shear
+
 ///|
 let m = @pdftransform.mkshearx((0.0, 0.0), 0.5)
 
@@ -107,6 +110,7 @@ pub(all) enum TransformOp {
 
 ```mbt nocheck
 // Build transform from operations
+
 ///|
 let tr = @pdftransform.compose(
   @pdftransform.TransformOp::Translate(100.0, 100.0),

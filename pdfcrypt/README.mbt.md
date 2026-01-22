@@ -57,6 +57,7 @@ for perm in perms {
 
 ```mbt nocheck
 // Convert permission flags to/from integer
+
 ///|
 let banlist = @pdfcrypt.banlist_of_p(flags)
 ```
@@ -90,6 +91,7 @@ When reading encrypted PDFs:
 
 ```mbt nocheck
 // With user password
+
 ///|
 let pdf = @pdfread.pdf_of_file(
   user_password=Some("user123"),

@@ -142,6 +142,7 @@ test "string_of_pdf serializes objects" {
 
 ```mbt nocheck
 // Includes stream content in output
+
 ///|
 let s = @pdfwrite.string_of_pdf_including_data(stream_obj)
 ```

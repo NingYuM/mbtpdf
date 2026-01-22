@@ -8,7 +8,7 @@ pub(all) enum Encoding {
   Flate
   CCITT(Int, Int)
   CCITTG4(Int, Int)
-}
+} derive(Debug)
 
 ///|
 /// Predictors for decoded data.
@@ -20,7 +20,7 @@ pub enum Predictor {
   PNGAverage
   PNGPaeth
   PNGOptimum
-}
+} derive(Debug)
 
 ///|
 /// There was bad data.

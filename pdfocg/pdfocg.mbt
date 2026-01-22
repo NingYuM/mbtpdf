@@ -2,7 +2,7 @@
 /// Placeholder for optional content group usage dictionaries.
 pub(all) enum OcgUsage {
   Placeholder
-}
+} derive(Debug)
 
 ///|
 /// Optional content group.
@@ -10,7 +10,7 @@ pub(all) struct Ocg {
   ocg_name : String
   ocg_intent : Array[String]
   ocg_usage : OcgUsage?
-}
+} derive(Debug)
 
 ///|
 /// Optional content group visibility state.
@@ -18,27 +18,27 @@ pub(all) enum OcgState {
   On
   Off
   Unchanged
-}
+} derive(Debug)
 
 ///|
 /// Optional content group list mode.
 pub(all) enum OcgListMode {
   AllPages
   VisiblePages
-}
+} derive(Debug)
 
 ///|
 /// Placeholder for optional content group application dictionaries.
 pub(all) enum OcgAppDict {
   AppDict
-}
+} derive(Debug)
 
 ///|
 /// Placeholder for optional content order tree.
 pub(all) enum OcgOrderTree {
   Leaf
   Branch(Int, OcgOrderTree, OcgOrderTree)
-}
+} derive(Debug)
 
 ///|
 /// Optional content group configuration.
@@ -54,7 +54,7 @@ pub(all) struct OcgConfig {
   ocgconfig_listmode : OcgListMode
   ocgconfig_rbgroups : Array[Array[Int]]
   ocgconfig_locked : Array[Int]
-}
+} derive(Debug)
 
 ///|
 /// Optional content properties.
@@ -62,7 +62,7 @@ pub(all) struct OcgProperties {
   ocgs : Array[(Int, Ocg)]
   ocg_default_config : OcgConfig
   ocg_configs : Array[OcgConfig]
-}
+} derive(Debug)
 
 ///|
 fn read_ocgappdict(pdf : @pdf.Pdf, appdict : @pdf.PdfObject) -> OcgAppDict {

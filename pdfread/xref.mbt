@@ -226,7 +226,13 @@ fn read_xref_stream(
     let mut done = false
     while !done {
       let t = @pdfsyntax.lex_next(
-        dict_level, array_level, true, input, lexemes, read_stream_data, _ => [],
+        dict_level,
+        array_level,
+        true,
+        input,
+        lexemes,
+        read_stream_data,
+        _ => [],
       )
       match t {
         @pdfgenlex.Token::StopLexing | @pdfgenlex.Token::LexNone => done = true

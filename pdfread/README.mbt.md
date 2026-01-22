@@ -18,6 +18,7 @@ The `pdfread` package provides functions to:
 
 ```mbt nocheck
 // Read with all stream data loaded
+
 ///|
 let pdf = @pdfread.pdf_of_input(user_password=None, owner_password=None, input)
 ```
@@ -28,6 +29,7 @@ For large files, use lazy loading to defer stream data:
 
 ```mbt nocheck
 // Streams loaded on-demand
+
 ///|
 let pdf = @pdfread.pdf_of_input_lazy(
   user_password=None,
@@ -64,6 +66,7 @@ For encrypted PDFs:
 
 ```mbt nocheck
 // With user password
+
 ///|
 let pdf = @pdfread.pdf_of_input(
   user_password=Some("secret"),
@@ -87,6 +90,7 @@ PDF files can have multiple revisions (incremental saves):
 
 ```mbt nocheck
 // Count revisions
+
 ///|
 let num_revisions = @pdfread.revisions(input)
 

@@ -545,14 +545,14 @@ pub struct BitstreamPosition {
   curr_byte : Int
   bit : Int
   bits_read : Int
-}
+} derive(Debug)
 
 ///|
 /// Most-significant-bit-first write bitstream (placeholder).
 pub struct BitstreamWrite {
   bytes : MutableBytes
   mut bit : Int
-}
+} derive(Debug)
 
 ///|
 /// Build a bitstream from an input.

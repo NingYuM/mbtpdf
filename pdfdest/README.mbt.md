@@ -58,6 +58,7 @@ match dest {
 
 ```mbt nocheck
 // Create XYZ destination (specific position)
+
 ///|
 let dest = @pdfdest.Destination::XYZ(
   @pdfdest.TargetPage::PageObject(page_objnum),
@@ -97,6 +98,7 @@ let transformed = @pdfdest.transform_destination(pdf, transform, destination)
 
 ```mbt nocheck
 // Read bookmark destination
+
 ///|
 let bookmark_dest = @pdfdest.read_destination(pdf, bookmark_dict)
 
@@ -110,6 +112,7 @@ let pagenum = @pdfpage.pagenumber_of_target(pdf, bookmark_dest)
 
 ```mbt nocheck
 // Read link destination from annotation
+
 ///|
 let link_dest = @pdfdest.read_destination(pdf, annot_dict)
 ```

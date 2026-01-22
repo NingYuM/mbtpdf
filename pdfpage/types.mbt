@@ -5,7 +5,7 @@ pub(all) enum Rotation {
   Rotate90
   Rotate180
   Rotate270
-}
+} derive(Debug)
 
 ///|
 /// A type representing a page.

@@ -25,7 +25,7 @@ pub enum FontFile {
   FontFile(Int)
   FontFile2(Int)
   FontFile3(Int)
-}
+} derive(Debug)
 
 ///|
 pub struct FontDescriptor {
@@ -87,7 +87,7 @@ pub(all) enum StandardFont {
   CourierBoldOblique
   Symbol
   ZapfDingbats
-} derive(Eq)
+} derive(Eq, Debug)
 
 ///|
 pub fn string_of_standard_font(font : StandardFont) -> String {
@@ -114,7 +114,7 @@ pub struct CIDSystemInfo {
   registry : String
   ordering : String
   supplement : Int
-}
+} derive(Debug)
 
 ///|
 pub struct CompositeCIDFont {
@@ -129,7 +129,7 @@ pub struct CompositeCIDFont {
 pub enum CMapEncoding {
   Predefined(String)
   CMap(Int)
-}
+} derive(Debug)
 
 ///|
 pub enum Font {

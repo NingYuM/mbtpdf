@@ -600,11 +600,8 @@ pub fn lex_dictionary(
   let dict_level : Ref[Int] = { val: 0 }
   let array_level : Ref[Int] = { val: 0 }
   let mut done = false
-
   while !done {
-    let t = lex_next(
-      dict_level, array_level, false, input, tokens, false, _ => [],
-    )
+    let t = lex_next(dict_level, array_level, false, input, tokens, false, _ => [])
     tokens.push(t)
     match (t : @pdfgenlex.Token) {
       LexRightDict =>

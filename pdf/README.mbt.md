@@ -226,6 +226,7 @@ test "remove_dict_entry" {
 
 ```mbt nocheck
 // Find all page objects
+
 ///|
 let page_nums = @pdf.objselect(
   fn(obj) {
@@ -289,6 +290,7 @@ test "parse_rectangle" {
 
 ```mbt nocheck
 // Parse a matrix from a dictionary
+
 ///|
 let matrix = @pdf.parse_matrix(pdf, "/Matrix", dict)
 
@@ -304,6 +306,7 @@ let matrix_obj = @pdf.make_matrix(@pdftransform.i_matrix)
 
 ```mbt nocheck
 // Find all objects reachable from a starting object
+
 ///|
 let refs = @pdf.objects_referenced([], [], pdf, start_obj)
 ```
@@ -321,6 +324,7 @@ let refs = @pdf.objects_referenced([], [], pdf, start_obj)
 
 ```mbt nocheck
 // Calculate changes to renumber 1..n
+
 ///|
 let change_table = @pdf.changes(pdf)
 
@@ -334,6 +338,7 @@ let renumbered = @pdf.renumber(change_table, pdf)
 
 ```mbt nocheck
 // Create an independent copy
+
 ///|
 let copy = @pdf.deep_copy(pdf)
 ```
@@ -342,6 +347,7 @@ let copy = @pdf.deep_copy(pdf)
 
 ```mbt nocheck
 // Make object numbers mutually exclusive across documents
+
 ///|
 let renumbered = @pdf.renumber_pdfs([pdf1, pdf2, pdf3])
 ```
@@ -352,6 +358,7 @@ PDF name trees are hierarchical structures for mapping names to values:
 
 ```mbt nocheck
 // Lookup in a name tree
+
 ///|
 let value = @pdf.nametree_lookup(pdf, @pdf.PdfObject::String("key"), tree)
 

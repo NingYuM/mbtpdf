@@ -88,6 +88,7 @@ let custom = @pdfpaper.make(
 
 ```mbt nocheck
 // Create blank page with A4 size
+
 ///|
 let page = @pdfpage.blankpage(@pdfpaper.a4)
 

@@ -5,7 +5,7 @@
 pub struct CMap {
   map : Array[(String, String)]
   wmode : Int?
-}
+} derive(Debug)
 
 ///|
 priv enum Section {

@@ -56,6 +56,7 @@ for i, page in pages {
 
 ```mbt nocheck
 // Fast count without parsing all pages
+
 ///|
 let count = @pdfpage.pages_of_pagetree_quick(pdf)
 ```
@@ -77,6 +78,7 @@ let lastpage = @pdfpage.endpage_fast(pdf)
 
 ```mbt nocheck
 // Create blank A4 page
+
 ///|
 let page = @pdfpage.blankpage(@pdfpaper.Paper::A4Portrait)
 ```
@@ -85,6 +87,7 @@ let page = @pdfpage.blankpage(@pdfpaper.Paper::A4Portrait)
 
 ```mbt nocheck
 // Create page with custom dimensions
+
 ///|
 let rect = @pdf.PdfObject::Array([
   @pdf.PdfObject::Real(0.0),
@@ -101,6 +104,7 @@ let page = @pdfpage.custompage(rect)
 
 ```mbt nocheck
 // Create minimal valid PDF document
+
 ///|
 let pdf = @pdfpage.minimum_valid_pdf()
 ```
@@ -118,6 +122,7 @@ let pdf = @pdfpage.add_root!(pageroot, [], pdf)
 
 ```mbt nocheck
 // Extract pages 1-5 from document
+
 ///|
 let range = [1, 2, 3, 4, 5]
 
@@ -141,6 +146,7 @@ let new_pdf = @pdfpage.pdf_of_pages(
 
 ```mbt nocheck
 // Add operators before page content
+
 ///|
 let modified_page = @pdfpage.prepend_operators(pdf, ops, page)
 ```
@@ -149,6 +155,7 @@ let modified_page = @pdfpage.prepend_operators(pdf, ops, page)
 
 ```mbt nocheck
 // Add operators after page content
+
 ///|
 let modified_page = @pdfpage.postpend_operators(pdf, ops, page)
 ```

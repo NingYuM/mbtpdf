@@ -9,7 +9,7 @@ pub(all) enum Style {
   Beveled
   Inset
   UnderlineStyle
-}
+} derive(Debug)
 
 ///|
 pub(all) struct Border {
@@ -18,7 +18,7 @@ pub(all) struct Border {
   hradius : Double
   style : Style
   dasharray : Array[Int]
-}
+} derive(Debug)
 
 ///|
 pub(all) enum Subtype {

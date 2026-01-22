@@ -3,7 +3,7 @@
 pub(all) enum TargetPage {
   PageObject(Int)
   OtherDocPageNumber(Int)
-}
+} derive(Debug)
 
 ///|
 /// Destinations (and actions).

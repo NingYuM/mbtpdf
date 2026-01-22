@@ -44,7 +44,7 @@ pub(all) enum Calculator {
   Dup
   Index
   Roll
-}
+} derive(Debug)
 
 ///|
 /// Sampled functions.
@@ -55,7 +55,7 @@ pub(all) struct Sampled {
   decode : Array[Double]
   bps : Int
   samples : Array[Int]
-}
+} derive(Debug)
 
 ///|
 /// Interpolation functions.
@@ -63,7 +63,7 @@ pub(all) struct Interpolation {
   c0 : Array[Double]
   c1 : Array[Double]
   n : Double
-}
+} derive(Debug)
 
 ///|
 /// Stitching functions.
@@ -71,7 +71,7 @@ pub(all) struct Stitching {
   functions : Array[PdfFunction]
   bounds : Array[Double]
   stitch_encode : Array[Double]
-}
+} derive(Debug)
 
 ///|
 /// Function kinds.
@@ -80,7 +80,7 @@ pub(all) enum PdfFunctionKind {
   Stitching(Stitching)
   Sampled(Sampled)
   Calculator(Array[Calculator])
-}
+} derive(Debug)
 
 ///|
 /// Main function type.
@@ -88,7 +88,7 @@ pub(all) struct PdfFunction {
   func : PdfFunctionKind
   domain : Array[Double]
   range : Array[Double]?
-}
+} derive(Debug)
 
 ///|
 /// Bad inputs have been given to a function.

@@ -7,7 +7,7 @@ pub(all) enum LabelStyle {
   UppercaseLetters
   LowercaseLetters
   NoLabelPrefixOnly
-}
+} derive(Debug)
 
 ///|
 /// Page label definition.
@@ -16,7 +16,7 @@ pub(all) struct PageLabel {
   labelprefix : String?
   startpage : Int
   startvalue : Int
-}
+} derive(Debug)
 
 ///|
 pub let basic_label : PageLabel = {
