@@ -1,6 +1,6 @@
 ///|
-/// Hook for resolving page count without direct dependency on pdfpage.
-pub let endpage : Ref[(@pdf.Pdf) -> Int] = { val: _ => 0 }
+/// Hook for resolving page count (re-exported from pdf).
+pub let endpage : Ref[(@pdf.Pdf) -> Int] = @pdf.endpage
 
 ///|
 fn ilist(start : Int, finish : Int) -> Array[Int] {

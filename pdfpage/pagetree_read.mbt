@@ -273,6 +273,5 @@ pub fn endpage_fast(pdf : @pdf.Pdf) -> Int raise {
 
 ///|
 let _register_endpage : Unit = {
-  @pdfread.endpage.val = endpage_safe
-  @pdfst.endpage.val = endpage_safe
+  @pdf.endpage.val = endpage_safe
 }

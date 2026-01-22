@@ -1,6 +1,6 @@
 ///|
-/// Hook for page-tree traversal (placeholder).
-pub let endpage : Ref[(@pdf.Pdf) -> Int] = { val: _ => 0 }
+/// Hook for page-tree traversal (re-exported from pdf).
+pub let endpage : Ref[(@pdf.Pdf) -> Int] = @pdf.endpage
 
 ///|
 /// Register pdf_of_file hook for decoder modules.
