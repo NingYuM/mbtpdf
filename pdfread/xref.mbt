@@ -192,9 +192,6 @@ fn read_xref_stream(
 ) -> (Array[(Int, XRef)], Int, @pdf.PdfObject) raise {
   let original_pos = (input.pos_in)()
   let err = @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Bad xref stream"))
-  let dummy_lexobj = fn(_ : Int) -> Array[@pdfgenlex.Token] raise {
-    Array::new()
-  }
   let dict_level : Ref[Int] = { val: 0 }
   let array_level : Ref[Int] = { val: 0 }
   let xrefstream_objectnumber = match
@@ -205,7 +202,7 @@ fn read_xref_stream(
       input,
       Array::new(),
       true,
-      dummy_lexobj,
+      _ => [],
     ) {
     @pdfgenlex.Token::LexInt(i) => i
     _ => {
@@ -222,14 +219,14 @@ fn read_xref_stream(
   fn lex_untilstream(
     input : @pdfio.Input,
     read_stream_data : Bool,
-  ) -> Array[@pdfgenlex.Token] raise {
+  ) -> Array[@pdfgenlex.Token] {
     let lexemes = Array::new()
     let dict_level : Ref[Int] = { val: 0 }
     let array_level : Ref[Int] = { val: 0 }
     let mut done = false
     while !done {
       let t = @pdfsyntax.lex_next(
-        dict_level, array_level, true, input, lexemes, read_stream_data, dummy_lexobj,
+        dict_level, array_level, true, input, lexemes, read_stream_data, _ => [],
       )
       match t {
         @pdfgenlex.Token::StopLexing | @pdfgenlex.Token::LexNone => done = true
@@ -251,7 +248,7 @@ fn read_xref_stream(
     @pdfgenlex.Token::LexInt(i) => i
     _ => raise err
   }
-  let stream_token = @pdfsyntax.lex_stream(input, dictlex, dummy_lexobj, true)
+  let stream_token = @pdfsyntax.lex_stream(input, dictlex, _ => [], true)
   let tokens = Array::new()
   for t in dictlex {
     tokens.push(t)
@@ -460,11 +457,7 @@ fn parse_object_stream(
     }
     if should_parse {
       (stm_input.seek_in)(offset + first)
-      let lexemes = @pdfsyntax.lex_object_at(true, stm_input, true, fn(
-        _ : Int,
-      ) -> Array[@pdfgenlex.Token] raise {
-        Array::new()
-      })
+      let lexemes = @pdfsyntax.lex_object_at(true, stm_input, true, _ => [])
       let (_, obj) = @pdfsyntax.parse(lexemes)
       objects.push((objnum, obj))
     }

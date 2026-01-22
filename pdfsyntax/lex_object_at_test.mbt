@@ -4,11 +4,7 @@ fn lex_from_string(
   source : String,
 ) -> Array[@pdfgenlex.Token] raise {
   let input = @pdfio.input_of_string(source)
-  lex_object_at(oneonly, input, true, fn(
-    _ : Int,
-  ) -> Array[@pdfgenlex.Token] raise {
-    Array::new()
-  })
+  lex_object_at(oneonly, input, true, _ => [])
 }
 
 ///|

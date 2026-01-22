@@ -45,9 +45,6 @@ fn read_malformed_pdf_objects(
 ) -> (@pdf.PdfObjMap, Int) raise {
   let objects : @pdf.PdfObjMap = Map::new()
   let mut max_obj = 0
-  let dummy_lexobj = fn(_ : Int) -> Array[@pdfgenlex.Token] raise {
-    Array::new()
-  }
   (input.seek_in)(0)
   while true {
     if !advance_to_integer(input) {
@@ -80,7 +77,7 @@ fn read_malformed_pdf_objects(
     let parsed = try {
       (input.seek_in)(start)
       let lexemes = @pdfsyntax.lex_object_at(
-        false, input, read_stream_data, dummy_lexobj,
+        false, input, read_stream_data, _ => [],
       )
       let (_, obj) = @pdfsyntax.parse(lexemes, failure_is_ok=true)
       Some(obj)

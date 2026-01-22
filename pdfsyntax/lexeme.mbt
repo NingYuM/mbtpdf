@@ -56,13 +56,7 @@ pub fn lex_object_at(
 /// Parse a single object from a string.
 pub fn parse_single_object(s : String) -> @pdf.PdfObject raise {
   let input = @pdfio.input_of_string(s)
-  let (_, obj) = parse(
-    lex_object_at(true, input, true, fn(
-      _ : Int,
-    ) -> Array[@pdfgenlex.Token] raise {
-      Array::new()
-    }),
-  )
+  let (_, obj) = parse(lex_object_at(true, input, true, _ => []))
   obj
 }
 
