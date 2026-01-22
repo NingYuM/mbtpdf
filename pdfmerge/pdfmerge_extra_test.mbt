@@ -121,11 +121,7 @@ test "merge_pdfs handles malformed names and optional catalog entries" {
     Dictionary([("/OCGs", Array([Name("/OCG1")]))]),
   )
   set_catalog_entry(pdf1, "/AcroForm", Null)
-  set_catalog_entry(
-    pdf2,
-    "/AcroForm",
-    Dictionary([("/Fields", Array([Null]))]),
-  )
+  set_catalog_entry(pdf2, "/AcroForm", Dictionary([("/Fields", Array([Null]))]))
   let merged = merge_pdfs(
     false,
     false,
@@ -200,8 +196,12 @@ test "merge_pdfs uses highest version and removes duplicates" {
 test "remove_duplicate_fonts updates object_stream_ids" {
   let pdf = @pdf.empty()
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(1))])
-  let stream1 : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got([0x01]))))
-  let stream2 : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got([0x01]))))
+  let stream1 : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::Got([0x01]))),
+  )
+  let stream2 : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::Got([0x01]))),
+  )
   let obj1 = @pdf.addobj(pdf, stream1)
   let obj2 = @pdf.addobj(pdf, stream2)
   pdf.objects.object_stream_ids.set(obj1, 10)
@@ -214,8 +214,12 @@ test "remove_duplicate_fonts updates object_stream_ids" {
 test "remove_duplicate_fonts keeps distinct stream lengths" {
   let pdf = @pdf.empty()
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(1))])
-  let stream1 : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got([0x01]))))
-  let stream2 : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got([0x01, 0x02]))))
+  let stream1 : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::Got([0x01]))),
+  )
+  let stream2 : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::Got([0x01, 0x02]))),
+  )
   ignore(@pdf.addobj(pdf, stream1))
   ignore(@pdf.addobj(pdf, stream2))
   let before = @pdf.objcard(pdf)

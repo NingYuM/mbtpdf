@@ -702,7 +702,11 @@ pub fn lookup_direct_orelse(
 fn compare_string(a : String, b : String) -> Int {
   let ac = a.to_array()
   let bc = b.to_array()
-  let min_len = if ac.length() < bc.length() { ac.length() } else { bc.length() }
+  let min_len = if ac.length() < bc.length() {
+    ac.length()
+  } else {
+    bc.length()
+  }
   for i in 0..<min_len {
     if ac[i] != bc[i] {
       return ac[i].to_int() - bc[i].to_int()

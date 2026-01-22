@@ -47,7 +47,12 @@ test "renumber_pages returns empty on no pages" {
 ///|
 test "renumber_pages renames resource operators consistently" {
   let pdf = @pdf.empty()
-  let rect : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(100.0),
+    Real(100.0),
+  ])
   let updated = @pdfpage.renumber_pages(pdf, [renumber_page(rect)])
   let renamed = updated[0]
   let ops = @pdfops.parse_operators(pdf, renamed.resources, renamed.content)

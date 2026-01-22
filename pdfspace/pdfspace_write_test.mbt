@@ -61,7 +61,9 @@ test "write/read ICCBased" {
   let pdf = @pdf.empty()
   let dict : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_string("ICC")
-  let stream_obj : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let stream_obj : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::Got(data))),
+  )
   let icc = @pdfspace.ICCBased::{
     icc_n: 3,
     icc_alternate: @pdfspace.ColourSpace::DeviceRGB,

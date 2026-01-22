@@ -15,14 +15,15 @@ The `pdftransform` package provides:
 
 The 2D affine transformation matrix:
 
-```mbt
+```mbt nocheck
+///|
 pub(all) struct TransformMatrix {
-  a : Double  // scale x
-  b : Double  // shear y
-  c : Double  // shear x
-  d : Double  // scale y
-  e : Double  // translate x
-  f : Double  // translate y
+  a : Double // scale x
+  b : Double // shear y
+  c : Double // shear x
+  d : Double // scale y
+  e : Double // translate x
+  f : Double // translate y
 }
 ```
 
@@ -36,11 +37,12 @@ Represents the matrix:
 ### Identity Matrix
 
 ```mbt check
+///|
 test "identity matrix" {
   let m = @pdftransform.i_matrix
-  inspect!(m.a, content="1")
-  inspect!(m.d, content="1")
-  inspect!(m.e, content="0")
+  inspect(m.a, content="1")
+  inspect(m.d, content="1")
+  inspect(m.e, content="0")
 }
 ```
 
@@ -49,34 +51,40 @@ test "identity matrix" {
 ### Translation
 
 ```mbt check
+///|
 test "mktranslate" {
   let m = @pdftransform.mktranslate(10.0, 20.0)
-  inspect!(m.e, content="10")
-  inspect!(m.f, content="20")
+  inspect(m.e, content="10")
+  inspect(m.f, content="20")
 }
 ```
 
 ### Scaling
 
-```mbt
+```mbt nocheck
 // Scale by (sx, sy) around center point
+///|
 let m = @pdftransform.mkscale((0.0, 0.0), 2.0, 2.0)
 ```
 
 ### Rotation
 
-```mbt
+```mbt nocheck
 // Rotate by angle (radians) around center point
+///|
 let m = @pdftransform.mkrotate((0.0, 0.0), 1.5708) // 90 degrees
 ```
 
 ### Shearing
 
-```mbt
+```mbt nocheck
 // Horizontal shear
+///|
 let m = @pdftransform.mkshearx((0.0, 0.0), 0.5)
 
 // Vertical shear
+
+///|
 let m = @pdftransform.mksheary((0.0, 0.0), 0.5)
 ```
 
@@ -84,20 +92,22 @@ let m = @pdftransform.mksheary((0.0, 0.0), 0.5)
 
 ### TransformOp Enum
 
-```mbt
+```mbt nocheck
+///|
 pub(all) enum TransformOp {
-  Scale((Double, Double), Double, Double)  // center, sx, sy
-  Rotate((Double, Double), Double)         // center, angle
-  Translate(Double, Double)                // tx, ty
-  ShearX((Double, Double), Double)         // center, factor
-  ShearY((Double, Double), Double)         // center, factor
+  Scale((Double, Double), Double, Double) // center, sx, sy
+  Rotate((Double, Double), Double) // center, angle
+  Translate(Double, Double) // tx, ty
+  ShearX((Double, Double), Double) // center, factor
+  ShearY((Double, Double), Double) // center, factor
 }
 ```
 
 ### Composing Operations
 
-```mbt
+```mbt nocheck
 // Build transform from operations
+///|
 let tr = @pdftransform.compose(
   @pdftransform.TransformOp::Translate(100.0, 100.0),
   @pdftransform.i,
@@ -106,7 +116,8 @@ let tr = @pdftransform.compose(
 
 ### Appending Transforms
 
-```mbt
+```mbt nocheck
+///|
 let combined = @pdftransform.append(tr1, tr2)
 ```
 
@@ -115,18 +126,19 @@ let combined = @pdftransform.append(tr1, tr2)
 ### Composition
 
 ```mbt check
+///|
 test "matrix_compose" {
   let t1 = @pdftransform.mktranslate(10.0, 0.0)
   let t2 = @pdftransform.mktranslate(0.0, 20.0)
   let combined = @pdftransform.matrix_compose(t1, t2)
-  inspect!(combined.e, content="10")
-  inspect!(combined.f, content="20")
+  inspect(combined.e, content="10")
+  inspect(combined.f, content="20")
 }
 ```
 
 ### Inversion
 
-```mbt
+```mbt nocheck
 try {
   let inv = @pdftransform.matrix_invert!(m)
   // Use inverted matrix...
@@ -137,8 +149,11 @@ try {
 
 ### Converting Operations to Matrix
 
-```mbt
+```mbt nocheck
+///|
 let op = @pdftransform.TransformOp::Translate(50.0, 50.0)
+
+///|
 let matrix = @pdftransform.matrix_of_op(op)
 ```
 
@@ -147,17 +162,18 @@ let matrix = @pdftransform.matrix_of_op(op)
 ### With Matrix
 
 ```mbt check
+///|
 test "transform_matrix applies to point" {
   let m = @pdftransform.mktranslate(10.0, 20.0)
   let (x, y) = @pdftransform.transform_matrix(m, (5.0, 5.0))
-  inspect!(x, content="15")
-  inspect!(y, content="25")
+  inspect(x, content="15")
+  inspect(y, content="25")
 }
 ```
 
 ### With Transform
 
-```mbt
+```mbt nocheck
 let (new_x, new_y) = @pdftransform.transform(tr, (x, y))
 ```
 
@@ -165,7 +181,7 @@ let (new_x, new_y) = @pdftransform.transform(tr, (x, y))
 
 Extract scale, rotation, shear, and translation from a matrix:
 
-```mbt
+```mbt nocheck
 let (scale, aspect, rotation, shear, tx, ty) = @pdftransform.decompose(m)
 ```
 
@@ -173,16 +189,18 @@ let (scale, aspect, rotation, shear, tx, ty) = @pdftransform.decompose(m)
 
 Rebuild a matrix from components:
 
-```mbt
+```mbt nocheck
+///|
 let m = @pdftransform.recompose(scale, aspect, rotation, shear, tx, ty)
 ```
 
 ## Debug Utilities
 
 ```mbt check
+///|
 test "string_of_matrix" {
   let m = @pdftransform.i_matrix
   let s = @pdftransform.string_of_matrix(m)
-  assert_true!(s.contains("1"))
+  assert_true(s.contains("1"))
 }
 ```

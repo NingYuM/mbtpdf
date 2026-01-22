@@ -90,7 +90,7 @@ pub fn[A] hd(xs : Array[A]) -> A raise {
 ///|
 pub fn[A] tl(xs : Array[A]) -> Array[A] raise {
   match xs {
-    [_, ..tail] => tail.to_array()
+    [_, .. tail] => tail.to_array()
     [] => invalid_arg("Pdfutil.tl")
   }
 }
@@ -1103,7 +1103,7 @@ pub fn[A] last(xs : Array[A]) -> A raise {
 pub fn[A] all_but_last(xs : Array[A]) -> Array[A] {
   match xs {
     [] | [_] => []
-    [..init, _] => init.to_array()
+    [.. init, _] => init.to_array()
   }
 }
 
@@ -1120,7 +1120,7 @@ pub fn[A] extremes(xs : Array[A]) -> (A, A) raise {
 pub fn[A] extremes_and_middle(xs : Array[A]) -> (A, Array[A], A) raise {
   match xs {
     [] | [_] => invalid_arg("Pdfutil.extremes_and_middle")
-    [first, ..middle, last] => (first, middle.to_array(), last)
+    [first, .. middle, last] => (first, middle.to_array(), last)
   }
 }
 
@@ -1224,7 +1224,7 @@ pub fn[A] drop_odds(xs : Array[A]) -> Array[A] {
 pub fn[A] tail_no_fail(xs : Array[A]) -> Array[A] {
   match xs {
     [] => []
-    [_, ..tail] => tail.to_array()
+    [_, .. tail] => tail.to_array()
   }
 }
 

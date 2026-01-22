@@ -102,7 +102,8 @@ test "encode_pdfstream prepends filter when name already set" {
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
   encode_pdfstream(pdf, Encoding::Flate, stream_obj)
-  match (@pdf.lookup_direct(pdf, "/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
+  match
+    (@pdf.lookup_direct(pdf, "/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
     Some(Array(filters)) => {
       assert_true(filters.length() >= 2)
       match (filters[0] : @pdf.PdfObject) {
@@ -125,7 +126,8 @@ test "encode_pdfstream prepends filter when array already set" {
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
   encode_pdfstream(pdf, Encoding::Flate, stream_obj)
-  match (@pdf.lookup_direct(pdf, "/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
+  match
+    (@pdf.lookup_direct(pdf, "/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
     Some(Array(filters)) =>
       match (filters[0] : @pdf.PdfObject) {
         Name("/FlateDecode") => ()
@@ -155,13 +157,13 @@ test "encode_pdfstream keeps data when only_if_smaller" {
 test "decode_pdfstream handles filter arrays" {
   let pdf = @pdf.empty()
   let old = @pdfcodec.string_of_pdf.val
-  @pdfcodec.string_of_pdf.val = obj =>
-    match (@pdf.lookup_direct(@pdf.empty(), "/Filter", obj) : @pdf.PdfObject?) {
-      Some(Array(filters)) => "\{filters.length()}"
-      Some(Name(name)) => name
-      None => ""
-      _ => "other"
-    }
+  @pdfcodec.string_of_pdf.val = obj => match
+    (@pdf.lookup_direct(@pdf.empty(), "/Filter", obj) : @pdf.PdfObject?) {
+    Some(Array(filters)) => "\{filters.length()}"
+    Some(Name(name)) => name
+    None => ""
+    _ => "other"
+  }
   defer {
     @pdfcodec.string_of_pdf.val = old
   }

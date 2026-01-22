@@ -31,7 +31,14 @@ test "decrypt_single_stream skips metadata when EncryptMetadata is false" {
   ])
   let data = @pdfio.bytes_of_string("meta")
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let out = @pdfcrypt.decrypt_single_stream(Some("user"), None, enc, 1, 0, stream)
+  let out = @pdfcrypt.decrypt_single_stream(
+    Some("user"),
+    None,
+    enc,
+    1,
+    0,
+    stream,
+  )
   match (out : @pdf.PdfObject) {
     Stream(r) =>
       match r.val {
@@ -53,7 +60,14 @@ test "decrypt_single_stream skips identity crypt filters" {
   ])
   let data = @pdfio.bytes_of_string("abc")
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let out = @pdfcrypt.decrypt_single_stream(Some("user"), None, enc, 2, 0, stream)
+  let out = @pdfcrypt.decrypt_single_stream(
+    Some("user"),
+    None,
+    enc,
+    2,
+    0,
+    stream,
+  )
   match (out : @pdf.PdfObject) {
     Stream(r) =>
       match r.val {
@@ -70,7 +84,14 @@ test "decrypt_single_stream skips identity crypt filters" {
   let stream_array : @pdf.PdfObject = Stream(
     Ref::new((dict_array, @pdf.Stream::Got(@pdfio.bytes_of_string("abc")))),
   )
-  let out_array = @pdfcrypt.decrypt_single_stream(Some("user"), None, enc, 3, 0, stream_array)
+  let out_array = @pdfcrypt.decrypt_single_stream(
+    Some("user"),
+    None,
+    enc,
+    3,
+    0,
+    stream_array,
+  )
   match (out_array : @pdf.PdfObject) {
     Stream(r) =>
       match r.val {
@@ -89,7 +110,14 @@ test "decrypt_single_stream handles AES256 streams" {
   let got_stream : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::Got(@pdfio.bytes_of_string("data")))),
   )
-  let got_out = @pdfcrypt.decrypt_single_stream(Some("user"), None, enc, 4, 0, got_stream)
+  let got_out = @pdfcrypt.decrypt_single_stream(
+    Some("user"),
+    None,
+    enc,
+    4,
+    0,
+    got_stream,
+  )
   match (got_out : @pdf.PdfObject) {
     Stream(r) =>
       match r.val {
@@ -100,8 +128,17 @@ test "decrypt_single_stream handles AES256 streams" {
   }
   let input = @pdfio.input_of_string("data", source="stream")
   let toget = @pdf.toget(input, 0, 4)
-  let toget_stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::ToGet(toget))))
-  let toget_out = @pdfcrypt.decrypt_single_stream(Some("user"), None, enc, 5, 0, toget_stream)
+  let toget_stream : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::ToGet(toget))),
+  )
+  let toget_out = @pdfcrypt.decrypt_single_stream(
+    Some("user"),
+    None,
+    enc,
+    5,
+    0,
+    toget_stream,
+  )
   match (toget_out : @pdf.PdfObject) {
     Stream(r) =>
       match r.val {

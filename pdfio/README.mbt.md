@@ -13,69 +13,80 @@ The `pdfio` package provides the fundamental I/O abstractions used throughout th
 
 ## Byte Buffer Types
 
-```mbt
+```mbt nocheck
+///|
 pub type MutableBytes = Array[Byte]
+
+///|
 pub type CoreBytes = Bytes
+
+///|
 pub type RawBytes = MutableBytes
 ```
 
 ### Creating Buffers
 
 ```mbt check
+///|
 test "mkbytes creates zero-filled buffer" {
   let bytes = @pdfio.mkbytes(10)
-  inspect!(bytes.length(), content="10")
-  inspect!(@pdfio.bget(bytes, 0), content="0")
+  inspect(bytes.length(), content="10")
+  inspect(@pdfio.bget(bytes, 0), content="0")
 }
 ```
 
 ### Byte Access
 
 ```mbt check
+///|
 test "bget and bset" {
   let bytes = @pdfio.mkbytes(4)
   @pdfio.bset(bytes, 0, 65)
   @pdfio.bset(bytes, 1, 66)
-  inspect!(@pdfio.bget(bytes, 0), content="65")
-  inspect!(@pdfio.bget(bytes, 1), content="66")
+  inspect(@pdfio.bget(bytes, 0), content="65")
+  inspect(@pdfio.bget(bytes, 1), content="66")
 }
 ```
 
 ### Conversions
 
 ```mbt check
+///|
 test "bytes_of_string and string_of_bytes" {
   let bytes = @pdfio.bytes_of_string("ABC")
-  inspect!(@pdfio.bytes_size(bytes), content="3")
+  inspect(@pdfio.bytes_size(bytes), content="3")
   let s = @pdfio.string_of_bytes(bytes)
-  inspect!(s, content="ABC")
+  inspect(s, content="ABC")
 }
 ```
 
 ```mbt check
+///|
 test "bytes_of_list" {
   let bytes = @pdfio.bytes_of_list([65, 66, 67])
-  inspect!(@pdfio.string_of_bytes(bytes), content="ABC")
+  inspect(@pdfio.string_of_bytes(bytes), content="ABC")
 }
 ```
 
 ```mbt check
+///|
 test "int_array_of_bytes" {
   let bytes = @pdfio.bytes_of_string("Hi")
   let ints = @pdfio.int_array_of_bytes(bytes)
-  inspect!(ints, content="[72, 105]")
+  inspect(ints, content="[72, 105]")
 }
 ```
 
 ### Copying
 
 ```mbt check
+///|
 test "copybytes creates independent copy" {
   let original = @pdfio.bytes_of_string("test")
   let copy = @pdfio.copybytes(original)
   @pdfio.bset(copy, 0, 88)
-  inspect!(@pdfio.bget(original, 0), content="116") // unchanged
-  inspect!(@pdfio.bget(copy, 0), content="88")
+  inspect(@pdfio.bget(original, 0), content="116") // unchanged
+  inspect(@pdfio.bget(copy, 0), content="88")
 }
 ```
 
@@ -83,69 +94,75 @@ test "copybytes creates independent copy" {
 
 The `Input` struct provides a seekable byte stream:
 
-```mbt
+```mbt nocheck
+///|
 pub struct Input {
-  pos_in : () -> Int           // Current position
-  seek_in : (Int) -> Unit      // Seek to position
-  input_char : () -> Char?     // Read next char
-  input_byte : () -> Int       // Read next byte
-  in_channel_length : Int      // Total length
-  set_offset : (Int) -> Unit   // Set base offset
-  source : String              // Source description
+  pos_in : () -> Int // Current position
+  seek_in : (Int) -> Unit // Seek to position
+  input_char : () -> Char? // Read next char
+  input_byte : () -> Int // Read next byte
+  in_channel_length : Int // Total length
+  set_offset : (Int) -> Unit // Set base offset
+  source : String // Source description
 }
 ```
 
 ### Creating Input from Bytes
 
 ```mbt check
+///|
 test "input_of_bytes" {
   let bytes = @pdfio.bytes_of_string("Hello")
   let input = @pdfio.input_of_bytes(bytes)
-  inspect!(input.in_channel_length, content="5")
-  inspect!((input.input_byte)(), content="72") // 'H'
-  inspect!((input.input_byte)(), content="101") // 'e'
+  inspect(input.in_channel_length, content="5")
+  inspect((input.input_byte)(), content="72") // 'H'
+  inspect((input.input_byte)(), content="101") // 'e'
 }
 ```
 
 ### Creating Input from String
 
 ```mbt check
+///|
 test "input_of_string" {
   let input = @pdfio.input_of_string("ABC")
-  inspect!((input.input_char)(), content="Some('A')")
-  inspect!((input.input_char)(), content="Some('B')")
+  inspect((input.input_char)(), content="Some('A')")
+  inspect((input.input_char)(), content="Some('B')")
 }
 ```
 
 ### Peeking and Rewinding
 
 ```mbt check
+///|
 test "peek_byte does not advance" {
   let input = @pdfio.input_of_string("XY")
   let first = @pdfio.peek_byte(input)
   let second = @pdfio.peek_byte(input)
-  inspect!(first, content="88") // 'X'
-  inspect!(second, content="88") // still 'X'
+  inspect(first, content="88") // 'X'
+  inspect(second, content="88") // still 'X'
 }
 ```
 
 ### Reading Lines
 
 ```mbt check
+///|
 test "read_line" {
   let input = @pdfio.input_of_string("line1\nline2\n")
-  inspect!(@pdfio.read_line!(input), content="line1")
-  inspect!(@pdfio.read_line!(input), content="line2")
+  inspect(@pdfio.read_line(input), content="line1")
+  inspect(@pdfio.read_line(input), content="line2")
 }
 ```
 
 ### Extracting Bytes from Input
 
 ```mbt check
+///|
 test "bytes_of_input extracts range" {
   let input = @pdfio.input_of_string("Hello World")
-  let bytes = @pdfio.bytes_of_input!(input, 0, 5)
-  inspect!(@pdfio.string_of_bytes(bytes), content="Hello")
+  let bytes = @pdfio.bytes_of_input(input, 0, 5)
+  inspect(@pdfio.string_of_bytes(bytes), content="Hello")
 }
 ```
 
@@ -153,26 +170,28 @@ test "bytes_of_input extracts range" {
 
 The `Output` struct provides a seekable output stream:
 
-```mbt
+```mbt nocheck
+///|
 pub struct Output {
-  pos_out : () -> Int              // Current position
-  seek_out : (Int) -> Unit         // Seek to position
-  output_char : (Char) -> Unit     // Write char
-  output_byte : (Int) -> Unit      // Write byte
+  pos_out : () -> Int // Current position
+  seek_out : (Int) -> Unit // Seek to position
+  output_char : (Char) -> Unit // Write char
+  output_byte : (Int) -> Unit // Write byte
   output_string : (String) -> Unit // Write string
-  out_channel_length : () -> Int   // Written length
-  flush : async () -> Unit         // Flush buffer
+  out_channel_length : () -> Int // Written length
+  flush : async () -> Unit // Flush buffer
 }
 ```
 
 ### Creating Output Buffers
 
 ```mbt check
+///|
 test "input_output_of_bytes" {
   let (output, data) = @pdfio.input_output_of_bytes(16)
   (output.output_string)("test")
   let bytes = @pdfio.extract_bytes_from_input_output(output, data)
-  inspect!(@pdfio.string_of_bytes(bytes), content="test")
+  inspect(@pdfio.string_of_bytes(bytes), content="test")
 }
 ```
 
@@ -183,71 +202,75 @@ For reading data at the bit level (MSB-first order).
 ### Creating a Bitstream
 
 ```mbt check
+///|
 test "bitstream reading" {
   // Byte 0xA5 = 10100101 in binary
   let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0xA5]))
   let bits = @pdfio.bitbytes_of_input(input)
 
   // Read first 4 bits: 1010 = 10
-  let val = @pdfio.getval_32!(bits, 4)
-  inspect!(val, content="10")
+  let val = @pdfio.getval_32(bits, 4)
+  inspect(val, content="10")
 }
 ```
 
 ### Bit-Level Reading
 
 ```mbt check
+///|
 test "getbit reads individual bits" {
   let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0x80])) // 10000000
   let bits = @pdfio.bitbytes_of_input(input)
-  inspect!(@pdfio.getbit!(bits), content="true")  // bit 7
-  inspect!(@pdfio.getbit!(bits), content="false") // bit 6
+  inspect(@pdfio.getbit(bits), content="true") // bit 7
+  inspect(@pdfio.getbit(bits), content="false") // bit 6
 }
 ```
 
 ### Bitstream Position
 
 ```mbt check
+///|
 test "bitstream save and restore" {
   let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0xFF, 0x00]))
   let bits = @pdfio.bitbytes_of_input(input)
   let pos = @pdfio.bitstream_pos(bits)
-
-  ignore(@pdfio.getval_32!(bits, 8)) // read 8 bits
-  @pdfio.bitstream_seek(bits, pos)   // rewind
-
-  inspect!(@pdfio.getval_32!(bits, 8), content="255") // read again
+  ignore(@pdfio.getval_32(bits, 8)) // read 8 bits
+  @pdfio.bitstream_seek(bits, pos) // rewind
+  inspect(@pdfio.getval_32(bits, 8), content="255") // read again
 }
 ```
 
 ### Alignment
 
 ```mbt check
+///|
 test "align skips to next byte" {
   let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0xFF, 0xAB]))
   let bits = @pdfio.bitbytes_of_input(input)
-  ignore(@pdfio.getbit!(bits)) // read 1 bit
-  @pdfio.align(bits)           // skip to byte boundary
-  inspect!(@pdfio.getval_32!(bits, 8), content="171") // 0xAB
+  ignore(@pdfio.getbit(bits)) // read 1 bit
+  @pdfio.align(bits) // skip to byte boundary
+  inspect(@pdfio.getval_32(bits, 8), content="171") // 0xAB
 }
 ```
 
 ### Write Bitstreams
 
 ```mbt check
+///|
 test "write bitstream" {
   let b = @pdfio.make_write_bitstream()
-  @pdfio.putval!(b, 4, 0b1010) // write 4 bits: 1010
-  @pdfio.putval!(b, 4, 0b0101) // write 4 bits: 0101
+  @pdfio.putval(b, 4, 0b1010) // write 4 bits: 1010
+  @pdfio.putval(b, 4, 0b0101) // write 4 bits: 0101
   let bytes = @pdfio.bytes_of_write_bitstream(b)
-  inspect!(@pdfio.bget(bytes, 0), content="165") // 0xA5
+  inspect(@pdfio.bget(bytes, 0), content="165") // 0xA5
 }
 ```
 
 ## Constants
 
-```mbt
-pub let no_more : Int = -1  // Indicates end of input
+```mbt nocheck
+///|
+pub let no_more : Int = -1 // Indicates end of input
 ```
 
 ## Utility Functions
@@ -255,19 +278,21 @@ pub let no_more : Int = -1  // Indicates end of input
 ### Transform Bytes In-Place
 
 ```mbt check
+///|
 test "bytes_selfmap transforms each byte" {
   let bytes = @pdfio.bytes_of_list([1, 2, 3])
   @pdfio.bytes_selfmap(fn(x) { x * 2 }, bytes)
-  inspect!(@pdfio.int_array_of_bytes(bytes), content="[2, 4, 6]")
+  inspect(@pdfio.int_array_of_bytes(bytes), content="[2, 4, 6]")
 }
 ```
 
 ### Fill Bytes
 
 ```mbt check
+///|
 test "fillbytes sets all bytes" {
   let bytes = @pdfio.mkbytes(3)
   @pdfio.fillbytes(42, bytes)
-  inspect!(@pdfio.int_array_of_bytes(bytes), content="[42, 42, 42]")
+  inspect(@pdfio.int_array_of_bytes(bytes), content="[42, 42, 42]")
 }
 ```

@@ -16,10 +16,7 @@ test "parse_single_object numbers" {
 test "parse_single_object collections" {
   let obj = parse_single_object("[1 2 3]")
   match (obj : @pdf.PdfObject) {
-    Array(values) =>
-      if values.length() != 3 {
-        fail("expected array length 3")
-      }
+    Array(values) => if values.length() != 3 { fail("expected array length 3") }
     _ => fail("expected array")
   }
   let obj2 = parse_single_object("<< /Type /Example /Count 2 >>")

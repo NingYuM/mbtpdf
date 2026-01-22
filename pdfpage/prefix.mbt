@@ -119,21 +119,9 @@ fn prefix_operator(
     OpTf(f, s) => OpTf(addp(prefix, f), s)
     Opgs(n) => Opgs(addp(prefix, n))
     OpCS(n) =>
-      OpCS(
-        if direct_cs_names.contains(n) {
-          n
-        } else {
-          addp(prefix, n)
-        },
-      )
+      OpCS(if direct_cs_names.contains(n) { n } else { addp(prefix, n) })
     Opcs(n) =>
-      Opcs(
-        if direct_cs_names.contains(n) {
-          n
-        } else {
-          addp(prefix, n)
-        },
-      )
+      Opcs(if direct_cs_names.contains(n) { n } else { addp(prefix, n) })
     OpSCNName(s, ns) => OpSCNName(addp(prefix, s), ns)
     OpscnName(s, ns) => OpscnName(addp(prefix, s), ns)
     Opsh(s) => Opsh(addp(prefix, s))

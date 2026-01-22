@@ -128,8 +128,9 @@ The `Op` enum represents PDF graphics operators:
 
 ### Parse to Operators
 
-```mbt
-let ops = @pdfops.parse_stream!(pdf, resources, content_stream)
+```mbt nocheck
+///|
+let ops = @pdfops.parse_stream(pdf, resources, content_stream)
 ```
 
 ## Serializing Operators
@@ -137,25 +138,28 @@ let ops = @pdfops.parse_stream!(pdf, resources, content_stream)
 ### To String
 
 ```mbt check
+///|
 test "string_of_op" {
   let op = @pdfops.Op::Opq
-  let s = @pdfops.string_of_op!(op)
-  inspect!(s, content="q")
+  let s = @pdfops.string_of_op(op)
+  inspect(s, content="q")
 }
 ```
 
 ```mbt check
+///|
 test "string_of_ops" {
   let ops = [@pdfops.Op::Opq, @pdfops.Op::Opm(10.0, 20.0), @pdfops.Op::OpQ]
-  let s = @pdfops.string_of_ops!(ops)
-  assert_true!(s.contains("q"))
-  assert_true!(s.contains("Q"))
+  let s = @pdfops.string_of_ops(ops)
+  assert_true(s.contains("q"))
+  assert_true(s.contains("Q"))
 }
 ```
 
 ### Concatenate Bytes
 
-```mbt
+```mbt nocheck
+///|
 let bytes = @pdfops.concat_bytess(byte_arrays)
 ```
 
@@ -163,29 +167,31 @@ let bytes = @pdfops.concat_bytess(byte_arrays)
 
 ### Save/Restore Graphics State
 
-```mbt
+```mbt nocheck
 let ops = [Opq, /* drawing operations */, OpQ]
 ```
 
 ### Set Color and Draw
 
-```mbt
+```mbt nocheck
+///|
 let ops = [
-  Oprg(1.0, 0.0, 0.0),           // Set fill to red
+  Oprg(1.0, 0.0, 0.0), // Set fill to red
   Opre(100.0, 100.0, 200.0, 150.0), // Rectangle
-  Opf,                            // Fill
-]
+  Opf,
+] // Fill
 ```
 
 ### Text Operations
 
-```mbt
+```mbt nocheck
+///|
 let ops = [
-  OpBT,                           // Begin text
-  OpTf("/F1", 12.0),              // Font F1, size 12
-  OpTd(100.0, 700.0),             // Position
-  OpTj("Hello, World!"),          // Show text
-  OpET,                           // End text
+  OpBT, // Begin text
+  OpTf("/F1", 12.0), // Font F1, size 12
+  OpTd(100.0, 700.0), // Position
+  OpTj("Hello, World!"), // Show text
+  OpET, // End text
 ]
 ```
 
@@ -193,14 +199,17 @@ let ops = [
 
 Pre-defined operators for marking artifacts:
 
-```mbt
+```mbt nocheck
+///|
 pub let begin_artifact : Op = OpBMC("/Artifact")
+
+///|
 pub let end_artifact : Op = OpEMC
 ```
 
 ## Debug Options
 
-```mbt
+```mbt nocheck
 // Enable debug output
 @pdfops.debug.val = true
 

@@ -150,12 +150,14 @@ pub fn read_colourspace(
     Array([Name("/CalRGB"), dict]) => {
       let whitepoint = read_point(pdf, dict, "/WhitePoint")
       let blackpoint = read_point(pdf, dict, "/BlackPoint")
-      let gamma = match (@pdf.lookup_direct(pdf, "/Gamma", dict) : @pdf.PdfObject?) {
+      let gamma = match
+        (@pdf.lookup_direct(pdf, "/Gamma", dict) : @pdf.PdfObject?) {
         Some(Array([a, b, c])) =>
           [@pdf.getnum(pdf, a), @pdf.getnum(pdf, b), @pdf.getnum(pdf, c)]
         _ => [1.0, 1.0, 1.0]
       }
-      let matrix = match (@pdf.lookup_direct(pdf, "/Matrix", dict) : @pdf.PdfObject?) {
+      let matrix = match
+        (@pdf.lookup_direct(pdf, "/Matrix", dict) : @pdf.PdfObject?) {
         Some(Array([a, b, c, d, e, f, g, h, i])) =>
           [
             @pdf.getnum(pdf, a),
@@ -175,7 +177,8 @@ pub fn read_colourspace(
     Array([Name("/Lab"), dict]) => {
       let whitepoint = read_point(pdf, dict, "/WhitePoint")
       let blackpoint = read_point(pdf, dict, "/BlackPoint")
-      let range = match (@pdf.lookup_direct(pdf, "/Range", dict) : @pdf.PdfObject?) {
+      let range = match
+        (@pdf.lookup_direct(pdf, "/Range", dict) : @pdf.PdfObject?) {
         Some(Array([a, b, c, d])) =>
           [
             @pdf.getnum(pdf, a),
@@ -191,7 +194,8 @@ pub fn read_colourspace(
       match (@pdf.direct(pdf, stream) : @pdf.PdfObject) {
         Stream(r) => {
           let (dict, _) = r.val
-          let n = match (@pdf.lookup_direct(pdf, "/N", dict) : @pdf.PdfObject?) {
+          let n = match
+            (@pdf.lookup_direct(pdf, "/N", dict) : @pdf.PdfObject?) {
             Some(Integer(value)) =>
               if value == 1 || value == 3 || value == 4 {
                 value
@@ -210,7 +214,8 @@ pub fn read_colourspace(
                 _ => raise @pdf.PdfError::Msg("Bad /N in ICCBased")
               }
           }
-          let range = match (@pdf.lookup_direct(pdf, "/Range", dict) : @pdf.PdfObject?) {
+          let range = match
+            (@pdf.lookup_direct(pdf, "/Range", dict) : @pdf.PdfObject?) {
             Some(Array(values)) if values.length() == 2 * n =>
               values.map(v => @pdf.getnum(pdf, v))
             _ => interleave_defaults(n)
@@ -525,7 +530,8 @@ pub fn write_colourspace(pdf : @pdf.Pdf, space : ColourSpace) -> @pdf.PdfObject 
           ("/Range", Array(range.map(mkreal))),
         ]),
       ])
-    ColourSpace::ICCBased(icc) => Array([Name("/ICCBased"), write_iccbased(pdf, icc)])
+    ColourSpace::ICCBased(icc) =>
+      Array([Name("/ICCBased"), write_iccbased(pdf, icc)])
     ColourSpace::Indexed(base, table) => {
       let components = components_of_colourspace(base)
       if components == 0 {
@@ -562,9 +568,9 @@ pub fn write_colourspace(pdf : @pdf.Pdf, space : ColourSpace) -> @pdf.PdfObject 
         @pdffun.pdfobject_of_function(pdf, tint),
       ])
     ColourSpace::DeviceN(names, alternate, tint, attrs) => {
-      let names_arr : Array[@pdf.PdfObject] = names.map(
-        fn(name) { Name(normalize_name(name)) },
-      )
+      let names_arr : Array[@pdf.PdfObject] = names.map(fn(name) {
+        Name(normalize_name(name))
+      })
       let names_obj : @pdf.PdfObject = Array(names_arr)
       let base : Array[@pdf.PdfObject] = [
         Name("/DeviceN"),

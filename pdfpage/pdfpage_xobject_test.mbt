@@ -20,10 +20,17 @@ test "process_xobjects updates form xobject stream" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let bbox : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)])
-  let update = fn(_ : @pdf.Pdf, _ : @pdf.PdfObject, _ : Array[@pdf.PdfObject]) -> Array[
-    @pdf.PdfObject,
-  ] {
+  let bbox : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(10.0),
+    Real(20.0),
+  ])
+  let update = fn(
+    _ : @pdf.Pdf,
+    _ : @pdf.PdfObject,
+    _ : Array[@pdf.PdfObject],
+  ) -> Array[@pdf.PdfObject] {
     let dict_updated : @pdf.PdfObject = Dictionary([
       ("/BBox", bbox),
       ("/Filter", Name("/ASCIIHexDecode")),

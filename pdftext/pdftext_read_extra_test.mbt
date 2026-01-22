@@ -18,21 +18,37 @@ fn type3_font_base(
   matrix : @pdf.PdfObject,
   charprocs : @pdf.PdfObject,
 ) -> @pdf.PdfObject {
-  Dictionary([("/FontBBox", type3_bbox()), ("/FontMatrix", matrix), ("/CharProcs", charprocs)])
+  Dictionary([
+    ("/FontBBox", type3_bbox()),
+    ("/FontMatrix", matrix),
+    ("/CharProcs", charprocs),
+  ])
 }
 
 ///|
 test "read_type3_data validates matrix and charprocs" {
   let pdf = @pdf.empty()
-  let bad_len_matrix : @pdf.PdfObject = Array([Real(1.0), Real(0.0), Real(0.0), Real(1.0), Real(0.0)])
+  let bad_len_matrix : @pdf.PdfObject = Array([
+    Real(1.0),
+    Real(0.0),
+    Real(0.0),
+    Real(1.0),
+    Real(0.0),
+  ])
   let bad_len_font = type3_font_base(bad_len_matrix, type3_charprocs_ok())
-  let bad_len_result : Result[@pdftext.Type3Glyphs, Error] = try? @pdftext.read_type3_data(pdf, bad_len_font)
+  let bad_len_result : Result[@pdftext.Type3Glyphs, Error] = try? @pdftext.read_type3_data(
+    pdf, bad_len_font,
+  )
   assert_true(bad_len_result is Err(_))
   let bad_type_font = type3_font_base(Name("/Bad"), type3_charprocs_ok())
-  let bad_type_result : Result[@pdftext.Type3Glyphs, Error] = try? @pdftext.read_type3_data(pdf, bad_type_font)
+  let bad_type_result : Result[@pdftext.Type3Glyphs, Error] = try? @pdftext.read_type3_data(
+    pdf, bad_type_font,
+  )
   assert_true(bad_type_result is Err(_))
   let bad_charprocs_font = type3_font_base(type3_matrix_ok(), Name("/Bad"))
-  let bad_charprocs_result : Result[@pdftext.Type3Glyphs, Error] = try? @pdftext.read_type3_data(pdf, bad_charprocs_font)
+  let bad_charprocs_result : Result[@pdftext.Type3Glyphs, Error] = try? @pdftext.read_type3_data(
+    pdf, bad_charprocs_font,
+  )
   assert_true(bad_charprocs_result is Err(_))
   let with_resources = @pdf.add_dict_entry(
     type3_font_base(type3_matrix_ok(), type3_charprocs_ok()),
@@ -115,7 +131,9 @@ test "read_metrics validates required keys" {
     ("/LastChar", Integer(0)),
     ("/Widths", Array([Integer(10)])),
   ])
-  let missing_first_result : Result[@pdftext.FontMetrics?, Error] = try? @pdftext.read_metrics(pdf, missing_first)
+  let missing_first_result : Result[@pdftext.FontMetrics?, Error] = try? @pdftext.read_metrics(
+    pdf, missing_first,
+  )
   assert_true(missing_first_result is Err(_))
   let bad_first : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", descriptor),
@@ -123,14 +141,18 @@ test "read_metrics validates required keys" {
     ("/LastChar", Integer(0)),
     ("/Widths", Array([Integer(10)])),
   ])
-  let bad_first_result : Result[@pdftext.FontMetrics?, Error] = try? @pdftext.read_metrics(pdf, bad_first)
+  let bad_first_result : Result[@pdftext.FontMetrics?, Error] = try? @pdftext.read_metrics(
+    pdf, bad_first,
+  )
   assert_true(bad_first_result is Err(_))
   let missing_last : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", descriptor),
     ("/FirstChar", Integer(0)),
     ("/Widths", Array([Integer(10)])),
   ])
-  let missing_last_result : Result[@pdftext.FontMetrics?, Error] = try? @pdftext.read_metrics(pdf, missing_last)
+  let missing_last_result : Result[@pdftext.FontMetrics?, Error] = try? @pdftext.read_metrics(
+    pdf, missing_last,
+  )
   assert_true(missing_last_result is Err(_))
   let bad_last : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", descriptor),
@@ -138,14 +160,18 @@ test "read_metrics validates required keys" {
     ("/LastChar", Integer(999)),
     ("/Widths", Array([Integer(10)])),
   ])
-  let bad_last_result : Result[@pdftext.FontMetrics?, Error] = try? @pdftext.read_metrics(pdf, bad_last)
+  let bad_last_result : Result[@pdftext.FontMetrics?, Error] = try? @pdftext.read_metrics(
+    pdf, bad_last,
+  )
   assert_true(bad_last_result is Err(_))
   let missing_widths : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", descriptor),
     ("/FirstChar", Integer(0)),
     ("/LastChar", Integer(0)),
   ])
-  let missing_widths_result : Result[@pdftext.FontMetrics?, Error] = try? @pdftext.read_metrics(pdf, missing_widths)
+  let missing_widths_result : Result[@pdftext.FontMetrics?, Error] = try? @pdftext.read_metrics(
+    pdf, missing_widths,
+  )
   assert_true(missing_widths_result is Err(_))
   let bad_widths : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", descriptor),
@@ -153,7 +179,9 @@ test "read_metrics validates required keys" {
     ("/LastChar", Integer(1)),
     ("/Widths", Array([Integer(10)])),
   ])
-  let bad_widths_result : Result[@pdftext.FontMetrics?, Error] = try? @pdftext.read_metrics(pdf, bad_widths)
+  let bad_widths_result : Result[@pdftext.FontMetrics?, Error] = try? @pdftext.read_metrics(
+    pdf, bad_widths,
+  )
   assert_true(bad_widths_result is Err(_))
 }
 
@@ -180,17 +208,25 @@ test "read_metrics accepts real widths" {
 ///|
 test "pairs_of_differences rejects malformed inputs" {
   let pdf = @pdf.empty()
-  let not_array : Result[@pdftext.Differences, Error] = try? @pdftext.pairs_of_differences(pdf, Name("/Bad"))
+  let not_array : Result[@pdftext.Differences, Error] = try? @pdftext.pairs_of_differences(
+    pdf,
+    Name("/Bad"),
+  )
   assert_true(not_array is Err(_))
   let bad_array_obj : @pdf.PdfObject = Array([Name("/A")])
-  let bad_array : Result[@pdftext.Differences, Error] = try? @pdftext.pairs_of_differences(pdf, bad_array_obj)
+  let bad_array : Result[@pdftext.Differences, Error] = try? @pdftext.pairs_of_differences(
+    pdf, bad_array_obj,
+  )
   assert_true(bad_array is Err(_))
 }
 
 ///|
 test "is_standard14font rejects non-name basefont" {
   let pdf = @pdf.empty()
-  let font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type1")), ("/BaseFont", Integer(1))])
+  let font : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name("/Type1")),
+    ("/BaseFont", Integer(1)),
+  ])
   assert_true(!@pdftext.is_standard14font(pdf, font))
 }
 
@@ -203,14 +239,18 @@ test "read_metrics rejects non-number width entries" {
     ("/LastChar", Integer(0)),
     ("/Widths", Array([Name("/Bad")])),
   ])
-  let res : Result[@pdftext.FontMetrics?, Error] = try? @pdftext.read_metrics(pdf, font)
+  let res : Result[@pdftext.FontMetrics?, Error] = try? @pdftext.read_metrics(
+    pdf, font,
+  )
   assert_true(res is Err(_))
 }
 
 ///|
 test "is_embedded detects FontFile3" {
   let pdf = @pdf.empty()
-  let font : @pdf.PdfObject = Dictionary([("/FontDescriptor", Dictionary([("/FontFile3", Null)]))])
+  let font : @pdf.PdfObject = Dictionary([
+    ("/FontDescriptor", Dictionary([("/FontFile3", Null)])),
+  ])
   assert_true(@pdftext.is_embedded(pdf, font))
 }
 
@@ -229,14 +269,22 @@ test "read_encoding handles TrueType differences and bad subtype" {
     ("/BaseEncoding", Name("/WinAnsiEncoding")),
     ("/Differences", Array([Integer(65), Name("/A"), Name("/B")])),
   ])
-  let font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/TrueType")), ("/Encoding", enc)])
+  let font : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name("/TrueType")),
+    ("/Encoding", enc),
+  ])
   let encoding = @pdftext.read_encoding(pdf, font)
   match (encoding : @pdftext.Encoding) {
     FillUndefinedWithStandard(CustomEncoding(_, _)) => ()
     _ => fail("expected FillUndefinedWithStandard(CustomEncoding)")
   }
-  let bad : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type0")), ("/Encoding", enc)])
-  let bad_res : Result[@pdftext.Encoding, Error] = try? @pdftext.read_encoding(pdf, bad)
+  let bad : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name("/Type0")),
+    ("/Encoding", enc),
+  ])
+  let bad_res : Result[@pdftext.Encoding, Error] = try? @pdftext.read_encoding(
+    pdf, bad,
+  )
   assert_true(bad_res is Err(_))
 }
 
@@ -268,12 +316,19 @@ test "read_cid_system_info and widths reject malformed input" {
     missing_tail_arr,
   )
   assert_true(missing_tail is Err(_))
-  let bad_width_arr : Array[@pdf.PdfObject] = [Integer(1), Array([Name("/Bad")])]
+  let bad_width_arr : Array[@pdf.PdfObject] = [
+    Integer(1),
+    Array([Name("/Bad")]),
+  ]
   let bad_width : Result[Array[(Int, Double)], Error] = try? @pdftext.read_cid_widths(
     bad_width_arr,
   )
   assert_true(bad_width is Err(_))
-  let bad_range_arr : Array[@pdf.PdfObject] = [Integer(5), Integer(3), Integer(100)]
+  let bad_range_arr : Array[@pdf.PdfObject] = [
+    Integer(5),
+    Integer(3),
+    Integer(100),
+  ]
   let bad_range : Result[Array[(Int, Double)], Error] = try? @pdftext.read_cid_widths(
     bad_range_arr,
   )

@@ -16,7 +16,8 @@ test "stream_of_ops builds a stream" {
   match (stream : @pdf.PdfObject) {
     Stream(r) => {
       let (dict, contents) = r.val
-      match (@pdf.lookup_direct(@pdf.empty(), "/Length", dict) : @pdf.PdfObject?) {
+      match
+        (@pdf.lookup_direct(@pdf.empty(), "/Length", dict) : @pdf.PdfObject?) {
         Some(Integer(length)) => assert_true(length > 0)
         _ => fail("expected /Length")
       }
@@ -42,7 +43,11 @@ test "components resolves color spaces" {
   assert_eq(@pdfops.components(pdf, resources, Name("/DeviceRGB")), 3)
   assert_eq(@pdfops.components(pdf, resources, Name("/MyCS")), 1)
   assert_eq(
-    @pdfops.components(pdf, resources, Array([Name("/Pattern"), Name("/DeviceRGB")])),
+    @pdfops.components(
+      pdf,
+      resources,
+      Array([Name("/Pattern"), Name("/DeviceRGB")]),
+    ),
     3,
   )
   assert_eq(
@@ -65,7 +70,12 @@ test "components resolves color spaces" {
     @pdfops.components(
       pdf,
       resources,
-      Array([Name("/Separation"), Name("/Spot"), Name("/DeviceRGB"), Dictionary([])]),
+      Array([
+        Name("/Separation"),
+        Name("/Spot"),
+        Name("/DeviceRGB"),
+        Dictionary([]),
+      ]),
     ),
     1,
   )
@@ -235,7 +245,6 @@ test "parse_operators handles diverse ops" {
   assert_true(parsed.exists(fn(op : @pdfops.Op) { op is OpSCNName(_, _) }))
   assert_true(parsed.exists(fn(op : @pdfops.Op) { op is OpBDC(_, _) }))
   assert_true(parsed.exists(fn(op : @pdfops.Op) { op is OpDo(_) }))
-
 }
 
 ///|

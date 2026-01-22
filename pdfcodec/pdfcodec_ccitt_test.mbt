@@ -231,7 +231,11 @@ test "decode_from_input CCITT rejects k > 0" {
     ("/Filter", Name("/CCITTFaxDecode")),
     (
       "/DecodeParms",
-      Dictionary([("/K", Integer(1)), ("/Columns", Integer(8)), ("/Rows", Integer(1))]),
+      Dictionary([
+        ("/K", Integer(1)),
+        ("/Columns", Integer(8)),
+        ("/Rows", Integer(1)),
+      ]),
     ),
   ])
   let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0xff]))
@@ -245,7 +249,11 @@ test "decode_from_input CCITT rejects malformed data" {
     ("/Filter", Name("/CCITTFaxDecode")),
     (
       "/DecodeParms",
-      Dictionary([("/K", Integer(0)), ("/Columns", Integer(8)), ("/Rows", Integer(1))]),
+      Dictionary([
+        ("/K", Integer(0)),
+        ("/Columns", Integer(8)),
+        ("/Rows", Integer(1)),
+      ]),
     ),
   ])
   let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0x00, 0x00]))

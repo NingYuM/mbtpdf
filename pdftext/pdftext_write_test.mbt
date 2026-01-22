@@ -6,7 +6,14 @@ fn type3_font_dict() -> @pdf.PdfObject {
     ("/FontBBox", Array([Real(0.0), Real(0.0), Real(1.0), Real(1.0)])),
     (
       "/FontMatrix",
-      Array([Real(0.001), Real(0.0), Real(0.0), Real(0.001), Real(0.0), Real(0.0)]),
+      Array([
+        Real(0.001),
+        Real(0.0),
+        Real(0.0),
+        Real(0.001),
+        Real(0.0),
+        Real(0.0),
+      ]),
     ),
     ("/CharProcs", Dictionary([("/A", Null)])),
     ("/FirstChar", Integer(0)),

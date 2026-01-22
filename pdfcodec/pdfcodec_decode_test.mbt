@@ -101,7 +101,11 @@ test "decode Flate stream with TIFF predictor" {
     ("/BitsPerComponent", Integer(8)),
     ("/Columns", Integer(6)),
   ])
-  let decoded = decode_stream(Name("/FlateDecode"), compressed, parms=parms_dict)
+  let decoded = decode_stream(
+    Name("/FlateDecode"),
+    compressed,
+    parms=parms_dict,
+  )
   assert_eq(@pdfio.int_array_of_bytes(decoded), @pdfio.int_array_of_bytes(raw))
 }
 
@@ -152,7 +156,9 @@ test "decode_pdfstream_onestage rejects missing filter" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(pdf, stream_obj)
+  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(
+    pdf, stream_obj,
+  )
   assert_true(res is Err(_))
 }
 
@@ -166,7 +172,9 @@ test "decode_pdfstream_onestage rejects empty filter array" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(pdf, stream_obj)
+  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(
+    pdf, stream_obj,
+  )
   assert_true(res is Err(_))
 }
 
@@ -180,7 +188,9 @@ test "decode_pdfstream_onestage rejects invalid filter entry" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(pdf, stream_obj)
+  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(
+    pdf, stream_obj,
+  )
   assert_true(res is Err(_))
 }
 
@@ -194,7 +204,9 @@ test "decode_pdfstream_onestage rejects invalid filter type" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(pdf, stream_obj)
+  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(
+    pdf, stream_obj,
+  )
   assert_true(res is Err(_))
 }
 
@@ -235,7 +247,8 @@ test "decode_pdfstream_onestage trims filter and decode parms arrays" {
     Some(Array(filters)) => assert_eq(filters.length(), 1)
     _ => fail("expected updated filter array")
   }
-  match (@pdf.lookup_direct(pdf, "/DecodeParms", updated_dict) : @pdf.PdfObject?) {
+  match
+    (@pdf.lookup_direct(pdf, "/DecodeParms", updated_dict) : @pdf.PdfObject?) {
     Some(Array(parms)) => assert_eq(parms.length(), 1)
     _ => fail("expected updated decode parms array")
   }
@@ -270,7 +283,9 @@ test "decode_pdfstream_onestage rejects JBIG2 in sync path" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(pdf, stream_obj)
+  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(
+    pdf, stream_obj,
+  )
   assert_true(res is Err(_))
 }
 
@@ -284,7 +299,9 @@ test "decode_pdfstream_onestage reports CCITT errors" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(pdf, stream_obj)
+  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(
+    pdf, stream_obj,
+  )
   assert_true(res is Err(_))
 }
 
@@ -298,7 +315,9 @@ test "decode_pdfstream_onestage reports LZW errors" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(pdf, stream_obj)
+  let res : Result[Unit, Error] = try? decode_pdfstream_onestage(
+    pdf, stream_obj,
+  )
   assert_true(res is Err(_))
 }
 
@@ -373,7 +392,9 @@ async test "decode_pdfstream_async reports JBIG2 error with globals" {
     Ref::new((globals_dict, @pdf.Stream::Got(globals_bytes))),
   )
   let globals_id = @pdf.addobj(pdf, globals_stream)
-  let parms : @pdf.PdfObject = Dictionary([("/JBIG2Globals", Indirect(globals_id))])
+  let parms : @pdf.PdfObject = Dictionary([
+    ("/JBIG2Globals", Indirect(globals_id)),
+  ])
   let data = @pdfio.bytes_of_string("data")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Filter", Name("/JBIG2Decode")),

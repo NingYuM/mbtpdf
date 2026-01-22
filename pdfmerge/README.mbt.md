@@ -15,23 +15,25 @@ The `pdfmerge` package provides functionality to:
 
 ### Merge All Pages
 
-```mbt
-let merged = @pdfmerge.merge_pdfs!(
-  false,        // retain_numbering
-  false,        // remove_duplicate_fonts
-  ["doc1.pdf", "doc2.pdf"],  // source names
-  [pdf1, pdf2],              // PDF documents
-  [ilist(1, pages1), ilist(1, pages2)],  // page ranges
+```mbt nocheck
+///|
+let merged = @pdfmerge.merge_pdfs(
+  false, // retain_numbering
+  false, // remove_duplicate_fonts
+  ["doc1.pdf", "doc2.pdf"], // source names
+  [pdf1, pdf2], // PDF documents
+  [ilist(1, pages1), ilist(1, pages2)], // page ranges
 )
 ```
 
 ### Merge with Options
 
-```mbt
-let merged = @pdfmerge.merge_pdfs!(
-  true,   // retain_numbering - keep original page labels
-  true,   // remove_duplicate_fonts
-  process_struct_trees=true,   // process accessibility trees
+```mbt nocheck
+///|
+let merged = @pdfmerge.merge_pdfs(
+  true, // retain_numbering - keep original page labels
+  true, // remove_duplicate_fonts
+  process_struct_trees=true, // process accessibility trees
   add_toplevel_document=false, // add document-level bookmarks
   names~,
   pdfs~,
@@ -43,17 +45,24 @@ let merged = @pdfmerge.merge_pdfs!(
 
 Page ranges are 1-indexed arrays:
 
-```mbt
+```mbt nocheck
 // All pages from document with 10 pages
+///|
 let all_pages = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 // First 3 pages
+
+///|
 let first_three = [1, 2, 3]
 
 // Pages in reverse order
+
+///|
 let reversed = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
 
 // Specific pages
+
+///|
 let selection = [1, 3, 5, 7, 9]
 ```
 
@@ -61,7 +70,7 @@ let selection = [1, 3, 5, 7, 9]
 
 Remove duplicate embedded fonts to reduce file size:
 
-```mbt
+```mbt nocheck
 @pdfmerge.remove_duplicate_fonts(pdf)
 ```
 
@@ -94,8 +103,13 @@ The merge operation handles:
 
 ## Example: Merge Two Documents
 
-```mbt
-async fn merge_two_files(file1 : String, file2 : String, output : String) -> Unit {
+```mbt nocheck
+///|
+async fn merge_two_files(
+  file1 : String,
+  file2 : String,
+  output : String,
+) -> Unit {
   let pdf1 = @pdfread.pdf_of_file(
     user_password=None,
     owner_password=None,
@@ -106,27 +120,22 @@ async fn merge_two_files(file1 : String, file2 : String, output : String) -> Uni
     owner_password=None,
     filename=file2,
   )
-
-  let pages1 = @pdfpage.endpage_fast!(pdf1)
-  let pages2 = @pdfpage.endpage_fast!(pdf2)
-
-  let merged = @pdfmerge.merge_pdfs!(
-    false,
-    true,
-    [file1, file2],
-    [pdf1, pdf2],
-    [ilist(1, pages1), ilist(1, pages2)],
-  )
-
+  let pages1 = @pdfpage.endpage_fast(pdf1)
+  let pages2 = @pdfpage.endpage_fast(pdf2)
+  let merged = @pdfmerge.merge_pdfs(false, true, [file1, file2], [pdf1, pdf2], [
+    ilist(1, pages1),
+    ilist(1, pages2),
+  ])
   @pdfwrite.pdf_to_file(merged, output)
 }
 ```
 
 ## Example: Interleave Pages
 
-```mbt
+```mbt nocheck
 // Merge odd pages from doc1, even pages from doc2
-let merged = @pdfmerge.merge_pdfs!(
+///|
+let merged = @pdfmerge.merge_pdfs(
   false,
   false,
   ["odd.pdf", "even.pdf"],

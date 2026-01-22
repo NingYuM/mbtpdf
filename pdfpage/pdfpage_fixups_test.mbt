@@ -7,14 +7,12 @@ fn fixups_sample_rect() -> @pdf.PdfObject {
 fn annot_numbers(pdf : @pdf.Pdf, page_obj : @pdf.PdfObject) -> Array[Int] {
   match (@pdf.lookup_direct(pdf, "/Annots", page_obj) : @pdf.PdfObject?) {
     Some(Array(arr)) =>
-      arr.filter_map(
-        fn(obj) {
-          match (obj : @pdf.PdfObject) {
-            Indirect(i) => Some(i)
-            _ => None
-          }
-        },
-      )
+      arr.filter_map(fn(obj) {
+        match (obj : @pdf.PdfObject) {
+          Indirect(i) => Some(i)
+          _ => None
+        }
+      })
     _ => []
   }
 }
@@ -38,7 +36,11 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
   let annot_base : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Text"))])
   let annot_num = @pdf.addobj(pdf, annot_base)
-  let annot_with_popup = @pdf.add_dict_entry(annot_base, "/Popup", Indirect(annot_num))
+  let annot_with_popup = @pdf.add_dict_entry(
+    annot_base,
+    "/Popup",
+    Indirect(annot_num),
+  )
   @pdf.addobj_given_num(pdf, (annot_num, annot_with_popup))
   let refs = @pdf.page_reference_numbers(pdf)
   for refnum in refs {

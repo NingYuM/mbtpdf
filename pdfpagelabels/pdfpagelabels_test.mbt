@@ -29,7 +29,12 @@ test "pagelabel_of_pagenumber" {
 
 ///|
 fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
-  let rect : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(100.0),
+    Real(100.0),
+  ])
   let pages = Array::new(capacity=count)
   for i in 0..<count {
     pages.push(@pdfpage.custompage(rect))
@@ -180,7 +185,12 @@ test "merge_pagelabels combines ranges" {
 
 ///|
 test "write/read pagelabels roundtrip" {
-  let rect : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(100.0),
+    Real(100.0),
+  ])
   let pages = [
     @pdfpage.custompage(rect),
     @pdfpage.custompage(rect),

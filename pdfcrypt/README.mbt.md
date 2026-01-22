@@ -13,11 +13,12 @@ The `pdfcrypt` package provides:
 
 ## Encryption Methods
 
-```mbt
+```mbt nocheck
+///|
 pub(all) enum EncryptionMethod {
-  AES256        // AES 256-bit (recommended, PDF 2.0)
-  AES128        // AES 128-bit (PDF 1.6+)
-  ARC4(Int)     // RC4 with key length (legacy)
+  AES256 // AES 256-bit (recommended, PDF 2.0)
+  AES128 // AES 128-bit (PDF 1.6+)
+  ARC4(Int) // RC4 with key length (legacy)
 }
 ```
 
@@ -25,22 +26,23 @@ pub(all) enum EncryptionMethod {
 
 Control what users can do with encrypted documents:
 
-```mbt
+```mbt nocheck
+///|
 pub(all) enum Permission {
-  Print         // Allow printing
-  Edit          // Allow editing
-  Copy          // Allow copying text
-  Annot         // Allow annotations
-  Forms         // Allow form filling
-  Extract       // Allow accessibility extraction
-  Assemble      // Allow page assembly
-  Hqprint       // Allow high-quality printing
+  Print // Allow printing
+  Edit // Allow editing
+  Copy // Allow copying text
+  Annot // Allow annotations
+  Forms // Allow form filling
+  Extract // Allow accessibility extraction
+  Assemble // Allow page assembly
+  Hqprint // Allow high-quality printing
 }
 ```
 
 ### Getting Permissions
 
-```mbt
+```mbt nocheck
 let perms = @pdfread.permissions(pdf)
 for perm in perms {
   match perm {
@@ -53,8 +55,9 @@ for perm in perms {
 
 ### Permission Conversion
 
-```mbt
+```mbt nocheck
 // Convert permission flags to/from integer
+///|
 let banlist = @pdfcrypt.banlist_of_p(flags)
 ```
 
@@ -62,7 +65,7 @@ let banlist = @pdfcrypt.banlist_of_p(flags)
 
 When writing PDFs, use `@pdfwrite` with encryption:
 
-```mbt
+```mbt nocheck
 let encryption = @pdfwrite.make_encryption(
   @pdfcrypt.EncryptionMethod::AES256,
   user_password="user123",
@@ -85,8 +88,9 @@ let encryption = @pdfwrite.make_encryption(
 
 When reading encrypted PDFs:
 
-```mbt
+```mbt nocheck
 // With user password
+///|
 let pdf = @pdfread.pdf_of_file(
   user_password=Some("user123"),
   owner_password=None,
@@ -94,6 +98,8 @@ let pdf = @pdfread.pdf_of_file(
 )
 
 // With owner password (full access)
+
+///|
 let pdf = @pdfread.pdf_of_file(
   user_password=None,
   owner_password=Some("owner456"),
@@ -103,7 +109,7 @@ let pdf = @pdfread.pdf_of_file(
 
 ## Checking Encryption
 
-```mbt
+```mbt nocheck
 let method = @pdfread.what_encryption(pdf)
 match method {
   None => println("Not encrypted")

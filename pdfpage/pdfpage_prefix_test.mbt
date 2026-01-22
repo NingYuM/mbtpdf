@@ -28,7 +28,9 @@ test "shortest_unused_prefix handles dense prefixes" {
   }
   font_entries.push(("/az0", Null))
   font_entries.push(("", Null))
-  let resources : @pdf.PdfObject = Dictionary([("/Font", Dictionary(font_entries))])
+  let resources : @pdf.PdfObject = Dictionary([
+    ("/Font", Dictionary(font_entries)),
+  ])
   let page : @pdfpage.Page = {
     content: [],
     mediabox: prefix_sample_rect(),
@@ -77,7 +79,8 @@ test "add_prefix rewrites resources and operators" {
   let pages = @pdfpage.pages_of_pagetree(pdf)
   let page0 = pages[0]
   match @pdf.lookup_direct(pdf, "/Font", page0.resources) {
-    Some(Dictionary(entries)) => assert_true(entries.any(pair => pair.0 == "/pF1"))
+    Some(Dictionary(entries)) =>
+      assert_true(entries.any(pair => pair.0 == "/pF1"))
     _ => fail("expected prefixed font resources")
   }
   match @pdf.lookup_direct(pdf, "/ColorSpace", page0.resources) {
@@ -261,7 +264,9 @@ test "add_prefix handles filtered inline images with trailing ops" {
 ///|
 test "add_prefix rejects blank resource names" {
   let pdf0 = @pdf.empty()
-  let resources : @pdf.PdfObject = Dictionary([("/Font", Dictionary([("", Null)]))])
+  let resources : @pdf.PdfObject = Dictionary([
+    ("/Font", Dictionary([("", Null)])),
+  ])
   let page : @pdfpage.Page = {
     content: [],
     mediabox: prefix_sample_rect(),
@@ -278,7 +283,9 @@ test "add_prefix rejects blank resource names" {
 ///|
 test "add_prefix handles single indirect contents" {
   let pdf0 = @pdf.empty()
-  let resources : @pdf.PdfObject = Dictionary([("/Font", Dictionary([("/F1", Null)]))])
+  let resources : @pdf.PdfObject = Dictionary([
+    ("/Font", Dictionary([("/F1", Null)])),
+  ])
   let ops : Array[@pdfops.Op] = [OpTf("/F1", 9.0)]
   let page : @pdfpage.Page = {
     content: [@pdfops.stream_of_ops(ops)],
@@ -365,9 +372,14 @@ test "add_prefix preserves inline colorspace arrays" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Array([Name("/Indexed"), Name("/DeviceRGB"), Integer(1), String("")])),
+    (
+      "/CS",
+      Array([Name("/Indexed"), Name("/DeviceRGB"), Integer(1), String("")]),
+    ),
   ])
-  let ops : Array[@pdfops.Op] = [InlineImage((dict, None, @pdfio.bytes_of_list([0x12])))]
+  let ops : Array[@pdfops.Op] = [
+    InlineImage((dict, None, @pdfio.bytes_of_list([0x12]))),
+  ]
   let page : @pdfpage.Page = {
     content: [@pdfops.stream_of_ops(ops)],
     mediabox: prefix_sample_rect(),
@@ -414,10 +426,20 @@ test "add_prefix merges non-iso content streams" {
   let first = bytes[:mid].to_array()
   let second = bytes[mid:].to_array()
   let stream1 : @pdf.PdfObject = Stream(
-    Ref::new((Dictionary([("/Length", Integer(@pdfio.bytes_size(first)))]), @pdf.Stream::Got(first))),
+    Ref::new(
+      (
+        Dictionary([("/Length", Integer(@pdfio.bytes_size(first)))]),
+        @pdf.Stream::Got(first),
+      ),
+    ),
   )
   let stream2 : @pdf.PdfObject = Stream(
-    Ref::new((Dictionary([("/Length", Integer(@pdfio.bytes_size(second)))]), @pdf.Stream::Got(second))),
+    Ref::new(
+      (
+        Dictionary([("/Length", Integer(@pdfio.bytes_size(second)))]),
+        @pdf.Stream::Got(second),
+      ),
+    ),
   )
   let page : @pdfpage.Page = {
     content: [stream1, stream2],

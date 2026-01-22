@@ -16,22 +16,20 @@ The `pdfread` package provides functions to:
 
 ### From Input Stream
 
-```mbt
+```mbt nocheck
 // Read with all stream data loaded
-let pdf = @pdfread.pdf_of_input!(
-  user_password=None,
-  owner_password=None,
-  input,
-)
+///|
+let pdf = @pdfread.pdf_of_input(user_password=None, owner_password=None, input)
 ```
 
 ### Lazy Loading
 
 For large files, use lazy loading to defer stream data:
 
-```mbt
+```mbt nocheck
 // Streams loaded on-demand
-let pdf = @pdfread.pdf_of_input_lazy!(
+///|
+let pdf = @pdfread.pdf_of_input_lazy(
   user_password=None,
   owner_password=None,
   input,
@@ -40,7 +38,8 @@ let pdf = @pdfread.pdf_of_input_lazy!(
 
 ### From File (async)
 
-```mbt
+```mbt nocheck
+///|
 let pdf = @pdfread.pdf_of_file(
   user_password=None,
   owner_password=None,
@@ -50,7 +49,8 @@ let pdf = @pdfread.pdf_of_file(
 
 ### From Channel (async)
 
-```mbt
+```mbt nocheck
+///|
 let pdf = @pdfread.pdf_of_channel(
   user_password=None,
   owner_password=None,
@@ -62,16 +62,19 @@ let pdf = @pdfread.pdf_of_channel(
 
 For encrypted PDFs:
 
-```mbt
+```mbt nocheck
 // With user password
-let pdf = @pdfread.pdf_of_input!(
+///|
+let pdf = @pdfread.pdf_of_input(
   user_password=Some("secret"),
   owner_password=None,
   input,
 )
 
 // With owner password
-let pdf = @pdfread.pdf_of_input!(
+
+///|
+let pdf = @pdfread.pdf_of_input(
   user_password=None,
   owner_password=Some("admin123"),
   input,
@@ -82,15 +85,18 @@ let pdf = @pdfread.pdf_of_input!(
 
 PDF files can have multiple revisions (incremental saves):
 
-```mbt
+```mbt nocheck
 // Count revisions
-let num_revisions = @pdfread.revisions!(input)
+///|
+let num_revisions = @pdfread.revisions(input)
 
 // Read specific revision
-let pdf = @pdfread.pdf_of_input!(
-  revision=2,  // Read second revision
+
+///|
+let pdf = @pdfread.pdf_of_input(
+  revision=2,
   user_password=None,
-  owner_password=None,
+  owner_password=None, // Read second revision
   input,
 )
 ```
@@ -99,7 +105,7 @@ let pdf = @pdfread.pdf_of_input!(
 
 ### Query Encryption Method
 
-```mbt
+```mbt nocheck
 let method = @pdfread.what_encryption(pdf)
 match method {
   None => println("Not encrypted")
@@ -113,7 +119,7 @@ match method {
 
 ### Query Permissions
 
-```mbt
+```mbt nocheck
 let perms = @pdfread.permissions(pdf)
 for perm in perms {
   match perm {
@@ -127,7 +133,7 @@ for perm in perms {
 
 ## Debug Options
 
-```mbt
+```mbt nocheck
 // Enable debug output
 @pdfread.read_debug.val = true
 
@@ -142,7 +148,7 @@ for perm in perms {
 
 Reading raises `@pdf.PdfError` on parse failures:
 
-```mbt
+```mbt nocheck
 try {
   let pdf = @pdfread.pdf_of_input!(
     user_password=None,

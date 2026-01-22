@@ -417,7 +417,11 @@ fn many(value : Double, count : Int) -> Array[Double] {
 
 ///|
 fn min(a : Int, b : Int) -> Int {
-  if a < b { a } else { b }
+  if a < b {
+    a
+  } else {
+    b
+  }
 }
 
 ///|

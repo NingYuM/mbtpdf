@@ -15,28 +15,31 @@ The `pdfsyntax` package provides:
 ### Parsing Objects from Strings
 
 ```mbt check
+///|
 test "parse_single_object parses integer" {
-  guard @pdfsyntax.parse_single_object!("42") is Integer(n) else {
-    fail!("expected integer")
+  guard @pdfsyntax.parse_single_object("42") is Integer(n) else {
+    fail("expected integer")
   }
-  inspect!(n, content="42")
+  inspect(n, content="42")
 }
 ```
 
 ```mbt check
+///|
 test "parse_single_object parses array" {
-  guard @pdfsyntax.parse_single_object!("[1 2 3]") is Array(items) else {
-    fail!("expected array")
+  guard @pdfsyntax.parse_single_object("[1 2 3]") is Array(items) else {
+    fail("expected array")
   }
-  inspect!(items.length(), content="3")
+  inspect(items.length(), content="3")
 }
 ```
 
 ```mbt check
+///|
 test "parse_single_object parses dictionary" {
-  let obj = @pdfsyntax.parse_single_object!("<< /Type /Page /Count 5 >>")
-  guard obj is Dictionary(entries) else { fail!("expected dictionary") }
-  inspect!(entries.length(), content="2")
+  let obj = @pdfsyntax.parse_single_object("<< /Type /Page /Count 5 >>")
+  guard obj is Dictionary(entries) else { fail("expected dictionary") }
+  inspect(entries.length(), content="2")
 }
 ```
 
@@ -45,71 +48,75 @@ test "parse_single_object parses dictionary" {
 ### Lexing Names
 
 ```mbt check
+///|
 test "lex_name reads PDF name" {
   let input = @pdfio.input_of_string("/Type")
-  guard @pdfsyntax.lex_name!(input) is LexName(name) else {
-    fail!("expected name")
+  guard @pdfsyntax.lex_name(input) is LexName(name) else {
+    fail("expected name")
   }
-  inspect!(name, content="/Type")
+  inspect(name, content="/Type")
 }
 ```
 
 ### Lexing Numbers
 
 ```mbt check
+///|
 test "lex_number reads integer" {
   let input = @pdfio.input_of_string("123")
-  guard @pdfsyntax.lex_number!(input) is LexInt(n) else {
-    fail!("expected int")
-  }
-  inspect!(n, content="123")
+  guard @pdfsyntax.lex_number(input) is LexInt(n) else { fail("expected int") }
+  inspect(n, content="123")
 }
 ```
 
 ```mbt check
+///|
 test "lex_number reads float" {
   let input = @pdfio.input_of_string("3.14159")
-  guard @pdfsyntax.lex_number!(input) is LexReal(r) else {
-    fail!("expected real")
+  guard @pdfsyntax.lex_number(input) is LexReal(r) else {
+    fail("expected real")
   }
-  assert_true!(r > 3.14 && r < 3.15)
+  assert_true(r > 3.14 && r < 3.15)
 }
 ```
 
 ### Lexing Strings
 
 ```mbt check
+///|
 test "lex_string reads literal string" {
   let input = @pdfio.input_of_string("(Hello World)")
-  guard @pdfsyntax.lex_string!(input) is LexString(s) else {
-    fail!("expected string")
+  guard @pdfsyntax.lex_string(input) is LexString(s) else {
+    fail("expected string")
   }
-  inspect!(s, content="Hello World")
+  inspect(s, content="Hello World")
 }
 ```
 
 ### Lexing Hex Strings
 
 ```mbt check
+///|
 test "lex_hexstring reads hex" {
   let input = @pdfio.input_of_string("<48656C6C6F>")
-  guard @pdfsyntax.lex_hexstring!(input) is LexString(s) else {
-    fail!("expected string")
+  guard @pdfsyntax.lex_hexstring(input) is LexString(s) else {
+    fail("expected string")
   }
-  inspect!(s, content="Hello")
+  inspect(s, content="Hello")
 }
 ```
 
 ### Lexing Comments
 
 ```mbt check
+///|
 test "lex_comment skips comment" {
   let input = @pdfio.input_of_string("%This is a comment\nnext")
-  guard @pdfsyntax.lex_comment!(input) is LexComment(_) else {
-    fail!("expected comment")
+  guard @pdfsyntax.lex_comment(input) is LexComment(_) else {
+    fail("expected comment")
   }
   // After lex_comment, input is at the newline
-  inspect!((input.input_char)(), content="Some('\\n')")
+  inspect((input.input_char)(), content="Some('\\n')")
 }
 ```
 
@@ -119,7 +126,7 @@ test "lex_comment skips comment" {
 
 The main `parse` function converts a token array to a `PdfObject`:
 
-```mbt
+```mbt nocheck
 pub fn parse(
   tokens : Array[@pdfgenlex.Token],
   failure_is_ok? : Bool = false,
@@ -131,11 +138,12 @@ Returns a tuple of (object number, parsed object). The object number is 0 for st
 ### Parsing Objects with Object Numbers
 
 ```mbt check
+///|
 test "parse with object header" {
   let tokens = @pdfgenlex.lex_string("1 0 obj << /Type /Page >> endobj")
   // This simplified lexer doesn't handle obj/endobj
   // Full parsing would use lex_object_at
-  inspect!(tokens.length() > 0, content="true")
+  inspect(tokens.length() > 0, content="true")
 }
 ```
 
@@ -144,12 +152,13 @@ test "parse with object header" {
 ### Token to String
 
 ```mbt check
+///|
 test "string_of_lexeme" {
-  inspect!(@pdfsyntax.string_of_lexeme(LexNull), content="null")
-  inspect!(@pdfsyntax.string_of_lexeme(LexInt(42)), content="42")
-  inspect!(@pdfsyntax.string_of_lexeme(LexName("/Type")), content="/Type")
-  inspect!(@pdfsyntax.string_of_lexeme(LexLeftSquare), content="[")
-  inspect!(@pdfsyntax.string_of_lexeme(LexLeftDict), content="<<")
+  inspect(@pdfsyntax.string_of_lexeme(LexNull), content="null")
+  inspect(@pdfsyntax.string_of_lexeme(LexInt(42)), content="42")
+  inspect(@pdfsyntax.string_of_lexeme(LexName("/Type")), content="/Type")
+  inspect(@pdfsyntax.string_of_lexeme(LexLeftSquare), content="[")
+  inspect(@pdfsyntax.string_of_lexeme(LexLeftDict), content="<<")
 }
 ```
 
@@ -158,38 +167,44 @@ test "string_of_lexeme" {
 ### Skip Whitespace
 
 ```mbt check
+///|
 test "dropwhite skips whitespace" {
   let input = @pdfio.input_of_string("   hello")
-  @pdfsyntax.dropwhite!(input)
-  inspect!((input.input_char)(), content="Some('h')")
+  @pdfsyntax.dropwhite(input)
+  inspect((input.input_char)(), content="Some('h')")
 }
 ```
 
 ### Read Until Predicate
 
 ```mbt check
+///|
 test "getuntil_string reads until delimiter" {
   let input = @pdfio.input_of_string("name/next")
-  let s = @pdfsyntax.getuntil_string!(true, @pdfsyntax.is_whitespace_or_delimiter, input)
-  inspect!(s, content="name")
+  let s = @pdfsyntax.getuntil_string(
+    true, @pdfsyntax.is_whitespace_or_delimiter, input,
+  )
+  inspect(s, content="name")
 }
 ```
 
 ### Read Lines
 
 ```mbt check
+///|
 test "input_line reads until newline" {
   let input = @pdfio.input_of_string("first line\nsecond line")
-  inspect!(@pdfsyntax.input_line(input), content="first line")
+  inspect(@pdfsyntax.input_line(input), content="first line")
 }
 ```
 
 ### Find EOF Marker
 
 ```mbt check
+///|
 test "find_eof locates %%EOF" {
   let input = @pdfio.input_of_string("content\n%%EOF\n")
-  @pdfsyntax.find_eof!(input)
+  @pdfsyntax.find_eof(input)
   // Input is now positioned at %%EOF
 }
 ```
@@ -200,7 +215,7 @@ test "find_eof locates %%EOF" {
 
 For parsing complete PDF objects from files:
 
-```mbt
+```mbt nocheck
 pub fn lex_object_at(
   oneonly : Bool,                             // Stop after one object?
   input : @pdfio.Input,                       // Input stream
@@ -213,7 +228,7 @@ pub fn lex_object_at(
 
 Low-level token-by-token lexing:
 
-```mbt
+```mbt nocheck
 pub fn lex_next(
   dict_level : Ref[Int],                      // Dictionary nesting depth
   array_level : Ref[Int],                     // Array nesting depth
@@ -229,7 +244,7 @@ pub fn lex_next(
 
 Lex a complete dictionary:
 
-```mbt
+```mbt nocheck
 pub fn lex_dictionary(
   minus_one : Bool,       // Adjust position by -1?
   input : @pdfio.Input,
@@ -240,7 +255,7 @@ pub fn lex_dictionary(
 
 Parsing functions raise `@pdf.PdfError` on malformed input:
 
-```mbt
+```mbt nocheck
 // With failure_is_ok=true, returns Null instead of raising
 let (_, obj) = @pdfsyntax.parse!(tokens, failure_is_ok=true)
 ```

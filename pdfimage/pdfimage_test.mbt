@@ -114,7 +114,10 @@ test "get_image_24bpp applies decode for 8bpp" {
     ("/Height", Integer(1)),
     ("/BitsPerComponent", Integer(8)),
     ("/ColorSpace", Name("/DeviceRGB")),
-    ("/Decode", Array([Real(1.0), Real(0.0), Real(1.0), Real(0.0), Real(1.0), Real(0.0)])),
+    (
+      "/Decode",
+      Array([Real(1.0), Real(0.0), Real(1.0), Real(0.0), Real(1.0), Real(0.0)]),
+    ),
   ])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
   match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
@@ -267,7 +270,10 @@ test "get_image_24bpp default decode for ICCBased" {
   let resources : @pdf.PdfObject = Dictionary([])
   let icc_dict : @pdf.PdfObject = Dictionary([
     ("/N", Integer(3)),
-    ("/Range", Array([Real(0.0), Real(1.0), Real(0.0), Real(1.0), Real(0.0), Real(1.0)])),
+    (
+      "/Range",
+      Array([Real(0.0), Real(1.0), Real(0.0), Real(1.0), Real(0.0), Real(1.0)]),
+    ),
   ])
   let icc_stream : @pdf.PdfObject = Stream(
     Ref::new((icc_dict, @pdf.Stream::Got(@pdfio.bytes_of_list([0])))),
@@ -415,7 +421,10 @@ test "get_image_24bpp handles indexed RGB" {
     ("/Width", Integer(1)),
     ("/Height", Integer(1)),
     ("/BitsPerComponent", Integer(8)),
-    ("/ColorSpace", Array([Name("/Indexed"), Name("/DeviceRGB"), Integer(1), String(table)])),
+    (
+      "/ColorSpace",
+      Array([Name("/Indexed"), Name("/DeviceRGB"), Integer(1), String(table)]),
+    ),
   ])
   let data = @pdfio.bytes_of_list([1])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
@@ -441,7 +450,10 @@ test "get_image_24bpp handles indexed CMYK" {
     ("/Width", Integer(1)),
     ("/Height", Integer(1)),
     ("/BitsPerComponent", Integer(8)),
-    ("/ColorSpace", Array([Name("/Indexed"), Name("/DeviceCMYK"), Integer(1), String(table)])),
+    (
+      "/ColorSpace",
+      Array([Name("/Indexed"), Name("/DeviceCMYK"), Integer(1), String(table)]),
+    ),
   ])
   let data = @pdfio.bytes_of_list([1])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
@@ -491,7 +503,10 @@ test "get_image_24bpp indexed rgb missing table entry" {
     ("/Width", Integer(1)),
     ("/Height", Integer(1)),
     ("/BitsPerComponent", Integer(8)),
-    ("/ColorSpace", Array([Name("/Indexed"), Name("/DeviceRGB"), Integer(0), String(table)])),
+    (
+      "/ColorSpace",
+      Array([Name("/Indexed"), Name("/DeviceRGB"), Integer(0), String(table)]),
+    ),
   ])
   let data = @pdfio.bytes_of_list([1])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
@@ -664,7 +679,9 @@ test "get_image_24bpp loads ToGet stream" {
   let data = @pdfio.bytes_of_list([0, 255, 0])
   let input = @pdfio.input_of_bytes(data)
   let toget = @pdf.toget(input, 0, 3)
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::ToGet(toget))))
+  let stream : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::ToGet(toget))),
+  )
   match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => assert_eq(bytes.length(), 3)
     _ => fail("expected raw image")
@@ -746,7 +763,9 @@ test "get_image_24bpp rejects flate filter" {
     ("/ColorSpace", Name("/DeviceRGB")),
     ("/Filter", Name("/FlateDecode")),
   ])
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(encoded))))
+  let stream : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::Got(encoded))),
+  )
   assert_is_err(try? @pdfimage.get_image_24bpp(pdf, resources, stream))
 }
 
@@ -754,7 +773,9 @@ test "get_image_24bpp rejects flate filter" {
 test "get_image_24bpp indexed 8bpp rgb" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
-  let colorspace = make_indexed_colorspace(Name("/DeviceRGB"), 1, [0, 0, 0, 255, 0, 0])
+  let colorspace = make_indexed_colorspace(Name("/DeviceRGB"), 1, [
+    0, 0, 0, 255, 0, 0,
+  ])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(2)),
     ("/Height", Integer(1)),
@@ -800,7 +821,9 @@ test "get_image_24bpp indexed 8bpp cmyk" {
 test "get_image_24bpp indexed 4bpp rgb" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
-  let colorspace = make_indexed_colorspace(Name("/DeviceRGB"), 1, [0, 0, 0, 255, 0, 0])
+  let colorspace = make_indexed_colorspace(Name("/DeviceRGB"), 1, [
+    0, 0, 0, 255, 0, 0,
+  ])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(2)),
     ("/Height", Integer(1)),
@@ -846,7 +869,9 @@ test "get_image_24bpp indexed 4bpp cmyk" {
 test "get_image_24bpp indexed 4bpp rejects missing entry" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
-  let colorspace = make_indexed_colorspace(Name("/DeviceRGB"), 1, [0, 0, 0, 255, 0, 0])
+  let colorspace = make_indexed_colorspace(Name("/DeviceRGB"), 1, [
+    0, 0, 0, 255, 0, 0,
+  ])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(2)),
     ("/Height", Integer(1)),

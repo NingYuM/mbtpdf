@@ -35,8 +35,13 @@ pub fn lex_object_at(
       other => {
         tokens.push(other)
         if oneonly && dict_level.val == 0 && array_level.val == 0 {
-          let is_atom =
-            other is (LexBool(_) | LexReal(_) | LexString(_) | LexName(_) | LexNull | LexInt(_))
+          let is_atom = other
+            is (LexBool(_)
+            | LexReal(_)
+            | LexString(_)
+            | LexName(_)
+            | LexNull
+            | LexInt(_))
           if is_atom {
             done = true
           }

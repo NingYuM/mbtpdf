@@ -134,7 +134,12 @@ test "extract text handles invalid unicode and missing xobjects" {
   let invalid_unicode = @pdfio.string_of_bytes(
     @pdfio.bytes_of_int_array([0xfe, 0xff, 0x00]),
   )
-  let ops : Array[@pdfops.Op] = [OpBT, OpTj(invalid_unicode), OpET, OpDo("/NoXObject")]
+  let ops : Array[@pdfops.Op] = [
+    OpBT,
+    OpTj(invalid_unicode),
+    OpET,
+    OpDo("/NoXObject"),
+  ]
   let page = extract_test_page(ops, Dictionary([]))
   let pdf = add_pages_to_pdf([page], @pdf.empty())
   let pages = extract_text_by_page(pdf)
@@ -175,8 +180,18 @@ test "extract text ignores missing or invalid fonts" {
   let resources_bad : @pdf.PdfObject = Dictionary([
     ("/Font", Dictionary([("/Bad", bad_font)])),
   ])
-  let ops_missing_font : Array[@pdfops.Op] = [OpBT, OpTf("/F0", 12.0), OpTj("A"), OpET]
-  let ops_bad_font : Array[@pdfops.Op] = [OpBT, OpTf("/Bad", 12.0), OpTj("B"), OpET]
+  let ops_missing_font : Array[@pdfops.Op] = [
+    OpBT,
+    OpTf("/F0", 12.0),
+    OpTj("A"),
+    OpET,
+  ]
+  let ops_bad_font : Array[@pdfops.Op] = [
+    OpBT,
+    OpTf("/Bad", 12.0),
+    OpTj("B"),
+    OpET,
+  ]
   let ops_unknown_font : Array[@pdfops.Op] = [
     OpBT,
     OpTf("/Missing", 12.0),
@@ -197,7 +212,9 @@ test "extract text ignores missing or invalid fonts" {
 ///|
 test "extract text falls back for odd identity-h text bytes" {
   let font = cid_font_dict("/Identity-H")
-  let resources : @pdf.PdfObject = Dictionary([("/Font", Dictionary([("/F1", font)]))])
+  let resources : @pdf.PdfObject = Dictionary([
+    ("/Font", Dictionary([("/F1", font)])),
+  ])
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F1", 12.0), OpTj("A"), OpET]
   let page = extract_test_page(ops, resources)
   let pdf = add_pages_to_pdf([page], @pdf.empty())

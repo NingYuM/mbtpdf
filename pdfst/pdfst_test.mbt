@@ -23,12 +23,17 @@ fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
 ///|
 fn install_struct_root(pdf : @pdf.Pdf, root : @pdf.PdfObject) -> Int raise {
   let root_num = @pdf.addobj(pdf, root)
-  let catalog_num = match (@pdf.lookup_immediate("/Root", pdf.trailerdict) : @pdf.PdfObject?) {
+  let catalog_num = match
+    (@pdf.lookup_immediate("/Root", pdf.trailerdict) : @pdf.PdfObject?) {
     Some(Indirect(i)) => i
     _ => raise @pdf.PdfError::Msg("missing root")
   }
   let catalog = @pdf.lookup_obj(pdf, catalog_num)
-  let updated = @pdf.add_dict_entry(catalog, "/StructTreeRoot", Indirect(root_num))
+  let updated = @pdf.add_dict_entry(
+    catalog,
+    "/StructTreeRoot",
+    Indirect(root_num),
+  )
   @pdf.addobj_given_num(pdf, (catalog_num, updated))
   root_num
 }
@@ -44,12 +49,17 @@ fn add_struct_tree(pdf : @pdf.Pdf) -> (Int, Int) raise {
     ("/K", Array([Indirect(struct1_num), Indirect(struct2_num)])),
   ])
   let root_num = @pdf.addobj(pdf, root)
-  let catalog_num = match (@pdf.lookup_immediate("/Root", pdf.trailerdict) : @pdf.PdfObject?) {
+  let catalog_num = match
+    (@pdf.lookup_immediate("/Root", pdf.trailerdict) : @pdf.PdfObject?) {
     Some(Indirect(i)) => i
     _ => raise @pdf.PdfError::Msg("missing root")
   }
   let catalog = @pdf.lookup_obj(pdf, catalog_num)
-  let updated = @pdf.add_dict_entry(catalog, "/StructTreeRoot", Indirect(root_num))
+  let updated = @pdf.add_dict_entry(
+    catalog,
+    "/StructTreeRoot",
+    Indirect(root_num),
+  )
   @pdf.addobj_given_num(pdf, (catalog_num, updated))
   (root_num, struct2_num)
 }
@@ -77,9 +87,13 @@ test "trim_structure_tree updates nested k arrays" {
   let page_refs = @pdf.page_reference_numbers(pdf)
   let keep_obj : @pdf.PdfObject = Dictionary([("/Pg", Indirect(page_refs[0]))])
   let keep = @pdf.addobj(pdf, keep_obj)
-  let remove_pg_obj : @pdf.PdfObject = Dictionary([("/Pg", Indirect(page_refs[1]))])
+  let remove_pg_obj : @pdf.PdfObject = Dictionary([
+    ("/Pg", Indirect(page_refs[1])),
+  ])
   let remove_pg = @pdf.addobj(pdf, remove_pg_obj)
-  let remove_obj_obj : @pdf.PdfObject = Dictionary([("/Obj", Indirect(page_refs[2]))])
+  let remove_obj_obj : @pdf.PdfObject = Dictionary([
+    ("/Obj", Indirect(page_refs[2])),
+  ])
   let remove_obj = @pdf.addobj(pdf, remove_obj_obj)
   let parent_keep_obj : @pdf.PdfObject = Dictionary([
     (
@@ -101,7 +115,14 @@ test "trim_structure_tree updates nested k arrays" {
   let parent_int_obj : @pdf.PdfObject = Dictionary([("/K", Integer(1))])
   let parent_int = @pdf.addobj(pdf, parent_int_obj)
   let root_dict : @pdf.PdfObject = Dictionary([
-    ("/K", Array([Indirect(parent_keep), Indirect(parent_remove), Indirect(parent_int)])),
+    (
+      "/K",
+      Array([
+        Indirect(parent_keep),
+        Indirect(parent_remove),
+        Indirect(parent_int),
+      ]),
+    ),
   ])
   let root_num = install_struct_root(pdf, root_dict)
   let stream_dict : @pdf.PdfObject = Dictionary([("/Length", Integer(0))])
@@ -147,7 +168,9 @@ test "renumber_parent_trees remaps struct parents" {
   let obj1 = @pdf.addobj(pdf1, obj1_dict)
   let obj2_dict : @pdf.PdfObject = Dictionary([("/StructParent", Integer(0))])
   let obj2 = @pdf.addobj(pdf2, obj2_dict)
-  let obj3_dict : @pdf.PdfObject = Dictionary([("/StructParents", Array([Integer(0)]))])
+  let obj3_dict : @pdf.PdfObject = Dictionary([
+    ("/StructParents", Array([Integer(0)])),
+  ])
   let obj3 = @pdf.addobj(pdf2, obj3_dict)
   ignore(obj3)
   let stream_dict : @pdf.PdfObject = Dictionary([
@@ -167,19 +190,34 @@ test "renumber_parent_trees remaps struct parents" {
   let root2 : @pdf.PdfObject = Dictionary([("/ParentTree", Indirect(tree2_num))])
   ignore(install_struct_root(pdf2, root2))
   renumber_parent_trees([pdf1, pdf2])
-  match (@pdf.lookup_direct(pdf1, "/StructParent", @pdf.lookup_obj(pdf1, obj1)) : @pdf.PdfObject?) {
+  match
+    (
+      @pdf.lookup_direct(pdf1, "/StructParent", @pdf.lookup_obj(pdf1, obj1)) :
+      @pdf.PdfObject?) {
     Some(Integer(0)) => ()
     _ => fail("expected pdf1 StructParent unchanged")
   }
-  match (@pdf.lookup_direct(pdf2, "/StructParent", @pdf.lookup_obj(pdf2, obj2)) : @pdf.PdfObject?) {
+  match
+    (
+      @pdf.lookup_direct(pdf2, "/StructParent", @pdf.lookup_obj(pdf2, obj2)) :
+      @pdf.PdfObject?) {
     Some(Integer(1)) => ()
     _ => fail("expected pdf2 StructParent remapped")
   }
-  match (@pdf.lookup_direct(pdf2, "/StructParent", @pdf.lookup_obj(pdf2, stream_num)) : @pdf.PdfObject?) {
+  match
+    (
+      @pdf.lookup_direct(
+        pdf2,
+        "/StructParent",
+        @pdf.lookup_obj(pdf2, stream_num),
+      ) : @pdf.PdfObject?) {
     Some(Integer(1)) => ()
     _ => fail("expected stream StructParent remapped")
   }
-  match @pdf.lookup_chain(pdf2, pdf2.trailerdict, ["/Root", "/StructTreeRoot", "/ParentTree"]) {
+  match
+    @pdf.lookup_chain(pdf2, pdf2.trailerdict, [
+      "/Root", "/StructTreeRoot", "/ParentTree",
+    ]) {
     Some(tree) =>
       match @pdftree.read_number_tree(pdf2, tree) {
         [(key, _)] => assert_eq(key, "1")

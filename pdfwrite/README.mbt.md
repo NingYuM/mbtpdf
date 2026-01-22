@@ -16,13 +16,13 @@ The `pdfwrite` package provides functions to:
 
 ### To File (Simple)
 
-```mbt
+```mbt nocheck
 @pdfwrite.pdf_to_file(pdf, "/path/to/output.pdf")
 ```
 
 ### To File (With Options)
 
-```mbt
+```mbt nocheck
 @pdfwrite.pdf_to_file_options(
   preserve_objstm=false,    // Keep existing object streams
   generate_objstm=true,     // Create new object streams
@@ -36,7 +36,7 @@ The `pdfwrite` package provides functions to:
 
 ### To Channel (async)
 
-```mbt
+```mbt nocheck
 @pdfwrite.pdf_to_channel(
   encryption=None,
   build_new_id=true,
@@ -47,7 +47,7 @@ The `pdfwrite` package provides functions to:
 
 ### To Output Stream
 
-```mbt
+```mbt nocheck
 let (output, data) = @pdfio.input_output_of_bytes(65536)
 @pdfwrite.pdf_to_output!(
   encryption=None,
@@ -62,7 +62,8 @@ let bytes = @pdfio.extract_bytes_from_input_output(output, data)
 
 ### Creating Encryption Settings
 
-```mbt
+```mbt nocheck
+///|
 let encryption = @pdfwrite.make_encryption(
   @pdfcrypt.EncryptionMethod::AES256,
   user_password="user",
@@ -73,7 +74,7 @@ let encryption = @pdfwrite.make_encryption(
 
 ### Writing Encrypted PDF
 
-```mbt
+```mbt nocheck
 @pdfwrite.pdf_to_file_options(
   encryption=Some(encryption),
   build_new_id=true,
@@ -86,7 +87,7 @@ let encryption = @pdfwrite.make_encryption(
 
 To preserve encryption from the original file:
 
-```mbt
+```mbt nocheck
 @pdfwrite.pdf_to_file_options(
   recrypt="/path/to/original.pdf",  // Path for ID preservation
   encryption=None,                   // Uses saved encryption
@@ -100,7 +101,7 @@ To preserve encryption from the original file:
 
 PDF 1.5+ supports object streams for compression:
 
-```mbt
+```mbt nocheck
 // Generate compressed object streams
 @pdfwrite.pdf_to_file_options(
   generate_objstm=true,   // Create object streams
@@ -126,49 +127,53 @@ PDF 1.5+ supports object streams for compression:
 ### Convert Object to String
 
 ```mbt check
+///|
 test "string_of_pdf serializes objects" {
   let obj = @pdf.PdfObject::Dictionary([
     ("/Type", @pdf.PdfObject::Name("/Page")),
   ])
   let s = @pdfwrite.string_of_pdf(obj)
-  assert_true!(s.contains("/Type"))
-  assert_true!(s.contains("/Page"))
+  assert_true(s.contains("/Type"))
+  assert_true(s.contains("/Page"))
 }
 ```
 
 ### Including Stream Data
 
-```mbt
+```mbt nocheck
 // Includes stream content in output
+///|
 let s = @pdfwrite.string_of_pdf_including_data(stream_obj)
 ```
 
 ### Hex String Encoding
 
 ```mbt check
+///|
 test "make_hex_pdf_string" {
   let hex = @pdfwrite.make_hex_pdf_string("Hi")
-  inspect!(hex, content="<4869>")
+  inspect(hex, content="<4869>")
 }
 ```
 
 ## Debug Options
 
-```mbt
+```mbt nocheck
 // Enable debug output during writing
 @pdfwrite.write_debug.val = true
 ```
 
 ### Debug Whole Document
 
-```mbt
+```mbt nocheck
 // Print all objects to debug log
 @pdfwrite.debug_whole_pdf(pdf)
 ```
 
 ## Encryption Methods
 
-```mbt
+```mbt nocheck
+///|
 pub type EncryptionMethod = @pdfcrypt.EncryptionMethod
 
 // Available methods:
@@ -179,7 +184,8 @@ pub type EncryptionMethod = @pdfcrypt.EncryptionMethod
 
 ## Encryption Struct
 
-```mbt
+```mbt nocheck
+///|
 pub struct Encryption {
   encryption_method : EncryptionMethod
   user_password : String

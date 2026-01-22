@@ -14,7 +14,12 @@ test "minimum_valid_pdf has one page" {
 
 ///|
 test "add_pagetree builds page objects" {
-  let rect : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(100.0),
+    Real(100.0),
+  ])
   let pages = [@pdfpage.custompage(rect), @pdfpage.custompage(rect)]
   let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
   let pdf = @pdfpage.add_root(pageroot, [], pdf0)
@@ -27,8 +32,18 @@ test "add_pagetree builds page objects" {
 
 ///|
 test "pages_of_pagetree handles missing mediabox and non-stream contents" {
-  let rect1 : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(100.0), Real(120.0)])
-  let rect2 : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(200.0), Real(220.0)])
+  let rect1 : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(100.0),
+    Real(120.0),
+  ])
+  let rect2 : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(200.0),
+    Real(220.0),
+  ])
   let pages = [@pdfpage.custompage(rect1), @pdfpage.custompage(rect2)]
   let (pdf1, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
@@ -41,7 +56,11 @@ test "pages_of_pagetree handles missing mediabox and non-stream contents" {
     None => fail("expected page object number")
   }
   let page1_obj = @pdf.lookup_obj(pdf, page1_num)
-  let page1_updated = @pdf.add_dict_entry(page1_obj, "/Contents", Array([Integer(1)]))
+  let page1_updated = @pdf.add_dict_entry(
+    page1_obj,
+    "/Contents",
+    Array([Integer(1)]),
+  )
   @pdf.addobj_given_num(pdf, (page1_num, page1_updated))
   let page2_obj = @pdf.lookup_obj(pdf, page2_num)
   let page2_updated = @pdf.add_dict_entry(
@@ -77,7 +96,12 @@ test "pages_of_pagetree handles missing mediabox and non-stream contents" {
 ///|
 test "change_pages rewrites bookmarks and mixed annotations" {
   let pdf0 = @pdf.empty()
-  let rect : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(100.0),
+    Real(100.0),
+  ])
   let pages_in = [@pdfpage.custompage(rect), @pdfpage.custompage(rect)]
   let (pdf1, pageroot) = @pdfpage.add_pagetree(pages_in, pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
@@ -180,7 +204,12 @@ test "change_pages rewrites bookmarks and mixed annotations" {
 
 ///|
 test "pdf_of_pages extracts subset" {
-  let rect : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(100.0),
+    Real(100.0),
+  ])
   let pages = [
     @pdfpage.custompage(rect),
     @pdfpage.custompage(rect),
@@ -200,7 +229,12 @@ test "pdf_of_pages extracts subset" {
 ///|
 test "prepend/postpend operators update content" {
   let pdf = @pdf.empty()
-  let rect : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(100.0),
+    Real(100.0),
+  ])
   let base_page = @pdfpage.custompage(rect)
   let base_ops : Array[@pdfops.Op] = [Opq, OpQ]
   let page = Page::{
@@ -237,7 +271,12 @@ test "rotation_of_int rejects invalid" {
 ///|
 test "fixup_duplicate_pages creates unique refs" {
   let pdf0 = @pdf.empty()
-  let rect : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(100.0),
+    Real(100.0),
+  ])
   let page : @pdf.PdfObject = Dictionary([
     ("/Type", Name("/Page")),
     ("/MediaBox", rect),
@@ -260,7 +299,12 @@ test "fixup_duplicate_pages creates unique refs" {
 ///|
 test "replace_inherit fills mediabox" {
   let pdf0 = @pdf.empty()
-  let rect : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(100.0),
+    Real(100.0),
+  ])
   let page : @pdf.PdfObject = Dictionary([
     ("/Type", Name("/Page")),
     ("/Parent", Indirect(2)),
@@ -285,7 +329,9 @@ test "replace_inherit fills mediabox" {
 ///|
 test "renumber_pages updates resources and operators" {
   let pdf = @pdf.empty()
-  let resources : @pdf.PdfObject = Dictionary([("/Font", Dictionary([("/F1", Null)]))])
+  let resources : @pdf.PdfObject = Dictionary([
+    ("/Font", Dictionary([("/F1", Null)])),
+  ])
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F1", 12.0), OpTj("Hi"), OpET]
   let page : @pdfpage.Page = {
     content: [@pdfops.stream_of_ops(ops)],
@@ -317,7 +363,9 @@ test "renumber_pages updates resources and operators" {
 ///|
 test "add_prefix rewrites resources and content" {
   let pdf0 = @pdf.empty()
-  let resources : @pdf.PdfObject = Dictionary([("/Font", Dictionary([("/F1", Null)]))])
+  let resources : @pdf.PdfObject = Dictionary([
+    ("/Font", Dictionary([("/F1", Null)])),
+  ])
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F1", 12.0), OpTj("Hi"), OpET]
   let page : @pdfpage.Page = {
     content: [@pdfops.stream_of_ops(ops)],
@@ -348,7 +396,9 @@ test "add_prefix rewrites resources and content" {
 ///|
 test "shortest_unused_prefix skips used names" {
   let pdf0 = @pdf.empty()
-  let resources : @pdf.PdfObject = Dictionary([("/Font", Dictionary([("/a1", Null)]))])
+  let resources : @pdf.PdfObject = Dictionary([
+    ("/Font", Dictionary([("/a1", Null)])),
+  ])
   let page : @pdfpage.Page = {
     content: [],
     mediabox: Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
@@ -364,7 +414,12 @@ test "shortest_unused_prefix skips used names" {
 ///|
 test "change_pages rewrites annotation and openaction" {
   let pdf0 = @pdf.empty()
-  let rect : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(100.0),
+    Real(100.0),
+  ])
   let page = @pdfpage.custompage(rect)
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)

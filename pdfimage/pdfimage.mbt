@@ -79,13 +79,12 @@ fn decode(
     1 => invert_bits(image)
     2 => ()
     4 => ()
-    8 => {
+    8 =>
       for p in 0..<@pdfio.bytes_size(image) {
         let pair = pairs[p % pairs.length()]
         let value = interpolate(pair.0, pair.1, @pdfio.bget(image, p))
         @pdfio.bset(image, p, value)
       }
-    }
     16 => ()
     _ => raise @pdf.PdfError::Msg("Bad /Decode")
   }
@@ -578,15 +577,17 @@ fn is_rgb_base(space : @pdfspace.ColourSpace) -> Bool {
     @pdfspace.ColourSpace::DeviceRGB
     | @pdfspace.ColourSpace::CalRGB(_, _, _, _) => true
     @pdfspace.ColourSpace::ICCBased(icc) =>
-      icc.icc_alternate is (@pdfspace.ColourSpace::DeviceRGB
-        | @pdfspace.ColourSpace::CalRGB(_, _, _, _))
+      icc.icc_alternate
+      is (@pdfspace.ColourSpace::DeviceRGB
+      | @pdfspace.ColourSpace::CalRGB(_, _, _, _))
     @pdfspace.ColourSpace::DeviceN(_, base, _, _) =>
       match base {
         @pdfspace.ColourSpace::DeviceRGB
         | @pdfspace.ColourSpace::CalRGB(_, _, _, _) => true
         @pdfspace.ColourSpace::ICCBased(icc) =>
-          icc.icc_alternate is (@pdfspace.ColourSpace::DeviceRGB
-            | @pdfspace.ColourSpace::CalRGB(_, _, _, _))
+          icc.icc_alternate
+          is (@pdfspace.ColourSpace::DeviceRGB
+          | @pdfspace.ColourSpace::CalRGB(_, _, _, _))
         _ => false
       }
     _ => false

@@ -461,7 +461,8 @@ fn do_until_no_next_lb(
       ""
     }
   }
-  let page : @pdfdest.Destination = match @pdf.lookup_direct(pdf, "/Dest", outline) {
+  let page : @pdfdest.Destination = match
+    @pdf.lookup_direct(pdf, "/Dest", outline) {
     Some(@pdf.PdfObject::String(stringdest)) if preserve_actions =>
       StringDestination(stringdest)
     Some(dest) => @pdfdest.read_destination(pdf, dest, shallow=preserve_actions)

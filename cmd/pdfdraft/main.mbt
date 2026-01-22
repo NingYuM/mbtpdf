@@ -1,6 +1,7 @@
 ///|
 fn isimage(pdf : @pdf.Pdf, xobj : @pdf.PdfObject) -> Bool {
-  @pdf.lookup_direct(pdf, "/Subtype", xobj) is Some(@pdf.PdfObject::Name("/Image"))
+  @pdf.lookup_direct(pdf, "/Subtype", xobj)
+  is Some(@pdf.PdfObject::Name("/Image"))
 }
 
 ///|
@@ -47,8 +48,16 @@ fn remove_image_xobjects(
 
 ///|
 let substitute : Array[@pdfops.Op] = [
-  Opq, Opw(0.0), OpG(0.0), Opre(0.0, 0.0, 1.0, 1.0), Opm(0.0, 0.0),
-  Opl(1.0, 1.0), Opm(0.0, 1.0), Opl(1.0, 0.0), OpS, OpQ,
+  Opq,
+  Opw(0.0),
+  OpG(0.0),
+  Opre(0.0, 0.0, 1.0, 1.0),
+  Opm(0.0, 0.0),
+  Opl(1.0, 1.0),
+  Opm(0.0, 1.0),
+  Opl(1.0, 0.0),
+  OpS,
+  OpQ,
 ]
 
 ///|

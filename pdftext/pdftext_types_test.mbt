@@ -49,7 +49,10 @@ test "string_of_fonttype covers variants" {
   }
   let type3_font : @pdf.PdfObject = Dictionary([
     ("/FontBBox", Array([Real(0.0), Real(0.0), Real(10.0), Real(10.0)])),
-    ("/FontMatrix", Array([Real(1.0), Real(0.0), Real(0.0), Real(1.0), Real(0.0), Real(0.0)])),
+    (
+      "/FontMatrix",
+      Array([Real(1.0), Real(0.0), Real(0.0), Real(1.0), Real(0.0), Real(0.0)]),
+    ),
     ("/CharProcs", Dictionary([("/A", Null)])),
   ])
   match @pdftext.simple_fonttype_of_string(pdf, type3_font, "/Type3") {

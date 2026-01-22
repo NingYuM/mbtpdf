@@ -90,14 +90,18 @@ fn add_font_descriptor(pdf : @pdf.Pdf, fontfile_obj : Int?) -> Int {
 ///|
 fn add_fontfile_stream(pdf : @pdf.Pdf) -> Int {
   let data = @pdfio.bytes_of_string("ttf")
-  let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(@pdfio.bytes_size(data)))])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Length", Integer(@pdfio.bytes_size(data))),
+  ])
   @pdf.addobj(pdf, Stream(Ref::new((dict, @pdf.Stream::Got(data)))))
 }
 
 ///|
 fn add_tounicode_stream(pdf : @pdf.Pdf) -> Int {
   let bytes = @pdftext.tounicode_map(33, ["A"])
-  let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(@pdfio.bytes_size(bytes)))])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Length", Integer(@pdfio.bytes_size(bytes))),
+  ])
   @pdf.addobj(pdf, Stream(Ref::new((dict, @pdf.Stream::Got(bytes)))))
 }
 

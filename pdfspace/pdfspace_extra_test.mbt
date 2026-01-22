@@ -37,7 +37,11 @@ test "read_colourspace uses default gamma for CalGray" {
     ("/WhitePoint", mk_point(1.0, 1.0, 1.0)),
     ("/BlackPoint", mk_point(0.0, 0.0, 0.0)),
   ])
-  let space = read_colourspace(pdf, Dictionary([]), Array([Name("/CalGray"), dict]))
+  let space = read_colourspace(
+    pdf,
+    Dictionary([]),
+    Array([Name("/CalGray"), dict]),
+  )
   match (space : ColourSpace) {
     CalGray(_, _, gamma) => assert_eq(gamma, 1.0)
     _ => fail("expected CalGray")
@@ -51,7 +55,11 @@ test "read_colourspace uses default gamma and matrix for CalRGB" {
     ("/WhitePoint", mk_point(1.0, 1.0, 1.0)),
     ("/BlackPoint", mk_point(0.0, 0.0, 0.0)),
   ])
-  let space = read_colourspace(pdf, Dictionary([]), Array([Name("/CalRGB"), dict]))
+  let space = read_colourspace(
+    pdf,
+    Dictionary([]),
+    Array([Name("/CalRGB"), dict]),
+  )
   match (space : ColourSpace) {
     CalRGB(_, _, gamma, matrix) => {
       assert_eq(gamma, [1.0, 1.0, 1.0])
@@ -216,7 +224,9 @@ test "read_colourspace ICCBased invalid N errors" {
   let pdf = @pdf.empty()
   let dict : @pdf.PdfObject = Dictionary([("/N", Integer(2))])
   let data = @pdfio.bytes_of_list([1, 2, 3])
-  let stream_obj : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let stream_obj : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::Got(data))),
+  )
   let res : Result[ColourSpace, Error] = try? read_colourspace(
     pdf,
     Dictionary([]),
@@ -232,9 +242,21 @@ test "read_colourspace ICCBased invalid N errors" {
 test "read_colourspace ICCBased defaults alternate by N" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
-  let cs1 = read_colourspace(pdf, resources, Array([Name("/ICCBased"), icc_stream_with_n(1)]))
-  let cs3 = read_colourspace(pdf, resources, Array([Name("/ICCBased"), icc_stream_with_n(3)]))
-  let cs4 = read_colourspace(pdf, resources, Array([Name("/ICCBased"), icc_stream_with_n(4)]))
+  let cs1 = read_colourspace(
+    pdf,
+    resources,
+    Array([Name("/ICCBased"), icc_stream_with_n(1)]),
+  )
+  let cs3 = read_colourspace(
+    pdf,
+    resources,
+    Array([Name("/ICCBased"), icc_stream_with_n(3)]),
+  )
+  let cs4 = read_colourspace(
+    pdf,
+    resources,
+    Array([Name("/ICCBased"), icc_stream_with_n(4)]),
+  )
   match (cs1 : ColourSpace) {
     ICCBased(icc) =>
       match (icc.icc_alternate : ColourSpace) {
@@ -351,7 +373,10 @@ test "write_colourspace returns pattern name" {
 ///|
 test "write_colourspace ICCBased preserves length and skips bad range" {
   let pdf = @pdf.empty()
-  let dict : @pdf.PdfObject = Dictionary([("/N", Integer(1)), ("/Length", Integer(3))])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/N", Integer(1)),
+    ("/Length", Integer(3)),
+  ])
   let stream_obj : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::Got(@pdfio.bytes_of_string("icc")))),
   )
@@ -421,10 +446,15 @@ test "string_of_colourspace covers variants" {
   )
   let table : Map[Int, Array[Int]] = Map::new()
   table.set(0, [0, 0, 0])
-  assert_eq(string_of_colourspace(Indexed(DeviceRGB, table)), "Indexed (/DeviceRGB)")
+  assert_eq(
+    string_of_colourspace(Indexed(DeviceRGB, table)),
+    "Indexed (/DeviceRGB)",
+  )
   assert_eq(string_of_colourspace(Pattern), "/Pattern")
   assert_eq(
-    string_of_colourspace(DeviceN(["C1"], DeviceRGB, sample_tint_function(), Dictionary([]))),
+    string_of_colourspace(
+      DeviceN(["C1"], DeviceRGB, sample_tint_function(), Dictionary([])),
+    ),
     "DeviceN (/DeviceRGB)",
   )
 }
@@ -445,7 +475,9 @@ test "string_of_colourspace covers cal and lab variants" {
   assert_eq(string_of_colourspace(CalGray(white, black, 1.0)), "/CalGray")
   assert_eq(
     string_of_colourspace(
-      CalRGB(white, black, [1.0, 1.0, 1.0], [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]),
+      CalRGB(white, black, [1.0, 1.0, 1.0], [
+        1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0,
+      ]),
     ),
     "/CalRGB",
   )
@@ -500,7 +532,9 @@ test "read_colourspace ICCBased errors on missing N and non-stream" {
   let pdf = @pdf.empty()
   let dict : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_string("icc")
-  let stream_obj : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let stream_obj : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::Got(data))),
+  )
   let missing_n : Result[ColourSpace, Error] = try? read_colourspace(
     pdf,
     Dictionary([]),
@@ -651,8 +685,14 @@ test "write_colourspace handles Pattern with base" {
 ///|
 test "read_colourspace missing whitepoint defaults to zeros" {
   let pdf = @pdf.empty()
-  let dict : @pdf.PdfObject = Dictionary([("/BlackPoint", mk_point(0.0, 0.0, 0.0))])
-  let space = read_colourspace(pdf, Dictionary([]), Array([Name("/CalGray"), dict]))
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/BlackPoint", mk_point(0.0, 0.0, 0.0)),
+  ])
+  let space = read_colourspace(
+    pdf,
+    Dictionary([]),
+    Array([Name("/CalGray"), dict]),
+  )
   match (space : ColourSpace) {
     CalGray(white, _, _) => assert_eq(white, (0.0, 0.0, 0.0))
     _ => fail("expected CalGray")
@@ -670,7 +710,12 @@ test "read_colourspace indexed handles ICCBased base" {
   let lookup : @pdf.PdfObject = String(
     @pdfio.string_of_bytes(@pdfio.bytes_of_list([1, 2, 3])),
   )
-  let space_arr : Array[@pdf.PdfObject] = [Name("/Indexed"), base, Integer(0), lookup]
+  let space_arr : Array[@pdf.PdfObject] = [
+    Name("/Indexed"),
+    base,
+    Integer(0),
+    lookup,
+  ]
   let space = read_colourspace(pdf, Dictionary([]), Array(space_arr))
   match (space : ColourSpace) {
     Indexed(ICCBased(_), table) =>

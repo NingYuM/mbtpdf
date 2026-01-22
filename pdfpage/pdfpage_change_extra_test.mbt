@@ -175,7 +175,8 @@ test "change_pages rewrites bookmarks annotations and openaction" {
   let updated = @pdfpage.change_pages(true, pdf, pages, matrices~)
   assert_eq(@pdfpage.pages_of_pagetree_quick(updated), 2)
   let catalog = @pdf.catalog_of_pdf(updated)
-  match (@pdf.lookup_direct(updated, "/OpenAction", catalog) : @pdf.PdfObject?) {
+  match
+    (@pdf.lookup_direct(updated, "/OpenAction", catalog) : @pdf.PdfObject?) {
     Some(Dictionary(entries)) =>
       match entries.search_by(pair => pair.0 == "/D") {
         Some(idx) =>
@@ -198,7 +199,8 @@ test "change_pages keeps array openaction for identity matrices" {
   let matrices = [(1, @pdftransform.i_matrix), (2, @pdftransform.i_matrix)]
   let updated = @pdfpage.change_pages(true, pdf, pages, matrices~)
   let catalog = @pdf.catalog_of_pdf(updated)
-  match (@pdf.lookup_direct(updated, "/OpenAction", catalog) : @pdf.PdfObject?) {
+  match
+    (@pdf.lookup_direct(updated, "/OpenAction", catalog) : @pdf.PdfObject?) {
     Some(Array(_)) => ()
     _ => fail("expected array /OpenAction")
   }

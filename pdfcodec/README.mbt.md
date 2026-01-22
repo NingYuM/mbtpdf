@@ -14,7 +14,8 @@ The `pdfcodec` package provides:
 
 ## Encoding Types
 
-```mbt
+```mbt nocheck
+///|
 pub(all) enum Encoding {
   ASCIIHex
   ASCII85
@@ -28,7 +29,8 @@ pub(all) enum Encoding {
 
 Used with Flate and LZW for improved image compression:
 
-```mbt
+```mbt nocheck
+///|
 pub enum Predictor {
   None
   TIFF2
@@ -45,19 +47,21 @@ pub enum Predictor {
 
 ### Encode
 
-```mbt
+```mbt nocheck
+///|
 let compressed = @pdfcodec.encode_flate(data)
 ```
 
 ### Decode
 
-```mbt
-let decompressed = @pdfcodec.decode_flate!(input)
+```mbt nocheck
+///|
+let decompressed = @pdfcodec.decode_flate(input)
 ```
 
 ### Compression Level
 
-```mbt
+```mbt nocheck
 // Set flate compression level (0-9, default 6)
 @pdfcodec.flate_level.val = 9  // Maximum compression
 ```
@@ -66,27 +70,31 @@ let decompressed = @pdfcodec.decode_flate!(input)
 
 ### Encode
 
-```mbt
+```mbt nocheck
+///|
 let encoded = @pdfcodec.encode_ascii85(data)
 ```
 
 ### Decode
 
-```mbt
-let decoded = @pdfcodec.decode_ascii85!(input)
+```mbt nocheck
+///|
+let decoded = @pdfcodec.decode_ascii85(input)
 ```
 
 ## Stream Decoding
 
 Decode stream data based on its /Filter entry:
 
-```mbt
-let decoded = @pdfcodec.decode_pdfstream_until_unknown!(pdf, stream)
+```mbt nocheck
+///|
+let decoded = @pdfcodec.decode_pdfstream_until_unknown(pdf, stream)
 ```
 
 ## Error Handling
 
-```mbt
+```mbt nocheck
+///|
 pub suberror CodecError {
   BadLength
   Unknown(String)
@@ -95,7 +103,7 @@ pub suberror CodecError {
 
 ## Debug Options
 
-```mbt
+```mbt nocheck
 // Enable debug output
 @pdfcodec.debug.val = true
 ```

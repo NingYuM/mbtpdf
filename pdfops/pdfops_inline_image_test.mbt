@@ -107,7 +107,10 @@ test "parse inline image handles colorspace array" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Array([Name("/Indexed"), Name("/DeviceRGB"), Integer(1), String("")])),
+    (
+      "/CS",
+      Array([Name("/Indexed"), Name("/DeviceRGB"), Integer(1), String("")]),
+    ),
   ])
   let rendered = @pdfops.string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x12]))),

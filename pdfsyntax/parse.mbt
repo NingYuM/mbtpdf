@@ -141,7 +141,10 @@ fn parse_finish(
           Lexeme(LexEndStream),
           Lexeme(LexEndObj),
         ) =>
-          return (o, @pdf.PdfObject::Stream(Ref::new((Dictionary(dict), stream))))
+          return (
+            o,
+            @pdf.PdfObject::Stream(Ref::new((Dictionary(dict), stream))),
+          )
         _ => ()
       }
     }
@@ -160,11 +163,7 @@ fn parse_finish(
     match (items[0], items[1], items[2], items[3]) {
       (Parsed(Integer(o)), Parsed(Integer(_)), Lexeme(LexObj), Parsed(obj)) =>
         return (o, obj)
-      (
-        Parsed(Integer(o)),
-        Parsed(Integer(_)),
-        Lexeme(LexObj),
-        Lexeme(LexEndObj),
+      (Parsed(Integer(o)), Parsed(Integer(_)), Lexeme(LexObj), Lexeme(LexEndObj)
       ) => return (o, @pdf.PdfObject::Null)
       _ => ()
     }

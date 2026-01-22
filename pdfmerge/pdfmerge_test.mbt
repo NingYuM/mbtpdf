@@ -166,8 +166,12 @@ test "remove_duplicate_fonts merges identical streams" {
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(2))])
   let data1 : Array[Byte] = [0x01, 0x02]
   let data2 : Array[Byte] = [0x01, 0x02]
-  let stream1 : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data1))))
-  let stream2 : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data2))))
+  let stream1 : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::Got(data1))),
+  )
+  let stream2 : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::Got(data2))),
+  )
   ignore(@pdf.addobj(pdf, stream1))
   ignore(@pdf.addobj(pdf, stream2))
   let before = count_streams(pdf)
@@ -185,11 +189,21 @@ test "remove_duplicate_fonts keeps distinct streams" {
     ("/Length", Integer(1)),
     ("/Subtype", Name("/XObject")),
   ])
-  let stream1 : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got([0x01]))))
-  let stream2 : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got([0x01, 0x02]))))
-  let stream3 : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got([0x02]))))
-  let stream4 : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got([0x01]))))
-  let stream5 : @pdf.PdfObject = Stream(Ref::new((dict_alt, @pdf.Stream::Got([0x01]))))
+  let stream1 : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::Got([0x01]))),
+  )
+  let stream2 : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::Got([0x01, 0x02]))),
+  )
+  let stream3 : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::Got([0x02]))),
+  )
+  let stream4 : @pdf.PdfObject = Stream(
+    Ref::new((dict, @pdf.Stream::Got([0x01]))),
+  )
+  let stream5 : @pdf.PdfObject = Stream(
+    Ref::new((dict_alt, @pdf.Stream::Got([0x01]))),
+  )
   ignore(@pdf.addobj(pdf, stream1))
   ignore(@pdf.addobj(pdf, stream2))
   ignore(@pdf.addobj(pdf, stream3))
@@ -270,7 +284,13 @@ test "merge_pdfs merges dests ocg and acroform" {
     "/OCProperties",
     Dictionary([
       ("/OCGs", Array([Name("/OCG1")])),
-      ("/D", Dictionary([("/ON", Array([Name("/OCG1")])), ("/Name", String("Layer1"))])),
+      (
+        "/D",
+        Dictionary([
+          ("/ON", Array([Name("/OCG1")])),
+          ("/Name", String("Layer1")),
+        ]),
+      ),
     ]),
   )
   set_catalog_entry(
@@ -278,7 +298,13 @@ test "merge_pdfs merges dests ocg and acroform" {
     "/OCProperties",
     Dictionary([
       ("/OCGs", Array([Name("/OCG2")])),
-      ("/D", Dictionary([("/OFF", Array([Name("/OCG2")])), ("/BaseState", Name("/OFF"))])),
+      (
+        "/D",
+        Dictionary([
+          ("/OFF", Array([Name("/OCG2")])),
+          ("/BaseState", Name("/OFF")),
+        ]),
+      ),
       ("/Configs", Array([Dictionary([("/Name", String("Cfg"))])])),
     ]),
   )

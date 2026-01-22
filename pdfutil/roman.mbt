@@ -37,7 +37,7 @@ pub fn roman(n : Int) -> String {
     fn roman_recurse(value : Int, vals : Array[(Int, String)]) -> String {
       match vals {
         [] => ""
-        [head, ..tail] =>
+        [head, .. tail] =>
           if value >= head.0 {
             head.1 + roman_recurse(value - head.0, tail.to_array())
           } else {

@@ -37,8 +37,16 @@ test "pdfobject_of_destination" {
   )
   let obj = pdfobject_of_destination(dest)
   match (obj : @pdf.PdfObject) {
-    Array([Integer(3), Name("/FitR"), Real(10.0), Real(20.0), Real(30.0), Real(40.0)]) =>
-      ()
+    Array(
+      [
+        Integer(3),
+        Name("/FitR"),
+        Real(10.0),
+        Real(20.0),
+        Real(30.0),
+        Real(40.0),
+      ]
+    ) => ()
     _ => fail("unexpected pdfobject for destination")
   }
 }
@@ -99,7 +107,10 @@ test "transform_destination updates GoTo action" {
   let refs = @pdf.page_reference_numbers(pdf)
   let action : @pdf.PdfObject = Dictionary([
     ("/S", Name("/GoTo")),
-    ("/D", Array([Indirect(refs[0]), Name("/XYZ"), Real(10.0), Real(20.0), Null])),
+    (
+      "/D",
+      Array([Indirect(refs[0]), Name("/XYZ"), Real(10.0), Real(20.0), Null]),
+    ),
   ])
   let tr = @pdftransform.mktranslate(5.0, -3.0)
   let updated = transform_destination(pdf, tr, Destination::Action(action))
@@ -173,7 +184,12 @@ test "read_destination array Fit and FitR" {
 ///|
 test "read_destination array variants" {
   let pdf = @pdf.empty()
-  let xyz4 : @pdf.PdfObject = Array([Indirect(1), Name("/XYZ"), Real(10.0), Null])
+  let xyz4 : @pdf.PdfObject = Array([
+    Indirect(1),
+    Name("/XYZ"),
+    Real(10.0),
+    Null,
+  ])
   match read_destination(pdf, xyz4) {
     Destination::XYZ(TargetPage::PageObject(1), Some(left), None, None) =>
       assert_close(left, 10.0)
@@ -207,7 +223,11 @@ test "read_destination array variants" {
     Destination::FitB(TargetPage::PageObject(6)) => ()
     _ => fail("expected FitB destination")
   }
-  let bad_target : @pdf.PdfObject = Array([Name("/NotPage"), Name("/FitH"), Real(1.0)])
+  let bad_target : @pdf.PdfObject = Array([
+    Name("/NotPage"),
+    Name("/FitH"),
+    Real(1.0),
+  ])
   match read_destination(pdf, bad_target) {
     Destination::NullDestination => ()
     _ => fail("expected NullDestination for bad target")
@@ -274,7 +294,9 @@ test "read_destination string resolution" {
   }
   let pdf_with_tree = @pdfpage.minimum_valid_pdf()
   let dest : @pdf.PdfObject = Array([Integer(0), Name("/Fit")])
-  let dests : @pdf.PdfObject = Dictionary([("/Names", Array([String("Anchor"), dest]))])
+  let dests : @pdf.PdfObject = Dictionary([
+    ("/Names", Array([String("Anchor"), dest])),
+  ])
   let names : @pdf.PdfObject = Dictionary([("/Dests", dests)])
   let root = @pdf.lookup_obj(pdf_with_tree, pdf_with_tree.root)
   let root = @pdf.add_dict_entry(root, "/Names", names)
@@ -284,7 +306,9 @@ test "read_destination string resolution" {
     _ => fail("expected resolved StringDestination")
   }
   let pdf_no_match = @pdfpage.minimum_valid_pdf()
-  let dests : @pdf.PdfObject = Dictionary([("/Names", Array([String("Other"), dest]))])
+  let dests : @pdf.PdfObject = Dictionary([
+    ("/Names", Array([String("Other"), dest])),
+  ])
   let names : @pdf.PdfObject = Dictionary([("/Dests", dests)])
   let root = @pdf.lookup_obj(pdf_no_match, pdf_no_match.root)
   let root = @pdf.add_dict_entry(root, "/Names", names)
@@ -415,7 +439,12 @@ test "transform_destination variants" {
 
 ///|
 test "read_destination resolves named dests in catalog" {
-  let rect : @pdf.PdfObject = Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(100.0),
+    Real(100.0),
+  ])
   let page = @pdfpage.custompage(rect)
   let (pdf0, pageroot) = @pdfpage.add_pagetree([page], @pdf.empty())
   let pdf = @pdfpage.add_root(pageroot, [], pdf0)

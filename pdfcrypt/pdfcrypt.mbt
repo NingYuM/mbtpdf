@@ -27,13 +27,21 @@ fn is_identity(
     match @pdf.lookup_direct(pdf, "/DecodeParms", dict) {
       Some(Dictionary(decodeparms)) =>
         match
-          @pdf.lookup_direct(pdf, "/Name", @pdf.PdfObject::Dictionary(decodeparms)) {
+          @pdf.lookup_direct(
+            pdf,
+            "/Name",
+            @pdf.PdfObject::Dictionary(decodeparms),
+          ) {
           Some(Name("/Identity")) | None => true
           _ => false
         }
       Some(Array([Dictionary(decodeparms), ..])) =>
         match
-          @pdf.lookup_direct(pdf, "/Name", @pdf.PdfObject::Dictionary(decodeparms)) {
+          @pdf.lookup_direct(
+            pdf,
+            "/Name",
+            @pdf.PdfObject::Dictionary(decodeparms),
+          ) {
           Some(Name("/Identity")) | None => true
           _ => false
         }
@@ -116,7 +124,8 @@ fn decrypt_stream(
                   if encrypt {
                     @pdf.getstream(@pdf.PdfObject::Stream(rf))
                     match rf.val {
-                      (_, Got(got_bytes)) => Got(apply_bytes(key_bytes, got_bytes))
+                      (_, Got(got_bytes)) =>
+                        Got(apply_bytes(key_bytes, got_bytes))
                       _ => data
                     }
                   } else {
@@ -485,7 +494,8 @@ pub fn decrypt_pdf(
     None => (Some(pdf), [])
     Some(encrypt_dict) => {
       let (crypt_type, u, o, p, id, ue, oe) = get_encryption_values(pdf)
-      let (r, keylength, file_encryption_key) = match (crypt_type : @pdfcryptprimitives.Encryption) {
+      let (r, keylength, file_encryption_key) = match
+        (crypt_type : @pdfcryptprimitives.Encryption) {
         AESV2 => (4, 128, None)
         AESV3(iso) =>
           match (oe, ue) {
@@ -493,7 +503,8 @@ pub fn decrypt_pdf(
               match keyfromowner {
                 Some(k) => (5, 256, Some(k))
                 None => {
-                  let perms = match @pdf.lookup_direct(pdf, "/Perms", encrypt_dict) {
+                  let perms = match
+                    @pdf.lookup_direct(pdf, "/Perms", encrypt_dict) {
                     Some(String(s)) => s
                     _ =>
                       raise @pdf.PdfError::Msg(
@@ -533,7 +544,8 @@ pub fn decrypt_pdf(
           }
         ARC4(k, r_val) => (r_val, k, None)
       }
-      let encrypt_metadata = match @pdf.lookup_direct(pdf, "/EncryptMetadata", encrypt_dict) {
+      let encrypt_metadata = match
+        @pdf.lookup_direct(pdf, "/EncryptMetadata", encrypt_dict) {
         Some(Boolean(false)) => false
         _ => true
       }

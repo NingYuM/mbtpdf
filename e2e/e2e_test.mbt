@@ -329,7 +329,8 @@ fn read_ocg_names(pdf : @pdf.Pdf) -> Array[String] raise {
     Some(obj) => obj
     None => fail("missing /OCProperties")
   }
-  let ocgs = match (@pdf.lookup_direct(pdf, "/OCGs", ocprops) : @pdf.PdfObject?) {
+  let ocgs = match
+    (@pdf.lookup_direct(pdf, "/OCGs", ocprops) : @pdf.PdfObject?) {
     Some(Array(arr)) => arr
     _ => fail("missing /OCGs array")
   }
@@ -356,7 +357,8 @@ fn read_ocg_config_names(pdf : @pdf.Pdf) -> Array[String] raise {
     Some(obj) => obj
     None => fail("missing /OCProperties")
   }
-  let configs = match (@pdf.lookup_direct(pdf, "/Configs", ocprops) : @pdf.PdfObject?) {
+  let configs = match
+    (@pdf.lookup_direct(pdf, "/Configs", ocprops) : @pdf.PdfObject?) {
     Some(Array(arr)) => arr
     _ => fail("missing /Configs array")
   }
@@ -1085,7 +1087,8 @@ async test "e2e merge preserves AcroForm entries" {
     Some(Array(arr)) => assert_eq(arr.length(), 2)
     _ => fail("expected /Fields array")
   }
-  match (@pdf.lookup_direct(merged, "/NeedAppearances", form) : @pdf.PdfObject?) {
+  match
+    (@pdf.lookup_direct(merged, "/NeedAppearances", form) : @pdf.PdfObject?) {
     Some(Boolean(true)) => ()
     _ => fail("expected /NeedAppearances true")
   }
@@ -1107,11 +1110,15 @@ async test "e2e merge preserves AcroForm entries" {
     Some(Array(arr)) => assert_eq(arr.length(), 2)
     _ => fail("expected parsed /Fields array")
   }
-  match (@pdf.lookup_direct(parsed, "/NeedAppearances", parsed_form) : @pdf.PdfObject?) {
+  match
+    (
+      @pdf.lookup_direct(parsed, "/NeedAppearances", parsed_form) :
+      @pdf.PdfObject?) {
     Some(Boolean(true)) => ()
     _ => fail("expected parsed /NeedAppearances true")
   }
-  match (@pdf.lookup_direct(parsed, "/SigFlags", parsed_form) : @pdf.PdfObject?) {
+  match
+    (@pdf.lookup_direct(parsed, "/SigFlags", parsed_form) : @pdf.PdfObject?) {
     Some(Integer(1)) => ()
     _ => fail("expected parsed /SigFlags 1")
   }

@@ -169,10 +169,39 @@ test "serialize stitching function" {
 ///|
 test "serialize calculator covers opcode strings" {
   let ops : Array[Calculator] = [
-    Cvi, Cvr, Div, Exp, Floor, Idiv, Ln, Log, Mod, Truncate, And, Bitshift, Eq,
-    Ge, Gt, Le, Lt, Ne, Not, Or, Xor, Copy, Exch, Pop, Dup, Index, Roll,
+    Cvi,
+    Cvr,
+    Div,
+    Exp,
+    Floor,
+    Idiv,
+    Ln,
+    Log,
+    Mod,
+    Truncate,
+    And,
+    Bitshift,
+    Eq,
+    Ge,
+    Gt,
+    Le,
+    Lt,
+    Ne,
+    Not,
+    Or,
+    Xor,
+    Copy,
+    Exch,
+    Pop,
+    Dup,
+    Index,
+    Roll,
   ]
-  let fun : PdfFunction = { func: Calculator(ops), domain: [0.0, 1.0], range: None }
+  let fun : PdfFunction = {
+    func: Calculator(ops),
+    domain: [0.0, 1.0],
+    range: None,
+  }
   let pdf = @pdf.empty()
   let obj = pdfobject_of_function(pdf, fun)
   match (obj : @pdf.PdfObject) {
@@ -617,16 +646,26 @@ test "calculator boolean and comparison ops" {
 ///|
 test "calculator if and ifelse parse" {
   let pdf = @pdf.empty()
-  let dict_if : @pdf.PdfObject = Dictionary([("/FunctionType", Integer(4)), ("/Domain", Array([]))])
+  let dict_if : @pdf.PdfObject = Dictionary([
+    ("/FunctionType", Integer(4)),
+    ("/Domain", Array([])),
+  ])
   let data_if = @pdfio.bytes_of_string("{ true { 5 } if }")
-  let if_stream : @pdf.PdfObject = Stream(Ref::new((dict_if, @pdf.Stream::Got(data_if))))
+  let if_stream : @pdf.PdfObject = Stream(
+    Ref::new((dict_if, @pdf.Stream::Got(data_if))),
+  )
   let fun_if = parse_function(pdf, if_stream)
   let out_if = eval_function(fun_if, [])
   assert_eq(out_if.length(), 1)
   assert_close(out_if[0], 5.0)
-  let dict_ifelse : @pdf.PdfObject = Dictionary([("/FunctionType", Integer(4)), ("/Domain", Array([]))])
+  let dict_ifelse : @pdf.PdfObject = Dictionary([
+    ("/FunctionType", Integer(4)),
+    ("/Domain", Array([])),
+  ])
   let data_ifelse = @pdfio.bytes_of_string("{ false { 1 } { 2 } ifelse }")
-  let ifelse_stream : @pdf.PdfObject = Stream(Ref::new((dict_ifelse, @pdf.Stream::Got(data_ifelse))))
+  let ifelse_stream : @pdf.PdfObject = Stream(
+    Ref::new((dict_ifelse, @pdf.Stream::Got(data_ifelse))),
+  )
   let fun_ifelse = parse_function(pdf, ifelse_stream)
   let out_ifelse = eval_function(fun_ifelse, [])
   assert_eq(out_ifelse.length(), 1)
@@ -687,13 +726,25 @@ test "parse function rejects bad inputs" {
     @pdfe.logger.val = prev_logger
   }
   let pdf = @pdf.empty()
-  let bad_type : @pdf.PdfObject = Dictionary([("/FunctionType", Integer(9)), ("/Domain", Array([]))])
-  let bad_type_result : Result[PdfFunction, Error] = try? parse_function(pdf, bad_type)
+  let bad_type : @pdf.PdfObject = Dictionary([
+    ("/FunctionType", Integer(9)),
+    ("/Domain", Array([])),
+  ])
+  let bad_type_result : Result[PdfFunction, Error] = try? parse_function(
+    pdf, bad_type,
+  )
   assert_true(bad_type_result is Err(_))
-  let bad_calc_dict : @pdf.PdfObject = Dictionary([("/FunctionType", Integer(4)), ("/Domain", Array([]))])
+  let bad_calc_dict : @pdf.PdfObject = Dictionary([
+    ("/FunctionType", Integer(4)),
+    ("/Domain", Array([])),
+  ])
   let bad_calc_data = @pdfio.bytes_of_string("{ nope }")
-  let bad_calc_stream : @pdf.PdfObject = Stream(Ref::new((bad_calc_dict, @pdf.Stream::Got(bad_calc_data))))
-  let bad_calc_result : Result[PdfFunction, Error] = try? parse_function(pdf, bad_calc_stream)
+  let bad_calc_stream : @pdf.PdfObject = Stream(
+    Ref::new((bad_calc_dict, @pdf.Stream::Got(bad_calc_data))),
+  )
+  let bad_calc_result : Result[PdfFunction, Error] = try? parse_function(
+    pdf, bad_calc_stream,
+  )
   assert_true(bad_calc_result is Err(_))
   let sampled_dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(0)),
@@ -702,8 +753,12 @@ test "parse function rejects bad inputs" {
     ("/BitsPerSample", Integer(1)),
   ])
   let sampled_data = @pdfio.bytes_of_list([0, 1])
-  let sampled_stream : @pdf.PdfObject = Stream(Ref::new((sampled_dict, @pdf.Stream::Got(sampled_data))))
-  let sampled_result : Result[PdfFunction, Error] = try? parse_function(pdf, sampled_stream)
+  let sampled_stream : @pdf.PdfObject = Stream(
+    Ref::new((sampled_dict, @pdf.Stream::Got(sampled_data))),
+  )
+  let sampled_result : Result[PdfFunction, Error] = try? parse_function(
+    pdf, sampled_stream,
+  )
   assert_true(sampled_result is Err(_))
 }
 
@@ -752,7 +807,10 @@ test "print_function covers extra calculator strings" {
 ///|
 test "parse calculator keywords covers remaining ops" {
   let pdf = @pdf.empty()
-  let dict : @pdf.PdfObject = Dictionary([("/FunctionType", Integer(4)), ("/Domain", Array([]))])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/FunctionType", Integer(4)),
+    ("/Domain", Array([])),
+  ])
   let data = @pdfio.bytes_of_string(
     "{ cvi cvr div exp floor idiv ln log mod mul truncate and bitshift eq ge gt le lt ne not or xor copy exch pop dup index roll }",
   )
@@ -1012,10 +1070,17 @@ test "parse_function hits error branches" {
     ("/BitsPerSample", Integer(8)),
     ("/Decode", Array([Real(0.0)])),
   ])
-  let sample_stream : @pdf.PdfObject = Stream(Ref::new((sample_dict, @pdf.Stream::ToGet(to_get))))
+  let sample_stream : @pdf.PdfObject = Stream(
+    Ref::new((sample_dict, @pdf.Stream::ToGet(to_get))),
+  )
   assert_is_err(try? parse_function(pdf, sample_stream))
-  let calc_dict : @pdf.PdfObject = Dictionary([("/FunctionType", Integer(4)), ("/Domain", Array([]))])
-  let calc_stream : @pdf.PdfObject = Stream(Ref::new((calc_dict, @pdf.Stream::ToGet(to_get))))
+  let calc_dict : @pdf.PdfObject = Dictionary([
+    ("/FunctionType", Integer(4)),
+    ("/Domain", Array([])),
+  ])
+  let calc_stream : @pdf.PdfObject = Stream(
+    Ref::new((calc_dict, @pdf.Stream::ToGet(to_get))),
+  )
   assert_is_err(try? parse_function(pdf, calc_stream))
   let bad_functions : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(3)),
