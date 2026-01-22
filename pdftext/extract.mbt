@@ -95,14 +95,14 @@ fn append_text_from_streams(
 
   fn append_text_array(obj : @pdf.PdfObject) -> Unit {
     match obj {
-      @pdf.PdfObject::Array(values) =>
+      Array(values) =>
         for value in values {
-          match value {
-            @pdf.PdfObject::String(text) => append_text_value(text)
+          match (value : @pdf.PdfObject) {
+            String(text) => append_text_value(text)
             _ => ()
           }
         }
-      @pdf.PdfObject::String(text) => append_text_value(text)
+      String(text) => append_text_value(text)
       _ => ()
     }
   }
@@ -129,18 +129,18 @@ fn append_text_from_streams(
 
   fn append_text_from_xobject(name : String) -> Unit raise {
     match @pdf.lookup_direct(pdf, "/XObject", resources) {
-      Some(@pdf.PdfObject::Dictionary(entries)) =>
+      Some(Dictionary(entries)) =>
         match entries.search_by(pair => pair.0 == name) {
           Some(idx) => {
             let obj_ref = entries[idx].1
-            let obj_num = match obj_ref {
-              @pdf.PdfObject::Indirect(i) => Some(i)
+            let obj_num = match (obj_ref : @pdf.PdfObject) {
+              Indirect(i) => Some(i)
               _ => None
             }
             if mark_visited(obj_num) {
               let xobj = @pdf.direct(pdf, obj_ref)
               match @pdf.lookup_direct(pdf, "/Subtype", xobj) {
-                Some(@pdf.PdfObject::Name("/Form")) => {
+                Some(Name("/Form")) => {
                   let xresources = match
                     @pdf.lookup_direct(pdf, "/Resources", xobj) {
                     Some(res) => res

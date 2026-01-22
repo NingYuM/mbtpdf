@@ -10,7 +10,7 @@ fn xobject_isimage(
   name : String,
 ) -> Bool raise {
   match resources {
-    @pdf.PdfObject::Dictionary(_) =>
+    Dictionary(_) =>
       match @pdf.lookup_direct(pdf, "/XObject", resources) {
         Some(xobjects) => {
           let xobj = @pdf.lookup_fail("xobject not there", pdf, name, xobjects)
@@ -28,20 +28,16 @@ fn remove_image_xobjects(
   resources : @pdf.PdfObject,
 ) -> @pdf.PdfObject raise {
   match resources {
-    @pdf.PdfObject::Dictionary(_) =>
+    Dictionary(_) =>
       match @pdf.lookup_direct(pdf, "/XObject", resources) {
-        Some(@pdf.PdfObject::Dictionary(xobjects)) => {
+        Some(Dictionary(xobjects)) => {
           let out = Array::new(capacity=xobjects.length())
           for entry in xobjects {
             if !isimage(pdf, entry.1) {
               out.push(entry)
             }
           }
-          @pdf.replace_dict_entry(
-            resources,
-            "/XObject",
-            @pdf.PdfObject::Dictionary(out),
-          )
+          @pdf.replace_dict_entry(resources, "/XObject", Dictionary(out))
         }
         _ => resources
       }
