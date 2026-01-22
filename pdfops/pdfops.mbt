@@ -121,303 +121,303 @@ fn lexemes_of_op(op : Op) -> Array[Lexeme] {
 
   match op {
     Op::Opw(w) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(w)))
-      push(Lexeme::Op("w"))
+      push(Obj(@pdfgenlex.Token::LexReal(w)))
+      push(Op("w"))
     }
     Op::OpJ(j) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexInt(j)))
-      push(Lexeme::Op("J"))
+      push(Obj(@pdfgenlex.Token::LexInt(j)))
+      push(Op("J"))
     }
     Op::Opj(j) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexInt(j)))
-      push(Lexeme::Op("j"))
+      push(Obj(@pdfgenlex.Token::LexInt(j)))
+      push(Op("j"))
     }
     Op::OpM(m) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(m)))
-      push(Lexeme::Op("M"))
+      push(Obj(@pdfgenlex.Token::LexReal(m)))
+      push(Op("M"))
     }
     Op::Opd(values, phase) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexLeftSquare))
+      push(Obj(@pdfgenlex.Token::LexLeftSquare))
       for value in values {
-        push(Lexeme::Obj(@pdfgenlex.Token::LexReal(value)))
+        push(Obj(@pdfgenlex.Token::LexReal(value)))
       }
-      push(Lexeme::Obj(@pdfgenlex.Token::LexRightSquare))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(phase)))
-      push(Lexeme::Op("d"))
+      push(Obj(@pdfgenlex.Token::LexRightSquare))
+      push(Obj(@pdfgenlex.Token::LexReal(phase)))
+      push(Op("d"))
     }
     Op::Opri(name) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexName(name)))
-      push(Lexeme::Op("ri"))
+      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Op("ri"))
     }
     Op::Opi(value) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexInt(value)))
-      push(Lexeme::Op("i"))
+      push(Obj(@pdfgenlex.Token::LexInt(value)))
+      push(Op("i"))
     }
     Op::Opgs(name) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexName(name)))
-      push(Lexeme::Op("gs"))
+      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Op("gs"))
     }
-    Op::Opq => push(Lexeme::Op("q"))
-    Op::OpQ => push(Lexeme::Op("Q"))
+    Op::Opq => push(Op("q"))
+    Op::OpQ => push(Op("Q"))
     Op::Opcm(t) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(t.a)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(t.b)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(t.c)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(t.d)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(t.e)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(t.f)))
-      push(Lexeme::Op("cm"))
+      push(Obj(@pdfgenlex.Token::LexReal(t.a)))
+      push(Obj(@pdfgenlex.Token::LexReal(t.b)))
+      push(Obj(@pdfgenlex.Token::LexReal(t.c)))
+      push(Obj(@pdfgenlex.Token::LexReal(t.d)))
+      push(Obj(@pdfgenlex.Token::LexReal(t.e)))
+      push(Obj(@pdfgenlex.Token::LexReal(t.f)))
+      push(Op("cm"))
     }
     Op::Opm(x, y) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(x)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(y)))
-      push(Lexeme::Op("m"))
+      push(Obj(@pdfgenlex.Token::LexReal(x)))
+      push(Obj(@pdfgenlex.Token::LexReal(y)))
+      push(Op("m"))
     }
     Op::Opl(x, y) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(x)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(y)))
-      push(Lexeme::Op("l"))
+      push(Obj(@pdfgenlex.Token::LexReal(x)))
+      push(Obj(@pdfgenlex.Token::LexReal(y)))
+      push(Op("l"))
     }
     Op::Opc(x1, y1, x2, y2, x3, y3) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(x1)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(y1)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(x2)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(y2)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(x3)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(y3)))
-      push(Lexeme::Op("c"))
+      push(Obj(@pdfgenlex.Token::LexReal(x1)))
+      push(Obj(@pdfgenlex.Token::LexReal(y1)))
+      push(Obj(@pdfgenlex.Token::LexReal(x2)))
+      push(Obj(@pdfgenlex.Token::LexReal(y2)))
+      push(Obj(@pdfgenlex.Token::LexReal(x3)))
+      push(Obj(@pdfgenlex.Token::LexReal(y3)))
+      push(Op("c"))
     }
     Op::Opv(x2, y2, x3, y3) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(x2)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(y2)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(x3)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(y3)))
-      push(Lexeme::Op("v"))
+      push(Obj(@pdfgenlex.Token::LexReal(x2)))
+      push(Obj(@pdfgenlex.Token::LexReal(y2)))
+      push(Obj(@pdfgenlex.Token::LexReal(x3)))
+      push(Obj(@pdfgenlex.Token::LexReal(y3)))
+      push(Op("v"))
     }
     Op::Opy(x1, y1, x3, y3) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(x1)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(y1)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(x3)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(y3)))
-      push(Lexeme::Op("y"))
+      push(Obj(@pdfgenlex.Token::LexReal(x1)))
+      push(Obj(@pdfgenlex.Token::LexReal(y1)))
+      push(Obj(@pdfgenlex.Token::LexReal(x3)))
+      push(Obj(@pdfgenlex.Token::LexReal(y3)))
+      push(Op("y"))
     }
-    Op::Oph => push(Lexeme::Op("h"))
+    Op::Oph => push(Op("h"))
     Op::Opre(x, y, w, h) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(x)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(y)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(w)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(h)))
-      push(Lexeme::Op("re"))
+      push(Obj(@pdfgenlex.Token::LexReal(x)))
+      push(Obj(@pdfgenlex.Token::LexReal(y)))
+      push(Obj(@pdfgenlex.Token::LexReal(w)))
+      push(Obj(@pdfgenlex.Token::LexReal(h)))
+      push(Op("re"))
     }
-    Op::OpS => push(Lexeme::Op("S"))
-    Op::Ops => push(Lexeme::Op("s"))
-    Op::Opf => push(Lexeme::Op("f"))
-    Op::OpF => push(Lexeme::Op("F"))
-    Op::OpfStar => push(Lexeme::Op("f*"))
-    Op::OpB => push(Lexeme::Op("B"))
-    Op::OpBStar => push(Lexeme::Op("B*"))
-    Op::Opb => push(Lexeme::Op("b"))
-    Op::OpbStar => push(Lexeme::Op("b*"))
-    Op::Opn => push(Lexeme::Op("n"))
-    Op::OpW => push(Lexeme::Op("W"))
-    Op::OpWStar => push(Lexeme::Op("W*"))
-    Op::OpBT => push(Lexeme::Op("BT"))
-    Op::OpET => push(Lexeme::Op("ET"))
+    Op::OpS => push(Op("S"))
+    Op::Ops => push(Op("s"))
+    Op::Opf => push(Op("f"))
+    Op::OpF => push(Op("F"))
+    Op::OpfStar => push(Op("f*"))
+    Op::OpB => push(Op("B"))
+    Op::OpBStar => push(Op("B*"))
+    Op::Opb => push(Op("b"))
+    Op::OpbStar => push(Op("b*"))
+    Op::Opn => push(Op("n"))
+    Op::OpW => push(Op("W"))
+    Op::OpWStar => push(Op("W*"))
+    Op::OpBT => push(Op("BT"))
+    Op::OpET => push(Op("ET"))
     Op::OpTc(value) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(value)))
-      push(Lexeme::Op("Tc"))
+      push(Obj(@pdfgenlex.Token::LexReal(value)))
+      push(Op("Tc"))
     }
     Op::OpTw(value) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(value)))
-      push(Lexeme::Op("Tw"))
+      push(Obj(@pdfgenlex.Token::LexReal(value)))
+      push(Op("Tw"))
     }
     Op::OpTz(value) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(value)))
-      push(Lexeme::Op("Tz"))
+      push(Obj(@pdfgenlex.Token::LexReal(value)))
+      push(Op("Tz"))
     }
     Op::OpTL(value) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(value)))
-      push(Lexeme::Op("TL"))
+      push(Obj(@pdfgenlex.Token::LexReal(value)))
+      push(Op("TL"))
     }
     Op::OpTf(name, size) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexName(name)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(size)))
-      push(Lexeme::Op("Tf"))
+      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Obj(@pdfgenlex.Token::LexReal(size)))
+      push(Op("Tf"))
     }
     Op::OpTr(value) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexInt(value)))
-      push(Lexeme::Op("Tr"))
+      push(Obj(@pdfgenlex.Token::LexInt(value)))
+      push(Op("Tr"))
     }
     Op::OpTs(value) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(value)))
-      push(Lexeme::Op("Ts"))
+      push(Obj(@pdfgenlex.Token::LexReal(value)))
+      push(Op("Ts"))
     }
     Op::OpTd(tx, ty) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(tx)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(ty)))
-      push(Lexeme::Op("Td"))
+      push(Obj(@pdfgenlex.Token::LexReal(tx)))
+      push(Obj(@pdfgenlex.Token::LexReal(ty)))
+      push(Op("Td"))
     }
     Op::OpTD(tx, ty) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(tx)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(ty)))
-      push(Lexeme::Op("TD"))
+      push(Obj(@pdfgenlex.Token::LexReal(tx)))
+      push(Obj(@pdfgenlex.Token::LexReal(ty)))
+      push(Op("TD"))
     }
     Op::OpTm(t) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(t.a)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(t.b)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(t.c)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(t.d)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(t.e)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(t.f)))
-      push(Lexeme::Op("Tm"))
+      push(Obj(@pdfgenlex.Token::LexReal(t.a)))
+      push(Obj(@pdfgenlex.Token::LexReal(t.b)))
+      push(Obj(@pdfgenlex.Token::LexReal(t.c)))
+      push(Obj(@pdfgenlex.Token::LexReal(t.d)))
+      push(Obj(@pdfgenlex.Token::LexReal(t.e)))
+      push(Obj(@pdfgenlex.Token::LexReal(t.f)))
+      push(Op("Tm"))
     }
-    Op::OpTStar => push(Lexeme::Op("T*"))
+    Op::OpTStar => push(Op("T*"))
     Op::OpTj(text) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexString(text)))
-      push(Lexeme::Op("Tj"))
+      push(Obj(@pdfgenlex.Token::LexString(text)))
+      push(Op("Tj"))
     }
     Op::OpTJ(obj) => {
       push(Lexeme::PdfObj(obj))
-      push(Lexeme::Op("TJ"))
+      push(Op("TJ"))
     }
     Op::OpSingleQuote(text) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexString(text)))
-      push(Lexeme::Op("'"))
+      push(Obj(@pdfgenlex.Token::LexString(text)))
+      push(Op("'"))
     }
     Op::OpDoubleQuote(word, char, text) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(word)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(char)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexString(text)))
-      push(Lexeme::Op("\""))
+      push(Obj(@pdfgenlex.Token::LexReal(word)))
+      push(Obj(@pdfgenlex.Token::LexReal(char)))
+      push(Obj(@pdfgenlex.Token::LexString(text)))
+      push(Op("\""))
     }
     Op::Opd0(wx, wy) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(wx)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(wy)))
-      push(Lexeme::Op("d0"))
+      push(Obj(@pdfgenlex.Token::LexReal(wx)))
+      push(Obj(@pdfgenlex.Token::LexReal(wy)))
+      push(Op("d0"))
     }
     Op::Opd1(wx, wy, llx, lly, urx, ury) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(wx)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(wy)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(llx)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(lly)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(urx)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(ury)))
-      push(Lexeme::Op("d1"))
+      push(Obj(@pdfgenlex.Token::LexReal(wx)))
+      push(Obj(@pdfgenlex.Token::LexReal(wy)))
+      push(Obj(@pdfgenlex.Token::LexReal(llx)))
+      push(Obj(@pdfgenlex.Token::LexReal(lly)))
+      push(Obj(@pdfgenlex.Token::LexReal(urx)))
+      push(Obj(@pdfgenlex.Token::LexReal(ury)))
+      push(Op("d1"))
     }
     Op::OpCS(name) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexName(name)))
-      push(Lexeme::Op("CS"))
+      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Op("CS"))
     }
     Op::Opcs(name) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexName(name)))
-      push(Lexeme::Op("cs"))
+      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Op("cs"))
     }
     Op::OpSC(values) => {
       for value in values {
-        push(Lexeme::Obj(@pdfgenlex.Token::LexReal(value)))
+        push(Obj(@pdfgenlex.Token::LexReal(value)))
       }
-      push(Lexeme::Op("SC"))
+      push(Op("SC"))
     }
     Op::Opsc(values) => {
       for value in values {
-        push(Lexeme::Obj(@pdfgenlex.Token::LexReal(value)))
+        push(Obj(@pdfgenlex.Token::LexReal(value)))
       }
-      push(Lexeme::Op("sc"))
+      push(Op("sc"))
     }
     Op::OpSCN(values) => {
       for value in values {
-        push(Lexeme::Obj(@pdfgenlex.Token::LexReal(value)))
+        push(Obj(@pdfgenlex.Token::LexReal(value)))
       }
-      push(Lexeme::Op("SCN"))
+      push(Op("SCN"))
     }
     Op::Opscn(values) => {
       for value in values {
-        push(Lexeme::Obj(@pdfgenlex.Token::LexReal(value)))
+        push(Obj(@pdfgenlex.Token::LexReal(value)))
       }
-      push(Lexeme::Op("scn"))
+      push(Op("scn"))
     }
     Op::OpSCNName(name, values) => {
       for value in values {
-        push(Lexeme::Obj(@pdfgenlex.Token::LexReal(value)))
+        push(Obj(@pdfgenlex.Token::LexReal(value)))
       }
-      push(Lexeme::Obj(@pdfgenlex.Token::LexName(name)))
-      push(Lexeme::Op("SCN"))
+      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Op("SCN"))
     }
     Op::OpscnName(name, values) => {
       for value in values {
-        push(Lexeme::Obj(@pdfgenlex.Token::LexReal(value)))
+        push(Obj(@pdfgenlex.Token::LexReal(value)))
       }
-      push(Lexeme::Obj(@pdfgenlex.Token::LexName(name)))
-      push(Lexeme::Op("scn"))
+      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Op("scn"))
     }
     Op::OpG(value) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(value)))
-      push(Lexeme::Op("G"))
+      push(Obj(@pdfgenlex.Token::LexReal(value)))
+      push(Op("G"))
     }
     Op::Opg(value) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(value)))
-      push(Lexeme::Op("g"))
+      push(Obj(@pdfgenlex.Token::LexReal(value)))
+      push(Op("g"))
     }
     Op::OpRG(r, g, b) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(r)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(g)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(b)))
-      push(Lexeme::Op("RG"))
+      push(Obj(@pdfgenlex.Token::LexReal(r)))
+      push(Obj(@pdfgenlex.Token::LexReal(g)))
+      push(Obj(@pdfgenlex.Token::LexReal(b)))
+      push(Op("RG"))
     }
     Op::Oprg(r, g, b) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(r)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(g)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(b)))
-      push(Lexeme::Op("rg"))
+      push(Obj(@pdfgenlex.Token::LexReal(r)))
+      push(Obj(@pdfgenlex.Token::LexReal(g)))
+      push(Obj(@pdfgenlex.Token::LexReal(b)))
+      push(Op("rg"))
     }
     Op::OpK(c, m, y, k) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(c)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(m)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(y)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(k)))
-      push(Lexeme::Op("K"))
+      push(Obj(@pdfgenlex.Token::LexReal(c)))
+      push(Obj(@pdfgenlex.Token::LexReal(m)))
+      push(Obj(@pdfgenlex.Token::LexReal(y)))
+      push(Obj(@pdfgenlex.Token::LexReal(k)))
+      push(Op("K"))
     }
     Op::Opk(c, m, y, k) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(c)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(m)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(y)))
-      push(Lexeme::Obj(@pdfgenlex.Token::LexReal(k)))
-      push(Lexeme::Op("k"))
+      push(Obj(@pdfgenlex.Token::LexReal(c)))
+      push(Obj(@pdfgenlex.Token::LexReal(m)))
+      push(Obj(@pdfgenlex.Token::LexReal(y)))
+      push(Obj(@pdfgenlex.Token::LexReal(k)))
+      push(Op("k"))
     }
     Op::Opsh(name) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexName(name)))
-      push(Lexeme::Op("sh"))
+      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Op("sh"))
     }
     Op::InlineImage(data) => push(Lexeme::LexInlineImage(data))
     Op::OpDo(name) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexName(name)))
-      push(Lexeme::Op("Do"))
+      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Op("Do"))
     }
     Op::OpMP(name) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexName(name)))
-      push(Lexeme::Op("MP"))
+      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Op("MP"))
     }
     Op::OpDP(name, obj) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexName(name)))
+      push(Obj(@pdfgenlex.Token::LexName(name)))
       push(Lexeme::PdfObj(obj))
-      push(Lexeme::Op("DP"))
+      push(Op("DP"))
     }
     Op::OpBMC(name) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexName(name)))
-      push(Lexeme::Op("BMC"))
+      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Op("BMC"))
     }
     Op::OpBDC(name, obj) => {
-      push(Lexeme::Obj(@pdfgenlex.Token::LexName(name)))
+      push(Obj(@pdfgenlex.Token::LexName(name)))
       push(Lexeme::PdfObj(obj))
-      push(Lexeme::Op("BDC"))
+      push(Op("BDC"))
     }
-    Op::OpEMC => push(Lexeme::Op("EMC"))
-    Op::OpBX => push(Lexeme::Op("BX"))
-    Op::OpEX => push(Lexeme::Op("EX"))
+    Op::OpEMC => push(Op("EMC"))
+    Op::OpBX => push(Op("BX"))
+    Op::OpEX => push(Op("EX"))
     Op::OpUnknown(_) => ()
     Op::OpComment(text) =>
       if write_comments.val {
-        push(Lexeme::Obj(@pdfgenlex.Token::LexComment(text)))
+        push(Obj(@pdfgenlex.Token::LexComment(text)))
       } else {
         ()
       }
@@ -744,14 +744,12 @@ fn nocontent(input : @pdfio.Input) -> Unit raise {
 
 ///|
 fn lex_number(input : @pdfio.Input) -> Lexeme raise {
-  match @pdfsyntax.lex_number(input) {
-    @pdfgenlex.Token::LexReal(value) =>
-      Lexeme::Obj(@pdfgenlex.Token::LexReal(value))
-    @pdfgenlex.Token::LexInt(value) =>
-      Lexeme::Obj(@pdfgenlex.Token::LexReal(Double::from_int(value)))
+  match (@pdfsyntax.lex_number(input) : @pdfgenlex.Token) {
+    LexReal(value) => Obj(@pdfgenlex.Token::LexReal(value))
+    LexInt(value) => Obj(@pdfgenlex.Token::LexReal(Double::from_int(value)))
     _ => {
       nocontent(input)
-      Lexeme::Obj(@pdfgenlex.Token::LexReal(0.0))
+      Obj(@pdfgenlex.Token::LexReal(0.0))
     }
   }
 }
@@ -1145,37 +1143,35 @@ fn lex_keyword(
   input : @pdfio.Input,
 ) -> Lexeme raise {
   match @pdfsyntax.getuntil_white_or_delimiter_string(input) {
-    "true" => Lexeme::Obj(@pdfgenlex.Token::LexBool(true))
-    "false" => Lexeme::Obj(@pdfgenlex.Token::LexBool(false))
-    "BI" => Lexeme::LexInlineImage(lex_inline_image(pdf, resources, input))
+    "true" => Obj(@pdfgenlex.Token::LexBool(true))
+    "false" => Obj(@pdfgenlex.Token::LexBool(false))
+    "BI" => LexInlineImage(lex_inline_image(pdf, resources, input))
     "ID" | "EI" | "" => {
       nocontent(input)
-      Lexeme::Op("")
+      Op("")
     }
-    opstring => Lexeme::Op(opstring)
+    opstring => Op(opstring)
   }
 }
 
 ///|
 fn lex_string(input : @pdfio.Input) -> Lexeme raise {
-  match @pdfsyntax.lex_string(input) {
-    @pdfgenlex.Token::LexString(text) =>
-      Lexeme::Obj(@pdfgenlex.Token::LexString(text))
+  match (@pdfsyntax.lex_string(input) : @pdfgenlex.Token) {
+    LexString(text) => Obj(@pdfgenlex.Token::LexString(text))
     _ => {
       nocontent(input)
-      Lexeme::Obj(@pdfgenlex.Token::LexString(""))
+      Obj(@pdfgenlex.Token::LexString(""))
     }
   }
 }
 
 ///|
 fn lex_hexstring(input : @pdfio.Input) -> Lexeme raise {
-  match @pdfsyntax.lex_hexstring(input) {
-    @pdfgenlex.Token::LexString(text) =>
-      Lexeme::Obj(@pdfgenlex.Token::LexString(text))
+  match (@pdfsyntax.lex_hexstring(input) : @pdfgenlex.Token) {
+    LexString(text) => Obj(@pdfgenlex.Token::LexString(text))
     _ => {
       nocontent(input)
-      Lexeme::Obj(@pdfgenlex.Token::LexString(""))
+      Obj(@pdfgenlex.Token::LexString(""))
     }
   }
 }
@@ -1201,11 +1197,11 @@ fn lex_next(
       Some('(') => lex_string(input)
       Some('[') => {
         @pdfio.nudge(input)
-        Lexeme::Obj(@pdfgenlex.Token::LexLeftSquare)
+        Obj(@pdfgenlex.Token::LexLeftSquare)
       }
       Some(']') => {
         @pdfio.nudge(input)
-        Lexeme::Obj(@pdfgenlex.Token::LexRightSquare)
+        Obj(@pdfgenlex.Token::LexRightSquare)
       }
       Some('<') => {
         @pdfio.nudge(input)
@@ -1218,7 +1214,7 @@ fn lex_next(
       }
       Some('%') => {
         ignore(@pdfsyntax.lex_comment(input))
-        Lexeme::LexComment("")
+        LexComment("")
       }
       _ => raise @pdf.PdfError::Msg("Lexing failure in content stream")
     }
@@ -1272,9 +1268,8 @@ fn split_lexemes(lexemes : Array[Lexeme], start : Int) -> (Array[Lexeme], Int) {
 ///|
 fn lexeme_real(lexeme : Lexeme) -> Double? {
   match lexeme {
-    Lexeme::Obj(@pdfgenlex.Token::LexReal(value)) => Some(value)
-    Lexeme::Obj(@pdfgenlex.Token::LexInt(value)) =>
-      Some(Double::from_int(value))
+    Obj(LexReal(value)) => Some(value)
+    Obj(LexInt(value)) => Some(Double::from_int(value))
     _ => None
   }
 }
@@ -1282,8 +1277,8 @@ fn lexeme_real(lexeme : Lexeme) -> Double? {
 ///|
 fn lexeme_int(lexeme : Lexeme) -> Int? {
   match lexeme {
-    Lexeme::Obj(@pdfgenlex.Token::LexInt(value)) => Some(value)
-    Lexeme::Obj(@pdfgenlex.Token::LexReal(value)) => Some(value.to_int())
+    Obj(LexInt(value)) => Some(value)
+    Obj(LexReal(value)) => Some(value.to_int())
     _ => None
   }
 }
@@ -1291,7 +1286,7 @@ fn lexeme_int(lexeme : Lexeme) -> Int? {
 ///|
 fn lexeme_name(lexeme : Lexeme) -> String? {
   match lexeme {
-    Lexeme::Obj(@pdfgenlex.Token::LexName(name)) => Some(name)
+    Obj(LexName(name)) => Some(name)
     _ => None
   }
 }
@@ -1299,7 +1294,7 @@ fn lexeme_name(lexeme : Lexeme) -> String? {
 ///|
 fn lexeme_string(lexeme : Lexeme) -> String? {
   match lexeme {
-    Lexeme::Obj(@pdfgenlex.Token::LexString(text)) => Some(text)
+    Obj(LexString(text)) => Some(text)
     _ => None
   }
 }
@@ -1343,11 +1338,11 @@ fn parse_dash_op(section : Array[Lexeme]) -> Op raise {
       raise @pdf.PdfError::Msg("malformed 'd' op")
     }
     let right = section[section.length() - 3]
-    if right is Lexeme::Obj(@pdfgenlex.Token::LexRightSquare) {
+    if right is Obj(LexRightSquare) {
       let mut left_index = -1
       for i in 0..<(section.length() - 3) {
         match section[i] {
-          Lexeme::Obj(@pdfgenlex.Token::LexLeftSquare) => left_index = i
+          Obj(LexLeftSquare) => left_index = i
           _ => ()
         }
       }
@@ -1378,11 +1373,11 @@ fn parse_tj_op(section : Array[Lexeme]) -> Op raise {
       raise @pdf.PdfError::Msg("malformed TJ op")
     }
     let right = section[section.length() - 2]
-    if right is Lexeme::Obj(@pdfgenlex.Token::LexRightSquare) {
+    if right is Obj(LexRightSquare) {
       let mut left_index = -1
       for i in 0..<(section.length() - 2) {
         match section[i] {
-          Lexeme::Obj(@pdfgenlex.Token::LexLeftSquare) => left_index = i
+          Obj(LexLeftSquare) => left_index = i
           _ => ()
         }
       }
@@ -1392,12 +1387,10 @@ fn parse_tj_op(section : Array[Lexeme]) -> Op raise {
       let elements : Array[@pdf.PdfObject] = Array::new()
       for idx in (left_index + 1)..<(section.length() - 2) {
         match section[idx] {
-          Lexeme::Obj(@pdfgenlex.Token::LexReal(value)) =>
-            elements.push(@pdf.PdfObject::Real(value))
-          Lexeme::Obj(@pdfgenlex.Token::LexInt(value)) =>
+          Obj(LexReal(value)) => elements.push(@pdf.PdfObject::Real(value))
+          Obj(LexInt(value)) =>
             elements.push(@pdf.PdfObject::Real(Double::from_int(value)))
-          Lexeme::Obj(@pdfgenlex.Token::LexString(text)) =>
-            elements.push(@pdf.PdfObject::String(text))
+          Obj(LexString(text)) => elements.push(@pdf.PdfObject::String(text))
           _ => @pdfe.log("Warning: malformed TJ element; skipping\n")
         }
       }
