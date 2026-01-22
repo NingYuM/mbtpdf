@@ -56,7 +56,7 @@ fn build_unicode_pdf() -> @pdf.Pdf raise {
     mediabox,
     resources: @pdf.PdfObject::Dictionary([("/Font", Dictionary([("/F0", font)]))]),
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
   let (pdf, pageroot) = @pdfpage.add_pagetree([page], pdf)
   @pdfpage.add_root(pageroot, [], pdf)
@@ -71,7 +71,7 @@ test "extract unicode from generated pdf" {
 
 ///|
 fn extract_test_mediabox() -> @pdf.PdfObject {
-  @pdf.PdfObject::Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
 }
 
 ///|
@@ -85,7 +85,7 @@ fn extract_test_page(
     mediabox: extract_test_mediabox(),
     resources,
     rotate: @pdfpage.Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
 }
 
@@ -102,8 +102,8 @@ fn add_pages_to_pdf(
 fn form_xobject_stream(text : String) -> @pdf.PdfObject raise {
   let ops : Array[@pdfops.Op] = [OpBT, OpTj(text), OpET]
   let stream = @pdfops.stream_of_ops(ops)
-  let stream = @pdf.add_dict_entry(stream, "/Type", @pdf.PdfObject::Name("/XObject"))
-  @pdf.add_dict_entry(stream, "/Subtype", @pdf.PdfObject::Name("/Form"))
+  let stream = @pdf.add_dict_entry(stream, "/Type", Name("/XObject"))
+  @pdf.add_dict_entry(stream, "/Subtype", Name("/Form"))
 }
 
 ///|
@@ -122,7 +122,7 @@ test "extract text handles text ops and arrays" {
     OpTJ(@pdf.PdfObject::Array([String("F"), Integer(120), String("")])),
     OpET,
   ]
-  let page = extract_test_page(ops, @pdf.PdfObject::Dictionary([]))
+  let page = extract_test_page(ops, Dictionary([]))
   let pdf = add_pages_to_pdf([page], @pdf.empty())
   let pages = extract_text_by_page(pdf)
   assert_eq(pages.length(), 1)
@@ -135,7 +135,7 @@ test "extract text handles invalid unicode and missing xobjects" {
     @pdfio.bytes_of_int_array([0xfe, 0xff, 0x00]),
   )
   let ops : Array[@pdfops.Op] = [OpBT, OpTj(invalid_unicode), OpET, OpDo("/NoXObject")]
-  let page = extract_test_page(ops, @pdf.PdfObject::Dictionary([]))
+  let page = extract_test_page(ops, Dictionary([]))
   let pdf = add_pages_to_pdf([page], @pdf.empty())
   let pages = extract_text_by_page(pdf)
   assert_eq(pages.length(), 1)
@@ -183,7 +183,7 @@ test "extract text ignores missing or invalid fonts" {
     OpTj("C"),
     OpET,
   ]
-  let page1 = extract_test_page(ops_missing_font, @pdf.PdfObject::Dictionary([]))
+  let page1 = extract_test_page(ops_missing_font, Dictionary([]))
   let page2 = extract_test_page(ops_bad_font, resources_bad)
   let page3 = extract_test_page(ops_unknown_font, resources_bad)
   let pdf = add_pages_to_pdf([page1, page2, page3], @pdf.empty())

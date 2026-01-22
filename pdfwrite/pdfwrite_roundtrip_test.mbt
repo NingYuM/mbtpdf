@@ -10,49 +10,41 @@ fn build_minimal_pdf() -> @pdf.Pdf {
       objects: @pdf.pdfobjmap_empty(),
       object_stream_ids: Map::new(),
     },
-    trailerdict: @pdf.PdfObject::Dictionary([]),
+    trailerdict: Dictionary([]),
     was_linearized: false,
     saved_encryption: None,
   }
   let content = "BT /F0 12 Tf (Hello) Tj ET\n"
   let stream_bytes = @pdfio.bytes_of_string(content)
-  let stream_dict = @pdf.PdfObject::Dictionary([
-    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(stream_bytes))),
+  let stream_dict : @pdf.PdfObject = Dictionary([
+    ("/Length", Integer(@pdfio.bytes_size(stream_bytes))),
   ])
-  let stream_obj = @pdf.PdfObject::Stream(
+  let stream_obj : @pdf.PdfObject = Stream(
     Ref::new((stream_dict, @pdf.Stream::Got(stream_bytes))),
   )
-  let font_dict = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name("/Font")),
-    ("/Subtype", @pdf.PdfObject::Name("/Type1")),
-    ("/BaseFont", @pdf.PdfObject::Name("/Times-Roman")),
+  let font_dict : @pdf.PdfObject = Dictionary([
+    ("/Type", Name("/Font")),
+    ("/Subtype", Name("/Type1")),
+    ("/BaseFont", Name("/Times-Roman")),
   ])
-  let resources = @pdf.PdfObject::Dictionary([
-    ("/Font", @pdf.PdfObject::Dictionary([("/F0", font_dict)])),
+  let resources : @pdf.PdfObject = Dictionary([
+    ("/Font", Dictionary([("/F0", font_dict)])),
   ])
-  let page = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name("/Page")),
-    ("/Parent", @pdf.PdfObject::Indirect(1)),
+  let page : @pdf.PdfObject = Dictionary([
+    ("/Type", Name("/Page")),
+    ("/Parent", Indirect(1)),
     ("/Resources", resources),
-    (
-      "/MediaBox",
-      @pdf.PdfObject::Array([
-        @pdf.PdfObject::Integer(0),
-        @pdf.PdfObject::Integer(0),
-        @pdf.PdfObject::Integer(300),
-        @pdf.PdfObject::Integer(300),
-      ]),
-    ),
-    ("/Contents", @pdf.PdfObject::Indirect(2)),
+    ("/MediaBox", Array([Integer(0), Integer(0), Integer(300), Integer(300)])),
+    ("/Contents", Indirect(2)),
   ])
-  let pages = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name("/Pages")),
-    ("/Kids", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(3)])),
-    ("/Count", @pdf.PdfObject::Integer(1)),
+  let pages : @pdf.PdfObject = Dictionary([
+    ("/Type", Name("/Pages")),
+    ("/Kids", Array([Indirect(3)])),
+    ("/Count", Integer(1)),
   ])
-  let catalog = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name("/Catalog")),
-    ("/Pages", @pdf.PdfObject::Indirect(1)),
+  let catalog : @pdf.PdfObject = Dictionary([
+    ("/Type", Name("/Catalog")),
+    ("/Pages", Indirect(1)),
   ])
   @pdf.addobj_given_num(pdf, (1, pages))
   @pdf.addobj_given_num(pdf, (2, stream_obj))

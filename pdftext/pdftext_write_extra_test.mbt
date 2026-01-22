@@ -6,8 +6,8 @@ test "write_encoding covers mac and custom encodings" {
     font_with_encoding_name("/MacRomanEncoding"),
   )
   let macroman = @pdftext.write_encoding(pdf, macroman_encoding)
-  match @pdf.lookup_obj(pdf, macroman) {
-    @pdf.PdfObject::Name("/MacRomanEncoding") => ()
+  match (@pdf.lookup_obj(pdf, macroman) : @pdf.PdfObject) {
+    Name("/MacRomanEncoding") => ()
     _ => fail("expected /MacRomanEncoding")
   }
   let macexpert_encoding = @pdftext.read_encoding(
@@ -15,8 +15,8 @@ test "write_encoding covers mac and custom encodings" {
     font_with_encoding_name("/MacExpertEncoding"),
   )
   let macexpert = @pdftext.write_encoding(pdf, macexpert_encoding)
-  match @pdf.lookup_obj(pdf, macexpert) {
-    @pdf.PdfObject::Name("/MacExpertEncoding") => ()
+  match (@pdf.lookup_obj(pdf, macexpert) : @pdf.PdfObject) {
+    Name("/MacExpertEncoding") => ()
     _ => fail("expected /MacExpertEncoding")
   }
   let filled_encoding = @pdftext.read_encoding(
@@ -24,8 +24,8 @@ test "write_encoding covers mac and custom encodings" {
     truetype_font_with_encoding_dict(),
   )
   let filled = @pdftext.write_encoding(pdf, filled_encoding)
-  match @pdf.lookup_obj(pdf, filled) {
-    @pdf.PdfObject::Name("/MacRomanEncoding") => ()
+  match (@pdf.lookup_obj(pdf, filled) : @pdf.PdfObject) {
+    Name("/MacRomanEncoding") => ()
     _ => fail("expected filled encoding to reuse inner")
   }
   let custom_encoding = @pdftext.read_encoding(
@@ -33,11 +33,11 @@ test "write_encoding covers mac and custom encodings" {
     embedded_font_with_custom_encoding(),
   )
   let custom = @pdftext.write_encoding(pdf, custom_encoding)
-  match @pdf.lookup_obj(pdf, custom) {
-    @pdf.PdfObject::Dictionary(_) as dict => {
+  match (@pdf.lookup_obj(pdf, custom) : @pdf.PdfObject) {
+    Dictionary(_) as dict => {
       assert_true(@pdf.lookup_direct(pdf, "/BaseEncoding", dict) is None)
-      match @pdf.lookup_direct(pdf, "/Differences", dict) {
-        Some(@pdf.PdfObject::Array(values)) => assert_true(values.length() > 0)
+      match (@pdf.lookup_direct(pdf, "/Differences", dict) : @pdf.PdfObject?) {
+        Some(Array(values)) => assert_true(values.length() > 0)
         _ => fail("expected differences array")
       }
     }
@@ -46,8 +46,8 @@ test "write_encoding covers mac and custom encodings" {
   let implicit_encoding = @pdftext.read_encoding(
     pdf,
     @pdf.PdfObject::Dictionary([
-      ("/Subtype", @pdf.PdfObject::Name("/Type1")),
-      ("/BaseFont", @pdf.PdfObject::Name("/CustomFont")),
+      ("/Subtype", Name("/Type1")),
+      ("/BaseFont", Name("/CustomFont")),
     ]),
   )
   let implicit_result : Result[Int, Error] = try? @pdftext.write_encoding(
@@ -62,8 +62,8 @@ test "write_font errors on unsupported fonts" {
   let simple_font = @pdftext.read_font(
     pdf,
     @pdf.PdfObject::Dictionary([
-      ("/Subtype", @pdf.PdfObject::Name("/Type1")),
-      ("/BaseFont", @pdf.PdfObject::Name("/CustomFont")),
+      ("/Subtype", Name("/Type1")),
+      ("/BaseFont", Name("/CustomFont")),
     ]),
   )
   let simple_result : Result[Int, Error] = try? @pdftext.write_font(
@@ -78,42 +78,31 @@ test "write_font errors on unsupported fonts" {
 ///|
 fn add_font_descriptor(pdf : @pdf.Pdf, fontfile_obj : Int?) -> Int {
   let entries : Array[(String, @pdf.PdfObject)] = [
-    ("/Type", @pdf.PdfObject::Name("/FontDescriptor")),
-    ("/Ascent", @pdf.PdfObject::Integer(700)),
-    ("/Descent", @pdf.PdfObject::Integer(-200)),
-    ("/AvgWidth", @pdf.PdfObject::Integer(500)),
-    ("/MaxWidth", @pdf.PdfObject::Integer(1000)),
+    ("/Type", Name("/FontDescriptor")),
+    ("/Ascent", Integer(700)),
+    ("/Descent", Integer(-200)),
+    ("/AvgWidth", Integer(500)),
+    ("/MaxWidth", Integer(1000)),
   ]
   match fontfile_obj {
-    Some(objnum) =>
-      entries.push(("/FontFile2", @pdf.PdfObject::Indirect(objnum)))
+    Some(objnum) => entries.push(("/FontFile2", Indirect(objnum)))
     None => ()
   }
-  @pdf.addobj(pdf, @pdf.PdfObject::Dictionary(entries))
+  @pdf.addobj(pdf, Dictionary(entries))
 }
 
 ///|
 fn add_fontfile_stream(pdf : @pdf.Pdf) -> Int {
   let data = @pdfio.bytes_of_string("ttf")
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
-  ])
-  @pdf.addobj(
-    pdf,
-    @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data)))),
-  )
+  let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(@pdfio.bytes_size(data)))])
+  @pdf.addobj(pdf, Stream(Ref::new((dict, @pdf.Stream::Got(data)))))
 }
 
 ///|
 fn add_tounicode_stream(pdf : @pdf.Pdf) -> Int {
   let bytes = @pdftext.tounicode_map(33, ["A"])
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(bytes))),
-  ])
-  @pdf.addobj(
-    pdf,
-    @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(bytes)))),
-  )
+  let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(@pdfio.bytes_size(bytes)))])
+  @pdf.addobj(pdf, Stream(Ref::new((dict, @pdf.Stream::Got(bytes)))))
 }
 
 ///|
@@ -123,69 +112,45 @@ fn truetype_font_dict(
   tounicode_obj : Int?,
 ) -> @pdf.PdfObject {
   let entries : Array[(String, @pdf.PdfObject)] = [
-    ("/Subtype", @pdf.PdfObject::Name("/TrueType")),
-    ("/BaseFont", @pdf.PdfObject::Name("/DummyTTF")),
-    ("/FirstChar", @pdf.PdfObject::Integer(0)),
-    ("/LastChar", @pdf.PdfObject::Integer(1)),
-    (
-      "/Widths",
-      @pdf.PdfObject::Array([
-        @pdf.PdfObject::Integer(500),
-        @pdf.PdfObject::Integer(600),
-      ]),
-    ),
-    ("/Encoding", @pdf.PdfObject::Name(encoding_name)),
+    ("/Subtype", Name("/TrueType")),
+    ("/BaseFont", Name("/DummyTTF")),
+    ("/FirstChar", Integer(0)),
+    ("/LastChar", Integer(1)),
+    ("/Widths", Array([Integer(500), Integer(600)])),
+    ("/Encoding", Name(encoding_name)),
   ]
   match font_descriptor {
-    Some(objnum) =>
-      entries.push(("/FontDescriptor", @pdf.PdfObject::Indirect(objnum)))
+    Some(objnum) => entries.push(("/FontDescriptor", Indirect(objnum)))
     None => ()
   }
   match tounicode_obj {
-    Some(objnum) =>
-      entries.push(("/ToUnicode", @pdf.PdfObject::Indirect(objnum)))
+    Some(objnum) => entries.push(("/ToUnicode", Indirect(objnum)))
     None => ()
   }
-  @pdf.PdfObject::Dictionary(entries)
+  Dictionary(entries)
 }
 
 ///|
 fn type3_font_dict_extra(font_descriptor : Int?) -> @pdf.PdfObject {
   let entries : Array[(String, @pdf.PdfObject)] = [
-    ("/Subtype", @pdf.PdfObject::Name("/Type3")),
-    ("/BaseFont", @pdf.PdfObject::Name("/DummyType3")),
-    (
-      "/FontBBox",
-      @pdf.PdfObject::Array([
-        @pdf.PdfObject::Real(0.0),
-        @pdf.PdfObject::Real(0.0),
-        @pdf.PdfObject::Real(0.0),
-        @pdf.PdfObject::Real(0.0),
-      ]),
-    ),
+    ("/Subtype", Name("/Type3")),
+    ("/BaseFont", Name("/DummyType3")),
+    ("/FontBBox", Array([Real(0.0), Real(0.0), Real(0.0), Real(0.0)])),
     (
       "/FontMatrix",
-      @pdf.PdfObject::Array([
-        @pdf.PdfObject::Real(1.0),
-        @pdf.PdfObject::Real(0.0),
-        @pdf.PdfObject::Real(0.0),
-        @pdf.PdfObject::Real(1.0),
-        @pdf.PdfObject::Real(0.0),
-        @pdf.PdfObject::Real(0.0),
-      ]),
+      Array([Real(1.0), Real(0.0), Real(0.0), Real(1.0), Real(0.0), Real(0.0)]),
     ),
-    ("/CharProcs", @pdf.PdfObject::Dictionary([("/A", @pdf.PdfObject::Null)])),
-    ("/Resources", @pdf.PdfObject::Dictionary([])),
-    ("/FirstChar", @pdf.PdfObject::Integer(0)),
-    ("/LastChar", @pdf.PdfObject::Integer(0)),
-    ("/Widths", @pdf.PdfObject::Array([@pdf.PdfObject::Integer(0)])),
+    ("/CharProcs", Dictionary([("/A", Null)])),
+    ("/Resources", Dictionary([])),
+    ("/FirstChar", Integer(0)),
+    ("/LastChar", Integer(0)),
+    ("/Widths", Array([Integer(0)])),
   ]
   match font_descriptor {
-    Some(objnum) =>
-      entries.push(("/FontDescriptor", @pdf.PdfObject::Indirect(objnum)))
+    Some(objnum) => entries.push(("/FontDescriptor", Indirect(objnum)))
     None => ()
   }
-  @pdf.PdfObject::Dictionary(entries)
+  Dictionary(entries)
 }
 
 ///|
@@ -195,10 +160,10 @@ test "write_font writes type3 font with encoding" {
   let font_dict = type3_font_dict_extra(Some(fd))
   let font = @pdftext.read_font(pdf, font_dict)
   let objnum = @pdftext.write_font(pdf, font)
-  match @pdf.lookup_obj(pdf, objnum) {
-    @pdf.PdfObject::Dictionary(_) as dict =>
-      match @pdf.lookup_direct(pdf, "/Subtype", dict) {
-        Some(@pdf.PdfObject::Name("/Type3")) => ()
+  match (@pdf.lookup_obj(pdf, objnum) : @pdf.PdfObject) {
+    Dictionary(_) as dict =>
+      match (@pdf.lookup_direct(pdf, "/Subtype", dict) : @pdf.PdfObject?) {
+        Some(Name("/Type3")) => ()
         _ => fail("expected Type3 subtype")
       }
     _ => fail("expected Type3 font dictionary")
@@ -219,8 +184,8 @@ test "write_font writes truetype with tounicode" {
   let font = @pdftext.read_font(pdf, font_dict)
   let objnum = @pdftext.write_font(objnum=50, pdf, font)
   assert_eq(objnum, 50)
-  match @pdf.lookup_obj(pdf, objnum) {
-    @pdf.PdfObject::Dictionary(_) as dict =>
+  match (@pdf.lookup_obj(pdf, objnum) : @pdf.PdfObject) {
+    Dictionary(_) as dict =>
       assert_true(@pdf.lookup_direct(pdf, "/ToUnicode", dict) is Some(_))
     _ => fail("expected truetype dictionary")
   }
@@ -234,8 +199,8 @@ test "write_font writes truetype with encoding entry" {
   let font_dict = truetype_font_dict(Some(fd), "/MacRomanEncoding", None)
   let font = @pdftext.read_font(pdf, font_dict)
   let objnum = @pdftext.write_font(pdf, font)
-  match @pdf.lookup_obj(pdf, objnum) {
-    @pdf.PdfObject::Dictionary(_) as dict =>
+  match (@pdf.lookup_obj(pdf, objnum) : @pdf.PdfObject) {
+    Dictionary(_) as dict =>
       assert_true(@pdf.lookup_direct(pdf, "/Encoding", dict) is Some(_))
     _ => fail("expected truetype dictionary")
   }

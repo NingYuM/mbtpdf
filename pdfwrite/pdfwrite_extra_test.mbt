@@ -1,10 +1,10 @@
 ///|
 test "string_of_pdf_including_data includes stream bytes" {
   let data = @pdfio.bytes_of_string("abc")
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Length", Integer(@pdfio.bytes_size(data))),
   ])
-  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
   let rendered = @pdfwrite.string_of_pdf_including_data(stream)
   assert_true(rendered.contains("stream"))
   assert_true(rendered.contains("abc"))
@@ -34,10 +34,8 @@ test "string_of_pdf_including_data warns on toget streams" {
     4,
     crypt=@pdf.ToGetCrypt::ToDecrypt(deferred),
   )
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Length", @pdf.PdfObject::Integer(4)),
-  ])
-  let stream = @pdf.PdfObject::Stream(
+  let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(4))])
+  let stream : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::ToGet(toget))),
   )
   let rendered = @pdfwrite.string_of_pdf_including_data(stream)
@@ -46,7 +44,7 @@ test "string_of_pdf_including_data warns on toget streams" {
 
 ///|
 test "string_of_pdf escapes carriage return and form feed" {
-  let obj = @pdf.PdfObject::String("a\r\f")
+  let obj : @pdf.PdfObject = String("a\r\f")
   let rendered = @pdfwrite.string_of_pdf(obj)
   assert_true(rendered.contains("\\r"))
   assert_true(rendered.contains("\\f"))
@@ -54,27 +52,27 @@ test "string_of_pdf escapes carriage return and form feed" {
 
 ///|
 test "string_of_pdf escapes newline" {
-  let obj = @pdf.PdfObject::String("a\nb")
+  let obj : @pdf.PdfObject = String("a\nb")
   let rendered = @pdfwrite.string_of_pdf(obj)
   assert_true(rendered.contains("\\n"))
 }
 
 ///|
 test "string_of_pdf expands scientific notation" {
-  let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(1.2e20))
+  let rendered = @pdfwrite.string_of_pdf(Real(1.2e20))
   assert_true(!rendered.contains("e") && !rendered.contains("E"))
 }
 
 ///|
 test "string_of_pdf expands negative exponent" {
-  let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(1.2e-5))
+  let rendered = @pdfwrite.string_of_pdf(Real(1.2e-5))
   assert_true(!rendered.contains("e") && !rendered.contains("E"))
   assert_true(rendered.has_prefix("0."))
 }
 
 ///|
 test "string_of_pdf expands large positive exponent" {
-  let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(1.2e100))
+  let rendered = @pdfwrite.string_of_pdf(Real(1.2e100))
   assert_eq(rendered.length(), 101)
   assert_true(rendered.has_prefix("12"))
   assert_true(rendered.has_suffix("0"))
@@ -82,7 +80,7 @@ test "string_of_pdf expands large positive exponent" {
 
 ///|
 test "string_of_pdf expands tiny exponent with leading zeros" {
-  let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(1.2e-20))
+  let rendered = @pdfwrite.string_of_pdf(Real(1.2e-20))
   assert_eq(rendered.length(), 23)
   assert_true(rendered.has_prefix("0."))
   assert_true(rendered.has_suffix("12"))
@@ -90,7 +88,7 @@ test "string_of_pdf expands tiny exponent with leading zeros" {
 
 ///|
 test "string_of_pdf expands negative scientific values" {
-  let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Real(-1.2e-20))
+  let rendered = @pdfwrite.string_of_pdf(Real(-1.2e-20))
   assert_eq(rendered.length(), 24)
   assert_true(rendered.has_prefix("-0."))
   assert_true(rendered.has_suffix("12"))
@@ -102,7 +100,7 @@ test "string_of_pdf encodes control and delimiter bytes" {
     0x2f, 0x14, 0x16, 0x1a, 0x28, 0x29, 0x3c, 0x25,
   ])
   let name = @pdfio.string_of_bytes(bytes)
-  let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Name(name))
+  let rendered = @pdfwrite.string_of_pdf(Name(name))
   assert_true(rendered.contains("#14"))
   assert_true(rendered.contains("#16"))
   assert_true(rendered.contains("#1A"))
@@ -114,7 +112,7 @@ test "string_of_pdf encodes control and delimiter bytes" {
 
 ///|
 test "string_of_pdf encodes greater-than in names" {
-  let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Name("/A>"))
+  let rendered = @pdfwrite.string_of_pdf(Name("/A>"))
   assert_true(rendered.contains("#3E"))
 }
 
@@ -122,14 +120,14 @@ test "string_of_pdf encodes greater-than in names" {
 test "string_of_pdf encodes delimiter bytes in names" {
   let cases = [("/[", "/#5B"), ("/]", "/#5D"), ("/{", "/#7B"), ("/}", "/#7D")]
   for pair in cases {
-    let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Name(pair.0))
+    let rendered = @pdfwrite.string_of_pdf(Name(pair.0))
     assert_eq(rendered, pair.1)
   }
 }
 
 ///|
 test "string_of_pdf handles short names" {
-  let rendered = @pdfwrite.string_of_pdf(@pdf.PdfObject::Name("/"))
+  let rendered = @pdfwrite.string_of_pdf(Name("/"))
   assert_eq(rendered, "/")
 }
 
@@ -158,22 +156,20 @@ test "debug_whole_pdf runs" {
 ///|
 test "pdf_to_output generates object streams with indirect lengths" {
   let pdf = @pdfpage.minimum_valid_pdf()
-  let length_obj = @pdf.addobj(pdf, @pdf.PdfObject::Integer(3))
+  let length_obj = @pdf.addobj(pdf, Integer(3))
   let data = @pdfio.bytes_of_string("abc")
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Length", @pdf.PdfObject::Indirect(length_obj)),
-  ])
+  let dict : @pdf.PdfObject = Dictionary([("/Length", Indirect(length_obj))])
   let stream_num = @pdf.addobj(
     pdf,
-    @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data)))),
+    Stream(Ref::new((dict, @pdf.Stream::Got(data)))),
   )
-  let marked_obj = @pdf.addobj(pdf, @pdf.PdfObject::Integer(123))
+  let marked_obj = @pdf.addobj(pdf, Integer(123))
   pdf.objects.object_stream_ids.set(marked_obj, stream_num)
   pdf.objects.object_stream_ids.set(stream_num, stream_num)
   let payload = "A".repeat(1000)
   let payload_ids = Array::new()
   for _ in 0..<=30 {
-    let objnum = @pdf.addobj(pdf, @pdf.PdfObject::String(payload))
+    let objnum = @pdf.addobj(pdf, String(payload))
     payload_ids.push(objnum)
   }
   for objnum in payload_ids {
@@ -231,14 +227,12 @@ test "pdf_to_output generates object streams with indirect lengths" {
 ///|
 test "pdf_to_output skips indirect length objects for objstm hints" {
   let pdf = @pdfpage.minimum_valid_pdf()
-  let length_obj = @pdf.addobj(pdf, @pdf.PdfObject::Integer(4))
+  let length_obj = @pdf.addobj(pdf, Integer(4))
   let data = @pdfio.bytes_of_string("data")
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Length", @pdf.PdfObject::Indirect(length_obj)),
-  ])
+  let dict : @pdf.PdfObject = Dictionary([("/Length", Indirect(length_obj))])
   let stream_num = @pdf.addobj(
     pdf,
-    @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data)))),
+    Stream(Ref::new((dict, @pdf.Stream::Got(data)))),
   )
   pdf.objects.object_stream_ids.set(stream_num, stream_num)
   pdf.objects.object_stream_ids.set(length_obj, stream_num)
@@ -279,10 +273,8 @@ test "pdf_to_output drops invalid object stream ids and writes toget" {
     4,
     crypt=@pdf.ToGetCrypt::ToDecrypt(deferred),
   )
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Length", @pdf.PdfObject::Integer(4)),
-  ])
-  let stream = @pdf.PdfObject::Stream(
+  let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(4))])
+  let stream : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::ToGet(toget))),
   )
   let stream_num = @pdf.addobj(pdf, stream)

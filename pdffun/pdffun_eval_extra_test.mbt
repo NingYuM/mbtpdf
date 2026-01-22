@@ -22,29 +22,17 @@ fn assert_calc_err(ops : Array[Calculator]) -> Unit raise {
 ///|
 test "parse_function sampled order" {
   let pdf = @pdf.empty()
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/FunctionType", @pdf.PdfObject::Integer(0)),
-    (
-      "/Domain",
-      @pdf.PdfObject::Array([
-        @pdf.PdfObject::Real(0.0),
-        @pdf.PdfObject::Real(1.0),
-      ]),
-    ),
-    (
-      "/Range",
-      @pdf.PdfObject::Array([
-        @pdf.PdfObject::Real(0.0),
-        @pdf.PdfObject::Real(1.0),
-      ]),
-    ),
-    ("/Size", @pdf.PdfObject::Array([@pdf.PdfObject::Integer(1)])),
-    ("/BitsPerSample", @pdf.PdfObject::Integer(8)),
-    ("/Order", @pdf.PdfObject::Integer(3)),
-    ("/Length", @pdf.PdfObject::Integer(1)),
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/FunctionType", Integer(0)),
+    ("/Domain", Array([Real(0.0), Real(1.0)])),
+    ("/Range", Array([Real(0.0), Real(1.0)])),
+    ("/Size", Array([Integer(1)])),
+    ("/BitsPerSample", Integer(8)),
+    ("/Order", Integer(3)),
+    ("/Length", Integer(1)),
   ])
   let data = @pdfio.bytes_of_list([0x80])
-  let stream = @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
   let parsed = parse_function(pdf, stream)
   match parsed.func {
     PdfFunctionKind::Sampled(s) => assert_eq(s.order, 3)
@@ -55,16 +43,10 @@ test "parse_function sampled order" {
 ///|
 test "parse_function defaults c0 c1" {
   let pdf = @pdf.empty()
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/FunctionType", @pdf.PdfObject::Integer(2)),
-    (
-      "/Domain",
-      @pdf.PdfObject::Array([
-        @pdf.PdfObject::Real(0.0),
-        @pdf.PdfObject::Real(1.0),
-      ]),
-    ),
-    ("/N", @pdf.PdfObject::Real(1.0)),
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/FunctionType", Integer(2)),
+    ("/Domain", Array([Real(0.0), Real(1.0)])),
+    ("/N", Real(1.0)),
   ])
   let parsed = parse_function(pdf, dict)
   match parsed.func {
@@ -81,24 +63,12 @@ test "parse_function defaults c0 c1" {
 ///|
 test "parse_function rejects bad bits per sample" {
   let pdf = @pdf.empty()
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/FunctionType", @pdf.PdfObject::Integer(0)),
-    (
-      "/Domain",
-      @pdf.PdfObject::Array([
-        @pdf.PdfObject::Real(0.0),
-        @pdf.PdfObject::Real(1.0),
-      ]),
-    ),
-    (
-      "/Range",
-      @pdf.PdfObject::Array([
-        @pdf.PdfObject::Real(0.0),
-        @pdf.PdfObject::Real(1.0),
-      ]),
-    ),
-    ("/Size", @pdf.PdfObject::Array([@pdf.PdfObject::Integer(1)])),
-    ("/BitsPerSample", @pdf.PdfObject::Name("/Bad")),
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/FunctionType", Integer(0)),
+    ("/Domain", Array([Real(0.0), Real(1.0)])),
+    ("/Range", Array([Real(0.0), Real(1.0)])),
+    ("/Size", Array([Integer(1)])),
+    ("/BitsPerSample", Name("/Bad")),
   ])
   let res : Result[PdfFunction, Error] = try? parse_function(pdf, dict)
   assert_true(res is Err(_))
@@ -320,10 +290,10 @@ test "pdfobject_of_function handles zero bps" {
   }
   let pdf = @pdf.empty()
   let obj = pdfobject_of_function(pdf, fun)
-  match obj {
-    @pdf.PdfObject::Stream(r) =>
-      match r.val.1 {
-        @pdf.Stream::Got(bytes) => assert_eq(@pdfio.bytes_size(bytes), 0)
+  match (obj : @pdf.PdfObject) {
+    Stream(r) =>
+      match (r.val.1 : @pdf.Stream) {
+        Got(bytes) => assert_eq(@pdfio.bytes_size(bytes), 0)
         _ => fail("expected stream bytes")
       }
     _ => fail("expected stream")
