@@ -7,12 +7,12 @@ priv enum XRef {
 ///|
 priv enum XRefLine {
   Invalid
-  Section(Int, Int)
+  Section(Int, Int) // second Int (length) is unused but required for parsing
   Valid(Int, Int)
-  Free(Int, Int)
+  Free(Int, Int) // both Ints are unused but required for parsing
   InObjectStream(Int, Int)
-  StreamFree(Int, Int)
-  XRefNull
+  StreamFree(Int, Int) // constructed but not read in current implementation
+  XRefNull // constructed but not read in current implementation
   Finished
 }
 
@@ -482,7 +482,7 @@ fn build_pdf_objects(
   trailerdict : @pdf.PdfObject,
   user_password : String?,
   owner_password : String?,
-) -> @pdf.PdfObjects raise {
+) -> @pdf.PdfObjects {
   let xrefs : Map[Int, XRef] = Map::new()
   for pair in xref_entries {
     xrefs.set(pair.0, pair.1)

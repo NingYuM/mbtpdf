@@ -1040,11 +1040,6 @@ pub async fn encode_ccittg4_async(
       let _ : Result[Unit, Error] = try? @fs.remove(output_path)
       raise CodecError::DecodeNotSupported(msg)
     }
-    _ => {
-      let _ : Result[Unit, Error] = try? @fs.remove(input_path)
-      let _ : Result[Unit, Error] = try? @fs.remove(output_path)
-      raise CodecError::CouldntDecodeStream("encode_ccittg4 failed")
-    }
   }
   let _ : Result[Unit, Error] = try? @fs.remove(input_path)
   let _ : Result[Unit, Error] = try? @fs.remove(output_path)
@@ -1076,13 +1071,11 @@ pub fn encode_pdfstream(
     Encoding::CCITT(_, _) | Encoding::CCITTG4(_, _) => "/CCITTFaxDecode"
   }
   fn update_filter(dict : @pdf.PdfObject) -> @pdf.PdfObject raise CodecError {
-    let filter_obj : @pdf.PdfObject = match @pdf.lookup_direct(pdf, "/Filter", dict) {
+    let filter_obj : @pdf.PdfObject = match
+      @pdf.lookup_direct(pdf, "/Filter", dict) {
       None => Name(encoding_name)
       Some(Name(name)) =>
-        Array([
-          @pdf.PdfObject::Name(encoding_name),
-          @pdf.PdfObject::Name(name),
-        ])
+        Array([@pdf.PdfObject::Name(encoding_name), @pdf.PdfObject::Name(name)])
       Some(Array(filters)) => {
         let updated = Array::new(capacity=filters.length() + 1)
         updated.push(@pdf.PdfObject::Name(encoding_name))
@@ -1142,10 +1135,6 @@ pub fn encode_pdfstream(
         encode_ccitt(columns, rows, predicted_data)
       Encoding::CCITTG4(columns, rows) =>
         encode_ccittg4(columns, rows, predicted_data, im?)
-      _ =>
-        raise CodecError::DecodeNotSupported(
-          "encoding not supported: \{encoding_name}",
-        )
     }
     let dict_with_filter = update_filter(predicted_dict)
     let dict_with_length = set_dict_entry(
@@ -1260,7 +1249,7 @@ pub fn decode_pdfstream_onestage(
             Name(name) => (name, None)
             Array([]) =>
               raise CodecError::DecodeNotSupported("empty filter array")
-            Array([Name(name), ..rest]) => (name, Some(rest.to_array()))
+            Array([Name(name), .. rest]) => (name, Some(rest.to_array()))
             Array(_) =>
               raise CodecError::DecodeNotSupported("invalid filter entry")
             _ => raise CodecError::DecodeNotSupported("invalid filter")
@@ -1492,7 +1481,7 @@ pub async fn decode_pdfstream_onestage_async(
             Name(name) => (name, None)
             Array([]) =>
               raise CodecError::DecodeNotSupported("empty filter array")
-            Array([Name(name), ..rest]) => (name, Some(rest.to_array()))
+            Array([Name(name), .. rest]) => (name, Some(rest.to_array()))
             Array(_) =>
               raise CodecError::DecodeNotSupported("invalid filter entry")
             _ => raise CodecError::DecodeNotSupported("invalid filter")
@@ -1818,7 +1807,6 @@ fn encode_png_filter(
   filter : Int,
 ) -> Array[Int] {
   let out = Array::new(capacity=current.length())
-  let get0 = (arr : Array[Int], idx : Int) => if idx < 0 { 0 } else { arr[idx] }
   for i in 0..<current.length() {
     let left = if i < bytes_per_pixel {
       0

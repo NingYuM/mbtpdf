@@ -112,7 +112,7 @@ fn expand_scientific(value : String) -> String {
         sb.write_string(sign)
         if new_pos <= 0 {
           sb.write_string("0.")
-          for _ in 0..<(-new_pos) {
+          for _ in 0..<-new_pos {
             sb.write_char('0')
           }
           for ch in digits {
@@ -328,7 +328,7 @@ fn generate_object_stream_hints(
   pdf : @pdf.Pdf,
   preserve_existing : Bool,
   encrypting : Bool,
-) -> Unit raise {
+) -> Unit {
   if !preserve_existing {
     clear_object_stream_ids(pdf.objects.object_stream_ids)
   }

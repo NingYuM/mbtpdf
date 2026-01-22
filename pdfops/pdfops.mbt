@@ -85,7 +85,7 @@ priv enum Lexeme {
   Obj(@pdfgenlex.Token)
   PdfObj(@pdf.PdfObject)
   LexInlineImage((@pdf.PdfObject, @pdf.PdfObject?, @pdfio.MutableBytes))
-  LexComment(String)
+  LexComment
 }
 
 ///|
@@ -562,7 +562,7 @@ fn strip_dict_markers(value : String) -> String {
 ///|
 fn string_of_lexeme(lexeme : Lexeme) -> String raise {
   match lexeme {
-    Lexeme::LexComment(_) => ""
+    Lexeme::LexComment => ""
     Lexeme::Obj(token) => @pdfsyntax.string_of_lexeme(token)
     Lexeme::Op(op) => op
     Lexeme::PdfObj(obj) => @pdfwrite.string_of_pdf(obj)
@@ -1214,7 +1214,7 @@ fn lex_next(
       }
       Some('%') => {
         ignore(@pdfsyntax.lex_comment(input))
-        LexComment("")
+        LexComment
       }
       _ => raise @pdf.PdfError::Msg("Lexing failure in content stream")
     }
@@ -1237,7 +1237,7 @@ fn lex_stream(
     while true {
       let lexeme = lex_next(pdf, resources, input)
       match lexeme {
-        Lexeme::LexComment(_) => ()
+        Lexeme::LexComment => ()
         _ => lexemes.push(lexeme)
       }
     }

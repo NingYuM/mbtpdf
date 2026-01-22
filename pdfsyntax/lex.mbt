@@ -504,7 +504,7 @@ pub fn lex_next(
   previous_lexemes : Array[@pdfgenlex.Token],
   read_stream_data : Bool,
   lexobj : (Int) -> Array[@pdfgenlex.Token] raise,
-) -> @pdfgenlex.Token raise {
+) -> @pdfgenlex.Token {
   try {
     dropwhite(input)
     let raw = (input.input_byte)()

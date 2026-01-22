@@ -135,7 +135,7 @@ pub fn tounicode_map(
 }
 
 ///|
-pub fn write_tounicode(pdf : @pdf.Pdf, u : Map[Int, String]) -> Int raise {
+pub fn write_tounicode(pdf : @pdf.Pdf, u : Map[Int, String]) -> Int {
   let pairs = @pdfutil.list_of_hashtbl(u)
   pairs.sort_by((a, b) => a.0 - b.0)
   let strings = pairs.map(pair => pair.1)

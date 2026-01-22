@@ -139,7 +139,7 @@ fn read_code(chars : Array[Char], start : Int) -> (String, Int) raise {
 }
 
 ///|
-fn read_code_opt(chars : Array[Char], start : Int) -> (String, Int)? raise {
+fn read_code_opt(chars : Array[Char], start : Int) -> (String, Int)? {
   let mut i = skip_whitespace(chars, start)
   while i < chars.length() {
     if chars[i] == '<' {
@@ -156,7 +156,7 @@ fn read_code_opt(chars : Array[Char], start : Int) -> (String, Int)? raise {
 }
 
 ///|
-fn read_unicode_opt(chars : Array[Char], start : Int) -> (String, Int)? raise {
+fn read_unicode_opt(chars : Array[Char], start : Int) -> (String, Int)? {
   let mut i = skip_whitespace(chars, start)
   while i < chars.length() {
     if chars[i] == '<' {
@@ -208,7 +208,7 @@ fn increment_code(code : String, delta : Int) -> String {
 }
 
 ///|
-fn pairs_of_section(section : Section) -> Array[(String, String)] raise {
+fn pairs_of_section(section : Section) -> Array[(String, String)] {
   match section {
     Section::BfChar(numbers) => {
       let results = Array::new()
@@ -357,7 +357,7 @@ pub fn parse_cmap(pdf : @pdf.Pdf, cmap : @pdf.PdfObject) -> CMap raise {
       @pdfcodec.decode_pdfstream(pdf, cmap)
       match cmap {
         @pdf.PdfObject::Stream(r) => {
-          let (dict, contents) = r.val
+          let (_dict, contents) = r.val
           match contents {
             @pdf.Stream::Got(data) => {
               let wmode = extract_specifics(data)
@@ -365,18 +365,11 @@ pub fn parse_cmap(pdf : @pdf.Pdf, cmap : @pdf.PdfObject) -> CMap raise {
                 c,
               ))
               let sections = get_sections(chars)
-              try {
-                let pairs = Array::new()
-                for section in sections {
-                  pairs.append(pairs_of_section(section))
-                }
-                { map: pairs, wmode }
-              } catch {
-                err => {
-                  @pdfe.log("/ToUnicode Parse Error\\n")
-                  raise err
-                }
+              let pairs = Array::new()
+              for section in sections {
+                pairs.append(pairs_of_section(section))
               }
+              { map: pairs, wmode }
             }
             @pdf.Stream::ToGet(_) => {
               @pdf.getstream(cmap)
