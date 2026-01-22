@@ -795,8 +795,8 @@ fn extract_ccittg4_stream(
     Some(obj) => obj
     None => fail_obj()
   }
-  let kid0 = match kids_obj {
-    @pdf.PdfObject::Array(kids) =>
+  let kid0 = match (kids_obj : @pdf.PdfObject) {
+    Array(kids) =>
       if kids.length() > 0 {
         @pdf.direct(pdf, kids[0])
       } else {
@@ -816,15 +816,15 @@ fn extract_ccittg4_stream(
     Some(obj) => obj
     None => fail_obj()
   }
-  match im0 {
-    @pdf.PdfObject::Stream(r) => {
+  match (im0 : @pdf.PdfObject) {
+    Stream(r) => {
       ignore(@pdf.getstream(im0)) catch {
         _ =>
           raise CodecError::DecodeNotSupported("malformed PDF from imagemagick")
       }
       let (_, stream_data) = r.val
-      match stream_data {
-        @pdf.Stream::Got(data) => data
+      match (stream_data : @pdf.Stream) {
+        Got(data) => data
         _ => fail_bytes()
       }
     }
@@ -1076,20 +1076,20 @@ pub fn encode_pdfstream(
     Encoding::CCITT(_, _) | Encoding::CCITTG4(_, _) => "/CCITTFaxDecode"
   }
   fn update_filter(dict : @pdf.PdfObject) -> @pdf.PdfObject raise CodecError {
-    let filter_obj = match @pdf.lookup_direct(pdf, "/Filter", dict) {
-      None => @pdf.PdfObject::Name(encoding_name)
-      Some(@pdf.PdfObject::Name(name)) =>
-        @pdf.PdfObject::Array([
+    let filter_obj : @pdf.PdfObject = match @pdf.lookup_direct(pdf, "/Filter", dict) {
+      None => Name(encoding_name)
+      Some(Name(name)) =>
+        Array([
           @pdf.PdfObject::Name(encoding_name),
           @pdf.PdfObject::Name(name),
         ])
-      Some(@pdf.PdfObject::Array(filters)) => {
+      Some(Array(filters)) => {
         let updated = Array::new(capacity=filters.length() + 1)
         updated.push(@pdf.PdfObject::Name(encoding_name))
         for f in filters {
           updated.push(f)
         }
-        @pdf.PdfObject::Array(updated)
+        Array(updated)
       }
       Some(_) => raise CodecError::CouldntDecodeStream("malformed /Filter")
     }
@@ -1156,12 +1156,12 @@ pub fn encode_pdfstream(
     (dict_with_length, encoded)
   }
 
-  match obj {
-    @pdf.PdfObject::Stream(r) => {
+  match (obj : @pdf.PdfObject) {
+    Stream(r) => {
       map_pdf_error("getstream", fn() raise { @pdf.getstream(obj) })
       let (dict, stream_data) = r.val
-      let data = match stream_data {
-        @pdf.Stream::Got(bytes) => bytes
+      let data = match (stream_data : @pdf.Stream) {
+        Got(bytes) => bytes
         _ => raise CodecError::CouldntDecodeStream("stream data not available")
       }
       let (new_dict, new_data) = encode_stream(dict, data)
@@ -1170,11 +1170,11 @@ pub fn encode_pdfstream(
         r.val = (new_dict, @pdf.Stream::Got(new_data))
       }
     }
-    @pdf.PdfObject::Indirect(i) =>
+    Indirect(i) =>
       encode_pdfstream(
         pdf,
         encoding,
-        @pdf.direct(pdf, @pdf.PdfObject::Indirect(i)),
+        @pdf.direct(pdf, Indirect(i)),
         im?,
         only_if_smaller~,
         predictor?,
@@ -1195,13 +1195,13 @@ pub fn decode_pdfstream(
     pdf : @pdf.Pdf,
     obj : @pdf.PdfObject,
   ) -> Unit raise CodecError {
-    match obj {
-      @pdf.PdfObject::Stream(r) => {
+    match (obj : @pdf.PdfObject) {
+      Stream(r) => {
         let (dict, _stream) = r.val
         let filter_opt = @pdf.lookup_direct_orelse(pdf, "/Filter", "/F", dict)
         match filter_opt {
           None => ()
-          Some(@pdf.PdfObject::Name(_)) | Some(@pdf.PdfObject::Array(_)) => {
+          Some(Name(_)) | Some(Array(_)) => {
             let before = (string_of_pdf.val)(dict)
             decode_pdfstream_onestage(pdf, obj, jbig2dec?)
             let (after_dict, _after_stream) = r.val
@@ -1213,8 +1213,7 @@ pub fn decode_pdfstream(
           Some(_) => raise CodecError::CouldntDecodeStream("malformed /Filter")
         }
       }
-      @pdf.PdfObject::Indirect(i) =>
-        decode_one_stage(pdf, @pdf.direct(pdf, @pdf.PdfObject::Indirect(i)))
+      Indirect(i) => decode_one_stage(pdf, @pdf.direct(pdf, Indirect(i)))
       _ => raise CodecError::CouldntDecodeStream("malformed stream")
     }
   }
@@ -1229,8 +1228,8 @@ pub fn decode_pdfstream_onestage(
   obj : @pdf.PdfObject,
   jbig2dec? : String,
 ) -> Unit raise CodecError {
-  match obj {
-    @pdf.PdfObject::Stream(r) => {
+  match (obj : @pdf.PdfObject) {
+    Stream(r) => {
       let (dict, _stream) = r.val
       let (filter_key, filter_opt) = match
         @pdf.lookup_immediate("/Filter", dict) {
@@ -1257,13 +1256,12 @@ pub fn decode_pdfstream_onestage(
           let (filter_name, remaining_filters) : (
             String,
             Array[@pdf.PdfObject]?,
-          ) = match filter_obj {
-            @pdf.PdfObject::Name(name) => (name, None)
-            @pdf.PdfObject::Array([]) =>
+          ) = match (filter_obj : @pdf.PdfObject) {
+            Name(name) => (name, None)
+            Array([]) =>
               raise CodecError::DecodeNotSupported("empty filter array")
-            @pdf.PdfObject::Array([@pdf.PdfObject::Name(name), ..rest]) =>
-              (name, Some(rest.to_array()))
-            @pdf.PdfObject::Array(_) =>
+            Array([Name(name), ..rest]) => (name, Some(rest.to_array()))
+            Array(_) =>
               raise CodecError::DecodeNotSupported("invalid filter entry")
             _ => raise CodecError::DecodeNotSupported("invalid filter")
           }
@@ -1274,20 +1272,20 @@ pub fn decode_pdfstream_onestage(
               raise CodecError::CouldntDecodeStream("stream data not available")
           }
           let parms_first = match parms {
-            Some(@pdf.PdfObject::Array(arr)) =>
+            Some(Array(arr)) =>
               if arr.length() > 0 {
                 Some(arr[0])
               } else {
                 None
               }
-            Some(@pdf.PdfObject::Null) => None
+            Some(Null) => None
             Some(other) => Some(other)
             None => None
           }
           let decoded = if filter_name == "/FlateDecode" || filter_name == "/Fl" {
             let mut decoded = decode_flate(data)
             match parms_first {
-              Some(@pdf.PdfObject::Dictionary(_)) => {
+              Some(Dictionary(_)) => {
                 let predictor = get_int_param(pdf, parms_first, "/Predictor", 1)
                 if predictor != 1 {
                   let colors = get_int_param(pdf, parms_first, "/Colors", 1)
@@ -1371,7 +1369,7 @@ pub fn decode_pdfstream_onestage(
           }
           new_dict = match parms {
             None => new_dict
-            Some(@pdf.PdfObject::Array(arr)) => {
+            Some(Array(arr)) => {
               let rest = arr.sub(start=1).to_array()
               if rest.length() == 0 {
                 map_pdf_error("remove decode parms", fn() raise {
@@ -1429,13 +1427,13 @@ pub async fn decode_pdfstream_async(
     pdf : @pdf.Pdf,
     obj : @pdf.PdfObject,
   ) -> Unit raise CodecError {
-    match obj {
-      @pdf.PdfObject::Stream(r) => {
+    match (obj : @pdf.PdfObject) {
+      Stream(r) => {
         let (dict, _stream) = r.val
         let filter_opt = @pdf.lookup_direct_orelse(pdf, "/Filter", "/F", dict)
         match filter_opt {
           None => ()
-          Some(@pdf.PdfObject::Name(_)) | Some(@pdf.PdfObject::Array(_)) => {
+          Some(Name(_)) | Some(Array(_)) => {
             let before = (string_of_pdf.val)(dict)
             decode_pdfstream_onestage_async(pdf, obj, jbig2dec?)
             let (after_dict, _after_stream) = r.val
@@ -1447,8 +1445,7 @@ pub async fn decode_pdfstream_async(
           Some(_) => raise CodecError::CouldntDecodeStream("malformed /Filter")
         }
       }
-      @pdf.PdfObject::Indirect(i) =>
-        decode_one_stage(pdf, @pdf.direct(pdf, @pdf.PdfObject::Indirect(i)))
+      Indirect(i) => decode_one_stage(pdf, @pdf.direct(pdf, Indirect(i)))
       _ => raise CodecError::CouldntDecodeStream("malformed stream")
     }
   }
@@ -1463,8 +1460,8 @@ pub async fn decode_pdfstream_onestage_async(
   obj : @pdf.PdfObject,
   jbig2dec? : String,
 ) -> Unit raise CodecError {
-  match obj {
-    @pdf.PdfObject::Stream(r) => {
+  match (obj : @pdf.PdfObject) {
+    Stream(r) => {
       let (dict, _stream) = r.val
       let (filter_key, filter_opt) = match
         @pdf.lookup_immediate("/Filter", dict) {
@@ -1491,13 +1488,12 @@ pub async fn decode_pdfstream_onestage_async(
           let (filter_name, remaining_filters) : (
             String,
             Array[@pdf.PdfObject]?,
-          ) = match filter_obj {
-            @pdf.PdfObject::Name(name) => (name, None)
-            @pdf.PdfObject::Array([]) =>
+          ) = match (filter_obj : @pdf.PdfObject) {
+            Name(name) => (name, None)
+            Array([]) =>
               raise CodecError::DecodeNotSupported("empty filter array")
-            @pdf.PdfObject::Array([@pdf.PdfObject::Name(name), ..rest]) =>
-              (name, Some(rest.to_array()))
-            @pdf.PdfObject::Array(_) =>
+            Array([Name(name), ..rest]) => (name, Some(rest.to_array()))
+            Array(_) =>
               raise CodecError::DecodeNotSupported("invalid filter entry")
             _ => raise CodecError::DecodeNotSupported("invalid filter")
           }
@@ -1508,20 +1504,20 @@ pub async fn decode_pdfstream_onestage_async(
               raise CodecError::CouldntDecodeStream("stream data not available")
           }
           let parms_first = match parms {
-            Some(@pdf.PdfObject::Array(arr)) =>
+            Some(Array(arr)) =>
               if arr.length() > 0 {
                 Some(arr[0])
               } else {
                 None
               }
-            Some(@pdf.PdfObject::Null) => None
+            Some(Null) => None
             Some(other) => Some(other)
             None => None
           }
           let decoded = if filter_name == "/FlateDecode" || filter_name == "/Fl" {
             let mut decoded = decode_flate(data)
             match parms_first {
-              Some(@pdf.PdfObject::Dictionary(_)) => {
+              Some(Dictionary(_)) => {
                 let predictor = get_int_param(pdf, parms_first, "/Predictor", 1)
                 if predictor != 1 {
                   let colors = get_int_param(pdf, parms_first, "/Colors", 1)
@@ -1614,7 +1610,7 @@ pub async fn decode_pdfstream_onestage_async(
           }
           new_dict = match parms {
             None => new_dict
-            Some(@pdf.PdfObject::Array(arr)) => {
+            Some(Array(arr)) => {
               let rest = arr.sub(start=1).to_array()
               if rest.length() == 0 {
                 map_pdf_error("remove decode parms", fn() raise {
@@ -1672,13 +1668,13 @@ pub fn decode_from_bytes(
   let parms_opt = @pdf.lookup_direct_orelse(pdf, "/DP", "/DecodeParms", dict)
   fn parms_at(index : Int) -> @pdf.PdfObject? {
     match parms_opt {
-      Some(@pdf.PdfObject::Array(arr)) =>
+      Some(Array(arr)) =>
         if index < arr.length() {
           Some(arr[index])
         } else {
           None
         }
-      Some(@pdf.PdfObject::Null) => None
+      Some(Null) => None
       Some(other) => if index == 0 { Some(other) } else { None }
       None => None
     }
@@ -1692,7 +1688,7 @@ pub fn decode_from_bytes(
     if filter_name == "/FlateDecode" || filter_name == "/Fl" {
       let mut decoded = decode_flate(bytes) catch { _ => return None }
       match parms {
-        Some(@pdf.PdfObject::Dictionary(_)) => {
+        Some(Dictionary(_)) => {
           let predictor = get_int_param(pdf, parms, "/Predictor", 1)
           if predictor != 1 {
             let colors = get_int_param(pdf, parms, "/Colors", 1)
@@ -1746,15 +1742,15 @@ pub fn decode_from_bytes(
   }
 
   match filter_opt {
-    Some(@pdf.PdfObject::Name(name)) => decode_stage(bytes, name, parms_at(0))
-    Some(@pdf.PdfObject::Array(filters)) => {
+    Some(Name(name)) => decode_stage(bytes, name, parms_at(0))
+    Some(Array(filters)) => {
       if filters.length() == 0 {
         return None
       }
       let mut current = bytes
       for i in 0..<filters.length() {
-        let filter_name = match filters[i] {
-          @pdf.PdfObject::Name(name) => name
+        let filter_name = match (filters[i] : @pdf.PdfObject) {
+          Name(name) => name
           _ => return None
         }
         match decode_stage(current, filter_name, parms_at(i)) {
@@ -2038,8 +2034,8 @@ fn get_int_param(
   match parms {
     Some(obj) =>
       match @pdf.lookup_direct(pdf, key, obj) {
-        Some(@pdf.PdfObject::Integer(i)) => i
-        Some(@pdf.PdfObject::Real(r)) => r.to_int()
+        Some(Integer(i)) => i
+        Some(Real(r)) => r.to_int()
         _ => default_value
       }
     None => default_value
@@ -2056,7 +2052,7 @@ fn get_bool_param(
   match parms {
     Some(obj) =>
       match @pdf.lookup_direct(pdf, key, obj) {
-        Some(@pdf.PdfObject::Boolean(b)) => b
+        Some(Boolean(b)) => b
         _ => default_value
       }
     None => default_value
