@@ -173,7 +173,7 @@ pub fn read_destination(
         Some(dest) => dest
         None => {
           @pdfe.log(
-            "Warning: Could not read destination \{@pdfwrite.string_of_pdf(resolved)}\n",
+            "Warning: Could not read destination \{@pdf.string_of_pdfobj(resolved)}\n",
           )
           Destination::NullDestination
         }
@@ -220,7 +220,7 @@ pub fn read_destination(
       }
     _ => {
       @pdfe.log(
-        "Warning: Could not read destination \{@pdfwrite.string_of_pdf(resolved)}\n",
+        "Warning: Could not read destination \{@pdf.string_of_pdfobj(resolved)}\n",
       )
       Destination::NullDestination
     }
