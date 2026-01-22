@@ -65,7 +65,7 @@ pub fn lex_name(input : @pdfio.Input) -> @pdfgenlex.Token raise {
       }
     }
   }
-  @pdfgenlex.Token::LexName(@pdfio.string_of_bytes(bytes))
+  LexName(@pdfio.string_of_bytes(bytes))
 }
 
 ///|
@@ -91,18 +91,18 @@ pub fn lex_number(input : @pdfio.Input) -> @pdfgenlex.Token raise {
     try @strconv.parse_int(number) catch {
       _ =>
         try @strconv.parse_double(number) catch {
-          _ => @pdfgenlex.Token::LexNone
+          _ => LexNone
         } noraise {
-          f => @pdfgenlex.Token::LexReal(f)
+          f => LexReal(f)
         }
     } noraise {
-      i => @pdfgenlex.Token::LexInt(i)
+      i => LexInt(i)
     }
   } else {
     try @strconv.parse_double(number) catch {
-      _ => @pdfgenlex.Token::LexNone
+      _ => LexNone
     } noraise {
-      f => @pdfgenlex.Token::LexReal(f)
+      f => LexReal(f)
     }
   }
 }
@@ -185,7 +185,7 @@ pub fn lex_string(input : @pdfio.Input) -> @pdfgenlex.Token raise {
       _ => bytes.push(b.to_byte())
     }
   }
-  @pdfgenlex.Token::LexString(@pdfio.string_of_bytes(bytes))
+  LexString(@pdfio.string_of_bytes(bytes))
 }
 
 ///|
@@ -227,14 +227,14 @@ pub fn lex_hexstring(input : @pdfio.Input) -> @pdfgenlex.Token raise {
     None => ()
     Some(hi) => bytes.push((hi << 4).to_byte())
   }
-  @pdfgenlex.Token::LexString(@pdfio.string_of_bytes(bytes))
+  LexString(@pdfio.string_of_bytes(bytes))
 }
 
 ///|
 /// Lex a comment.
 pub fn lex_comment(input : @pdfio.Input) -> @pdfgenlex.Token raise {
   ignoreuntil(false, is_newline, input)
-  @pdfgenlex.Token::LexComment("")
+  LexComment("")
 }
 
 ///|
@@ -336,13 +336,13 @@ fn find_endstream(input : @pdfio.Input) -> Int raise {
 pub fn lex_keyword(input : @pdfio.Input) -> @pdfgenlex.Token raise {
   let kw = getuntil_white_or_delimiter_string(input)
   match kw {
-    "obj" => @pdfgenlex.Token::LexObj
-    "endobj" => @pdfgenlex.Token::LexEndObj
-    "R" => @pdfgenlex.Token::LexR
-    "null" => @pdfgenlex.Token::LexNull
-    "endstream" => @pdfgenlex.Token::LexEndStream
-    "true" => @pdfgenlex.Token::LexBool(true)
-    "false" => @pdfgenlex.Token::LexBool(false)
+    "obj" => LexObj
+    "endobj" => LexEndObj
+    "R" => LexR
+    "null" => LexNull
+    "endstream" => LexEndStream
+    "true" => LexBool(true)
+    "false" => LexBool(false)
     _ =>
       if kw.has_prefix("endobj") && kw.length() > 6 {
         let extra = kw.length() - 6
@@ -351,9 +351,9 @@ pub fn lex_keyword(input : @pdfio.Input) -> @pdfgenlex.Token raise {
           @pdfio.rewind(input)
           i = i + 1
         }
-        @pdfgenlex.Token::LexEndObj
+        LexEndObj
       } else {
-        @pdfgenlex.Token::LexNone
+        LexNone
       }
   }
 }
@@ -369,7 +369,7 @@ fn lex_malformed_stream_data(input : @pdfio.Input) -> @pdfgenlex.Token raise {
   for i in 0..<len {
     bytes[i] = (input.input_byte)().to_byte()
   }
-  @pdfgenlex.Token::LexStream(@pdf.Stream::Got(bytes))
+  LexStream(@pdf.Stream::Got(bytes))
 }
 
 ///|
@@ -392,7 +392,7 @@ pub fn lex_stream_data(
       lex_malformed_stream_data(input)
     } else {
       (input.seek_in)(pos + length)
-      @pdfgenlex.Token::LexStream(@pdf.Stream::Got(bytes))
+      LexStream(@pdf.Stream::Got(bytes))
     }
   } else {
     (input.seek_in)(pos + length)
@@ -406,7 +406,7 @@ pub fn lex_stream_data(
         length,
         crypt: @pdf.ToGetCrypt::NoChange,
       }
-      @pdfgenlex.Token::LexStream(@pdf.Stream::ToGet(toget))
+      LexStream(@pdf.Stream::ToGet(toget))
     }
   }
 }
@@ -439,7 +439,7 @@ fn take_dict_lexemes(
   let mut i = previous_lexemes.length() - 1
   while true {
     let t = previous_lexemes[i]
-    if t is @pdfgenlex.Token::LexObj {
+    if t is LexObj {
       break
     }
     collected.push(t)
@@ -465,13 +465,13 @@ pub fn lex_stream(
 
   let dictlexemes = take_dict_lexemes(previous_lexemes)
   let (_, parsed) = parse(dictlexemes)
-  match parsed {
-    @pdf.PdfObject::Dictionary(_) => {
+  match (parsed : @pdf.PdfObject) {
+    Dictionary(_) => {
       let pos = (input.pos_in)()
       fn findlength(value : @pdf.PdfObject) -> Int? raise {
         match value {
-          @pdf.PdfObject::Integer(l) => Some(l)
-          @pdf.PdfObject::Indirect(k) => {
+          Integer(l) => Some(l)
+          Indirect(k) => {
             let (_, obj) = parse(lexobj(k))
             findlength(obj)
           }
@@ -509,7 +509,7 @@ pub fn lex_next(
     dropwhite(input)
     let raw = (input.input_byte)()
     if raw == @pdfio.no_more {
-      return @pdfgenlex.Token::StopLexing
+      return StopLexing
     }
     let ch = raw.to_byte().to_char()
     @pdfio.rewind(input)
@@ -519,12 +519,12 @@ pub fn lex_next(
       '[' => {
         @pdfio.nudge(input)
         array_level.val = array_level.val + 1
-        @pdfgenlex.Token::LexLeftSquare
+        LexLeftSquare
       }
       ']' => {
         @pdfio.nudge(input)
         array_level.val = array_level.val - 1
-        @pdfgenlex.Token::LexRightSquare
+        LexRightSquare
       }
       '(' => lex_string(input)
       '<' => {
@@ -533,7 +533,7 @@ pub fn lex_next(
           b2 if b2 == '<'.to_int() => {
             @pdfio.nudge(input)
             dict_level.val = dict_level.val + 1
-            @pdfgenlex.Token::LexLeftDict
+            LexLeftDict
           }
           _ => {
             @pdfio.rewind(input)
@@ -547,14 +547,14 @@ pub fn lex_next(
           b2 if b2 == '>'.to_int() => {
             @pdfio.nudge(input)
             dict_level.val = dict_level.val - 1
-            @pdfgenlex.Token::LexRightDict
+            LexRightDict
           }
-          _ => @pdfgenlex.Token::LexNone
+          _ => LexNone
         }
       }
       'R' => {
         @pdfio.nudge(input)
-        @pdfgenlex.Token::LexR
+        LexR
       }
       's' => {
         let _ = (input.input_byte)()
@@ -564,28 +564,28 @@ pub fn lex_next(
         @pdfio.rewind(input)
         @pdfio.rewind(input)
         if third == @pdfio.no_more {
-          @pdfgenlex.Token::StopLexing
+          StopLexing
         } else {
           let c3 = third.to_byte().to_char()
           if c3 == 'a' {
-            @pdfgenlex.Token::StopLexing
+            StopLexing
           } else if end_on_stream {
-            @pdfgenlex.Token::StopLexing
+            StopLexing
           } else {
             lex_stream(input, previous_lexemes, lexobj, read_stream_data)
           }
         }
       }
-      'I' => @pdfgenlex.Token::StopLexing
+      'I' => StopLexing
       c if (c >= '0' && c <= '9') || c == '-' || c == '+' || c == '.' =>
         lex_number(input)
       c if c >= 'a' && c <= 'z' => lex_keyword(input)
-      _ => @pdfgenlex.Token::LexNone
+      _ => LexNone
     }
   } catch {
     err => {
       @pdfe.log("Recovering from lex error: \{err}\n")
-      @pdfgenlex.Token::StopLexing
+      StopLexing
     }
   }
 }
@@ -608,14 +608,14 @@ pub fn lex_dictionary(
       dict_level, array_level, false, input, tokens, false, dummy_lexobj,
     )
     tokens.push(t)
-    match t {
-      @pdfgenlex.Token::LexRightDict =>
+    match (t : @pdfgenlex.Token) {
+      LexRightDict =>
         if dict_level.val == (if minus_one { -1 } else { 0 }) &&
           array_level.val == 0 {
           done = true
         }
-      @pdfgenlex.Token::StopLexing => done = true
-      @pdfgenlex.Token::LexNone => {
+      StopLexing => done = true
+      LexNone => {
         let message = @pdf.input_pdferror(input, "Could not read dictionary")
         raise @pdf.PdfError::Msg(message)
       }

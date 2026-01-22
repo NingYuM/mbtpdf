@@ -14,21 +14,21 @@ pub fn lex_object_at(
     let t = lex_next(
       dict_level, array_level, false, input, tokens, read_stream_data, lexobj,
     )
-    match t {
-      @pdfgenlex.Token::LexEndObj => {
+    match (t : @pdfgenlex.Token) {
+      LexEndObj => {
         tokens.push(t)
         done = true
       }
-      @pdfgenlex.Token::StopLexing => done = true
-      @pdfgenlex.Token::LexComment(_) => tokens.push(t)
-      @pdfgenlex.Token::LexRightSquare | @pdfgenlex.Token::LexRightDict =>
+      StopLexing => done = true
+      LexComment(_) => tokens.push(t)
+      LexRightSquare | LexRightDict =>
         if oneonly && dict_level.val == 0 && array_level.val == 0 {
           tokens.push(t)
           done = true
         } else {
           tokens.push(t)
         }
-      @pdfgenlex.Token::LexNone => {
+      LexNone => {
         let message = @pdf.input_pdferror(input, "Could not read object")
         raise @pdf.PdfError::Msg(message)
       }
@@ -36,12 +36,7 @@ pub fn lex_object_at(
         tokens.push(other)
         if oneonly && dict_level.val == 0 && array_level.val == 0 {
           let is_atom =
-            other is (@pdfgenlex.Token::LexBool(_)
-            | @pdfgenlex.Token::LexReal(_)
-            | @pdfgenlex.Token::LexString(_)
-            | @pdfgenlex.Token::LexName(_)
-            | @pdfgenlex.Token::LexNull
-            | @pdfgenlex.Token::LexInt(_))
+            other is (LexBool(_) | LexReal(_) | LexString(_) | LexName(_) | LexNull | LexInt(_))
           if is_atom {
             done = true
           }
@@ -266,23 +261,23 @@ fn make_pdf_string(value : String) -> String {
 /// String of a lexeme.
 pub fn string_of_lexeme(t : @pdfgenlex.Token) -> String {
   match t {
-    @pdfgenlex.Token::LexNull => "null"
-    @pdfgenlex.Token::LexBool(b) => if b { "true" } else { "false" }
-    @pdfgenlex.Token::LexInt(i) => i.to_string()
-    @pdfgenlex.Token::LexReal(r) => format_real(r)
-    @pdfgenlex.Token::LexString(s) => make_pdf_string(s)
-    @pdfgenlex.Token::LexName(s) => s
-    @pdfgenlex.Token::LexLeftSquare => "["
-    @pdfgenlex.Token::LexRightSquare => "]"
-    @pdfgenlex.Token::LexLeftDict => "<<"
-    @pdfgenlex.Token::LexRightDict => ">>"
-    @pdfgenlex.Token::LexStream(_) => "LexStream"
-    @pdfgenlex.Token::LexEndStream => "EndStream"
-    @pdfgenlex.Token::LexObj => "obj"
-    @pdfgenlex.Token::LexEndObj => "endobj"
-    @pdfgenlex.Token::LexR => "R"
-    @pdfgenlex.Token::LexComment(c) => "\n%\{c}\n"
-    @pdfgenlex.Token::StopLexing => "StopLexing"
-    @pdfgenlex.Token::LexNone => "LexNone"
+    LexNull => "null"
+    LexBool(b) => if b { "true" } else { "false" }
+    LexInt(i) => i.to_string()
+    LexReal(r) => format_real(r)
+    LexString(s) => make_pdf_string(s)
+    LexName(s) => s
+    LexLeftSquare => "["
+    LexRightSquare => "]"
+    LexLeftDict => "<<"
+    LexRightDict => ">>"
+    LexStream(_) => "LexStream"
+    LexEndStream => "EndStream"
+    LexObj => "obj"
+    LexEndObj => "endobj"
+    LexR => "R"
+    LexComment(c) => "\n%\{c}\n"
+    StopLexing => "StopLexing"
+    LexNone => "LexNone"
   }
 }
