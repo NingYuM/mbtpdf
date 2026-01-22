@@ -16,6 +16,50 @@ Input bytes (pdfio)
             -> Output bytes (pdfio)
 ```
 
+## Layered Architecture
+
+The codebase follows a layered architecture with downward-only dependencies:
+
+```
+Layer 0: Base utilities
+  pdfutil, pdfe
+
+Layer 1: IO primitives
+  pdfio
+
+Layer 2: Core model + geometry
+  pdf, pdftransform, pdfunits, pdfpaper, pdfdate
+
+Layer 3: Syntax + lexing
+  pdfgenlex, pdfsyntax
+
+Layer 4: Codecs + crypto
+  pdfflate, pdfcodec, pdfjpeg, pdfcryptprimitives, pdfcrypt
+
+Layer 5: Fonts + encodings data
+  pdfafm, pdfafmdata, pdfglyphlist, pdfcmap, pdffont, pdfstandard14
+
+Layer 6: Content stream + functions
+  pdfops, pdffun, pdfspace
+
+Layer 7: Read/Write services
+  pdfread, pdfwrite
+
+Layer 8: Document structure
+  pdftree, pdfpage, pdfpagelabels, pdfdest, pdfannot, pdfocg, pdfst, pdfmarks
+
+Layer 9: Features
+  pdftext, pdfimage, pdfmerge
+
+Layer 10: CLI
+  cmd/*
+```
+
+Key design principles:
+- Mid-layer packages (pdfops, pdfpage, etc.) do not depend on IO services (pdfread/pdfwrite)
+- Font types live in `pdffont`, allowing `pdfstandard14` to avoid depending on `pdftext`
+- Hooks in `pdf` package (`endpage`, `string_of_pdf`) enable cross-layer communication
+
 ## Package Dependency Map (High Level)
 
 ```
@@ -25,7 +69,7 @@ cmd/*
   |-> pdfmerge/pdfpage/pdfops/pdftext/pdfimage/...
         |-> pdf (core object graph)
         |-> pdftransform/pdfspace/pdfunits/pdfpaper
-        |-> pdfstandard14/pdfafm/pdfafmdata/pdfglyphlist/pdfcmap (via pdftext)
+        |-> pdffont/pdfstandard14/pdfafm/pdfafmdata/pdfglyphlist/pdfcmap
 
 Base utilities used across most packages:
   pdfio + pdfutil + pdfe + pdfcryptprimitives
@@ -35,9 +79,10 @@ Base utilities used across most packages:
 
 - `pdf`: central data model (`Pdf`, `PdfObject`, streams, object map).
   - Supports lazy streams via `Stream::ToGet`, materialized via `Stream::Got`.
+  - Provides `string_of_pdfobj` for object serialization.
 - `pdfio`: byte-level Input/Output abstractions used across the stack.
 - `pdfutil`: shared helpers (hash tables, memoization, logging helpers).
-- `pdfe`: logging hook for error/debug output.
+- `pdfe`: logging hook for error/debug output, debug flags.
   - Example:
     ```mbt
     let pdf = @pdf.empty()
@@ -78,7 +123,7 @@ Base utilities used across most packages:
 ## Document Structure and Content
 
 - `pdfpage` + `pdftree`: page tree construction/reading and page operations.
-- `pdfops`: parse and emit content stream operators.
+- `pdfops`: parse and emit content stream operators (pure, no IO dependencies).
 - `pdftext`: text extraction and text operators; uses `pdfops` and font data.
 - `pdfimage`: image XObject extraction/decoding.
 - `pdfdest`, `pdfannot`, `pdfmarks`, `pdfocg`, `pdfpagelabels`, `pdfst`:
@@ -94,15 +139,18 @@ Base utilities used across most packages:
 
 ## Fonts, Encodings, and Layout Data
 
+- `pdffont`: font type definitions (`Font`, `Encoding`, `StandardFont`, etc.)
+  shared across packages without creating circular dependencies.
 - `pdfstandard14`, `pdfafm`, `pdfafmdata`: built-in font metrics and AFM parsing.
 - `pdfglyphlist`: glyph name to Unicode mapping.
 - `pdfcmap`: CMap parsing for composite fonts.
+- `pdftext`: font reading/writing and text extraction.
   - Example:
     ```mbt
     let width = @pdfstandard14.textwidth(
       true,
-      @pdftext.Encoding::WinAnsiEncoding,
-      @pdftext.StandardFont::Helvetica,
+      @pdffont.Encoding::WinAnsiEncoding,
+      @pdffont.StandardFont::Helvetica,
       "Hello",
     )
     ```
