@@ -141,8 +141,15 @@ fn read_xref(input : @pdfio.Input) -> Array[(Int, XRef)] raise {
         xrefs.push((objnumber, XRef::Plain(offset, gen)))
         objnumber = objnumber + 1
       }
-      XRefLine::Free(_, _) => objnumber = objnumber + 1
-      XRefLine::Section(start, _) => objnumber = start
+      XRefLine::Free(offset, gen) => {
+        ignore(offset)
+        ignore(gen)
+        objnumber = objnumber + 1
+      }
+      XRefLine::Section(start, len) => {
+        ignore(len)
+        objnumber = start
+      }
       XRefLine::Finished => finished = true
       _ => ()
     }
@@ -350,7 +357,10 @@ fn read_xref_stream(
           xrefs.push((objnumber, XRef::Plain(offset, gen)))
         XRefLine::InObjectStream(stream, index) =>
           xrefs.push((objnumber, XRef::Stream(stream, index)))
-        XRefLine::StreamFree(_, _) => ()
+        XRefLine::StreamFree(offset, gen) => {
+          ignore(offset)
+          ignore(gen)
+        }
         XRefLine::XRefNull => ()
         _ => ()
       }

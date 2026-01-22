@@ -66,11 +66,15 @@ test "paper accessors" {
   let paper = @pdfpaper.a4
   // Get unit (millimeters for ISO sizes)
   let u = @pdfpaper.unit(paper)
+  match u {
+    @pdfunits.LengthUnit::Millimetre => ()
+    _ => fail("expected millimetre unit")
+  }
   // Get dimensions
   let w = @pdfpaper.width(paper)
   let h = @pdfpaper.height(paper)
   assert_true(w < h) // Portrait
-  debug_inspect((u,w,h), content="(Millimetre, 210, 297)")
+  debug_inspect((u, w, h), content="(Millimetre, 210, 297)")
 }
 ```
 

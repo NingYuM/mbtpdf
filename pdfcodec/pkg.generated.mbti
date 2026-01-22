@@ -36,7 +36,7 @@ pub fn encode_ccittg4(Int, Int, Array[Byte], im? : String) -> Array[Byte] raise 
 
 pub async fn encode_ccittg4_async(Int, Int, Array[Byte], String) -> Array[Byte] raise CodecError
 
-pub fn encode_flate(Array[Byte]) -> Array[Byte] raise CodecError
+pub fn encode_flate(Array[Byte]) -> Array[Byte]
 
 pub fn encode_pdfstream(@pdf.Pdf, Encoding, @pdf.PdfObject, im? : String, only_if_smaller? : Bool, predictor? : Predictor, predictor_columns? : Int) -> Unit raise CodecError
 

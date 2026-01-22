@@ -12,6 +12,7 @@ pub(all) enum Encoding {
 
 ///|
 /// Predictors for decoded data.
+#warnings("-unused_constructor")
 pub enum Predictor {
   TIFF2
   PNGNone
@@ -61,9 +62,7 @@ pub let pdf_of_file : Ref[async (Int?, String?, String?, String) -> @pdf.Pdf] = 
 
 ///|
 /// Encode data in FlateDecode.
-pub fn encode_flate(
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise CodecError {
+pub fn encode_flate(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
   let mut pos = 0
   let input = (buf : @pdfio.MutableBytes) => {
     let remaining = data.length() - pos
@@ -82,15 +81,8 @@ pub fn encode_flate(
   let output = (buf : @pdfio.MutableBytes, length : Int) => for i in 0..<length {
     out.push(buf[i])
   }
-  try {
-    @pdfflate.compress(level=flate_level.val, header=true, input, output)
-    out
-  } catch {
-    @pdfflate.FlateError::Error(stage, msg) =>
-      raise CodecError::CouldntDecodeStream("\{stage}: \{msg}")
-    _ =>
-      raise CodecError::CouldntDecodeStream("unknown pdfflate.compress error")
-  }
+  @pdfflate.compress(level=flate_level.val, header=true, input, output)
+  out
 }
 
 ///|
