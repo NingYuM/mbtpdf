@@ -98,51 +98,49 @@ fn int_array_of_numbers(
 
 ///|
 fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
-  let subtype = match @pdf.lookup_direct(pdf, "/Subtype", annot) {
-    Some(@pdf.PdfObject::Name("/Text")) => Subtype::Text
-    Some(@pdf.PdfObject::Name("/FreeText")) => Subtype::FreeText
-    Some(@pdf.PdfObject::Name("/Popup")) =>
+  let subtype : Subtype = match @pdf.lookup_direct(pdf, "/Subtype", annot) {
+    Some(Name("/Text")) => Text
+    Some(Name("/FreeText")) => FreeText
+    Some(Name("/Popup")) =>
       match @pdf.direct(pdf, annot) {
-        @pdf.PdfObject::Dictionary(d) =>
-          match
-            @pdf.lookup_immediate("/Parent", @pdf.PdfObject::Dictionary(d)) {
-            Some(@pdf.PdfObject::Indirect(i)) =>
-              Subtype::Popup(read_annotation(pdf, @pdf.PdfObject::Indirect(i)))
-            _ => Subtype::Unknown("")
+        Dictionary(d) =>
+          match @pdf.lookup_immediate("/Parent", Dictionary(d)) {
+            Some(Indirect(i)) => Popup(read_annotation(pdf, Indirect(i)))
+            _ => Unknown("")
           }
         _ => raise @pdf.PdfError::Msg("read_annotation failed")
       }
-    Some(@pdf.PdfObject::Name("/Stamp")) => Subtype::Stamp
-    Some(@pdf.PdfObject::Name("/Link")) => Subtype::Link
-    Some(@pdf.PdfObject::Name("/Line")) => Subtype::Line
-    Some(@pdf.PdfObject::Name("/Square")) => Subtype::Square
-    Some(@pdf.PdfObject::Name("/Circle")) => Subtype::Circle
-    Some(@pdf.PdfObject::Name("/Polygon")) => Subtype::Polygon
-    Some(@pdf.PdfObject::Name("/PolyLine")) => Subtype::PolyLine
-    Some(@pdf.PdfObject::Name("/Highlight")) => Subtype::Highlight
-    Some(@pdf.PdfObject::Name("/Underline")) => Subtype::Underline
-    Some(@pdf.PdfObject::Name("/Squiggly")) => Subtype::Squiggly
-    Some(@pdf.PdfObject::Name("/StrikeOut")) => Subtype::StrikeOut
-    Some(@pdf.PdfObject::Name("/Caret")) => Subtype::Caret
-    Some(@pdf.PdfObject::Name("/Ink")) => Subtype::Ink
-    Some(@pdf.PdfObject::Name("/FileAttachment")) => Subtype::FileAttachment
-    Some(@pdf.PdfObject::Name("/Sound")) => Subtype::Sound
-    Some(@pdf.PdfObject::Name("/Movie")) => Subtype::Movie
-    Some(@pdf.PdfObject::Name("/Widget")) => Subtype::Widget
-    Some(@pdf.PdfObject::Name("/Screen")) => Subtype::Screen
-    Some(@pdf.PdfObject::Name("/PrinterMark")) => Subtype::PrinterMark
-    Some(@pdf.PdfObject::Name("/TrapNet")) => Subtype::TrapNet
-    Some(@pdf.PdfObject::Name("/Watermark")) => Subtype::Watermark
-    Some(@pdf.PdfObject::Name("/3D")) => Subtype::ThreeDee
-    Some(@pdf.PdfObject::Name(name)) => Subtype::Unknown(name)
-    _ => Subtype::Unknown("")
+    Some(Name("/Stamp")) => Stamp
+    Some(Name("/Link")) => Link
+    Some(Name("/Line")) => Line
+    Some(Name("/Square")) => Square
+    Some(Name("/Circle")) => Circle
+    Some(Name("/Polygon")) => Polygon
+    Some(Name("/PolyLine")) => PolyLine
+    Some(Name("/Highlight")) => Highlight
+    Some(Name("/Underline")) => Underline
+    Some(Name("/Squiggly")) => Squiggly
+    Some(Name("/StrikeOut")) => StrikeOut
+    Some(Name("/Caret")) => Caret
+    Some(Name("/Ink")) => Ink
+    Some(Name("/FileAttachment")) => FileAttachment
+    Some(Name("/Sound")) => Sound
+    Some(Name("/Movie")) => Movie
+    Some(Name("/Widget")) => Widget
+    Some(Name("/Screen")) => Screen
+    Some(Name("/PrinterMark")) => PrinterMark
+    Some(Name("/TrapNet")) => TrapNet
+    Some(Name("/Watermark")) => Watermark
+    Some(Name("/3D")) => ThreeDee
+    Some(Name(name)) => Unknown(name)
+    _ => Unknown("")
   }
   let contents = match @pdf.lookup_direct(pdf, "/Contents", annot) {
-    Some(@pdf.PdfObject::String(s)) => Some(s)
+    Some(String(s)) => Some(s)
     _ => None
   }
   let subject = match @pdf.lookup_direct(pdf, "/Subj", annot) {
-    Some(@pdf.PdfObject::String(s)) => Some(s)
+    Some(String(s)) => Some(s)
     _ => None
   }
   let rectangle = @pdf.parse_rectangle(
@@ -155,36 +153,36 @@ fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
         Some(x) => @pdf.getnum(pdf, x)
         _ => 1.0
       }
-      let style = match @pdf.lookup_direct(pdf, "/S", bsdict) {
-        Some(@pdf.PdfObject::Name("/S")) => Style::Solid
-        Some(@pdf.PdfObject::Name("/D")) => Style::Dashed
-        Some(@pdf.PdfObject::Name("/B")) => Style::Beveled
-        Some(@pdf.PdfObject::Name("/I")) => Style::Inset
-        Some(@pdf.PdfObject::Name("/U")) => Style::UnderlineStyle
-        _ => Style::NoStyle
+      let style : Style = match @pdf.lookup_direct(pdf, "/S", bsdict) {
+        Some(Name("/S")) => Solid
+        Some(Name("/D")) => Dashed
+        Some(Name("/B")) => Beveled
+        Some(Name("/I")) => Inset
+        Some(Name("/U")) => UnderlineStyle
+        _ => NoStyle
       }
       let dasharray = match @pdf.lookup_direct(pdf, "/D", bsdict) {
-        Some(@pdf.PdfObject::Array(dash)) => int_array_of_numbers(pdf, dash)
+        Some(Array(dash)) => int_array_of_numbers(pdf, dash)
         _ => []
       }
       { width, vradius: 0.0, hradius: 0.0, style, dasharray }
     }
     None =>
       match @pdf.lookup_direct(pdf, "/Border", annot) {
-        Some(@pdf.PdfObject::Array([h, v, w])) =>
+        Some(Array([h, v, w])) =>
           {
             width: @pdf.getnum(pdf, w),
             vradius: @pdf.getnum(pdf, v),
             hradius: @pdf.getnum(pdf, h),
-            style: Style::NoStyle,
+            style: NoStyle,
             dasharray: [],
           }
-        Some(@pdf.PdfObject::Array([h, v, w, @pdf.PdfObject::Array(dash)])) =>
+        Some(Array([h, v, w, Array(dash)])) =>
           {
             width: @pdf.getnum(pdf, w),
             vradius: @pdf.getnum(pdf, v),
             hradius: @pdf.getnum(pdf, h),
-            style: Style::NoStyle,
+            style: NoStyle,
             dasharray: int_array_of_numbers(pdf, dash),
           }
         _ =>
@@ -192,13 +190,13 @@ fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
             width: 1.0,
             vradius: 0.0,
             hradius: 0.0,
-            style: Style::NoStyle,
+            style: NoStyle,
             dasharray: [],
           }
       }
   }
   let colour = match @pdf.lookup_direct(pdf, "/C", annot) {
-    Some(@pdf.PdfObject::Array([r, g, b])) =>
+    Some(Array([r, g, b])) =>
       Some(
         (
           toint(@pdf.getnum(pdf, r)),
@@ -208,8 +206,8 @@ fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
       )
     _ => None
   }
-  let annotrest = match @pdf.direct(pdf, annot) {
-    @pdf.PdfObject::Dictionary(entries) => {
+  let annotrest : @pdf.PdfObject = match @pdf.direct(pdf, annot) {
+    Dictionary(entries) => {
       let filtered = entries.filter(pair => match pair.0 {
         "/Subtype"
         | "/Contents"
@@ -220,7 +218,7 @@ fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
         | "/C" => false
         _ => true
       })
-      @pdf.PdfObject::Dictionary(filtered)
+      Dictionary(filtered)
     }
     _ => raise @pdf.PdfError::Msg("Bad annotation dictionary")
   }
@@ -238,9 +236,9 @@ fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
 ///|
 fn get_popup_parent(pdf : @pdf.Pdf, annotation : @pdf.PdfObject) -> Int? raise {
   match @pdf.direct(pdf, annotation) {
-    @pdf.PdfObject::Dictionary(d) =>
-      match @pdf.lookup_immediate("/Parent", @pdf.PdfObject::Dictionary(d)) {
-        Some(@pdf.PdfObject::Indirect(i)) => Some(i)
+    Dictionary(d) =>
+      match @pdf.lookup_immediate("/Parent", Dictionary(d)) {
+        Some(Indirect(i)) => Some(i)
         _ => None
       }
     _ => raise @pdf.PdfError::Msg("Pdfannot.get_popup_parent: not a dictionary")
@@ -254,7 +252,7 @@ pub fn annotations_of_page(
   page : @pdfpage.Page,
 ) -> Array[Annotation] raise {
   match @pdf.lookup_direct(pdf, "/Annots", page.rest) {
-    Some(@pdf.PdfObject::Array(annotations)) => {
+    Some(Array(annotations)) => {
       let popup_parents : Map[Int, Unit] = Map::new()
       for annot in annotations {
         match get_popup_parent(pdf, annot) {
@@ -264,8 +262,8 @@ pub fn annotations_of_page(
       }
       let out = Array::new()
       for annot in annotations {
-        match annot {
-          @pdf.PdfObject::Indirect(i) =>
+        match (annot : @pdf.PdfObject) {
+          Indirect(i) =>
             if popup_parents.get(i) is None {
               out.push(read_annotation(pdf, annot))
             }
@@ -281,32 +279,32 @@ pub fn annotations_of_page(
 ///|
 fn string_of_subtype(subtype : Subtype) -> String {
   match subtype {
-    Subtype::Text => "/Text"
-    Subtype::Link => "/Link"
-    Subtype::FreeText => "/FreeText"
-    Subtype::Line => "/Line"
-    Subtype::Square => "/Square"
-    Subtype::Circle => "/Circle"
-    Subtype::Polygon => "/Polygon"
-    Subtype::PolyLine => "/PolyLine"
-    Subtype::Highlight => "/Highlight"
-    Subtype::Underline => "/Underline"
-    Subtype::Squiggly => "/Squiggly"
-    Subtype::StrikeOut => "/StrikeOut"
-    Subtype::Stamp => "/Stamp"
-    Subtype::Caret => "/Caret"
-    Subtype::Ink => "/Ink"
-    Subtype::FileAttachment => "/FileAttachment"
-    Subtype::Sound => "/Sound"
-    Subtype::Movie => "/Movie"
-    Subtype::Widget => "/Widget"
-    Subtype::Screen => "/Screen"
-    Subtype::PrinterMark => "/PrinterMark"
-    Subtype::TrapNet => "/TrapNet"
-    Subtype::Watermark => "/Watermark"
-    Subtype::Unknown(_) => "/Unknown"
-    Subtype::Popup(_) => "/Popup"
-    Subtype::ThreeDee => "/3D"
+    Text => "/Text"
+    Link => "/Link"
+    FreeText => "/FreeText"
+    Line => "/Line"
+    Square => "/Square"
+    Circle => "/Circle"
+    Polygon => "/Polygon"
+    PolyLine => "/PolyLine"
+    Highlight => "/Highlight"
+    Underline => "/Underline"
+    Squiggly => "/Squiggly"
+    StrikeOut => "/StrikeOut"
+    Stamp => "/Stamp"
+    Caret => "/Caret"
+    Ink => "/Ink"
+    FileAttachment => "/FileAttachment"
+    Sound => "/Sound"
+    Movie => "/Movie"
+    Widget => "/Widget"
+    Screen => "/Screen"
+    PrinterMark => "/PrinterMark"
+    TrapNet => "/TrapNet"
+    Watermark => "/Watermark"
+    Unknown(_) => "/Unknown"
+    Popup(_) => "/Popup"
+    ThreeDee => "/3D"
   }
 }
 
@@ -354,9 +352,9 @@ fn obj_of_annot(annot : Annotation) -> @pdf.PdfObject raise {
       },
     ),
   ]
-  let dict_entries = match annot.annotrest {
-    @pdf.PdfObject::Null => dict_entries
-    @pdf.PdfObject::Dictionary(extra) => dict_entries + extra
+  let dict_entries = match (annot.annotrest : @pdf.PdfObject) {
+    Null => dict_entries
+    Dictionary(extra) => dict_entries + extra
     _ => raise @pdf.PdfError::Msg("Bad annotation dictionary")
   }
   let dict_entries = match annot.colour {
@@ -423,7 +421,7 @@ pub fn add_annotation(
 ) -> @pdfpage.Page raise {
   let obj = obj_of_annot(anno)
   let new_rest = match @pdf.lookup_direct(pdf, "/Annots", page.rest) {
-    Some(@pdf.PdfObject::Array(annotations)) =>
+    Some(Array(annotations)) =>
       @pdf.add_dict_entry(
         page.rest,
         "/Annots",
@@ -523,7 +521,7 @@ fn transform_quadpoints(
   qp : @pdf.PdfObject,
 ) -> @pdf.PdfObject raise {
   match qp {
-    @pdf.PdfObject::Array(qps) => {
+    Array(qps) => {
       let out = Array::new()
       for chunk in split_into(qps, 8) {
         out.append(transform_quadpoint_single(pdf, transform, chunk))
@@ -545,10 +543,10 @@ pub fn transform_annotations(
   rest : @pdf.PdfObject,
 ) -> Unit raise {
   match @pdf.lookup_direct(pdf, "/Annots", rest) {
-    Some(@pdf.PdfObject::Array(annots)) =>
+    Some(Array(annots)) =>
       for annot in annots {
-        match annot {
-          @pdf.PdfObject::Indirect(i) => {
+        match (annot : @pdf.PdfObject) {
+          Indirect(i) => {
             let annot_obj = @pdf.lookup_obj(pdf, i)
             let rect_updated = match
               @pdf.lookup_direct(pdf, "/Rect", annot_obj) {
