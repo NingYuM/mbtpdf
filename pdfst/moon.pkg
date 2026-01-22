@@ -1,0 +1,11 @@
+import {
+  "bobzhang/mbtpdf/pdf",
+  "bobzhang/mbtpdf/pdfe",
+  "bobzhang/mbtpdf/pdftree",
+  "moonbitlang/core/strconv",
+}
+
+import "test" {
+  "bobzhang/mbtpdf/pdfpage",
+  "bobzhang/mbtpdf/pdfpaper",
+}

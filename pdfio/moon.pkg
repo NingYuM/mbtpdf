@@ -1,0 +1,11 @@
+import {
+  "bobzhang/mbtpdf/pdfe",
+  "moonbitlang/async/fs",
+  "moonbitlang/async/io",
+}
+
+import "test" {
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+  "moonbitlang/async/io",
+}

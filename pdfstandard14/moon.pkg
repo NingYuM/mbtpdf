@@ -1,0 +1,13 @@
+import {
+  "bobzhang/mbtpdf/pdfafm",
+  "bobzhang/mbtpdf/pdfafmdata",
+  "bobzhang/mbtpdf/pdfcodec",
+  "bobzhang/mbtpdf/pdffont",
+  "bobzhang/mbtpdf/pdfio",
+  "bobzhang/mbtpdf/pdfutil",
+}
+
+import "test" {
+  "bobzhang/mbtpdf/pdf",
+  "bobzhang/mbtpdf/pdftext",
+}

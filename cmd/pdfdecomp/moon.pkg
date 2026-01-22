@@ -1,0 +1,12 @@
+import {
+  "bobzhang/mbtpdf/pdf",
+  "bobzhang/mbtpdf/pdfread",
+  "bobzhang/mbtpdf/pdfcodec",
+  "bobzhang/mbtpdf/pdfwrite",
+  "moonbitlang/core/env",
+  "moonbitlang/async",
+}
+
+options(
+  "is-main": true,
+)

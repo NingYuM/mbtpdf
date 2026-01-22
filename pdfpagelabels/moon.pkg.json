@@ -1,9 +1,0 @@
-{
-  "import": [
-    "bobzhang/mbtpdf/pdf",
-    "bobzhang/mbtpdf/pdfe"
-  ],
-  "test-import": [
-    "bobzhang/mbtpdf/pdfpage"
-  ]
-}

@@ -1,0 +1,15 @@
+import {
+  "bobzhang/mbtpdf/pdf",
+  "bobzhang/mbtpdf/pdfdest",
+  "bobzhang/mbtpdf/pdftransform",
+  "bobzhang/mbtpdf/pdfe",
+}
+
+import "test" {
+  "bobzhang/mbtpdf/pdfdest",
+  "bobzhang/mbtpdf/pdfpage",
+  "bobzhang/mbtpdf/pdfread",
+  "bobzhang/mbtpdf/pdfwrite",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+}

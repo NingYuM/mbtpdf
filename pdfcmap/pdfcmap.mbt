@@ -381,8 +381,6 @@ pub fn parse_cmap(pdf : @pdf.Pdf, cmap : @pdf.PdfObject) -> CMap raise {
       }
     }
     _ =>
-      raise @pdf.PdfError::Msg(
-        "Bad /ToUnicode \{@pdf.string_of_pdfobj(cmap)}",
-      )
+      raise @pdf.PdfError::Msg("Bad /ToUnicode \{@pdf.string_of_pdfobj(cmap)}")
   }
 }

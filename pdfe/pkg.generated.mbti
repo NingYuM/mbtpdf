@@ -8,6 +8,8 @@ pub fn log(String) -> Unit
 
 pub let logger : Ref[(String) -> Unit]
 
+pub let read_debug : Ref[Bool]
+
 // Errors
 
 // Types and methods

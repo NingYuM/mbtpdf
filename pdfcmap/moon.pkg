@@ -1,0 +1,6 @@
+import {
+  "bobzhang/mbtpdf/pdf",
+  "bobzhang/mbtpdf/pdfcodec",
+  "bobzhang/mbtpdf/pdfio",
+  "moonbitlang/core/strconv",
+}

@@ -1,0 +1,7 @@
+import {
+  "bobzhang/mbtpdf/pdfio",
+  "bobzhang/mbtpdf/pdfe",
+  "bobzhang/mbtpdf/pdfcryptprimitives",
+  "bobzhang/mbtpdf/pdftransform",
+  "moonbitlang/core/env",
+}

@@ -299,7 +299,8 @@ fn write_pdf_object(
       if include_stream_data {
         let _ = getstream(obj) catch { _ => () }
         match r.val {
-          (_, Stream::Got(bytes)) => sb.write_string(@pdfio.string_of_bytes(bytes))
+          (_, Stream::Got(bytes)) =>
+            sb.write_string(@pdfio.string_of_bytes(bytes))
           _ =>
             if warn_on_toget {
               @pdfe.log("WARNING: toget in string_of_pdfobj_including_data\n")
