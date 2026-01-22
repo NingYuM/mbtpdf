@@ -1,20 +1,20 @@
 ///|
-fn all_standard_fonts() -> Array[@pdftext.StandardFont] {
+fn all_standard_fonts() -> Array[@pdffont.StandardFont] {
   [
-    @pdftext.StandardFont::TimesRoman,
-    @pdftext.StandardFont::TimesBold,
-    @pdftext.StandardFont::TimesItalic,
-    @pdftext.StandardFont::TimesBoldItalic,
-    @pdftext.StandardFont::Helvetica,
-    @pdftext.StandardFont::HelveticaBold,
-    @pdftext.StandardFont::HelveticaOblique,
-    @pdftext.StandardFont::HelveticaBoldOblique,
-    @pdftext.StandardFont::Courier,
-    @pdftext.StandardFont::CourierBold,
-    @pdftext.StandardFont::CourierOblique,
-    @pdftext.StandardFont::CourierBoldOblique,
-    @pdftext.StandardFont::Symbol,
-    @pdftext.StandardFont::ZapfDingbats,
+    @pdffont.StandardFont::TimesRoman,
+    @pdffont.StandardFont::TimesBold,
+    @pdffont.StandardFont::TimesItalic,
+    @pdffont.StandardFont::TimesBoldItalic,
+    @pdffont.StandardFont::Helvetica,
+    @pdffont.StandardFont::HelveticaBold,
+    @pdffont.StandardFont::HelveticaOblique,
+    @pdffont.StandardFont::HelveticaBoldOblique,
+    @pdffont.StandardFont::Courier,
+    @pdffont.StandardFont::CourierBold,
+    @pdffont.StandardFont::CourierOblique,
+    @pdffont.StandardFont::CourierBoldOblique,
+    @pdffont.StandardFont::Symbol,
+    @pdffont.StandardFont::ZapfDingbats,
   ]
 }
 
@@ -35,11 +35,11 @@ test "baseline_adjustment covers all fonts" {
   ))
   assert_eq(values.length(), all_standard_fonts().length())
   assert_eq(
-    @pdfstandard14.baseline_adjustment(@pdftext.StandardFont::TimesBold),
+    @pdfstandard14.baseline_adjustment(@pdffont.StandardFont::TimesBold),
     338,
   )
   assert_eq(
-    @pdfstandard14.baseline_adjustment(@pdftext.StandardFont::HelveticaBold),
+    @pdfstandard14.baseline_adjustment(@pdffont.StandardFont::HelveticaBold),
     359,
   )
 }
@@ -51,18 +51,18 @@ test "stemv_of_standard_font covers all fonts" {
   ))
   assert_eq(values.length(), all_standard_fonts().length())
   assert_eq(
-    @pdfstandard14.stemv_of_standard_font(@pdftext.StandardFont::TimesBold),
+    @pdfstandard14.stemv_of_standard_font(@pdffont.StandardFont::TimesBold),
     122,
   )
   assert_eq(
-    @pdfstandard14.stemv_of_standard_font(@pdftext.StandardFont::ZapfDingbats),
+    @pdfstandard14.stemv_of_standard_font(@pdffont.StandardFont::ZapfDingbats),
     125,
   )
 }
 
 ///|
 test "textwidth handles missing widths and kerning" {
-  let font = @pdftext.StandardFont::TimesRoman
+  let font = @pdffont.StandardFont::TimesRoman
   let missing = String::from_array([
     Int::unsafe_to_char(999),
     Int::unsafe_to_char(998),
@@ -95,7 +95,7 @@ test "textwidth handles missing widths and kerning" {
 
 ///|
 test "textwidth handles empty string and unicode fallback" {
-  let font = @pdftext.StandardFont::Helvetica
+  let font = @pdffont.StandardFont::Helvetica
   let pdf = @pdf.empty()
   let winansi_font : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
@@ -111,7 +111,7 @@ test "textwidth handles empty string and unicode fallback" {
 
 ///|
 test "textwidth applies kerning for standard fonts" {
-  let font = @pdftext.StandardFont::TimesRoman
+  let font = @pdffont.StandardFont::TimesRoman
   let pdf = @pdf.empty()
   let implicit_font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type1"))])
   let encoding = @pdftext.read_encoding(pdf, implicit_font)
@@ -125,17 +125,17 @@ test "textwidth applies kerning for standard fonts" {
 ///|
 test "flags_of_standard_font covers branches" {
   assert_eq(
-    @pdfstandard14.flags_of_standard_font(@pdftext.StandardFont::Symbol),
+    @pdfstandard14.flags_of_standard_font(@pdffont.StandardFont::Symbol),
     65541,
   )
   assert_eq(
     @pdfstandard14.flags_of_standard_font(
-      @pdftext.StandardFont::CourierBoldOblique,
+      @pdffont.StandardFont::CourierBoldOblique,
     ),
     33,
   )
   assert_eq(
-    @pdfstandard14.flags_of_standard_font(@pdftext.StandardFont::Helvetica),
+    @pdfstandard14.flags_of_standard_font(@pdffont.StandardFont::Helvetica),
     32,
   )
 }

@@ -38,7 +38,7 @@ fn parse_matrix(
 pub fn read_type3_data(
   pdf : @pdf.Pdf,
   font : @pdf.PdfObject,
-) -> Type3Glyphs raise {
+) -> @pdffont.Type3Glyphs raise {
   {
     fontbbox: @pdf.parse_rectangle(
       pdf,
@@ -62,12 +62,12 @@ pub fn simple_fonttype_of_string(
   pdf : @pdf.Pdf,
   font : @pdf.PdfObject,
   subtype : String,
-) -> SimpleFontType? raise {
+) -> @pdffont.SimpleFontType? raise {
   match subtype {
-    "/Type1" => Some(SimpleFontType::Type1)
-    "/MMType1" => Some(SimpleFontType::MMType1)
-    "/Type3" => Some(SimpleFontType::Type3(read_type3_data(pdf, font)))
-    "/TrueType" => Some(SimpleFontType::Truetype)
+    "/Type1" => Some(@pdffont.SimpleFontType::Type1)
+    "/MMType1" => Some(@pdffont.SimpleFontType::MMType1)
+    "/Type3" => Some(@pdffont.SimpleFontType::Type3(read_type3_data(pdf, font)))
+    "/TrueType" => Some(@pdffont.SimpleFontType::Truetype)
     _ => None
   }
 }
@@ -107,7 +107,7 @@ pub fn parse_charset(s : String) -> Array[String] {
 pub fn read_fontdescriptor(
   pdf : @pdf.Pdf,
   font : @pdf.PdfObject,
-) -> FontDescriptor? raise {
+) -> @pdffont.FontDescriptor? raise {
   match @pdf.lookup_direct(pdf, "/FontDescriptor", font) {
     None => None
     Some(fontdescriptor) => {
@@ -130,13 +130,13 @@ pub fn read_fontdescriptor(
         None => 0.0
       }
       let fontfile = match find_indirect(pdf, "/FontFile", fontdescriptor) {
-        Some(i) => Some(FontFile::FontFile(i))
+        Some(i) => Some(@pdffont.FontFile::FontFile(i))
         None =>
           match find_indirect(pdf, "/FontFile2", fontdescriptor) {
-            Some(i) => Some(FontFile::FontFile2(i))
+            Some(i) => Some(@pdffont.FontFile::FontFile2(i))
             None =>
               match find_indirect(pdf, "/FontFile3", fontdescriptor) {
-                Some(i) => Some(FontFile::FontFile3(i))
+                Some(i) => Some(@pdffont.FontFile::FontFile3(i))
                 None => None
               }
           }
@@ -178,7 +178,7 @@ fn repeat_double(value : Double, count : Int) -> Array[Double] {
 pub fn read_metrics(
   pdf : @pdf.Pdf,
   font : @pdf.PdfObject,
-) -> FontMetrics? raise {
+) -> @pdffont.FontMetrics? raise {
   let fontdescriptor = match @pdf.lookup_direct(pdf, "/Subtype", font) {
     Some(@pdf.PdfObject::Name("/Type3")) => Some(font)
     _ => @pdf.lookup_direct(pdf, "/FontDescriptor", font)
@@ -239,7 +239,7 @@ pub fn read_metrics(
 pub fn pairs_of_differences(
   pdf : @pdf.Pdf,
   differences : @pdf.PdfObject,
-) -> Differences raise {
+) -> @pdffont.Differences raise {
   match differences {
     @pdf.PdfObject::Array(elts) => {
       let direct = elts.map(obj => @pdf.direct(pdf, obj))
@@ -273,27 +273,31 @@ pub fn pairs_of_differences(
 }
 
 ///|
-pub fn standard_font_of_name(name : String) -> StandardFont? {
+pub fn standard_font_of_name(name : String) -> @pdffont.StandardFont? {
   match name {
-    "/Times-Roman" | "/TimesNewRoman" => Some(StandardFont::TimesRoman)
-    "/Times-Bold" | "/TimesNewRoman,Bold" => Some(StandardFont::TimesBold)
-    "/Times-Italic" | "/TimesNewRoman,Italic" => Some(StandardFont::TimesItalic)
+    "/Times-Roman" | "/TimesNewRoman" => Some(@pdffont.StandardFont::TimesRoman)
+    "/Times-Bold" | "/TimesNewRoman,Bold" =>
+      Some(@pdffont.StandardFont::TimesBold)
+    "/Times-Italic" | "/TimesNewRoman,Italic" =>
+      Some(@pdffont.StandardFont::TimesItalic)
     "/Times-BoldItalic" | "/TimesNewRoman,BoldItalic" =>
-      Some(StandardFont::TimesBoldItalic)
-    "/Helvetica" | "/Arial" => Some(StandardFont::Helvetica)
-    "/Helvetica-Bold" | "/Arial,Bold" => Some(StandardFont::HelveticaBold)
+      Some(@pdffont.StandardFont::TimesBoldItalic)
+    "/Helvetica" | "/Arial" => Some(@pdffont.StandardFont::Helvetica)
+    "/Helvetica-Bold" | "/Arial,Bold" =>
+      Some(@pdffont.StandardFont::HelveticaBold)
     "/Helvetica-Oblique" | "/Arial,Italic" =>
-      Some(StandardFont::HelveticaOblique)
+      Some(@pdffont.StandardFont::HelveticaOblique)
     "/Helvetica-BoldOblique" | "/Arial,BoldItalic" =>
-      Some(StandardFont::HelveticaBoldOblique)
-    "/Courier" | "/CourierNew" => Some(StandardFont::Courier)
-    "/Courier-Bold" | "/CourierNew,Bold" => Some(StandardFont::CourierBold)
+      Some(@pdffont.StandardFont::HelveticaBoldOblique)
+    "/Courier" | "/CourierNew" => Some(@pdffont.StandardFont::Courier)
+    "/Courier-Bold" | "/CourierNew,Bold" =>
+      Some(@pdffont.StandardFont::CourierBold)
     "/Courier-Oblique" | "/CourierNew,Italic" =>
-      Some(StandardFont::CourierOblique)
+      Some(@pdffont.StandardFont::CourierOblique)
     "/Courier-BoldOblique" | "/CourierNew,BoldItalic" =>
-      Some(StandardFont::CourierBoldOblique)
-    "/Symbol" => Some(StandardFont::Symbol)
-    "/ZapfDingbats" => Some(StandardFont::ZapfDingbats)
+      Some(@pdffont.StandardFont::CourierBoldOblique)
+    "/Symbol" => Some(@pdffont.StandardFont::Symbol)
+    "/ZapfDingbats" => Some(@pdffont.StandardFont::ZapfDingbats)
     _ => None
   }
 }
@@ -350,13 +354,17 @@ pub fn is_symbolic(pdf : @pdf.Pdf, font : @pdf.PdfObject) -> Bool raise {
 }
 
 ///|
-pub fn read_encoding(pdf : @pdf.Pdf, font : @pdf.PdfObject) -> Encoding raise {
+pub fn read_encoding(
+  pdf : @pdf.Pdf,
+  font : @pdf.PdfObject,
+) -> @pdffont.Encoding raise {
   match @pdf.lookup_direct(pdf, "/Encoding", font) {
     Some(@pdf.PdfObject::Name("/MacRomanEncoding")) =>
-      Encoding::MacRomanEncoding
+      @pdffont.Encoding::MacRomanEncoding
     Some(@pdf.PdfObject::Name("/MacExpertEncoding")) =>
-      Encoding::MacExpertEncoding
-    Some(@pdf.PdfObject::Name("/WinAnsiEncoding")) => Encoding::WinAnsiEncoding
+      @pdffont.Encoding::MacExpertEncoding
+    Some(@pdf.PdfObject::Name("/WinAnsiEncoding")) =>
+      @pdffont.Encoding::WinAnsiEncoding
     Some(encdict) =>
       match encdict {
         @pdf.PdfObject::Dictionary(_) =>
@@ -369,32 +377,32 @@ pub fn read_encoding(pdf : @pdf.Pdf, font : @pdf.PdfObject) -> Encoding raise {
                 let base_encoding = match
                   @pdf.lookup_direct(pdf, "/BaseEncoding", encdict) {
                   Some(@pdf.PdfObject::Name("/MacRomanEncoding")) =>
-                    Encoding::MacRomanEncoding
+                    @pdffont.Encoding::MacRomanEncoding
                   Some(@pdf.PdfObject::Name("/MacExpertEncoding")) =>
-                    Encoding::MacExpertEncoding
+                    @pdffont.Encoding::MacExpertEncoding
                   Some(@pdf.PdfObject::Name("/WinAnsiEncoding")) =>
-                    Encoding::WinAnsiEncoding
+                    @pdffont.Encoding::WinAnsiEncoding
                   None =>
                     if is_embedded(pdf, font) {
-                      Encoding::ImplicitInFontFile
+                      @pdffont.Encoding::ImplicitInFontFile
                     } else if is_symbolic(pdf, font) {
-                      Encoding::ImplicitInFontFile
+                      @pdffont.Encoding::ImplicitInFontFile
                     } else {
-                      Encoding::StandardEncoding
+                      @pdffont.Encoding::StandardEncoding
                     }
                   _ => raise @pdf.PdfError::Msg("unknown /BaseEncoding")
                 }
                 let encoding = match
                   @pdf.lookup_direct(pdf, "/Differences", encdict) {
                   Some(differences) =>
-                    Encoding::CustomEncoding(
+                    @pdffont.Encoding::CustomEncoding(
                       base_encoding,
                       pairs_of_differences(pdf, differences),
                     )
                   _ => base_encoding
                 }
                 if fonttype == "/TrueType" {
-                  Encoding::FillUndefinedWithStandard(encoding)
+                  @pdffont.Encoding::FillUndefinedWithStandard(encoding)
                 } else {
                   encoding
                 }
@@ -403,21 +411,24 @@ pub fn read_encoding(pdf : @pdf.Pdf, font : @pdf.PdfObject) -> Encoding raise {
               }
             _ => raise @pdf.PdfError::Msg("Bad font /Subtype")
           }
-        _ => Encoding::ImplicitInFontFile
+        _ => @pdffont.Encoding::ImplicitInFontFile
       }
-    _ => Encoding::ImplicitInFontFile
+    _ => @pdffont.Encoding::ImplicitInFontFile
   }
 }
 
 ///|
-pub fn read_simple_font(pdf : @pdf.Pdf, font : @pdf.PdfObject) -> Font raise {
+pub fn read_simple_font(
+  pdf : @pdf.Pdf,
+  font : @pdf.PdfObject,
+) -> @pdffont.Font raise {
   match @pdf.lookup_direct(pdf, "/Subtype", font) {
     Some(@pdf.PdfObject::Name(n)) =>
       match simple_fonttype_of_string(pdf, font, n) {
         Some(fonttype) => {
           let fontdescriptor = read_fontdescriptor(pdf, font)
           let fontmetrics = read_metrics(pdf, font)
-          Font::SimpleFont({
+          @pdffont.Font::SimpleFont({
             fonttype,
             basefont: read_basefont(pdf, font),
             fontmetrics,
@@ -435,12 +446,15 @@ pub fn read_simple_font(pdf : @pdf.Pdf, font : @pdf.PdfObject) -> Font raise {
 }
 
 ///|
-pub fn read_standard14font(pdf : @pdf.Pdf, font : @pdf.PdfObject) -> Font raise {
+pub fn read_standard14font(
+  pdf : @pdf.Pdf,
+  font : @pdf.PdfObject,
+) -> @pdffont.Font raise {
   match @pdf.lookup_direct(pdf, "/BaseFont", font) {
     Some(@pdf.PdfObject::Name(name)) =>
       match standard_font_of_name(name) {
         None => raise @pdf.PdfError::Msg("Not a base 14 font")
-        Some(f) => Font::StandardFont(f, read_encoding(pdf, font))
+        Some(f) => @pdffont.Font::StandardFont(f, read_encoding(pdf, font))
       }
     _ => raise @pdf.PdfError::Msg("Bad base 14 font")
   }
@@ -470,7 +484,7 @@ pub fn is_cidkeyed_font(pdf : @pdf.Pdf, font : @pdf.PdfObject) -> Bool {
 pub fn read_cid_system_info(
   pdf : @pdf.Pdf,
   dict : @pdf.PdfObject,
-) -> CIDSystemInfo raise {
+) -> @pdffont.CIDSystemInfo raise {
   let registry = match @pdf.lookup_direct(pdf, "/Registry", dict) {
     Some(@pdf.PdfObject::String(s)) => s
     _ => raise @pdf.PdfError::Msg("No /Registry")
@@ -540,7 +554,7 @@ pub fn read_cid_widths(
 pub fn read_descendant(
   pdf : @pdf.Pdf,
   dict : @pdf.PdfObject,
-) -> CompositeCIDFont raise {
+) -> @pdffont.CompositeCIDFont raise {
   let cid_system_info = match @pdf.lookup_direct(pdf, "/CIDSystemInfo", dict) {
     Some(cid_dict) => read_cid_system_info(pdf, cid_dict)
     None => raise @pdf.PdfError::Msg("No CIDSystemInfo")
@@ -571,7 +585,10 @@ pub fn read_descendant(
 }
 
 ///|
-pub fn read_cidkeyed_font(pdf : @pdf.Pdf, font : @pdf.PdfObject) -> Font raise {
+pub fn read_cidkeyed_font(
+  pdf : @pdf.Pdf,
+  font : @pdf.PdfObject,
+) -> @pdffont.Font raise {
   let basefont = match @pdf.lookup_direct(pdf, "/BaseFont", font) {
     Some(@pdf.PdfObject::Name(b)) => b
     _ => raise @pdf.PdfError::Msg("Bad /BaseFont")
@@ -586,23 +603,23 @@ pub fn read_cidkeyed_font(pdf : @pdf.Pdf, font : @pdf.PdfObject) -> Font raise {
     _ => raise @pdf.PdfError::Msg("Bad descendant font")
   }
   let encoding = match @pdf.lookup_direct(pdf, "/Encoding", font) {
-    Some(@pdf.PdfObject::Name(e)) => CMapEncoding::Predefined(e)
+    Some(@pdf.PdfObject::Name(e)) => @pdffont.CMapEncoding::Predefined(e)
     Some(@pdf.PdfObject::Stream(_)) =>
       match find_indirect(pdf, "/Encoding", font) {
-        Some(n) => CMapEncoding::CMap(n)
+        Some(n) => @pdffont.CMapEncoding::CMap(n)
         None => raise @pdf.PdfError::Msg("malformed /Encoding")
       }
     _ => raise @pdf.PdfError::Msg("malformed or missing /Encoding")
   }
-  Font::CIDKeyedFont(basefont, composite, encoding)
+  @pdffont.Font::CIDKeyedFont(basefont, composite, encoding)
 }
 
 ///|
 pub fn add_tounicode(
   pdf : @pdf.Pdf,
-  font : Font,
+  font : @pdffont.Font,
   fontdict : @pdf.PdfObject,
-) -> Font {
+) -> @pdffont.Font {
   fn code_int_of_string(code : String) -> Int {
     let bytes = @pdfio.bytes_of_string(code)
     let mut value = 0
@@ -634,10 +651,10 @@ pub fn add_tounicode(
     None => (None, None)
   }
   match font {
-    Font::SimpleFont(simple) =>
+    @pdffont.Font::SimpleFont(simple) =>
       match simple.fontdescriptor {
         Some(fd) => {
-          let updated_fd : FontDescriptor = {
+          let updated_fd : @pdffont.FontDescriptor = {
             ascent: fd.ascent,
             descent: fd.descent,
             avgwidth: fd.avgwidth,
@@ -653,7 +670,7 @@ pub fn add_tounicode(
             tounicode,
             tounicode_bytes,
           }
-          Font::SimpleFont({
+          @pdffont.Font::SimpleFont({
             fonttype: simple.fonttype,
             basefont: simple.basefont,
             firstchar: simple.firstchar,
@@ -665,7 +682,7 @@ pub fn add_tounicode(
           })
         }
         None => {
-          let default_fd : FontDescriptor = {
+          let default_fd : @pdffont.FontDescriptor = {
             ascent: 0.0,
             descent: 0.0,
             avgwidth: 0.0,
@@ -681,7 +698,7 @@ pub fn add_tounicode(
             tounicode,
             tounicode_bytes,
           }
-          Font::SimpleFont({
+          @pdffont.Font::SimpleFont({
             fonttype: simple.fonttype,
             basefont: simple.basefont,
             firstchar: simple.firstchar,
@@ -693,8 +710,8 @@ pub fn add_tounicode(
           })
         }
       }
-    Font::CIDKeyedFont(name, composite, encoding) => {
-      let updated_cid_fd : FontDescriptor = {
+    @pdffont.Font::CIDKeyedFont(name, composite, encoding) => {
+      let updated_cid_fd : @pdffont.FontDescriptor = {
         ascent: composite.cid_fontdescriptor.ascent,
         descent: composite.cid_fontdescriptor.descent,
         avgwidth: composite.cid_fontdescriptor.avgwidth,
@@ -710,49 +727,52 @@ pub fn add_tounicode(
         tounicode,
         tounicode_bytes,
       }
-      let updated_composite : CompositeCIDFont = {
+      let updated_composite : @pdffont.CompositeCIDFont = {
         cid_system_info: composite.cid_system_info,
         cid_basefont: composite.cid_basefont,
         cid_fontdescriptor: updated_cid_fd,
         cid_widths: composite.cid_widths,
         cid_default_width: composite.cid_default_width,
       }
-      Font::CIDKeyedFont(name, updated_composite, encoding)
+      @pdffont.Font::CIDKeyedFont(name, updated_composite, encoding)
     }
     other => other
   }
 }
 
 ///|
-pub fn find_tounicode(font : Font) -> Map[Int, String]? {
+pub fn find_tounicode(font : @pdffont.Font) -> Map[Int, String]? {
   match font {
-    Font::SimpleFont(simple) =>
+    @pdffont.Font::SimpleFont(simple) =>
       match simple.fontdescriptor {
         Some(fd) => fd.tounicode
         None => None
       }
-    Font::CIDKeyedFont(_, composite, _) =>
+    @pdffont.Font::CIDKeyedFont(_, composite, _) =>
       composite.cid_fontdescriptor.tounicode
     _ => None
   }
 }
 
 ///|
-pub fn find_tounicode_bytes(font : Font) -> Map[String, String]? {
+pub fn find_tounicode_bytes(font : @pdffont.Font) -> Map[String, String]? {
   match font {
-    Font::SimpleFont(simple) =>
+    @pdffont.Font::SimpleFont(simple) =>
       match simple.fontdescriptor {
         Some(fd) => fd.tounicode_bytes
         None => None
       }
-    Font::CIDKeyedFont(_, composite, _) =>
+    @pdffont.Font::CIDKeyedFont(_, composite, _) =>
       composite.cid_fontdescriptor.tounicode_bytes
     _ => None
   }
 }
 
 ///|
-pub fn read_font(pdf : @pdf.Pdf, fontdict : @pdf.PdfObject) -> Font raise {
+pub fn read_font(
+  pdf : @pdf.Pdf,
+  fontdict : @pdf.PdfObject,
+) -> @pdffont.Font raise {
   let without_tounicode = if is_standard14font(pdf, fontdict) {
     read_standard14font(pdf, fontdict)
   } else if is_simple_font(pdf, fontdict) {

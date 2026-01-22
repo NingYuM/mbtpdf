@@ -6,7 +6,7 @@ pub struct TextExtractor {
   convert : (Int) -> (String, Array[Int])
   tounicode : Map[String, String]?
   tounicode_lengths : Array[Int]
-  font : Font
+  font : @pdffont.Font
 }
 
 ///|
@@ -126,68 +126,23 @@ pub fn codepoints_of_utf16be(str : String) -> Array[Int] raise {
 }
 
 ///|
-fn add_encoding(table : Map[Int, String], encoding : Encoding) -> Unit {
-  let addvals = (vals : Array[(String, Int)]) => for pair in vals {
-    table.set(pair.1, pair.0)
-  }
-  match encoding {
-    Encoding::ImplicitInFontFile => ()
-    Encoding::StandardEncoding => addvals(@pdfglyphlist.name_to_standard)
-    Encoding::MacRomanEncoding => addvals(@pdfglyphlist.name_to_macroman)
-    Encoding::WinAnsiEncoding => addvals(@pdfglyphlist.name_to_win)
-    Encoding::MacExpertEncoding => addvals(@pdfglyphlist.name_to_macexpert)
-    Encoding::CustomEncoding(enc, ds) => {
-      add_encoding(table, enc)
-      addvals(ds)
-    }
-    Encoding::FillUndefinedWithStandard(enc) => {
-      addvals(@pdfglyphlist.name_to_standard)
-      add_encoding(table, enc)
-    }
-  }
+pub fn table_of_encoding(encoding : @pdffont.Encoding) -> Map[Int, String] {
+  @pdffont.table_of_encoding(encoding)
 }
 
 ///|
-pub fn table_of_encoding(encoding : Encoding) -> Map[Int, String] {
-  let table : Map[Int, String] = Map::new(capacity=203)
-  add_encoding(table, encoding)
-  table
+pub fn reverse_table_of_encoding(
+  encoding : @pdffont.Encoding,
+) -> Map[String, Int] {
+  @pdffont.reverse_table_of_encoding(encoding)
 }
 
 ///|
-pub fn reverse_table_of_encoding(encoding : Encoding) -> Map[String, Int] {
-  let table : Map[String, Int] = Map::new(capacity=203)
-  let addvals = (vals : Array[(String, Int)]) => for pair in vals {
-    table.set(pair.0, pair.1)
-  }
-  fn add_reverse(enc : Encoding) -> Unit {
-    match enc {
-      Encoding::ImplicitInFontFile => ()
-      Encoding::StandardEncoding => addvals(@pdfglyphlist.name_to_standard)
-      Encoding::MacRomanEncoding => addvals(@pdfglyphlist.name_to_macroman)
-      Encoding::WinAnsiEncoding => addvals(@pdfglyphlist.name_to_win)
-      Encoding::MacExpertEncoding => addvals(@pdfglyphlist.name_to_macexpert)
-      Encoding::CustomEncoding(inner, ds) => {
-        add_reverse(inner)
-        addvals(ds)
-      }
-      Encoding::FillUndefinedWithStandard(inner) => {
-        addvals(@pdfglyphlist.name_to_standard)
-        add_reverse(inner)
-      }
-    }
-  }
-
-  add_reverse(encoding)
-  table
-}
-
-///|
-pub fn text_extractor_of_font_real(font : Font) -> TextExtractor {
+pub fn text_extractor_of_font_real(font : @pdffont.Font) -> TextExtractor {
   let encoding = match font {
-    Font::StandardFont(_, e) => e
-    Font::SimpleFont(simple) => simple.encoding
-    _ => Encoding::ImplicitInFontFile
+    @pdffont.Font::StandardFont(_, e) => e
+    @pdffont.Font::SimpleFont(simple) => simple.encoding
+    _ => @pdffont.Encoding::ImplicitInFontFile
   }
   let table = table_of_encoding(encoding)
   let convert = (i : Int) => try {
@@ -219,9 +174,13 @@ pub fn text_extractor_of_font(
 }
 
 ///|
-pub fn is_identity_h(font : Font) -> Bool {
+pub fn is_identity_h(font : @pdffont.Font) -> Bool {
   match font {
-    Font::CIDKeyedFont(_, _, CMapEncoding::Predefined("/Identity-H")) => true
+    @pdffont.Font::CIDKeyedFont(
+      _,
+      _,
+      @pdffont.CMapEncoding::Predefined("/Identity-H")
+    ) => true
     _ => false
   }
 }
@@ -242,9 +201,12 @@ fn is_shift_jis_cmap(name : String) -> Bool {
 }
 
 ///|
-fn codepoints_of_predefined_cmap(font : Font, text : String) -> Array[Int]? {
+fn codepoints_of_predefined_cmap(
+  font : @pdffont.Font,
+  text : String,
+) -> Array[Int]? {
   match font {
-    Font::CIDKeyedFont(_, _, CMapEncoding::Predefined(name)) =>
+    @pdffont.Font::CIDKeyedFont(_, _, @pdffont.CMapEncoding::Predefined(name)) =>
       if is_shift_jis_cmap(name) {
         let bytes = @pdfio.int_array_of_bytes(@pdfio.bytes_of_string(text))
         Some(codepoints_of_shift_jis(bytes))
@@ -335,16 +297,16 @@ pub fn glyphnames_of_text(
 
 ///|
 pub fn charcode_extractor_of_font_real(
-  font : Font,
+  font : @pdffont.Font,
   debug? : Bool = false,
 ) -> ((Int) -> Int?) raise {
   if debug {
-    @pdfutil.flprint(string_of_font(font) + "\n")
+    @pdfutil.flprint(@pdffont.string_of_font(font) + "\n")
   }
   let encoding = match font {
-    Font::StandardFont(_, e) => e
-    Font::SimpleFont(simple) => simple.encoding
-    _ => Encoding::ImplicitInFontFile
+    @pdffont.Font::StandardFont(_, e) => e
+    @pdffont.Font::SimpleFont(simple) => simple.encoding
+    _ => @pdffont.Encoding::ImplicitInFontFile
   }
   let tounicode_reverse_table = match find_tounicode_bytes(font) {
     Some(parsed) => {

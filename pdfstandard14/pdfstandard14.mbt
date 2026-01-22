@@ -24,67 +24,67 @@ fn read_afm(afm : Array[Byte]) -> AfmTables raise {
 }
 
 ///|
-let tables : Array[(@pdftext.StandardFont, () -> AfmTables raise)] = [
+let tables : Array[(@pdffont.StandardFont, () -> AfmTables raise)] = [
   (
-    @pdftext.StandardFont::TimesRoman,
+    @pdffont.StandardFont::TimesRoman,
     @pdfutil.memoize(() => read_afm(@pdfafmdata.times_roman_afm())),
   ),
   (
-    @pdftext.StandardFont::TimesBold,
+    @pdffont.StandardFont::TimesBold,
     @pdfutil.memoize(() => read_afm(@pdfafmdata.times_bold_afm())),
   ),
   (
-    @pdftext.StandardFont::TimesItalic,
+    @pdffont.StandardFont::TimesItalic,
     @pdfutil.memoize(() => read_afm(@pdfafmdata.times_italic_afm())),
   ),
   (
-    @pdftext.StandardFont::TimesBoldItalic,
+    @pdffont.StandardFont::TimesBoldItalic,
     @pdfutil.memoize(() => read_afm(@pdfafmdata.times_bold_italic_afm())),
   ),
   (
-    @pdftext.StandardFont::Helvetica,
+    @pdffont.StandardFont::Helvetica,
     @pdfutil.memoize(() => read_afm(@pdfafmdata.helvetica_afm())),
   ),
   (
-    @pdftext.StandardFont::HelveticaBold,
+    @pdffont.StandardFont::HelveticaBold,
     @pdfutil.memoize(() => read_afm(@pdfafmdata.helvetica_bold_afm())),
   ),
   (
-    @pdftext.StandardFont::HelveticaOblique,
+    @pdffont.StandardFont::HelveticaOblique,
     @pdfutil.memoize(() => read_afm(@pdfafmdata.helvetica_oblique_afm())),
   ),
   (
-    @pdftext.StandardFont::HelveticaBoldOblique,
+    @pdffont.StandardFont::HelveticaBoldOblique,
     @pdfutil.memoize(() => read_afm(@pdfafmdata.helvetica_bold_oblique_afm())),
   ),
   (
-    @pdftext.StandardFont::Courier,
+    @pdffont.StandardFont::Courier,
     @pdfutil.memoize(() => read_afm(@pdfafmdata.courier_afm())),
   ),
   (
-    @pdftext.StandardFont::CourierBold,
+    @pdffont.StandardFont::CourierBold,
     @pdfutil.memoize(() => read_afm(@pdfafmdata.courier_bold_afm())),
   ),
   (
-    @pdftext.StandardFont::CourierOblique,
+    @pdffont.StandardFont::CourierOblique,
     @pdfutil.memoize(() => read_afm(@pdfafmdata.courier_oblique_afm())),
   ),
   (
-    @pdftext.StandardFont::CourierBoldOblique,
+    @pdffont.StandardFont::CourierBoldOblique,
     @pdfutil.memoize(() => read_afm(@pdfafmdata.courier_bold_oblique_afm())),
   ),
   (
-    @pdftext.StandardFont::Symbol,
+    @pdffont.StandardFont::Symbol,
     @pdfutil.memoize(() => read_afm(@pdfafmdata.symbol_afm())),
   ),
   (
-    @pdftext.StandardFont::ZapfDingbats,
+    @pdffont.StandardFont::ZapfDingbats,
     @pdfutil.memoize(() => read_afm(@pdfafmdata.zapf_dingbats_afm())),
   ),
 ]
 
 ///|
-fn lookup_tables(font : @pdftext.StandardFont) -> AfmTables raise {
+fn lookup_tables(font : @pdffont.StandardFont) -> AfmTables raise {
   for entry in tables {
     if entry.0 == font {
       return (entry.1)()
@@ -94,22 +94,22 @@ fn lookup_tables(font : @pdftext.StandardFont) -> AfmTables raise {
 }
 
 ///|
-pub fn baseline_adjustment(font : @pdftext.StandardFont) -> Int {
+pub fn baseline_adjustment(font : @pdffont.StandardFont) -> Int {
   match font {
-    @pdftext.StandardFont::TimesRoman => 662 / 2
-    @pdftext.StandardFont::TimesBold => 676 / 2
-    @pdftext.StandardFont::TimesItalic => 653 / 2
-    @pdftext.StandardFont::TimesBoldItalic => 669 / 2
-    @pdftext.StandardFont::Helvetica => 718 / 2
-    @pdftext.StandardFont::HelveticaBold => 718 / 2
-    @pdftext.StandardFont::HelveticaOblique => 718 / 2
-    @pdftext.StandardFont::HelveticaBoldOblique => 718 / 2
-    @pdftext.StandardFont::Courier => 562 / 2
-    @pdftext.StandardFont::CourierBold => 562 / 2
-    @pdftext.StandardFont::CourierOblique => 562 / 2
-    @pdftext.StandardFont::CourierBoldOblique => 562 / 2
-    @pdftext.StandardFont::Symbol => 673 / 2
-    @pdftext.StandardFont::ZapfDingbats => 705 / 2
+    @pdffont.StandardFont::TimesRoman => 662 / 2
+    @pdffont.StandardFont::TimesBold => 676 / 2
+    @pdffont.StandardFont::TimesItalic => 653 / 2
+    @pdffont.StandardFont::TimesBoldItalic => 669 / 2
+    @pdffont.StandardFont::Helvetica => 718 / 2
+    @pdffont.StandardFont::HelveticaBold => 718 / 2
+    @pdffont.StandardFont::HelveticaOblique => 718 / 2
+    @pdffont.StandardFont::HelveticaBoldOblique => 718 / 2
+    @pdffont.StandardFont::Courier => 562 / 2
+    @pdffont.StandardFont::CourierBold => 562 / 2
+    @pdffont.StandardFont::CourierOblique => 562 / 2
+    @pdffont.StandardFont::CourierBoldOblique => 562 / 2
+    @pdffont.StandardFont::Symbol => 673 / 2
+    @pdffont.StandardFont::ZapfDingbats => 705 / 2
   }
 }
 
@@ -125,12 +125,12 @@ fn find_kern(kerns : Map[(Int, Int), Int], key : (Int, Int)) -> Int {
 fn find_width(
   widths : Map[Int, Int],
   charname_to_width : Map[String, Int],
-  encoding : @pdftext.Encoding,
+  encoding : @pdffont.Encoding,
   encoding_table : Map[Int, String],
   code : Int,
 ) -> Int raise {
   match encoding {
-    @pdftext.Encoding::ImplicitInFontFile =>
+    @pdffont.Encoding::ImplicitInFontFile =>
       match widths.get(code) {
         Some(value) => value
         None => 0
@@ -157,7 +157,7 @@ fn width(
   dokern : Bool,
   widths : Map[Int, Int],
   charname_to_width : Map[String, Int],
-  encoding : @pdftext.Encoding,
+  encoding : @pdffont.Encoding,
   encoding_table : Map[Int, String],
   kerns : Map[(Int, Int), Int],
   codes : Array[Int],
@@ -180,12 +180,12 @@ fn width(
 ///|
 pub fn textwidth(
   dokern : Bool,
-  encoding : @pdftext.Encoding,
-  font : @pdftext.StandardFont,
+  encoding : @pdffont.Encoding,
+  font : @pdffont.StandardFont,
   s : String,
 ) -> Int raise {
   let (_, widths, kerns, charname_to_width) = lookup_tables(font)
-  let encoding_table = @pdftext.table_of_encoding(encoding)
+  let encoding_table = @pdffont.table_of_encoding(encoding)
   let codes = s.to_array().map(c => c.to_int())
   width(
     dokern, widths, charname_to_width, encoding, encoding_table, kerns, codes,
@@ -193,39 +193,39 @@ pub fn textwidth(
 }
 
 ///|
-pub fn afm_data(font : @pdftext.StandardFont) -> AfmTables raise {
+pub fn afm_data(font : @pdffont.StandardFont) -> AfmTables raise {
   lookup_tables(font)
 }
 
 ///|
-pub fn stemv_of_standard_font(font : @pdftext.StandardFont) -> Int {
+pub fn stemv_of_standard_font(font : @pdffont.StandardFont) -> Int {
   match font {
-    @pdftext.StandardFont::TimesRoman => 116
-    @pdftext.StandardFont::TimesBold => 122
-    @pdftext.StandardFont::TimesItalic => 105
-    @pdftext.StandardFont::TimesBoldItalic => 108
-    @pdftext.StandardFont::Helvetica => 114
-    @pdftext.StandardFont::HelveticaBold => 123
-    @pdftext.StandardFont::HelveticaOblique => 127
-    @pdftext.StandardFont::HelveticaBoldOblique => 136
-    @pdftext.StandardFont::Courier => 88
-    @pdftext.StandardFont::CourierBold => 93
-    @pdftext.StandardFont::CourierOblique => 100
-    @pdftext.StandardFont::CourierBoldOblique => 104
-    @pdftext.StandardFont::Symbol => 0
-    @pdftext.StandardFont::ZapfDingbats => 125
+    @pdffont.StandardFont::TimesRoman => 116
+    @pdffont.StandardFont::TimesBold => 122
+    @pdffont.StandardFont::TimesItalic => 105
+    @pdffont.StandardFont::TimesBoldItalic => 108
+    @pdffont.StandardFont::Helvetica => 114
+    @pdffont.StandardFont::HelveticaBold => 123
+    @pdffont.StandardFont::HelveticaOblique => 127
+    @pdffont.StandardFont::HelveticaBoldOblique => 136
+    @pdffont.StandardFont::Courier => 88
+    @pdffont.StandardFont::CourierBold => 93
+    @pdffont.StandardFont::CourierOblique => 100
+    @pdffont.StandardFont::CourierBoldOblique => 104
+    @pdffont.StandardFont::Symbol => 0
+    @pdffont.StandardFont::ZapfDingbats => 125
   }
 }
 
 ///|
-pub fn flags_of_standard_font(font : @pdftext.StandardFont) -> Int {
+pub fn flags_of_standard_font(font : @pdffont.StandardFont) -> Int {
   match font {
-    @pdftext.StandardFont::Symbol => 65541
-    @pdftext.StandardFont::ZapfDingbats => 4
-    @pdftext.StandardFont::Courier
-    | @pdftext.StandardFont::CourierBold
-    | @pdftext.StandardFont::CourierOblique
-    | @pdftext.StandardFont::CourierBoldOblique => 33
+    @pdffont.StandardFont::Symbol => 65541
+    @pdffont.StandardFont::ZapfDingbats => 4
+    @pdffont.StandardFont::Courier
+    | @pdffont.StandardFont::CourierBold
+    | @pdffont.StandardFont::CourierOblique
+    | @pdffont.StandardFont::CourierBoldOblique => 33
     _ => 32
   }
 }

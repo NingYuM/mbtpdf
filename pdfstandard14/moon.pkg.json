@@ -3,11 +3,12 @@
     "bobzhang/mbtpdf/pdfafm",
     "bobzhang/mbtpdf/pdfafmdata",
     "bobzhang/mbtpdf/pdfcodec",
+    "bobzhang/mbtpdf/pdffont",
     "bobzhang/mbtpdf/pdfio",
-    "bobzhang/mbtpdf/pdftext",
     "bobzhang/mbtpdf/pdfutil"
   ],
   "test-import": [
-    "bobzhang/mbtpdf/pdf"
+    "bobzhang/mbtpdf/pdf",
+    "bobzhang/mbtpdf/pdftext"
   ]
 }

@@ -3,6 +3,7 @@
     "bobzhang/mbtpdf/pdf",
     "bobzhang/mbtpdf/pdfcmap",
     "bobzhang/mbtpdf/pdfe",
+    "bobzhang/mbtpdf/pdffont",
     "bobzhang/mbtpdf/pdfgenlex",
     "bobzhang/mbtpdf/pdfglyphlist",
     "bobzhang/mbtpdf/pdfio",
@@ -15,6 +16,7 @@
     "moonbitlang/core/builtin"
   ],
   "test-import": [
+    "bobzhang/mbtpdf/pdffont",
     "bobzhang/mbtpdf/pdfread",
     "moonbitlang/async"
   ]

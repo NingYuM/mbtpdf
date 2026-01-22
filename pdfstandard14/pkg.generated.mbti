@@ -2,19 +2,19 @@
 package "bobzhang/mbtpdf/pdfstandard14"
 
 import {
-  "bobzhang/mbtpdf/pdftext",
+  "bobzhang/mbtpdf/pdffont",
 }
 
 // Values
-pub fn afm_data(@pdftext.StandardFont) -> (Map[String, String], Map[Int, Int], Map[(Int, Int), Int], Map[String, Int]) raise
+pub fn afm_data(@pdffont.StandardFont) -> (Map[String, String], Map[Int, Int], Map[(Int, Int), Int], Map[String, Int]) raise
 
-pub fn baseline_adjustment(@pdftext.StandardFont) -> Int
+pub fn baseline_adjustment(@pdffont.StandardFont) -> Int
 
-pub fn flags_of_standard_font(@pdftext.StandardFont) -> Int
+pub fn flags_of_standard_font(@pdffont.StandardFont) -> Int
 
-pub fn stemv_of_standard_font(@pdftext.StandardFont) -> Int
+pub fn stemv_of_standard_font(@pdffont.StandardFont) -> Int
 
-pub fn textwidth(Bool, @pdftext.Encoding, @pdftext.StandardFont, String) -> Int raise
+pub fn textwidth(Bool, @pdffont.Encoding, @pdffont.StandardFont, String) -> Int raise
 
 // Errors
 

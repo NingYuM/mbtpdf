@@ -2,7 +2,7 @@
 /// PDF font and encoding types.
 
 ///|
-pub struct Type3Glyphs {
+pub(all) struct Type3Glyphs {
   fontbbox : (Double, Double, Double, Double)
   fontmatrix : @pdftransform.TransformMatrix
   charprocs : Array[(String, @pdf.PdfObject)]
@@ -10,7 +10,7 @@ pub struct Type3Glyphs {
 }
 
 ///|
-pub enum SimpleFontType {
+pub(all) enum SimpleFontType {
   Type1
   MMType1
   Type3(Type3Glyphs)
@@ -21,14 +21,14 @@ pub enum SimpleFontType {
 pub type FontMetrics = Array[Double]
 
 ///|
-pub enum FontFile {
+pub(all) enum FontFile {
   FontFile(Int)
   FontFile2(Int)
   FontFile3(Int)
 } derive(Debug)
 
 ///|
-pub struct FontDescriptor {
+pub(all) struct FontDescriptor {
   ascent : Double
   descent : Double
   avgwidth : Double
@@ -49,7 +49,7 @@ pub struct FontDescriptor {
 pub type Differences = Array[(String, Int)]
 
 ///|
-pub enum Encoding {
+pub(all) enum Encoding {
   ImplicitInFontFile
   StandardEncoding
   MacRomanEncoding
@@ -60,7 +60,7 @@ pub enum Encoding {
 }
 
 ///|
-pub struct SimpleFont {
+pub(all) struct SimpleFont {
   fonttype : SimpleFontType
   basefont : String
   firstchar : Int
@@ -110,14 +110,14 @@ pub fn string_of_standard_font(font : StandardFont) -> String {
 }
 
 ///|
-pub struct CIDSystemInfo {
+pub(all) struct CIDSystemInfo {
   registry : String
   ordering : String
   supplement : Int
 } derive(Debug)
 
 ///|
-pub struct CompositeCIDFont {
+pub(all) struct CompositeCIDFont {
   cid_system_info : CIDSystemInfo
   cid_basefont : String
   cid_fontdescriptor : FontDescriptor
@@ -126,13 +126,13 @@ pub struct CompositeCIDFont {
 }
 
 ///|
-pub enum CMapEncoding {
+pub(all) enum CMapEncoding {
   Predefined(String)
   CMap(Int)
 } derive(Debug)
 
 ///|
-pub enum Font {
+pub(all) enum Font {
   StandardFont(StandardFont, Encoding)
   SimpleFont(SimpleFont)
   CIDKeyedFont(String, CompositeCIDFont, CMapEncoding)

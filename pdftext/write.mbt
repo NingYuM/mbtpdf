@@ -2,42 +2,53 @@
 /// Font writing helpers.
 
 ///|
-pub fn make_font(fontname : String, encoding : Encoding) -> @pdf.PdfObject {
+pub fn make_font(
+  fontname : String,
+  encoding : @pdffont.Encoding,
+) -> @pdf.PdfObject {
   @pdf.PdfObject::Dictionary([
     ("/Type", @pdf.PdfObject::Name("/Font")),
     ("/Subtype", @pdf.PdfObject::Name("/Type1")),
-    ("/Encoding", @pdf.PdfObject::Name("/" + string_of_encoding(encoding))),
+    (
+      "/Encoding",
+      @pdf.PdfObject::Name("/" + @pdffont.string_of_encoding(encoding)),
+    ),
     ("/BaseFont", @pdf.PdfObject::Name("/" + fontname)),
   ])
 }
 
 ///|
-pub fn write_encoding(pdf : @pdf.Pdf, encoding : Encoding) -> Int raise {
-  fn encoding_name(enc : Encoding) -> String? {
+pub fn write_encoding(
+  pdf : @pdf.Pdf,
+  encoding : @pdffont.Encoding,
+) -> Int raise {
+  fn encoding_name(enc : @pdffont.Encoding) -> String? {
     match enc {
-      Encoding::StandardEncoding => Some("/StandardEncoding")
-      Encoding::MacRomanEncoding => Some("/MacRomanEncoding")
-      Encoding::WinAnsiEncoding => Some("/WinAnsiEncoding")
-      Encoding::MacExpertEncoding => Some("/MacExpertEncoding")
-      Encoding::CustomEncoding(inner, _) => encoding_name(inner)
-      Encoding::FillUndefinedWithStandard(inner) => encoding_name(inner)
-      Encoding::ImplicitInFontFile => None
+      @pdffont.Encoding::StandardEncoding => Some("/StandardEncoding")
+      @pdffont.Encoding::MacRomanEncoding => Some("/MacRomanEncoding")
+      @pdffont.Encoding::WinAnsiEncoding => Some("/WinAnsiEncoding")
+      @pdffont.Encoding::MacExpertEncoding => Some("/MacExpertEncoding")
+      @pdffont.Encoding::CustomEncoding(inner, _) => encoding_name(inner)
+      @pdffont.Encoding::FillUndefinedWithStandard(inner) =>
+        encoding_name(inner)
+      @pdffont.Encoding::ImplicitInFontFile => None
     }
   }
 
   match encoding {
-    Encoding::StandardEncoding
-    | Encoding::MacRomanEncoding
-    | Encoding::WinAnsiEncoding
-    | Encoding::MacExpertEncoding => {
+    @pdffont.Encoding::StandardEncoding
+    | @pdffont.Encoding::MacRomanEncoding
+    | @pdffont.Encoding::WinAnsiEncoding
+    | @pdffont.Encoding::MacExpertEncoding => {
       let name = match encoding_name(encoding) {
         Some(value) => value
         None => raise @pdf.PdfError::Msg("write_encoding: missing name")
       }
       @pdf.addobj(pdf, @pdf.PdfObject::Name(name))
     }
-    Encoding::FillUndefinedWithStandard(inner) => write_encoding(pdf, inner)
-    Encoding::CustomEncoding(base, diffs) => {
+    @pdffont.Encoding::FillUndefinedWithStandard(inner) =>
+      write_encoding(pdf, inner)
+    @pdffont.Encoding::CustomEncoding(base, diffs) => {
       let diff_array = Array::new()
       for diff in diffs {
         diff_array.push(@pdf.PdfObject::Integer(diff.1))
@@ -58,7 +69,7 @@ pub fn write_encoding(pdf : @pdf.Pdf, encoding : Encoding) -> Int raise {
       }
       @pdf.addobj(pdf, encoding_dict)
     }
-    Encoding::ImplicitInFontFile =>
+    @pdffont.Encoding::ImplicitInFontFile =>
       raise @pdf.PdfError::Msg("write_encoding: implicit encoding")
   }
 }
@@ -150,15 +161,19 @@ pub fn write_tounicode(pdf : @pdf.Pdf, u : Map[Int, String]) -> Int {
 }
 
 ///|
-pub fn write_font(objnum? : Int, pdf : @pdf.Pdf, font : Font) -> Int raise {
+pub fn write_font(
+  objnum? : Int,
+  pdf : @pdf.Pdf,
+  font : @pdffont.Font,
+) -> Int raise {
   match font {
-    Font::SimpleFont(simple) =>
+    @pdffont.Font::SimpleFont(simple) =>
       match simple.fonttype {
-        SimpleFontType::Type3(type3) =>
+        @pdffont.SimpleFontType::Type3(type3) =>
           match simple.fontdescriptor {
             Some(_) => {
               let encoding_entry = match simple.encoding {
-                Encoding::ImplicitInFontFile => []
+                @pdffont.Encoding::ImplicitInFontFile => []
                 _ =>
                   [
                     (
@@ -211,11 +226,11 @@ pub fn write_font(objnum? : Int, pdf : @pdf.Pdf, font : Font) -> Int raise {
             }
             None => raise @pdf.PdfError::Msg("Missing font descriptor")
           }
-        SimpleFontType::Truetype =>
+        @pdffont.SimpleFontType::Truetype =>
           match simple.fontdescriptor {
             Some(fd) =>
               match fd.fontfile {
-                Some(FontFile::FontFile2(ttf)) => {
+                Some(@pdffont.FontFile::FontFile2(ttf)) => {
                   let (minx, miny, maxx, maxy) = fd.fontbbox
                   let fontdesc = @pdf.PdfObject::Dictionary([
                     ("/Type", @pdf.PdfObject::Name("/FontDescriptor")),
@@ -267,7 +282,7 @@ pub fn write_font(objnum? : Int, pdf : @pdf.Pdf, font : Font) -> Int raise {
                         (
                           "/Encoding",
                           @pdf.PdfObject::Name(
-                            "/" + string_of_encoding(simple.encoding),
+                            "/" + @pdffont.string_of_encoding(simple.encoding),
                           ),
                         ),
                       ])
@@ -297,8 +312,11 @@ pub fn write_font(objnum? : Int, pdf : @pdf.Pdf, font : Font) -> Int raise {
             "Pdftext.write_font does not support this font",
           )
       }
-    Font::StandardFont(standard, encoding) =>
-      @pdf.addobj(pdf, make_font(string_of_standard_font(standard), encoding))
+    @pdffont.Font::StandardFont(standard, encoding) =>
+      @pdf.addobj(
+        pdf,
+        make_font(@pdffont.string_of_standard_font(standard), encoding),
+      )
     _ =>
       raise @pdf.PdfError::Msg("Pdftext.write_font does not support this font")
   }
