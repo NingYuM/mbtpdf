@@ -3,8 +3,7 @@
     "bobzhang/mbtpdf/pdf",
     "bobzhang/mbtpdf/pdfdest",
     "bobzhang/mbtpdf/pdftransform",
-    "bobzhang/mbtpdf/pdfe",
-    "bobzhang/mbtpdf/pdfwrite"
+    "bobzhang/mbtpdf/pdfe"
   ],
   "test-import": [
     "bobzhang/mbtpdf/pdfdest",
