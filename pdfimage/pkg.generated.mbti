@@ -4,6 +4,7 @@ package "bobzhang/mbtpdf/pdfimage"
 import {
   "bobzhang/mbtpdf/pdf",
   "bobzhang/mbtpdf/pdfspace",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -22,6 +23,7 @@ pub(all) enum Image {
   JBIG2(Array[Byte], Array[Double]?, Int?)
   Raw(Int, Int, PixelLayout, Array[Byte])
 }
+pub impl @debug.Debug for Image
 
 pub(all) enum PixelLayout {
   BPP1
@@ -29,6 +31,7 @@ pub(all) enum PixelLayout {
   BPP24
   BPP48
 }
+pub impl @debug.Debug for PixelLayout
 
 // Type aliases
 

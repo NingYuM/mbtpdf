@@ -5,6 +5,7 @@ import {
   "bobzhang/mbtpdf/pdf",
   "bobzhang/mbtpdf/pdfpage",
   "bobzhang/mbtpdf/pdftransform",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -38,6 +39,7 @@ pub(all) struct Border {
   style : Style
   dasharray : Array[Int]
 }
+pub impl @debug.Debug for Border
 
 pub(all) enum Style {
   NoStyle
@@ -47,6 +49,7 @@ pub(all) enum Style {
   Inset
   UnderlineStyle
 }
+pub impl @debug.Debug for Style
 
 pub(all) enum Subtype {
   Text

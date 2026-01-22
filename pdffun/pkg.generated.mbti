@@ -3,6 +3,7 @@ package "bobzhang/mbtpdf/pdffun"
 
 import {
   "bobzhang/mbtpdf/pdf",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -65,18 +66,21 @@ pub(all) enum Calculator {
   Index
   Roll
 }
+pub impl @debug.Debug for Calculator
 
 pub(all) struct Interpolation {
   c0 : Array[Double]
   c1 : Array[Double]
   n : Double
 }
+pub impl @debug.Debug for Interpolation
 
 pub(all) struct PdfFunction {
   func : PdfFunctionKind
   domain : Array[Double]
   range : Array[Double]?
 }
+pub impl @debug.Debug for PdfFunction
 
 pub(all) enum PdfFunctionKind {
   Interpolation(Interpolation)
@@ -84,6 +88,7 @@ pub(all) enum PdfFunctionKind {
   Sampled(Sampled)
   Calculator(Array[Calculator])
 }
+pub impl @debug.Debug for PdfFunctionKind
 
 pub(all) struct Sampled {
   size : Array[Int]
@@ -93,12 +98,14 @@ pub(all) struct Sampled {
   bps : Int
   samples : Array[Int]
 }
+pub impl @debug.Debug for Sampled
 
 pub(all) struct Stitching {
   functions : Array[PdfFunction]
   bounds : Array[Double]
   stitch_encode : Array[Double]
 }
+pub impl @debug.Debug for Stitching
 
 // Type aliases
 

@@ -3,6 +3,7 @@ package "bobzhang/mbtpdf/pdfcryptprimitives"
 
 import {
   "bobzhang/mbtpdf/pdfio",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -36,6 +37,7 @@ pub(all) enum Encryption {
   AESV2
   AESV3(Bool)
 }
+pub impl @debug.Debug for Encryption
 
 // Type aliases
 

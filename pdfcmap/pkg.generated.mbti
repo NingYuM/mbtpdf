@@ -3,6 +3,7 @@ package "bobzhang/mbtpdf/pdfcmap"
 
 import {
   "bobzhang/mbtpdf/pdf",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -15,6 +16,7 @@ pub struct CMap {
   map : Array[(String, String)]
   wmode : Int?
 }
+pub impl @debug.Debug for CMap
 
 // Type aliases
 

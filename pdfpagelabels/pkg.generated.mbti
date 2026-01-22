@@ -3,6 +3,7 @@ package "bobzhang/mbtpdf/pdfpagelabels"
 
 import {
   "bobzhang/mbtpdf/pdf",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -41,6 +42,7 @@ pub(all) enum LabelStyle {
   LowercaseLetters
   NoLabelPrefixOnly
 }
+pub impl @debug.Debug for LabelStyle
 
 pub(all) struct PageLabel {
   labelstyle : LabelStyle
@@ -48,6 +50,7 @@ pub(all) struct PageLabel {
   startpage : Int
   startvalue : Int
 }
+pub impl @debug.Debug for PageLabel
 
 // Type aliases
 

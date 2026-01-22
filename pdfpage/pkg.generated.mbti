@@ -7,6 +7,7 @@ import {
   "bobzhang/mbtpdf/pdfops",
   "bobzhang/mbtpdf/pdfpaper",
   "bobzhang/mbtpdf/pdftransform",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -91,6 +92,7 @@ pub(all) enum Rotation {
   Rotate180
   Rotate270
 }
+pub impl @debug.Debug for Rotation
 
 // Type aliases
 

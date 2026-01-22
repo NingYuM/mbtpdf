@@ -4,6 +4,7 @@ package "bobzhang/mbtpdf/pdfdest"
 import {
   "bobzhang/mbtpdf/pdf",
   "bobzhang/mbtpdf/pdftransform",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -35,6 +36,7 @@ pub(all) enum TargetPage {
   PageObject(Int)
   OtherDocPageNumber(Int)
 }
+pub impl @debug.Debug for TargetPage
 
 // Type aliases
 

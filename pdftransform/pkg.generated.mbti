@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "bobzhang/mbtpdf/pdftransform"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
 pub fn append(Array[TransformOp], Array[TransformOp]) -> Array[TransformOp]
 
@@ -54,6 +58,7 @@ pub(all) struct TransformMatrix {
   e : Double
   f : Double
 }
+pub impl @debug.Debug for TransformMatrix
 
 pub(all) enum TransformOp {
   Scale((Double, Double), Double, Double)
@@ -62,6 +67,7 @@ pub(all) enum TransformOp {
   ShearX((Double, Double), Double)
   ShearY((Double, Double), Double)
 }
+pub impl @debug.Debug for TransformOp
 
 // Type aliases
 pub type Transform = Array[TransformOp]

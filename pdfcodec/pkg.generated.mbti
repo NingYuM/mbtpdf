@@ -4,6 +4,7 @@ package "bobzhang/mbtpdf/pdfcodec"
 import {
   "bobzhang/mbtpdf/pdf",
   "bobzhang/mbtpdf/pdfio",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -63,6 +64,7 @@ pub(all) enum Encoding {
   CCITT(Int, Int)
   CCITTG4(Int, Int)
 }
+pub impl @debug.Debug for Encoding
 
 pub enum Predictor {
   TIFF2
@@ -73,6 +75,7 @@ pub enum Predictor {
   PNGPaeth
   PNGOptimum
 }
+pub impl @debug.Debug for Predictor
 
 // Type aliases
 

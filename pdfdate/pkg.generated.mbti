@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "bobzhang/mbtpdf/pdfdate"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
 pub fn date_of_string(String) -> Date raise BadDate
 
@@ -20,6 +24,7 @@ pub struct Date {
   hour_offset : Int
   minute_offset : Int
 }
+pub impl @debug.Debug for Date
 
 // Type aliases
 

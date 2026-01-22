@@ -3,6 +3,7 @@ package "bobzhang/mbtpdf/pdfio"
 
 import {
   "moonbitlang/async/fs",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -144,11 +145,13 @@ pub struct BitstreamPosition {
   bit : Int
   bits_read : Int
 }
+pub impl @debug.Debug for BitstreamPosition
 
 pub struct BitstreamWrite {
   bytes : Array[Byte]
   mut bit : Int
 }
+pub impl @debug.Debug for BitstreamWrite
 
 pub struct Input {
   pos_in : () -> Int

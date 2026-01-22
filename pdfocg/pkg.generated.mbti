@@ -3,6 +3,7 @@ package "bobzhang/mbtpdf/pdfocg"
 
 import {
   "bobzhang/mbtpdf/pdf",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -20,10 +21,12 @@ pub(all) struct Ocg {
   ocg_intent : Array[String]
   ocg_usage : OcgUsage?
 }
+pub impl @debug.Debug for Ocg
 
 pub(all) enum OcgAppDict {
   AppDict
 }
+pub impl @debug.Debug for OcgAppDict
 
 pub(all) struct OcgConfig {
   ocgconfig_name : String?
@@ -38,32 +41,38 @@ pub(all) struct OcgConfig {
   ocgconfig_rbgroups : Array[Array[Int]]
   ocgconfig_locked : Array[Int]
 }
+pub impl @debug.Debug for OcgConfig
 
 pub(all) enum OcgListMode {
   AllPages
   VisiblePages
 }
+pub impl @debug.Debug for OcgListMode
 
 pub(all) enum OcgOrderTree {
   Leaf
   Branch(Int, OcgOrderTree, OcgOrderTree)
 }
+pub impl @debug.Debug for OcgOrderTree
 
 pub(all) struct OcgProperties {
   ocgs : Array[(Int, Ocg)]
   ocg_default_config : OcgConfig
   ocg_configs : Array[OcgConfig]
 }
+pub impl @debug.Debug for OcgProperties
 
 pub(all) enum OcgState {
   On
   Off
   Unchanged
 }
+pub impl @debug.Debug for OcgState
 
 pub(all) enum OcgUsage {
   Placeholder
 }
+pub impl @debug.Debug for OcgUsage
 
 // Type aliases
 

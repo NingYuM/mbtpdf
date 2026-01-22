@@ -3,6 +3,7 @@ package "bobzhang/mbtpdf/pdfpaper"
 
 import {
   "bobzhang/mbtpdf/pdfunits",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -50,6 +51,7 @@ pub struct Paper {
   width : Double
   height : Double
 }
+pub impl @debug.Debug for Paper
 
 // Type aliases
 

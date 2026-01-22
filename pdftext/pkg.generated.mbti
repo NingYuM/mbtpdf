@@ -4,6 +4,7 @@ package "bobzhang/mbtpdf/pdftext"
 import {
   "bobzhang/mbtpdf/pdf",
   "bobzhang/mbtpdf/pdftransform",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -137,11 +138,13 @@ pub struct CIDSystemInfo {
   ordering : String
   supplement : Int
 }
+pub impl @debug.Debug for CIDSystemInfo
 
 pub enum CMapEncoding {
   Predefined(String)
   CMap(Int)
 }
+pub impl @debug.Debug for CMapEncoding
 
 pub struct CompositeCIDFont {
   cid_system_info : CIDSystemInfo
@@ -189,6 +192,7 @@ pub enum FontFile {
   FontFile2(Int)
   FontFile3(Int)
 }
+pub impl @debug.Debug for FontFile
 
 pub struct SimpleFont {
   fonttype : SimpleFontType
@@ -225,6 +229,7 @@ pub(all) enum StandardFont {
   ZapfDingbats
 }
 pub impl Eq for StandardFont
+pub impl @debug.Debug for StandardFont
 
 pub struct TextExtractor {
   convert : (Int) -> (String, Array[Int])

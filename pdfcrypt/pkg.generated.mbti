@@ -4,6 +4,7 @@ package "bobzhang/mbtpdf/pdfcrypt"
 import {
   "bobzhang/mbtpdf/pdf",
   "bobzhang/mbtpdf/pdfcryptprimitives",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -46,6 +47,7 @@ pub(all) enum EncryptionMethod {
   AES256bitISO(Bool)
   AlreadyEncrypted
 }
+pub impl @debug.Debug for EncryptionMethod
 
 pub(all) enum Permission {
   NoEdit
@@ -58,6 +60,7 @@ pub(all) enum Permission {
   NoHqPrint
 }
 pub impl Eq for Permission
+pub impl @debug.Debug for Permission
 
 // Type aliases
 
