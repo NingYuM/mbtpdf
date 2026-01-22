@@ -1,6 +1,6 @@
 ///|
-/// Debug flag for PDF reading.
-pub let read_debug : Ref[Bool] = { val: false }
+/// Debug flag for PDF reading (re-exported from pdfe).
+pub let read_debug : Ref[Bool] = @pdfe.read_debug
 
 ///|
 /// If true, do not attempt malformed PDF recovery.

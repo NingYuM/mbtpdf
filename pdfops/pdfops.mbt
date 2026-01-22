@@ -565,7 +565,7 @@ fn string_of_lexeme(lexeme : Lexeme) -> String raise {
     Lexeme::LexComment => ""
     Lexeme::Obj(token) => @pdfsyntax.string_of_lexeme(token)
     Lexeme::Op(op) => op
-    Lexeme::PdfObj(obj) => @pdfwrite.string_of_pdf(obj)
+    Lexeme::PdfObj(obj) => @pdf.string_of_pdfobj(obj)
     Lexeme::LexInlineImage((dict, dp, data)) => {
       let dict_data = match
         @pdf.lookup_direct_orelse(@pdf.empty(), "/F", "/Filter", dict) {
@@ -588,7 +588,7 @@ fn string_of_lexeme(lexeme : Lexeme) -> String raise {
         "/L",
         @pdf.PdfObject::Integer(@pdfio.bytes_size(data)),
       )
-      let dict_string = @pdfwrite.string_of_pdf(dict)
+      let dict_string = @pdf.string_of_pdfobj(dict)
       let dict_body = strip_dict_markers(dict_string)
       let filters = match
         @pdf.lookup_direct_orelse(@pdf.empty(), "/F", "/Filter", dict) {
@@ -736,7 +736,7 @@ fn lex_name(input : @pdfio.Input) -> Lexeme raise {
 ///|
 fn nocontent(input : @pdfio.Input) -> Unit raise {
   @pdfe.log("Failed to understand content on page\n")
-  if @pdfread.read_debug.val {
+  if @pdfe.read_debug.val {
     @pdfio.debug_next_n_chars(20, input)
   }
   raise CouldntHandleContent
@@ -823,11 +823,11 @@ pub fn components(
           _ => ()
         }
       }
-      @pdfe.log("\{@pdfwrite.string_of_pdf(space)}\n")
+      @pdfe.log("\{@pdf.string_of_pdfobj(space)}\n")
       raise @pdf.PdfError::Msg("Unknown colourspace")
     }
     other => {
-      @pdfe.log("\{@pdfwrite.string_of_pdf(other)}\n")
+      @pdfe.log("\{@pdf.string_of_pdfobj(other)}\n")
       raise @pdf.PdfError::Msg("Unknown colourspace")
     }
   }
@@ -882,7 +882,7 @@ fn lex_inline_image(
     tokens.push(@pdfgenlex.Token::LexRightDict)
     let dict = @pdfsyntax.parse(tokens).1
     if debug.val {
-      @pdfe.log("dict was \{@pdfwrite.string_of_pdf(dict)}\n")
+      @pdfe.log("dict was \{@pdf.string_of_pdfobj(dict)}\n")
     }
     @pdfsyntax.dropwhite(input)
     let c = (input.input_byte)()
@@ -924,7 +924,7 @@ fn lex_inline_image(
           @pdf.PdfObject::Name(name)
         } else {
           if debug.val {
-            @pdfe.log("resources is \{@pdfwrite.string_of_pdf(resources)}\n")
+            @pdfe.log("resources is \{@pdf.string_of_pdfobj(resources)}\n")
           }
           match @pdf.lookup_direct(pdf, "/ColorSpace", resources) {
             Some(@pdf.PdfObject::Dictionary(_) as d) =>

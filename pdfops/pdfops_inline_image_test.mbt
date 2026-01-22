@@ -553,13 +553,13 @@ test "components handles indexed shorthand and errors" {
 test "parse_single_stream errors on ID keyword" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
-  let old = @pdfread.read_debug.val
-  @pdfread.read_debug.val = true
+  let old = @pdfe.read_debug.val
+  @pdfe.read_debug.val = true
   let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
     pdf,
     resources,
     @pdfio.bytes_of_string("ID"),
   )
-  @pdfread.read_debug.val = old
+  @pdfe.read_debug.val = old
   assert_true(res is Err(_))
 }

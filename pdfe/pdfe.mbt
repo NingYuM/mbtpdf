@@ -17,3 +17,7 @@ pub let logger : Ref[Logger] = { val: default }
 pub fn log(message : String) -> Unit {
   (logger.val)(message)
 }
+
+///|
+/// Debug flag for PDF reading operations.
+pub let read_debug : Ref[Bool] = { val: false }
