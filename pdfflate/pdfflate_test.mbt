@@ -29,7 +29,7 @@ fn run_uncompress(
 fn run_compress(
   data : @pdfio.MutableBytes,
   header : Bool,
-) -> @pdfio.MutableBytes raise FlateError {
+) -> @pdfio.MutableBytes {
   let mut pos = 0
   let input = (buf : @pdfio.MutableBytes) => {
     let remaining = data.length() - pos
@@ -112,9 +112,7 @@ test "uncompress dynamic huffman" {
 ///|
 test "compress/uncompress roundtrip zlib" {
   let input = @pdfio.bytes_of_string("hello flate")
-  let encoded = run_compress(input, true) catch {
-    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
-  }
+  let encoded = run_compress(input, true)
   let decoded = run_uncompress(encoded, true) catch {
     FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
   }
@@ -124,9 +122,7 @@ test "compress/uncompress roundtrip zlib" {
 ///|
 test "compress/uncompress roundtrip raw" {
   let input = @pdfio.bytes_of_string("hello flate raw")
-  let encoded = run_compress(input, false) catch {
-    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
-  }
+  let encoded = run_compress(input, false)
   let decoded = run_uncompress(encoded, false) catch {
     FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
   }
@@ -217,11 +213,7 @@ test "uncompress rejects invalid distance symbol" {
 ///|
 test "compress handles empty input" {
   let data : @pdfio.MutableBytes = []
-  let encoded = run_compress(data, true) catch {
-    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
-  }
-  let decoded = run_uncompress(encoded, true) catch {
-    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
-  }
+  let encoded = run_compress(data, true)
+  let decoded = run_uncompress(encoded, true)
   assert_eq(decoded.length(), 0)
 }

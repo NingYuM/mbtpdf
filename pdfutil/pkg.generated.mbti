@@ -495,10 +495,6 @@ pub fn[A] zipn(Array[Array[A]]) -> Array[Array[A]] raise
 // Errors
 
 // Types and methods
-pub enum Tree[A] {
-  Lf
-  Br(A, Tree[A], Tree[A])
-}
 
 // Type aliases
 pub type Vector = (Double, Double)

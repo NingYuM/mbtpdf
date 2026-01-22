@@ -18,11 +18,14 @@ test "@pdfsyntax.lex_next returns LexNone for unknown uppercase" {
   let dict_level : Ref[Int] = { val: 0 }
   let array_level : Ref[Int] = { val: 0 }
   let previous = Array::new()
-  let dummy_lexobj = fn(_ : Int) -> Array[@pdfgenlex.Token] raise {
-    Array::new()
-  }
   let token = @pdfsyntax.lex_next(
-    dict_level, array_level, false, input, previous, true, dummy_lexobj,
+    dict_level,
+    array_level,
+    false,
+    input,
+    previous,
+    true,
+    _ => [],
   )
   match token {
     @pdfgenlex.Token::LexNone => ()
@@ -36,11 +39,14 @@ test "@pdfsyntax.lex_next recovers from lex errors" {
   let dict_level : Ref[Int] = { val: 0 }
   let array_level : Ref[Int] = { val: 0 }
   let previous = Array::new()
-  let dummy_lexobj = fn(_ : Int) -> Array[@pdfgenlex.Token] raise {
-    Array::new()
-  }
   let token = @pdfsyntax.lex_next(
-    dict_level, array_level, false, input, previous, true, dummy_lexobj,
+    dict_level,
+    array_level,
+    false,
+    input,
+    previous,
+    true,
+    _ => [],
   )
   match token {
     @pdfgenlex.Token::StopLexing => ()

@@ -2,7 +2,7 @@
 package "bobzhang/mbtpdf/pdfflate"
 
 // Values
-pub fn compress(level? : Int, header? : Bool, (Array[Byte]) -> Int, (Array[Byte], Int) -> Unit) -> Unit raise FlateError
+pub fn compress(level? : Int, header? : Bool, (Array[Byte]) -> Int, (Array[Byte], Int) -> Unit) -> Unit
 
 pub fn uncompress(header? : Bool, (Array[Byte]) -> Int, (Array[Byte], Int) -> Unit) -> Unit raise FlateError
 

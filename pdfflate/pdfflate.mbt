@@ -396,7 +396,7 @@ pub fn compress(
   header? : Bool = true,
   input : (@pdfio.MutableBytes) -> Int,
   output : (@pdfio.MutableBytes, Int) -> Unit,
-) -> Unit raise FlateError {
+) -> Unit {
   let _ = level
   let data = read_all_input(input)
   let one = @pdfio.mkbytes(1)

@@ -127,7 +127,7 @@ pub fn write_encoding(@pdf.Pdf, Encoding) -> Int raise
 
 pub fn write_font(objnum? : Int, @pdf.Pdf, Font) -> Int raise
 
-pub fn write_tounicode(@pdf.Pdf, Map[Int, String]) -> Int raise
+pub fn write_tounicode(@pdf.Pdf, Map[Int, String]) -> Int
 
 // Errors
 

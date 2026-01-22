@@ -43,6 +43,7 @@ pub let string_of_pdf : Ref[(@pdf.PdfObject) -> String] = { val: _ => "" }
 
 ///|
 /// Placeholder for async Pdf.of_file (revision?, user?, owner?, filename).
+#warnings("-unused_async")
 async fn pdf_of_file_placeholder(
   _revision : Int?,
   _user_password : String?,
@@ -87,6 +88,8 @@ pub fn encode_flate(
   } catch {
     @pdfflate.FlateError::Error(stage, msg) =>
       raise CodecError::CouldntDecodeStream("\{stage}: \{msg}")
+    _ =>
+      raise CodecError::CouldntDecodeStream("unknown pdfflate.compress error")
   }
 }
 

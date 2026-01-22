@@ -350,6 +350,8 @@ fn read_xref_stream(
           xrefs.push((objnumber, XRef::Plain(offset, gen)))
         XRefLine::InObjectStream(stream, index) =>
           xrefs.push((objnumber, XRef::Stream(stream, index)))
+        XRefLine::StreamFree(_, _) => ()
+        XRefLine::XRefNull => ()
         _ => ()
       }
       objnumber = objnumber + 1

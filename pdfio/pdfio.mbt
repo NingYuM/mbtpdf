@@ -779,6 +779,7 @@ fn output_of_bytes(data : Ref[MutableBytes]) -> Output {
 
 ///|
 /// No-op flush for in-memory outputs.
+#warnings("-unused_async")
 async fn noop_flush() -> Unit {
   ()
 }
