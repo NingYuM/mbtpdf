@@ -1,0 +1,47 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/syntax/pdfgenlex"
+
+import {
+  "bobzhang/mbtpdf/core/pdf",
+  "bobzhang/mbtpdf/core/pdfio",
+}
+
+// Values
+pub fn lex(@pdfio.Input) -> Array[Token]
+
+pub fn lex_single(@pdfio.Input) -> Token
+
+pub fn lex_string(String) -> Array[Token]
+
+pub fn string_of_token(Token) -> String
+
+pub fn string_of_tokens(Array[Token]) -> String
+
+// Errors
+
+// Types and methods
+pub(all) enum Token {
+  LexNull
+  LexBool(Bool)
+  LexInt(Int)
+  LexReal(Double)
+  LexString(String)
+  LexName(String)
+  LexLeftSquare
+  LexRightSquare
+  LexLeftDict
+  LexRightDict
+  LexStream(@pdf.Stream)
+  LexEndStream
+  LexObj
+  LexEndObj
+  LexR
+  LexComment(String)
+  StopLexing
+  LexNone
+}
+
+// Type aliases
+
+// Traits
+

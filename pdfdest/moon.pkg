@@ -1,9 +1,0 @@
-import {
-  "bobzhang/mbtpdf/pdf",
-  "bobzhang/mbtpdf/pdfe",
-  "bobzhang/mbtpdf/pdftransform",
-}
-
-import "test" {
-  "bobzhang/mbtpdf/pdfpage",
-}

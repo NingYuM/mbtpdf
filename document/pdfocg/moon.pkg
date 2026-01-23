@@ -1,0 +1,8 @@
+import {
+  "bobzhang/mbtpdf/core/pdf",
+  "bobzhang/mbtpdf/core/pdfutil",
+}
+
+import "test" {
+  "bobzhang/mbtpdf/document/pdfpage",
+}

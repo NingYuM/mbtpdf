@@ -1,0 +1,39 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/graphics/pdfimage"
+
+import {
+  "bobzhang/mbtpdf/core/pdf",
+  "bobzhang/mbtpdf/graphics/pdfspace",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn bpc(@pdf.Pdf, @pdf.PdfObject) -> @pdf.PdfObject?
+
+pub fn colspace(@pdf.Pdf, @pdf.PdfObject, @pdf.PdfObject) -> @pdfspace.ColourSpace raise
+
+pub fn get_image_24bpp(@pdf.Pdf, @pdf.PdfObject, @pdf.PdfObject) -> Image raise
+
+// Errors
+
+// Types and methods
+pub(all) enum Image {
+  JPEG(Array[Byte], Array[Double]?)
+  JPEG2000(Array[Byte], Array[Double]?)
+  JBIG2(Array[Byte], Array[Double]?, Int?)
+  Raw(Int, Int, PixelLayout, Array[Byte])
+}
+pub impl @debug.Debug for Image
+
+pub(all) enum PixelLayout {
+  BPP1
+  BPP8
+  BPP24
+  BPP48
+}
+pub impl @debug.Debug for PixelLayout
+
+// Type aliases
+
+// Traits
+

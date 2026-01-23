@@ -1,0 +1,184 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/core/pdfio"
+
+import {
+  "moonbitlang/async/fs",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn align(Bitstream) -> Unit
+
+pub fn align_write(BitstreamWrite) -> Unit
+
+pub fn bget(Array[Byte], Int) -> Int
+
+pub fn bget_unsafe(Array[Byte], Int) -> Int
+
+pub fn bitbytes_of_input(Input) -> Bitstream
+
+pub fn bitstream_pos(Bitstream) -> BitstreamPosition
+
+pub fn bitstream_seek(Bitstream, BitstreamPosition) -> Unit
+
+pub fn bset(Array[Byte], Int, Int) -> Unit
+
+pub fn bset_unsafe(Array[Byte], Int, Int) -> Unit
+
+pub fn bytes_of_arraylist(Array[Array[Int]]) -> Array[Byte]
+
+pub fn bytes_of_caml_bytes(Bytes) -> Array[Byte]
+
+pub fn bytes_of_charlist(Array[Char]) -> Array[Byte]
+
+pub fn bytes_of_input(Input, Int, Int) -> Array[Byte] raise
+
+pub async fn bytes_of_input_channel(@fs.File) -> Array[Byte]
+
+pub fn bytes_of_int_array(Array[Int]) -> Array[Byte]
+
+pub fn bytes_of_list(Array[Int]) -> Array[Byte]
+
+pub fn bytes_of_raw(Array[Byte]) -> Array[Byte]
+
+pub fn bytes_of_string(String) -> Array[Byte]
+
+pub fn bytes_of_write_bitstream(BitstreamWrite) -> Array[Byte]
+
+pub fn bytes_selfmap((Int) -> Int, Array[Byte]) -> Unit
+
+pub fn bytes_size(Array[Byte]) -> Int
+
+pub async fn bytes_to_output_channel(@fs.File, Array[Byte]) -> Unit
+
+pub fn charlist_of_bytes(Array[Byte]) -> Array[Char]
+
+pub fn copybytes(Array[Byte]) -> Array[Byte]
+
+pub fn debug_next_n_chars(Int, Input) -> Unit
+
+pub fn extract_bytes_from_input_output(Output, Ref[Array[Byte]]) -> Array[Byte]
+
+pub fn fillbytes(Int, Array[Byte]) -> Unit
+
+pub fn getbit(Bitstream) -> Bool raise
+
+pub fn getbitint(Bitstream) -> Int raise
+
+pub fn getinit(Output, Array[Byte], Int, Int) -> Unit raise
+
+pub fn getval_31(Bitstream, Int) -> Int raise
+
+pub fn getval_32(Bitstream, Int) -> Int raise
+
+pub fn input_of_bytes(Array[Byte], source? : String) -> Input
+
+pub async fn input_of_channel(@fs.File, source? : String) -> Input
+
+pub async fn input_of_file(String, source? : String) -> Input
+
+pub fn input_of_string(String, source? : String) -> Input
+
+pub fn input_output_of_bytes(Int) -> (Output, Ref[Array[Byte]])
+
+pub fn int_array_of_bytes(Array[Byte]) -> Array[Int]
+
+pub fn int_array_of_string(String) -> Array[Int]
+
+pub fn make_write_bitstream() -> BitstreamWrite
+
+pub fn mkbytes(Int) -> Array[Byte]
+
+pub let no_more : Int
+
+pub fn nudge(Input) -> Unit
+
+pub fn output_of_channel(@fs.File) -> Output
+
+pub fn peek_byte(Input) -> Int
+
+pub fn peek_char(Input) -> Char?
+
+pub fn print_bytes(Array[Byte]) -> Unit
+
+pub fn putbit(BitstreamWrite, Int) -> Unit
+
+pub fn putval(BitstreamWrite, Int, Int) -> Unit raise
+
+pub fn raw_of_bytes(Array[Byte]) -> Array[Byte]
+
+pub fn read_char_back(Input) -> Char?
+
+pub fn read_line(Input) -> String raise
+
+pub fn read_lines(Input) -> Array[String] raise
+
+pub fn rewind(Input) -> Unit
+
+pub fn setinit(Input, Array[Byte], Int, Int) -> Unit raise
+
+pub fn setinit_string(Input, Array[Byte], Int, Int) -> Unit raise
+
+pub fn string_of_bytes(Array[Byte]) -> String
+
+pub fn string_of_input(Input) -> String raise
+
+pub fn string_of_int_array(Array[Int]) -> String
+
+pub fn string_of_int_arrays(Array[Array[Int]]) -> String
+
+pub fn write_bitstream_append_aligned(BitstreamWrite, BitstreamWrite) -> BitstreamWrite
+
+// Errors
+
+// Types and methods
+pub struct Bitstream {
+  input : Input
+  mut curr_byte : Int
+  mut bit : Int
+  mut bits_read : Int
+}
+
+pub struct BitstreamPosition {
+  pos : Int
+  curr_byte : Int
+  bit : Int
+  bits_read : Int
+}
+pub impl @debug.Debug for BitstreamPosition
+
+pub struct BitstreamWrite {
+  bytes : Array[Byte]
+  mut bit : Int
+}
+pub impl @debug.Debug for BitstreamWrite
+
+pub struct Input {
+  pos_in : () -> Int
+  seek_in : (Int) -> Unit
+  input_char : () -> Char?
+  input_byte : () -> Int
+  in_channel_length : Int
+  set_offset : (Int) -> Unit
+  source : String
+}
+
+pub struct Output {
+  pos_out : () -> Int
+  seek_out : (Int) -> Unit
+  output_char : (Char) -> Unit
+  output_byte : (Int) -> Unit
+  output_string : (String) -> Unit
+  out_channel_length : () -> Int
+  flush : async () -> Unit
+}
+
+// Type aliases
+pub type CoreBytes = Bytes
+
+pub type MutableBytes = Array[Byte]
+
+pub type RawBytes = Array[Byte]
+
+// Traits
+

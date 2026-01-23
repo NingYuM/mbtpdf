@@ -1,0 +1,26 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/document/pdftree"
+
+import {
+  "bobzhang/mbtpdf/core/pdf",
+}
+
+// Values
+pub fn build_name_tree(Bool, @pdf.Pdf, Array[(String, @pdf.PdfObject)]) -> @pdf.PdfObject
+
+pub fn merge_name_trees_no_clash(@pdf.Pdf, Array[@pdf.PdfObject]) -> @pdf.PdfObject
+
+pub fn merge_number_trees_no_clash(@pdf.Pdf, Array[@pdf.PdfObject]) -> @pdf.PdfObject
+
+pub fn read_name_tree(@pdf.Pdf, @pdf.PdfObject) -> Array[(String, @pdf.PdfObject)]
+
+pub fn read_number_tree(@pdf.Pdf, @pdf.PdfObject) -> Array[(String, @pdf.PdfObject)]
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

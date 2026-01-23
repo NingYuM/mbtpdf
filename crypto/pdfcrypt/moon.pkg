@@ -1,0 +1,13 @@
+import {
+  "bobzhang/mbtpdf/core/pdf",
+  "bobzhang/mbtpdf/core/pdfcryptprimitives",
+  "bobzhang/mbtpdf/core/pdfio",
+  "bobzhang/mbtpdf/core/pdfe",
+  "moonbitlang/core/env",
+  "moonbitlang/core/random",
+  "moonbitlang/core/builtin",
+}
+
+import "test" {
+  "bobzhang/mbtpdf/document/pdfpage",
+}

@@ -1,0 +1,22 @@
+import {
+  "bobzhang/mbtpdf/core/pdf",
+  "bobzhang/mbtpdf/font/pdfcmap",
+  "bobzhang/mbtpdf/core/pdfe",
+  "bobzhang/mbtpdf/font/pdffont",
+  "bobzhang/mbtpdf/syntax/pdfgenlex",
+  "bobzhang/mbtpdf/font/pdfglyphlist",
+  "bobzhang/mbtpdf/core/pdfio",
+  "bobzhang/mbtpdf/graphics/pdfops",
+  "bobzhang/mbtpdf/document/pdfpage",
+  "bobzhang/mbtpdf/syntax/pdfsyntax",
+  "bobzhang/mbtpdf/core/pdftransform",
+  "bobzhang/mbtpdf/core/pdfutil",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/builtin",
+}
+
+import "test" {
+  "bobzhang/mbtpdf/font/pdffont",
+  "bobzhang/mbtpdf/io/pdfread",
+  "moonbitlang/async",
+}

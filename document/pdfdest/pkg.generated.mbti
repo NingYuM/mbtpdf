@@ -1,0 +1,44 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/document/pdfdest"
+
+import {
+  "bobzhang/mbtpdf/core/pdf",
+  "bobzhang/mbtpdf/core/pdftransform",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn pdfobject_of_destination(Destination) -> @pdf.PdfObject
+
+pub fn read_destination(@pdf.Pdf, @pdf.PdfObject, shallow? : Bool) -> Destination raise
+
+pub fn transform_destination(@pdf.Pdf, @pdftransform.TransformMatrix, Destination) -> Destination raise
+
+// Errors
+
+// Types and methods
+pub(all) enum Destination {
+  Action(@pdf.PdfObject)
+  NullDestination
+  NamedDestination(String)
+  StringDestination(String)
+  XYZ(TargetPage, Double?, Double?, Double?)
+  Fit(TargetPage)
+  FitH(TargetPage, Double?)
+  FitV(TargetPage, Double?)
+  FitR(TargetPage, Double, Double, Double, Double)
+  FitB(TargetPage)
+  FitBH(TargetPage, Double?)
+  FitBV(TargetPage, Double?)
+}
+
+pub(all) enum TargetPage {
+  PageObject(Int)
+  OtherDocPageNumber(Int)
+}
+pub impl @debug.Debug for TargetPage
+
+// Type aliases
+
+// Traits
+

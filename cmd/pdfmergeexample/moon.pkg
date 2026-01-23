@@ -1,8 +1,8 @@
 import {
-  "bobzhang/mbtpdf/pdf",
-  "bobzhang/mbtpdf/pdfpage",
-  "bobzhang/mbtpdf/pdfread",
-  "bobzhang/mbtpdf/pdfwrite",
+  "bobzhang/mbtpdf/core/pdf",
+  "bobzhang/mbtpdf/document/pdfpage",
+  "bobzhang/mbtpdf/io/pdfread",
+  "bobzhang/mbtpdf/io/pdfwrite",
   "moonbitlang/core/env",
   "moonbitlang/async",
 }

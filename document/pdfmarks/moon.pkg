@@ -1,17 +1,15 @@
 import {
   "bobzhang/mbtpdf/core/pdf",
-  "bobzhang/mbtpdf/crypto/pdfcrypt",
-  "bobzhang/mbtpdf/core/pdfio",
-  "bobzhang/mbtpdf/graphics/pdfops",
+  "bobzhang/mbtpdf/document/pdfdest",
+  "bobzhang/mbtpdf/core/pdftransform",
+  "bobzhang/mbtpdf/core/pdfe",
+}
+
+import "test" {
+  "bobzhang/mbtpdf/document/pdfdest",
   "bobzhang/mbtpdf/document/pdfpage",
   "bobzhang/mbtpdf/io/pdfread",
   "bobzhang/mbtpdf/io/pdfwrite",
-  "moonbitlang/core/env",
   "moonbitlang/async",
   "moonbitlang/async/fs",
-  "moonbitlang/async/io",
 }
-
-options(
-  "is-main": true,
-)

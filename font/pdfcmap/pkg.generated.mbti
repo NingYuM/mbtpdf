@@ -1,0 +1,24 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/mbtpdf/font/pdfcmap"
+
+import {
+  "bobzhang/mbtpdf/core/pdf",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn parse_cmap(@pdf.Pdf, @pdf.PdfObject) -> CMap raise
+
+// Errors
+
+// Types and methods
+pub struct CMap {
+  map : Array[(String, String)]
+  wmode : Int?
+}
+pub impl @debug.Debug for CMap
+
+// Type aliases
+
+// Traits
+

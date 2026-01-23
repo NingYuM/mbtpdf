@@ -1,0 +1,17 @@
+import {
+  "bobzhang/mbtpdf/core/pdf",
+  "bobzhang/mbtpdf/codec/pdfcodec",
+  "bobzhang/mbtpdf/crypto/pdfcrypt",
+  "bobzhang/mbtpdf/core/pdfcryptprimitives",
+  "bobzhang/mbtpdf/core/pdfio",
+  "bobzhang/mbtpdf/syntax/pdfgenlex",
+  "bobzhang/mbtpdf/syntax/pdfsyntax",
+  "bobzhang/mbtpdf/core/pdfe",
+  "moonbitlang/async/fs",
+}
+
+import "test" {
+  "bobzhang/mbtpdf/document/pdfpage",
+  "bobzhang/mbtpdf/io/pdfwrite",
+  "moonbitlang/async",
+}
