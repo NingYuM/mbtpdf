@@ -36,45 +36,6 @@ pub fn fleprint(message : String) -> Unit {
 }
 
 ///|
-/// Print a list of floating point numbers separated by spaces.
-pub fn print_floats(values : Array[Double]) -> Unit {
-  let sb = StringBuilder::new()
-  for i, value in values {
-    if i > 0 {
-      sb.write_char(' ')
-    }
-    sb.write_object(value)
-  }
-  flprint(sb.to_string())
-}
-
-///|
-/// Print a list of integers separated by spaces.
-pub fn print_ints(values : Array[Int]) -> Unit {
-  let sb = StringBuilder::new()
-  for i, value in values {
-    if i > 0 {
-      sb.write_char(' ')
-    }
-    sb.write_object(value)
-  }
-  flprint(sb.to_string())
-}
-
-///|
-/// Print a list of int32 values separated by spaces.
-pub fn print_int32s(values : Array[Int]) -> Unit {
-  let sb = StringBuilder::new()
-  for i, value in values {
-    if i > 0 {
-      sb.write_char(' ')
-    }
-    sb.write_object(value)
-  }
-  flprint(sb.to_string())
-}
-
-///|
 /// Memoize a nullary function (cache the first computed value).
 pub fn[T] memoize(f : () -> T raise) -> () -> T raise {
   let cached : Ref[T?] = Ref::new(None)
@@ -105,25 +66,9 @@ pub fn[K : Hash + Eq, V] hashtable_of_dictionary(
 }
 
 ///|
-/// Build a hash set from a list of keys.
-pub fn[K : Hash + Eq] hashset_of_list(values : Array[K]) -> Map[K, Unit] {
-  let table : Map[K, Unit] = Map::new(capacity=values.length() * 2)
-  for value in values {
-    table.set(value, ())
-  }
-  table
-}
-
-///|
 /// Construct an empty hash table.
 pub fn[K, V] null_hash() -> Map[K, V] {
   Map::new(capacity=0)
-}
-
-///|
-/// Lookup an entry in a hash table.
-pub fn[K : Hash + Eq, V] tryfind(table : Map[K, V], key : K) -> V? {
-  table.get(key)
 }
 
 ///|
