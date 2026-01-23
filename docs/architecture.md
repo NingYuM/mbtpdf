@@ -6,14 +6,18 @@ document-level features (merge, text extraction, encryption, etc.).
 
 ## High-level Flow
 
+Package paths below are shown relative to the module root (for example,
+`core/pdfio`), and import aliases default to the last path segment (so
+`bobzhang/mbtpdf/core/pdfio` is used as `@pdfio`).
+
 ```
-Input bytes (pdfio)
-  -> pdfread (xref + object streams + encryption)
-    -> pdfsyntax/pdfgenlex (lex/parse)
-      -> Pdf object graph (pdf)
-        -> operations (pdfpage/pdfops/pdftext/pdfimage/...)
-          -> pdfwrite (serialize + xref + filters + encryption)
-            -> Output bytes (pdfio)
+Input bytes (core/pdfio)
+  -> io/pdfread (xref + object streams + encryption)
+    -> syntax/pdfsyntax + syntax/pdfgenlex (lex/parse)
+      -> Pdf object graph (core/pdf)
+        -> operations (document/pdfpage, graphics/pdfops, text/pdftext, graphics/pdfimage, ...)
+          -> io/pdfwrite (serialize + xref + filters + encryption)
+            -> Output bytes (core/pdfio)
 ```
 
 ## Layered Architecture
@@ -22,67 +26,68 @@ The codebase follows a layered architecture with downward-only dependencies:
 
 ```
 Layer 0: Base utilities
-  pdfutil, pdfe
+  core/pdfutil, core/pdfe
 
 Layer 1: IO primitives
-  pdfio
+  core/pdfio
 
 Layer 2: Core model + geometry
-  pdf, pdftransform, pdfunits, pdfpaper, pdfdate
+  core/pdf, core/pdftransform, core/pdfunits, document/pdfpaper, core/pdfdate
 
 Layer 3: Syntax + lexing
-  pdfgenlex, pdfsyntax
+  syntax/pdfgenlex, syntax/pdfsyntax
 
 Layer 4: Codecs + crypto
-  pdfflate, pdfcodec, pdfjpeg, pdfcryptprimitives, pdfcrypt
+  codec/pdfflate, codec/pdfcodec, codec/pdfjpeg, core/pdfcryptprimitives, crypto/pdfcrypt
 
 Layer 5: Fonts + encodings data
-  pdfafm, pdfafmdata, pdfglyphlist, pdfcmap, pdffont, pdfstandard14
+  font/pdfafm, font/pdfafmdata, font/pdfglyphlist, font/pdfcmap, font/pdffont, font/pdfstandard14
 
 Layer 6: Content stream + functions
-  pdfops, pdffun, pdfspace
+  graphics/pdfops, graphics/pdffun, graphics/pdfspace
 
 Layer 7: Read/Write services
-  pdfread, pdfwrite
+  io/pdfread, io/pdfwrite
 
 Layer 8: Document structure
-  pdftree, pdfpage, pdfpagelabels, pdfdest, pdfannot, pdfocg, pdfst, pdfmarks
+  document/pdftree, document/pdfpage, document/pdfpagelabels, document/pdfdest,
+  document/pdfannot, document/pdfocg, document/pdfst, document/pdfmarks
 
 Layer 9: Features
-  pdftext, pdfimage, pdfmerge
+  text/pdftext, graphics/pdfimage, document/pdfmerge
 
 Layer 10: CLI
   cmd/*
 ```
 
 Key design principles:
-- Mid-layer packages (pdfops, pdfpage, etc.) do not depend on IO services (pdfread/pdfwrite)
-- Font types live in `pdffont`, allowing `pdfstandard14` to avoid depending on `pdftext`
-- Hooks in `pdf` package (`endpage`, `string_of_pdf`) enable cross-layer communication
+- Mid-layer packages (graphics/pdfops, document/pdfpage, etc.) do not depend on IO services (io/pdfread/io/pdfwrite)
+- Font types live in `font/pdffont`, allowing `font/pdfstandard14` to avoid depending on `text/pdftext`
+- Hooks in `core/pdf` (`endpage`, `string_of_pdf`) enable cross-layer communication
 
 ## Package Dependency Map (High Level)
 
 ```
 cmd/*
-  |-> pdfread -----> pdfsyntax/pdfgenlex
-  |-> pdfwrite ----> pdfcodec/pdfflate (+ pdfcrypt)
-  |-> pdfmerge/pdfpage/pdfops/pdftext/pdfimage/...
-        |-> pdf (core object graph)
-        |-> pdftransform/pdfspace/pdfunits/pdfpaper
-        |-> pdffont/pdfstandard14/pdfafm/pdfafmdata/pdfglyphlist/pdfcmap
+  |-> io/pdfread -----> syntax/pdfsyntax + syntax/pdfgenlex
+  |-> io/pdfwrite ----> codec/pdfcodec + codec/pdfflate (+ crypto/pdfcrypt)
+  |-> document/pdfmerge + document/pdfpage + graphics/pdfops + text/pdftext + graphics/pdfimage + ...
+        |-> core/pdf (core object graph)
+        |-> core/pdftransform + graphics/pdfspace + core/pdfunits + document/pdfpaper
+        |-> font/pdffont + font/pdfstandard14 + font/pdfafm + font/pdfafmdata + font/pdfglyphlist + font/pdfcmap
 
 Base utilities used across most packages:
-  pdfio + pdfutil + pdfe + pdfcryptprimitives
+  core/pdfio + core/pdfutil + core/pdfe + core/pdfcryptprimitives
 ```
 
 ## Core Layer
 
-- `pdf`: central data model (`Pdf`, `PdfObject`, streams, object map).
+- `core/pdf`: central data model (`Pdf`, `PdfObject`, streams, object map).
   - Supports lazy streams via `Stream::ToGet`, materialized via `Stream::Got`.
   - Provides `string_of_pdfobj` for object serialization.
-- `pdfio`: byte-level Input/Output abstractions used across the stack.
-- `pdfutil`: shared helpers (hash tables, memoization, logging helpers).
-- `pdfe`: logging hook for error/debug output, debug flags.
+- `core/pdfio`: byte-level Input/Output abstractions used across the stack.
+- `core/pdfutil`: shared helpers (hash tables, memoization, logging helpers).
+- `core/pdfe`: logging hook for error/debug output, debug flags.
   - Example:
     ```mbt
     let pdf = @pdf.empty()
@@ -92,12 +97,12 @@ Base utilities used across most packages:
 
 ## Parsing and Reading
 
-- `pdfgenlex`: token stream definition and token helpers.
-- `pdfsyntax`: lexer/parser from bytes to `PdfObject`.
-- `pdfread`: orchestrates header/xref parsing, object streams, encryption,
+- `syntax/pdfgenlex`: token stream definition and token helpers.
+- `syntax/pdfsyntax`: lexer/parser from bytes to `PdfObject`.
+- `io/pdfread`: orchestrates header/xref parsing, object streams, encryption,
   and lazy loading; entry point for `pdf_of_file`, `pdf_of_input`, etc.
-- `pdfcodec` + `pdfflate` + `pdfjpeg`: stream filter decoding and compression.
-- `pdfcrypt` + `pdfcryptprimitives`: decryption and encryption primitives.
+- `codec/pdfcodec` + `codec/pdfflate` + `codec/pdfjpeg`: stream filter decoding and compression.
+- `crypto/pdfcrypt` + `core/pdfcryptprimitives`: decryption and encryption primitives.
   - Example:
     ```mbt
     async fn load() -> @pdf.Pdf {
@@ -109,10 +114,10 @@ Base utilities used across most packages:
 
 ## Writing and Serialization
 
-- `pdfwrite`: serializes `Pdf` to bytes, builds xref tables/streams, optional
+- `io/pdfwrite`: serializes `Pdf` to bytes, builds xref tables/streams, optional
   object stream generation, and encryption.
-- `pdfcodec`/`pdfflate`: stream encoding for compressed output.
-- `pdfcrypt`: encryption settings for output.
+- `codec/pdfcodec`/`codec/pdfflate`: stream encoding for compressed output.
+- `crypto/pdfcrypt`: encryption settings for output.
   - Example:
     ```mbt
     async fn save(pdf : @pdf.Pdf) -> Unit {
@@ -122,14 +127,15 @@ Base utilities used across most packages:
 
 ## Document Structure and Content
 
-- `pdfpage` + `pdftree`: page tree construction/reading and page operations.
-- `pdfops`: parse and emit content stream operators (pure, no IO dependencies).
-- `pdftext`: text extraction and text operators; uses `pdfops` and font data.
-- `pdfimage`: image XObject extraction/decoding.
-- `pdfdest`, `pdfannot`, `pdfmarks`, `pdfocg`, `pdfpagelabels`, `pdfst`:
+- `document/pdfpage` + `document/pdftree`: page tree construction/reading and page operations.
+- `graphics/pdfops`: parse and emit content stream operators (pure, no IO dependencies).
+- `text/pdftext`: text extraction and text operators; uses `graphics/pdfops` and font data.
+- `graphics/pdfimage`: image XObject extraction/decoding.
+- `document/pdfdest`, `document/pdfannot`, `document/pdfmarks`, `document/pdfocg`,
+  `document/pdfpagelabels`, `document/pdfst`:
   destinations, annotations, bookmarks, optional content, page labels,
   and structure tree support.
-- `pdfmerge`: merges documents and reconciles cross-document structures.
+- `document/pdfmerge`: merges documents and reconciles cross-document structures.
   - Example:
     ```mbt
     let pages = @pdfpage.pages_of_pagetree(pdf)
@@ -139,12 +145,12 @@ Base utilities used across most packages:
 
 ## Fonts, Encodings, and Layout Data
 
-- `pdffont`: font type definitions (`Font`, `Encoding`, `StandardFont`, etc.)
+- `font/pdffont`: font type definitions (`Font`, `Encoding`, `StandardFont`, etc.)
   shared across packages without creating circular dependencies.
-- `pdfstandard14`, `pdfafm`, `pdfafmdata`: built-in font metrics and AFM parsing.
-- `pdfglyphlist`: glyph name to Unicode mapping.
-- `pdfcmap`: CMap parsing for composite fonts.
-- `pdftext`: font reading/writing and text extraction.
+- `font/pdfstandard14`, `font/pdfafm`, `font/pdfafmdata`: built-in font metrics and AFM parsing.
+- `font/pdfglyphlist`: glyph name to Unicode mapping.
+- `font/pdfcmap`: CMap parsing for composite fonts.
+- `text/pdftext`: font reading/writing and text extraction.
   - Example:
     ```mbt
     let width = @pdfstandard14.textwidth(
@@ -157,10 +163,10 @@ Base utilities used across most packages:
 
 ## Geometry, Units, and Utilities
 
-- `pdftransform`: affine transformation matrices.
-- `pdfspace`: color space utilities.
-- `pdfunits` + `pdfpaper`: unit conversion and standard paper sizes.
-- `pdfdate`: PDF date parsing/formatting helpers.
+- `core/pdftransform`: affine transformation matrices.
+- `graphics/pdfspace`: color space utilities.
+- `core/pdfunits` + `document/pdfpaper`: unit conversion and standard paper sizes.
+- `core/pdfdate`: PDF date parsing/formatting helpers.
   - Example:
     ```mbt
     let paper = @pdfpaper.a4
