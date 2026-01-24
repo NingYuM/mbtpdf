@@ -64,7 +64,7 @@ pub fn PdfPageDoc::pagenumber_of_target(
                 None => 0
               }
             None =>
-              match position_1(i, @pdf.page_reference_numbers(pdf)) {
+              match position_1(i, pdf.page_reference_numbers()) {
                 Some(n) => n
                 None => 0
               }
@@ -305,7 +305,7 @@ pub fn PdfPageDoc::change_pages(
   let pdf = @pdf.Pdf::empty()
   basepdf.objiter((k, v) => pdf.addobj_given_num((k, v)))
   copy_object_stream_ids(pdf, basepdf)
-  let old_page_numbers = @pdf.page_reference_numbers(basepdf)
+  let old_page_numbers = basepdf.page_reference_numbers()
   let (pdf, pagetree_num) = PdfPageDoc::new(pdf).add_pagetree(pages)
   let pdf : @pdf.Pdf = {
     major: basepdf.major,
@@ -321,7 +321,7 @@ pub fn PdfPageDoc::change_pages(
     _ => []
   }
   let pdf = PdfPageDoc::new(pdf).add_root(pagetree_num, existing_root_entries)
-  let new_page_numbers = @pdf.page_reference_numbers(pdf)
+  let new_page_numbers = pdf.page_reference_numbers()
   if !change_references {
     pdf
   } else {
@@ -351,7 +351,7 @@ pub fn PdfPageDoc::change_pages(
     match matrices {
       None => pdf
       Some(matpairs) => {
-        let refnums = @pdf.page_reference_numbers(pdf)
+        let refnums = pdf.page_reference_numbers()
         let mattable = map_of_pairs(matpairs)
         let refnumstable = Map::new(capacity=refnums.length())
         for i in 0..<refnums.length() {

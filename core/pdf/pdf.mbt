@@ -1239,29 +1239,29 @@ fn tocontinue(
 }
 
 ///|
-fn referenced_pdfobj(
+fn Pdf::referenced_pdfobj(
+  self : Pdf,
   no_follow_entries : Array[String],
   no_follow_contains : Array[(String, PdfObject)],
-  pdf : Pdf,
   found : Map[Int, Bool],
   obj : PdfObject,
 ) -> Unit {
   match obj {
     Indirect(j) =>
       if !refset_mem(j, found) {
-        let target = pdf.lookup_obj(j)
+        let target = self.lookup_obj(j)
         match target {
           Dictionary(d) =>
             if tocontinue(no_follow_entries, no_follow_contains, d) {
               refset_add(j, found)
-              referenced_pdfobj(
-                no_follow_entries, no_follow_contains, pdf, found, target,
+              self.referenced_pdfobj(
+                no_follow_entries, no_follow_contains, found, target,
               )
             }
           _ => {
             refset_add(j, found)
-            referenced_pdfobj(
-              no_follow_entries, no_follow_contains, pdf, found, target,
+            self.referenced_pdfobj(
+              no_follow_entries, no_follow_contains, found, target,
             )
           }
         }
@@ -1271,20 +1271,20 @@ fn referenced_pdfobj(
         let (k, v) = pair
         if no_follow_entries.length() == 0 ||
           !contains_string(no_follow_entries, k) {
-          referenced_pdfobj(
-            no_follow_entries, no_follow_contains, pdf, found, v,
+          self.referenced_pdfobj(
+            no_follow_entries, no_follow_contains, found, v,
           )
         }
       }
     Array(values) =>
       for value in values {
-        referenced_pdfobj(
-          no_follow_entries, no_follow_contains, pdf, found, value,
+        self.referenced_pdfobj(
+          no_follow_entries, no_follow_contains, found, value,
         )
       }
     Stream(r) => {
       let (dict, _) = r.val
-      referenced_pdfobj(no_follow_entries, no_follow_contains, pdf, found, dict)
+      self.referenced_pdfobj(no_follow_entries, no_follow_contains, found, dict)
     }
     _ => ()
   }
@@ -1292,21 +1292,22 @@ fn referenced_pdfobj(
 
 ///|
 /// Find the objects reachable from the given object.
-pub fn objects_referenced(
+#as_free_fn(objects_referenced, deprecated="Use Pdf::objects_referenced instead")
+pub fn Pdf::objects_referenced(
+  self : Pdf,
   no_follow_entries : Array[String],
   no_follow_contains : Array[(String, PdfObject)],
-  pdf : Pdf,
   pdfobject : PdfObject,
 ) -> Array[Int] {
   let found = refset_empty()
-  referenced_pdfobj(
-    no_follow_entries, no_follow_contains, pdf, found, pdfobject,
+  self.referenced_pdfobj(
+    no_follow_entries, no_follow_contains, found, pdfobject,
   )
   refset_elts(found)
 }
 
 ///|
-fn nullify_deleted_page_references(pdf : Pdf) -> Unit raise {
+fn Pdf::nullify_deleted_page_references(self : Pdf) -> Unit raise {
   fn nullify(numbers : Map[Int, Bool], obj : PdfObject) -> PdfObject {
     match obj {
       Indirect(i) => if numbers.contains(i) { Null } else { obj }
@@ -1322,15 +1323,15 @@ fn nullify_deleted_page_references(pdf : Pdf) -> Unit raise {
   }
 
   let page_object_numbers = Array::new()
-  pdf.objiter((objnum, obj) => match obj {
+  self.objiter((objnum, obj) => match obj {
     Dictionary(_) =>
-      match pdf.lookup_direct("/Type", obj) {
+      match self.lookup_direct("/Type", obj) {
         Some(Name("/Page")) => page_object_numbers.push(objnum)
         _ => ()
       }
     _ => ()
   })
-  let refnums = page_reference_numbers(pdf)
+  let refnums = self.page_reference_numbers()
   if refnums.length() != page_object_numbers.length() {
     let table = Map::new()
     for num in page_object_numbers {
@@ -1339,45 +1340,46 @@ fn nullify_deleted_page_references(pdf : Pdf) -> Unit raise {
     for num in refnums {
       table.remove(num)
     }
-    pdf.objselfmap(obj => nullify(table, obj))
+    self.objselfmap(obj => nullify(table, obj))
   }
 }
 
 ///|
 /// Remove any unreferenced objects.
-pub fn remove_unreferenced(pdf : Pdf) -> Unit raise {
-  nullify_deleted_page_references(pdf)
+#as_free_fn(remove_unreferenced, deprecated="Use Pdf::remove_unreferenced instead")
+pub fn Pdf::remove_unreferenced(self : Pdf) -> Unit raise {
+  self.nullify_deleted_page_references()
   let found = refset_empty()
-  referenced_pdfobj([], [], pdf, found, pdf.lookup_obj(pdf.root))
-  referenced_pdfobj([], [], pdf, found, pdf.trailerdict)
-  refset_add(pdf.root, found)
+  self.referenced_pdfobj([], [], found, self.lookup_obj(self.root))
+  self.referenced_pdfobj([], [], found, self.trailerdict)
+  refset_add(self.root, found)
   let eltnumbers = refset_elts(found)
-  let elements = eltnumbers.map(num => pdf.lookup_obj(num))
-  pdf.objects.max_obj_num = 0
-  pdf.objects.objects.clear()
-  pdf.objects.object_stream_ids.clear()
+  let elements = eltnumbers.map(num => self.lookup_obj(num))
+  self.objects.max_obj_num = 0
+  self.objects.objects.clear()
+  self.objects.object_stream_ids.clear()
   for i, num in eltnumbers {
-    pdf.addobj_given_num((num, elements[i]))
+    self.addobj_given_num((num, elements[i]))
   }
 }
 
 ///|
-fn page_reference_numbers_inner(
-  pdf : Pdf,
+fn Pdf::page_reference_numbers_inner(
+  self : Pdf,
   pages_node : PdfObject,
   node_number : Int,
 ) -> Array[Int] {
-  match pdf.lookup_direct("/Type", pages_node) {
+  match self.lookup_direct("/Type", pages_node) {
     Some(Name("/Page")) => [node_number]
     _ =>
-      match pdf.lookup_direct("/Kids", pages_node) {
+      match self.lookup_direct("/Kids", pages_node) {
         Some(Array(elts)) => {
           let out = Array::new()
           for elt in elts {
             match elt {
               Indirect(i) =>
                 out.append(
-                  page_reference_numbers_inner(pdf, pdf.direct(Indirect(i)), i)[:],
+                  self.page_reference_numbers_inner(self.direct(Indirect(i)), i)[:],
                 )
               _ => ()
             }
@@ -1391,13 +1393,14 @@ fn page_reference_numbers_inner(
 
 ///|
 /// Return the page reference numbers in order.
-pub fn page_reference_numbers(pdf : Pdf) -> Array[Int] raise {
-  let root = pdf.lookup_obj(pdf.root)
-  let pages_node = match pdf.lookup_direct("/Pages", root) {
+#as_free_fn(page_reference_numbers, deprecated="Use Pdf::page_reference_numbers instead")
+pub fn Pdf::page_reference_numbers(self : Pdf) -> Array[Int] raise {
+  let root = self.lookup_obj(self.root)
+  let pages_node = match self.lookup_direct("/Pages", root) {
     Some(p) => p
     None => raise PdfError::Msg("No /Pages found in /Root")
   }
-  page_reference_numbers_inner(pdf, pages_node, -1)
+  self.page_reference_numbers_inner(pages_node, -1)
 }
 
 ///|

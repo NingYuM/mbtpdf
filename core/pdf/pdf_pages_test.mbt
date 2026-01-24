@@ -20,7 +20,7 @@ test "page_reference_numbers variants" {
     was_linearized: base1.was_linearized,
     saved_encryption: base1.saved_encryption,
   }
-  assert_eq(page_reference_numbers(pdf1).length(), 0)
+  assert_eq(pdf1.page_reference_numbers().length(), 0)
   let base2 = Pdf::empty()
   let pages_kid_not_array = PdfObject::Dictionary([
     ("/Type", PdfObject::Name("/Pages")),
@@ -41,7 +41,7 @@ test "page_reference_numbers variants" {
     was_linearized: base2.was_linearized,
     saved_encryption: base2.saved_encryption,
   }
-  assert_eq(page_reference_numbers(pdf2), [-1])
+  assert_eq(pdf2.page_reference_numbers(), [-1])
   let base3 = Pdf::empty()
   let root_only = PdfObject::Dictionary([("/Type", PdfObject::Name("/Catalog"))])
   base3.addobj_given_num((1, root_only))
@@ -54,7 +54,7 @@ test "page_reference_numbers variants" {
     was_linearized: base3.was_linearized,
     saved_encryption: base3.saved_encryption,
   }
-  assert_is_err(try? page_reference_numbers(pdf3))
+  assert_is_err(try? pdf3.page_reference_numbers())
 }
 
 ///|
@@ -75,7 +75,7 @@ test "remove_unreferenced nullifies page refs" {
     PdfObject::Indirect(6),
   )
   pdf.addobj_given_num((3, catalog_with_number))
-  remove_unreferenced(pdf)
+  pdf.remove_unreferenced()
   assert_true(!pdf.objnumbers().contains(4))
   match pdf.lookup_obj(5) {
     PdfObject::Stream(r) =>

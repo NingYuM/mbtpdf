@@ -100,7 +100,7 @@ test "transform_destination clips FitV/FitBH" {
 ///|
 test "transform_destination updates GoTo action" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  let refs = @pdf.page_reference_numbers(pdf)
+  let refs = pdf.page_reference_numbers()
   let action : @pdf.PdfObject = Dictionary([
     ("/S", Name("/GoTo")),
     (
@@ -443,7 +443,7 @@ test "read_destination resolves named dests in catalog" {
     ],
   )
   let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(pageroot, [])
-  let refs = @pdf.page_reference_numbers(pdf)
+  let refs = pdf.page_reference_numbers()
   let dest : @pdf.PdfObject = Array([Indirect(refs[0]), Name("/Fit")])
   let dests : @pdf.PdfObject = Dictionary([("/Chapter1", dest)])
   let root_obj = pdf.lookup_obj(pdf.root)

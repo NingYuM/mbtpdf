@@ -319,7 +319,7 @@ pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
       pdf.addobj_given_num((annot_num, obj))
     }
   }
-  let pagerefnums = @pdf.page_reference_numbers(pdf)
+  let pagerefnums = pdf.page_reference_numbers()
   for i in 0..<new_annots.length() {
     let annots = new_annots[i]
     let pagerefnum = pagerefnums[i]
@@ -434,7 +434,7 @@ pub fn PdfPageDoc::page_object_number(
   destpage : Int,
 ) -> Int? raise {
   let pdf = self.pdf
-  let refs = @pdf.page_reference_numbers(pdf)
+  let refs = pdf.page_reference_numbers()
   if destpage < 1 || destpage > refs.length() {
     None
   } else {

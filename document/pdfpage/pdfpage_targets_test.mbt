@@ -24,7 +24,7 @@ test "pagenumber_of_target handles non-page targets" {
 ///|
 test "pagenumber_of_target follows GoTo action and fastrefnums" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  let refs = @pdf.page_reference_numbers(pdf)
+  let refs = pdf.page_reference_numbers()
   let dest_array : @pdf.PdfObject = Array([Indirect(refs[0]), Name("/Fit")])
   let action : @pdf.PdfObject = Dictionary([
     ("/S", Name("/GoTo")),
@@ -61,7 +61,7 @@ test "pagenumber_of_target handles action edge cases" {
 ///|
 test "pagenumber_of_target follows GoTo action without fastrefnums" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  let refs = @pdf.page_reference_numbers(pdf)
+  let refs = pdf.page_reference_numbers()
   let dest_array : @pdf.PdfObject = Array([Indirect(refs[0]), Name("/Fit")])
   let action : @pdf.PdfObject = Dictionary([
     ("/S", Name("/GoTo")),
@@ -78,7 +78,7 @@ test "pagenumber_of_target handles target page variants" {
     @pdfdest.TargetPage::OtherDocPageNumber(2),
   )
   assert_eq(@pdfpage.PdfPageDoc::new(pdf).pagenumber_of_target(other), 3)
-  let refs = @pdf.page_reference_numbers(pdf)
+  let refs = pdf.page_reference_numbers()
   let dest = @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(refs[0]))
   let table : Map[Int, Int] = Map::new()
   table.set(refs[0] + 100, 9)

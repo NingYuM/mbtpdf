@@ -30,7 +30,7 @@ fn add_names_dests(
 
 ///|
 fn page_ref(pdf : @pdf.Pdf, index : Int) -> Int raise {
-  let refs = @pdf.page_reference_numbers(pdf)
+  let refs = pdf.page_reference_numbers()
   refs[index - 1]
 }
 

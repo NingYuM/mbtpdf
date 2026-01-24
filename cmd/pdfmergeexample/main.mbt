@@ -18,7 +18,7 @@ fn merge_pdfs(pdfs : Array[@pdf.Pdf]) -> @pdf.Pdf raise {
   }
   let (pdf, pagetree_num) = @pdfpage.PdfPageDoc::new(pdf).add_pagetree(pages)
   let pdf = @pdfpage.PdfPageDoc::new(pdf).add_root(pagetree_num, [])
-  @pdf.remove_unreferenced(pdf)
+  pdf.remove_unreferenced()
   let pdf : @pdf.Pdf = {
     major: 1,
     minor: max_minor,

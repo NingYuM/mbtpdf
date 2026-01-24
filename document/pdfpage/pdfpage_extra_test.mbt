@@ -101,7 +101,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
   let pages_in = [@pdfpage.Page::custom(rect), @pdfpage.Page::custom(rect)]
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree(pages_in)
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
-  let refs = @pdf.page_reference_numbers(pdf)
+  let refs = pdf.page_reference_numbers()
   let dest1 : @pdf.PdfObject = Array([Indirect(refs[0]), Name("/Fit")])
   let dest2 : @pdf.PdfObject = Array([Indirect(refs[1]), Name("/Fit")])
   let annot_dest1 : @pdf.PdfObject = Dictionary([
@@ -292,7 +292,7 @@ test "fixup_duplicate_pages creates unique refs" {
   pdf0.addobj_given_num((2, pages))
   let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(2, [])
   @pdfpage.PdfPageDoc::new(pdf).fixup_duplicate_pages()
-  let refs = @pdf.page_reference_numbers(pdf)
+  let refs = pdf.page_reference_numbers()
   assert_eq(refs.length(), 2)
   assert_true(refs[0] != refs[1])
 }
@@ -428,7 +428,7 @@ test "change_pages rewrites annotation and openaction" {
   let page = @pdfpage.Page::custom(rect)
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
-  let refs = @pdf.page_reference_numbers(pdf)
+  let refs = pdf.page_reference_numbers()
   let dest_array : @pdf.PdfObject = Array([
     Indirect(refs[0]),
     Name("/XYZ"),
@@ -469,7 +469,7 @@ test "change_pages rewrites annotation and openaction" {
     }
     _ => fail("expected updated openaction destination")
   }
-  let refs2 = @pdf.page_reference_numbers(translated)
+  let refs2 = translated.page_reference_numbers()
   let page2 = translated.lookup_obj(refs2[0])
   let annots = match translated.lookup_direct("/Annots", page2) {
     Some(Array(arr)) => arr

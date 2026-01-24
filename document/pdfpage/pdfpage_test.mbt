@@ -1,7 +1,7 @@
 ///|
 test "pagenumber_of_target on page object" {
   let pdf = PdfPageDoc::minimum_valid()
-  let refs = @pdf.page_reference_numbers(pdf)
+  let refs = pdf.page_reference_numbers()
   let dest = @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(refs[0]))
   assert_eq(PdfPageDoc::new(pdf).pagenumber_of_target(dest), 1)
 }

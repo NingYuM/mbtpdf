@@ -40,7 +40,7 @@ fn install_struct_root(pdf : @pdf.Pdf, root : @pdf.PdfObject) -> Int raise {
 
 ///|
 fn add_struct_tree(pdf : @pdf.Pdf) -> (Int, Int) raise {
-  let page_refs = @pdf.page_reference_numbers(pdf)
+  let page_refs = pdf.page_reference_numbers()
   let struct1 : @pdf.PdfObject = Dictionary([("/Pg", Indirect(page_refs[0]))])
   let struct2 : @pdf.PdfObject = Dictionary([("/Pg", Indirect(page_refs[1]))])
   let struct1_num = pdf.addobj(struct1)
@@ -82,7 +82,7 @@ test "trim_structure_tree removes entries" {
 ///|
 test "trim_structure_tree updates nested k arrays" {
   let pdf = build_page_pdf(3)
-  let page_refs = @pdf.page_reference_numbers(pdf)
+  let page_refs = pdf.page_reference_numbers()
   let keep_obj : @pdf.PdfObject = Dictionary([("/Pg", Indirect(page_refs[0]))])
   let keep = pdf.addobj(keep_obj)
   let remove_pg_obj : @pdf.PdfObject = Dictionary([
@@ -253,8 +253,8 @@ test "merge_structure_trees merges roots" {
   let pdf_out = @pdf.Pdf::empty()
   let pdf1 = build_page_pdf(1)
   let pdf2 = build_page_pdf(1)
-  let page_refs1 = @pdf.page_reference_numbers(pdf1)
-  let page_refs2 = @pdf.page_reference_numbers(pdf2)
+  let page_refs1 = pdf1.page_reference_numbers()
+  let page_refs2 = pdf2.page_reference_numbers()
   let kid1_obj : @pdf.PdfObject = Dictionary([("/Pg", Indirect(page_refs1[0]))])
   let kid1 = pdf1.addobj(kid1_obj)
   let idtree1 = @pdftree.PdfTree::new(pdf1).build_name_tree(false, [("A", Null)])

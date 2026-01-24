@@ -1097,7 +1097,7 @@ pub fn PdfMerger::merge_pdfs(
     pagetree_num, extra_catalog_entries,
   )
   let old_page_numbers = {
-    let page_nums = pdfs.map(p => @pdf.page_reference_numbers(p))
+    let page_nums = pdfs.map(p => p.page_reference_numbers())
     let out = Array::new()
     for i, range in ranges {
       let numbers = page_nums[i]
@@ -1110,7 +1110,7 @@ pub fn PdfMerger::merge_pdfs(
     }
     out
   }
-  let new_page_numbers = @pdf.page_reference_numbers(pdf)
+  let new_page_numbers = pdf.page_reference_numbers()
   let changes = combine(old_page_numbers, new_page_numbers)
   let changes_map : Map[Int, Int] = Map::new()
   for pair in changes {

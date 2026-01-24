@@ -298,14 +298,14 @@ let matrix_obj = @pdf.make_matrix(@pdftransform.TransformMatrix::identity())
 // Find all objects reachable from a starting object
 
 ///|
-let refs = @pdf.objects_referenced([], [], pdf, start_obj)
+let refs = pdf.objects_referenced([], [], start_obj)
 ```
 
 ### Removing Unreferenced Objects
 
 ```mbt nocheck
 // Garbage collect unreferenced objects
-@pdf.remove_unreferenced!(pdf)
+pdf.remove_unreferenced!()
 ```
 
 ## Document Operations

@@ -147,7 +147,7 @@ pub fn PdfPageDoc::pdf_of_pages(
     []
   }
   let marks = {
-    let refnums = @pdf.page_reference_numbers(basepdf)
+    let refnums = basepdf.page_reference_numbers()
     let fastrefnums = build_fastrefnums(refnums)
     let range_set = range_to_set(range)
     let mut first_index = -1
@@ -191,7 +191,7 @@ pub fn PdfPageDoc::pdf_of_pages(
   }
   let pdf = @pdf.Pdf::empty()
   basepdf.objiter((k, v) => pdf.addobj_given_num((k, v)))
-  let page_numbers = @pdf.page_reference_numbers(basepdf)
+  let page_numbers = basepdf.page_reference_numbers()
   let pdf : @pdf.Pdf = {
     major: basepdf.major,
     minor: basepdf.minor,

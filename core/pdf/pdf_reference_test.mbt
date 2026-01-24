@@ -5,7 +5,7 @@ test "objects_referenced skips entries" {
     ("/Skip", PdfObject::Indirect(1)),
     ("/Keep", PdfObject::Integer(2)),
   ])
-  let referenced = objects_referenced(["/Skip"], [], pdf, obj)
+  let referenced = pdf.objects_referenced(["/Skip"], [], obj)
   assert_eq(referenced.length(), 0)
 }
 
@@ -18,10 +18,9 @@ test "objects_referenced no_follow_contains non-name" {
   ])
   pdf.addobj_given_num((1, obj))
   pdf.addobj_given_num((2, PdfObject::Integer(9)))
-  let referenced = objects_referenced(
+  let referenced = pdf.objects_referenced(
     [],
     [("/Other", PdfObject::Integer(3))],
-    pdf,
     PdfObject::Indirect(1),
   )
   assert_true(referenced.contains(2))
@@ -37,10 +36,9 @@ test "objects_referenced no_follow_contains name match" {
   ])
   pdf.addobj_given_num((1, dict))
   pdf.addobj_given_num((2, PdfObject::Integer(9)))
-  let referenced = objects_referenced(
+  let referenced = pdf.objects_referenced(
     [],
     [("/Type", PdfObject::Name("/Page"))],
-    pdf,
     PdfObject::Indirect(1),
   )
   assert_eq(referenced.length(), 0)
@@ -55,8 +53,8 @@ test "objects_referenced indirect and stream targets" {
     @pdfio.bytes_of_string("x"),
   )
   pdf.addobj_given_num((6, stream))
-  let indirect_refs = objects_referenced([], [], pdf, PdfObject::Indirect(5))
+  let indirect_refs = pdf.objects_referenced([], [], PdfObject::Indirect(5))
   assert_true(indirect_refs.contains(5))
-  let stream_refs = objects_referenced([], [], pdf, pdf.lookup_obj(6))
+  let stream_refs = pdf.objects_referenced([], [], pdf.lookup_obj(6))
   assert_true(stream_refs.contains(5))
 }

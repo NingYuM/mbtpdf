@@ -42,7 +42,7 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
   let annot_num = pdf.addobj(annot_base)
   let annot_with_popup = annot_base.add_entry("/Popup", Indirect(annot_num))
   pdf.addobj_given_num((annot_num, annot_with_popup))
-  let refs = @pdf.page_reference_numbers(pdf)
+  let refs = pdf.page_reference_numbers()
   for refnum in refs {
     let page_obj = pdf.lookup_obj(refnum)
     let annots : @pdf.PdfObject = Array([Indirect(annot_num)])
@@ -50,7 +50,7 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
     pdf.addobj_given_num((refnum, updated))
   }
   @pdfpage.PdfPageDoc::new(pdf).fixup_duplicate_annots()
-  let refs2 = @pdf.page_reference_numbers(pdf)
+  let refs2 = pdf.page_reference_numbers()
   let annots1 = annot_numbers(pdf, pdf.lookup_obj(refs2[0]))
   let annots2 = annot_numbers(pdf, pdf.lookup_obj(refs2[1]))
   assert_eq(annots1.length(), 1)

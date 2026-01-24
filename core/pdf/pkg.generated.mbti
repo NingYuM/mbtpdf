@@ -24,10 +24,6 @@ pub fn is_whitespace(Char) -> Bool
 
 pub fn make_matrix(@pdftransform.TransformMatrix) -> PdfObject
 
-pub fn objects_referenced(Array[String], Array[(String, PdfObject)], Pdf, PdfObject) -> Array[Int]
-
-pub fn page_reference_numbers(Pdf) -> Array[Int] raise
-
 pub fn pdfobjmap_bindings(Map[Int, (Ref[ObjectData], Int)]) -> Array[(Int, (Ref[ObjectData], Int))]
 
 pub fn pdfobjmap_empty() -> Map[Int, (Ref[ObjectData], Int)]
@@ -35,8 +31,6 @@ pub fn pdfobjmap_empty() -> Map[Int, (Ref[ObjectData], Int)]
 pub fn pdfobjmap_find(Int, Map[Int, (Ref[ObjectData], Int)]) -> (Ref[ObjectData], Int) raise
 
 pub fn recurse_array((PdfObject) -> PdfObject, Array[PdfObject]) -> PdfObject
-
-pub fn remove_unreferenced(Pdf) -> Unit raise
 
 pub fn renumber(Map[Int, Int], Pdf, preserve_order? : Bool) -> Pdf
 
@@ -106,6 +100,8 @@ pub fn Pdf::lookup_obj(Self, Int) -> PdfObject
 #as_free_fn(nametree_lookup, deprecated)
 pub fn Pdf::nametree_lookup(Self, PdfObject, PdfObject) -> PdfObject? raise
 pub fn Pdf::objcard(Self) -> Int
+#as_free_fn(objects_referenced, deprecated)
+pub fn Pdf::objects_referenced(Self, Array[String], Array[(String, PdfObject)], PdfObject) -> Array[Int]
 #as_free_fn(objiter, deprecated)
 pub fn Pdf::objiter(Self, (Int, PdfObject) -> Unit raise?) -> Unit raise?
 #as_free_fn(objiter_gen, deprecated)
@@ -117,10 +113,14 @@ pub fn Pdf::objnumbers(Self) -> Array[Int]
 pub fn Pdf::objselect(Self, (PdfObject) -> Bool raise?) -> Array[Int] raise?
 #as_free_fn(objselfmap, deprecated)
 pub fn Pdf::objselfmap(Self, (PdfObject) -> PdfObject raise?) -> Unit raise?
+#as_free_fn(page_reference_numbers, deprecated)
+pub fn Pdf::page_reference_numbers(Self) -> Array[Int] raise
 #as_free_fn(parse_matrix, deprecated)
 pub fn Pdf::parse_matrix(Self, String, PdfObject) -> @pdftransform.TransformMatrix raise
 #as_free_fn(parse_rectangle, deprecated)
 pub fn Pdf::parse_rectangle(Self, PdfObject) -> (Double, Double, Double, Double) raise
+#as_free_fn(remove_unreferenced, deprecated)
+pub fn Pdf::remove_unreferenced(Self) -> Unit raise
 #as_free_fn(removeobj, deprecated)
 pub fn Pdf::removeobj(Self, Int) -> Unit
 #as_free_fn(replace_chain, deprecated)

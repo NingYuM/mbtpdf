@@ -37,7 +37,7 @@ async fn main {
       rebuilt.push(rebuild_page(pdf, page))
     }
     let pdf = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, rebuilt)
-    @pdf.remove_unreferenced(pdf)
+    pdf.remove_unreferenced()
     let (output, buffer) = @pdfio.input_output_of_bytes(1024)
     @pdfwrite.PdfWrite::new().pdf_to_output(None, true, pdf, output)
     let out_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)

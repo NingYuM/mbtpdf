@@ -19,7 +19,7 @@ fn pdf_of_pages_make_pdf(count : Int) -> @pdf.Pdf raise {
 ///|
 fn pdf_of_pages_with_bookmarks(count : Int) -> @pdf.Pdf raise {
   let pdf = pdf_of_pages_make_pdf(count)
-  let refs = @pdf.page_reference_numbers(pdf)
+  let refs = pdf.page_reference_numbers()
   let marks : Array[@pdfmarks.Bookmark] = [
     {
       level: 0,

@@ -972,7 +972,7 @@ async test "e2e merge preserves named destinations" {
     process_struct_trees=true,
     add_toplevel_document=false,
   )
-  let merged_pages = @pdf.page_reference_numbers(merged)
+  let merged_pages = merged.page_reference_numbers()
   let left_expected = merged_pages[0]
   let right_expected = merged_pages[left_count]
   let left_dest = read_named_destination(merged, "LeftDest")
@@ -983,7 +983,7 @@ async test "e2e merge preserves named destinations" {
   let out_path = OUTPUT_DIR + "/merged_named_dests.pdf"
   write_pdf(out_path, merged)
   let parsed = read_pdf(out_path)
-  let parsed_pages = @pdf.page_reference_numbers(parsed)
+  let parsed_pages = parsed.page_reference_numbers()
   let parsed_left = parsed_pages[0]
   let parsed_right = parsed_pages[left_count]
   let parsed_left_dest = read_named_destination(parsed, "LeftDest")
@@ -1028,7 +1028,7 @@ async test "e2e merge preserves /Dests dictionary" {
     process_struct_trees=true,
     add_toplevel_document=false,
   )
-  let merged_pages = @pdf.page_reference_numbers(merged)
+  let merged_pages = merged.page_reference_numbers()
   let left_expected = merged_pages[0]
   let right_expected = merged_pages[left_count]
   let left_read = @pdfdest.Destination::read(merged, Name("/LeftDest"))
@@ -1039,7 +1039,7 @@ async test "e2e merge preserves /Dests dictionary" {
   let out_path = OUTPUT_DIR + "/merged_dests_dict.pdf"
   write_pdf(out_path, merged)
   let parsed = read_pdf(out_path)
-  let parsed_pages = @pdf.page_reference_numbers(parsed)
+  let parsed_pages = parsed.page_reference_numbers()
   let parsed_left = parsed_pages[0]
   let parsed_right = parsed_pages[left_count]
   let parsed_left_read = @pdfdest.Destination::read(parsed, Name("/LeftDest"))
@@ -1241,7 +1241,7 @@ async test "e2e merge preserves structure trees" {
     ],
   )
   let left = @pdfpage.PdfPageDoc::new(left0).add_root(left_root, [])
-  let left_refs = @pdf.page_reference_numbers(left)
+  let left_refs = left.page_reference_numbers()
   assert_true(left_refs.length() > 0)
   add_struct_tree_root(left, left_refs[0], 0)
   let right_page = @pdfpage.Page::blank(@pdfpaper.a4)
@@ -1250,7 +1250,7 @@ async test "e2e merge preserves structure trees" {
     ],
   )
   let right = @pdfpage.PdfPageDoc::new(right0).add_root(right_root, [])
-  let right_refs = @pdf.page_reference_numbers(right)
+  let right_refs = right.page_reference_numbers()
   assert_true(right_refs.length() > 0)
   add_struct_tree_root(right, right_refs[0], 0)
   let merged = @pdfmerge.PdfMerger::new(
