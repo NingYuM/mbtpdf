@@ -1,7 +1,7 @@
 ///|
 test "read_ocg returns none without ocproperties" {
   let pdf = @pdfpage.minimum_valid_pdf()
-  match read_ocg(pdf) {
+  match OcgProperties::read(pdf) {
     None => ()
     _ => fail("expected no ocproperties")
   }
@@ -38,7 +38,7 @@ test "read_ocg parses ocproperties" {
   let root = @pdf.lookup_obj(pdf, pdf.root)
   let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
-  let props = match read_ocg(pdf) {
+  let props = match OcgProperties::read(pdf) {
     Some(result) => result
     None => fail("expected ocproperties")
   }
@@ -95,7 +95,9 @@ test "read_ocg parses ocproperties" {
 ///|
 test "read_ocg raises without root" {
   let pdf = @pdf.Pdf::empty()
-  let res : Result[@pdfocg.OcgProperties?, Error] = try? read_ocg(pdf)
+  let res : Result[@pdfocg.OcgProperties?, Error] = try? OcgProperties::read(
+    pdf,
+  )
   match res {
     Err(_) => ()
     _ => fail("expected missing /Root error")
@@ -114,7 +116,9 @@ test "read_ocg raises when ocg is missing name" {
   let root = @pdf.lookup_obj(pdf, pdf.root)
   let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
-  let res : Result[@pdfocg.OcgProperties?, Error] = try? read_ocg(pdf)
+  let res : Result[@pdfocg.OcgProperties?, Error] = try? OcgProperties::read(
+    pdf,
+  )
   match res {
     Err(_) => ()
     _ => fail("expected missing /Name error")
@@ -137,7 +141,7 @@ test "read_ocg uses config defaults" {
   let root = @pdf.lookup_obj(pdf, pdf.root)
   let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
-  let props = match read_ocg(pdf) {
+  let props = match OcgProperties::read(pdf) {
     Some(result) => result
     None => fail("expected ocproperties")
   }
@@ -167,7 +171,7 @@ test "read_ocg parses ocg intent name" {
   let root = @pdf.lookup_obj(pdf, pdf.root)
   let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
-  let props = match read_ocg(pdf) {
+  let props = match OcgProperties::read(pdf) {
     Some(result) => result
     None => fail("expected ocproperties")
   }
@@ -202,7 +206,7 @@ test "read_ocg handles direct ocgs and usage defaults" {
   let root = @pdf.lookup_obj(pdf, pdf.root)
   let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
-  let props = match read_ocg(pdf) {
+  let props = match OcgProperties::read(pdf) {
     Some(result) => result
     None => fail("expected ocproperties")
   }
@@ -234,6 +238,8 @@ test "read_ocg raises without default config" {
   let root = @pdf.lookup_obj(pdf, pdf.root)
   let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
-  let res : Result[@pdfocg.OcgProperties?, Error] = try? read_ocg(pdf)
+  let res : Result[@pdfocg.OcgProperties?, Error] = try? OcgProperties::read(
+    pdf,
+  )
   assert_true(res is Err(_))
 }

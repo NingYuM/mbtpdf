@@ -1178,7 +1178,7 @@ async test "e2e merge preserves OCG configs" {
     [left, right],
     [full_range(page_count(left)), full_range(page_count(right))],
   )
-  match @pdfocg.read_ocg(merged) {
+  match @pdfocg.OcgProperties::read(merged) {
     Some(_) => ()
     None => fail("expected ocg properties")
   }
@@ -1196,7 +1196,7 @@ async test "e2e merge preserves OCG configs" {
   let out_path = OUTPUT_DIR + "/merged_ocg_configs.pdf"
   write_pdf(out_path, merged)
   let parsed = read_pdf(out_path)
-  match @pdfocg.read_ocg(parsed) {
+  match @pdfocg.OcgProperties::read(parsed) {
     Some(_) => ()
     None => fail("expected parsed ocg properties")
   }

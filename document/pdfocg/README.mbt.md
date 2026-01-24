@@ -77,7 +77,7 @@ pub(all) struct OcgProperties {
 Read optional content data from a document.
 
 ```moonbit nocheck
-pub fn read_ocg(pdf : @pdf.Pdf) -> OcgProperties? raise
+pub fn OcgProperties::read(pdf : @pdf.Pdf) -> OcgProperties? raise
 ```
 
 ### write_ocg
@@ -85,7 +85,7 @@ pub fn read_ocg(pdf : @pdf.Pdf) -> OcgProperties? raise
 Write optional content data to a document (placeholder).
 
 ```moonbit nocheck
-pub fn write_ocg(pdf : @pdf.Pdf, ocgprops : OcgProperties) -> Unit
+pub fn OcgProperties::write(self : OcgProperties, pdf : @pdf.Pdf) -> Unit
 ```
 
 ### print_document_ocg

@@ -188,7 +188,8 @@ fn read_individual_ocg(pdf : @pdf.Pdf, ocg : @pdf.PdfObject) -> Ocg raise {
 
 ///|
 /// Read optional content data.
-pub fn read_ocg(pdf : @pdf.Pdf) -> OcgProperties? raise {
+#as_free_fn(read_ocg, deprecated="Use `OcgProperties::read` instead")
+pub fn OcgProperties::read(pdf : @pdf.Pdf) -> OcgProperties? raise {
   match @pdf.lookup_direct(pdf, "/Root", pdf.trailerdict) {
     None => raise @pdf.PdfError::Msg("No /Root")
     Some(root) =>
@@ -229,9 +230,10 @@ pub fn read_ocg(pdf : @pdf.Pdf) -> OcgProperties? raise {
 
 ///|
 /// Write optional content data.
-pub fn write_ocg(pdf : @pdf.Pdf, ocgprops : OcgProperties) -> Unit {
+#as_free_fn(write_ocg, deprecated="Use `OcgProperties::write` instead")
+pub fn OcgProperties::write(self : OcgProperties, pdf : @pdf.Pdf) -> Unit {
   let _ = pdf
-  let _ = ocgprops
+  let _ = self
   ()
 }
 
@@ -262,7 +264,7 @@ fn print_ocg_config(config : OcgConfig) -> Unit {
 /// Print information about the document's Optional Content Groups.
 /// Debug only.
 pub fn print_document_ocg(pdf : @pdf.Pdf) -> Unit raise {
-  match read_ocg(pdf) {
+  match OcgProperties::read(pdf) {
     None =>
       @pdfutil.flprint(
         "There are no optional content groups in this document\n",
