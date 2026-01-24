@@ -4,7 +4,7 @@ async test "channel io helpers roundtrip" {
   @fs.write_file(input_path, "hello", create=0o644, truncate=true)
   let in_file = @fs.open(input_path, mode=ReadOnly)
   let input = @pdfio.input_of_channel(in_file)
-  assert_eq(@pdfio.string_of_input(input), "hello")
+  assert_eq(input.to_string(), "hello")
   in_file.close()
   let in_file2 = @fs.open(input_path, mode=ReadOnly)
   let bytes = @pdfio.bytes_of_input_channel(in_file2)

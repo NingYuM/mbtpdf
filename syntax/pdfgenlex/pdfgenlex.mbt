@@ -82,7 +82,7 @@ fn dropwhite(input : @pdfio.Input) -> Unit {
     } else if is_whitespace_byte(b) {
       ()
     } else {
-      @pdfio.rewind(input)
+      input.rewind()
       done = true
     }
   }
@@ -97,7 +97,7 @@ fn getuntil(input : @pdfio.Input) -> String {
     if b == @pdfio.no_more {
       done = true
     } else if is_whitespace_or_delimiter_byte(b) {
-      @pdfio.rewind(input)
+      input.rewind()
       done = true
     } else {
       bytes.push(b.to_byte())
@@ -138,16 +138,16 @@ fn get_string(input : @pdfio.Input) -> String {
 
 ///|
 fn get_section(input : @pdfio.Input) -> String {
-  match @pdfio.peek_byte(input) {
+  match input.peek_byte() {
     b if b == @pdfio.no_more => ""
     _ => {
       dropwhite(input)
-      match @pdfio.peek_byte(input) {
+      match input.peek_byte() {
         b if b == @pdfio.no_more => ""
         b if b == '"'.to_int() => get_string(input)
         b =>
           if is_delimiter_byte(b) {
-            @pdfio.nudge(input)
+            input.nudge()
             b.to_byte().to_char().to_string()
           } else {
             getuntil(input)

@@ -640,7 +640,7 @@ fn write_pdf_object_to_output(
       if include_stream_data {
         match stream_data {
           @pdf.Stream::Got(bytes) =>
-            @pdfio.getinit(output, bytes, 0, @pdfio.bytes_size(bytes))
+            output.getinit(bytes, 0, @pdfio.bytes_size(bytes))
           _ => ()
         }
       }

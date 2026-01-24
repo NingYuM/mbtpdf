@@ -319,14 +319,14 @@ fn sha512_bytes(
 ///|
 /// SHA-256 digest of the input stream.
 pub fn sha256(input : @pdfio.Input) -> String raise {
-  let bytes = @pdfio.bytes_of_input(input, 0, input.in_channel_length)
+  let bytes = input.bytes_of_input(0, input.in_channel_length)
   @pdfio.string_of_bytes(sha256_bytes(bytes))
 }
 
 ///|
 /// SHA-384 digest of the input stream.
 pub fn sha384(input : @pdfio.Input) -> String raise {
-  let bytes = @pdfio.bytes_of_input(input, 0, input.in_channel_length)
+  let bytes = input.bytes_of_input(0, input.in_channel_length)
   let initial : Array[UInt64] = [
     0xcbbb9d5dc1059ed8, 0x629a292a367cd507, 0x9159015a3070dd17, 0x152fecd8f70e5939,
     0x67332667ffc00b31, 0x8eb44a8768581511, 0xdb0c2e0d64f98fa7, 0x47b5481dbefa4fa4,
@@ -337,7 +337,7 @@ pub fn sha384(input : @pdfio.Input) -> String raise {
 ///|
 /// SHA-512 digest of the input stream.
 pub fn sha512(input : @pdfio.Input) -> String raise {
-  let bytes = @pdfio.bytes_of_input(input, 0, input.in_channel_length)
+  let bytes = input.bytes_of_input(0, input.in_channel_length)
   let initial : Array[UInt64] = [
     0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,
     0x510e527fade682d1, 0x9b05688c2b3e6c1f, 0x1f83d9abfb41bd6b, 0x5be0cd19137e2179,

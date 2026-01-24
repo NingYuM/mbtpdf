@@ -54,7 +54,7 @@ fn decode_asciihex(
       let second = get_streamchar(input)
       if first == '>' {
         enddata = true
-        @pdfio.rewind(input)
+        input.rewind()
       } else {
         let hi = match hex_value(first) {
           Some(v) => v

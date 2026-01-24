@@ -727,7 +727,7 @@ pub fn Op::stream_of_ops(ops : Array[Op]) -> @pdf.PdfObject raise {
 
 ///|
 fn lex_name(input : @pdfio.Input) -> Lexeme raise {
-  @pdfio.nudge(input)
+  input.nudge()
   Lexeme::Obj(
     @pdfgenlex.Token::LexName(
       "/" + @pdfsyntax.getuntil_white_or_delimiter_string(input),
@@ -1076,7 +1076,7 @@ fn lex_inline_image(
       @pdfe.log("warning: bad end to inline image \{end1}, \{end2}\n")
       @pdfsyntax.ignoreuntil(true, chr => chr == 'E', input)
       @pdfsyntax.ignoreuntil(true, chr => chr == 'I', input)
-      @pdfio.nudge(input)
+      input.nudge()
       @pdfsyntax.dropwhite(input)
     }
     let dict_clean = match filter_opt {
@@ -1190,7 +1190,7 @@ fn lex_next(
 ) -> Lexeme raise {
   try {
     @pdfsyntax.dropwhite(input)
-    let next = @pdfio.peek_byte(input)
+    let next = input.peek_byte()
     if next == @pdfio.no_more {
       raise LexingEnd
     }
@@ -1202,17 +1202,17 @@ fn lex_next(
       Some('\'') | Some('\"') => lex_keyword(pdf, resources, input)
       Some('(') => lex_string(input)
       Some('[') => {
-        @pdfio.nudge(input)
+        input.nudge()
         Obj(@pdfgenlex.Token::LexLeftSquare)
       }
       Some(']') => {
-        @pdfio.nudge(input)
+        input.nudge()
         Obj(@pdfgenlex.Token::LexRightSquare)
       }
       Some('<') => {
-        @pdfio.nudge(input)
-        let next_char = @pdfio.peek_char(input)
-        @pdfio.rewind(input)
+        input.nudge()
+        let next_char = input.peek_char()
+        input.rewind()
         match next_char {
           Some('<') => get_dictionary(input)
           _ => lex_hexstring(input)

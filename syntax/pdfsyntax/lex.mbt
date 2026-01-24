@@ -27,7 +27,7 @@ pub fn lex_name(input : @pdfio.Input) -> @pdfgenlex.Token raise {
     } else {
       let c = b.to_byte().to_char()
       if is_whitespace_or_delimiter(c) {
-        @pdfio.rewind(input)
+        input.rewind()
         done = true
       } else if c == '#' {
         let h1 = (input.input_byte)()
@@ -147,7 +147,7 @@ pub fn lex_string(input : @pdfio.Input) -> @pdfgenlex.Token raise {
           '\r' => {
             let next = (input.input_byte)()
             if next != '\n'.to_int() {
-              @pdfio.rewind(input)
+              input.rewind()
             }
           }
           '\n' => ()
@@ -165,11 +165,11 @@ pub fn lex_string(input : @pdfio.Input) -> @pdfgenlex.Token raise {
                   if c3 >= '0' && c3 <= '7' {
                     digits.push(c3)
                   } else {
-                    @pdfio.rewind(input)
+                    input.rewind()
                   }
                 }
               } else {
-                @pdfio.rewind(input)
+                input.rewind()
               }
             }
             let octal = digits.map(c => c.to_string()).join("")
@@ -294,12 +294,12 @@ fn skip_stream_beginning(input : @pdfio.Input) -> Unit raise {
   if first == '\r'.to_int() {
     let second = (input.input_byte)()
     if second != '\n'.to_int() {
-      @pdfio.rewind(input)
+      input.rewind()
     }
   } else if first == '\n'.to_int() {
     ()
   } else {
-    @pdfio.rewind(input)
+    input.rewind()
   }
 }
 
@@ -326,7 +326,7 @@ fn find_endstream(input : @pdfio.Input) -> Int raise {
       done = true
       found_pos = pos
     } else {
-      @pdfio.nudge(input)
+      input.nudge()
     }
   }
   found_pos
@@ -348,7 +348,7 @@ pub fn lex_keyword(input : @pdfio.Input) -> @pdfgenlex.Token raise {
         let extra = kw.length() - 6
         let mut i = 0
         while i < extra {
-          @pdfio.rewind(input)
+          input.rewind()
           i = i + 1
         }
         LexEndObj
@@ -384,7 +384,7 @@ pub fn lex_stream_data(
   if read_data {
     let bytes = @pdfio.mkbytes(length)
     if length > 0 {
-      @pdfio.setinit(input, bytes, 0, length)
+      input.setinit(bytes, 0, length)
     }
     (input.seek_in)(pos + length)
     if is_malformed(input) {
@@ -512,40 +512,40 @@ pub fn lex_next(
       return StopLexing
     }
     let ch = raw.to_byte().to_char()
-    @pdfio.rewind(input)
+    input.rewind()
     match ch {
       '%' => lex_comment(input)
       '/' => lex_name(input)
       '[' => {
-        @pdfio.nudge(input)
+        input.nudge()
         array_level.val = array_level.val + 1
         LexLeftSquare
       }
       ']' => {
-        @pdfio.nudge(input)
+        input.nudge()
         array_level.val = array_level.val - 1
         LexRightSquare
       }
       '(' => lex_string(input)
       '<' => {
-        @pdfio.nudge(input)
-        match @pdfio.peek_byte(input) {
+        input.nudge()
+        match input.peek_byte() {
           b2 if b2 == '<'.to_int() => {
-            @pdfio.nudge(input)
+            input.nudge()
             dict_level.val = dict_level.val + 1
             LexLeftDict
           }
           _ => {
-            @pdfio.rewind(input)
+            input.rewind()
             lex_hexstring(input)
           }
         }
       }
       '>' => {
-        @pdfio.nudge(input)
-        match @pdfio.peek_byte(input) {
+        input.nudge()
+        match input.peek_byte() {
           b2 if b2 == '>'.to_int() => {
-            @pdfio.nudge(input)
+            input.nudge()
             dict_level.val = dict_level.val - 1
             LexRightDict
           }
@@ -553,16 +553,16 @@ pub fn lex_next(
         }
       }
       'R' => {
-        @pdfio.nudge(input)
+        input.nudge()
         LexR
       }
       's' => {
         let _ = (input.input_byte)()
         let _ = (input.input_byte)()
         let third = (input.input_byte)()
-        @pdfio.rewind(input)
-        @pdfio.rewind(input)
-        @pdfio.rewind(input)
+        input.rewind()
+        input.rewind()
+        input.rewind()
         if third == @pdfio.no_more {
           StopLexing
         } else {

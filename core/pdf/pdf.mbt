@@ -747,11 +747,7 @@ pub fn getstream(obj : PdfObject) -> Unit raise {
       match r.val {
         (dict, Stream::ToGet(toget)) => {
           let data = try {
-            let raw = @pdfio.bytes_of_input(
-              toget.input,
-              toget.position,
-              toget.length,
-            )
+            let raw = toget.input.bytes_of_input(toget.position, toget.length)
             process_deferred_cryption(toget.crypt, raw)
           } catch {
             _ => raise PdfError::Msg("getstream: can't read stream")

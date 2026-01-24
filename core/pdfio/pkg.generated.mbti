@@ -31,8 +31,6 @@ pub fn bytes_of_caml_bytes(Bytes) -> Array[Byte]
 
 pub fn bytes_of_charlist(Array[Char]) -> Array[Byte]
 
-pub fn bytes_of_input(Input, Int, Int) -> Array[Byte] raise
-
 pub async fn bytes_of_input_channel(@fs.File) -> Array[Byte]
 
 pub fn bytes_of_int_array(Array[Int]) -> Array[Byte]
@@ -59,8 +57,6 @@ pub fn getbit(Bitstream) -> Bool raise
 
 pub fn getbitint(Bitstream) -> Int raise
 
-pub fn getinit(Output, Array[Byte], Int, Int) -> Unit raise
-
 pub fn input_of_bytes(Array[Byte], source? : String) -> Input
 
 pub async fn input_of_channel(@fs.File, source? : String) -> Input
@@ -81,31 +77,13 @@ pub fn mkbytes(Int) -> Array[Byte]
 
 pub let no_more : Int
 
-pub fn nudge(Input) -> Unit
-
 pub fn output_of_channel(@fs.File) -> Output
-
-pub fn peek_byte(Input) -> Int
-
-pub fn peek_char(Input) -> Char?
 
 pub fn putbit(BitstreamWrite, Int) -> Unit
 
 pub fn putval(BitstreamWrite, Int, Int) -> Unit raise
 
-pub fn read_char_back(Input) -> Char?
-
-pub fn read_line(Input) -> String raise
-
-pub fn read_lines(Input) -> Array[String] raise
-
-pub fn rewind(Input) -> Unit
-
-pub fn setinit(Input, Array[Byte], Int, Int) -> Unit raise
-
 pub fn string_of_bytes(Array[Byte]) -> String
-
-pub fn string_of_input(Input) -> String raise
 
 pub fn string_of_int_array(Array[Int]) -> String
 
@@ -144,6 +122,16 @@ pub struct Input {
   set_offset : (Int) -> Unit
   source : String
 }
+pub fn Input::bytes_of_input(Self, Int, Int) -> Array[Byte] raise
+pub fn Input::nudge(Self) -> Unit
+pub fn Input::peek_byte(Self) -> Int
+pub fn Input::peek_char(Self) -> Char?
+pub fn Input::read_char_back(Self) -> Char?
+pub fn Input::read_line(Self) -> String raise
+pub fn Input::read_lines(Self) -> Array[String] raise
+pub fn Input::rewind(Self) -> Unit
+pub fn Input::setinit(Self, Array[Byte], Int, Int) -> Unit raise
+pub fn Input::to_string(Self) -> String raise
 
 pub struct Output {
   pos_out : () -> Int
@@ -154,6 +142,7 @@ pub struct Output {
   out_channel_length : () -> Int
   flush : async () -> Unit
 }
+pub fn Output::getinit(Self, Array[Byte], Int, Int) -> Unit raise
 
 // Type aliases
 pub type MutableBytes = Array[Byte]

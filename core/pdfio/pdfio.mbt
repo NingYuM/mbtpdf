@@ -321,45 +321,45 @@ pub fn extract_bytes_from_input_output(
 
 ///|
 /// Move forward one byte.
-pub fn nudge(input : Input) -> Unit {
-  ignore((input.input_byte)())
+pub fn Input::nudge(self : Input) -> Unit {
+  ignore((self.input_byte)())
 }
 
 ///|
 /// Move backward one byte.
-pub fn rewind(input : Input) -> Unit {
-  (input.seek_in)((input.pos_in)() - 1)
+pub fn Input::rewind(self : Input) -> Unit {
+  (self.seek_in)((self.pos_in)() - 1)
 }
 
 ///|
 /// Look at the next character without advancing the pointer.
-pub fn peek_char(input : Input) -> Char? {
-  let r = (input.input_char)()
-  rewind(input)
+pub fn Input::peek_char(self : Input) -> Char? {
+  let r = (self.input_char)()
+  self.rewind()
   r
 }
 
 ///|
 /// Look at the next byte without advancing the pointer.
-pub fn peek_byte(input : Input) -> Int {
-  let r = (input.input_byte)()
-  rewind(input)
+pub fn Input::peek_byte(self : Input) -> Int {
+  let r = (self.input_byte)()
+  self.rewind()
   r
 }
 
 ///|
 /// Read the previous character, moving the pointer back one.
-pub fn read_char_back(input : Input) -> Char? {
-  let pos = (input.pos_in)()
-  (input.seek_in)(pos - 1)
-  let chr = (input.input_char)()
-  (input.seek_in)(pos - 1)
+pub fn Input::read_char_back(self : Input) -> Char? {
+  let pos = (self.pos_in)()
+  (self.seek_in)(pos - 1)
+  let chr = (self.input_char)()
+  (self.seek_in)(pos - 1)
   chr
 }
 
 ///|
 /// Read a line from an input (newline not included).
-pub fn read_line(input : Input) -> String raise {
+pub fn Input::read_line(self : Input) -> String raise {
   let sb = StringBuilder::new()
   fn read_more(
     sb : StringBuilder,
@@ -376,30 +376,30 @@ pub fn read_line(input : Input) -> String raise {
     }
   }
 
-  read_more(sb, false, input)
+  read_more(sb, false, self)
 }
 
 ///|
 /// Read all lines from an input.
-pub fn read_lines(input : Input) -> Array[String] raise {
+pub fn Input::read_lines(self : Input) -> Array[String] raise {
   let lines = Array::new()
   fn read_all(lines : Array[String], input : Input) -> Array[String] raise {
-    match peek_char(input) {
+    match input.peek_char() {
       None => lines
       Some(_) => {
-        lines.push(read_line(input))
+        lines.push(input.read_line())
         read_all(lines, input)
       }
     }
   }
 
-  read_all(lines, input)
+  read_all(lines, self)
 }
 
 ///|
 /// Set bytes o..o+l-1 from input.
-pub fn setinit(
-  input : Input,
+pub fn Input::setinit(
+  self : Input,
   bytes : MutableBytes,
   offset : Int,
   length : Int,
@@ -413,33 +413,33 @@ pub fn setinit(
     fail("setinit")
   }
   for i = offset; i < offset + length; i = i + 1 {
-    bytes[i] = (input.input_byte)().to_byte()
+    bytes[i] = (self.input_byte)().to_byte()
   }
 }
 
 ///|
 /// Bytes with input o..o+l-1.
-pub fn bytes_of_input(
-  input : Input,
+pub fn Input::bytes_of_input(
+  self : Input,
   offset : Int,
   length : Int,
 ) -> MutableBytes raise {
-  (input.seek_in)(offset)
+  (self.seek_in)(offset)
   let out = mkbytes(length)
-  setinit(input, out, 0, length)
+  self.setinit(out, 0, length)
   out
 }
 
 ///|
 /// String of input contents.
-pub fn string_of_input(input : Input) -> String raise {
-  string_of_bytes(bytes_of_input(input, 0, input.in_channel_length))
+pub fn Input::to_string(self : Input) -> String raise {
+  string_of_bytes(self.bytes_of_input(0, self.in_channel_length))
 }
 
 ///|
 /// Write bytes o..o+l-1 to output.
-pub fn getinit(
-  output : Output,
+pub fn Output::getinit(
+  self : Output,
   bytes : MutableBytes,
   offset : Int,
   length : Int,
@@ -453,7 +453,7 @@ pub fn getinit(
     fail("getinit")
   }
   for i = offset; i < offset + length; i = i + 1 {
-    (output.output_byte)(bget_unsafe(bytes, i))
+    (self.output_byte)(bget_unsafe(bytes, i))
   }
 }
 
@@ -677,7 +677,7 @@ pub fn debug_next_n_chars(count : Int, input : Input) -> Unit {
   @pdfe.log("\n")
   let mut rewind_count = 0
   while rewind_count < count {
-    rewind(input)
+    input.rewind()
     rewind_count = rewind_count + 1
   }
 }

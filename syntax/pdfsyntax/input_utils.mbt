@@ -51,7 +51,7 @@ pub fn getuntil(
     } else {
       let c = b.to_byte().to_char()
       if pred(c) {
-        @pdfio.rewind(input)
+        input.rewind()
         done = true
       } else {
         out.push(c)
@@ -83,7 +83,7 @@ pub fn getuntil_string(
     } else {
       let c = b.to_byte().to_char()
       if pred(c) {
-        @pdfio.rewind(input)
+        input.rewind()
         done = true
       } else {
         sb.write_char(c)
@@ -112,7 +112,7 @@ pub fn ignoreuntil(
     } else {
       let c = b.to_byte().to_char()
       if pred(c) {
-        @pdfio.rewind(input)
+        input.rewind()
         done = true
       }
     }
@@ -143,7 +143,7 @@ pub fn input_line(input : @pdfio.Input) -> String {
       if is_newline(c) {
         got_eol = true
       } else if got_eol {
-        @pdfio.rewind(input)
+        input.rewind()
         finished = true
       } else {
         sb.write_char(c)
@@ -156,7 +156,7 @@ pub fn input_line(input : @pdfio.Input) -> String {
 ///|
 /// Read back until predicate is true.
 fn read_back_until(pred : (Char) -> Bool, input : @pdfio.Input) -> Unit raise {
-  match @pdfio.read_char_back(input) {
+  match input.read_char_back() {
     Some(ch) => if !pred(ch) { read_back_until(pred, input) }
     None => fail("End_of_file")
   }
@@ -171,7 +171,7 @@ pub fn backline(input : @pdfio.Input) -> Unit raise {
   read_back_until(is_newline, input)
   read_back_until(c => !is_newline(c), input)
   read_back_until(is_newline, input)
-  @pdfio.nudge(input)
+  input.nudge()
 }
 
 ///|

@@ -186,6 +186,6 @@ pub fn read(
   Array[(Int, Int, Int)],
   Array[(String, Int)],
 ) raise {
-  let lines = @pdfio.read_lines(input)
+  let lines = input.read_lines()
   get_tables(lines)
 }

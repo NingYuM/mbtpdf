@@ -144,7 +144,7 @@ fn read_pdf_internal(
         Some(r) => r > current_revision
       }
       let mut trailerdict_current = @pdf.PdfObject::Dictionary([])
-      if @pdfio.peek_char(input) == Some('x') {
+      if input.peek_char() == Some('x') {
         let entries = read_xref(input)
         if !skip {
           add_entries(entries, xrefs)

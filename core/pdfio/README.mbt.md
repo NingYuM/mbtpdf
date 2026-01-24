@@ -137,8 +137,8 @@ test "input_of_string" {
 ///|
 test "peek_byte does not advance" {
   let input = @pdfio.input_of_string("XY")
-  let first = @pdfio.peek_byte(input)
-  let second = @pdfio.peek_byte(input)
+  let first = input.peek_byte()
+  let second = input.peek_byte()
   inspect(first, content="88") // 'X'
   inspect(second, content="88") // still 'X'
 }
@@ -150,8 +150,8 @@ test "peek_byte does not advance" {
 ///|
 test "read_line" {
   let input = @pdfio.input_of_string("line1\nline2\n")
-  inspect(@pdfio.read_line(input), content="line1")
-  inspect(@pdfio.read_line(input), content="line2")
+  inspect(input.read_line(), content="line1")
+  inspect(input.read_line(), content="line2")
 }
 ```
 
@@ -161,7 +161,7 @@ test "read_line" {
 ///|
 test "bytes_of_input extracts range" {
   let input = @pdfio.input_of_string("Hello World")
-  let bytes = @pdfio.bytes_of_input(input, 0, 5)
+  let bytes = input.bytes_of_input(0, 5)
   inspect(@pdfio.string_of_bytes(bytes), content="Hello")
 }
 ```

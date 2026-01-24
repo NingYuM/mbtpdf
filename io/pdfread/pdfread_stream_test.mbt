@@ -52,8 +52,8 @@ test "lex_dictionary parses nested dictionary" {
 ///|
 test "lex_dictionary minus_one accepts preconsumed marker" {
   let input = @pdfio.input_of_string("<< /A 1 >>")
-  @pdfio.nudge(input)
-  @pdfio.nudge(input)
+  input.nudge()
+  input.nudge()
   let tokens = @pdfsyntax.lex_dictionary(true, input)
   let full = Array::new(capacity=tokens.length() + 1)
   full.push(@pdfgenlex.Token::LexLeftDict)

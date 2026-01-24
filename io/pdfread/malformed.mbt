@@ -31,7 +31,7 @@ fn advance_to_integer(input : @pdfio.Input) -> Bool {
     }
     let c = b.to_byte().to_char()
     if is_digit(c) {
-      @pdfio.rewind(input)
+      input.rewind()
       found = true
     }
   }
