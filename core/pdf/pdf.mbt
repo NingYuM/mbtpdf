@@ -1099,10 +1099,7 @@ pub fn Pdf::objiter(
   self : Pdf,
   f : (Int, PdfObject) -> Unit raise?,
 ) -> Unit raise? {
-  let entries = self.objects.objects.to_array()
-  entries.sort_by((a, b) => a.0 - b.0)
-  for entry in entries {
-    let key = entry.0
+  for key in self.objnumbers() {
     f(key, self.lookup_obj(key))
   }
 }
@@ -1369,25 +1366,25 @@ fn Pdf::page_reference_numbers_inner(
   pages_node : PdfObject,
   node_number : Int,
 ) -> Array[Int] {
-  match self.lookup_direct("/Type", pages_node) {
-    Some(Name("/Page")) => [node_number]
-    _ =>
-      match self.lookup_direct("/Kids", pages_node) {
-        Some(Array(elts)) => {
-          let out = Array::new()
-          for elt in elts {
-            match elt {
-              Indirect(i) =>
-                out.append(
-                  self.page_reference_numbers_inner(self.direct(Indirect(i)), i)[:],
-                )
-              _ => ()
-            }
+  if self.lookup_direct("/Type", pages_node) is Some(Name("/Page")) {
+    [node_number]
+  } else {
+    match self.lookup_direct("/Kids", pages_node) {
+      Some(Array(elts)) => {
+        let out = Array::new()
+        for elt in elts {
+          match elt {
+            Indirect(i) =>
+              out.append(
+                self.page_reference_numbers_inner(self.direct(Indirect(i)), i)[:],
+              )
+            _ => ()
           }
-          out
         }
-        _ => [node_number]
+        out
       }
+      _ => [node_number]
+    }
   }
 }
 
