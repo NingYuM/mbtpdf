@@ -18,6 +18,9 @@ pub(all) enum Image {
 } derive(Debug)
 
 ///|
+type PdfObject = @pdf.PdfObject
+
+///|
 fn odd(n : Int) -> Bool {
   n % 2 != 0
 }
@@ -91,20 +94,20 @@ fn decode(
 }
 
 ///|
-fn real_array(values : Array[Double]) -> Array[@pdf.PdfObject] {
+fn real_array(values : Array[Double]) -> Array[PdfObject] {
   let out = Array::new(capacity=values.length())
   for v in values {
-    out.push(@pdf.PdfObject::Real(v))
+    out.push(PdfObject::Real(v))
   }
   out
 }
 
 ///|
-fn repeat_decode_pairs(count : Int) -> Array[@pdf.PdfObject] {
+fn repeat_decode_pairs(count : Int) -> Array[PdfObject] {
   let out = Array::new(capacity=count * 2)
   for _ in 0..<count {
-    out.push(@pdf.PdfObject::Real(0.0))
-    out.push(@pdf.PdfObject::Real(1.0))
+    out.push(PdfObject::Real(0.0))
+    out.push(PdfObject::Real(1.0))
   }
   out
 }
@@ -126,56 +129,50 @@ fn decode_defaults(
             | @pdfspace.ColourSpace::CalGray(_, _, _)
             | @pdfspace.ColourSpace::Separation(_, _, _) =>
               Some(
-                @pdf.PdfObject::Array([
-                  @pdf.PdfObject::Real(0.0),
-                  @pdf.PdfObject::Real(1.0),
-                ]),
+                PdfObject::Array([PdfObject::Real(0.0), PdfObject::Real(1.0)]),
               )
             @pdfspace.ColourSpace::DeviceRGB
             | @pdfspace.ColourSpace::CalRGB(_, _, _, _) =>
               Some(
-                @pdf.PdfObject::Array([
-                  @pdf.PdfObject::Real(0.0),
-                  @pdf.PdfObject::Real(1.0),
-                  @pdf.PdfObject::Real(0.0),
-                  @pdf.PdfObject::Real(1.0),
-                  @pdf.PdfObject::Real(0.0),
-                  @pdf.PdfObject::Real(1.0),
+                PdfObject::Array([
+                  PdfObject::Real(0.0),
+                  PdfObject::Real(1.0),
+                  PdfObject::Real(0.0),
+                  PdfObject::Real(1.0),
+                  PdfObject::Real(0.0),
+                  PdfObject::Real(1.0),
                 ]),
               )
             @pdfspace.ColourSpace::DeviceCMYK =>
               Some(
-                @pdf.PdfObject::Array([
-                  @pdf.PdfObject::Real(0.0),
-                  @pdf.PdfObject::Real(1.0),
-                  @pdf.PdfObject::Real(0.0),
-                  @pdf.PdfObject::Real(1.0),
-                  @pdf.PdfObject::Real(0.0),
-                  @pdf.PdfObject::Real(1.0),
-                  @pdf.PdfObject::Real(0.0),
-                  @pdf.PdfObject::Real(1.0),
+                PdfObject::Array([
+                  PdfObject::Real(0.0),
+                  PdfObject::Real(1.0),
+                  PdfObject::Real(0.0),
+                  PdfObject::Real(1.0),
+                  PdfObject::Real(0.0),
+                  PdfObject::Real(1.0),
+                  PdfObject::Real(0.0),
+                  PdfObject::Real(1.0),
                 ]),
               )
             @pdfspace.ColourSpace::Lab(_, _, range) => {
               let values = Array::new(capacity=range.length() + 2)
-              values.push(@pdf.PdfObject::Real(0.0))
-              values.push(@pdf.PdfObject::Real(1.0))
+              values.push(PdfObject::Real(0.0))
+              values.push(PdfObject::Real(1.0))
               values.append(real_array(range))
-              Some(@pdf.PdfObject::Array(values))
+              Some(PdfObject::Array(values))
             }
             @pdfspace.ColourSpace::ICCBased(icc) =>
-              Some(@pdf.PdfObject::Array(real_array(icc.icc_range)))
+              Some(PdfObject::Array(real_array(icc.icc_range)))
             @pdfspace.ColourSpace::Indexed(_, _) =>
               Some(
-                @pdf.PdfObject::Array([
-                  @pdf.PdfObject::Real(0.0),
-                  @pdf.PdfObject::Real(1.0),
-                ]),
+                PdfObject::Array([PdfObject::Real(0.0), PdfObject::Real(1.0)]),
               )
             @pdfspace.ColourSpace::Pattern
             | @pdfspace.ColourSpace::PatternWithBaseColourspace(_) => None
             @pdfspace.ColourSpace::DeviceN(names, _, _, _) =>
-              Some(@pdf.PdfObject::Array(repeat_decode_pairs(names.length())))
+              Some(PdfObject::Array(repeat_decode_pairs(names.length())))
           }
       }
     Some(_) =>
@@ -769,7 +766,7 @@ pub fn Image::colspace(
             Some(Name(name)) =>
               match pdf.lookup_direct(name, dict_obj) {
                 Some(found) => found
-                None => @pdf.PdfObject::Name(name)
+                None => PdfObject::Name(name)
               }
             Some(c) => c
             None => raise @pdf.PdfError::Msg("Pdf image: no colourspace")
@@ -791,7 +788,7 @@ pub fn Image::bpc(pdf : @pdf.Pdf, dict : @pdf.PdfObject) -> @pdf.PdfObject? {
     Some(bpc) => Some(bpc)
     None =>
       match pdf.lookup_direct("/ImageMask", dict) {
-        Some(Boolean(true)) => Some(@pdf.PdfObject::Integer(1))
+        Some(Boolean(true)) => Some(PdfObject::Integer(1))
         _ => None
       }
   }
