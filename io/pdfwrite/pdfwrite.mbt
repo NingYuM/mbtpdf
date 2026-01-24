@@ -9,6 +9,9 @@ pub fn PdfWrite::new() -> PdfWrite {
 }
 
 ///|
+type PdfObject = @pdf.PdfObject
+
+///|
 fn trim_trailing_zeros(value : String) -> String {
   let dot = value.find(".")
   match dot {
@@ -344,10 +347,10 @@ fn generate_object_stream_hints(
     let objnum = pair.0
     let obj = pdf.lookup_obj(objnum)
     match obj {
-      @pdf.PdfObject::Stream(r) => {
+      PdfObject::Stream(r) => {
         let (dict, _) = r.val
         match pdf.lookup_direct("/Length", dict) {
-          Some(@pdf.PdfObject::Indirect(i)) => indirect_lengths.set(i, true)
+          Some(PdfObject::Indirect(i)) => indirect_lengths.set(i, true)
           _ => ()
         }
       }
@@ -368,7 +371,7 @@ fn generate_object_stream_hints(
     }
     let obj = pdf.lookup_obj(objnum)
     match obj {
-      @pdf.PdfObject::Stream(_) => ()
+      PdfObject::Stream(_) => ()
       _ => candidates.push(objnum)
     }
   }
@@ -396,7 +399,7 @@ fn build_object_stream_groups(pdf : @pdf.Pdf) -> Array[(Int, Array[Int])] {
     }
     let obj = pdf.lookup_obj(objnum)
     match obj {
-      @pdf.PdfObject::Stream(_) => {
+      PdfObject::Stream(_) => {
         pdf.objects.object_stream_ids.remove(objnum)
         continue
       }
@@ -465,13 +468,13 @@ fn bake_object_streams(
       data_sb.write_string(s)
     }
     let data = @pdfio.bytes_of_string(data_sb.to_string())
-    let dict = @pdf.PdfObject::Dictionary([
-      ("/Type", @pdf.PdfObject::Name("/ObjStm")),
-      ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
-      ("/N", @pdf.PdfObject::Integer(objs.length())),
-      ("/First", @pdf.PdfObject::Integer(first)),
+    let dict = PdfObject::Dictionary([
+      ("/Type", PdfObject::Name("/ObjStm")),
+      ("/Length", PdfObject::Integer(@pdfio.bytes_size(data))),
+      ("/N", PdfObject::Integer(objs.length())),
+      ("/First", PdfObject::Integer(first)),
     ])
-    let mut stream_obj = @pdf.PdfObject::Stream(
+    let mut stream_obj = PdfObject::Stream(
       Ref::new((dict, @pdf.Stream::Got(data))),
     )
     if compress {
@@ -479,13 +482,13 @@ fn bake_object_streams(
       if @pdfio.bytes_size(encoded) + 20 < @pdfio.bytes_size(data) {
         let dict_with_filter = dict.add_entry(
           "/Filter",
-          @pdf.PdfObject::Name("/FlateDecode"),
+          PdfObject::Name("/FlateDecode"),
         )
         let dict_with_length = dict_with_filter.add_entry(
           "/Length",
-          @pdf.PdfObject::Integer(@pdfio.bytes_size(encoded)),
+          PdfObject::Integer(@pdfio.bytes_size(encoded)),
         )
-        stream_obj = @pdf.PdfObject::Stream(
+        stream_obj = PdfObject::Stream(
           Ref::new((dict_with_length, @pdf.Stream::Got(encoded))),
         )
       }
@@ -548,29 +551,29 @@ fn build_xref_stream(
   let data = output.extract_bytes(buffer)
   let dict_with_type = pdf.trailerdict.add_entry(
     "/Type",
-    @pdf.PdfObject::Name("/XRef"),
+    PdfObject::Name("/XRef"),
   )
   let dict_with_size = dict_with_type.add_entry(
     "/Size",
-    @pdf.PdfObject::Integer(size),
+    PdfObject::Integer(size),
   )
   let dict_with_root = dict_with_size.add_entry(
     "/Root",
-    @pdf.PdfObject::Indirect(pdf.root),
+    PdfObject::Indirect(pdf.root),
   )
   let dict_with_w = dict_with_root.add_entry(
     "/W",
-    @pdf.PdfObject::Array([
-      @pdf.PdfObject::Integer(w1),
-      @pdf.PdfObject::Integer(w2),
-      @pdf.PdfObject::Integer(w3),
+    PdfObject::Array([
+      PdfObject::Integer(w1),
+      PdfObject::Integer(w2),
+      PdfObject::Integer(w3),
     ]),
   )
   let dict_with_length = dict_with_w.add_entry(
     "/Length",
-    @pdf.PdfObject::Integer(@pdfio.bytes_size(data)),
+    PdfObject::Integer(@pdfio.bytes_size(data)),
   )
-  let stream_obj = @pdf.PdfObject::Stream(
+  let stream_obj = PdfObject::Stream(
     Ref::new((dict_with_length, @pdf.Stream::Got(data))),
   )
   stream_obj
@@ -588,11 +591,11 @@ fn write_pdf_object_to_output(
   }
 
   match obj {
-    @pdf.PdfObject::Null => write_str("null")
-    @pdf.PdfObject::Boolean(b) => write_str(if b { "true" } else { "false" })
-    @pdf.PdfObject::Integer(i) => write_str(i.to_string())
-    @pdf.PdfObject::Real(r) => write_str(format_real(r))
-    @pdf.PdfObject::String(s) =>
+    PdfObject::Null => write_str("null")
+    PdfObject::Boolean(b) => write_str(if b { "true" } else { "false" })
+    PdfObject::Integer(i) => write_str(i.to_string())
+    PdfObject::Real(r) => write_str(format_real(r))
+    PdfObject::String(s) =>
       write_str(
         if hex_strings {
           make_hex_pdf_string(s)
@@ -600,8 +603,8 @@ fn write_pdf_object_to_output(
           make_pdf_string(s)
         },
       )
-    @pdf.PdfObject::Name(n) => write_str(make_pdf_name(n))
-    @pdf.PdfObject::Array(values) => {
+    PdfObject::Name(n) => write_str(make_pdf_name(n))
+    PdfObject::Array(values) => {
       write_str("[")
       for i in 0..<values.length() {
         if i > 0 {
@@ -616,7 +619,7 @@ fn write_pdf_object_to_output(
       }
       write_str("]")
     }
-    @pdf.PdfObject::Dictionary(entries) => {
+    PdfObject::Dictionary(entries) => {
       write_str("<<")
       for i in 0..<entries.length() {
         let (key, value) = entries[i]
@@ -632,7 +635,7 @@ fn write_pdf_object_to_output(
       }
       write_str(">>")
     }
-    @pdf.PdfObject::Stream(r) => {
+    PdfObject::Stream(r) => {
       if include_stream_data {
         let _ = obj.getstream() catch { _ => () }
 
@@ -649,7 +652,7 @@ fn write_pdf_object_to_output(
       }
       write_str("\nendstream")
     }
-    @pdf.PdfObject::Indirect(n) => write_str("\{n} 0 R")
+    PdfObject::Indirect(n) => write_str("\{n} 0 R")
   }
 }
 
@@ -661,14 +664,13 @@ fn write_pdf_object(
   sb : StringBuilder,
 ) -> Unit {
   match obj {
-    @pdf.PdfObject::Null => sb.write_string("null")
-    @pdf.PdfObject::Boolean(b) =>
-      sb.write_string(if b { "true" } else { "false" })
-    @pdf.PdfObject::Integer(i) => sb.write_string(i.to_string())
-    @pdf.PdfObject::Real(r) => sb.write_string(format_real(r))
-    @pdf.PdfObject::String(s) => sb.write_string(make_pdf_string(s))
-    @pdf.PdfObject::Name(n) => sb.write_string(make_pdf_name(n))
-    @pdf.PdfObject::Array(values) => {
+    PdfObject::Null => sb.write_string("null")
+    PdfObject::Boolean(b) => sb.write_string(if b { "true" } else { "false" })
+    PdfObject::Integer(i) => sb.write_string(i.to_string())
+    PdfObject::Real(r) => sb.write_string(format_real(r))
+    PdfObject::String(s) => sb.write_string(make_pdf_string(s))
+    PdfObject::Name(n) => sb.write_string(make_pdf_name(n))
+    PdfObject::Array(values) => {
       sb.write_char('[')
       for i in 0..<values.length() {
         if i > 0 {
@@ -678,7 +680,7 @@ fn write_pdf_object(
       }
       sb.write_char(']')
     }
-    @pdf.PdfObject::Dictionary(entries) => {
+    PdfObject::Dictionary(entries) => {
       sb.write_string("<<")
       for i in 0..<entries.length() {
         let (key, value) = entries[i]
@@ -691,7 +693,7 @@ fn write_pdf_object(
       }
       sb.write_string(">>")
     }
-    @pdf.PdfObject::Stream(r) => {
+    PdfObject::Stream(r) => {
       let (dict, _) = r.val
       write_pdf_object(dict, include_stream_data, warn_on_toget, sb)
       sb.write_string("\nstream\n")
@@ -710,7 +712,7 @@ fn write_pdf_object(
       }
       sb.write_string("\nendstream")
     }
-    @pdf.PdfObject::Indirect(n) => sb.write_string("\{n} 0 R")
+    PdfObject::Indirect(n) => sb.write_string("\{n} 0 R")
   }
 }
 
@@ -916,8 +918,8 @@ pub fn PdfWrite::pdf_to_output(
     }
     (output.output_string)("trailer\n")
     let trailerdict = pdf.trailerdict
-      .add_entry("/Size", @pdf.PdfObject::Integer(size))
-      .add_entry("/Root", @pdf.PdfObject::Indirect(pdf.root))
+      .add_entry("/Size", PdfObject::Integer(size))
+      .add_entry("/Root", PdfObject::Indirect(pdf.root))
     write_pdf_object_to_output(trailerdict, output, false, true)
     (output.output_string)("\nstartxref\n")
     (output.output_string)("\{xref_start}\n%%EOF\n")
