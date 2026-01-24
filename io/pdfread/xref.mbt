@@ -81,6 +81,7 @@ fn read_xref_line(input : @pdfio.Input) -> XRefLine raise {
     return read_xref_line(input)
   }
   let chars = line.to_array()
+  // TODO(upstream): add array.get_slice(0,18) that returns Option<Array[Char]>
   let offset_opt = if chars.length() >= 18 {
     parse_digits(chars, 0, 10)
   } else {
@@ -94,39 +95,32 @@ fn read_xref_line(input : @pdfio.Input) -> XRefLine raise {
   match (offset_opt, gen_opt) {
     (Some(offset), Some(gen)) =>
       match chars.get(17) {
-        Some('n') => return XRefLine::Valid(offset, gen)
-        Some('f') => return XRefLine::Free(offset, gen)
-        Some(_) => return XRefLine::Invalid
-        None => return XRefLine::Invalid
+        Some('n') => return Valid(offset, gen)
+        Some('f') => return Free(offset, gen)
+        Some(_) => return Invalid
+        None => return Invalid
       }
     _ => ()
   }
   match chars.get(17) {
-    Some('n') =>
-      if parse_digits(chars, 0, 10) is Some(0) {
-        return XRefLine::Free(0, 0)
-      }
+    Some('n') => if parse_digits(chars, 0, 10) is Some(0) { return Free(0, 0) }
     _ => ()
   }
   if line.has_prefix("trailer") {
     let leading_spaces = count_leading_spaces(chars)
     (input.seek_in)(pos + 7 + leading_spaces)
-    return XRefLine::Finished
+    return Finished
   }
   let parts = split_fields(line)
-  let mut start_index = 0
-  if parts.length() >= 3 && parts.get(0) is Some("xref") {
-    start_index = 1
-  }
-  match parts.sub(start=start_index) {
-    [first, second, ..] =>
+  match parts {
+    ["xref", first, second, ..] | [first, second, ..] =>
       match (parse_uint_string(first), parse_uint_string(second)) {
-        (Some(s), Some(l)) => return XRefLine::Section(s, l)
+        (Some(s), Some(l)) => return Section(s, l)
         _ => ()
       }
     _ => ()
   }
-  XRefLine::Invalid
+  Invalid
 }
 
 ///|
@@ -141,21 +135,21 @@ fn read_xref(input : @pdfio.Input) -> Array[(Int, XRef)] raise {
   let mut objnumber = 0
   while !finished {
     match read_xref_line(input) {
-      XRefLine::Invalid => fail_read()
-      XRefLine::Valid(offset, gen) => {
+      Invalid => fail_read()
+      Valid(offset, gen) => {
         xrefs.push((objnumber, XRef::Plain(offset, gen)))
         objnumber = objnumber + 1
       }
-      XRefLine::Free(offset, gen) => {
+      Free(offset, gen) => {
         ignore(offset)
         ignore(gen)
         objnumber = objnumber + 1
       }
-      XRefLine::Section(start, len) => {
+      Section(start, len) => {
         ignore(len)
         objnumber = start
       }
-      XRefLine::Finished => finished = true
+      Finished => finished = true
       _ => ()
     }
   }
@@ -189,10 +183,10 @@ fn read_xref_line_stream(
   let f2 = read_field(w2)
   let f3 = read_field(w3)
   match f1 {
-    0 => XRefLine::StreamFree(f2, f3)
-    1 => XRefLine::Valid(f2, f3)
-    2 => XRefLine::InObjectStream(f2, f3)
-    _ => XRefLine::XRefNull
+    0 => StreamFree(f2, f3)
+    1 => Valid(f2, f3)
+    2 => InObjectStream(f2, f3)
+    _ => XRefNull
   }
 }
 
@@ -283,19 +277,11 @@ fn read_xref_stream(
   @pdfcodec.PdfCodec::new().decode_pdfstream(@pdf.Pdf::empty(), stream_obj)
   stream_obj.getstream()
   let (w1, w2, w3) = match @pdf.Pdf::empty().lookup_direct("/W", stream_obj) {
-    Some(
-      @pdf.PdfObject::Array(
-        [
-          @pdf.PdfObject::Integer(a),
-          @pdf.PdfObject::Integer(b),
-          @pdf.PdfObject::Integer(c),
-        ]
-      )
-    ) => (a, b, c)
+    Some(Array([Integer(a), Integer(b), Integer(c)])) => (a, b, c)
     _ => raise err
   }
   let raw_input = match stream_obj {
-    @pdf.PdfObject::Stream(r) =>
+    Stream(r) =>
       match r.val {
         (_, @pdf.Stream::Got(bytes)) => @pdfio.Input::of_bytes(bytes)
         _ => raise err
@@ -312,13 +298,12 @@ fn read_xref_stream(
   }
   let starts_and_lens = match
     @pdf.Pdf::empty().lookup_direct("/Index", stream_obj) {
-    Some(@pdf.PdfObject::Array(elts)) => {
+    Some(Array(elts)) => {
       let pairs = Array::new()
       let mut i = 0
       while i < elts.length() {
         match (elts.get(i), elts.get(i + 1)) {
-          (Some(@pdf.PdfObject::Integer(s)), Some(@pdf.PdfObject::Integer(l))) =>
-            pairs.push((s, l))
+          (Some(Integer(s)), Some(Integer(l))) => pairs.push((s, l))
           _ =>
             raise @pdf.PdfError::Msg(
               @pdf.input_pdferror(input, "Bad /Index entry"),
@@ -353,15 +338,15 @@ fn read_xref_stream(
           raise @pdf.PdfError::Msg(
             @pdf.input_pdferror(input, "Bad xref stream"),
           )
-        Some(XRefLine::Valid(offset, gen)) =>
+        Some(Valid(offset, gen)) =>
           xrefs.push((objnumber, XRef::Plain(offset, gen)))
-        Some(XRefLine::InObjectStream(stream, index)) =>
+        Some(InObjectStream(stream, index)) =>
           xrefs.push((objnumber, XRef::Stream(stream, index)))
-        Some(XRefLine::StreamFree(offset, gen)) => {
+        Some(StreamFree(offset, gen)) => {
           ignore(offset)
           ignore(gen)
         }
-        Some(XRefLine::XRefNull) => ()
+        Some(XRefNull) => ()
         _ => ()
       }
       objnumber = objnumber + 1
