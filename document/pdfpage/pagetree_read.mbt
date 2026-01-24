@@ -1,7 +1,7 @@
 ///|
 fn remove_dict_entries(
-  entries : Array[(String, @pdf.PdfObject)],
-) -> Array[(String, @pdf.PdfObject)] {
+  entries : Array[(String, PdfObject)],
+) -> Array[(String, PdfObject)] {
   entries.filter(entry => {
     let key = entry.0
     let keep = key != "/Resources" &&
@@ -15,47 +15,45 @@ fn remove_dict_entries(
 }
 
 ///|
-let last_mediabox_seen : Ref[@pdf.PdfObject] = {
-  val: @pdf.PdfObject::Array([
-    @pdf.PdfObject::Integer(0),
-    @pdf.PdfObject::Integer(0),
-    @pdf.PdfObject::Integer(612),
-    @pdf.PdfObject::Integer(792),
+let last_mediabox_seen : Ref[PdfObject] = {
+  val: PdfObject::Array([
+    PdfObject::Integer(0),
+    PdfObject::Integer(0),
+    PdfObject::Integer(612),
+    PdfObject::Integer(792),
   ]),
 }
 
 ///|
 fn find_pages(
-  pages : @pdf.PdfObject,
+  pages : PdfObject,
   pdf : @pdf.Pdf,
-  resources : @pdf.PdfObject?,
-  mediabox : @pdf.PdfObject?,
+  resources : PdfObject?,
+  mediabox : PdfObject?,
   rotate : Rotation,
 ) -> Array[Page] raise {
   match pages {
-    @pdf.PdfObject::Null => []
+    Null => []
     _ => {
       let typ = pdf.lookup_direct("/Type", pages)
       match typ {
-        Some(@pdf.PdfObject::Name("/Pages")) | None => {
+        Some(Name("/Pages")) | None => {
           let kids = match
             pdf.lookup_fail("No /Kids in page tree", "/Kids", pages) {
-            @pdf.PdfObject::Array(values) => values
+            Array(values) => values
             _ => raise @pdf.PdfError::Msg("Malformed /Kids in page tree node")
           }
           let kid_objects = Array::new(capacity=kids.length())
           for kid in kids {
             match kid {
-              @pdf.PdfObject::Indirect(k) => {
+              Indirect(k) => {
                 let obj = pdf.lookup_obj(k)
                 match obj {
-                  @pdf.PdfObject::Null =>
-                    raise @pdf.PdfError::Msg("missing kid")
+                  Null => raise @pdf.PdfError::Msg("missing kid")
                   _ => kid_objects.push(obj)
                 }
               }
-              @pdf.PdfObject::Dictionary(d) =>
-                kid_objects.push(@pdf.PdfObject::Dictionary(d))
+              Dictionary(d) => kid_objects.push(PdfObject::Dictionary(d))
               _ => raise @pdf.PdfError::Msg("malformed kid")
             }
           }
@@ -68,7 +66,7 @@ fn find_pages(
             None => mediabox
           }
           let rotate = match pdf.lookup_direct("/Rotate", pages) {
-            Some(@pdf.PdfObject::Integer(r)) => Rotation::from_int(r)
+            Some(Integer(r)) => Rotation::from_int(r)
             _ => rotate
           }
           let out = Array::new()
@@ -87,27 +85,26 @@ fn find_pages(
             None => mediabox
           }
           let contents = match pages {
-            @pdf.PdfObject::Dictionary(_) =>
+            Dictionary(_) =>
               match pages.lookup_immediate("/Contents") {
-                Some(@pdf.PdfObject::Indirect(i)) =>
+                Some(Indirect(i)) =>
                   match pdf.lookup_obj(i) {
-                    @pdf.PdfObject::Array(a) => Some(@pdf.PdfObject::Array(a))
-                    _ =>
-                      Some(@pdf.PdfObject::Array([@pdf.PdfObject::Indirect(i)]))
+                    Array(a) => Some(PdfObject::Array(a))
+                    _ => Some(PdfObject::Array([PdfObject::Indirect(i)]))
                   }
                 _ => pdf.lookup_direct("/Contents", pages)
               }
             _ => raise @pdf.PdfError::Msg("Pages not a dictionary")
           }
           let rotate = match pdf.lookup_direct("/Rotate", pages) {
-            Some(@pdf.PdfObject::Integer(r)) => Rotation::from_int(r)
+            Some(Integer(r)) => Rotation::from_int(r)
             _ => rotate
           }
           let content = match contents {
             None => []
-            Some(@pdf.PdfObject::Array(cs)) =>
+            Some(Array(cs)) =>
               cs.filter_map(c => match pdf.direct(c) {
-                @pdf.PdfObject::Stream(_) => Some(c)
+                Stream(_) => Some(c)
                 _ => {
                   @pdfe.Pdfe::new().log(
                     "Page /Contents not a stream: ignoring.\n",
@@ -117,7 +114,7 @@ fn find_pages(
               })
             Some(obj) =>
               match pdf.direct(obj) {
-                @pdf.PdfObject::Stream(_) => [obj]
+                Stream(_) => [obj]
                 _ => {
                   @pdfe.Pdfe::new().log(
                     "Page /Contents not a stream: ignoring.\n",
@@ -140,11 +137,10 @@ fn find_pages(
           }
           let resources = match resources {
             Some(r) => r
-            None => @pdf.PdfObject::Dictionary([])
+            None => PdfObject::Dictionary([])
           }
           let rest = match pages {
-            @pdf.PdfObject::Dictionary(d) =>
-              @pdf.PdfObject::Dictionary(remove_dict_entries(d))
+            Dictionary(d) => PdfObject::Dictionary(remove_dict_entries(d))
             _ => raise @pdf.PdfError::Msg("Bad /Pages")
           }
           [{ resources, content, mediabox, rotate, rest }]
@@ -161,12 +157,12 @@ pub fn PdfPageDoc::pages_of_pagetree(self : PdfPageDoc) -> Array[Page] raise {
   let pdf = self.pdf
   let document_catalog = pdf.lookup_obj(pdf.root)
   match document_catalog {
-    @pdf.PdfObject::Null => raise @pdf.PdfError::Msg("/Root entry is incorrect")
+    Null => raise @pdf.PdfError::Msg("/Root entry is incorrect")
     _ => {
       let pages = pdf.lookup_fail(
         "No or malformed /Pages", "/Pages", document_catalog,
       )
-      find_pages(pages, pdf, None, None, Rotation::Rotate0)
+      find_pages(pages, pdf, None, None, Rotate0)
     }
   }
 }
@@ -174,7 +170,7 @@ pub fn PdfPageDoc::pages_of_pagetree(self : PdfPageDoc) -> Array[Page] raise {
 ///|
 fn find_pages_quick(
   count : Int,
-  pages : @pdf.PdfObject,
+  pages : PdfObject,
   pdf : @pdf.Pdf,
   stack : Map[Int, Bool],
 ) -> Int raise {
@@ -184,7 +180,7 @@ fn find_pages_quick(
   let mut resolved = pages
   let mut objnum : Int? = None
   match pages {
-    @pdf.PdfObject::Indirect(k) => {
+    Indirect(k) => {
       if stack.contains(k) {
         raise @pdf.PdfError::Msg("cycle in page tree")
       }
@@ -192,27 +188,27 @@ fn find_pages_quick(
       objnum = Some(k)
       let resolved_obj = pdf.lookup_obj(k)
       match resolved_obj {
-        @pdf.PdfObject::Null => raise @pdf.PdfError::Msg("missing kid")
+        Null => raise @pdf.PdfError::Msg("missing kid")
         _ => resolved = resolved_obj
       }
     }
     _ => ()
   }
   let total = match resolved {
-    @pdf.PdfObject::Null => 0
+    Null => 0
     _ => {
       let typ = pdf.lookup_direct("/Type", resolved)
       match typ {
-        Some(@pdf.PdfObject::Name("/Pages")) | None => {
+        Some(Name("/Pages")) | None => {
           let kids = match
             pdf.lookup_fail("No /Kids in page tree", "/Kids", resolved) {
-            @pdf.PdfObject::Array(values) => values
+            Array(values) => values
             _ => raise @pdf.PdfError::Msg("Malformed /Kids in page tree node")
           }
           let mut total = 0
           for kid in kids {
             match kid {
-              @pdf.PdfObject::Indirect(_) | @pdf.PdfObject::Dictionary(_) =>
+              Indirect(_) | Dictionary(_) =>
                 total = total + find_pages_quick(count + 1, kid, pdf, stack)
               _ => raise @pdf.PdfError::Msg("malformed kid")
             }
@@ -237,7 +233,7 @@ pub fn PdfPageDoc::pages_of_pagetree_quick(self : PdfPageDoc) -> Int raise {
   let pdf = self.pdf
   let document_catalog = pdf.lookup_obj(pdf.root)
   match document_catalog {
-    @pdf.PdfObject::Null => raise @pdf.PdfError::Msg("/Root entry is incorrect")
+    Null => raise @pdf.PdfError::Msg("/Root entry is incorrect")
     _ => {
       let pages = pdf.lookup_fail(
         "No or malformed /Pages", "/Pages", document_catalog,
@@ -269,13 +265,13 @@ pub fn PdfPageDoc::endpage_fast(self : PdfPageDoc) -> Int raise {
   let pdf = self.pdf
   let document_catalog = pdf.lookup_obj(pdf.root)
   match document_catalog {
-    @pdf.PdfObject::Null => raise @pdf.PdfError::Msg("/Root entry is incorrect")
+    Null => raise @pdf.PdfError::Msg("/Root entry is incorrect")
     _ => {
       let pages = pdf.lookup_fail(
         "No or malformed /Pages", "/Pages", document_catalog,
       )
       match pdf.lookup_direct("/Count", pages) {
-        Some(@pdf.PdfObject::Integer(i)) => i
+        Some(Integer(i)) => i
         _ => 0
       }
     }
