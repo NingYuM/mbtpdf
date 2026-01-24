@@ -1,6 +1,6 @@
 ///|
 test "lex quoted string with escaped quote" {
-  let tokens = @pdfgenlex.lex_string("\"a\\\"b\"")
+  let tokens = @pdfgenlex.PdfGenLex::new().lex_string("\"a\\\"b\"")
   if tokens.length() != 1 {
     fail("expected single token")
   }
@@ -17,7 +17,7 @@ test "string_of_tokens formats values" {
     @pdfgenlex.Token::LexReal(1.5),
     @pdfgenlex.Token::LexName("abc"),
   ]
-  let rendered = @pdfgenlex.string_of_tokens(tokens)
+  let rendered = @pdfgenlex.PdfGenLex::new().string_of_tokens(tokens)
   assert_true(rendered.contains("Int 1"))
   assert_true(rendered.contains("Float 1.5"))
   assert_true(rendered.contains("Ident abc"))
@@ -25,7 +25,7 @@ test "string_of_tokens formats values" {
 
 ///|
 test "lex_string parses numbers and names" {
-  let tokens = @pdfgenlex.lex_string("10 -5 3.14 -2.5e2 name")
+  let tokens = @pdfgenlex.PdfGenLex::new().lex_string("10 -5 3.14 -2.5e2 name")
   assert_eq(tokens.length(), 5)
   match tokens[0] {
     @pdfgenlex.Token::LexInt(10) => ()
@@ -51,31 +51,36 @@ test "lex_string parses numbers and names" {
 
 ///|
 test "lex_string ignores whitespace-only input" {
-  let tokens = @pdfgenlex.lex_string(" \n\t ")
+  let tokens = @pdfgenlex.PdfGenLex::new().lex_string(" \n\t ")
   assert_eq(tokens.length(), 0)
 }
 
 ///|
 test "string_of_token covers extra variants" {
   assert_eq(
-    @pdfgenlex.string_of_token(@pdfgenlex.Token::LexString("hi")),
+    @pdfgenlex.PdfGenLex::new().string_of_token(
+      @pdfgenlex.Token::LexString("hi"),
+    ),
     "String hi",
   )
-  assert_eq(@pdfgenlex.string_of_token(@pdfgenlex.Token::LexNull), "Nothing")
   assert_eq(
-    @pdfgenlex.string_of_token(@pdfgenlex.Token::LexLeftDict),
+    @pdfgenlex.PdfGenLex::new().string_of_token(@pdfgenlex.Token::LexNull),
+    "Nothing",
+  )
+  assert_eq(
+    @pdfgenlex.PdfGenLex::new().string_of_token(@pdfgenlex.Token::LexLeftDict),
     "GenLexNone",
   )
 }
 
 ///|
 test "string_of_tokens handles empty list" {
-  assert_eq(@pdfgenlex.string_of_tokens([]), "")
+  assert_eq(@pdfgenlex.PdfGenLex::new().string_of_tokens([]), "")
 }
 
 ///|
 test "lex_string tokenizes delimiter characters" {
-  let tokens = @pdfgenlex.lex_string("()<>[]{}%/")
+  let tokens = @pdfgenlex.PdfGenLex::new().lex_string("()<>[]{}%/")
   let expected = ["(", ")", "<", ">", "[", "]", "{", "}", "%", "/"]
   assert_eq(tokens.length(), expected.length())
   for i in 0..<expected.length() {
@@ -90,7 +95,7 @@ test "lex_string tokenizes delimiter characters" {
 test "lex_string handles malformed strings" {
   let cases = [("\"x", ""), ("\"a\\", ""), ("\"a\\n\"", "a\\n")]
   for pair in cases {
-    let tokens = @pdfgenlex.lex_string(pair.0)
+    let tokens = @pdfgenlex.PdfGenLex::new().lex_string(pair.0)
     if tokens.length() != 1 {
       fail("expected single token")
     }
@@ -103,7 +108,7 @@ test "lex_string handles malformed strings" {
 
 ///|
 test "lex_string treats invalid exponential as name" {
-  let tokens = @pdfgenlex.lex_string("1e--2")
+  let tokens = @pdfgenlex.PdfGenLex::new().lex_string("1e--2")
   if tokens.length() != 1 {
     fail("expected single token")
   }
@@ -116,7 +121,7 @@ test "lex_string treats invalid exponential as name" {
 ///|
 test "lex_string parses huge integer as real" {
   let big = "999999999999999999999999999999999999999999"
-  let tokens = @pdfgenlex.lex_string(big)
+  let tokens = @pdfgenlex.PdfGenLex::new().lex_string(big)
   if tokens.length() != 1 {
     fail("expected single token")
   }
@@ -128,7 +133,7 @@ test "lex_string parses huge integer as real" {
 
 ///|
 test "lex_string handles double dash numbers" {
-  let tokens = @pdfgenlex.lex_string("--5")
+  let tokens = @pdfgenlex.PdfGenLex::new().lex_string("--5")
   if tokens.length() != 1 {
     fail("expected single token")
   }

@@ -381,7 +381,7 @@ fn parse_calculator_tokens(
 
 ///|
 fn parse_calculator(text : String) -> Array[Calculator] raise {
-  let tokens = @pdfgenlex.lex(@pdfio.input_of_string(text))
+  let tokens = @pdfgenlex.PdfGenLex::new().lex(@pdfio.input_of_string(text))
   parse_calculator_tokens(tokens)
 }
 
