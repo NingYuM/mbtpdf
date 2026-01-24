@@ -3,16 +3,16 @@ fn bytes_from_runs(
   start_white : Bool,
   runs : Array[Int],
 ) -> @pdfio.MutableBytes {
-  let writer = @pdfio.make_write_bitstream()
+  let writer = @pdfio.BitstreamWrite::new()
   let mut white = start_white
   for run in runs {
     let bit = if white { 1 } else { 0 }
     for _ in 0..<run {
-      @pdfio.putbit(writer, bit)
+      writer.putbit(bit)
     }
     white = !white
   }
-  @pdfio.bytes_of_write_bitstream(writer)
+  writer.bytes()
 }
 
 ///|
@@ -29,19 +29,19 @@ fn build_runs() -> Array[Int] {
 
 ///|
 fn bytes_from_rows(rows : Array[Array[Int]]) -> @pdfio.MutableBytes {
-  let writer = @pdfio.make_write_bitstream()
+  let writer = @pdfio.BitstreamWrite::new()
   for row in rows {
     let mut white = true
     for run in row {
       let bit = if white { 1 } else { 0 }
       for _ in 0..<run {
-        @pdfio.putbit(writer, bit)
+        writer.putbit(bit)
       }
       white = !white
     }
-    @pdfio.align_write(writer)
+    writer.align()
   }
-  @pdfio.bytes_of_write_bitstream(writer)
+  writer.bytes()
 }
 
 ///|

@@ -682,22 +682,22 @@ fn write_black_code(n : Int) -> Array[Int] raise CodecError {
 ///|
 fn write_bits(output : @pdfio.BitstreamWrite, bits : Array[Int]) -> Unit {
   for bit in bits {
-    @pdfio.putbit(output, bit)
+    output.putbit(bit)
   }
 }
 
 ///|
 fn read_run(maxcols : Int, input : @pdfio.Bitstream) -> (Bool, Int) raise {
   let mut nbits = 1
-  let iswhite = @pdfio.getbit(input)
+  let iswhite = input.getbit()
   let mut finished = false
   while nbits < maxcols && !finished {
-    let pos = @pdfio.bitstream_pos(input)
-    let newbit = @pdfio.getbit(input)
+    let pos = input.position()
+    let newbit = input.getbit()
     if newbit == iswhite {
       nbits = nbits + 1
     } else {
-      @pdfio.bitstream_seek(input, pos)
+      input.seek(pos)
       finished = true
     }
   }
@@ -714,8 +714,8 @@ fn encode_ccitt(
   let columns = _columns
   let rows = _rows
   let data = _data
-  let input = @pdfio.bitbytes_of_input(@pdfio.input_of_bytes(data))
-  let output = @pdfio.make_write_bitstream()
+  let input = @pdfio.Bitstream::of_input(@pdfio.input_of_bytes(data))
+  let output = @pdfio.BitstreamWrite::new()
   try {
     let mut rows_left = rows
     let mut cols_left = columns
@@ -732,15 +732,15 @@ fn encode_ccitt(
       write_bits(output, bits)
       cols_left = cols_left - length
       if cols_left == 0 {
-        @pdfio.align(input)
+        input.align()
         cols_left = columns
         rows_left = rows_left - 1
       }
     }
     write_bits(output, write_white_code(-1))
     write_bits(output, write_white_code(-1))
-    @pdfio.align_write(output)
-    @pdfio.bytes_of_write_bitstream(output)
+    output.align()
+    output.bytes()
   } catch {
     Failure::Failure(_) =>
       raise CodecError::CouldntDecodeStream("encode_ccitt: not enough data")
@@ -757,14 +757,14 @@ fn ccittg4_transitions(
   transitions.push(0)
   let mut prev_white = true
   for pos = 0; pos < columns; pos = pos + 1 {
-    let is_white = @pdfio.getbit(input)
+    let is_white = input.getbit()
     if is_white != prev_white {
       transitions.push(pos)
       prev_white = is_white
     }
   }
   transitions.push(columns)
-  @pdfio.align(input)
+  input.align()
   transitions
 }
 
@@ -858,8 +858,8 @@ fn encode_ccittg4_pure(
   rows : Int,
   data : @pdfio.MutableBytes,
 ) -> @pdfio.MutableBytes raise CodecError {
-  let input = @pdfio.bitbytes_of_input(@pdfio.input_of_bytes(data))
-  let output = @pdfio.make_write_bitstream()
+  let input = @pdfio.Bitstream::of_input(@pdfio.input_of_bytes(data))
+  let output = @pdfio.BitstreamWrite::new()
   try {
     let mut rows_left = rows
     let mut reference = Array::new(capacity=2)
@@ -874,8 +874,8 @@ fn encode_ccittg4_pure(
     write_bits(output, [
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     ])
-    @pdfio.align_write(output)
-    @pdfio.bytes_of_write_bitstream(output)
+    output.align()
+    output.bytes()
   } catch {
     Failure::Failure(_) =>
       raise CodecError::CouldntDecodeStream("encode_ccittg4: not enough data")

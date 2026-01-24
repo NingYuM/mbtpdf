@@ -3,15 +3,15 @@ fn bitmap_bytes(
   rows_bits : Array[Array[Int]],
   columns : Int,
 ) -> @pdfio.MutableBytes raise {
-  let output = @pdfio.make_write_bitstream()
+  let output = @pdfio.BitstreamWrite::new()
   for row in rows_bits {
     assert_eq(row.length(), columns)
     for bit in row {
-      @pdfio.putbit(output, bit)
+      output.putbit(bit)
     }
-    @pdfio.align_write(output)
+    output.align()
   }
-  @pdfio.bytes_of_write_bitstream(output)
+  output.bytes()
 }
 
 ///|

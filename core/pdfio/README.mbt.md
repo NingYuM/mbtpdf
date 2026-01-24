@@ -206,7 +206,7 @@ For reading data at the bit level (MSB-first order).
 test "bitstream reading" {
   // Byte 0xA5 = 10100101 in binary
   let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0xA5]))
-  let bits = @pdfio.bitbytes_of_input(input)
+  let bits = @pdfio.Bitstream::of_input(input)
 
   // Read first 4 bits: 1010 = 10
   let val = getval_32(bits, 4) // internal function
@@ -220,9 +220,9 @@ test "bitstream reading" {
 ///|
 test "getbit reads individual bits" {
   let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0x80])) // 10000000
-  let bits = @pdfio.bitbytes_of_input(input)
-  inspect(@pdfio.getbit(bits), content="true") // bit 7
-  inspect(@pdfio.getbit(bits), content="false") // bit 6
+  let bits = @pdfio.Bitstream::of_input(input)
+  inspect(bits.getbit(), content="true") // bit 7
+  inspect(bits.getbit(), content="false") // bit 6
 }
 ```
 
@@ -232,10 +232,10 @@ test "getbit reads individual bits" {
 ///|
 test "bitstream save and restore" {
   let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0xFF, 0x00]))
-  let bits = @pdfio.bitbytes_of_input(input)
-  let pos = @pdfio.bitstream_pos(bits)
+  let bits = @pdfio.Bitstream::of_input(input)
+  let pos = bits.position()
   ignore(getval_32(bits, 8)) // read 8 bits (internal function)
-  @pdfio.bitstream_seek(bits, pos) // rewind
+  bits.seek(pos) // rewind
   inspect(getval_32(bits, 8), content="255") // read again
 }
 ```
@@ -246,9 +246,9 @@ test "bitstream save and restore" {
 ///|
 test "align skips to next byte" {
   let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0xFF, 0xAB]))
-  let bits = @pdfio.bitbytes_of_input(input)
-  ignore(@pdfio.getbit(bits)) // read 1 bit
-  @pdfio.align(bits) // skip to byte boundary
+  let bits = @pdfio.Bitstream::of_input(input)
+  ignore(bits.getbit()) // read 1 bit
+  bits.align() // skip to byte boundary
   inspect(getval_32(bits, 8), content="171") // 0xAB (internal function)
 }
 ```
@@ -258,10 +258,10 @@ test "align skips to next byte" {
 ```mbt check
 ///|
 test "write bitstream" {
-  let b = @pdfio.make_write_bitstream()
-  @pdfio.putval(b, 4, 0b1010) // write 4 bits: 1010
-  @pdfio.putval(b, 4, 0b0101) // write 4 bits: 0101
-  let bytes = @pdfio.bytes_of_write_bitstream(b)
+  let b = @pdfio.BitstreamWrite::new()
+  b.putval(4, 0b1010) // write 4 bits: 1010
+  b.putval(4, 0b0101) // write 4 bits: 0101
+  let bytes = b.bytes()
   inspect(@pdfio.bget(bytes, 0), content="165") // 0xA5
 }
 ```

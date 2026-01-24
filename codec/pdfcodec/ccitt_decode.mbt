@@ -1,9 +1,9 @@
 ///|
 fn read_white_code(input : @pdfio.Bitstream) -> Int raise {
-  let a = @pdfio.getbitint(input)
-  let b = @pdfio.getbitint(input)
-  let c = @pdfio.getbitint(input)
-  let d = @pdfio.getbitint(input)
+  let a = input.getbitint()
+  let b = input.getbitint()
+  let c = input.getbitint()
+  let d = input.getbitint()
   match (a, b, c, d) {
     (0, 1, 1, 1) => 2
     (1, 0, 0, 0) => 3
@@ -12,7 +12,7 @@ fn read_white_code(input : @pdfio.Bitstream) -> Int raise {
     (1, 1, 1, 0) => 6
     (1, 1, 1, 1) => 7
     _ => {
-      let e = @pdfio.getbitint(input)
+      let e = input.getbitint()
       match (a, b, c, d, e) {
         (1, 0, 0, 1, 1) => 8
         (1, 0, 1, 0, 0) => 9
@@ -21,7 +21,7 @@ fn read_white_code(input : @pdfio.Bitstream) -> Int raise {
         (1, 1, 0, 1, 1) => 64 + read_white_code(input)
         (1, 0, 0, 1, 0) => 128 + read_white_code(input)
         _ => {
-          let f = @pdfio.getbitint(input)
+          let f = input.getbitint()
           match (a, b, c, d, e, f) {
             (0, 0, 0, 1, 1, 1) => 1
             (0, 0, 1, 0, 0, 0) => 12
@@ -33,7 +33,7 @@ fn read_white_code(input : @pdfio.Bitstream) -> Int raise {
             (0, 1, 0, 1, 1, 1) => 192 + read_white_code(input)
             (0, 1, 1, 0, 0, 0) => 1664 + read_white_code(input)
             _ => {
-              let g = @pdfio.getbitint(input)
+              let g = input.getbitint()
               match (a, b, c, d, e, f, g) {
                 (0, 1, 0, 0, 1, 1, 1) => 18
                 (0, 0, 0, 1, 1, 0, 0) => 19
@@ -48,7 +48,7 @@ fn read_white_code(input : @pdfio.Bitstream) -> Int raise {
                 (0, 0, 1, 1, 0, 0, 0) => 28
                 (0, 1, 1, 0, 1, 1, 1) => 256 + read_white_code(input)
                 _ => {
-                  let h = @pdfio.getbitint(input)
+                  let h = input.getbitint()
                   match (a, b, c, d, e, f, g, h) {
                     (0, 0, 1, 1, 0, 1, 0, 1) => 0
                     (0, 0, 0, 0, 0, 0, 1, 0) => 29
@@ -93,7 +93,7 @@ fn read_white_code(input : @pdfio.Bitstream) -> Int raise {
                     (0, 1, 1, 0, 1, 0, 0, 0) => 576 + read_white_code(input)
                     (0, 1, 1, 0, 0, 1, 1, 1) => 640 + read_white_code(input)
                     _ => {
-                      let j = @pdfio.getbitint(input)
+                      let j = input.getbitint()
                       match (a, b, c, d, e, f, g, h, j) {
                         (0, 1, 1, 0, 0, 1, 1, 0, 0) =>
                           704 + read_white_code(input)
@@ -128,8 +128,8 @@ fn read_white_code(input : @pdfio.Bitstream) -> Int raise {
                         (0, 1, 0, 0, 1, 1, 0, 1, 1) =>
                           1728 + read_white_code(input)
                         _ => {
-                          let k = @pdfio.getbitint(input)
-                          let l = @pdfio.getbitint(input)
+                          let k = input.getbitint()
+                          let l = input.getbitint()
                           match (a, b, c, d, e, f, g, h, j, k, l) {
                             (0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0) =>
                               1792 + read_white_code(input)
@@ -138,7 +138,7 @@ fn read_white_code(input : @pdfio.Bitstream) -> Int raise {
                             (0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1) =>
                               1920 + read_white_code(input)
                             _ => {
-                              let m = @pdfio.getbitint(input)
+                              let m = input.getbitint()
                               match (a, b, c, d, e, f, g, h, j, k, l, m) {
                                 (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1) => -1
                                 (0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0) =>
@@ -181,47 +181,47 @@ fn read_white_code(input : @pdfio.Bitstream) -> Int raise {
 
 ///|
 fn read_black_code(input : @pdfio.Bitstream) -> Int raise {
-  let a = @pdfio.getbitint(input)
-  let b = @pdfio.getbitint(input)
+  let a = input.getbitint()
+  let b = input.getbitint()
   match (a, b) {
     (1, 1) => 2
     (1, 0) => 3
     _ => {
-      let c = @pdfio.getbitint(input)
+      let c = input.getbitint()
       match (a, b, c) {
         (0, 1, 0) => 1
         (0, 1, 1) => 4
         _ => {
-          let d = @pdfio.getbitint(input)
+          let d = input.getbitint()
           match (a, b, c, d) {
             (0, 0, 1, 1) => 5
             (0, 0, 1, 0) => 6
             _ => {
-              let e = @pdfio.getbitint(input)
+              let e = input.getbitint()
               match (a, b, c, d, e) {
                 (0, 0, 0, 1, 1) => 7
                 _ => {
-                  let f = @pdfio.getbitint(input)
+                  let f = input.getbitint()
                   match (a, b, c, d, e, f) {
                     (0, 0, 0, 1, 0, 1) => 8
                     (0, 0, 0, 1, 0, 0) => 9
                     _ => {
-                      let g = @pdfio.getbitint(input)
+                      let g = input.getbitint()
                       match (a, b, c, d, e, f, g) {
                         (0, 0, 0, 0, 1, 0, 0) => 10
                         (0, 0, 0, 0, 1, 0, 1) => 11
                         (0, 0, 0, 0, 1, 1, 1) => 12
                         _ => {
-                          let h = @pdfio.getbitint(input)
+                          let h = input.getbitint()
                           match (a, b, c, d, e, f, g, h) {
                             (0, 0, 0, 0, 0, 1, 0, 0) => 13
                             (0, 0, 0, 0, 0, 1, 1, 1) => 14
                             _ => {
-                              let j = @pdfio.getbitint(input)
+                              let j = input.getbitint()
                               match (a, b, c, d, e, f, g, h, j) {
                                 (0, 0, 0, 0, 1, 1, 0, 0, 0) => 15
                                 _ => {
-                                  let k = @pdfio.getbitint(input)
+                                  let k = input.getbitint()
                                   match (a, b, c, d, e, f, g, h, j, k) {
                                     (0, 0, 0, 0, 1, 1, 0, 1, 1, 1) => 0
                                     (0, 0, 0, 0, 0, 1, 0, 1, 1, 1) => 16
@@ -230,7 +230,7 @@ fn read_black_code(input : @pdfio.Bitstream) -> Int raise {
                                     (0, 0, 0, 0, 0, 0, 1, 1, 1, 1) =>
                                       64 + read_black_code(input)
                                     _ => {
-                                      let l = @pdfio.getbitint(input)
+                                      let l = input.getbitint()
                                       match (a, b, c, d, e, f, g, h, j, k, l) {
                                         (0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1) => 19
                                         (0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0) => 20
@@ -246,7 +246,7 @@ fn read_black_code(input : @pdfio.Bitstream) -> Int raise {
                                         (0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1) =>
                                           1920 + read_black_code(input)
                                         _ => {
-                                          let m = @pdfio.getbitint(input)
+                                          let m = input.getbitint()
                                           match
                                             (a, b, c, d, e, f, g, h, j, k, l, m) {
                                             (0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0) =>
@@ -360,7 +360,7 @@ fn read_black_code(input : @pdfio.Bitstream) -> Int raise {
                                             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1) =>
                                               -1
                                             _ => {
-                                              let n = @pdfio.getbitint(input)
+                                              let n = input.getbitint()
                                               match
                                                 (
                                                   a, b, c, d, e, f, g, h, j, k, l,
@@ -726,56 +726,56 @@ priv enum CcittMode {
 
 ///|
 fn read_ccitt_mode(input : @pdfio.Bitstream) -> CcittMode raise {
-  let a = @pdfio.getbitint(input)
+  let a = input.getbitint()
   if a == 1 {
     return CcittMode::Vertical(0)
   }
-  let b = @pdfio.getbitint(input)
-  let c = @pdfio.getbitint(input)
+  let b = input.getbitint()
+  let c = input.getbitint()
   match (a, b, c) {
     (0, 1, 1) => return CcittMode::Vertical(-1)
     (0, 1, 0) => return CcittMode::Vertical(1)
     (0, 0, 1) => return CcittMode::Horizontal
     _ => ()
   }
-  let d = @pdfio.getbitint(input)
+  let d = input.getbitint()
   match (a, b, c, d) {
     (0, 0, 0, 1) => return CcittMode::Pass
     _ => ()
   }
-  let e = @pdfio.getbitint(input)
-  let f = @pdfio.getbitint(input)
+  let e = input.getbitint()
+  let f = input.getbitint()
   match (a, b, c, d, e, f) {
     (0, 0, 0, 0, 1, 1) => return CcittMode::Vertical(-2)
     (0, 0, 0, 0, 1, 0) => return CcittMode::Vertical(2)
     _ => ()
   }
-  let g = @pdfio.getbitint(input)
+  let g = input.getbitint()
   match (a, b, c, d, e, f, g) {
     (0, 0, 0, 0, 0, 1, 1) => return CcittMode::Vertical(-3)
     (0, 0, 0, 0, 0, 1, 0) => return CcittMode::Vertical(3)
     _ => ()
   }
-  let h = @pdfio.getbitint(input)
-  let j = @pdfio.getbitint(input)
-  let k = @pdfio.getbitint(input)
-  let l = @pdfio.getbitint(input)
-  let m = @pdfio.getbitint(input)
+  let h = input.getbitint()
+  let j = input.getbitint()
+  let k = input.getbitint()
+  let l = input.getbitint()
+  let m = input.getbitint()
   match (a, b, c, d, e, f, g, h, j, k, l, m) {
     (0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1) => CcittMode::Uncompressed
     (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1) => {
-      let a = @pdfio.getbitint(input)
-      let b = @pdfio.getbitint(input)
-      let c = @pdfio.getbitint(input)
-      let d = @pdfio.getbitint(input)
-      let e = @pdfio.getbitint(input)
-      let f = @pdfio.getbitint(input)
-      let g = @pdfio.getbitint(input)
-      let h = @pdfio.getbitint(input)
-      let j = @pdfio.getbitint(input)
-      let k = @pdfio.getbitint(input)
-      let l = @pdfio.getbitint(input)
-      let m = @pdfio.getbitint(input)
+      let a = input.getbitint()
+      let b = input.getbitint()
+      let c = input.getbitint()
+      let d = input.getbitint()
+      let e = input.getbitint()
+      let f = input.getbitint()
+      let g = input.getbitint()
+      let h = input.getbitint()
+      let j = input.getbitint()
+      let k = input.getbitint()
+      let l = input.getbitint()
+      let m = input.getbitint()
       match (a, b, c, d, e, f, g, h, j, k, l, m) {
         (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1) => CcittMode::EOFB
         _ => raise Failure::Failure("Not a valid code on EOFB")
@@ -804,8 +804,8 @@ fn decode_ccittfax(
     raise CodecError::DecodeNotSupported("CCITTFax k > 0")
   }
   let (whiteval, blackval) = if bone { (0, 1) } else { (1, 0) }
-  let output = @pdfio.make_write_bitstream()
-  let bitstream = @pdfio.bitbytes_of_input(input)
+  let output = @pdfio.BitstreamWrite::new()
+  let bitstream = @pdfio.Bitstream::of_input(input)
   let mut column = 0
   let mut row = 0
   let mut refline = Array::make(columns, whiteval)
@@ -813,9 +813,9 @@ fn decode_ccittfax(
   let mut white = true
   fn output_line(line : Array[Int]) -> Unit {
     for bit in line {
-      @pdfio.putbit(output, bit)
+      output.putbit(bit)
     }
-    @pdfio.align_write(output)
+    output.align()
   }
 
   fn output_span(length : Int, value : Int) -> Unit raise {
@@ -874,7 +874,7 @@ fn decode_ccittfax(
         column = 0
         white = true
         if eba {
-          @pdfio.align(bitstream)
+          bitstream.align()
         }
         row = row + 1
         if row >= rows && rows > 0 {
@@ -940,7 +940,7 @@ fn decode_ccittfax(
   } catch {
     Failure::Failure(msg) =>
       if msg == "End_of_file" {
-        @pdfio.bytes_of_write_bitstream(output)
+        output.bytes()
       } else {
         raise CodecError::CouldntDecodeStream("Bad CCITT Stream")
       }

@@ -7,19 +7,9 @@ import {
 }
 
 // Values
-pub fn align(Bitstream) -> Unit
-
-pub fn align_write(BitstreamWrite) -> Unit
-
 pub fn bget(Array[Byte], Int) -> Int
 
 pub fn bget_unsafe(Array[Byte], Int) -> Int
-
-pub fn bitbytes_of_input(Input) -> Bitstream
-
-pub fn bitstream_pos(Bitstream) -> BitstreamPosition
-
-pub fn bitstream_seek(Bitstream, BitstreamPosition) -> Unit
 
 pub fn bset(Array[Byte], Int, Int) -> Unit
 
@@ -39,8 +29,6 @@ pub fn bytes_of_list(Array[Int]) -> Array[Byte]
 
 pub fn bytes_of_string(String) -> Array[Byte]
 
-pub fn bytes_of_write_bitstream(BitstreamWrite) -> Array[Byte]
-
 pub fn bytes_size(Array[Byte]) -> Int
 
 pub async fn bytes_to_output_channel(@fs.File, Array[Byte]) -> Unit
@@ -52,10 +40,6 @@ pub fn copybytes(Array[Byte]) -> Array[Byte]
 pub fn debug_next_n_chars(Int, Input) -> Unit
 
 pub fn extract_bytes_from_input_output(Output, Ref[Array[Byte]]) -> Array[Byte]
-
-pub fn getbit(Bitstream) -> Bool raise
-
-pub fn getbitint(Bitstream) -> Int raise
 
 pub fn input_of_bytes(Array[Byte], source? : String) -> Input
 
@@ -71,17 +55,11 @@ pub fn int_array_of_bytes(Array[Byte]) -> Array[Int]
 
 pub fn int_array_of_string(String) -> Array[Int]
 
-pub fn make_write_bitstream() -> BitstreamWrite
-
 pub fn mkbytes(Int) -> Array[Byte]
 
 pub let no_more : Int
 
 pub fn output_of_channel(@fs.File) -> Output
-
-pub fn putbit(BitstreamWrite, Int) -> Unit
-
-pub fn putval(BitstreamWrite, Int, Int) -> Unit raise
 
 pub fn string_of_bytes(Array[Byte]) -> String
 
@@ -98,6 +76,18 @@ pub struct Bitstream {
   mut bit : Int
   mut bits_read : Int
 }
+#as_free_fn(align, deprecated)
+pub fn Bitstream::align(Self) -> Unit
+#as_free_fn(getbit, deprecated)
+pub fn Bitstream::getbit(Self) -> Bool raise
+#as_free_fn(getbitint, deprecated)
+pub fn Bitstream::getbitint(Self) -> Int raise
+#as_free_fn(bitbytes_of_input, deprecated)
+pub fn Bitstream::of_input(Input) -> Self
+#as_free_fn(bitstream_pos, deprecated)
+pub fn Bitstream::position(Self) -> BitstreamPosition
+#as_free_fn(bitstream_seek, deprecated)
+pub fn Bitstream::seek(Self, BitstreamPosition) -> Unit
 
 pub struct BitstreamPosition {
   pos : Int
@@ -111,6 +101,16 @@ pub struct BitstreamWrite {
   bytes : Array[Byte]
   mut bit : Int
 }
+#as_free_fn(align_write, deprecated)
+pub fn BitstreamWrite::align(Self) -> Unit
+#as_free_fn(bytes_of_write_bitstream, deprecated)
+pub fn BitstreamWrite::bytes(Self) -> Array[Byte]
+#as_free_fn(make_write_bitstream, deprecated)
+pub fn BitstreamWrite::new() -> Self
+#as_free_fn(putbit, deprecated)
+pub fn BitstreamWrite::putbit(Self, Int) -> Unit
+#as_free_fn(putval, deprecated)
+pub fn BitstreamWrite::putval(Self, Int, Int) -> Unit raise
 pub impl @debug.Debug for BitstreamWrite
 
 pub struct Input {

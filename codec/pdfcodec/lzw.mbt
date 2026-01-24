@@ -134,7 +134,7 @@ fn encode_lzw(
   let mut code_length = 9
   let mut next_code = 258
   let mut dict : Map[Int, Int] = Map::new()
-  let out = @pdfio.make_write_bitstream()
+  let out = @pdfio.BitstreamWrite::new()
   fn reset_table() -> Unit {
     dict = Map::new()
     next_code = 258
@@ -142,10 +142,10 @@ fn encode_lzw(
   }
 
   try {
-    @pdfio.putval(out, code_length, clear_code)
+    out.putval(code_length, clear_code)
     if data.length() == 0 {
-      @pdfio.putval(out, code_length, eod_code)
-      return @pdfio.bytes_of_write_bitstream(out)
+      out.putval(code_length, eod_code)
+      return out.bytes()
     }
     let mut w_code = data[0].to_int()
     let mut i = 1
@@ -155,7 +155,7 @@ fn encode_lzw(
       match dict.get(key) {
         Some(code) => w_code = code
         None => {
-          @pdfio.putval(out, code_length, w_code)
+          out.putval(code_length, w_code)
           if next_code < 4096 {
             dict[key] = next_code
             next_code = next_code + 1
@@ -164,7 +164,7 @@ fn encode_lzw(
               code_length = code_length + 1
             }
           } else {
-            @pdfio.putval(out, code_length, clear_code)
+            out.putval(code_length, clear_code)
             reset_table()
           }
           w_code = k
@@ -172,9 +172,9 @@ fn encode_lzw(
       }
       i = i + 1
     }
-    @pdfio.putval(out, code_length, w_code)
-    @pdfio.putval(out, code_length, eod_code)
-    @pdfio.bytes_of_write_bitstream(out)
+    out.putval(code_length, w_code)
+    out.putval(code_length, eod_code)
+    out.bytes()
   } catch {
     _ => raise CodecError::CouldntDecodeStream("LZW")
   }
