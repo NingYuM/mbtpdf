@@ -110,50 +110,49 @@ pub fn PdfRead::what_encryption(
   _self : PdfRead,
   pdf : @pdf.Pdf,
 ) -> @pdfcrypt.EncryptionMethod? {
-  if @pdfcrypt.PdfCrypt::new().is_encrypted(pdf) {
-    let values : Result[
-      (
-        @pdfcryptprimitives.Encryption,
-        String,
-        String,
-        Int,
-        String,
-        String?,
-        String?,
-      ),
-      Error,
-    ] = try? @pdfcrypt.PdfCrypt::new().get_encryption_values(pdf)
-    match values {
-      Ok((crypt, _, _, _, _, _, _)) => {
-        let metadata = match pdf.lookup_direct("/Encrypt", pdf.trailerdict) {
-          Some(encrypt_dict) =>
-            match pdf.lookup_direct("/EncryptMetadata", encrypt_dict) {
-              Some(@pdf.PdfObject::Boolean(false)) => false
-              _ => true
-            }
-          None => true
-        }
-        match crypt {
-          @pdfcryptprimitives.Encryption::ARC4(bits, _) =>
-            match bits {
-              40 => Some(@pdfcrypt.EncryptionMethod::PDF40bit)
-              128 => Some(@pdfcrypt.EncryptionMethod::PDF128bit)
-              _ => None
-            }
-          @pdfcryptprimitives.Encryption::AESV2 =>
-            Some(@pdfcrypt.EncryptionMethod::AES128bit(metadata))
-          @pdfcryptprimitives.Encryption::AESV3(is_iso) =>
-            if is_iso {
-              Some(@pdfcrypt.EncryptionMethod::AES256bitISO(metadata))
-            } else {
-              Some(@pdfcrypt.EncryptionMethod::AES256bit(metadata))
-            }
-        }
+  if !@pdfcrypt.PdfCrypt::new().is_encrypted(pdf) {
+    return None
+  }
+  let values : Result[
+    (
+      @pdfcryptprimitives.Encryption,
+      String,
+      String,
+      Int,
+      String,
+      String?,
+      String?,
+    ),
+    Error,
+  ] = try? @pdfcrypt.PdfCrypt::new().get_encryption_values(pdf)
+  match values {
+    Ok((crypt, _, _, _, _, _, _)) => {
+      let metadata = match pdf.lookup_direct("/Encrypt", pdf.trailerdict) {
+        Some(encrypt_dict) =>
+          match pdf.lookup_direct("/EncryptMetadata", encrypt_dict) {
+            Some(@pdf.PdfObject::Boolean(false)) => false
+            _ => true
+          }
+        None => true
       }
-      Err(_) => None
+      match crypt {
+        @pdfcryptprimitives.Encryption::ARC4(bits, _) =>
+          match bits {
+            40 => Some(@pdfcrypt.EncryptionMethod::PDF40bit)
+            128 => Some(@pdfcrypt.EncryptionMethod::PDF128bit)
+            _ => None
+          }
+        @pdfcryptprimitives.Encryption::AESV2 =>
+          Some(@pdfcrypt.EncryptionMethod::AES128bit(metadata))
+        @pdfcryptprimitives.Encryption::AESV3(is_iso) =>
+          if is_iso {
+            Some(@pdfcrypt.EncryptionMethod::AES256bitISO(metadata))
+          } else {
+            Some(@pdfcrypt.EncryptionMethod::AES256bit(metadata))
+          }
+      }
     }
-  } else {
-    None
+    Err(_) => None
   }
 }
 
@@ -164,25 +163,24 @@ pub fn PdfRead::permissions(
   _self : PdfRead,
   pdf : @pdf.Pdf,
 ) -> Array[@pdfcrypt.Permission] {
-  if @pdfcrypt.PdfCrypt::new().is_encrypted(pdf) {
-    let values : Result[
-      (
-        @pdfcryptprimitives.Encryption,
-        String,
-        String,
-        Int,
-        String,
-        String?,
-        String?,
-      ),
-      Error,
-    ] = try? @pdfcrypt.PdfCrypt::new().get_encryption_values(pdf)
-    match values {
-      Ok((_, _, _, p, _, _, _)) => @pdfcrypt.PdfCrypt::new().banlist_of_p(p)
-      Err(_) => []
-    }
-  } else {
-    []
+  if !@pdfcrypt.PdfCrypt::new().is_encrypted(pdf) {
+    return []
+  }
+  let values : Result[
+    (
+      @pdfcryptprimitives.Encryption,
+      String,
+      String,
+      Int,
+      String,
+      String?,
+      String?,
+    ),
+    Error,
+  ] = try? @pdfcrypt.PdfCrypt::new().get_encryption_values(pdf)
+  match values {
+    Ok((_, _, _, p, _, _, _)) => @pdfcrypt.PdfCrypt::new().banlist_of_p(p)
+    Err(_) => []
   }
 }
 
