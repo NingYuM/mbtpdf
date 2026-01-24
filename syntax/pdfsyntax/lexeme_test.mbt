@@ -1,4 +1,7 @@
 ///|
+type Token = @pdfgenlex.Token
+
+///|
 test "string_of_lexeme renders tokens" {
   let syntax = @pdfsyntax.PdfSyntax::new()
   assert_eq(syntax.string_of_lexeme(LexNull), "null")
@@ -21,7 +24,7 @@ test "string_of_lexeme renders tokens" {
 ///|
 test "string_of_lexeme escapes string data" {
   let value = "a(b)\\\n"
-  let token = LexString(value)
+  let token : Token = LexString(value)
   let syntax = @pdfsyntax.PdfSyntax::new()
   assert_eq(syntax.string_of_lexeme(token), "(a\\(b\\)\\\\\\n)")
 }
