@@ -1,6 +1,6 @@
 ///|
-test "string_of_colourspace basic" {
-  let s = string_of_colourspace(ColourSpace::DeviceRGB)
+test "ColourSpace::to_string basic" {
+  let s = ColourSpace::DeviceRGB.to_string()
   assert_eq(s, "/DeviceRGB")
 }
 

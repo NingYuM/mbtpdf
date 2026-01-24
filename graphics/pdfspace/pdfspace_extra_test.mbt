@@ -425,43 +425,55 @@ test "write_colourspace ICCBased handles non-dict stream data" {
 }
 
 ///|
-test "string_of_colourspace covers variants" {
+test "ColourSpace::to_string covers variants" {
   let icc : ICCBased = {
     icc_n: 3,
-    icc_alternate: DeviceRGB,
+    icc_alternate: @pdfspace.ColourSpace::DeviceRGB,
     icc_range: [0.0, 1.0, 0.0, 1.0, 0.0, 1.0],
     icc_metadata: None,
     icc_stream: Null,
   }
-  assert_eq(string_of_colourspace(DeviceGray), "/DeviceGray")
-  assert_eq(string_of_colourspace(DeviceCMYK), "/DeviceCMYK")
-  assert_eq(string_of_colourspace(ICCBased(icc)), "ICCBased (/DeviceRGB)")
+  assert_eq(@pdfspace.ColourSpace::DeviceGray.to_string(), "/DeviceGray")
+  assert_eq(@pdfspace.ColourSpace::DeviceCMYK.to_string(), "/DeviceCMYK")
   assert_eq(
-    string_of_colourspace(PatternWithBaseColourspace(DeviceRGB)),
+    @pdfspace.ColourSpace::ICCBased(icc).to_string(),
+    "ICCBased (/DeviceRGB)",
+  )
+  assert_eq(
+    @pdfspace.ColourSpace::PatternWithBaseColourspace(
+      @pdfspace.ColourSpace::DeviceRGB,
+    ).to_string(),
     "PatternWithBaseColourspace (/DeviceRGB)",
   )
   assert_eq(
-    string_of_colourspace(Separation("Spot", DeviceRGB, sample_tint_function())),
+    @pdfspace.ColourSpace::Separation(
+      "Spot",
+      @pdfspace.ColourSpace::DeviceRGB,
+      sample_tint_function(),
+    ).to_string(),
     "Separation (/DeviceRGB)",
   )
   let table : Map[Int, Array[Int]] = Map::new()
   table.set(0, [0, 0, 0])
   assert_eq(
-    string_of_colourspace(Indexed(DeviceRGB, table)),
+    @pdfspace.ColourSpace::Indexed(@pdfspace.ColourSpace::DeviceRGB, table).to_string(),
     "Indexed (/DeviceRGB)",
   )
-  assert_eq(string_of_colourspace(Pattern), "/Pattern")
+  assert_eq(@pdfspace.ColourSpace::Pattern.to_string(), "/Pattern")
   assert_eq(
-    string_of_colourspace(
-      DeviceN(["C1"], DeviceRGB, sample_tint_function(), Dictionary([])),
-    ),
+    @pdfspace.ColourSpace::DeviceN(
+      ["C1"],
+      @pdfspace.ColourSpace::DeviceRGB,
+      sample_tint_function(),
+      @pdf.PdfObject::Dictionary([]),
+    ).to_string(),
     "DeviceN (/DeviceRGB)",
   )
 }
 
 ///|
-test "name_of_colourspace returns none for non-separation" {
-  let name = name_of_colourspace(DeviceRGB)
+test "ColourSpace::name returns none for non-separation" {
+  let name = @pdfspace.ColourSpace::DeviceRGB.name()
   match name {
     None => ()
     _ => fail("expected none")
@@ -469,20 +481,21 @@ test "name_of_colourspace returns none for non-separation" {
 }
 
 ///|
-test "string_of_colourspace covers cal and lab variants" {
+test "ColourSpace::to_string covers cal and lab variants" {
   let white = (1.0, 1.0, 1.0)
   let black = (0.0, 0.0, 0.0)
-  assert_eq(string_of_colourspace(CalGray(white, black, 1.0)), "/CalGray")
   assert_eq(
-    string_of_colourspace(
-      CalRGB(white, black, [1.0, 1.0, 1.0], [
-        1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0,
-      ]),
-    ),
+    @pdfspace.ColourSpace::CalGray(white, black, 1.0).to_string(),
+    "/CalGray",
+  )
+  assert_eq(
+    @pdfspace.ColourSpace::CalRGB(white, black, [1.0, 1.0, 1.0], [
+      1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0,
+    ]).to_string(),
     "/CalRGB",
   )
   assert_eq(
-    string_of_colourspace(Lab(white, black, [-100.0, 100.0, -100.0, 100.0])),
+    @pdfspace.ColourSpace::Lab(white, black, [-100.0, 100.0, -100.0, 100.0]).to_string(),
     "/Lab",
   )
 }
@@ -494,12 +507,12 @@ test "read_colourspace handles indirect and singleton array" {
   let objnum = @pdf.addobj(pdf, Name("/DeviceGray"))
   let indirect = read_colourspace(pdf, resources, Indirect(objnum))
   match (indirect : ColourSpace) {
-    DeviceGray => ()
+    ColourSpace::DeviceGray => ()
     _ => fail("expected DeviceGray")
   }
   let singleton = read_colourspace(pdf, resources, Array([Name("/DeviceRGB")]))
   match (singleton : ColourSpace) {
-    DeviceRGB => ()
+    ColourSpace::DeviceRGB => ()
     _ => fail("expected DeviceRGB")
   }
 }

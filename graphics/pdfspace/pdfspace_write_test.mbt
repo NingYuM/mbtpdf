@@ -175,7 +175,7 @@ test "write/read Separation and name lookup" {
     }
     _ => fail("expected Separation")
   }
-  match @pdfspace.name_of_colourspace(read) {
+  match read.name() {
     Some("/Spot") => ()
     _ => fail("expected name lookup")
   }

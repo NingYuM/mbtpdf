@@ -98,20 +98,20 @@ Convert a color space back to a PDF object.
 pub fn write_colourspace(pdf : @pdf.Pdf, space : ColourSpace) -> @pdf.PdfObject
 ```
 
-### string_of_colourspace
+### ColourSpace::to_string
 
 Get a debug string for a color space.
 
 ```moonbit nocheck
-pub fn string_of_colourspace(space : ColourSpace) -> String
+pub fn ColourSpace::to_string(self : ColourSpace) -> String
 ```
 
-### name_of_colourspace
+### ColourSpace::name
 
 Get the name of a color space (for Separation colors).
 
 ```moonbit nocheck
-pub fn name_of_colourspace(space : ColourSpace) -> String?
+pub fn ColourSpace::name(self : ColourSpace) -> String?
 ```
 
 ## Color Space Components

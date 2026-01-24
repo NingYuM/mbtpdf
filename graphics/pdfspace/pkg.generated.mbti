@@ -7,11 +7,7 @@ import {
 }
 
 // Values
-pub fn name_of_colourspace(ColourSpace) -> String?
-
 pub fn read_colourspace(@pdf.Pdf, @pdf.PdfObject, @pdf.PdfObject) -> ColourSpace raise
-
-pub fn string_of_colourspace(ColourSpace) -> String
 
 pub fn write_colourspace(@pdf.Pdf, ColourSpace) -> @pdf.PdfObject
 
@@ -32,6 +28,8 @@ pub(all) enum ColourSpace {
   Separation(String, ColourSpace, @pdffun.PdfFunction)
   DeviceN(Array[String], ColourSpace, @pdffun.PdfFunction, @pdf.PdfObject)
 }
+pub fn ColourSpace::name(Self) -> String?
+pub fn ColourSpace::to_string(Self) -> String
 
 pub(all) struct ICCBased {
   icc_n : Int

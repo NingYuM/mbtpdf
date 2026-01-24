@@ -31,31 +31,28 @@ pub(all) enum ColourSpace {
 
 ///|
 /// Produce a debug string.
-pub fn string_of_colourspace(space : ColourSpace) -> String {
-  match space {
+pub fn ColourSpace::to_string(self : ColourSpace) -> String {
+  match self {
     ColourSpace::DeviceGray => "/DeviceGray"
     ColourSpace::DeviceRGB => "/DeviceRGB"
     ColourSpace::DeviceCMYK => "/DeviceCMYK"
     ColourSpace::CalGray(_, _, _) => "/CalGray"
     ColourSpace::CalRGB(_, _, _, _) => "/CalRGB"
     ColourSpace::Lab(_, _, _) => "/Lab"
-    ColourSpace::ICCBased(icc) =>
-      "ICCBased (\{string_of_colourspace(icc.icc_alternate)})"
-    ColourSpace::Indexed(base, _) => "Indexed (\{string_of_colourspace(base)})"
+    ColourSpace::ICCBased(icc) => "ICCBased (\{icc.icc_alternate.to_string()})"
+    ColourSpace::Indexed(base, _) => "Indexed (\{base.to_string()})"
     ColourSpace::Pattern => "/Pattern"
     ColourSpace::PatternWithBaseColourspace(base) =>
-      "PatternWithBaseColourspace (\{string_of_colourspace(base)})"
-    ColourSpace::Separation(_, base, _) =>
-      "Separation (\{string_of_colourspace(base)})"
-    ColourSpace::DeviceN(_, base, _, _) =>
-      "DeviceN (\{string_of_colourspace(base)})"
+      "PatternWithBaseColourspace (\{base.to_string()})"
+    ColourSpace::Separation(_, base, _) => "Separation (\{base.to_string()})"
+    ColourSpace::DeviceN(_, base, _, _) => "DeviceN (\{base.to_string()})"
   }
 }
 
 ///|
 /// Read the name of a colour, if it has one.
-pub fn name_of_colourspace(space : ColourSpace) -> String? {
-  match space {
+pub fn ColourSpace::name(self : ColourSpace) -> String? {
+  match self {
     ColourSpace::Separation(name, _, _) => Some(name)
     _ => None
   }
