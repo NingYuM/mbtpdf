@@ -110,38 +110,20 @@ fn append_text_from_streams(
   }
 
   fn append_text_from_xobject(name : String) -> Unit raise {
-    if @pdf.lookup_direct(pdf, "/XObject", resources) 
-      is Some(Dictionary(entries)) {
-        match entries.search_by(pair => pair.0 == name) {
-          Some(idx) => {
-            let obj_ref = entries[idx].1
-            let obj_num = match (obj_ref : @pdf.PdfObject) {
-              Indirect(i) => Some(i)
-              _ => None
-            }
-            if mark_visited(obj_num) {
-              let xobj = @pdf.direct(pdf, obj_ref)
-              match @pdf.lookup_direct(pdf, "/Subtype", xobj) {
-                Some(Name("/Form")) => {
-                  let xresources = match
-                    @pdf.lookup_direct(pdf, "/Resources", xobj) {
-                    Some(res) => res
-                    None => resources
-                  }
-                  append_text_from_streams(
-                    builder,
-                    pdf,
-                    xresources,
-                    [xobj],
-                    visited,
-                  )
-                }
-                _ => ()
-              }
-            }
-          }
-          None => ()
+    if @pdf.lookup_direct(pdf, "/XObject", resources)
+      is Some(Dictionary(entries)) &&
+      entries.search_by(pair => pair.0 == name) is Some(idx) {
+      let obj_ref = entries[idx].1
+      let obj_num : Int? = if obj_ref is Indirect(i) { Some(i) } else { None }
+      if mark_visited(obj_num) {
+        let xobj = @pdf.direct(pdf, obj_ref)
+        if @pdf.lookup_direct(pdf, "/Subtype", xobj) is Some(Name("/Form")) {
+          let xresources = @pdf.lookup_direct(pdf, "/Resources", xobj).unwrap_or(
+            resources,
+          )
+          append_text_from_streams(builder, pdf, xresources, [xobj], visited)
         }
+      }
     }
   }
 
