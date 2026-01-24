@@ -6,7 +6,7 @@ priv suberror ReadPdfError {
 
 ///|
 fn is_digit(c : Char) -> Bool {
-  c >= '0' && c <= '9'
+  c is ('0'..='9')
 }
 
 ///|
@@ -153,7 +153,7 @@ fn read_pdf_internal(
         Some(r) => r > current_revision
       }
       let mut trailerdict_current = @pdf.PdfObject::Dictionary([])
-      if input.peek_char() == Some('x') {
+      if input.peek_char() is Some('x') {
         let entries = read_xref(input)
         if !skip {
           add_entries(entries, xrefs)
