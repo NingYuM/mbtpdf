@@ -107,7 +107,8 @@ fn build_table(
 
 ///|
 /// Read a colourspace from a PDF.
-pub fn read_colourspace(
+#as_free_fn(read_colourspace, deprecated="Use `ColourSpace::read` instead")
+pub fn ColourSpace::read(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,
   space : @pdf.PdfObject,
@@ -123,14 +124,14 @@ pub fn read_colourspace(
     Name("/Pattern") => ColourSpace::Pattern
     Array([Name("/Pattern"), base]) =>
       ColourSpace::PatternWithBaseColourspace(
-        read_colourspace(pdf, resources, base),
+        ColourSpace::read(pdf, resources, base),
       )
-    Array([one]) => read_colourspace(pdf, resources, one)
+    Array([one]) => ColourSpace::read(pdf, resources, one)
     Name(name) =>
       match @pdf.lookup_direct(pdf, "/ColorSpace", resources) {
         Some(csdict) =>
           match @pdf.lookup_direct(pdf, name, csdict) {
-            Some(space_obj) => read_colourspace(pdf, resources, space_obj)
+            Some(space_obj) => ColourSpace::read(pdf, resources, space_obj)
             None => fail("Not_found")
           }
         None => fail("Not_found")
@@ -202,7 +203,7 @@ pub fn read_colourspace(
             _ => raise @pdf.PdfError::Msg("Bad /N in ICCBased")
           }
           let alternate = match @pdf.lookup_direct(pdf, "/Alternate", dict) {
-            Some(cs) => read_colourspace(pdf, resources, cs)
+            Some(cs) => ColourSpace::read(pdf, resources, cs)
             _ =>
               match n {
                 1 => ColourSpace::DeviceGray
@@ -233,7 +234,7 @@ pub fn read_colourspace(
         Integer(h) => h
         _ => raise @pdf.PdfError::Msg("Bad /Hival")
       }
-      let base_space = read_colourspace(pdf, resources, base)
+      let base_space = ColourSpace::read(pdf, resources, base)
       let table = match (@pdf.direct(pdf, lookup_data) : @pdf.PdfObject) {
         Stream(_) as stream => {
           @pdfcodec.decode_pdfstream(pdf, stream)
@@ -286,7 +287,7 @@ pub fn read_colourspace(
       ColourSpace::Indexed(base_space, table)
     }
     Array([Name("/Separation"), Name(name), alternate, tint]) => {
-      let alt_space = read_colourspace(pdf, resources, alternate)
+      let alt_space = ColourSpace::read(pdf, resources, alternate)
       let tint_transform = @pdffun.PdfFunction::parse(pdf, tint)
       ColourSpace::Separation(name, alt_space, tint_transform)
     }
@@ -298,7 +299,7 @@ pub fn read_colourspace(
           _ => fail("Not_found")
         }
       }
-      let alt_space = read_colourspace(pdf, resources, alternate)
+      let alt_space = ColourSpace::read(pdf, resources, alternate)
       let tint_transform = @pdffun.PdfFunction::parse(pdf, tint)
       let empty_dict : @pdf.PdfObject = Dictionary([])
       ColourSpace::DeviceN(out_names, alt_space, tint_transform, empty_dict)
@@ -311,7 +312,7 @@ pub fn read_colourspace(
           _ => fail("Not_found")
         }
       }
-      let alt_space = read_colourspace(pdf, resources, alternate)
+      let alt_space = ColourSpace::read(pdf, resources, alternate)
       let tint_transform = @pdffun.PdfFunction::parse(pdf, tint)
       ColourSpace::DeviceN(out_names, alt_space, tint_transform, attributes)
     }
@@ -465,7 +466,7 @@ fn write_iccbased(pdf : @pdf.Pdf, icc : ICCBased) -> @pdf.PdfObject {
       let entries = dict_set(
         entries,
         "/Alternate",
-        write_colourspace(pdf, icc.icc_alternate),
+        icc.icc_alternate.to_pdf_object(pdf),
       )
       let entries = if icc.icc_range.length() == 2 * icc.icc_n {
         let range_arr : @pdf.PdfObject = Array(icc.icc_range.map(mkreal))
@@ -486,16 +487,20 @@ fn write_iccbased(pdf : @pdf.Pdf, icc : ICCBased) -> @pdf.PdfObject {
     }
     _ => {
       @pdfe.log("write_colourspace: ICCBased stream missing\n")
-      write_colourspace(pdf, icc.icc_alternate)
+      icc.icc_alternate.to_pdf_object(pdf)
     }
   }
 }
 
 ///|
 /// Write a colourspace to a PDF.
-pub fn write_colourspace(pdf : @pdf.Pdf, space : ColourSpace) -> @pdf.PdfObject {
+#as_free_fn(write_colourspace, deprecated="Use `ColourSpace::to_pdf_object` instead")
+pub fn ColourSpace::to_pdf_object(
+  self : ColourSpace,
+  pdf : @pdf.Pdf,
+) -> @pdf.PdfObject {
   let _ = pdf
-  match space {
+  match self {
     ColourSpace::DeviceGray => Name("/DeviceGray")
     ColourSpace::DeviceRGB => Name("/DeviceRGB")
     ColourSpace::DeviceCMYK => Name("/DeviceCMYK")
@@ -548,7 +553,7 @@ pub fn write_colourspace(pdf : @pdf.Pdf, space : ColourSpace) -> @pdf.PdfObject 
         let lookup = @pdfio.string_of_bytes(data)
         Array([
           Name("/Indexed"),
-          write_colourspace(pdf, base),
+          base.to_pdf_object(pdf),
           Integer(hival),
           String(lookup),
         ])
@@ -556,12 +561,12 @@ pub fn write_colourspace(pdf : @pdf.Pdf, space : ColourSpace) -> @pdf.PdfObject 
     }
     ColourSpace::Pattern => Name("/Pattern")
     ColourSpace::PatternWithBaseColourspace(base) =>
-      Array([Name("/Pattern"), write_colourspace(pdf, base)])
+      Array([Name("/Pattern"), base.to_pdf_object(pdf)])
     ColourSpace::Separation(name, alternate, tint) =>
       Array([
         Name("/Separation"),
         Name(normalize_name(name)),
-        write_colourspace(pdf, alternate),
+        alternate.to_pdf_object(pdf),
         tint.to_pdf_object(pdf),
       ])
     ColourSpace::DeviceN(names, alternate, tint, attrs) => {
@@ -572,7 +577,7 @@ pub fn write_colourspace(pdf : @pdf.Pdf, space : ColourSpace) -> @pdf.PdfObject 
       let base : Array[@pdf.PdfObject] = [
         Name("/DeviceN"),
         names_obj,
-        write_colourspace(pdf, alternate),
+        alternate.to_pdf_object(pdf),
         tint.to_pdf_object(pdf),
       ]
       if is_empty_dict(attrs) {

@@ -7,9 +7,6 @@ import {
 }
 
 // Values
-pub fn read_colourspace(@pdf.Pdf, @pdf.PdfObject, @pdf.PdfObject) -> ColourSpace raise
-
-pub fn write_colourspace(@pdf.Pdf, ColourSpace) -> @pdf.PdfObject
 
 // Errors
 
@@ -29,6 +26,10 @@ pub(all) enum ColourSpace {
   DeviceN(Array[String], ColourSpace, @pdffun.PdfFunction, @pdf.PdfObject)
 }
 pub fn ColourSpace::name(Self) -> String?
+#as_free_fn(read_colourspace, deprecated)
+pub fn ColourSpace::read(@pdf.Pdf, @pdf.PdfObject, @pdf.PdfObject) -> Self raise
+#as_free_fn(write_colourspace, deprecated)
+pub fn ColourSpace::to_pdf_object(Self, @pdf.Pdf) -> @pdf.PdfObject
 pub fn ColourSpace::to_string(Self) -> String
 
 pub(all) struct ICCBased {

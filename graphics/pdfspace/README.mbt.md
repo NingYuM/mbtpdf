@@ -75,12 +75,12 @@ pub(all) struct ICCBased {
 
 ## Functions
 
-### read_colourspace
+### ColourSpace::read
 
 Parse a color space from a PDF object.
 
 ```moonbit nocheck
-pub fn read_colourspace(
+pub fn ColourSpace::read(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,
   obj : @pdf.PdfObject
@@ -90,12 +90,12 @@ pub fn read_colourspace(
 - `resources`: Page resources dictionary
 - `obj`: Color space specification
 
-### write_colourspace
+### ColourSpace::to_pdf_object
 
 Convert a color space back to a PDF object.
 
 ```moonbit nocheck
-pub fn write_colourspace(pdf : @pdf.Pdf, space : ColourSpace) -> @pdf.PdfObject
+pub fn ColourSpace::to_pdf_object(self : ColourSpace, pdf : @pdf.Pdf) -> @pdf.PdfObject
 ```
 
 ### ColourSpace::to_string

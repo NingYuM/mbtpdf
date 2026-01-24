@@ -121,7 +121,7 @@ fn decode_defaults(
       match @pdf.lookup_direct(pdf, "/ColorSpace", image) {
         None => None
         Some(cspace) =>
-          match @pdfspace.read_colourspace(pdf, resources, cspace) {
+          match @pdfspace.ColourSpace::read(pdf, resources, cspace) {
             @pdfspace.ColourSpace::DeviceGray
             | @pdfspace.ColourSpace::CalGray(_, _, _)
             | @pdfspace.ColourSpace::Separation(_, _, _) =>
@@ -182,7 +182,7 @@ fn decode_defaults(
       match @pdf.lookup_direct(pdf, "/ColorSpace", image) {
         None => entry
         Some(cspace) =>
-          match @pdfspace.read_colourspace(pdf, resources, cspace) {
+          match @pdfspace.ColourSpace::read(pdf, resources, cspace) {
             @pdfspace.ColourSpace::Indexed(_, _) => None
             _ => entry
           }
@@ -777,7 +777,7 @@ pub fn Image::colspace(
             None => raise @pdf.PdfError::Msg("Pdf image: no colourspace")
           }
       }
-      @pdfspace.read_colourspace(pdf, resources, space)
+      @pdfspace.ColourSpace::read(pdf, resources, space)
     }
   }
 }

@@ -12,9 +12,9 @@ test "write/read CalGray" {
     (0.0, 0.0, 0.0),
     2.2,
   )
-  let obj = @pdfspace.write_colourspace(pdf, space)
+  let obj = space.to_pdf_object(pdf)
   let resources : @pdf.PdfObject = Dictionary([])
-  let read = @pdfspace.read_colourspace(pdf, resources, obj)
+  let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
     @pdfspace.ColourSpace::CalGray(white, black, gamma) => {
       assert_close(white.0, 1.0)
@@ -35,9 +35,9 @@ test "write/read Indexed" {
     @pdfspace.ColourSpace::DeviceRGB,
     table,
   )
-  let obj = @pdfspace.write_colourspace(pdf, space)
+  let obj = space.to_pdf_object(pdf)
   let resources : @pdf.PdfObject = Dictionary([])
-  let read = @pdfspace.read_colourspace(pdf, resources, obj)
+  let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
     @pdfspace.ColourSpace::Indexed(base, read_table) => {
       match base {
@@ -72,9 +72,9 @@ test "write/read ICCBased" {
     icc_stream: stream_obj,
   }
   let space = @pdfspace.ColourSpace::ICCBased(icc)
-  let obj = @pdfspace.write_colourspace(pdf, space)
+  let obj = space.to_pdf_object(pdf)
   let resources : @pdf.PdfObject = Dictionary([])
-  let read = @pdfspace.read_colourspace(pdf, resources, obj)
+  let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
     @pdfspace.ColourSpace::ICCBased(read_icc) => {
       assert_eq(read_icc.icc_n, 3)
@@ -109,9 +109,9 @@ test "write/read CalRGB" {
     [2.2, 2.2, 2.2],
     [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
   )
-  let obj = @pdfspace.write_colourspace(pdf, space)
+  let obj = space.to_pdf_object(pdf)
   let resources : @pdf.PdfObject = Dictionary([])
-  let read = @pdfspace.read_colourspace(pdf, resources, obj)
+  let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
     @pdfspace.ColourSpace::CalRGB(_, _, gamma, matrix) => {
       assert_eq(gamma.length(), 3)
@@ -127,9 +127,9 @@ test "write/read Lab" {
   let space = @pdfspace.ColourSpace::Lab((1.0, 1.0, 1.0), (0.0, 0.0, 0.0), [
     -128.0, 127.0, -128.0, 127.0,
   ])
-  let obj = @pdfspace.write_colourspace(pdf, space)
+  let obj = space.to_pdf_object(pdf)
   let resources : @pdf.PdfObject = Dictionary([])
-  let read = @pdfspace.read_colourspace(pdf, resources, obj)
+  let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
     @pdfspace.ColourSpace::Lab(_, _, range) => assert_eq(range.length(), 4)
     _ => fail("expected Lab")
@@ -142,9 +142,9 @@ test "write/read PatternWithBaseColourspace" {
   let space = @pdfspace.ColourSpace::PatternWithBaseColourspace(
     @pdfspace.ColourSpace::DeviceRGB,
   )
-  let obj = @pdfspace.write_colourspace(pdf, space)
+  let obj = space.to_pdf_object(pdf)
   let resources : @pdf.PdfObject = Dictionary([])
-  let read = @pdfspace.read_colourspace(pdf, resources, obj)
+  let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
     @pdfspace.ColourSpace::PatternWithBaseColourspace(
       @pdfspace.ColourSpace::DeviceRGB
@@ -162,9 +162,9 @@ test "write/read Separation and name lookup" {
     @pdfspace.ColourSpace::DeviceRGB,
     tint,
   )
-  let obj = @pdfspace.write_colourspace(pdf, space)
+  let obj = space.to_pdf_object(pdf)
   let resources : @pdf.PdfObject = Dictionary([])
-  let read = @pdfspace.read_colourspace(pdf, resources, obj)
+  let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
     @pdfspace.ColourSpace::Separation(name, base, _) => {
       assert_eq(name, "/Spot")
@@ -192,9 +192,9 @@ test "write/read DeviceN with attributes" {
     tint,
     attrs,
   )
-  let obj = @pdfspace.write_colourspace(pdf, space)
+  let obj = space.to_pdf_object(pdf)
   let resources : @pdf.PdfObject = Dictionary([])
-  let read = @pdfspace.read_colourspace(pdf, resources, obj)
+  let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
     @pdfspace.ColourSpace::DeviceN(names, base, _, attributes) => {
       assert_eq(names.length(), 2)
