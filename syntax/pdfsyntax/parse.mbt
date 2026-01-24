@@ -1,32 +1,38 @@
 ///|
 priv enum ParseItem {
-  Parsed(@pdf.PdfObject)
-  Lexeme(@pdfgenlex.Token)
+  Parsed(PdfObject)
+  Lexeme(Token)
 }
 
 ///|
-fn parse_R(tokens : Array[@pdfgenlex.Token]) -> Array[ParseItem] {
+type PdfObject = @pdf.PdfObject
+
+///|
+type Token = @pdfgenlex.Token
+
+///|
+fn parse_R(tokens : Array[Token]) -> Array[ParseItem] {
   let out = Array::new()
   let mut i = 0
   while i < tokens.length() {
     if i + 2 < tokens.length() {
       match (tokens[i], tokens[i + 1], tokens[i + 2]) {
         (LexInt(o), LexInt(_), LexR) => {
-          out.push(Parsed(@pdf.PdfObject::Indirect(o)))
+          out.push(Parsed(Indirect(o)))
           i = i + 3
           continue
         }
         _ => ()
       }
     }
-    match (tokens[i] : @pdfgenlex.Token) {
+    match (tokens[i] : Token) {
       LexComment(_) => ()
-      LexNull => out.push(Parsed(@pdf.PdfObject::Null))
-      LexBool(b) => out.push(Parsed(@pdf.PdfObject::Boolean(b)))
-      LexInt(v) => out.push(Parsed(@pdf.PdfObject::Integer(v)))
-      LexReal(v) => out.push(Parsed(@pdf.PdfObject::Real(v)))
-      LexString(s) => out.push(Parsed(@pdf.PdfObject::String(s)))
-      LexName(n) => out.push(Parsed(@pdf.PdfObject::Name(n)))
+      LexNull => out.push(Parsed(Null))
+      LexBool(b) => out.push(Parsed(Boolean(b)))
+      LexInt(v) => out.push(Parsed(Integer(v)))
+      LexReal(v) => out.push(Parsed(Real(v)))
+      LexString(s) => out.push(Parsed(String(s)))
+      LexName(n) => out.push(Parsed(Name(n)))
       other => out.push(Lexeme(other))
     }
     i = i + 1
@@ -43,8 +49,7 @@ fn parse_dictionary(
   let mut i = start + 1
   while i < items.length() {
     match items[i] {
-      Lexeme(LexRightDict) =>
-        return (Parsed(@pdf.PdfObject::Dictionary(entries)), i + 1)
+      Lexeme(LexRightDict) => return (Parsed(Dictionary(entries)), i + 1)
       _ => {
         let (key_item, next_i) = parse_value(items, i)
         let (val_item, next_i2) = parse_value(items, next_i)
@@ -65,8 +70,7 @@ fn parse_array(items : Array[ParseItem], start : Int) -> (ParseItem, Int) raise 
   let mut i = start + 1
   while i < items.length() {
     match items[i] {
-      Lexeme(LexRightSquare) =>
-        return (Parsed(@pdf.PdfObject::Array(values)), i + 1)
+      Lexeme(LexRightSquare) => return (Parsed(Array(values)), i + 1)
       _ => {
         let (val_item, next_i) = parse_value(items, i)
         match val_item {
@@ -121,57 +125,42 @@ fn parse_to_tree(items : Array[ParseItem]) -> Array[ParseItem] raise {
 fn parse_finish(
   items : Array[ParseItem],
   failure_is_ok : Bool,
-) -> (Int, @pdf.PdfObject) raise {
-  if items.length() == 1 {
-    match items[0] {
-      Parsed(obj) => return (0, obj)
-      _ => raise @pdf.PdfError::Msg("Could not extract object")
-    }
-  }
-  if items.length() >= 5 {
-    if items.length() >= 7 {
-      match
-        (items[0], items[1], items[2], items[3], items[4], items[5], items[6]) {
-        (
-          Parsed(Integer(o)),
-          Parsed(Integer(_)),
-          Lexeme(LexObj),
-          Parsed(Dictionary(dict)),
-          Lexeme(LexStream(stream)),
-          Lexeme(LexEndStream),
-          Lexeme(LexEndObj),
-        ) =>
-          return (
-            o,
-            @pdf.PdfObject::Stream(Ref::new((Dictionary(dict), stream))),
-          )
-        _ => ()
+) -> (Int, PdfObject) raise {
+  match items {
+    [Parsed(obj)] => return (0, obj)
+    [
+      Parsed(Integer(o)),
+      Parsed(Integer(_)),
+      Lexeme(LexObj),
+      Parsed(Dictionary(dict)),
+      Lexeme(LexStream(stream)),
+      Lexeme(LexEndStream),
+      Lexeme(LexEndObj),
+      ..,
+    ] => return (o, Stream(Ref::new((Dictionary(dict), stream))))
+    [
+      Parsed(Integer(o)),
+      Parsed(Integer(_)),
+      Lexeme(LexObj),
+      Parsed(obj),
+      Lexeme(LexEndObj),
+      ..,
+    ] => return (o, obj)
+    [Parsed(Integer(o)), Parsed(Integer(_)), Lexeme(LexObj), Parsed(obj), ..] =>
+      return (o, obj)
+    [
+      Parsed(Integer(o)),
+      Parsed(Integer(_)),
+      Lexeme(LexObj),
+      Lexeme(LexEndObj),
+      ..,
+    ] => return (o, Null)
+    _ =>
+      if failure_is_ok {
+        (0, Null)
+      } else {
+        raise @pdf.PdfError::Msg("Could not extract object")
       }
-    }
-    match (items[0], items[1], items[2], items[3], items[4]) {
-      (
-        Parsed(Integer(o)),
-        Parsed(Integer(_)),
-        Lexeme(LexObj),
-        Parsed(obj),
-        Lexeme(LexEndObj),
-      ) => return (o, obj)
-      _ => ()
-    }
-  }
-  if items.length() >= 4 {
-    match (items[0], items[1], items[2], items[3]) {
-      (Parsed(Integer(o)), Parsed(Integer(_)), Lexeme(LexObj), Parsed(obj)) =>
-        return (o, obj)
-      (Parsed(Integer(o)), Parsed(Integer(_)), Lexeme(LexObj), Lexeme(LexEndObj)
-      ) => return (o, @pdf.PdfObject::Null)
-      _ => ()
-    }
-  }
-  if failure_is_ok {
-    (0, @pdf.PdfObject::Null)
-  } else {
-    raise @pdf.PdfError::Msg("Could not extract object")
   }
 }
 
@@ -180,10 +169,10 @@ fn parse_finish(
 #as_free_fn(parse, deprecated="Use `PdfSyntax::parse`")
 pub fn PdfSyntax::parse(
   _self : PdfSyntax,
-  tokens : Array[@pdfgenlex.Token],
+  tokens : Array[Token],
   failure_is_ok? : Bool = false,
-) -> (Int, @pdf.PdfObject) raise {
+) -> (Int, PdfObject) raise {
   parse_finish(parse_to_tree(parse_R(tokens)), failure_is_ok) catch {
-    err => if failure_is_ok { (0, @pdf.PdfObject::Null) } else { raise err }
+    err => if failure_is_ok { (0, Null) } else { raise err }
   }
 }
