@@ -9,8 +9,8 @@ pub(all) enum LengthUnit {
 
 ///|
 /// Convert a measurement to points.
-pub fn points(value : Double, unit : LengthUnit) -> Double {
-  match unit {
+pub fn LengthUnit::to_points(self : LengthUnit, value : Double) -> Double {
+  match self {
     LengthUnit::PdfPoint => value
     LengthUnit::Inch => value * 72.0
     LengthUnit::Centimetre => value * 28.3465
@@ -20,8 +20,8 @@ pub fn points(value : Double, unit : LengthUnit) -> Double {
 
 ///|
 /// Convert a measurement to inches.
-pub fn inches(value : Double, unit : LengthUnit) -> Double {
-  match unit {
+pub fn LengthUnit::to_inches(self : LengthUnit, value : Double) -> Double {
+  match self {
     LengthUnit::Inch => value
     LengthUnit::PdfPoint => value / 72.0
     LengthUnit::Centimetre => value / 2.54
@@ -31,8 +31,8 @@ pub fn inches(value : Double, unit : LengthUnit) -> Double {
 
 ///|
 /// Convert a measurement to centimetres.
-pub fn centimetres(value : Double, unit : LengthUnit) -> Double {
-  match unit {
+pub fn LengthUnit::to_centimetres(self : LengthUnit, value : Double) -> Double {
+  match self {
     LengthUnit::Centimetre => value
     LengthUnit::Inch => value * 2.54
     LengthUnit::Millimetre => value / 10.0
@@ -42,6 +42,6 @@ pub fn centimetres(value : Double, unit : LengthUnit) -> Double {
 
 ///|
 /// Convert a measurement to millimetres.
-pub fn millimetres(value : Double, unit : LengthUnit) -> Double {
-  centimetres(value, unit) * 10.0
+pub fn LengthUnit::to_millimetres(self : LengthUnit, value : Double) -> Double {
+  self.to_centimetres(value) * 10.0
 }

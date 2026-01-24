@@ -37,7 +37,7 @@ pub suberror BadDate
 
 ## Functions
 
-### date_of_string
+### Date::of_pdf_string
 
 Parses a PDF date string into a `Date` struct.
 
@@ -54,8 +54,8 @@ Missing components default to sensible values (month/day to 1, time to 0, offset
 
 ```moonbit check
 ///|
-test "date_of_string parses full dates" {
-  let parsed = @pdfdate.date_of_string("D:20240203040506-07'15'")
+test "Date::of_pdf_string parses full dates" {
+  let parsed = @pdfdate.Date::of_pdf_string("D:20240203040506-07'15'")
   debug_inspect(
     parsed,
     content=(
@@ -78,8 +78,8 @@ test "date_of_string parses full dates" {
 
 ```moonbit check
 ///|
-test "date_of_string parses short forms" {
-  let parsed = @pdfdate.date_of_string("2024")
+test "Date::of_pdf_string parses short forms" {
+  let parsed = @pdfdate.Date::of_pdf_string("2024")
   debug_inspect(
     parsed,
     content=(
@@ -98,7 +98,7 @@ test "date_of_string parses short forms" {
 }
 ```
 
-### string_of_date
+### Date::to_pdf_string
 
 Formats a `Date` struct into a PDF date string. Validates the date components and produces a canonical PDF date string.
 
@@ -106,13 +106,13 @@ Formats a `Date` struct into a PDF date string. Validates the date components an
 
 ```moonbit check
 ///|
-test "string_of_date roundtrip" {
+test "Date::to_pdf_string roundtrip" {
   let dates = [
     "D:20240102030405Z", "D:20240102030405+05'30'", "D:20240102030405-07'15'",
   ]
   for date_str in dates {
-    let date = @pdfdate.date_of_string(date_str)
-    let formatted = @pdfdate.string_of_date(date)
+    let date = @pdfdate.Date::of_pdf_string(date_str)
+    let formatted = date.to_pdf_string()
     assert_eq(formatted, date_str)
   }
 }
@@ -126,9 +126,9 @@ This parser recognizes the `19100` prefix as a special case and interprets it as
 
 ```moonbit check
 ///|
-test "date_of_string handles 19100 Y2K quirk" {
+test "Date::of_pdf_string handles 19100 Y2K quirk" {
   // "19100" was a common Y2K bug: 1900 + 100 = 19100 instead of 2000
-  let parsed = @pdfdate.date_of_string("D:19100")
+  let parsed = @pdfdate.Date::of_pdf_string("D:19100")
   debug_inspect(
     parsed,
     content=(
@@ -149,19 +149,19 @@ test "date_of_string handles 19100 Y2K quirk" {
 
 ## Error Handling
 
-Both functions raise `BadDate` on invalid input:
+Both methods raise `BadDate` on invalid input:
 
 ```moonbit check
 ///|
-test "date parsing rejects invalid values" {
+test "Date::of_pdf_string rejects invalid values" {
   // Invalid month (13)
-  let bad_month : Result[@pdfdate.Date, Error] = try? @pdfdate.date_of_string(
+  let bad_month : Result[@pdfdate.Date, Error] = try? @pdfdate.Date::of_pdf_string(
     "D:20241301",
   )
   assert_true(bad_month is Err(_))
 
   // Non-digit characters in date
-  let bad_format : Result[@pdfdate.Date, Error] = try? @pdfdate.date_of_string(
+  let bad_format : Result[@pdfdate.Date, Error] = try? @pdfdate.Date::of_pdf_string(
     "D:20A4",
   )
   assert_true(bad_format is Err(_))

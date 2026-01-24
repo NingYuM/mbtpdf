@@ -21,8 +21,8 @@ pub(all) struct Page {
 /// Make a PDF rectangle from a paper size.
 pub fn rectangle_of_paper(paper : @pdfpaper.Paper) -> @pdf.PdfObject {
   let unit = @pdfpaper.unit(paper)
-  let width = @pdfunits.points(@pdfpaper.width(paper), unit)
-  let height = @pdfunits.points(@pdfpaper.height(paper), unit)
+  let width = unit.to_points(@pdfpaper.width(paper))
+  let height = unit.to_points(@pdfpaper.height(paper))
   @pdf.PdfObject::Array([
     @pdf.PdfObject::Real(0.0),
     @pdf.PdfObject::Real(0.0),

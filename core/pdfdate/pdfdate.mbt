@@ -16,23 +16,23 @@ pub struct Date {
 pub suberror BadDate
 
 ///|
-fn check_date(date : Date) -> Unit raise BadDate {
-  if date.year < 0 ||
-    date.year > 9999 ||
-    date.month < 1 ||
-    date.month > 12 ||
-    date.day < 1 ||
-    date.day > 31 ||
-    date.hour < 0 ||
-    date.hour > 23 ||
-    date.minute < 0 ||
-    date.minute > 59 ||
-    date.second < 0 ||
-    date.second > 59 ||
-    date.hour_offset < -23 ||
-    date.hour_offset > 23 ||
-    date.minute_offset < -59 ||
-    date.minute_offset > 59 {
+fn Date::check(self : Date) -> Unit raise BadDate {
+  if self.year < 0 ||
+    self.year > 9999 ||
+    self.month < 1 ||
+    self.month > 12 ||
+    self.day < 1 ||
+    self.day > 31 ||
+    self.hour < 0 ||
+    self.hour > 23 ||
+    self.minute < 0 ||
+    self.minute > 59 ||
+    self.second < 0 ||
+    self.second > 59 ||
+    self.hour_offset < -23 ||
+    self.hour_offset > 23 ||
+    self.minute_offset < -59 ||
+    self.minute_offset > 59 {
     raise BadDate
   }
 }
@@ -163,36 +163,36 @@ fn optional_twochar(
 
 ///|
 /// Build a string from a date.
-pub fn string_of_date(date : Date) -> String raise BadDate {
-  check_date(date)
-  let offset_str = if date.hour_offset < 0 {
+pub fn Date::to_pdf_string(self : Date) -> String raise BadDate {
+  self.check()
+  let offset_str = if self.hour_offset < 0 {
     "-" +
-    pad_int(abs_int(date.hour_offset), 2) +
+    pad_int(abs_int(self.hour_offset), 2) +
     "'" +
-    pad_int(abs_int(date.minute_offset), 2) +
+    pad_int(abs_int(self.minute_offset), 2) +
     "'"
-  } else if date.hour_offset > 0 {
+  } else if self.hour_offset > 0 {
     "+" +
-    pad_int(abs_int(date.hour_offset), 2) +
+    pad_int(abs_int(self.hour_offset), 2) +
     "'" +
-    pad_int(abs_int(date.minute_offset), 2) +
+    pad_int(abs_int(self.minute_offset), 2) +
     "'"
   } else {
     "Z"
   }
   "D:" +
-  pad_int(date.year, 4) +
-  pad_int(date.month, 2) +
-  pad_int(date.day, 2) +
-  pad_int(date.hour, 2) +
-  pad_int(date.minute, 2) +
-  pad_int(date.second, 2) +
+  pad_int(self.year, 4) +
+  pad_int(self.month, 2) +
+  pad_int(self.day, 2) +
+  pad_int(self.hour, 2) +
+  pad_int(self.minute, 2) +
+  pad_int(self.second, 2) +
   offset_str
 }
 
 ///|
 /// Build a date by parsing a PDF date string.
-pub fn date_of_string(s : String) -> Date raise BadDate {
+pub fn Date::of_pdf_string(s : String) -> Date raise BadDate {
   let chars = Array::new(capacity=s.length())
   for ch in s {
     chars.push(ch)
@@ -243,6 +243,6 @@ pub fn date_of_string(s : String) -> Date raise BadDate {
     hour_offset: hour_offset.val * sign.val,
     minute_offset: minute_offset.val * sign.val,
   }
-  check_date(date)
+  date.check()
   date
 }

@@ -22,9 +22,9 @@ pub(all) enum LengthUnit {
 }
 ```
 
-## Functions
+## Methods
 
-### points
+### LengthUnit::to_points
 
 Convert a measurement to PDF points.
 
@@ -32,15 +32,21 @@ Convert a measurement to PDF points.
 ///|
 test "points: convert to PDF points" {
   // 1 inch = 72 points
-  inspect(@pdfunits.points(1.0, Inch), content="72")
+  inspect(@pdfunits.LengthUnit::Inch.to_points(1.0), content="72")
   // 2.54 cm ≈ 72 points (1 inch)
-  inspect(@pdfunits.points(2.54, Centimetre).to_int(), content="72")
+  inspect(
+    @pdfunits.LengthUnit::Centimetre.to_points(2.54).to_int(),
+    content="72",
+  )
   // 25.4 mm ≈ 72 points (1 inch)
-  inspect(@pdfunits.points(25.4, Millimetre).to_int(), content="72")
+  inspect(
+    @pdfunits.LengthUnit::Millimetre.to_points(25.4).to_int(),
+    content="72",
+  )
 }
 ```
 
-### inches
+### LengthUnit::to_inches
 
 Convert a measurement to inches.
 
@@ -48,15 +54,15 @@ Convert a measurement to inches.
 ///|
 test "inches: convert to inches" {
   // 72 points = 1 inch
-  inspect(@pdfunits.inches(72.0, PdfPoint), content="1")
+  inspect(@pdfunits.LengthUnit::PdfPoint.to_inches(72.0), content="1")
   // 2.54 cm = 1 inch
-  inspect(@pdfunits.inches(2.54, Centimetre), content="1")
+  inspect(@pdfunits.LengthUnit::Centimetre.to_inches(2.54), content="1")
   // 25.4 mm = 1 inch
-  inspect(@pdfunits.inches(25.4, Millimetre), content="1")
+  inspect(@pdfunits.LengthUnit::Millimetre.to_inches(25.4), content="1")
 }
 ```
 
-### centimetres
+### LengthUnit::to_centimetres
 
 Convert a measurement to centimetres.
 
@@ -64,13 +70,13 @@ Convert a measurement to centimetres.
 ///|
 test "centimetres: convert to cm" {
   // 1 inch = 2.54 cm
-  inspect(@pdfunits.centimetres(1.0, Inch), content="2.54")
+  inspect(@pdfunits.LengthUnit::Inch.to_centimetres(1.0), content="2.54")
   // 10 mm = 1 cm
-  inspect(@pdfunits.centimetres(10.0, Millimetre), content="1")
+  inspect(@pdfunits.LengthUnit::Millimetre.to_centimetres(10.0), content="1")
 }
 ```
 
-### millimetres
+### LengthUnit::to_millimetres
 
 Convert a measurement to millimetres.
 
@@ -78,9 +84,9 @@ Convert a measurement to millimetres.
 ///|
 test "millimetres: convert to mm" {
   // 1 cm = 10 mm
-  inspect(@pdfunits.millimetres(1.0, Centimetre), content="10")
+  inspect(@pdfunits.LengthUnit::Centimetre.to_millimetres(1.0), content="10")
   // 1 inch = 25.4 mm
-  inspect(@pdfunits.millimetres(1.0, Inch), content="25.4")
+  inspect(@pdfunits.LengthUnit::Inch.to_millimetres(1.0), content="25.4")
 }
 ```
 
@@ -96,8 +102,8 @@ The fundamental relationships are:
 test "unit relationships" {
   // Roundtrip: inches -> points -> inches
   let original = 2.5
-  let in_points = @pdfunits.points(original, Inch)
-  let back = @pdfunits.inches(in_points, PdfPoint)
+  let in_points = @pdfunits.LengthUnit::Inch.to_points(original)
+  let back = @pdfunits.LengthUnit::PdfPoint.to_inches(in_points)
   inspect(back, content="2.5")
 }
 ```
