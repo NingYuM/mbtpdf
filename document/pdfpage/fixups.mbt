@@ -71,26 +71,26 @@ fn page_tree_nodes_not_pages_inner(
   pages_node : PdfObject,
   node_number : Int,
 ) -> Array[Int] {
-  match pdf.lookup_direct("/Type", pages_node) {
-    Some(Name("/Page")) => []
-    _ =>
-      match pdf.lookup_direct("/Kids", pages_node) {
-        Some(Array(elts)) => {
-          let out = Array::new()
-          out.push(node_number)
-          for elt in elts {
-            match elt {
-              Indirect(i) =>
-                out.append(
-                  page_tree_nodes_not_pages_inner(pdf, pdf.direct(elt), i)[:],
-                )
-              _ => ()
-            }
+  if pdf.lookup_direct("/Type", pages_node) is Some(Name("/Page")) {
+    []
+  } else {
+    match pdf.lookup_direct("/Kids", pages_node) {
+      Some(Array(elts)) => {
+        let out = Array::new()
+        out.push(node_number)
+        for elt in elts {
+          match elt {
+            Indirect(i) =>
+              out.append(
+                page_tree_nodes_not_pages_inner(pdf, pdf.direct(elt), i)[:],
+              )
+            _ => ()
           }
-          out
         }
-        _ => []
+        out
       }
+      _ => []
+    }
   }
 }
 
@@ -147,25 +147,25 @@ fn page_reference_numbers_unordered_inner(
   node_number : Int,
   acc : Ref[Array[Int]],
 ) -> Unit {
-  match pdf.lookup_direct("/Type", pages_node) {
-    Some(Name("/Page")) => acc.val.push(node_number)
-    _ =>
-      match pdf.lookup_direct("/Kids", pages_node) {
-        Some(Array(elts)) =>
-          for elt in elts {
-            match elt {
-              Indirect(i) =>
-                page_reference_numbers_unordered_inner(
-                  pdf,
-                  pdf.direct(elt),
-                  i,
-                  acc,
-                )
-              _ => ()
-            }
+  if pdf.lookup_direct("/Type", pages_node) is Some(Name("/Page")) {
+    acc.val.push(node_number)
+  } else {
+    match pdf.lookup_direct("/Kids", pages_node) {
+      Some(Array(elts)) =>
+        for elt in elts {
+          match elt {
+            Indirect(i) =>
+              page_reference_numbers_unordered_inner(
+                pdf,
+                pdf.direct(elt),
+                i,
+                acc,
+              )
+            _ => ()
           }
-        _ => acc.val.push(node_number)
-      }
+        }
+      _ => acc.val.push(node_number)
+    }
   }
 }
 
