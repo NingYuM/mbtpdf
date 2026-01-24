@@ -6,38 +6,49 @@ Glyph name to Unicode mapping tables for PDF text extraction.
 
 This package provides the Adobe Glyph List (AGL) mappings that convert PostScript glyph names to Unicode codepoints, plus encoding tables for various PDF standard encodings. These mappings are essential for extracting readable text from PDF documents.
 
-## Functions
+## Types
 
-### glyph_hashes
+### PdfGlyphList
+
+Glyph list lookup context.
+
+```moonbit nocheck
+pub struct PdfGlyphList { ... }
+pub fn PdfGlyphList::new() -> PdfGlyphList
+```
+
+## Methods
+
+### PdfGlyphList::glyph_hashes
 
 Get a map from glyph names to Unicode codepoints.
 
 ```moonbit nocheck
-pub fn glyph_hashes() -> Map[String, Array[Int]] raise
+pub fn PdfGlyphList::glyph_hashes(self : PdfGlyphList) -> Map[String, Array[Int]] raise
 ```
 
-### reverse_glyph_hashes
+### PdfGlyphList::reverse_glyph_hashes
 
 Get a map from Unicode codepoints back to glyph names.
 
 ```moonbit nocheck
-pub fn reverse_glyph_hashes() -> Map[Array[Int], String] raise
+pub fn PdfGlyphList::reverse_glyph_hashes(self : PdfGlyphList) -> Map[Array[Int], String] raise
 ```
 
-### glyphmap
+### PdfGlyphList::glyphmap
 
 Get the raw glyph list as an array of (name, codepoints) pairs.
 
 ```moonbit nocheck
-pub fn glyphmap() -> Array[(String, Array[Int])] raise
+pub fn PdfGlyphList::glyphmap(self : PdfGlyphList) -> Array[(String, Array[Int])] raise
 ```
 
-### glyphlist_src
+### PdfGlyphList::glyphlist_src
 
 Get the compressed glyph list data (FLATE compressed).
 
 ```moonbit nocheck
-pub fn glyphlist_src() -> Array[Byte]
+pub fn PdfGlyphList::glyphlist_src(self : PdfGlyphList) -> Array[Byte]
 ```
 
 ## Encoding Tables

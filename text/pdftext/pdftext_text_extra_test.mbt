@@ -113,7 +113,7 @@ test "reverse table handles custom differences" {
 
 ///|
 test "text extractor handles missing glyph hashes" {
-  let hashes = @pdfglyphlist.glyph_hashes()
+  let hashes = @pdfglyphlist.PdfGlyphList::new().glyph_hashes()
   assert_true(hashes.get("/NotAGlyph") is None)
   let pdf = @pdf.Pdf::empty()
   let extractor = @pdftext.PdfText::new(pdf).text_extractor_of_font(

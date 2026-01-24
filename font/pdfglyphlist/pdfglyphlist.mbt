@@ -2,6 +2,16 @@
 /// Glyphlist tables and encoding maps.
 
 ///|
+pub struct PdfGlyphList {
+  unit : Unit
+}
+
+///|
+pub fn PdfGlyphList::new() -> PdfGlyphList {
+  { unit: () }
+}
+
+///|
 let glyphlist_src_data : Array[Byte] = [
   0x78, 0x01, 0x85, 0xbd, 0xd9, 0x96, 0x23, 0x37, 0x92, 0x2d, 0xfa, 0xee, 0x5f, 0x91,
   0x6b, 0xf5, 0xcb, 0x3d, 0x6b, 0xdd, 0xee, 0xa2, 0xcf, 0xce, 0xd6, 0x13, 0x47, 0x95,
@@ -1681,7 +1691,8 @@ let glyphlist_src_data : Array[Byte] = [
 ]
 
 ///|
-pub fn glyphlist_src() -> Array[Byte] {
+#as_free_fn(glyphlist_src, deprecated="Use `PdfGlyphList::glyphlist_src`")
+pub fn PdfGlyphList::glyphlist_src(_self : PdfGlyphList) -> Array[Byte] {
   glyphlist_src_data.copy()
 }
 
@@ -3662,14 +3673,17 @@ fn parse_glyphlist(input : @pdfio.Input) -> Array[(String, Array[Int])] raise {
 
 ///|
 let glyphmap_memo : () -> Array[(String, Array[Int])] raise = @pdfutil.PdfUtil::new().memoize(fn() raise {
-    let decoded = @pdfcodec.decode_flate(glyphlist_src())
+    let decoded = @pdfcodec.decode_flate(PdfGlyphList::new().glyphlist_src())
     let text = @pdfio.string_of_bytes(decoded)
     parse_glyphlist(@pdfio.input_of_string(text))
   },
 )
 
 ///|
-pub fn glyphmap() -> Array[(String, Array[Int])] raise {
+#as_free_fn(glyphmap, deprecated="Use `PdfGlyphList::glyphmap`")
+pub fn PdfGlyphList::glyphmap(
+  _self : PdfGlyphList,
+) -> Array[(String, Array[Int])] raise {
   glyphmap_memo()
 }
 
@@ -3705,7 +3719,7 @@ fn revglyph_hashtable_of_dictionary(
 ///|
 let glyph_hashes_memo : () -> Map[String, Array[Int]] raise = @pdfutil.PdfUtil::new().memoize(fn() raise {
     let combined = Array::new()
-    combined.append(glyphmap())
+    combined.append(PdfGlyphList::new().glyphmap())
     combined.append(dingbatmap_arr)
     combined.append(truetypemap_arr)
     @pdfutil.PdfUtil::new().hashtable_of_dictionary(combined)
@@ -3713,19 +3727,25 @@ let glyph_hashes_memo : () -> Map[String, Array[Int]] raise = @pdfutil.PdfUtil::
 )
 
 ///|
-pub fn glyph_hashes() -> Map[String, Array[Int]] raise {
+#as_free_fn(glyph_hashes, deprecated="Use `PdfGlyphList::glyph_hashes`")
+pub fn PdfGlyphList::glyph_hashes(
+  _self : PdfGlyphList,
+) -> Map[String, Array[Int]] raise {
   glyph_hashes_memo()
 }
 
 ///|
 let reverse_glyph_hashes_memo : () -> Map[Array[Int], String] raise = @pdfutil.PdfUtil::new().memoize(fn() raise {
-    let reversed = glyphmap().map(pair => (pair.1, pair.0))
+    let reversed = PdfGlyphList::new().glyphmap().map(pair => (pair.1, pair.0))
     revglyph_hashtable_of_dictionary(reversed)
   },
 )
 
 ///|
-pub fn reverse_glyph_hashes() -> Map[Array[Int], String] raise {
+#as_free_fn(reverse_glyph_hashes, deprecated="Use `PdfGlyphList::reverse_glyph_hashes`")
+pub fn PdfGlyphList::reverse_glyph_hashes(
+  _self : PdfGlyphList,
+) -> Map[Array[Int], String] raise {
   reverse_glyph_hashes_memo()
 }
 

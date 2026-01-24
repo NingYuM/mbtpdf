@@ -178,7 +178,7 @@ pub fn TextExtractor::new(font : @pdffont.Font) -> TextExtractor {
   let convert = (i : Int) => try {
     match table.get(i) {
       Some(decoded) =>
-        match @pdfglyphlist.glyph_hashes().get(decoded) {
+        match @pdfglyphlist.PdfGlyphList::new().glyph_hashes().get(decoded) {
           Some(codepoints) => (decoded, codepoints)
           None => ("/" + decoded, [i])
         }
@@ -367,7 +367,7 @@ fn charcode_extractor_of_font_real(
     None => (@pdfutil.PdfUtil::new().null_hash(), false)
   }
   let reverse_table = PdfTextUtil::new().reverse_table_of_encoding(encoding)
-  let reverse_glyph_hashes = @pdfglyphlist.reverse_glyph_hashes()
+  let reverse_glyph_hashes = @pdfglyphlist.PdfGlyphList::new().reverse_glyph_hashes()
   (codepoint : Int) => {
     if debug {
       @pdfutil.PdfUtil::new().flprint("Input codepoint: \{codepoint}\n")
@@ -422,7 +422,7 @@ pub fn PdfTextUtil::codepoint_of_pdfdocencoding_character(
   try {
     match @pdfglyphlist.reverse_name_to_pdf_hashes.get(i) {
       Some(name) =>
-        match @pdfglyphlist.glyph_hashes().get(name) {
+        match @pdfglyphlist.PdfGlyphList::new().glyph_hashes().get(name) {
           Some(codepoints) =>
             if codepoints.length() == 1 {
               codepoints[0]
@@ -579,7 +579,7 @@ pub fn PdfTextUtil::pdfdocstring_of_codepoints(
   self : PdfTextUtil,
   codepoints : Array[Int],
 ) -> String raise {
-  let reverse_glyph_hashes = @pdfglyphlist.reverse_glyph_hashes()
+  let reverse_glyph_hashes = @pdfglyphlist.PdfGlyphList::new().reverse_glyph_hashes()
   let encoded = Array::new()
   for c in codepoints {
     match reverse_glyph_hashes.get([c]) {
