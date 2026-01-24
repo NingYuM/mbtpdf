@@ -1,7 +1,7 @@
 ///|
 priv enum PtreeObjnumbers {
-  OLf(Array[Int], Int, Int)
-  OBr(Array[Int], PtreeObjnumbers, PtreeObjnumbers, Int, Int)
+  OLf(ArrayView[Int], Int, Int)
+  OBr(ArrayView[Int], PtreeObjnumbers, PtreeObjnumbers, Int, Int)
 }
 
 ///|
@@ -9,7 +9,7 @@ fn pagetree_with_objnumbers(
   toplevel : Bool,
   old_pagetree_root_num : Int,
   objnumsource : () -> Int,
-  objnumbers : Array[Int],
+  objnumbers : ArrayView[Int],
   parent : Int,
 ) -> PtreeObjnumbers raise {
   if objnumbers.length() < 10 {
@@ -29,10 +29,14 @@ fn pagetree_with_objnumbers(
 }
 
 ///|
-fn buildnode(kids : Array[Int], parent : Int, count : Int) -> PdfObject {
+fn buildnode(kids : ArrayView[Int], parent : Int, count : Int) -> PdfObject {
+  let kid_refs = Array::new()
+  for kid in kids {
+    kid_refs.push(PdfObject::Indirect(kid))
+  }
   let entries : Array[(String, PdfObject)] = [
     ("/Type", PdfObject::Name("/Pages")),
-    ("/Kids", PdfObject::Array(kids.map(i => PdfObject::Indirect(i)))),
+    ("/Kids", PdfObject::Array(kid_refs)),
     ("/Count", PdfObject::Integer(count)),
   ]
   if parent != 0 {

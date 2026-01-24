@@ -8,22 +8,26 @@ fn source(start : Int) -> () -> Int {
 }
 
 ///|
-fn[T] array_slice(values : Array[T], start : Int, len : Int) -> Array[T] {
-  values.sub(start~, end=start + len).to_array()
+fn[T] array_slice(
+  values : ArrayView[T],
+  start : Int,
+  len : Int,
+) -> ArrayView[T] {
+  values.sub(start~, end=start + len)
 }
 
 ///|
 /// Page tree node.
 priv enum Ptree {
-  Lf(Array[Page], Int, Int)
-  Br(Array[Page], Ptree, Ptree, Int, Int)
+  Lf(ArrayView[Page], Int, Int)
+  Br(ArrayView[Page], Ptree, Ptree, Int, Int)
 }
 
 ///|
 fn[T] split3(
   n : Int,
-  values : Array[T],
-) -> (Array[T], Array[T], Array[T]) raise {
+  values : ArrayView[T],
+) -> (ArrayView[T], ArrayView[T], ArrayView[T]) raise {
   let len = values.length()
   if n > len - 2 {
     raise @pdf.PdfError::Msg("split3")
@@ -38,7 +42,7 @@ fn[T] split3(
 ///|
 fn pagetree(
   objnumsource : () -> Int,
-  pages : Array[Page],
+  pages : ArrayView[Page],
   parent : Int,
 ) -> Ptree raise {
   if pages.length() < 10 {
