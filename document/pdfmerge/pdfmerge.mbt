@@ -1,4 +1,7 @@
 ///|
+type PdfObject = @pdf.PdfObject
+
+///|
 /// Compare two byte arrays lexicographically.
 fn compare_bytes(left : Array[Byte], right : Array[Byte]) -> Int {
   let min_len = if left.length() < right.length() {
@@ -160,9 +163,9 @@ fn setify_strings(values : Array[String]) -> Array[String] {
 
 ///|
 fn remove_entry(
-  entries : Array[(String, @pdf.PdfObject)],
+  entries : Array[(String, PdfObject)],
   key : String,
-) -> Array[(String, @pdf.PdfObject)] {
+) -> Array[(String, PdfObject)] {
   let out = Array::new()
   for entry in entries {
     if entry.0 != key {
@@ -174,10 +177,10 @@ fn remove_entry(
 
 ///|
 fn add_entry(
-  entries : Array[(String, @pdf.PdfObject)],
+  entries : Array[(String, PdfObject)],
   key : String,
-  value : @pdf.PdfObject,
-) -> Array[(String, @pdf.PdfObject)] {
+  value : PdfObject,
+) -> Array[(String, PdfObject)] {
   let out = Array::new()
   let mut replaced = false
   for entry in entries {
@@ -202,7 +205,7 @@ fn stream_compare(pdf : @pdf.Pdf, x : Int, y : Int) -> Int {
     xobj.getstream()
     yobj.getstream()
     match (xobj, yobj) {
-      (@pdf.PdfObject::Stream(rx), @pdf.PdfObject::Stream(ry)) => {
+      (PdfObject::Stream(rx), PdfObject::Stream(ry)) => {
         let (dict, stream_x) = rx.val
         let (dict2, stream_y) = ry.val
         match (stream_x, stream_y) {
@@ -233,7 +236,7 @@ pub fn PdfMergeDoc::remove_duplicate_fonts(self : PdfMergeDoc) -> Unit {
   let pdf = self.pdf
   let streamobjs = Array::new()
   pdf.objiter((objnum, obj) => match obj {
-    @pdf.PdfObject::Stream(_) => streamobjs.push(objnum)
+    PdfObject::Stream(_) => streamobjs.push(objnum)
     _ => ()
   })
   let sorted = streamobjs
@@ -246,11 +249,15 @@ pub fn PdfMergeDoc::remove_duplicate_fonts(self : PdfMergeDoc) -> Unit {
   let mut current = pdf
   for group in toprocess {
     let changetable : Map[Int, Int] = Map::new()
-    let keep = group[0]
-    for i in 1..<group.length() {
-      changetable.set(group[i], keep)
+    match group {
+      [keep, .. rest] => {
+        for item in rest {
+          changetable.set(item, keep)
+        }
+        current = current.renumber(changetable)
+      }
+      _ => ()
     }
-    current = current.renumber(changetable)
   }
   let existing = pdf.objects.objects.to_array()
   for entry in existing {
@@ -276,15 +283,16 @@ fn new_dests(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int? raise {
   for src in pdfs {
     let catalog = src.catalog_of_pdf()
     match src.lookup_direct("/Dests", catalog) {
-      Some(@pdf.PdfObject::Dictionary(d)) => dests.push(d)
+      Some(PdfObject::Dictionary(d)) => dests.push(d)
       _ => ()
     }
   }
-  if dests.length() == 0 {
-    None
-  } else {
-    let merged = @pdf.PdfObject::Dictionary(flatten(dests))
-    Some(pdf.addobj(merged))
+  match dests {
+    [] => None
+    _ => {
+      let merged = PdfObject::Dictionary(flatten(dests))
+      Some(pdf.addobj(merged))
+    }
   }
 }
 
@@ -350,9 +358,9 @@ fn merge_namedicts(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int raise {
   for pair in trees {
     let merged = tree_ctx.merge_name_trees_no_clash(pair.1)
     let num = pdf.addobj(merged)
-    new_entries.push((pair.0, @pdf.PdfObject::Indirect(num)))
+    new_entries.push((pair.0, PdfObject::Indirect(num)))
   }
-  let newdict = @pdf.PdfObject::Dictionary(new_entries)
+  let newdict = PdfObject::Dictionary(new_entries)
   pdf.addobj(newdict)
 }
 
@@ -412,9 +420,9 @@ fn merge_bookmarks(
             }
           Action(a) =>
             match pdf.lookup_direct("/S", a) {
-              Some(@pdf.PdfObject::Name("/GoTo")) =>
+              Some(PdfObject::Name("/GoTo")) =>
                 match pdf.lookup_direct("/D", a) {
-                  Some(@pdf.PdfObject::String(s)) =>
+                  Some(PdfObject::String(s)) =>
                     match lookup(s, dest_nametree) {
                       Some(dest) =>
                         match pdf.lookup_direct("/D", dest) {
@@ -551,8 +559,8 @@ fn apply_namechanges_to_destination_nametree(
   }
 
   fn pairs_of_array(
-    values : Array[@pdf.PdfObject],
-  ) -> Array[(@pdf.PdfObject, @pdf.PdfObject)]? {
+    values : Array[PdfObject],
+  ) -> Array[(PdfObject, PdfObject)]? {
     if values.length() % 2 == 1 {
       return None
     }
@@ -563,19 +571,19 @@ fn apply_namechanges_to_destination_nametree(
     Some(out)
   }
 
-  fn rewrite(dict : @pdf.PdfObject) -> @pdf.PdfObject {
+  fn rewrite(dict : PdfObject) -> PdfObject {
     let entries = match dict {
-      @pdf.PdfObject::Dictionary(e) => e
+      PdfObject::Dictionary(e) => e
       _ => return dict
     }
     let mut updated = entries
     match lookup("/Names", updated) {
-      Some(@pdf.PdfObject::Array(values)) =>
+      Some(PdfObject::Array(values)) =>
         match pairs_of_array(values) {
           Some(pairs) => {
             let updated_pairs = pairs.map(pair => match pair {
-              (@pdf.PdfObject::String(s), obj) =>
-                (@pdf.PdfObject::String(rewrite_string(s)), obj)
+              (PdfObject::String(s), obj) =>
+                (PdfObject::String(rewrite_string(s)), obj)
               _ => pair
             })
             let rebuilt = Array::new(capacity=values.length())
@@ -583,61 +591,51 @@ fn apply_namechanges_to_destination_nametree(
               rebuilt.push(pair.0)
               rebuilt.push(pair.1)
             }
-            updated = add_entry(
-              updated,
-              "/Names",
-              @pdf.PdfObject::Array(rebuilt),
-            )
+            updated = add_entry(updated, "/Names", PdfObject::Array(rebuilt))
           }
           None => @pdfe.Pdfe::new().log("Warning: malformed /Names")
         }
       _ => ()
     }
     match lookup("/Limits", updated) {
-      Some(
-        @pdf.PdfObject::Array(
-          [@pdf.PdfObject::String(a), @pdf.PdfObject::String(b)]
-        )
-      ) =>
+      Some(PdfObject::Array([PdfObject::String(a), PdfObject::String(b)])) =>
         updated = add_entry(
           updated,
           "/Limits",
-          @pdf.PdfObject::Array([
-            @pdf.PdfObject::String(rewrite_string(a)),
-            @pdf.PdfObject::String(rewrite_string(b)),
+          PdfObject::Array([
+            PdfObject::String(rewrite_string(a)),
+            PdfObject::String(rewrite_string(b)),
           ]),
         )
       _ => ()
     }
     match lookup("/Kids", updated) {
-      Some(@pdf.PdfObject::Array(kids)) =>
+      Some(PdfObject::Array(kids)) =>
         for kid in kids {
           match kid {
-            @pdf.PdfObject::Indirect(i) =>
+            PdfObject::Indirect(i) =>
               pdf.addobj_given_num(
-                (i, rewrite(pdf.direct(@pdf.PdfObject::Indirect(i)))),
+                (i, rewrite(pdf.direct(PdfObject::Indirect(i)))),
               )
             _ => ()
           }
         }
       _ => ()
     }
-    @pdf.PdfObject::Dictionary(updated)
+    PdfObject::Dictionary(updated)
   }
 
   let catalog = pdf.catalog_of_pdf()
   match pdf.lookup_direct("/Names", catalog) {
-    Some(@pdf.PdfObject::Dictionary(d)) =>
+    Some(PdfObject::Dictionary(d)) =>
       match lookup("/Dests", d) {
-        Some(@pdf.PdfObject::Dictionary(dest_dict)) => {
-          let newdest = rewrite(@pdf.PdfObject::Dictionary(dest_dict))
+        Some(PdfObject::Dictionary(dest_dict)) => {
+          let newdest = rewrite(PdfObject::Dictionary(dest_dict))
           let newcatalog = catalog.add_entry("/Dests", newdest)
           pdf.addobj_given_num((pdf.root, newcatalog))
         }
-        Some(@pdf.PdfObject::Indirect(i)) =>
-          pdf.addobj_given_num(
-            (i, rewrite(pdf.direct(@pdf.PdfObject::Indirect(i)))),
-          )
+        Some(PdfObject::Indirect(i)) =>
+          pdf.addobj_given_num((i, rewrite(pdf.direct(PdfObject::Indirect(i)))))
         _ => ()
       }
     _ => ()
@@ -670,39 +668,31 @@ fn apply_namechanges_at_destination_callsites(
     }
   }
 
-  fn f(obj : @pdf.PdfObject) -> @pdf.PdfObject {
+  fn f(obj : PdfObject) -> PdfObject {
     match obj {
-      @pdf.PdfObject::Dictionary(entries) => {
+      PdfObject::Dictionary(entries) => {
         let updated = Array::new(capacity=entries.length())
         for entry in entries {
           updated.push((entry.0, f(entry.1)))
         }
         let updated = match lookup("/S", updated) {
-          Some(@pdf.PdfObject::Name("/GoTo")) =>
+          Some(PdfObject::Name("/GoTo")) =>
             match lookup("/D", updated) {
-              Some(@pdf.PdfObject::String(s)) =>
-                add_entry(
-                  updated,
-                  "/D",
-                  @pdf.PdfObject::String(rewrite_string(s)),
-                )
+              Some(PdfObject::String(s)) =>
+                add_entry(updated, "/D", PdfObject::String(rewrite_string(s)))
               _ => updated
             }
           _ => updated
         }
         match lookup("/Dest", updated) {
-          Some(@pdf.PdfObject::String(s)) =>
-            @pdf.PdfObject::Dictionary(
-              add_entry(
-                updated,
-                "/Dest",
-                @pdf.PdfObject::String(rewrite_string(s)),
-              ),
+          Some(PdfObject::String(s)) =>
+            PdfObject::Dictionary(
+              add_entry(updated, "/Dest", PdfObject::String(rewrite_string(s))),
             )
-          _ => @pdf.PdfObject::Dictionary(updated)
+          _ => PdfObject::Dictionary(updated)
         }
       }
-      @pdf.PdfObject::Array(values) => @pdf.recurse_array(f, values)
+      PdfObject::Array(values) => @pdf.recurse_array(f, values)
       _ => obj
     }
   }
@@ -719,14 +709,17 @@ fn merge_pdfs_rename_name_trees(
   let pairs = combine(names, pdfs)
   pairs.sort_by((a, b) => String::compare(a.0, b.0))
   let groups = collate(pairs, (a, b) => String::compare(a.0, b.0))
-  let unique_pdfs = groups.map(group => group[0].1)
+  let unique_pdfs = groups.map(group => match group {
+    [(_, pdf), ..] => pdf
+    [] => raise @pdf.PdfError::Msg("merge_pdfs_rename_name_trees: empty group")
+  })
   let pdfs_and_nametrees = unique_pdfs.map(pdf => {
     let catalog = pdf.catalog_of_pdf()
     match pdf.lookup_direct("/Names", catalog) {
       Some(d) =>
         match pdf.lookup_direct("/Dests", d) {
-          Some(@pdf.PdfObject::Dictionary(dict)) =>
-            (pdf, Some(@pdf.PdfObject::Dictionary(dict)))
+          Some(PdfObject::Dictionary(dict)) =>
+            (pdf, Some(PdfObject::Dictionary(dict)))
           _ => (pdf, None)
         }
       _ => (pdf, None)
@@ -751,9 +744,10 @@ fn merge_pdfs_rename_name_trees(
     num = num + 1
     let indexes = ilist(num, num + renamed.length() - 1)
     let updated = Array::new(capacity=renamed.length())
-    for i, pair in renamed {
-      let suffix = "-f" + indexes[i].to_string()
-      let mapped = pair.1.map(entry => (entry.0, entry.0 + suffix))
+    for entry in combine(indexes, renamed) {
+      let (index, pair) = entry
+      let suffix = "-f" + index.to_string()
+      let mapped = pair.1.map(item => (item.0, item.0 + suffix))
       updated.push((pair.0, mapped))
     }
     renamed = updated
@@ -770,11 +764,11 @@ fn merge_pdfs_rename_name_trees(
 ///|
 fn catalog_items_from_original_documents(
   pdfs : Array[@pdf.Pdf],
-) -> Array[(String, @pdf.PdfObject)] raise {
-  let out : Array[(String, @pdf.PdfObject)] = Array::new()
+) -> Array[(String, PdfObject)] raise {
+  let out : Array[(String, PdfObject)] = Array::new()
   for pdf in pdfs {
     match pdf.catalog_of_pdf() {
-      @pdf.PdfObject::Dictionary(entries) =>
+      PdfObject::Dictionary(entries) =>
         for entry in entries {
           let mut replaced = false
           let mut i = 0
@@ -800,12 +794,12 @@ fn catalog_items_from_original_documents(
 fn merge_entries(
   pdf : @pdf.Pdf,
   name : String,
-  dicts : Array[@pdf.PdfObject],
-) -> Array[@pdf.PdfObject] {
+  dicts : Array[PdfObject],
+) -> Array[PdfObject] {
   let out = Array::new()
   for dict in dicts {
     match pdf.lookup_direct(name, dict) {
-      Some(@pdf.PdfObject::Array(arr)) => out.append(arr[:])
+      Some(PdfObject::Array(arr)) => out.append(arr[:])
       _ => ()
     }
   }
@@ -815,20 +809,20 @@ fn merge_entries(
 ///|
 fn merge_default_dictionaries(
   pdf : @pdf.Pdf,
-  dicts : Array[@pdf.PdfObject],
-) -> Array[(String, @pdf.PdfObject)] {
-  fn merge_empty_is_none(name : String) -> Array[(String, @pdf.PdfObject)] {
+  dicts : Array[PdfObject],
+) -> Array[(String, PdfObject)] {
+  fn merge_empty_is_none(name : String) -> Array[(String, PdfObject)] {
     let arrays = Array::new()
     for dict in dicts {
       match pdf.lookup_direct(name, dict) {
-        Some(@pdf.PdfObject::Array(arr)) => arrays.push(arr)
+        Some(PdfObject::Array(arr)) => arrays.push(arr)
         _ => ()
       }
     }
     if arrays.length() == 0 {
       []
     } else {
-      [(name, @pdf.PdfObject::Array(flatten(arrays)))]
+      [(name, PdfObject::Array(flatten(arrays)))]
     }
   }
 
@@ -891,12 +885,12 @@ fn merge_optional_content_groups(
   }
   let merged_default_dictionary = merge_default_dictionaries(pdf, default_dicts)
   let entries = Array::new()
-  entries.push(("/OCGs", @pdf.PdfObject::Array(merged_ocg_arrays)))
-  entries.push(("/D", @pdf.PdfObject::Dictionary(merged_default_dictionary)))
+  entries.push(("/OCGs", PdfObject::Array(merged_ocg_arrays)))
+  entries.push(("/D", PdfObject::Dictionary(merged_default_dictionary)))
   if merged_config_arrays.length() > 0 {
-    entries.push(("/Configs", @pdf.PdfObject::Array(merged_config_arrays)))
+    entries.push(("/Configs", PdfObject::Array(merged_config_arrays)))
   }
-  let new_ocproperties = @pdf.PdfObject::Dictionary(entries)
+  let new_ocproperties = PdfObject::Dictionary(entries)
   Some(pdf.addobj(new_ocproperties))
 }
 
@@ -915,14 +909,14 @@ fn merge_acroforms(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int? raise {
   let merged_field_arrays = Array::new()
   for dict in form_dicts {
     match pdf.lookup_direct("/Fields", dict) {
-      Some(@pdf.PdfObject::Array(arr)) => merged_field_arrays.append(arr[:])
+      Some(PdfObject::Array(arr)) => merged_field_arrays.append(arr[:])
       _ => ()
     }
   }
-  let mut merged_nonfield_items = @pdf.PdfObject::Dictionary([])
+  let mut merged_nonfield_items = PdfObject::Dictionary([])
   for dict in form_dicts {
     match dict {
-      @pdf.PdfObject::Dictionary(entries) =>
+      PdfObject::Dictionary(entries) =>
         for entry in entries {
           merged_nonfield_items = merged_nonfield_items.add_entry(
             entry.0,
@@ -934,25 +928,27 @@ fn merge_acroforms(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int? raise {
   }
   let new_dict = merged_nonfield_items.add_entry(
     "/Fields",
-    @pdf.PdfObject::Array(merged_field_arrays),
+    PdfObject::Array(merged_field_arrays),
   )
   Some(pdf.addobj(new_dict))
 }
 
 ///|
 fn max_version_number(pdfs : Array[@pdf.Pdf]) -> (Int, Int) raise {
-  if pdfs.length() == 0 {
-    raise @pdf.PdfError::Msg("max_version_number: empty")
-  }
-  let mut major = pdfs[0].major
-  let mut minor = pdfs[0].minor
-  for pdf in pdfs {
-    if pdf.major > major || (pdf.major == major && pdf.minor > minor) {
-      major = pdf.major
-      minor = pdf.minor
+  match pdfs {
+    [] => raise @pdf.PdfError::Msg("max_version_number: empty")
+    [first, .. rest] => {
+      let mut major = first.major
+      let mut minor = first.minor
+      for pdf in rest {
+        if pdf.major > major || (pdf.major == major && pdf.minor > minor) {
+          major = pdf.major
+          minor = pdf.minor
+        }
+      }
+      (major, minor)
     }
   }
-  (major, minor)
 }
 
 ///|
@@ -974,8 +970,8 @@ pub fn PdfMerger::merge_pdfs(
     )
   }
   if process_struct_trees {
-    for i, pdf in pdfs {
-      @pdfst.PdfStructTree::new(pdf).trim_structure_tree(ranges[i])
+    for pair in combine(pdfs, ranges) {
+      @pdfst.PdfStructTree::new(pair.0).trim_structure_tree(pair.1)
     }
     @pdfst.PdfStructTrees::new(pdfs).renumber_parent_trees()
   }
@@ -990,17 +986,20 @@ pub fn PdfMerger::merge_pdfs(
   ) -> Array[@pdfpage.Page] raise {
     let out = Array::new()
     for n in range {
-      if n <= 0 || n > pagelist.length() {
+      if n <= 0 {
         raise @pdf.PdfError::Msg("merge_pdfs: page out of range")
       }
-      out.push(pagelist[n - 1])
+      match pagelist.get(n - 1) {
+        Some(page) => out.push(page)
+        None => raise @pdf.PdfError::Msg("merge_pdfs: page out of range")
+      }
     }
     out
   }
 
   let pages = Array::new()
-  for i, range in ranges {
-    let selected = select_pages(range, pagelists[i])
+  for pair in combine(ranges, pagelists) {
+    let selected = select_pages(pair.0, pair.1)
     pages.append(selected[:])
   }
   for src in pdfs {
@@ -1018,7 +1017,7 @@ pub fn PdfMerger::merge_pdfs(
   extra_catalog_entries = add_entry(
     extra_catalog_entries,
     "/Names",
-    @pdf.PdfObject::Indirect(namedict),
+    PdfObject::Indirect(namedict),
   )
   match dests {
     None => ()
@@ -1026,7 +1025,7 @@ pub fn PdfMerger::merge_pdfs(
       extra_catalog_entries = add_entry(
         extra_catalog_entries,
         "/Dests",
-        @pdf.PdfObject::Indirect(num),
+        PdfObject::Indirect(num),
       )
   }
   extra_catalog_entries = try {
@@ -1036,7 +1035,7 @@ pub fn PdfMerger::merge_pdfs(
         add_entry(
           extra_catalog_entries,
           "/OCProperties",
-          @pdf.PdfObject::Indirect(ocgnum),
+          PdfObject::Indirect(ocgnum),
         )
     }
   } catch {
@@ -1052,7 +1051,7 @@ pub fn PdfMerger::merge_pdfs(
         add_entry(
           extra_catalog_entries,
           "/AcroForm",
-          @pdf.PdfObject::Indirect(formnum),
+          PdfObject::Indirect(formnum),
         )
     }
   } catch {
@@ -1075,7 +1074,7 @@ pub fn PdfMerger::merge_pdfs(
           add_entry(
             extra_catalog_entries,
             "/StructTreeRoot",
-            @pdf.PdfObject::Indirect(structnum),
+            PdfObject::Indirect(structnum),
           )
       }
     } catch {
@@ -1086,12 +1085,16 @@ pub fn PdfMerger::merge_pdfs(
     }
   }
   let extra_catalog_entries = remove_entry(extra_catalog_entries, "/OpenAction")
-  match pdfs[0].lookup_direct("/Info", pdfs[0].trailerdict) {
-    None => ()
-    Some(info) =>
-      pdf.trailerdict = @pdf.PdfObject::Dictionary([
-        ("/Info", @pdf.PdfObject::Indirect(pdf.addobj(info))),
-      ])
+  match pdfs {
+    [first, ..] =>
+      match first.lookup_direct("/Info", first.trailerdict) {
+        None => ()
+        Some(info) =>
+          pdf.trailerdict = PdfObject::Dictionary([
+            ("/Info", PdfObject::Indirect(pdf.addobj(info))),
+          ])
+      }
+    [] => ()
   }
   let pdf = @pdfpage.PdfPageDoc::new(pdf).add_root(
     pagetree_num, extra_catalog_entries,
@@ -1099,13 +1102,16 @@ pub fn PdfMerger::merge_pdfs(
   let old_page_numbers = {
     let page_nums = pdfs.map(p => p.page_reference_numbers())
     let out = Array::new()
-    for i, range in ranges {
-      let numbers = page_nums[i]
-      for n in range {
-        if n <= 0 || n > numbers.length() {
+    for pair in combine(ranges, page_nums) {
+      let numbers = pair.1
+      for n in pair.0 {
+        if n <= 0 {
           raise @pdf.PdfError::Msg("merge_pdfs: page out of range")
         }
-        out.push(numbers[n - 1])
+        match numbers.get(n - 1) {
+          Some(value) => out.push(value)
+          None => raise @pdf.PdfError::Msg("merge_pdfs: page out of range")
+        }
       }
     }
     out
