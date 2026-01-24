@@ -97,11 +97,11 @@ pub(all) suberror BadFunctionEvaluation {
 }
 
 ///|
-fn string_of_calculator_inner(op : Calculator) -> String {
+fn calculator_to_string_inner(op : Calculator) -> String {
   match op {
-    Calculator::If(ops) => "\{string_of_calculator(ops)} if"
+    Calculator::If(ops) => "\{calculator_ops_to_string(ops)} if"
     Calculator::IfElse(a, b) =>
-      "\{string_of_calculator(a)} \{string_of_calculator(b)} ifelse"
+      "\{calculator_ops_to_string(a)} \{calculator_ops_to_string(b)} ifelse"
     Calculator::Bool(true) => "true"
     Calculator::Bool(false) => "false"
     Calculator::Float(f) => f.to_string()
@@ -148,9 +148,15 @@ fn string_of_calculator_inner(op : Calculator) -> String {
 }
 
 ///|
-fn string_of_calculator(ops : Array[Calculator]) -> String {
-  let parts = ops.map(string_of_calculator_inner)
+fn calculator_ops_to_string(ops : Array[Calculator]) -> String {
+  let parts = ops.map(calculator_to_string_inner)
   "{" + parts.join(" ") + "}"
+}
+
+///|
+#as_free_fn(string_of_calculator, deprecated="Use `Calculator::to_string` instead")
+pub fn Calculator::to_string(self : Array[Calculator]) -> String {
+  calculator_ops_to_string(self)
 }
 
 ///|
@@ -217,7 +223,7 @@ pub fn PdfFunction::print(self : PdfFunction) -> Unit {
     }
     PdfFunctionKind::Calculator(c) => {
       log_line("Calculator:")
-      log_line(string_of_calculator(c))
+      log_line(Calculator::to_string(c))
     }
   }
 }
@@ -1462,7 +1468,7 @@ pub fn PdfFunction::to_pdf_object(
     }
     PdfFunctionKind::Calculator(ops) => {
       let entries = concat_arrays(base, range_entry)
-      let data = @pdfio.bytes_of_string(string_of_calculator(ops))
+      let data = @pdfio.bytes_of_string(calculator_ops_to_string(ops))
       let entries_with_length = concat_arrays(entries, [
         ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
       ])

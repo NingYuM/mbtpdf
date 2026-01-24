@@ -59,6 +59,8 @@ pub(all) enum Calculator {
   Index
   Roll
 }
+#as_free_fn(string_of_calculator, deprecated)
+pub fn Calculator::to_string(Array[Self]) -> String
 pub impl @debug.Debug for Calculator
 
 pub(all) struct Interpolation {
