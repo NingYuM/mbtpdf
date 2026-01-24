@@ -43,20 +43,6 @@ fn find_pages(
             Array(values) => values
             _ => raise @pdf.PdfError::Msg("Malformed /Kids in page tree node")
           }
-          let kid_objects = Array::new(capacity=kids.length())
-          for kid in kids {
-            match kid {
-              Indirect(k) => {
-                let obj = pdf.lookup_obj(k)
-                match obj {
-                  Null => raise @pdf.PdfError::Msg("missing kid")
-                  _ => kid_objects.push(obj)
-                }
-              }
-              Dictionary(d) => kid_objects.push(PdfObject::Dictionary(d))
-              _ => raise @pdf.PdfError::Msg("malformed kid")
-            }
-          }
           let resources = match pdf.lookup_direct("/Resources", pages) {
             Some(x) => Some(x)
             None => resources
@@ -70,7 +56,18 @@ fn find_pages(
             _ => rotate
           }
           let out = Array::new()
-          for kid_obj in kid_objects {
+          for kid in kids {
+            let kid_obj = match kid {
+              Indirect(k) => {
+                let obj = pdf.lookup_obj(k)
+                match obj {
+                  Null => raise @pdf.PdfError::Msg("missing kid")
+                  _ => obj
+                }
+              }
+              Dictionary(d) => PdfObject::Dictionary(d)
+              _ => raise @pdf.PdfError::Msg("malformed kid")
+            }
             out.append(find_pages(kid_obj, pdf, resources, mediabox, rotate)[:])
           }
           out
