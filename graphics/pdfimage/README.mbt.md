@@ -48,12 +48,12 @@ pub(all) enum PixelLayout {
 
 ## Functions
 
-### get_image_24bpp
+### Image::get_image_24bpp
 
 Extract an image and convert to 24-bit RGB format.
 
 ```moonbit nocheck
-pub fn get_image_24bpp(
+pub fn Image::get_image_24bpp(
   pdf : @pdf.Pdf,
   dict : @pdf.PdfObject,
   stream : @pdf.PdfObject
@@ -63,12 +63,12 @@ pub fn get_image_24bpp(
 - `dict`: Image dictionary
 - `stream`: Image stream
 
-### colspace
+### Image::colspace
 
 Determine the color space of an image.
 
 ```moonbit nocheck
-pub fn colspace(
+pub fn Image::colspace(
   pdf : @pdf.Pdf,
   dict : @pdf.PdfObject,
   resources : @pdf.PdfObject
@@ -78,12 +78,12 @@ pub fn colspace(
 - `dict`: Image dictionary
 - `resources`: Page resources
 
-### bpc
+### Image::bpc
 
 Get the bits-per-component value from an image dictionary.
 
 ```moonbit nocheck
-pub fn bpc(pdf : @pdf.Pdf, dict : @pdf.PdfObject) -> @pdf.PdfObject?
+pub fn Image::bpc(pdf : @pdf.Pdf, dict : @pdf.PdfObject) -> @pdf.PdfObject?
 ```
 
 ## Supported Image Types

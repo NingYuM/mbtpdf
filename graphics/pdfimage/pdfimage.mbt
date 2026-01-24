@@ -751,7 +751,7 @@ fn read_raw_image(
 }
 
 ///|
-pub fn colspace(
+pub fn Image::colspace(
   pdf : @pdf.Pdf,
   dict : @pdf.PdfObject,
   resources : @pdf.PdfObject,
@@ -783,7 +783,7 @@ pub fn colspace(
 }
 
 ///|
-pub fn bpc(pdf : @pdf.Pdf, dict : @pdf.PdfObject) -> @pdf.PdfObject? {
+pub fn Image::bpc(pdf : @pdf.Pdf, dict : @pdf.PdfObject) -> @pdf.PdfObject? {
   match @pdf.lookup_direct_orelse(pdf, "/BitsPerComponent", "/BPC", dict) {
     Some(bpc) => Some(bpc)
     None =>
@@ -804,13 +804,13 @@ fn get_raw_image(
   data : @pdfio.MutableBytes,
 ) -> Image raise {
   let size = @pdfio.bytes_size(data)
-  let space = colspace(pdf, dict, resources)
-  let bits = bpc(pdf, dict)
+  let space = Image::colspace(pdf, dict, resources)
+  let bits = Image::bpc(pdf, dict)
   read_raw_image(size, space, bits, width, height, data)
 }
 
 ///|
-pub fn get_image_24bpp(
+pub fn Image::get_image_24bpp(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,
   stream : @pdf.PdfObject,

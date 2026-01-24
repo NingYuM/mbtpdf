@@ -2,12 +2,12 @@
 test "colspace and bpc handle image masks" {
   let pdf = @pdf.empty()
   let dict : @pdf.PdfObject = Dictionary([("/ImageMask", Boolean(true))])
-  let space = @pdfimage.colspace(pdf, dict, Dictionary([]))
+  let space = @pdfimage.Image::colspace(pdf, dict, Dictionary([]))
   match space {
     @pdfspace.ColourSpace::DeviceGray => ()
     _ => fail("expected DeviceGray")
   }
-  match (@pdfimage.bpc(pdf, dict) : @pdf.PdfObject?) {
+  match (@pdfimage.Image::bpc(pdf, dict) : @pdf.PdfObject?) {
     Some(Integer(1)) => ()
     _ => fail("expected bpc of 1")
   }
@@ -26,7 +26,7 @@ test "get_image_24bpp decodes raw rgb image" {
   ])
   let data = @pdfio.bytes_of_list([0x10, 0x20, 0x30])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let image = @pdfimage.get_image_24bpp(pdf, Dictionary([]), stream)
+  let image = @pdfimage.Image::get_image_24bpp(pdf, Dictionary([]), stream)
   match image {
     Image::Raw(w, h, _, bytes) => {
       assert_eq(w, 1)
@@ -51,7 +51,7 @@ test "get_image_24bpp applies decode for 1bpp" {
   ])
   let data = @pdfio.bytes_of_list([0x00])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let image = @pdfimage.get_image_24bpp(pdf, Dictionary([]), stream)
+  let image = @pdfimage.Image::get_image_24bpp(pdf, Dictionary([]), stream)
   match image {
     Image::Raw(w, h, _, bytes) => {
       assert_eq(w, 1)

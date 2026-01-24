@@ -3,7 +3,7 @@ test "colspace uses image mask" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let image : @pdf.PdfObject = Dictionary([("/ImageMask", Boolean(true))])
-  let space = @pdfimage.colspace(pdf, image, resources)
+  let space = @pdfimage.Image::colspace(pdf, image, resources)
   match (space : @pdfspace.ColourSpace) {
     DeviceGray => ()
     _ => fail("expected DeviceGray")
@@ -17,7 +17,7 @@ test "colspace resolves named resource" {
     ("/ColorSpace", Dictionary([("/CS1", Name("/DeviceRGB"))])),
   ])
   let image : @pdf.PdfObject = Dictionary([("/CS", Name("/CS1"))])
-  let space = @pdfimage.colspace(pdf, image, resources)
+  let space = @pdfimage.Image::colspace(pdf, image, resources)
   match (space : @pdfspace.ColourSpace) {
     DeviceRGB => ()
     _ => fail("expected DeviceRGB")
@@ -28,7 +28,7 @@ test "colspace resolves named resource" {
 test "bpc returns component bits" {
   let pdf = @pdf.empty()
   let image : @pdf.PdfObject = Dictionary([("/BPC", Integer(8))])
-  match (@pdfimage.bpc(pdf, image) : @pdf.PdfObject?) {
+  match (@pdfimage.Image::bpc(pdf, image) : @pdf.PdfObject?) {
     Some(Integer(8)) => ()
     _ => fail("expected /BPC 8")
   }
@@ -38,7 +38,7 @@ test "bpc returns component bits" {
 test "bpc defaults to image mask" {
   let pdf = @pdf.empty()
   let image : @pdf.PdfObject = Dictionary([("/ImageMask", Boolean(true))])
-  match (@pdfimage.bpc(pdf, image) : @pdf.PdfObject?) {
+  match (@pdfimage.Image::bpc(pdf, image) : @pdf.PdfObject?) {
     Some(Integer(1)) => ()
     _ => fail("expected /BPC 1 for image mask")
   }
@@ -48,7 +48,7 @@ test "bpc defaults to image mask" {
 test "bpc none when absent" {
   let pdf = @pdf.empty()
   let image : @pdf.PdfObject = Dictionary([])
-  match @pdfimage.bpc(pdf, image) {
+  match @pdfimage.Image::bpc(pdf, image) {
     None => ()
     _ => fail("expected None")
   }
@@ -66,7 +66,8 @@ test "get_image_24bpp raw rgb" {
     ("/ColorSpace", Name("/DeviceRGB")),
   ])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(w, h, layout, bytes) => {
       assert_eq(w, 2)
       assert_eq(h, 1)
@@ -95,7 +96,8 @@ test "get_image_24bpp applies decode for 1bpp" {
     ("/Decode", Array([Real(1.0), Real(0.0)])),
   ])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => {
       assert_eq(bytes.length(), 3)
       assert_eq(bytes[0].to_int(), 0)
@@ -120,7 +122,8 @@ test "get_image_24bpp applies decode for 8bpp" {
     ),
   ])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => {
       assert_eq(bytes[0].to_int(), 1)
       assert_eq(bytes[1].to_int(), 0)
@@ -143,7 +146,8 @@ test "get_image_24bpp returns jpeg for DCT filter" {
     ("/Filter", Name("/DCTDecode")),
   ])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     JPEG(bytes, decode) => {
       assert_eq(bytes.length(), 4)
       match decode {
@@ -168,7 +172,8 @@ test "get_image_24bpp returns jpeg2000 for JPX filter" {
     ("/Filter", Name("/JPXDecode")),
   ])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     JPEG2000(bytes, _) => assert_eq(bytes.length(), 3)
     _ => fail("expected JPEG2000 image")
   }
@@ -190,7 +195,8 @@ test "get_image_24bpp returns JBIG2 with globals" {
     ("/DecodeParms", Dictionary([("/JBIG2Globals", Indirect(globals))])),
   ])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     JBIG2(bytes, _, globals_ref) => {
       assert_eq(bytes.length(), 3)
       assert_eq(globals_ref, None)
@@ -254,7 +260,8 @@ test "get_image_24bpp default decode for Lab" {
   ])
   let data = @pdfio.bytes_of_list([1, 2, 3])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     JPEG(_, Some(decode)) => {
       assert_eq(decode.length(), 6)
       assert_eq(decode[0], 0.0)
@@ -288,7 +295,8 @@ test "get_image_24bpp default decode for ICCBased" {
   ])
   let data = @pdfio.bytes_of_list([1, 2, 3])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     JPEG(_, Some(decode)) => assert_eq(decode.length(), 6)
     _ => fail("expected JPEG image with decode")
   }
@@ -314,7 +322,8 @@ test "get_image_24bpp default decode for DeviceN" {
   ])
   let data = @pdfio.bytes_of_list([1, 2, 3])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     JPEG(_, Some(decode)) => assert_eq(decode.length(), 4)
     _ => fail("expected JPEG image with decode")
   }
@@ -341,7 +350,8 @@ test "get_image_24bpp decode ignored for indexed DCT" {
   ])
   let data = @pdfio.bytes_of_list([1, 2, 3])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     JPEG(_, decode) => assert_true(decode is None)
     _ => fail("expected JPEG image")
   }
@@ -360,7 +370,8 @@ test "get_image_24bpp default decode none for Pattern" {
   ])
   let data = @pdfio.bytes_of_list([1, 2, 3])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     JPEG(_, decode) => assert_true(decode is None)
     _ => fail("expected JPEG image")
   }
@@ -378,7 +389,8 @@ test "get_image_24bpp converts gray to rgb" {
     ("/ColorSpace", Name("/DeviceGray")),
   ])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => {
       assert_eq(bytes.length(), 3)
       assert_eq(bytes[0].to_int(), 128)
@@ -401,7 +413,8 @@ test "get_image_24bpp converts cmyk to rgb" {
     ("/ColorSpace", Name("/DeviceCMYK")),
   ])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => {
       assert_eq(bytes.length(), 3)
       assert_eq(bytes[0].to_int(), 255)
@@ -428,7 +441,8 @@ test "get_image_24bpp handles indexed RGB" {
   ])
   let data = @pdfio.bytes_of_list([1])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => {
       assert_eq(bytes.length(), 3)
       assert_eq(bytes[0].to_int(), 255)
@@ -457,7 +471,8 @@ test "get_image_24bpp handles indexed CMYK" {
   ])
   let data = @pdfio.bytes_of_list([1])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => {
       assert_eq(bytes.length(), 3)
       assert_eq(bytes[0].to_int(), 255)
@@ -488,7 +503,8 @@ test "get_image_24bpp handles indexed Lab" {
   ])
   let data = @pdfio.bytes_of_list([0])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => assert_eq(bytes.length(), 3)
     _ => fail("expected indexed Lab image")
   }
@@ -510,7 +526,7 @@ test "get_image_24bpp indexed rgb missing table entry" {
   ])
   let data = @pdfio.bytes_of_list([1])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let result : Result[@pdfimage.Image, Error] = try? @pdfimage.get_image_24bpp(
+  let result : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::get_image_24bpp(
     pdf, resources, stream,
   )
   assert_true(result is Err(_))
@@ -528,7 +544,8 @@ test "get_image_24bpp handles 4bpp gray" {
   ])
   let data = @pdfio.bytes_of_list([0xf0])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => {
       assert_eq(bytes.length(), 6)
       assert_eq(bytes[0].to_int(), 255)
@@ -551,7 +568,7 @@ test "get_image_24bpp rejects bad decode" {
   ])
   let data = @pdfio.bytes_of_list([0, 0, 0])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let result : Result[@pdfimage.Image, Error] = try? @pdfimage.get_image_24bpp(
+  let result : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::get_image_24bpp(
     pdf, resources, stream,
   )
   assert_true(result is Err(_))
@@ -574,7 +591,8 @@ test "get_image_24bpp handles ICCBased raw" {
   ])
   let data = @pdfio.bytes_of_list([0, 0, 0])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(w, h, layout, bytes) => {
       assert_eq(w, 1)
       assert_eq(h, 1)
@@ -607,7 +625,8 @@ test "get_image_24bpp handles separation cmyk" {
   ])
   let data = @pdfio.bytes_of_list([0])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => assert_eq(bytes.length(), 3)
     _ => fail("expected separation image")
   }
@@ -632,7 +651,7 @@ test "get_image_24bpp rejects bad separation function" {
   ])
   let data = @pdfio.bytes_of_list([0])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  assert_is_err(try? @pdfimage.get_image_24bpp(pdf, resources, stream))
+  assert_is_err(try? @pdfimage.Image::get_image_24bpp(pdf, resources, stream))
 }
 
 ///|
@@ -655,7 +674,8 @@ test "get_image_24bpp default decode for separation DCT" {
   ])
   let data = @pdfio.bytes_of_list([1, 2, 3])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     JPEG(_, Some(decode)) => {
       assert_eq(decode.length(), 2)
       assert_eq(decode[0], 0.0)
@@ -682,7 +702,8 @@ test "get_image_24bpp loads ToGet stream" {
   let stream : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::ToGet(toget))),
   )
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => assert_eq(bytes.length(), 3)
     _ => fail("expected raw image")
   }
@@ -699,7 +720,7 @@ test "get_image_24bpp rejects missing width" {
   ])
   let data = @pdfio.bytes_of_list([0, 0, 0])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  assert_is_err(try? @pdfimage.get_image_24bpp(pdf, resources, stream))
+  assert_is_err(try? @pdfimage.Image::get_image_24bpp(pdf, resources, stream))
 }
 
 ///|
@@ -725,7 +746,8 @@ test "get_image_24bpp raw with empty filter array" {
     ("/Filter", Array([])),
   ])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => assert_eq(bytes[0].to_int(), 128)
     _ => fail("expected raw image")
   }
@@ -744,7 +766,8 @@ test "get_image_24bpp accepts DCT filter array" {
     ("/Filter", Array([Name("/DCTDecode")])),
   ])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     JPEG(bytes, _) => assert_eq(bytes.length(), 3)
     _ => fail("expected JPEG image")
   }
@@ -766,7 +789,7 @@ test "get_image_24bpp rejects flate filter" {
   let stream : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::Got(encoded))),
   )
-  assert_is_err(try? @pdfimage.get_image_24bpp(pdf, resources, stream))
+  assert_is_err(try? @pdfimage.Image::get_image_24bpp(pdf, resources, stream))
 }
 
 ///|
@@ -784,7 +807,8 @@ test "get_image_24bpp indexed 8bpp rgb" {
   ])
   let data = @pdfio.bytes_of_list([0, 1])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => {
       assert_eq(bytes.length(), 6)
       assert_eq(bytes[0].to_int(), 0)
@@ -807,7 +831,8 @@ test "get_image_24bpp indexed 8bpp cmyk" {
   ])
   let data = @pdfio.bytes_of_list([0])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => {
       assert_eq(bytes.length(), 3)
       assert_eq(bytes[0].to_int(), 255)
@@ -832,7 +857,8 @@ test "get_image_24bpp indexed 4bpp rgb" {
   ])
   let data = @pdfio.bytes_of_list([0x01])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => {
       assert_eq(bytes.length(), 6)
       assert_eq(bytes[0].to_int(), 0)
@@ -855,7 +881,8 @@ test "get_image_24bpp indexed 4bpp cmyk" {
   ])
   let data = @pdfio.bytes_of_list([0x00])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => {
       assert_eq(bytes.length(), 6)
       assert_eq(bytes[0].to_int(), 255)
@@ -880,7 +907,7 @@ test "get_image_24bpp indexed 4bpp rejects missing entry" {
   ])
   let data = @pdfio.bytes_of_list([0x20])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  assert_is_err(try? @pdfimage.get_image_24bpp(pdf, resources, stream))
+  assert_is_err(try? @pdfimage.Image::get_image_24bpp(pdf, resources, stream))
 }
 
 ///|
@@ -896,7 +923,8 @@ test "get_image_24bpp 4bpp gray decode no-op" {
   ])
   let data = @pdfio.bytes_of_list([0x0f])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     Raw(_, _, _, bytes) => {
       assert_eq(bytes.length(), 6)
       assert_eq(bytes[0].to_int(), 0)
@@ -919,7 +947,7 @@ test "get_image_24bpp rejects odd decode length" {
   ])
   let data = @pdfio.bytes_of_list([0, 0, 0])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  assert_is_err(try? @pdfimage.get_image_24bpp(pdf, resources, stream))
+  assert_is_err(try? @pdfimage.Image::get_image_24bpp(pdf, resources, stream))
 }
 
 ///|
@@ -934,7 +962,8 @@ test "get_image_24bpp decode defaults to none without colorspace" {
   ])
   let data = @pdfio.bytes_of_list([1, 2, 3])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     JPEG(_, decode) => assert_true(decode is None)
     _ => fail("expected JPEG image")
   }
@@ -953,7 +982,8 @@ test "get_image_24bpp keeps decode when colorspace missing" {
   ])
   let data = @pdfio.bytes_of_list([1, 2, 3])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  match (@pdfimage.get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     JPEG(_, Some(decode)) => assert_eq(decode.length(), 2)
     _ => fail("expected JPEG image")
   }
