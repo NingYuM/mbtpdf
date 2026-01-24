@@ -465,7 +465,7 @@ fn bake_object_streams(
       Ref::new((dict, @pdf.Stream::Got(data))),
     )
     if compress {
-      let encoded = @pdfcodec.encode_flate(data)
+      let encoded = @pdfcodec.PdfCodec::new().encode_flate(data)
       if @pdfio.bytes_size(encoded) + 20 < @pdfio.bytes_size(data) {
         let dict_with_filter = dict.add_entry(
           "/Filter",

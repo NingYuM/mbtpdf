@@ -149,7 +149,7 @@ test "pdf_to_output generates object streams with indirect lengths" {
     data_sb.write_string(s)
   }
   let objstm_data = @pdfio.bytes_of_string(data_sb.to_string())
-  let encoded = @pdfcodec.encode_flate(objstm_data)
+  let encoded = @pdfcodec.PdfCodec::new().encode_flate(objstm_data)
   let should_compress = @pdfio.bytes_size(encoded) + 20 <
     @pdfio.bytes_size(objstm_data)
   let (output, buffer) = @pdfio.input_output_of_bytes(4096)

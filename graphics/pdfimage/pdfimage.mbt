@@ -203,7 +203,7 @@ fn decode_to_image(pdf : @pdf.Pdf, stream : @pdf.PdfObject) -> Unit raise {
           Array([Name("/DCTDecode" | "/DCT" | "/JBIG2Decode" | "/JPXDecode")])
         ) => ()
         _ => {
-          @pdfcodec.decode_pdfstream_onestage(pdf, stream)
+          @pdfcodec.PdfCodec::new().decode_pdfstream_onestage(pdf, stream)
           decode_to_image(pdf, stream)
         }
       }

@@ -778,7 +778,7 @@ test "get_image_24bpp rejects flate filter" {
   let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let raw = @pdfio.bytes_of_list([1, 2, 3])
-  let encoded = @pdfcodec.encode_flate(raw)
+  let encoded = @pdfcodec.PdfCodec::new().encode_flate(raw)
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(1)),
     ("/Height", Integer(1)),

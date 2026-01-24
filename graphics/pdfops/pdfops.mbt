@@ -572,7 +572,7 @@ fn string_of_lexeme(lexeme : Lexeme) -> String raise {
         None | Some(@pdf.PdfObject::Array([])) => {
           let _ = dp
           let dict = dict.add_entry("/F", @pdf.PdfObject::Name("/Fl"))
-          let encoded = @pdfcodec.encode_flate(data)
+          let encoded = @pdfcodec.PdfCodec::new().encode_flate(data)
           (dict, encoded)
         }
         _ => (dict, data)
@@ -1003,7 +1003,7 @@ fn lex_inline_image(
           get_jpeg_data(input)
         } else {
           let encoded = read_inline_image_encoded_data(input)
-          match @pdfcodec.decode_from_bytes(encoded, dict) {
+          match @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) {
             Some(decoded) => decoded
             None => {
               @pdfe.log("decode_from_bytes failed\n")
@@ -1020,7 +1020,8 @@ fn lex_inline_image(
                 get_jpeg_data(input)
               } else {
                 let encoded = read_inline_image_encoded_data(input)
-                match @pdfcodec.decode_from_bytes(encoded, dict) {
+                match
+                  @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) {
                   Some(decoded) => decoded
                   None => {
                     @pdfe.log("decode_from_bytes failed\n")
@@ -1031,7 +1032,7 @@ fn lex_inline_image(
               }
             _ => {
               let encoded = read_inline_image_encoded_data(input)
-              match @pdfcodec.decode_from_bytes(encoded, dict) {
+              match @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) {
                 Some(decoded) => decoded
                 None => {
                   @pdfe.log("decode_from_bytes failed\n")
@@ -1043,7 +1044,7 @@ fn lex_inline_image(
           }
         } else {
           let encoded = read_inline_image_encoded_data(input)
-          match @pdfcodec.decode_from_bytes(encoded, dict) {
+          match @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) {
             Some(decoded) => decoded
             None => {
               @pdfe.log("decode_from_bytes failed\n")
@@ -1054,7 +1055,7 @@ fn lex_inline_image(
         }
       Some(_) => {
         let encoded = read_inline_image_encoded_data(input)
-        match @pdfcodec.decode_from_bytes(encoded, dict) {
+        match @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) {
           Some(decoded) => decoded
           None => {
             @pdfe.log("decode_from_bytes failed\n")
@@ -1991,7 +1992,7 @@ pub fn Op::parse_operators(
   let rawstreams : Array[@pdfio.MutableBytes] = Array::new()
   for stream in streams {
     let direct = @pdf.direct(pdf, stream)
-    @pdfcodec.decode_pdfstream(pdf, direct)
+    @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, direct)
     @pdf.getstream(direct)
     match direct {
       @pdf.PdfObject::Stream(r) =>

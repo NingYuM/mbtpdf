@@ -1,4 +1,7 @@
 ///|
+let ctx = PdfCodec::new()
+
+///|
 test "encode/decode flate stream" {
   let pdf = @pdf.Pdf::empty()
   let original = @pdfio.bytes_of_string("hello flate")
@@ -7,7 +10,7 @@ test "encode/decode flate stream" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(original)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  encode_pdfstream(pdf, Encoding::Flate, stream_obj)
+  ctx.encode_pdfstream(pdf, Encoding::Flate, stream_obj)
   let (encoded_dict, encoded_stream) = stream_ref.val
   let encoded_bytes = match (encoded_stream : @pdf.Stream) {
     Got(bytes) => bytes
@@ -24,7 +27,7 @@ test "encode/decode flate stream" {
     Some(Integer(len)) => assert_eq(len, @pdfio.bytes_size(encoded_bytes))
     _ => fail("expected /Length entry")
   }
-  decode_pdfstream_onestage(pdf, stream_obj)
+  ctx.decode_pdfstream_onestage(pdf, stream_obj)
   let (decoded_dict, decoded_stream) = stream_ref.val
   let decoded_bytes = match (decoded_stream : @pdf.Stream) {
     Got(bytes) => bytes
@@ -55,8 +58,8 @@ fn roundtrip_encoding(
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(original)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  encode_pdfstream(pdf, encoding, stream_obj, only_if_smaller=false)
-  decode_pdfstream_onestage(pdf, stream_obj)
+  ctx.encode_pdfstream(pdf, encoding, stream_obj, only_if_smaller=false)
+  ctx.decode_pdfstream_onestage(pdf, stream_obj)
   match (stream_ref.val : (@pdf.PdfObject, @pdf.Stream)) {
     (_, Got(bytes)) => bytes
     _ => fail("expected decoded bytes")
@@ -101,7 +104,7 @@ test "encode_pdfstream prepends filter when name already set" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  encode_pdfstream(pdf, Encoding::Flate, stream_obj)
+  ctx.encode_pdfstream(pdf, Encoding::Flate, stream_obj)
   match
     (@pdf.lookup_direct(pdf, "/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
     Some(Array(filters)) => {
@@ -125,7 +128,7 @@ test "encode_pdfstream prepends filter when array already set" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  encode_pdfstream(pdf, Encoding::Flate, stream_obj)
+  ctx.encode_pdfstream(pdf, Encoding::Flate, stream_obj)
   match
     (@pdf.lookup_direct(pdf, "/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
     Some(Array(filters)) =>
@@ -146,7 +149,7 @@ test "encode_pdfstream keeps data when only_if_smaller" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  encode_pdfstream(pdf, Encoding::Flate, stream_obj, only_if_smaller=true)
+  ctx.encode_pdfstream(pdf, Encoding::Flate, stream_obj, only_if_smaller=true)
   match @pdf.lookup_direct(pdf, "/Filter", stream_ref.val.0) {
     None => ()
     _ => fail("expected no /Filter when not smaller")
@@ -173,9 +176,19 @@ test "decode_pdfstream handles filter arrays" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(original)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  encode_pdfstream(pdf, Encoding::ASCII85, stream_obj, only_if_smaller=false)
-  encode_pdfstream(pdf, Encoding::ASCIIHex, stream_obj, only_if_smaller=false)
-  decode_pdfstream(pdf, stream_obj)
+  ctx.encode_pdfstream(
+    pdf,
+    Encoding::ASCII85,
+    stream_obj,
+    only_if_smaller=false,
+  )
+  ctx.encode_pdfstream(
+    pdf,
+    Encoding::ASCIIHex,
+    stream_obj,
+    only_if_smaller=false,
+  )
+  ctx.decode_pdfstream(pdf, stream_obj)
   match (stream_ref.val : (@pdf.PdfObject, @pdf.Stream)) {
     (decoded_dict, Got(bytes)) => {
       assert_eq(@pdfio.string_of_bytes(bytes), "decode chain")

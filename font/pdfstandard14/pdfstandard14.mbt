@@ -21,7 +21,9 @@ type AfmTables = (
 
 ///|
 fn read_afm(afm : Array[Byte]) -> AfmTables raise {
-  let decompressed = @pdfio.string_of_bytes(@pdfcodec.decode_flate(afm))
+  let decompressed = @pdfio.string_of_bytes(
+    @pdfcodec.PdfCodec::new().decode_flate(afm),
+  )
   let (headers, ws, ks, ws_prime) = @pdfafm.PdfAfm::new().read(
     @pdfio.input_of_string(decompressed),
   )

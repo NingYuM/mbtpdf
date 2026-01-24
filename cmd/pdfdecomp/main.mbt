@@ -12,7 +12,7 @@ async fn main {
     @pdf.objiter(
       (_, obj) => match obj {
         @pdf.PdfObject::Stream(_) =>
-          @pdfcodec.decode_pdfstream_until_unknown(pdf, obj)
+          @pdfcodec.PdfCodec::new().decode_pdfstream_until_unknown(pdf, obj)
         _ => ()
       },
       pdf,

@@ -217,7 +217,7 @@ test "add_prefix handles filtered inline images with trailing ops" {
     ("/ColorSpace", Dictionary([("/CS1", Name("/DeviceRGB"))])),
   ])
   let raw = @pdfio.bytes_of_list([0x11, 0x22, 0x33])
-  let encoded = @pdfcodec.encode_flate(raw)
+  let encoded = @pdfcodec.PdfCodec::new().encode_flate(raw)
   let dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
     ("/H", Integer(1)),

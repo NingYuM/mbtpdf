@@ -25,6 +25,17 @@ pub(all) enum Encoding {
 }
 ```
 
+## Types
+
+### PdfCodec
+
+PDF stream codec context.
+
+```mbt nocheck
+pub struct PdfCodec { ... }
+pub fn PdfCodec::new() -> PdfCodec
+```
+
 ## Predictor Filters
 
 Used with Flate and LZW for improved image compression:
@@ -49,14 +60,14 @@ pub enum Predictor {
 
 ```mbt nocheck
 ///|
-let compressed = @pdfcodec.encode_flate(data)
+let compressed = @pdfcodec.PdfCodec::new().encode_flate(data)
 ```
 
 ### Decode
 
 ```mbt nocheck
 ///|
-let decompressed = @pdfcodec.decode_flate(input)
+let decompressed = @pdfcodec.PdfCodec::new().decode_flate(input)
 ```
 
 ### Compression Level
@@ -88,7 +99,9 @@ Decode stream data based on its /Filter entry:
 
 ```mbt nocheck
 ///|
-let decoded = @pdfcodec.decode_pdfstream_until_unknown(pdf, stream)
+let decoded = @pdfcodec.PdfCodec::new().decode_pdfstream_until_unknown(
+  pdf, stream,
+)
 ```
 
 ## Error Handling

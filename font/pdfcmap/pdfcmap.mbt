@@ -355,7 +355,7 @@ fn extract_specifics(data : @pdfio.MutableBytes) -> Int? {
 pub fn CMap::parse(pdf : @pdf.Pdf, cmap : @pdf.PdfObject) -> CMap raise {
   match cmap {
     @pdf.PdfObject::Stream(_) => {
-      @pdfcodec.decode_pdfstream(pdf, cmap)
+      @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, cmap)
       match cmap {
         @pdf.PdfObject::Stream(r) => {
           let (_dict, contents) = r.val

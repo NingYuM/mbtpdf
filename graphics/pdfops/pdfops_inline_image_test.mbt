@@ -169,7 +169,7 @@ test "parse inline image decodes flate filter" {
   let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let raw = @pdfio.bytes_of_list([0x7f])
-  let encoded = @pdfcodec.encode_flate(raw)
+  let encoded = @pdfcodec.PdfCodec::new().encode_flate(raw)
   let dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
     ("/H", Integer(1)),
@@ -204,7 +204,7 @@ test "parse inline image flate handles trailing operators" {
   let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let raw = @pdfio.bytes_of_list([0x7f])
-  let encoded = @pdfcodec.encode_flate(raw)
+  let encoded = @pdfcodec.PdfCodec::new().encode_flate(raw)
   let header = @pdfio.bytes_of_string(
     "BI /W 1 /H 1 /BPC 8 /CS /DeviceGray /Filter /FlateDecode ID ",
   )
@@ -284,7 +284,7 @@ test "parse inline image cleans filter arrays" {
   let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let raw = @pdfio.bytes_of_list([0x7f])
-  let encoded = @pdfcodec.encode_flate(raw)
+  let encoded = @pdfcodec.PdfCodec::new().encode_flate(raw)
   let dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
     ("/H", Integer(1)),

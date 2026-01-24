@@ -237,7 +237,7 @@ pub fn ColourSpace::read(
       let base_space = ColourSpace::read(pdf, resources, base)
       let table = match (@pdf.direct(pdf, lookup_data) : @pdf.PdfObject) {
         Stream(_) as stream => {
-          @pdfcodec.decode_pdfstream(pdf, stream)
+          @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, stream)
           match (stream : @pdf.PdfObject) {
             Stream(r) =>
               match r.val {

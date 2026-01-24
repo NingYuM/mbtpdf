@@ -100,7 +100,11 @@ fn remove_images_page(
     @pdfops.Op::parse_operators(pdf, page.resources, page.content),
   )
   let stream = @pdfops.Op::stream_of_ops(content)
-  @pdfcodec.encode_pdfstream(pdf, @pdfcodec.Encoding::Flate, stream)
+  @pdfcodec.PdfCodec::new().encode_pdfstream(
+    pdf,
+    @pdfcodec.Encoding::Flate,
+    stream,
+  )
   {
     content: [stream],
     mediabox: page.mediabox,

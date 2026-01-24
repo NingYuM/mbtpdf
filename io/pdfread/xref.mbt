@@ -274,7 +274,7 @@ fn read_xref_stream(
     @pdf.PdfObject::Stream(_) => parsed
     _ => raise err
   }
-  @pdfcodec.decode_pdfstream(@pdf.Pdf::empty(), stream_obj)
+  @pdfcodec.PdfCodec::new().decode_pdfstream(@pdf.Pdf::empty(), stream_obj)
   @pdf.getstream(stream_obj)
   let (w1, w2, w3) = match
     @pdf.lookup_direct(@pdf.Pdf::empty(), "/W", stream_obj) {
@@ -417,7 +417,7 @@ fn parse_object_stream(
       raise @pdf.PdfError::Msg(message)
     }
   }
-  @pdfcodec.decode_pdfstream(partial_pdf, stmobj)
+  @pdfcodec.PdfCodec::new().decode_pdfstream(partial_pdf, stmobj)
   @pdf.getstream(stmobj)
   let (dict, stream_bytes) = match stmobj {
     @pdf.PdfObject::Stream(r) => r.val

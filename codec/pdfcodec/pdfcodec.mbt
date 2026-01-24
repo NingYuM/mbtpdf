@@ -11,6 +11,16 @@ pub(all) enum Encoding {
 } derive(Debug)
 
 ///|
+pub struct PdfCodec {
+  unit : Unit
+}
+
+///|
+pub fn PdfCodec::new() -> PdfCodec {
+  { unit: () }
+}
+
+///|
 /// Predictors for decoded data.
 #warnings("-unused_constructor")
 enum Predictor {
@@ -58,7 +68,11 @@ pub let pdf_of_file : Ref[async (Int?, String?, String?, String) -> @pdf.Pdf] = 
 
 ///|
 /// Encode data in FlateDecode.
-pub fn encode_flate(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
+#as_free_fn(encode_flate, deprecated="Use `PdfCodec::encode_flate`")
+pub fn PdfCodec::encode_flate(
+  _self : PdfCodec,
+  data : @pdfio.MutableBytes,
+) -> @pdfio.MutableBytes {
   let mut pos = 0
   let input = (buf : @pdfio.MutableBytes) => {
     let remaining = data.length() - pos
@@ -88,7 +102,9 @@ pub fn encode_flate(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
 
 ///|
 /// Decode data in FlateDecode.
-pub fn decode_flate(
+#as_free_fn(decode_flate, deprecated="Use `PdfCodec::decode_flate`")
+pub fn PdfCodec::decode_flate(
+  _self : PdfCodec,
   data : @pdfio.MutableBytes,
 ) -> @pdfio.MutableBytes raise CodecError {
   let mut pos = 0
@@ -911,7 +927,9 @@ fn encode_ccittg4(
 
 ///|
 /// Encode a PDF stream with an encoding.
-pub fn encode_pdfstream(
+#as_free_fn(encode_pdfstream, deprecated="Use `PdfCodec::encode_pdfstream`")
+pub fn PdfCodec::encode_pdfstream(
+  self : PdfCodec,
   pdf : @pdf.Pdf,
   encoding : Encoding,
   obj : @pdf.PdfObject,
@@ -993,7 +1011,7 @@ pub fn encode_pdfstream(
       Encoding::ASCII85 => encode_ascii85(predicted_data)
       Encoding::RunLength => encode_runlength(predicted_data)
       Encoding::LZW(early) => encode_lzw(early, predicted_data)
-      Encoding::Flate => encode_flate(predicted_data)
+      Encoding::Flate => self.encode_flate(predicted_data)
       Encoding::CCITT(columns, rows) =>
         encode_ccitt(columns, rows, predicted_data)
       Encoding::CCITTG4(columns, rows) =>
@@ -1023,7 +1041,7 @@ pub fn encode_pdfstream(
       }
     }
     Indirect(i) =>
-      encode_pdfstream(
+      self.encode_pdfstream(
         pdf,
         encoding,
         @pdf.direct(pdf, Indirect(i)),
@@ -1038,7 +1056,9 @@ pub fn encode_pdfstream(
 
 ///|
 /// Decode a PDF stream, updating the document.
-pub fn decode_pdfstream(
+#as_free_fn(decode_pdfstream, deprecated="Use `PdfCodec::decode_pdfstream`")
+pub fn PdfCodec::decode_pdfstream(
+  self : PdfCodec,
   _pdf : @pdf.Pdf,
   _obj : @pdf.PdfObject,
   jbig2dec? : String,
@@ -1055,7 +1075,7 @@ pub fn decode_pdfstream(
           None => ()
           Some(Name(_)) | Some(Array(_)) => {
             let before = (string_of_pdf.val)(dict)
-            decode_pdfstream_onestage(pdf, obj, jbig2dec?)
+            self.decode_pdfstream_onestage(pdf, obj, jbig2dec?)
             let (after_dict, _after_stream) = r.val
             let after = (string_of_pdf.val)(after_dict)
             if before != after {
@@ -1075,7 +1095,9 @@ pub fn decode_pdfstream(
 
 ///|
 /// Decode just one stage of a PDF stream.
-pub fn decode_pdfstream_onestage(
+#as_free_fn(decode_pdfstream_onestage, deprecated="Use `PdfCodec::decode_pdfstream_onestage`")
+pub fn PdfCodec::decode_pdfstream_onestage(
+  self : PdfCodec,
   pdf : @pdf.Pdf,
   obj : @pdf.PdfObject,
   jbig2dec? : String,
@@ -1135,7 +1157,7 @@ pub fn decode_pdfstream_onestage(
             None => None
           }
           let decoded = if filter_name == "/FlateDecode" || filter_name == "/Fl" {
-            let mut decoded = decode_flate(data)
+            let mut decoded = self.decode_flate(data)
             match parms_first {
               Some(Dictionary(_)) => {
                 let predictor = get_int_param(pdf, parms_first, "/Predictor", 1)
@@ -1252,20 +1274,25 @@ pub fn decode_pdfstream_onestage(
 
 ///|
 /// Decode until there's an unknown decoder.
-pub fn decode_pdfstream_until_unknown(
+#as_free_fn(decode_pdfstream_until_unknown, deprecated="Use `PdfCodec::decode_pdfstream_until_unknown`")
+pub fn PdfCodec::decode_pdfstream_until_unknown(
+  self : PdfCodec,
   _pdf : @pdf.Pdf,
   _obj : @pdf.PdfObject,
   jbig2dec? : String,
 ) -> Unit raise CodecError {
-  decode_pdfstream(_pdf, _obj, jbig2dec?) catch {
+  self.decode_pdfstream(_pdf, _obj, jbig2dec?) catch {
     CodecError::DecodeNotSupported(_) => ()
-    err => raise err
+    CodecError::CouldntDecodeStream(msg) =>
+      raise CodecError::CouldntDecodeStream(msg)
   }
 }
 
 ///|
 /// Decode bytes using filters in dict; returns None when decoder unsupported.
-pub fn decode_from_bytes(
+#as_free_fn(decode_from_bytes, deprecated="Use `PdfCodec::decode_from_bytes`")
+pub fn PdfCodec::decode_from_bytes(
+  self : PdfCodec,
   bytes : @pdfio.MutableBytes,
   dict : @pdf.PdfObject,
 ) -> @pdfio.MutableBytes? {
@@ -1292,7 +1319,7 @@ pub fn decode_from_bytes(
     parms : @pdf.PdfObject?,
   ) -> @pdfio.MutableBytes? {
     if filter_name == "/FlateDecode" || filter_name == "/Fl" {
-      let mut decoded = decode_flate(bytes) catch { _ => return None }
+      let mut decoded = self.decode_flate(bytes) catch { _ => return None }
       match parms {
         Some(Dictionary(_)) => {
           let predictor = get_int_param(pdf, parms, "/Predictor", 1)

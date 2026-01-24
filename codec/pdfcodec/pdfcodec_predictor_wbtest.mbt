@@ -1,4 +1,7 @@
 ///|
+let ctx = PdfCodec::new()
+
+///|
 fn lookup_int_entry(
   entries : Array[(String, @pdf.PdfObject)],
   key : String,
@@ -52,7 +55,7 @@ fn roundtrip_predictor(pred : Predictor, pred_value : Int) -> Unit raise {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(original)))
   let stream_obj = @pdf.PdfObject::Stream(stream_ref)
-  encode_pdfstream(
+  ctx.encode_pdfstream(
     pdf,
     Encoding::Flate,
     stream_obj,
@@ -61,7 +64,7 @@ fn roundtrip_predictor(pred : Predictor, pred_value : Int) -> Unit raise {
   )
   let (encoded_dict, _encoded_stream) = stream_ref.val
   assert_decode_parms(pdf, encoded_dict, pred_value, 3, 1, 8)
-  decode_pdfstream_onestage(pdf, stream_obj)
+  ctx.decode_pdfstream_onestage(pdf, stream_obj)
   let (_decoded_dict, decoded_stream) = stream_ref.val
   let decoded_bytes = match decoded_stream {
     @pdf.Stream::Got(bytes) => bytes

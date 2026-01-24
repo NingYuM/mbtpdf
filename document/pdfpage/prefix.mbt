@@ -240,7 +240,9 @@ fn add_prefix_impl(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
                         try {
                           for c in a {
                             let direct = @pdf.direct(pdf, c)
-                            @pdfcodec.decode_pdfstream(pdf, direct)
+                            @pdfcodec.PdfCodec::new().decode_pdfstream(
+                              pdf, direct,
+                            )
                             @pdf.getstream(direct)
                             let bytes = match direct {
                               @pdf.PdfObject::Stream(r) =>
@@ -312,7 +314,9 @@ fn merge_content_streams(pdf : @pdf.Pdf) -> Unit raise {
                       } else {
                         let direct_streams = a.map(c => @pdf.direct(pdf, c))
                         for stream in direct_streams {
-                          @pdfcodec.decode_pdfstream(pdf, stream)
+                          @pdfcodec.PdfCodec::new().decode_pdfstream(
+                            pdf, stream,
+                          )
                           @pdf.getstream(stream)
                         }
                         let rawstreams : Array[@pdfio.MutableBytes] = Array::new()

@@ -583,7 +583,7 @@ pub fn PdfFunction::parse(
         @pdf.PdfObject::Integer(i) => i
         _ => raise @pdf.PdfError::Msg("Bad /BitsPerSample")
       }
-      @pdfcodec.decode_pdfstream(pdf, f)
+      @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, f)
       let samples_count = product(size) * (decode.length() / 2)
       let data = match f {
         @pdf.PdfObject::Stream(r) =>
@@ -638,7 +638,7 @@ pub fn PdfFunction::parse(
       })
     }
     @pdf.PdfObject::Integer(4) => {
-      @pdfcodec.decode_pdfstream(pdf, f)
+      @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, f)
       match f {
         @pdf.PdfObject::Stream(r) =>
           match r.val {
