@@ -52,9 +52,9 @@ Convert any paper to landscape orientation:
 ///|
 test "landscape swaps dimensions" {
   let portrait = @pdfpaper.a4
-  let landscape = @pdfpaper.landscape(portrait)
+  let landscape = portrait.landscape()
   // Width and height are swapped
-  assert_true(@pdfpaper.width(landscape) > @pdfpaper.height(landscape))
+  assert_true(landscape.width() > landscape.height())
 }
 ```
 
@@ -65,14 +65,14 @@ test "landscape swaps dimensions" {
 test "paper accessors" {
   let paper = @pdfpaper.a4
   // Get unit (millimeters for ISO sizes)
-  let u = @pdfpaper.unit(paper)
+  let u = paper.unit()
   match u {
     @pdfunits.LengthUnit::Millimetre => ()
     _ => fail("expected millimetre unit")
   }
   // Get dimensions
-  let w = @pdfpaper.width(paper)
-  let h = @pdfpaper.height(paper)
+  let w = paper.width()
+  let h = paper.height()
   assert_true(w < h) // Portrait
   debug_inspect((u, w, h), content="(Millimetre, 210, 297)")
 }
@@ -82,8 +82,8 @@ test "paper accessors" {
 
 ```mbt nocheck
 ///|
-let custom = @pdfpaper.make(
-  @pdfunits.Inch,
+let custom = @pdfpaper.Paper::new(
+  @pdfunits.LengthUnit::Inch,
   8.5, // width
   11.0, // height
 )

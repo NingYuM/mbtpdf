@@ -1,40 +1,40 @@
 ///|
 test "landscape swaps width and height" {
-  let paper = @pdfpaper.make(@pdfunits.LengthUnit::Inch, 8.5, 11.0)
-  let swapped = @pdfpaper.landscape(paper)
-  assert_eq(@pdfpaper.width(swapped), 11.0)
-  assert_eq(@pdfpaper.height(swapped), 8.5)
+  let paper = @pdfpaper.Paper::new(@pdfunits.LengthUnit::Inch, 8.5, 11.0)
+  let swapped = paper.landscape()
+  assert_eq(swapped.width(), 11.0)
+  assert_eq(swapped.height(), 8.5)
 }
 
 ///|
 test "paper accessors return values" {
-  let paper = @pdfpaper.make(@pdfunits.LengthUnit::Centimetre, 10.0, 20.0)
-  match @pdfpaper.unit(paper) {
+  let paper = @pdfpaper.Paper::new(@pdfunits.LengthUnit::Centimetre, 10.0, 20.0)
+  match paper.unit() {
     @pdfunits.LengthUnit::Centimetre => ()
     _ => fail("expected centimetre unit")
   }
-  assert_eq(@pdfpaper.width(paper), 10.0)
-  assert_eq(@pdfpaper.height(paper), 20.0)
+  assert_eq(paper.width(), 10.0)
+  assert_eq(paper.height(), 20.0)
 }
 
 ///|
 test "paper constants match expected sizes" {
-  match @pdfpaper.unit(@pdfpaper.a4) {
+  match @pdfpaper.a4.unit() {
     @pdfunits.LengthUnit::Millimetre => ()
     _ => fail("expected millimetre unit")
   }
-  assert_eq(@pdfpaper.width(@pdfpaper.a4), 210.0)
-  assert_eq(@pdfpaper.height(@pdfpaper.a4), 297.0)
-  match @pdfpaper.unit(@pdfpaper.usletter) {
+  assert_eq(@pdfpaper.a4.width(), 210.0)
+  assert_eq(@pdfpaper.a4.height(), 297.0)
+  match @pdfpaper.usletter.unit() {
     @pdfunits.LengthUnit::Inch => ()
     _ => fail("expected inch unit")
   }
-  assert_eq(@pdfpaper.width(@pdfpaper.usletter), 8.5)
-  assert_eq(@pdfpaper.height(@pdfpaper.usletter), 11.0)
-  match @pdfpaper.unit(@pdfpaper.uslegal) {
+  assert_eq(@pdfpaper.usletter.width(), 8.5)
+  assert_eq(@pdfpaper.usletter.height(), 11.0)
+  match @pdfpaper.uslegal.unit() {
     @pdfunits.LengthUnit::Inch => ()
     _ => fail("expected inch unit")
   }
-  assert_eq(@pdfpaper.width(@pdfpaper.uslegal), 8.5)
-  assert_eq(@pdfpaper.height(@pdfpaper.uslegal), 14.0)
+  assert_eq(@pdfpaper.uslegal.width(), 8.5)
+  assert_eq(@pdfpaper.uslegal.height(), 14.0)
 }

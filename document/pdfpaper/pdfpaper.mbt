@@ -8,7 +8,7 @@ pub struct Paper {
 
 ///|
 /// Make a paper size from unit, width, and height.
-pub fn make(
+pub fn Paper::new(
   unit : @pdfunits.LengthUnit,
   width : Double,
   height : Double,
@@ -18,26 +18,26 @@ pub fn make(
 
 ///|
 /// Project the unit from a paper size.
-pub fn unit(paper : Paper) -> @pdfunits.LengthUnit {
-  paper.unit
+pub fn Paper::unit(self : Paper) -> @pdfunits.LengthUnit {
+  self.unit
 }
 
 ///|
 /// Project the width from a paper size.
-pub fn width(paper : Paper) -> Double {
-  paper.width
+pub fn Paper::width(self : Paper) -> Double {
+  self.width
 }
 
 ///|
 /// Project the height from a paper size.
-pub fn height(paper : Paper) -> Double {
-  paper.height
+pub fn Paper::height(self : Paper) -> Double {
+  self.height
 }
 
 ///|
 /// Flip a paper size between landscape and portrait.
-pub fn landscape(paper : Paper) -> Paper {
-  { unit: paper.unit, width: paper.height, height: paper.width }
+pub fn Paper::landscape(self : Paper) -> Paper {
+  { unit: self.unit, width: self.height, height: self.width }
 }
 
 ///|

@@ -29,19 +29,9 @@ pub let a8 : Paper
 
 pub let a9 : Paper
 
-pub fn height(Paper) -> Double
-
-pub fn landscape(Paper) -> Paper
-
-pub fn make(@pdfunits.LengthUnit, Double, Double) -> Paper
-
-pub fn unit(Paper) -> @pdfunits.LengthUnit
-
 pub let uslegal : Paper
 
 pub let usletter : Paper
-
-pub fn width(Paper) -> Double
 
 // Errors
 
@@ -51,6 +41,11 @@ pub struct Paper {
   width : Double
   height : Double
 }
+pub fn Paper::height(Self) -> Double
+pub fn Paper::landscape(Self) -> Self
+pub fn Paper::new(@pdfunits.LengthUnit, Double, Double) -> Self
+pub fn Paper::unit(Self) -> @pdfunits.LengthUnit
+pub fn Paper::width(Self) -> Double
 pub impl @debug.Debug for Paper
 
 // Type aliases
