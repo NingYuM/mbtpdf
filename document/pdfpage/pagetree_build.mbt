@@ -42,13 +42,13 @@ fn pagetree(
   parent : Int,
 ) -> Ptree raise {
   if pages.length() < 10 {
-    Ptree::Lf(pages, parent, objnumsource())
+    Lf(pages, parent, objnumsource())
   } else {
     let (left, middle, right) = split3(5, pages)
     let this_num = objnumsource()
     let left_tree = pagetree(objnumsource, left, this_num)
     let right_tree = pagetree(objnumsource, right, this_num)
-    Ptree::Br(middle, left_tree, right_tree, parent, this_num)
+    Br(middle, left_tree, right_tree, parent, this_num)
   }
 }
 
@@ -57,38 +57,38 @@ fn mkpage(
   getobjnum : () -> Int,
   parent : Int,
   page : Page,
-) -> (Int, @pdf.PdfObject, Array[(Int, @pdf.PdfObject)]) raise {
-  let extras : Array[(Int, @pdf.PdfObject)] = Array::new()
-  let indirects : Array[@pdf.PdfObject] = Array::new()
+) -> (Int, PdfObject, Array[(Int, PdfObject)]) raise {
+  let extras : Array[(Int, PdfObject)] = Array::new()
+  let indirects : Array[PdfObject] = Array::new()
   for c in page.content {
     match c {
-      @pdf.PdfObject::Indirect(i) => indirects.push(@pdf.PdfObject::Indirect(i))
+      Indirect(i) => indirects.push(Indirect(i))
       _ => {
         let objnum = getobjnum()
-        indirects.push(@pdf.PdfObject::Indirect(objnum))
+        indirects.push(Indirect(objnum))
         extras.push((objnum, c))
       }
     }
   }
-  let entries : Array[(String, @pdf.PdfObject)] = [
-    ("/Type", @pdf.PdfObject::Name("/Page")),
-    ("/Parent", @pdf.PdfObject::Indirect(parent)),
+  let entries : Array[(String, PdfObject)] = [
+    ("/Type", PdfObject::Name("/Page")),
+    ("/Parent", PdfObject::Indirect(parent)),
     ("/Resources", page.resources),
     ("/MediaBox", page.mediabox),
   ]
   let rotation = page.rotate.to_int()
   if rotation != 0 {
-    entries.push(("/Rotate", @pdf.PdfObject::Integer(rotation)))
+    entries.push(("/Rotate", PdfObject::Integer(rotation)))
   }
   let rest_entries = match page.rest {
-    @pdf.PdfObject::Dictionary(d) => d
+    Dictionary(d) => d
     _ => raise @pdf.PdfError::Msg("mkpage")
   }
   entries.append(rest_entries[:])
   if indirects.length() > 0 {
-    entries.push(("/Contents", @pdf.PdfObject::Array(indirects)))
+    entries.push(("/Contents", PdfObject::Array(indirects)))
   }
-  let page_obj = @pdf.PdfObject::Dictionary(entries)
+  let page_obj = PdfObject::Dictionary(entries)
   let objnum = getobjnum()
   (objnum, page_obj, extras)
 }
@@ -96,8 +96,8 @@ fn mkpage(
 ///|
 fn count_ptree(tree : Ptree) -> Int {
   match tree {
-    Ptree::Lf(pages, _, _) => pages.length()
-    Ptree::Br(pages, left, right, _, _) =>
+    Lf(pages, _, _) => pages.length()
+    Br(pages, left, right, _, _) =>
       pages.length() + count_ptree(left) + count_ptree(right)
   }
 }
@@ -105,77 +105,73 @@ fn count_ptree(tree : Ptree) -> Int {
 ///|
 fn objnum_of_ptree(tree : Ptree) -> Int {
   match tree {
-    Ptree::Lf(_, _, this) => this
-    Ptree::Br(_, _, _, _, this) => this
+    Lf(_, _, this) => this
+    Br(_, _, _, _, this) => this
   }
 }
 
 ///|
 fn objects_of_ptree(
   getobjnum : () -> Int,
-  extras : Ref[Array[(Int, @pdf.PdfObject)]],
+  extras : Ref[Array[(Int, PdfObject)]],
   tree : Ptree,
-) -> Array[(Int, @pdf.PdfObject)] raise {
+) -> Array[(Int, PdfObject)] raise {
   match tree {
-    Ptree::Lf(pages, parent, this) => {
-      let page_objects : Array[(Int, @pdf.PdfObject)] = Array::new()
+    Lf(pages, parent, this) => {
+      let page_objects : Array[(Int, PdfObject)] = Array::new()
       for page in pages {
         let (objnum, obj, extra) = mkpage(getobjnum, this, page)
         extras.val.append(extra[:])
         page_objects.push((objnum, obj))
       }
-      let parent_entry = if parent == 0 {
-        []
-      } else {
-        [("/Parent", @pdf.PdfObject::Indirect(parent))]
+      let parent_entry = match parent {
+        0 => []
+        _ => [("/Parent", PdfObject::Indirect(parent))]
       }
-      let kids = page_objects.map(pair => @pdf.PdfObject::Indirect(pair.0))
-      let node_entries : Array[(String, @pdf.PdfObject)] = [
-        ("/Type", @pdf.PdfObject::Name("/Pages")),
-        ("/Kids", @pdf.PdfObject::Array(kids)),
-        ("/Count", @pdf.PdfObject::Integer(pages.length())),
+      let kids = page_objects.map(pair => PdfObject::Indirect(pair.0))
+      let node_entries : Array[(String, PdfObject)] = [
+        ("/Type", PdfObject::Name("/Pages")),
+        ("/Kids", PdfObject::Array(kids)),
+        ("/Count", PdfObject::Integer(pages.length())),
       ]
       node_entries.append(parent_entry[:])
-      let node = @pdf.PdfObject::Dictionary(node_entries)
+      let node = PdfObject::Dictionary(node_entries)
       let result = Array::new(capacity=1 + page_objects.length())
       result.push((this, node))
       result.append(page_objects[:])
       result
     }
-    Ptree::Br(pages, left, right, parent, this) => {
+    Br(pages, left, right, parent, this) => {
       let objs_left = objects_of_ptree(getobjnum, extras, left)
       let objs_right = objects_of_ptree(getobjnum, extras, right)
       let left_num = objnum_of_ptree(left)
       let right_num = objnum_of_ptree(right)
       let count_left = count_ptree(left)
       let count_right = count_ptree(right)
-      let page_objects : Array[(Int, @pdf.PdfObject)] = Array::new()
+      let page_objects : Array[(Int, PdfObject)] = Array::new()
       for page in pages {
         let (objnum, obj, extra) = mkpage(getobjnum, this, page)
         extras.val.append(extra[:])
         page_objects.push((objnum, obj))
       }
-      let parent_entry = if parent == 0 {
-        []
-      } else {
-        [("/Parent", @pdf.PdfObject::Indirect(parent))]
+      let parent_entry = match parent {
+        0 => []
+        _ => [("/Parent", PdfObject::Indirect(parent))]
       }
       let kids = Array::new()
-      kids.push(@pdf.PdfObject::Indirect(left_num))
-      kids.append(page_objects.map(pair => @pdf.PdfObject::Indirect(pair.0))[:])
-      kids.push(@pdf.PdfObject::Indirect(right_num))
-      let node_entries : Array[(String, @pdf.PdfObject)] = [
-        ("/Type", @pdf.PdfObject::Name("/Pages")),
-        ("/Kids", @pdf.PdfObject::Array(kids)),
+      kids.push(PdfObject::Indirect(left_num))
+      kids.append(page_objects.map(pair => PdfObject::Indirect(pair.0))[:])
+      kids.push(PdfObject::Indirect(right_num))
+      let node_entries : Array[(String, PdfObject)] = [
+        ("/Type", PdfObject::Name("/Pages")),
+        ("/Kids", PdfObject::Array(kids)),
         (
           "/Count",
-          @pdf.PdfObject::Integer(
-            count_left + count_right + page_objects.length(),
-          ),
+          PdfObject::Integer(count_left + count_right + page_objects.length()),
         ),
       ]
       node_entries.append(parent_entry[:])
-      let node = @pdf.PdfObject::Dictionary(node_entries)
+      let node = PdfObject::Dictionary(node_entries)
       let result = Array::new()
       result.push((this, node))
       result.append(page_objects[:])
@@ -194,12 +190,13 @@ pub fn PdfPageDoc::add_pagetree(
   pages : Array[Page],
 ) -> (@pdf.Pdf, Int) raise {
   let pdf = self.pdf
-  let extras : Ref[Array[(Int, @pdf.PdfObject)]] = { val: [] }
+  let extras : Ref[Array[(Int, PdfObject)]] = { val: [] }
   let getobjnum = source(pdf.objects.max_obj_num)
   let ptree = pagetree(getobjnum, pages, 0)
   let objects = objects_of_ptree(getobjnum, extras, ptree)
-  if objects.length() == 0 {
-    raise @pdf.PdfError::Msg("add_pagetree: empty page tree")
+  match objects {
+    [] => raise @pdf.PdfError::Msg("add_pagetree: empty page tree")
+    _ => ()
   }
   for obj in objects {
     pdf.addobj_given_num(obj)
@@ -207,7 +204,10 @@ pub fn PdfPageDoc::add_pagetree(
   for extra in extras.val {
     pdf.addobj_given_num(extra)
   }
-  (pdf, objects[0].0)
+  match objects {
+    [(objnum, _), ..] => (pdf, objnum)
+    [] => raise @pdf.PdfError::Msg("add_pagetree: empty page tree")
+  }
 }
 
 ///|
@@ -216,23 +216,23 @@ pub fn PdfPageDoc::add_pagetree(
 pub fn PdfPageDoc::add_root(
   self : PdfPageDoc,
   pageroot : Int,
-  extras : Array[(String, @pdf.PdfObject)],
+  extras : Array[(String, PdfObject)],
 ) -> @pdf.Pdf raise {
   let pdf = self.pdf
   let existing_entries = match pdf.lookup_obj(pdf.root) {
-    @pdf.PdfObject::Dictionary(d) => d
+    Dictionary(d) => d
     _ => []
   }
-  let mut root = @pdf.PdfObject::Dictionary(extras)
+  let mut root = PdfObject::Dictionary(extras)
   for entry in existing_entries {
     root = root.add_entry(entry.0, entry.1)
   }
-  root = root.add_entry("/Type", @pdf.PdfObject::Name("/Catalog"))
-  root = root.add_entry("/Pages", @pdf.PdfObject::Indirect(pageroot))
+  root = root.add_entry("/Type", PdfObject::Name("/Catalog"))
+  root = root.add_entry("/Pages", PdfObject::Indirect(pageroot))
   let rootnum = pdf.addobj(root)
   let trailerdict = match pdf.trailerdict {
-    @pdf.PdfObject::Dictionary(_) =>
-      pdf.trailerdict.add_entry("/Root", @pdf.PdfObject::Indirect(rootnum))
+    Dictionary(_) =>
+      pdf.trailerdict.add_entry("/Root", PdfObject::Indirect(rootnum))
     _ => raise @pdf.PdfError::Msg("add_root: bad trailer dictionary")
   }
   {
