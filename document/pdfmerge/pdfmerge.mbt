@@ -321,8 +321,9 @@ fn merge_namedicts(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int raise {
     }
   }
   let new_entries = Array::new()
+  let tree_ctx = @pdftree.PdfTree::new(pdf)
   for pair in trees {
-    let merged = @pdftree.merge_name_trees_no_clash(pdf, pair.1)
+    let merged = tree_ctx.merge_name_trees_no_clash(pair.1)
     let num = @pdf.addobj(pdf, merged)
     new_entries.push((pair.0, @pdf.PdfObject::Indirect(num)))
   }
@@ -338,16 +339,17 @@ fn merge_bookmarks(
   pdf : @pdf.Pdf,
 ) -> @pdf.Pdf {
   try {
+    let tree_ctx = @pdftree.PdfTree::new(pdf)
     let dest_nametree = {
       let catalog = @pdf.catalog_of_pdf(pdf)
       let oldstyle = match @pdf.lookup_direct(pdf, "/Dests", catalog) {
-        Some(d) => @pdftree.read_name_tree(pdf, d)
+        Some(d) => tree_ctx.read_name_tree(d)
         _ => []
       }
       let newstyle = match @pdf.lookup_direct(pdf, "/Names", catalog) {
         Some(d) =>
           match @pdf.lookup_direct(pdf, "/Dests", d) {
-            Some(d2) => @pdftree.read_name_tree(pdf, d2)
+            Some(d2) => tree_ctx.read_name_tree(d2)
             _ => []
           }
         _ => []
@@ -706,7 +708,8 @@ fn merge_pdfs_rename_name_trees(
     }
   })
   let name_lists = pdfs_and_nametrees.map(pair => match pair.1 {
-    Some(tree) => (pair.0, @pdftree.read_name_tree(pair.0, tree).map(p => p.0))
+    Some(tree) =>
+      (pair.0, @pdftree.PdfTree::new(pair.0).read_name_tree(tree).map(p => p.0))
     None => (pair.0, [])
   })
   fn worked(values : Array[(@pdf.Pdf, Array[(String, String)])]) -> Bool {

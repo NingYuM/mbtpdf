@@ -63,7 +63,8 @@ test "fixup_destinations removes nulled entries" {
   let pdf = @pdfpage.minimum_valid_pdf()
   let null_num = @pdf.addobj(pdf, Null)
   let dead_dest : @pdf.PdfObject = Array([Indirect(null_num), Name("/Fit")])
-  let tree = @pdftree.build_name_tree(false, pdf, [("Dead", dead_dest)])
+  let tree_ctx = @pdftree.PdfTree::new(pdf)
+  let tree = tree_ctx.build_name_tree(false, [("Dead", dead_dest)])
   let names : @pdf.PdfObject = Dictionary([("/Dests", tree)])
   let catalog = @pdf.catalog_of_pdf(pdf)
   let updated_catalog = catalog.add_entry("/Names", names)
@@ -86,7 +87,7 @@ test "fixup_destinations removes nulled entries" {
     Some(t) => t
     None => fail("expected destinations tree")
   }
-  let entries = @pdftree.read_name_tree(pdf_direct, updated_tree)
+  let entries = @pdftree.PdfTree::new(pdf_direct).read_name_tree(updated_tree)
   assert_eq(entries.length(), 0)
 }
 

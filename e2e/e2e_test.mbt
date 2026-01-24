@@ -95,7 +95,8 @@ fn add_named_destination(
   let dest = @pdfdest.Destination::Fit(
     @pdfdest.TargetPage::PageObject(page_obj),
   )
-  let tree = @pdftree.build_name_tree(false, pdf, [(name, dest.to_pdf_object())])
+  let tree_builder = @pdftree.PdfTree::new(pdf)
+  let tree = tree_builder.build_name_tree(false, [(name, dest.to_pdf_object())])
   let tree_num = @pdf.addobj(pdf, tree)
   let rootnum = pdf.root
   let root = @pdf.lookup_obj(pdf, rootnum)
@@ -136,7 +137,7 @@ fn add_names_tree(
   key : String,
   entries : Array[(String, @pdf.PdfObject)],
 ) -> Unit raise {
-  let tree = @pdftree.build_name_tree(false, pdf, entries)
+  let tree = @pdftree.PdfTree::new(pdf).build_name_tree(false, entries)
   let tree_num = @pdf.addobj(pdf, tree)
   let rootnum = pdf.root
   let root = @pdf.lookup_obj(pdf, rootnum)
@@ -386,7 +387,7 @@ fn add_struct_tree_root(
     ("/Pg", Indirect(page_ref)),
   ])
   let struct_elem_num = @pdf.addobj(pdf, struct_elem)
-  let parent_tree = @pdftree.build_name_tree(true, pdf, [
+  let parent_tree = @pdftree.PdfTree::new(pdf).build_name_tree(true, [
     (parent_key.to_string(), Indirect(struct_elem_num)),
   ])
   let struct_root : @pdf.PdfObject = Dictionary([
@@ -412,7 +413,7 @@ fn read_parent_tree_keys(pdf : @pdf.Pdf) -> Array[String] raise {
     Some(obj) => obj
     None => fail("missing /ParentTree")
   }
-  @pdftree.read_number_tree(pdf, parent_tree).map(pair => pair.0)
+  @pdftree.PdfTree::new(pdf).read_number_tree(parent_tree).map(pair => pair.0)
 }
 
 ///|
@@ -470,7 +471,8 @@ fn read_name_tree_entries(
     Some(obj) => obj
     None => fail("missing name tree: " + key)
   }
-  @pdftree.read_name_tree(pdf, tree)
+  let tree_reader = @pdftree.PdfTree::new(pdf)
+  tree_reader.read_name_tree(tree)
 }
 
 ///|
@@ -487,7 +489,7 @@ fn read_named_destination(
     Some(obj) => obj
     None => fail("missing /Dests name tree")
   }
-  let entries = @pdftree.read_name_tree(pdf, dests)
+  let entries = @pdftree.PdfTree::new(pdf).read_name_tree(dests)
   match entries.search_by(pair => pair.0 == name) {
     Some(idx) => @pdfdest.Destination::read(pdf, entries[idx].1)
     None => fail("missing destination: " + name)

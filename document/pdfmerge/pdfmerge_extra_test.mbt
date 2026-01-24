@@ -21,7 +21,7 @@ fn add_names_dests(
   pdf : @pdf.Pdf,
   entries : Array[(String, @pdf.PdfObject)],
 ) -> Unit raise {
-  let tree = @pdftree.build_name_tree(false, pdf, entries)
+  let tree = @pdftree.PdfTree::new(pdf).build_name_tree(false, entries)
   let names_dict : @pdf.PdfObject = Dictionary([("/Dests", tree)])
   set_catalog_entry(pdf, "/Names", names_dict)
 }

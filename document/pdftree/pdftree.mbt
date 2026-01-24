@@ -1,26 +1,39 @@
 ///|
+pub struct PdfTree {
+  pdf : @pdf.Pdf
+}
+
+///|
+pub fn PdfTree::new(pdf : @pdf.Pdf) -> PdfTree {
+  { pdf, }
+}
+
+///|
 /// Read a name tree as a flat (key, value) list.
-pub fn read_name_tree(
-  pdf : @pdf.Pdf,
+#as_free_fn(read_name_tree, deprecated="Use `PdfTree::read_name_tree`")
+pub fn PdfTree::read_name_tree(
+  self : PdfTree,
   tree : @pdf.PdfObject,
 ) -> Array[(String, @pdf.PdfObject)] {
-  read_tree_strings(pdf, tree, false)
+  self.read_tree_strings(tree, false)
 }
 
 ///|
 /// Read a number tree as a flat (key, value) list (numbers as strings).
-pub fn read_number_tree(
-  pdf : @pdf.Pdf,
+#as_free_fn(read_number_tree, deprecated="Use `PdfTree::read_number_tree`")
+pub fn PdfTree::read_number_tree(
+  self : PdfTree,
   tree : @pdf.PdfObject,
 ) -> Array[(String, @pdf.PdfObject)] {
-  read_tree_strings(pdf, tree, true)
+  self.read_tree_strings(tree, true)
 }
 
 ///|
 /// Build a name or number tree from flat (key, value) list.
-pub fn build_name_tree(
+#as_free_fn(build_name_tree, deprecated="Use `PdfTree::build_name_tree`")
+pub fn PdfTree::build_name_tree(
+  self : PdfTree,
   isnum : Bool,
-  pdf : @pdf.Pdf,
   entries : Array[(String, @pdf.PdfObject)],
 ) -> @pdf.PdfObject {
   if entries.length() == 0 {
@@ -37,7 +50,7 @@ pub fn build_name_tree(
       sorted.sort_by((a, b) => compare_string(a.0, b.0))
     }
     let nt = build_nt_tree(sorted)
-    let tree_obj = name_tree_of_nt(isnum, true, pdf, nt)
+    let tree_obj = self.name_tree_of_nt(isnum, true, nt)
     try tree_obj.remove_entry("/Limits") catch {
       _ => tree_obj
     } noraise {
@@ -48,30 +61,33 @@ pub fn build_name_tree(
 
 ///|
 /// Merge name trees assuming no duplicate keys.
-pub fn merge_name_trees_no_clash(
-  pdf : @pdf.Pdf,
+#as_free_fn(merge_name_trees_no_clash, deprecated="Use `PdfTree::merge_name_trees_no_clash`")
+pub fn PdfTree::merge_name_trees_no_clash(
+  self : PdfTree,
   trees : Array[@pdf.PdfObject],
 ) -> @pdf.PdfObject {
-  let entries = flatten(trees.map(tree => read_name_tree(pdf, tree)))
-  build_name_tree(false, pdf, entries)
+  let entries = flatten(trees.map(tree => self.read_name_tree(tree)))
+  self.build_name_tree(false, entries)
 }
 
 ///|
 /// Merge number trees assuming no duplicate keys.
-pub fn merge_number_trees_no_clash(
-  pdf : @pdf.Pdf,
+#as_free_fn(merge_number_trees_no_clash, deprecated="Use `PdfTree::merge_number_trees_no_clash`")
+pub fn PdfTree::merge_number_trees_no_clash(
+  self : PdfTree,
   trees : Array[@pdf.PdfObject],
 ) -> @pdf.PdfObject {
-  let entries = flatten(trees.map(tree => read_number_tree(pdf, tree)))
-  build_name_tree(true, pdf, entries)
+  let entries = flatten(trees.map(tree => self.read_number_tree(tree)))
+  self.build_name_tree(true, entries)
 }
 
 ///|
-fn read_tree_raw(
-  pdf : @pdf.Pdf,
+fn PdfTree::read_tree_raw(
+  self : PdfTree,
   tree : @pdf.PdfObject,
 ) -> Array[(@pdf.PdfObject, @pdf.PdfObject)] {
-  let names = match @pdf.lookup_direct_orelse(pdf, "/Names", "/Nums", tree) {
+  let names = match
+    @pdf.lookup_direct_orelse(self.pdf, "/Names", "/Nums", tree) {
     Some(@pdf.PdfObject::Array(elts)) =>
       if elts.length() % 2 == 1 {
         @pdfe.log("Bad /Names array. Name tree will be read as empty\n")
@@ -81,20 +97,20 @@ fn read_tree_raw(
       }
     _ => []
   }
-  match @pdf.lookup_direct(pdf, "/Kids", tree) {
+  match @pdf.lookup_direct(self.pdf, "/Kids", tree) {
     Some(@pdf.PdfObject::Array(kids)) =>
-      concat_arrays(names, flatten(kids.map(kid => read_tree_raw(pdf, kid))))
+      concat_arrays(names, flatten(kids.map(kid => self.read_tree_raw(kid))))
     _ => names
   }
 }
 
 ///|
-fn read_tree_strings(
-  pdf : @pdf.Pdf,
+fn PdfTree::read_tree_strings(
+  self : PdfTree,
   tree : @pdf.PdfObject,
   isnum : Bool,
 ) -> Array[(String, @pdf.PdfObject)] {
-  let raw = read_tree_raw(pdf, tree)
+  let raw = self.read_tree_raw(tree)
   let sorted = clone_pairs(raw)
   if isnum {
     sorted.sort_by((a, b) => key_int(a.0) - key_int(b.0))
@@ -293,10 +309,10 @@ fn split_into(
 }
 
 ///|
-fn name_tree_of_nt(
+fn PdfTree::name_tree_of_nt(
+  self : PdfTree,
   isnum : Bool,
   isroot : Bool,
-  pdf : @pdf.Pdf,
   node : Nt,
 ) -> @pdf.PdfObject {
   match node {
@@ -334,12 +350,12 @@ fn name_tree_of_nt(
     Nt::Branch(llimit, kids, rlimit) => {
       let kid_refs = Array::new()
       for child in kids {
-        let child_obj = name_tree_of_nt(isnum, false, pdf, child)
+        let child_obj = self.name_tree_of_nt(isnum, false, child)
         match child_obj {
           @pdf.PdfObject::Dictionary(_)
           | @pdf.PdfObject::Stream(_)
           | @pdf.PdfObject::Array(_) => {
-            let objnum = @pdf.addobj(pdf, child_obj)
+            let objnum = @pdf.addobj(self.pdf, child_obj)
             kid_refs.push(@pdf.PdfObject::Indirect(objnum))
           }
           _ => kid_refs.push(child_obj)

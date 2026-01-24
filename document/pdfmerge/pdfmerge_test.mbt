@@ -106,7 +106,7 @@ fn read_dest_names(pdf : @pdf.Pdf) -> Array[String] raise {
     Some(obj) => obj
     None => fail("missing /Dests tree")
   }
-  @pdftree.read_name_tree(pdf, dest_tree).map(pair => pair.0)
+  @pdftree.PdfTree::new(pdf).read_name_tree(dest_tree).map(pair => pair.0)
 }
 
 ///|

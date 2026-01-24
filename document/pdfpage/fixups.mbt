@@ -360,9 +360,10 @@ fn was_nulled(pdf : @pdf.Pdf, pair : (String, @pdf.PdfObject)) -> Bool {
 pub fn fixup_destinations(pdf : @pdf.Pdf) -> Unit raise {
   match @pdf.lookup_chain(pdf, pdf.trailerdict, ["/Root", "/Names", "/Dests"]) {
     Some(t) => {
-      let tree = @pdftree.read_name_tree(pdf, t)
+      let tree_ctx = @pdftree.PdfTree::new(pdf)
+      let tree = tree_ctx.read_name_tree(t)
       let tree_updated = tree.filter(pair => !was_nulled(pdf, pair))
-      let tree_obj = @pdftree.build_name_tree(false, pdf, tree_updated)
+      let tree_obj = tree_ctx.build_name_tree(false, tree_updated)
       @pdf.replace_chain(pdf, ["/Root", "/Names", "/Dests"], tree_obj)
     }
     None => ()

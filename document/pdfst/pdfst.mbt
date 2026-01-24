@@ -203,7 +203,7 @@ pub fn renumber_parent_trees(pdfs : Array[@pdf.Pdf]) -> Unit raise {
     @pdf.lookup_chain(pdf, pdf.trailerdict, [
       "/Root", "/StructTreeRoot", "/ParentTree",
     ]) {
-    Some(tree) => @pdftree.read_number_tree(pdf, tree)
+    Some(tree) => @pdftree.PdfTree::new(pdf).read_number_tree(tree)
     None => []
   })
   let mapping : Map[(Int, Int), Int] = Map::new()
@@ -312,7 +312,10 @@ pub fn renumber_parent_trees(pdfs : Array[@pdf.Pdf]) -> Unit raise {
   }
 
   for i, pdf in pdfs {
-    let parent_tree = @pdftree.build_name_tree(true, pdf, renumbered[i])
+    let parent_tree = @pdftree.PdfTree::new(pdf).build_name_tree(
+      true,
+      renumbered[i],
+    )
     match @pdf.lookup_immediate("/Root", pdf.trailerdict) {
       Some(@pdf.PdfObject::Indirect(root_num)) => {
         let root_obj = @pdf.lookup_obj(pdf, root_num)
@@ -411,12 +414,11 @@ pub fn merge_structure_trees(
   if struct_tree_roots.length() == 1 {
     return Some(struct_tree_objnums[0])
   }
-  let merged_idtree = @pdftree.merge_name_trees_no_clash(
-    pdf,
+  let tree_ctx = @pdftree.PdfTree::new(pdf)
+  let merged_idtree = tree_ctx.merge_name_trees_no_clash(
     get_all(struct_tree_roots, "/IDTree"),
   )
-  let merged_parenttree = @pdftree.merge_number_trees_no_clash(
-    pdf,
+  let merged_parenttree = tree_ctx.merge_number_trees_no_clash(
     get_all(struct_tree_roots, "/ParentTree"),
   )
   let merged_rolemap = merge_dicts(get_all(struct_tree_roots, "/RoleMap"))

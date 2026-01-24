@@ -173,8 +173,8 @@ test "renumber_parent_trees remaps struct parents" {
     Ref::new((stream_dict, @pdf.Stream::Got(([] : Array[Byte])))),
   )
   let stream_num = @pdf.addobj(pdf2, stream)
-  let tree1 = @pdftree.build_name_tree(true, pdf1, [("0", Null)])
-  let tree2 = @pdftree.build_name_tree(true, pdf2, [("0", Null)])
+  let tree1 = @pdftree.PdfTree::new(pdf1).build_name_tree(true, [("0", Null)])
+  let tree2 = @pdftree.PdfTree::new(pdf2).build_name_tree(true, [("0", Null)])
   let tree1_num = @pdf.addobj(pdf1, tree1)
   let tree2_num = @pdf.addobj(pdf2, tree2)
   let root1 : @pdf.PdfObject = Dictionary([("/ParentTree", Indirect(tree1_num))])
@@ -211,7 +211,7 @@ test "renumber_parent_trees remaps struct parents" {
       "/Root", "/StructTreeRoot", "/ParentTree",
     ]) {
     Some(tree) =>
-      match @pdftree.read_number_tree(pdf2, tree) {
+      match @pdftree.PdfTree::new(pdf2).read_number_tree(tree) {
         [(key, _)] => assert_eq(key, "1")
         _ => fail("expected renumbered parent tree")
       }
@@ -249,8 +249,10 @@ test "merge_structure_trees merges roots" {
   let page_refs2 = @pdf.page_reference_numbers(pdf2)
   let kid1_obj : @pdf.PdfObject = Dictionary([("/Pg", Indirect(page_refs1[0]))])
   let kid1 = @pdf.addobj(pdf1, kid1_obj)
-  let idtree1 = @pdftree.build_name_tree(false, pdf1, [("A", Null)])
-  let parenttree1 = @pdftree.build_name_tree(true, pdf1, [("0", Null)])
+  let idtree1 = @pdftree.PdfTree::new(pdf1).build_name_tree(false, [("A", Null)])
+  let parenttree1 = @pdftree.PdfTree::new(pdf1).build_name_tree(true, [
+    ("0", Null),
+  ])
   let root1 : @pdf.PdfObject = Dictionary([
     ("/K", Indirect(kid1)),
     ("/IDTree", idtree1),
@@ -261,8 +263,10 @@ test "merge_structure_trees merges roots" {
   ])
   ignore(install_struct_root(pdf1, root1))
   let kid2 : @pdf.PdfObject = Dictionary([("/Pg", Indirect(page_refs2[0]))])
-  let idtree2 = @pdftree.build_name_tree(false, pdf2, [("B", Null)])
-  let parenttree2 = @pdftree.build_name_tree(true, pdf2, [("0", Null)])
+  let idtree2 = @pdftree.PdfTree::new(pdf2).build_name_tree(false, [("B", Null)])
+  let parenttree2 = @pdftree.PdfTree::new(pdf2).build_name_tree(true, [
+    ("0", Null),
+  ])
   let root2 : @pdf.PdfObject = Dictionary([
     ("/K", Array([kid2, Integer(3)])),
     ("/IDTree", idtree2),
