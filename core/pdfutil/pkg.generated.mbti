@@ -2,21 +2,27 @@
 package "bobzhang/mbtpdf/core/pdfutil"
 
 // Values
-pub fn fleprint(String) -> Unit
-
-pub fn flprint(String) -> Unit
-
-pub fn[K : Hash + Eq, V] hashtable_of_dictionary(Array[(K, V)]) -> Map[K, V]
-
-pub fn[K, V] list_of_hashtbl(Map[K, V]) -> Array[(K, V)]
-
-pub fn[T] memoize(() -> T raise) -> () -> T raise
-
-pub fn[K, V] null_hash() -> Map[K, V]
 
 // Errors
 
 // Types and methods
+pub struct PdfUtil {
+  stdout_buffer : Ref[String]
+  stderr_buffer : Ref[String]
+}
+#as_free_fn(fleprint, deprecated)
+pub fn PdfUtil::fleprint(Self, String) -> Unit
+#as_free_fn(flprint, deprecated)
+pub fn PdfUtil::flprint(Self, String) -> Unit
+#as_free_fn(hashtable_of_dictionary, deprecated)
+pub fn[K : Hash + Eq, V] PdfUtil::hashtable_of_dictionary(Self, Array[(K, V)]) -> Map[K, V]
+#as_free_fn(list_of_hashtbl, deprecated)
+pub fn[K, V] PdfUtil::list_of_hashtbl(Self, Map[K, V]) -> Array[(K, V)]
+#as_free_fn(memoize, deprecated)
+pub fn[T] PdfUtil::memoize(Self, () -> T raise) -> () -> T raise
+pub fn PdfUtil::new() -> Self
+#as_free_fn(null_hash, deprecated)
+pub fn[K, V] PdfUtil::null_hash(Self) -> Map[K, V]
 
 // Type aliases
 

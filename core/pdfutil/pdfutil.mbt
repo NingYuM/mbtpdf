@@ -7,6 +7,17 @@ let stdout_buffer : Ref[String] = Ref::new("")
 let stderr_buffer : Ref[String] = Ref::new("")
 
 ///|
+pub struct PdfUtil {
+  stdout_buffer : Ref[String]
+  stderr_buffer : Ref[String]
+}
+
+///|
+pub fn PdfUtil::new() -> PdfUtil {
+  { stdout_buffer, stderr_buffer }
+}
+
+///|
 /// Flush complete lines from a buffer using println, keeping partial tails.
 fn flush_buffer(buffer : Ref[String], message : String) -> Unit {
   let combined = buffer.val + message
@@ -24,19 +35,22 @@ fn flush_buffer(buffer : Ref[String], message : String) -> Unit {
 
 ///|
 /// Print something and then flush standard output.
-pub fn flprint(message : String) -> Unit {
-  flush_buffer(stdout_buffer, message)
+#as_free_fn(flprint, deprecated="Use `PdfUtil::flprint`")
+pub fn PdfUtil::flprint(self : PdfUtil, message : String) -> Unit {
+  flush_buffer(self.stdout_buffer, message)
 }
 
 ///|
 /// Print something and then flush standard error.
-pub fn fleprint(message : String) -> Unit {
-  flush_buffer(stderr_buffer, message)
+#as_free_fn(fleprint, deprecated="Use `PdfUtil::fleprint`")
+pub fn PdfUtil::fleprint(self : PdfUtil, message : String) -> Unit {
+  flush_buffer(self.stderr_buffer, message)
 }
 
 ///|
 /// Memoize a nullary function (cache the first computed value).
-pub fn[T] memoize(f : () -> T raise) -> () -> T raise {
+#as_free_fn(memoize, deprecated="Use `PdfUtil::memoize`")
+pub fn[T] PdfUtil::memoize(_self : PdfUtil, f : () -> T raise) -> () -> T raise {
   let cached : Ref[T?] = Ref::new(None)
   let ready : Ref[Bool] = Ref::new(false)
   () => if ready.val {
@@ -54,7 +68,9 @@ pub fn[T] memoize(f : () -> T raise) -> () -> T raise {
 
 ///|
 /// Build a hash map from a list of key/value pairs.
-pub fn[K : Hash + Eq, V] hashtable_of_dictionary(
+#as_free_fn(hashtable_of_dictionary, deprecated="Use `PdfUtil::hashtable_of_dictionary`")
+pub fn[K : Hash + Eq, V] PdfUtil::hashtable_of_dictionary(
+  _self : PdfUtil,
   pairs : Array[(K, V)],
 ) -> Map[K, V] {
   let table : Map[K, V] = Map::new(capacity=pairs.length() * 2)
@@ -66,12 +82,17 @@ pub fn[K : Hash + Eq, V] hashtable_of_dictionary(
 
 ///|
 /// Construct an empty hash table.
-pub fn[K, V] null_hash() -> Map[K, V] {
+#as_free_fn(null_hash, deprecated="Use `PdfUtil::null_hash`")
+pub fn[K, V] PdfUtil::null_hash(_self : PdfUtil) -> Map[K, V] {
   Map::new(capacity=0)
 }
 
 ///|
 /// Extract all pairs from a hash table.
-pub fn[K, V] list_of_hashtbl(table : Map[K, V]) -> Array[(K, V)] {
+#as_free_fn(list_of_hashtbl, deprecated="Use `PdfUtil::list_of_hashtbl`")
+pub fn[K, V] PdfUtil::list_of_hashtbl(
+  _self : PdfUtil,
+  table : Map[K, V],
+) -> Array[(K, V)] {
   table.to_array()
 }

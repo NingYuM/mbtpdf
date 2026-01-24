@@ -151,7 +151,7 @@ pub fn tounicode_map(
 
 ///|
 pub fn PdfText::write_tounicode(self : PdfText, u : Map[Int, String]) -> Int {
-  let pairs = @pdfutil.list_of_hashtbl(u)
+  let pairs = @pdfutil.PdfUtil::new().list_of_hashtbl(u)
   pairs.sort_by((a, b) => a.0 - b.0)
   let strings = pairs.map(pair => pair.1)
   let bytes = tounicode_map(33, strings)

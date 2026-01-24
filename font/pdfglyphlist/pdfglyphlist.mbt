@@ -3661,11 +3661,12 @@ fn parse_glyphlist(input : @pdfio.Input) -> Array[(String, Array[Int])] raise {
 }
 
 ///|
-let glyphmap_memo : () -> Array[(String, Array[Int])] raise = @pdfutil.memoize(fn() raise {
-  let decoded = @pdfcodec.decode_flate(glyphlist_src())
-  let text = @pdfio.string_of_bytes(decoded)
-  parse_glyphlist(@pdfio.input_of_string(text))
-})
+let glyphmap_memo : () -> Array[(String, Array[Int])] raise = @pdfutil.PdfUtil::new().memoize(fn() raise {
+    let decoded = @pdfcodec.decode_flate(glyphlist_src())
+    let text = @pdfio.string_of_bytes(decoded)
+    parse_glyphlist(@pdfio.input_of_string(text))
+  },
+)
 
 ///|
 pub fn glyphmap() -> Array[(String, Array[Int])] raise {
@@ -3702,13 +3703,14 @@ fn revglyph_hashtable_of_dictionary(
 }
 
 ///|
-let glyph_hashes_memo : () -> Map[String, Array[Int]] raise = @pdfutil.memoize(fn() raise {
-  let combined = Array::new()
-  combined.append(glyphmap())
-  combined.append(dingbatmap_arr)
-  combined.append(truetypemap_arr)
-  @pdfutil.hashtable_of_dictionary(combined)
-})
+let glyph_hashes_memo : () -> Map[String, Array[Int]] raise = @pdfutil.PdfUtil::new().memoize(fn() raise {
+    let combined = Array::new()
+    combined.append(glyphmap())
+    combined.append(dingbatmap_arr)
+    combined.append(truetypemap_arr)
+    @pdfutil.PdfUtil::new().hashtable_of_dictionary(combined)
+  },
+)
 
 ///|
 pub fn glyph_hashes() -> Map[String, Array[Int]] raise {
@@ -3716,7 +3718,7 @@ pub fn glyph_hashes() -> Map[String, Array[Int]] raise {
 }
 
 ///|
-let reverse_glyph_hashes_memo : () -> Map[Array[Int], String] raise = @pdfutil.memoize(fn() raise {
+let reverse_glyph_hashes_memo : () -> Map[Array[Int], String] raise = @pdfutil.PdfUtil::new().memoize(fn() raise {
     let reversed = glyphmap().map(pair => (pair.1, pair.0))
     revglyph_hashtable_of_dictionary(reversed)
   },
@@ -3728,11 +3730,11 @@ pub fn reverse_glyph_hashes() -> Map[Array[Int], String] raise {
 }
 
 ///|
-pub let name_to_pdf_hashes : Map[String, Int] = @pdfutil.hashtable_of_dictionary(
+pub let name_to_pdf_hashes : Map[String, Int] = @pdfutil.PdfUtil::new().hashtable_of_dictionary(
   name_to_pdf,
 )
 
 ///|
-pub let reverse_name_to_pdf_hashes : Map[Int, String] = @pdfutil.hashtable_of_dictionary(
+pub let reverse_name_to_pdf_hashes : Map[Int, String] = @pdfutil.PdfUtil::new().hashtable_of_dictionary(
   name_to_pdf.map(pair => (pair.1, pair.0)),
 )

@@ -241,22 +241,22 @@ pub fn OcgProperties::write(self : OcgProperties, pdf : @pdf.Pdf) -> Unit {
 fn print_ocg(pair : (Int, Ocg)) -> Unit {
   let num = pair.0
   let ocg = pair.1
-  @pdfutil.flprint("OCG \{num}\n")
-  @pdfutil.flprint("Name \{ocg.ocg_name}\n")
+  @pdfutil.PdfUtil::new().flprint("OCG \{num}\n")
+  @pdfutil.PdfUtil::new().flprint("Name \{ocg.ocg_name}\n")
   let sb = StringBuilder::new()
   sb.write_string("Intent(s)")
   for intent in ocg.ocg_intent {
     sb..write_char(' ')..write_string(intent)
   }
   sb.write_char('\n')
-  @pdfutil.flprint(sb.to_string())
+  @pdfutil.PdfUtil::new().flprint(sb.to_string())
 }
 
 ///|
 fn print_ocg_config(config : OcgConfig) -> Unit {
   match config.ocgconfig_name {
-    None => @pdfutil.flprint("No config name\n")
-    Some(name) => @pdfutil.flprint("Config Name: \{name}\n")
+    None => @pdfutil.PdfUtil::new().flprint("No config name\n")
+    Some(name) => @pdfutil.PdfUtil::new().flprint("Config Name: \{name}\n")
   }
 }
 
@@ -266,19 +266,19 @@ fn print_ocg_config(config : OcgConfig) -> Unit {
 pub fn print_document_ocg(pdf : @pdf.Pdf) -> Unit raise {
   match OcgProperties::read(pdf) {
     None =>
-      @pdfutil.flprint(
+      @pdfutil.PdfUtil::new().flprint(
         "There are no optional content groups in this document\n",
       )
     Some(ocgs) => {
-      @pdfutil.flprint(
+      @pdfutil.PdfUtil::new().flprint(
         "There are \{ocgs.ocgs.length()} OCGs, and " +
         "\{ocgs.ocg_configs.length()} additional configs\n",
       )
-      @pdfutil.flprint("OCGs\n-------------\n")
+      @pdfutil.PdfUtil::new().flprint("OCGs\n-------------\n")
       for pair in ocgs.ocgs {
         print_ocg(pair)
       }
-      @pdfutil.flprint("OCG Configs\n------------\n")
+      @pdfutil.PdfUtil::new().flprint("OCG Configs\n------------\n")
       for config in ocgs.ocg_configs {
         print_ocg_config(config)
       }

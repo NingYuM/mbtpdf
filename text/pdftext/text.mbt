@@ -306,7 +306,7 @@ fn charcode_extractor_of_font_real(
   debug? : Bool = false,
 ) -> ((Int) -> Int?) raise {
   if debug {
-    @pdfutil.flprint(font.to_string() + "\n")
+    @pdfutil.PdfUtil::new().flprint(font.to_string() + "\n")
   }
   let encoding = match font {
     @pdffont.Font::StandardFont(_, e) => e
@@ -316,30 +316,30 @@ fn charcode_extractor_of_font_real(
   let tounicode_reverse_table = match find_tounicode_bytes(font) {
     Some(parsed) => {
       if debug {
-        @pdfutil.flprint("Found a /ToUnicode table here.\n")
+        @pdfutil.PdfUtil::new().flprint("Found a /ToUnicode table here.\n")
       }
-      let parsed_list = @pdfutil.list_of_hashtbl(parsed)
+      let parsed_list = @pdfutil.PdfUtil::new().list_of_hashtbl(parsed)
       try {
         let reversed = parsed_list.map(pair => (
           codepoints_of_utf16be(pair.1),
           code_int_of_string(pair.0),
         ))
-        (@pdfutil.hashtable_of_dictionary(reversed), true)
+        (@pdfutil.PdfUtil::new().hashtable_of_dictionary(reversed), true)
       } catch {
         err => {
           let _ = err
           @pdfe.log("bad tounicode\n")
-          (@pdfutil.null_hash(), false)
+          (@pdfutil.PdfUtil::new().null_hash(), false)
         }
       }
     }
-    None => (@pdfutil.null_hash(), false)
+    None => (@pdfutil.PdfUtil::new().null_hash(), false)
   }
   let reverse_table = reverse_table_of_encoding(encoding)
   let reverse_glyph_hashes = @pdfglyphlist.reverse_glyph_hashes()
   (codepoint : Int) => {
     if debug {
-      @pdfutil.flprint("Input codepoint: \{codepoint}\n")
+      @pdfutil.PdfUtil::new().flprint("Input codepoint: \{codepoint}\n")
     }
     let key = [codepoint]
     if tounicode_reverse_table.1 {
@@ -348,7 +348,7 @@ fn charcode_extractor_of_font_real(
       match reverse_glyph_hashes.get(key) {
         Some(glyphname) => {
           if debug {
-            @pdfutil.flprint("Found glyph name \{glyphname}\n")
+            @pdfutil.PdfUtil::new().flprint("Found glyph name \{glyphname}\n")
           }
           reverse_table.get(glyphname)
         }

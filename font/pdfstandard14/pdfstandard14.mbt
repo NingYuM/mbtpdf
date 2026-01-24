@@ -16,10 +16,12 @@ fn read_afm(afm : Array[Byte]) -> AfmTables raise {
     @pdfio.input_of_string(decompressed),
   )
   (
-    @pdfutil.hashtable_of_dictionary(headers),
-    @pdfutil.hashtable_of_dictionary(ws),
-    @pdfutil.hashtable_of_dictionary(ks.map(pair => ((pair.0, pair.1), pair.2))),
-    @pdfutil.hashtable_of_dictionary(ws_prime),
+    @pdfutil.PdfUtil::new().hashtable_of_dictionary(headers),
+    @pdfutil.PdfUtil::new().hashtable_of_dictionary(ws),
+    @pdfutil.PdfUtil::new().hashtable_of_dictionary(
+      ks.map(pair => ((pair.0, pair.1), pair.2)),
+    ),
+    @pdfutil.PdfUtil::new().hashtable_of_dictionary(ws_prime),
   )
 }
 
@@ -27,59 +29,79 @@ fn read_afm(afm : Array[Byte]) -> AfmTables raise {
 let tables : Array[(@pdffont.StandardFont, () -> AfmTables raise)] = [
   (
     @pdffont.StandardFont::TimesRoman,
-    @pdfutil.memoize(() => read_afm(@pdfafmdata.times_roman_afm())),
+    @pdfutil.PdfUtil::new().memoize(() => read_afm(
+      @pdfafmdata.times_roman_afm(),
+    )),
   ),
   (
     @pdffont.StandardFont::TimesBold,
-    @pdfutil.memoize(() => read_afm(@pdfafmdata.times_bold_afm())),
+    @pdfutil.PdfUtil::new().memoize(() => read_afm(@pdfafmdata.times_bold_afm())),
   ),
   (
     @pdffont.StandardFont::TimesItalic,
-    @pdfutil.memoize(() => read_afm(@pdfafmdata.times_italic_afm())),
+    @pdfutil.PdfUtil::new().memoize(() => read_afm(
+      @pdfafmdata.times_italic_afm(),
+    )),
   ),
   (
     @pdffont.StandardFont::TimesBoldItalic,
-    @pdfutil.memoize(() => read_afm(@pdfafmdata.times_bold_italic_afm())),
+    @pdfutil.PdfUtil::new().memoize(() => read_afm(
+      @pdfafmdata.times_bold_italic_afm(),
+    )),
   ),
   (
     @pdffont.StandardFont::Helvetica,
-    @pdfutil.memoize(() => read_afm(@pdfafmdata.helvetica_afm())),
+    @pdfutil.PdfUtil::new().memoize(() => read_afm(@pdfafmdata.helvetica_afm())),
   ),
   (
     @pdffont.StandardFont::HelveticaBold,
-    @pdfutil.memoize(() => read_afm(@pdfafmdata.helvetica_bold_afm())),
+    @pdfutil.PdfUtil::new().memoize(() => read_afm(
+      @pdfafmdata.helvetica_bold_afm(),
+    )),
   ),
   (
     @pdffont.StandardFont::HelveticaOblique,
-    @pdfutil.memoize(() => read_afm(@pdfafmdata.helvetica_oblique_afm())),
+    @pdfutil.PdfUtil::new().memoize(() => read_afm(
+      @pdfafmdata.helvetica_oblique_afm(),
+    )),
   ),
   (
     @pdffont.StandardFont::HelveticaBoldOblique,
-    @pdfutil.memoize(() => read_afm(@pdfafmdata.helvetica_bold_oblique_afm())),
+    @pdfutil.PdfUtil::new().memoize(() => read_afm(
+      @pdfafmdata.helvetica_bold_oblique_afm(),
+    )),
   ),
   (
     @pdffont.StandardFont::Courier,
-    @pdfutil.memoize(() => read_afm(@pdfafmdata.courier_afm())),
+    @pdfutil.PdfUtil::new().memoize(() => read_afm(@pdfafmdata.courier_afm())),
   ),
   (
     @pdffont.StandardFont::CourierBold,
-    @pdfutil.memoize(() => read_afm(@pdfafmdata.courier_bold_afm())),
+    @pdfutil.PdfUtil::new().memoize(() => read_afm(
+      @pdfafmdata.courier_bold_afm(),
+    )),
   ),
   (
     @pdffont.StandardFont::CourierOblique,
-    @pdfutil.memoize(() => read_afm(@pdfafmdata.courier_oblique_afm())),
+    @pdfutil.PdfUtil::new().memoize(() => read_afm(
+      @pdfafmdata.courier_oblique_afm(),
+    )),
   ),
   (
     @pdffont.StandardFont::CourierBoldOblique,
-    @pdfutil.memoize(() => read_afm(@pdfafmdata.courier_bold_oblique_afm())),
+    @pdfutil.PdfUtil::new().memoize(() => read_afm(
+      @pdfafmdata.courier_bold_oblique_afm(),
+    )),
   ),
   (
     @pdffont.StandardFont::Symbol,
-    @pdfutil.memoize(() => read_afm(@pdfafmdata.symbol_afm())),
+    @pdfutil.PdfUtil::new().memoize(() => read_afm(@pdfafmdata.symbol_afm())),
   ),
   (
     @pdffont.StandardFont::ZapfDingbats,
-    @pdfutil.memoize(() => read_afm(@pdfafmdata.zapf_dingbats_afm())),
+    @pdfutil.PdfUtil::new().memoize(() => read_afm(
+      @pdfafmdata.zapf_dingbats_afm(),
+    )),
   ),
 ]
 

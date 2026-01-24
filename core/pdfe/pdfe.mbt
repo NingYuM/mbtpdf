@@ -1,7 +1,7 @@
 ///|
 /// Default error logger, writes the string to stderr (shim).
 fn default(message : String) -> Unit {
-  @pdfutil.fleprint(message)
+  @pdfutil.PdfUtil::new().fleprint(message)
 }
 
 ///|

@@ -637,12 +637,14 @@ pub fn PdfText::add_tounicode(
     Some(tounicode) =>
       try {
         let parsed = @pdfcmap.parse_cmap(self.pdf, tounicode)
-        let bytes_map = @pdfutil.hashtable_of_dictionary(parsed.map)
+        let bytes_map = @pdfutil.PdfUtil::new().hashtable_of_dictionary(
+          parsed.map,
+        )
         let int_pairs = parsed.map.map(pair => (
           code_int_of_string(pair.0),
           pair.1,
         ))
-        let int_map = @pdfutil.hashtable_of_dictionary(int_pairs)
+        let int_map = @pdfutil.PdfUtil::new().hashtable_of_dictionary(int_pairs)
         (Some(int_map), Some(bytes_map))
       } catch {
         err => {
