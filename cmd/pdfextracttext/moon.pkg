@@ -1,7 +1,7 @@
 import {
   "bobzhang/mbtpdf/crypto/pdfcrypt",
   "bobzhang/mbtpdf/io/pdfread",
-  "bobzhang/mbtpdf/text/pdftext" as @pdftextlib,
+  "bobzhang/mbtpdf/text/pdftext",
   "moonbitlang/core/env",
   "moonbitlang/async",
   "moonbitlang/async/fs",

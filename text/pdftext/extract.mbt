@@ -6,33 +6,17 @@ pub fn extract_text(
   pdf : @pdf.Pdf,
   page_break? : String = "\n\n",
 ) -> String raise {
-  join_pages(extract_text_by_page(pdf), page_break)
+  extract_text_by_page(pdf).join(page_break)
 }
 
 ///|
 pub fn extract_text_by_page(pdf : @pdf.Pdf) -> Array[String] raise {
   let pages = @pdfpage.pages_of_pagetree(pdf)
-  let out : Array[String] = Array::new()
-  for page in pages {
-    out.push(extract_text_from_page(pdf, page))
-  }
-  out
+  pages.map(page => extract_text_from_page(pdf, page))
 }
 
-///|
-fn join_pages(pages : Array[String], page_break : String) -> String {
-  let builder = StringBuilder::new()
-  let mut first = true
-  for page_text in pages {
-    if first {
-      first = false
-    } else {
-      builder.write_string(page_break)
-    }
-    builder.write_string(page_text)
-  }
-  builder.to_string()
-}
+
+
 
 ///|
 fn extract_text_from_page(pdf : @pdf.Pdf, page : @pdfpage.Page) -> String raise {
@@ -128,8 +112,8 @@ fn append_text_from_streams(
   }
 
   fn append_text_from_xobject(name : String) -> Unit raise {
-    match @pdf.lookup_direct(pdf, "/XObject", resources) {
-      Some(Dictionary(entries)) =>
+    if @pdf.lookup_direct(pdf, "/XObject", resources) 
+      is Some(Dictionary(entries)) {
         match entries.search_by(pair => pair.0 == name) {
           Some(idx) => {
             let obj_ref = entries[idx].1
@@ -160,7 +144,6 @@ fn append_text_from_streams(
           }
           None => ()
         }
-      _ => ()
     }
   }
 

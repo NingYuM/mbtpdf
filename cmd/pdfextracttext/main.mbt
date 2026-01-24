@@ -12,7 +12,7 @@ async fn main {
     if @pdfcrypt.is_encrypted(pdf) {
       fail("File is encrypted.")
     }
-    let text = @pdftextlib.extract_text(pdf)
+    let text = @pdftext.extract_text(pdf)
     match out_file {
       Some(path) => @fs.write_file(path, text)
       None => println(text)
