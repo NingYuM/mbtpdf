@@ -7,15 +7,11 @@ import {
 }
 
 // Values
-pub let always_add_whitespace : Ref[Bool]
-
 pub let begin_artifact : Op
 
 pub fn components(@pdf.Pdf, @pdf.PdfObject, @pdf.PdfObject) -> Int raise
 
 pub fn concat_bytess(Array[Array[Byte]]) -> Array[Byte]
-
-pub let debug : Ref[Bool]
 
 pub let end_artifact : Op
 
@@ -30,10 +26,6 @@ pub fn stream_of_ops(Array[Op]) -> @pdf.PdfObject raise
 pub fn string_of_op(Op) -> String raise
 
 pub fn string_of_ops(Array[Op]) -> String raise
-
-pub let whitespace : Ref[String]
-
-pub let write_comments : Ref[Bool]
 
 // Errors
 

@@ -8,11 +8,7 @@ pub type MutableBytes = Array[Byte]
 
 ///|
 /// Immutable core bytes type.
-pub type CoreBytes = Bytes
-
-///|
-/// Raw bytes for FFI-style access (alias in MoonBit).
-pub type RawBytes = MutableBytes
+type CoreBytes = Bytes
 
 ///|
 /// Input abstraction (seekable stream of bytes).
@@ -51,27 +47,6 @@ pub fn bytes_size(bytes : MutableBytes) -> Int {
 }
 
 ///|
-/// Fill bytes with a value.
-pub fn fillbytes(value : Int, bytes : MutableBytes) -> Unit {
-  bytes.fill(value.to_byte())
-}
-
-///|
-/// Print bytes to standard output (debug format).
-pub fn print_bytes(bytes : MutableBytes) -> Unit {
-  let sb = StringBuilder::new()
-  sb.write_char('[')
-  for i, value in bytes {
-    if i > 0 {
-      sb.write_string(", ")
-    }
-    sb.write_object(value.to_int())
-  }
-  sb.write_char(']')
-  @pdfe.log(sb.to_string() + "\n")
-}
-
-///|
 /// Get the value at a position in bytes.
 pub fn bget(bytes : MutableBytes, index : Int) -> Int {
   bytes[index].to_int()
@@ -96,14 +71,6 @@ pub fn bset_unsafe(bytes : MutableBytes, index : Int, value : Int) -> Unit {
 }
 
 ///|
-/// Map bytes onto itself using a function on each byte.
-pub fn bytes_selfmap(f : (Int) -> Int, bytes : MutableBytes) -> Unit {
-  for i, b in bytes {
-    bytes[i] = f(b.to_int()).to_byte()
-  }
-}
-
-///|
 /// Make bytes from a string by taking the low 8 bits of each character.
 pub fn bytes_of_string(s : String) -> MutableBytes {
   let chars = s.to_array()
@@ -118,18 +85,6 @@ pub fn bytes_of_string(s : String) -> MutableBytes {
 /// Make bytes from core bytes.
 pub fn bytes_of_caml_bytes(bytes : CoreBytes) -> MutableBytes {
   bytes.to_array()
-}
-
-///|
-/// Expose raw bytes for interop (identity in MoonBit).
-pub fn raw_of_bytes(bytes : MutableBytes) -> RawBytes {
-  bytes
-}
-
-///|
-/// Convert raw bytes back to mutable bytes (identity in MoonBit).
-pub fn bytes_of_raw(raw : RawBytes) -> MutableBytes {
-  raw
 }
 
 ///|
@@ -463,17 +418,6 @@ pub fn setinit(
 }
 
 ///|
-/// Set bytes o..o+l-1 from input (alias for string-backed buffers).
-pub fn setinit_string(
-  input : Input,
-  bytes : MutableBytes,
-  offset : Int,
-  length : Int,
-) -> Unit raise {
-  setinit(input, bytes, offset, length)
-}
-
-///|
 /// Bytes with input o..o+l-1.
 pub fn bytes_of_input(
   input : Input,
@@ -608,18 +552,6 @@ pub fn getbitint(b : Bitstream) -> Int raise {
 }
 
 ///|
-fn getbitsint(b : Bitstream, n : Int) -> Int raise {
-  if n < 0 {
-    fail("getbitsint")
-  }
-  let mut value = 0
-  for _ in 0..<n {
-    value = (value << 1) | getbitint(b)
-  }
-  value
-}
-
-///|
 /// Align a bitstream to the next byte boundary.
 pub fn align(b : Bitstream) -> Unit {
   if b.bit > 0 {
@@ -629,39 +561,9 @@ pub fn align(b : Bitstream) -> Unit {
 }
 
 ///|
-/// Read up to 32 bits as an integer.
-pub fn getval_32(b : Bitstream, n : Int) -> Int raise {
-  if n < 0 {
-    fail("Pdfio.getval_32 - n < 0")
-  }
-  getbitsint(b, n)
-}
-
-///|
-/// Read up to 31 bits as an integer.
-pub fn getval_31(b : Bitstream, n : Int) -> Int raise {
-  if n < 0 {
-    fail("Pdfio.getval_31 - n < 0")
-  }
-  getbitsint(b, n)
-}
-
-///|
 /// Make a new write bitstream.
 pub fn make_write_bitstream() -> BitstreamWrite {
   { bytes: Array::new(), bit: 0 }
-}
-
-///|
-fn bitstream_bits(b : BitstreamWrite) -> Int {
-  let count = b.bytes.length()
-  if count == 0 {
-    0
-  } else if b.bit == 0 {
-    count * 8
-  } else {
-    (count - 1) * 8 + b.bit
-  }
 }
 
 ///|
@@ -711,34 +613,6 @@ pub fn align_write(b : BitstreamWrite) -> Unit {
 pub fn bytes_of_write_bitstream(b : BitstreamWrite) -> MutableBytes {
   align_write(b)
   b.bytes.copy()
-}
-
-///|
-fn append_bits(dest : BitstreamWrite, src : BitstreamWrite) -> Unit {
-  let total = bitstream_bits(src)
-  if total == 0 {
-    return
-  }
-  for i in 0..<total {
-    let byte_index = i / 8
-    let bit_index = i % 8
-    let curr = src.bytes[byte_index].to_int()
-    let mask = 1 << (7 - bit_index)
-    let bit = if (curr & mask) > 0 { 1 } else { 0 }
-    putbit(dest, bit)
-  }
-}
-
-///|
-/// Append two write bitstreams, aligning at the join.
-pub fn write_bitstream_append_aligned(
-  a : BitstreamWrite,
-  b : BitstreamWrite,
-) -> BitstreamWrite {
-  let out = { bytes: a.bytes.copy(), bit: a.bit }
-  align_write(out)
-  append_bits(out, b)
-  out
 }
 
 ///|

@@ -1,9 +1,9 @@
 ///|
 test "malformed pdf honors /Version in catalog when forced" {
-  let prev = @pdfread.debug_always_treat_malformed.val
-  @pdfread.debug_always_treat_malformed.val = true
+  let prev = debug_always_treat_malformed.val
+  debug_always_treat_malformed.val = true
   defer {
-    @pdfread.debug_always_treat_malformed.val = prev
+    debug_always_treat_malformed.val = prev
   }
   let data =
     #|%PDF-1.4
@@ -16,17 +16,17 @@ test "malformed pdf honors /Version in catalog when forced" {
     #|trailer
     #|<< /Root 1 0 R >>
     #|%%EOF
-  let pdf = @pdfread.pdf_of_input(None, None, @pdfio.input_of_string(data))
+  let pdf = pdf_of_input(None, None, @pdfio.input_of_string(data))
   assert_eq(pdf.major, 1)
   assert_eq(pdf.minor, 7)
 }
 
 ///|
 test "malformed pdf falls back to catalog when /Root is direct" {
-  let prev = @pdfread.debug_always_treat_malformed.val
-  @pdfread.debug_always_treat_malformed.val = true
+  let prev = debug_always_treat_malformed.val
+  debug_always_treat_malformed.val = true
   defer {
-    @pdfread.debug_always_treat_malformed.val = prev
+    debug_always_treat_malformed.val = prev
   }
   let data =
     #|%PDF-1.4
@@ -39,16 +39,16 @@ test "malformed pdf falls back to catalog when /Root is direct" {
     #|trailer
     #|<< /Root 99 >>
     #|%%EOF
-  let pdf = @pdfread.pdf_of_input(None, None, @pdfio.input_of_string(data))
+  let pdf = pdf_of_input(None, None, @pdfio.input_of_string(data))
   assert_eq(pdf.root, 1)
 }
 
 ///|
 test "malformed pdf without /Root and catalog errors" {
-  let prev = @pdfread.debug_always_treat_malformed.val
-  @pdfread.debug_always_treat_malformed.val = true
+  let prev = debug_always_treat_malformed.val
+  debug_always_treat_malformed.val = true
   defer {
-    @pdfread.debug_always_treat_malformed.val = prev
+    debug_always_treat_malformed.val = prev
   }
   let data =
     #|%PDF-1.4
@@ -58,7 +58,7 @@ test "malformed pdf without /Root and catalog errors" {
     #|trailer
     #|<< /Size 2 >>
     #|trailer
-  let res : Result[@pdf.Pdf, Error] = try? @pdfread.pdf_of_input(
+  let res : Result[@pdf.Pdf, Error] = try? pdf_of_input(
     None,
     None,
     @pdfio.input_of_string(data),
@@ -68,10 +68,10 @@ test "malformed pdf without /Root and catalog errors" {
 
 ///|
 test "malformed pdf ignores invalid /Version name" {
-  let prev = @pdfread.debug_always_treat_malformed.val
-  @pdfread.debug_always_treat_malformed.val = true
+  let prev = debug_always_treat_malformed.val
+  debug_always_treat_malformed.val = true
   defer {
-    @pdfread.debug_always_treat_malformed.val = prev
+    debug_always_treat_malformed.val = prev
   }
   let data =
     #|%PDF-1.4
@@ -84,17 +84,17 @@ test "malformed pdf ignores invalid /Version name" {
     #|trailer
     #|<< /Root 1 0 R >>
     #|%%EOF
-  let pdf = @pdfread.pdf_of_input(None, None, @pdfio.input_of_string(data))
+  let pdf = pdf_of_input(None, None, @pdfio.input_of_string(data))
   assert_eq(pdf.major, 1)
   assert_eq(pdf.minor, 4)
 }
 
 ///|
 test "malformed pdf ignores short /Version name" {
-  let prev = @pdfread.debug_always_treat_malformed.val
-  @pdfread.debug_always_treat_malformed.val = true
+  let prev = debug_always_treat_malformed.val
+  debug_always_treat_malformed.val = true
   defer {
-    @pdfread.debug_always_treat_malformed.val = prev
+    debug_always_treat_malformed.val = prev
   }
   let data =
     #|%PDF-1.4
@@ -107,17 +107,17 @@ test "malformed pdf ignores short /Version name" {
     #|trailer
     #|<< /Root 1 0 R >>
     #|%%EOF
-  let pdf = @pdfread.pdf_of_input(None, None, @pdfio.input_of_string(data))
+  let pdf = pdf_of_input(None, None, @pdfio.input_of_string(data))
   assert_eq(pdf.major, 1)
   assert_eq(pdf.minor, 4)
 }
 
 ///|
 test "malformed pdf errors on missing startxref digits" {
-  let prev = @pdfread.error_on_malformed.val
-  @pdfread.error_on_malformed.val = true
+  let prev = error_on_malformed.val
+  error_on_malformed.val = true
   defer {
-    @pdfread.error_on_malformed.val = prev
+    error_on_malformed.val = prev
   }
   let data =
     #|%PDF-1.4
@@ -129,7 +129,7 @@ test "malformed pdf errors on missing startxref digits" {
     #|endobj
     #|startxref
     #|%%EOF
-  let res : Result[@pdf.Pdf, Error] = try? @pdfread.pdf_of_input(
+  let res : Result[@pdf.Pdf, Error] = try? pdf_of_input(
     None,
     None,
     @pdfio.input_of_string(data),
@@ -139,12 +139,12 @@ test "malformed pdf errors on missing startxref digits" {
 
 ///|
 test "malformed pdf errors on missing root and trailer" {
-  let prev = @pdfread.debug_always_treat_malformed.val
-  @pdfread.debug_always_treat_malformed.val = true
+  let prev = debug_always_treat_malformed.val
+  debug_always_treat_malformed.val = true
   defer {
-    @pdfread.debug_always_treat_malformed.val = prev
+    debug_always_treat_malformed.val = prev
   }
-  let res : Result[@pdf.Pdf, Error] = try? @pdfread.pdf_of_input(
+  let res : Result[@pdf.Pdf, Error] = try? pdf_of_input(
     None,
     None,
     @pdfio.input_of_string("trailer"),
@@ -154,10 +154,10 @@ test "malformed pdf errors on missing root and trailer" {
 
 ///|
 test "malformed pdf parses stream with indirect length" {
-  let prev = @pdfread.debug_always_treat_malformed.val
-  @pdfread.debug_always_treat_malformed.val = true
+  let prev = debug_always_treat_malformed.val
+  debug_always_treat_malformed.val = true
   defer {
-    @pdfread.debug_always_treat_malformed.val = prev
+    debug_always_treat_malformed.val = prev
   }
   let data =
     #|%PDF-1.4
@@ -179,13 +179,13 @@ test "malformed pdf parses stream with indirect length" {
     #|trailer
     #|<< /Root 3 0 R >>
     #|%%EOF
-  let pdf = @pdfread.pdf_of_input(None, None, @pdfio.input_of_string(data))
+  let pdf = pdf_of_input(None, None, @pdfio.input_of_string(data))
   assert_eq(pdf.root, 3)
 }
 
 ///|
 test "pdf_of_input rejects invalid revision" {
-  let res : Result[@pdf.Pdf, Error] = try? @pdfread.pdf_of_input(
+  let res : Result[@pdf.Pdf, Error] = try? pdf_of_input(
     revision=0,
     None,
     None,

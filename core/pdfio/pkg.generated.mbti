@@ -39,13 +39,9 @@ pub fn bytes_of_int_array(Array[Int]) -> Array[Byte]
 
 pub fn bytes_of_list(Array[Int]) -> Array[Byte]
 
-pub fn bytes_of_raw(Array[Byte]) -> Array[Byte]
-
 pub fn bytes_of_string(String) -> Array[Byte]
 
 pub fn bytes_of_write_bitstream(BitstreamWrite) -> Array[Byte]
-
-pub fn bytes_selfmap((Int) -> Int, Array[Byte]) -> Unit
 
 pub fn bytes_size(Array[Byte]) -> Int
 
@@ -59,17 +55,11 @@ pub fn debug_next_n_chars(Int, Input) -> Unit
 
 pub fn extract_bytes_from_input_output(Output, Ref[Array[Byte]]) -> Array[Byte]
 
-pub fn fillbytes(Int, Array[Byte]) -> Unit
-
 pub fn getbit(Bitstream) -> Bool raise
 
 pub fn getbitint(Bitstream) -> Int raise
 
 pub fn getinit(Output, Array[Byte], Int, Int) -> Unit raise
-
-pub fn getval_31(Bitstream, Int) -> Int raise
-
-pub fn getval_32(Bitstream, Int) -> Int raise
 
 pub fn input_of_bytes(Array[Byte], source? : String) -> Input
 
@@ -99,13 +89,9 @@ pub fn peek_byte(Input) -> Int
 
 pub fn peek_char(Input) -> Char?
 
-pub fn print_bytes(Array[Byte]) -> Unit
-
 pub fn putbit(BitstreamWrite, Int) -> Unit
 
 pub fn putval(BitstreamWrite, Int, Int) -> Unit raise
-
-pub fn raw_of_bytes(Array[Byte]) -> Array[Byte]
 
 pub fn read_char_back(Input) -> Char?
 
@@ -117,8 +103,6 @@ pub fn rewind(Input) -> Unit
 
 pub fn setinit(Input, Array[Byte], Int, Int) -> Unit raise
 
-pub fn setinit_string(Input, Array[Byte], Int, Int) -> Unit raise
-
 pub fn string_of_bytes(Array[Byte]) -> String
 
 pub fn string_of_input(Input) -> String raise
@@ -126,8 +110,6 @@ pub fn string_of_input(Input) -> String raise
 pub fn string_of_int_array(Array[Int]) -> String
 
 pub fn string_of_int_arrays(Array[Array[Int]]) -> String
-
-pub fn write_bitstream_append_aligned(BitstreamWrite, BitstreamWrite) -> BitstreamWrite
 
 // Errors
 
@@ -174,11 +156,7 @@ pub struct Output {
 }
 
 // Type aliases
-pub type CoreBytes = Bytes
-
 pub type MutableBytes = Array[Byte]
-
-pub type RawBytes = Array[Byte]
 
 // Traits
 

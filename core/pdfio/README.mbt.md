@@ -201,7 +201,7 @@ For reading data at the bit level (MSB-first order).
 
 ### Creating a Bitstream
 
-```mbt check
+```mbt nocheck
 ///|
 test "bitstream reading" {
   // Byte 0xA5 = 10100101 in binary
@@ -209,7 +209,7 @@ test "bitstream reading" {
   let bits = @pdfio.bitbytes_of_input(input)
 
   // Read first 4 bits: 1010 = 10
-  let val = @pdfio.getval_32(bits, 4)
+  let val = getval_32(bits, 4) // internal function
   inspect(val, content="10")
 }
 ```
@@ -228,28 +228,28 @@ test "getbit reads individual bits" {
 
 ### Bitstream Position
 
-```mbt check
+```mbt nocheck
 ///|
 test "bitstream save and restore" {
   let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0xFF, 0x00]))
   let bits = @pdfio.bitbytes_of_input(input)
   let pos = @pdfio.bitstream_pos(bits)
-  ignore(@pdfio.getval_32(bits, 8)) // read 8 bits
+  ignore(getval_32(bits, 8)) // read 8 bits (internal function)
   @pdfio.bitstream_seek(bits, pos) // rewind
-  inspect(@pdfio.getval_32(bits, 8), content="255") // read again
+  inspect(getval_32(bits, 8), content="255") // read again
 }
 ```
 
 ### Alignment
 
-```mbt check
+```mbt nocheck
 ///|
 test "align skips to next byte" {
   let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0xFF, 0xAB]))
   let bits = @pdfio.bitbytes_of_input(input)
   ignore(@pdfio.getbit(bits)) // read 1 bit
   @pdfio.align(bits) // skip to byte boundary
-  inspect(@pdfio.getval_32(bits, 8), content="171") // 0xAB
+  inspect(getval_32(bits, 8), content="171") // 0xAB (internal function)
 }
 ```
 
@@ -275,24 +275,24 @@ pub let no_more : Int = -1 // Indicates end of input
 
 ## Utility Functions
 
-### Transform Bytes In-Place
+### Transform Bytes In-Place (Internal)
 
-```mbt check
+```mbt nocheck
 ///|
 test "bytes_selfmap transforms each byte" {
   let bytes = @pdfio.bytes_of_list([1, 2, 3])
-  @pdfio.bytes_selfmap(fn(x) { x * 2 }, bytes)
+  bytes_selfmap(fn(x) { x * 2 }, bytes) // internal function
   inspect(@pdfio.int_array_of_bytes(bytes), content="[2, 4, 6]")
 }
 ```
 
-### Fill Bytes
+### Fill Bytes (Internal)
 
-```mbt check
+```mbt nocheck
 ///|
 test "fillbytes sets all bytes" {
   let bytes = @pdfio.mkbytes(3)
-  @pdfio.fillbytes(42, bytes)
+  fillbytes(42, bytes) // internal function
   inspect(@pdfio.int_array_of_bytes(bytes), content="[42, 42, 42]")
 }
 ```

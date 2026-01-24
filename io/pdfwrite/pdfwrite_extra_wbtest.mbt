@@ -1,51 +1,7 @@
 ///|
-test "string_of_pdf_including_data includes stream bytes" {
-  let data = @pdfio.bytes_of_string("abc")
-  let dict : @pdf.PdfObject = Dictionary([
-    ("/Length", Integer(@pdfio.bytes_size(data))),
-  ])
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let rendered = @pdfwrite.string_of_pdf_including_data(stream)
-  assert_true(rendered.contains("stream"))
-  assert_true(rendered.contains("abc"))
-}
-
-///|
-test "string_of_pdf_including_data warns on toget streams" {
-  let prev_logger = @pdfe.logger.val
-  @pdfe.logger.val = _ => ()
-  defer {
-    @pdfe.logger.val = prev_logger
-  }
-  let data = @pdfio.bytes_of_string("a")
-  let input = @pdfio.input_of_bytes(data, source="toget-warn")
-  let deferred : @pdf.DeferredEncryption = {
-    crypt_type: @pdfcryptprimitives.Encryption::AESV2,
-    file_encryption_key: None,
-    obj: 1,
-    gen: 0,
-    key: [],
-    keylength: 128,
-    r: 5,
-  }
-  let toget = @pdf.toget(
-    input,
-    0,
-    4,
-    crypt=@pdf.ToGetCrypt::ToDecrypt(deferred),
-  )
-  let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(4))])
-  let stream : @pdf.PdfObject = Stream(
-    Ref::new((dict, @pdf.Stream::ToGet(toget))),
-  )
-  let rendered = @pdfwrite.string_of_pdf_including_data(stream)
-  assert_true(rendered.contains("stream"))
-}
-
-///|
 test "string_of_pdf escapes carriage return and form feed" {
   let obj : @pdf.PdfObject = String("a\r\f")
-  let rendered = @pdfwrite.string_of_pdf(obj)
+  let rendered = string_of_pdf(obj)
   assert_true(rendered.contains("\\r"))
   assert_true(rendered.contains("\\f"))
 }
@@ -53,26 +9,26 @@ test "string_of_pdf escapes carriage return and form feed" {
 ///|
 test "string_of_pdf escapes newline" {
   let obj : @pdf.PdfObject = String("a\nb")
-  let rendered = @pdfwrite.string_of_pdf(obj)
+  let rendered = string_of_pdf(obj)
   assert_true(rendered.contains("\\n"))
 }
 
 ///|
 test "string_of_pdf expands scientific notation" {
-  let rendered = @pdfwrite.string_of_pdf(Real(1.2e20))
+  let rendered = string_of_pdf(Real(1.2e20))
   assert_true(!rendered.contains("e") && !rendered.contains("E"))
 }
 
 ///|
 test "string_of_pdf expands negative exponent" {
-  let rendered = @pdfwrite.string_of_pdf(Real(1.2e-5))
+  let rendered = string_of_pdf(Real(1.2e-5))
   assert_true(!rendered.contains("e") && !rendered.contains("E"))
   assert_true(rendered.has_prefix("0."))
 }
 
 ///|
 test "string_of_pdf expands large positive exponent" {
-  let rendered = @pdfwrite.string_of_pdf(Real(1.2e100))
+  let rendered = string_of_pdf(Real(1.2e100))
   assert_eq(rendered.length(), 101)
   assert_true(rendered.has_prefix("12"))
   assert_true(rendered.has_suffix("0"))
@@ -80,7 +36,7 @@ test "string_of_pdf expands large positive exponent" {
 
 ///|
 test "string_of_pdf expands tiny exponent with leading zeros" {
-  let rendered = @pdfwrite.string_of_pdf(Real(1.2e-20))
+  let rendered = string_of_pdf(Real(1.2e-20))
   assert_eq(rendered.length(), 23)
   assert_true(rendered.has_prefix("0."))
   assert_true(rendered.has_suffix("12"))
@@ -88,7 +44,7 @@ test "string_of_pdf expands tiny exponent with leading zeros" {
 
 ///|
 test "string_of_pdf expands negative scientific values" {
-  let rendered = @pdfwrite.string_of_pdf(Real(-1.2e-20))
+  let rendered = string_of_pdf(Real(-1.2e-20))
   assert_eq(rendered.length(), 24)
   assert_true(rendered.has_prefix("-0."))
   assert_true(rendered.has_suffix("12"))
@@ -100,7 +56,7 @@ test "string_of_pdf encodes control and delimiter bytes" {
     0x2f, 0x14, 0x16, 0x1a, 0x28, 0x29, 0x3c, 0x25,
   ])
   let name = @pdfio.string_of_bytes(bytes)
-  let rendered = @pdfwrite.string_of_pdf(Name(name))
+  let rendered = string_of_pdf(Name(name))
   assert_true(rendered.contains("#14"))
   assert_true(rendered.contains("#16"))
   assert_true(rendered.contains("#1A"))
@@ -112,7 +68,7 @@ test "string_of_pdf encodes control and delimiter bytes" {
 
 ///|
 test "string_of_pdf encodes greater-than in names" {
-  let rendered = @pdfwrite.string_of_pdf(Name("/A>"))
+  let rendered = string_of_pdf(Name("/A>"))
   assert_true(rendered.contains("#3E"))
 }
 
@@ -120,37 +76,26 @@ test "string_of_pdf encodes greater-than in names" {
 test "string_of_pdf encodes delimiter bytes in names" {
   let cases = [("/[", "/#5B"), ("/]", "/#5D"), ("/{", "/#7B"), ("/}", "/#7D")]
   for pair in cases {
-    let rendered = @pdfwrite.string_of_pdf(Name(pair.0))
+    let rendered = string_of_pdf(Name(pair.0))
     assert_eq(rendered, pair.1)
   }
 }
 
 ///|
 test "string_of_pdf handles short names" {
-  let rendered = @pdfwrite.string_of_pdf(Name("/"))
+  let rendered = string_of_pdf(Name("/"))
   assert_eq(rendered, "/")
 }
 
 ///|
 test "make_hex_pdf_string encodes bytes" {
-  assert_eq(@pdfwrite.make_hex_pdf_string("Hi"), "<4869>")
+  assert_eq(make_hex_pdf_string("Hi"), "<4869>")
 }
 
 ///|
 test "make_hex_pdf_string covers hex digits" {
   let raw = @pdfio.string_of_int_array([0x7B, 0xBD, 0xD0])
-  assert_eq(@pdfwrite.make_hex_pdf_string(raw), "<7bbdd0>")
-}
-
-///|
-test "debug_whole_pdf runs" {
-  let pdf = @pdfpage.minimum_valid_pdf()
-  let prev_logger = @pdfe.logger.val
-  @pdfe.logger.val = _ => ()
-  defer {
-    @pdfe.logger.val = prev_logger
-  }
-  @pdfwrite.debug_whole_pdf(pdf)
+  assert_eq(make_hex_pdf_string(raw), "<7bbdd0>")
 }
 
 ///|
@@ -183,7 +128,7 @@ test "pdf_to_output generates object streams with indirect lengths" {
   let mut offset = 0
   for objnum in objs_in_stream {
     let obj = @pdf.lookup_obj(pdf, objnum)
-    let s = @pdfwrite.string_of_pdf(obj) + " "
+    let s = string_of_pdf(obj) + " "
     object_strings.push(s)
     offsets.push(offset)
     offset = offset + s.length()
@@ -208,7 +153,7 @@ test "pdf_to_output generates object streams with indirect lengths" {
   let should_compress = @pdfio.bytes_size(encoded) + 20 <
     @pdfio.bytes_size(objstm_data)
   let (output, buffer) = @pdfio.input_output_of_bytes(4096)
-  @pdfwrite.pdf_to_output(
+  pdf_to_output(
     generate_objstm=true,
     preserve_objstm=true,
     compress_objstm=true,
@@ -237,7 +182,7 @@ test "pdf_to_output skips indirect length objects for objstm hints" {
   pdf.objects.object_stream_ids.set(stream_num, stream_num)
   pdf.objects.object_stream_ids.set(length_obj, stream_num)
   let (output, buffer) = @pdfio.input_output_of_bytes(1024)
-  @pdfwrite.pdf_to_output(
+  pdf_to_output(
     generate_objstm=true,
     preserve_objstm=false,
     compress_objstm=false,
@@ -281,7 +226,7 @@ test "pdf_to_output drops invalid object stream ids and writes toget" {
   pdf.objects.object_stream_ids.set(9999, stream_num)
   pdf.objects.object_stream_ids.set(stream_num, stream_num)
   let (output, buffer) = @pdfio.input_output_of_bytes(4096)
-  @pdfwrite.pdf_to_output(
+  pdf_to_output(
     preserve_objstm=true,
     generate_objstm=false,
     compress_objstm=false,
@@ -300,7 +245,7 @@ test "pdf_to_output drops invalid object stream ids and writes toget" {
 async test "pdf_to_file writes output" {
   let pdf = @pdfpage.minimum_valid_pdf()
   let path = "pdfwrite_async_test.pdf"
-  @pdfwrite.pdf_to_file(pdf, path)
+  pdf_to_file(pdf, path)
   let file = @fs.open(path, mode=ReadOnly)
   let bytes = @pdfio.bytes_of_input_channel(file)
   assert_true(bytes.length() > 0)
@@ -312,7 +257,7 @@ async test "pdf_to_file writes output" {
 async test "pdf_to_file_options supports recrypt" {
   let pdf = @pdfpage.minimum_valid_pdf()
   let path = "pdfwrite_async_recrypt.pdf"
-  let res : Result[Unit, Error] = try? @pdfwrite.pdf_to_file_options(
+  let res : Result[Unit, Error] = try? pdf_to_file_options(
     preserve_objstm=false,
     generate_objstm=false,
     compress_objstm=false,

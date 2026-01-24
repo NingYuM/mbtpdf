@@ -1,12 +1,4 @@
 ///|
-/// Debug flag for crypt operations.
-pub let crypt_debug : Ref[Bool] = Ref::new(false)
-
-///|
-/// Hook for pdf object formatting (set by writer).
-pub let string_of_pdf : Ref[(@pdf.PdfObject) -> String] = Ref::new(_ => "")
-
-///|
 /// Padding bytes used by PDF encryption.
 let paddings : Array[Int] = [
   0x28, 0xbf, 0x4e, 0x5e, 0x4e, 0x75, 0x8a, 0x41, 0x64, 0x00, 0x4e, 0x56, 0xff, 0xfa,

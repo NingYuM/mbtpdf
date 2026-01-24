@@ -370,12 +370,12 @@ let entries = @pdf.contents_of_nametree(pdf, tree)
 
 ## Character Classification
 
-```mbt check
+```mbt nocheck
 ///|
 test "is_delimiter" {
-  inspect(@pdf.is_delimiter('('), content="true")
-  inspect(@pdf.is_delimiter('/'), content="true")
-  inspect(@pdf.is_delimiter('a'), content="false")
+  inspect(is_delimiter('('), content="true") // internal function
+  inspect(is_delimiter('/'), content="true")
+  inspect(is_delimiter('a'), content="false")
 }
 ```
 

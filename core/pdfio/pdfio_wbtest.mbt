@@ -1,12 +1,4 @@
 ///|
-test "raw bytes roundtrip" {
-  let bytes = bytes_of_string("abc")
-  let raw = raw_of_bytes(bytes)
-  let back = bytes_of_raw(raw)
-  assert_eq(string_of_bytes(back), "abc")
-}
-
-///|
 test "bytes and int array conversions" {
   let bytes = bytes_of_list([65, 66, 67])
   assert_eq(bytes_size(bytes), 3)

@@ -14,10 +14,6 @@ pub fn[T] memoize(() -> T raise) -> () -> T raise
 
 pub fn[K, V] null_hash() -> Map[K, V]
 
-pub let stderr_buffer : Ref[String]
-
-pub let stdout_buffer : Ref[String]
-
 // Errors
 
 // Types and methods

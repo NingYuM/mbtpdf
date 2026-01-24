@@ -2,8 +2,6 @@
 package "bobzhang/mbtpdf/core/pdfe"
 
 // Values
-pub fn default(String) -> Unit
-
 pub fn log(String) -> Unit
 
 pub let logger : Ref[(String) -> Unit]
@@ -15,7 +13,6 @@ pub let read_debug : Ref[Bool]
 // Types and methods
 
 // Type aliases
-pub type Logger = (String) -> Unit
 
 // Traits
 

@@ -149,7 +149,7 @@ let s = @pdfwrite.string_of_pdf_including_data(stream_obj)
 
 ### Hex String Encoding
 
-```mbt check
+```mbt nocheck
 ///|
 test "make_hex_pdf_string" {
   let hex = @pdfwrite.make_hex_pdf_string("Hi")

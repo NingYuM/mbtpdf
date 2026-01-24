@@ -1,14 +1,14 @@
 ///|
 /// Debug flag for PDF reading (re-exported from pdfe).
-pub let read_debug : Ref[Bool] = @pdfe.read_debug
+let read_debug : Ref[Bool] = @pdfe.read_debug
 
 ///|
 /// If true, do not attempt malformed PDF recovery.
-pub let error_on_malformed : Ref[Bool] = { val: false }
+let error_on_malformed : Ref[Bool] = { val: false }
 
 ///|
 /// If true, always treat PDFs as malformed.
-pub let debug_always_treat_malformed : Ref[Bool] = { val: false }
+let debug_always_treat_malformed : Ref[Bool] = { val: false }
 
 ///|
 /// Read a PDF from an input.
@@ -176,7 +176,7 @@ pub fn is_linearized(input : @pdfio.Input) -> Bool {
 
 ///|
 /// Read a PDF header.
-pub fn read_header(input : @pdfio.Input) -> (Int, Int) raise {
+fn read_header(input : @pdfio.Input) -> (Int, Int) raise {
   fn get8chars(input : @pdfio.Input) -> Array[Char] {
     let out = Array::new(capacity=8)
     let mut ok = true

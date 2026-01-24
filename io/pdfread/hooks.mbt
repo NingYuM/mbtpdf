@@ -1,6 +1,6 @@
 ///|
 /// Hook for page-tree traversal (re-exported from pdf).
-pub let endpage : Ref[(@pdf.Pdf) -> Int] = @pdf.endpage
+let endpage : Ref[(@pdf.Pdf) -> Int] = @pdf.endpage
 
 ///|
 /// Register pdf_of_file hook for decoder modules.

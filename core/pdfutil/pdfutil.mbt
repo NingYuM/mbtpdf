@@ -1,11 +1,10 @@
 ///|
-/// Small utility helpers used across the port.
-/// More functions will be added as modules are ported.
-pub let stdout_buffer : Ref[String] = Ref::new("")
+/// Buffered stdout text (rendered via println in async-only environments).
+let stdout_buffer : Ref[String] = Ref::new("")
 
 ///|
 /// Buffered stderr text (rendered via println in async-only environments).
-pub let stderr_buffer : Ref[String] = Ref::new("")
+let stderr_buffer : Ref[String] = Ref::new("")
 
 ///|
 /// Flush complete lines from a buffer using println, keeping partial tails.

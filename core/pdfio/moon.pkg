@@ -9,3 +9,9 @@ import "test" {
   "moonbitlang/async/fs",
   "moonbitlang/async/io",
 }
+
+import "wbtest" {
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+  "moonbitlang/async/io",
+}
