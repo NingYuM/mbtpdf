@@ -25,10 +25,6 @@ pub fn read(@pdf.Pdf) -> Array[PageLabel] raise
 
 pub fn remove(@pdf.Pdf) -> Unit raise
 
-pub fn string_of_labelstyle(LabelStyle) -> String
-
-pub fn string_of_pagelabel(PageLabel) -> String
-
 pub fn write(@pdf.Pdf, Array[PageLabel]) -> Unit raise
 
 // Errors
@@ -42,6 +38,7 @@ pub(all) enum LabelStyle {
   LowercaseLetters
   NoLabelPrefixOnly
 }
+pub fn LabelStyle::to_string(Self) -> String
 pub impl @debug.Debug for LabelStyle
 
 pub(all) struct PageLabel {
@@ -50,6 +47,7 @@ pub(all) struct PageLabel {
   startpage : Int
   startvalue : Int
 }
+pub fn PageLabel::to_string(Self) -> String
 pub impl @debug.Debug for PageLabel
 
 // Type aliases

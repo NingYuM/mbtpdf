@@ -134,6 +134,6 @@ pub fn merge_pagelabels(
 ) -> Array[PageLabel] raise
 ```
 
-### string_of_labelstyle / string_of_pagelabel
+### LabelStyle::to_string / PageLabel::to_string
 
 Debug string representations.

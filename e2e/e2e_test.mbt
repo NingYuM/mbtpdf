@@ -77,9 +77,7 @@ fn assert_merged_label_prefixes(
       _ => ()
     }
   }
-  let rendered = labels
-    .map(label => @pdfpagelabels.string_of_pagelabel(label))
-    .join(", ")
+  let rendered = labels.map(label => label.to_string()).join(", ")
   if !found_left {
     fail("missing L- label: " + rendered)
   }

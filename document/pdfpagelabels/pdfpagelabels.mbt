@@ -28,8 +28,8 @@ pub let basic_label : PageLabel = {
 
 ///|
 /// String of label style, e.g. DecimalArabic.
-pub fn string_of_labelstyle(style : LabelStyle) -> String {
-  match style {
+pub fn LabelStyle::to_string(self : LabelStyle) -> String {
+  match self {
     LabelStyle::DecimalArabic => "DecimalArabic"
     LabelStyle::UppercaseRoman => "UppercaseRoman"
     LabelStyle::LowercaseRoman => "LowercaseRoman"
@@ -41,15 +41,15 @@ pub fn string_of_labelstyle(style : LabelStyle) -> String {
 
 ///|
 /// Debug string of a page label.
-pub fn string_of_pagelabel(label : PageLabel) -> String {
-  let prefix = match label.labelprefix {
+pub fn PageLabel::to_string(self : PageLabel) -> String {
+  let prefix = match self.labelprefix {
     None => "None"
     Some(s) => s
   }
-  "labelstyle: \{string_of_labelstyle(label.labelstyle)}\n" +
+  "labelstyle: \{self.labelstyle.to_string()}\n" +
   "labelprefix: \{prefix}\n" +
-  "startpage: \{label.startpage}\n" +
-  "startvalue: \{label.startvalue}"
+  "startpage: \{self.startpage}\n" +
+  "startvalue: \{self.startvalue}"
 }
 
 ///|

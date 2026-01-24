@@ -91,17 +91,14 @@ test "complete labels" {
 
 ///|
 test "string_of_labelstyle and pagelabel string" {
-  assert_eq(
-    string_of_labelstyle(LabelStyle::UppercaseLetters),
-    "UppercaseLetters",
-  )
+  assert_eq(LabelStyle::UppercaseLetters.to_string(), "UppercaseLetters")
   let label = PageLabel::{
     labelstyle: LabelStyle::LowercaseRoman,
     labelprefix: Some("P"),
     startpage: 2,
     startvalue: 5,
   }
-  let text = string_of_pagelabel(label)
+  let text = label.to_string()
   assert_true(text.contains("LowercaseRoman"))
   assert_true(text.contains("labelprefix: P"))
 }
@@ -226,21 +223,12 @@ test "write/read pagelabels roundtrip" {
 
 ///|
 test "string_of_labelstyle covers all styles" {
-  assert_eq(string_of_labelstyle(LabelStyle::DecimalArabic), "DecimalArabic")
-  assert_eq(string_of_labelstyle(LabelStyle::UppercaseRoman), "UppercaseRoman")
-  assert_eq(string_of_labelstyle(LabelStyle::LowercaseRoman), "LowercaseRoman")
-  assert_eq(
-    string_of_labelstyle(LabelStyle::UppercaseLetters),
-    "UppercaseLetters",
-  )
-  assert_eq(
-    string_of_labelstyle(LabelStyle::LowercaseLetters),
-    "LowercaseLetters",
-  )
-  assert_eq(
-    string_of_labelstyle(LabelStyle::NoLabelPrefixOnly),
-    "NoLabelPrefixOnly",
-  )
+  assert_eq(LabelStyle::DecimalArabic.to_string(), "DecimalArabic")
+  assert_eq(LabelStyle::UppercaseRoman.to_string(), "UppercaseRoman")
+  assert_eq(LabelStyle::LowercaseRoman.to_string(), "LowercaseRoman")
+  assert_eq(LabelStyle::UppercaseLetters.to_string(), "UppercaseLetters")
+  assert_eq(LabelStyle::LowercaseLetters.to_string(), "LowercaseLetters")
+  assert_eq(LabelStyle::NoLabelPrefixOnly.to_string(), "NoLabelPrefixOnly")
 }
 
 ///|
