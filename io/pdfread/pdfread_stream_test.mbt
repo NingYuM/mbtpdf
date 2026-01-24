@@ -13,7 +13,7 @@ test "lex_stream_data returns ToGet for unread stream" {
   let input = @pdfio.input_of_string("stream\nXYZendstream")
   match @pdfsyntax.lex_stream_data(input, 3, false) {
     @pdfgenlex.Token::LexStream(@pdf.Stream::ToGet(toget)) =>
-      assert_eq(@pdf.length_of_toget(toget), 3)
+      assert_eq(@pdf.ToGet::length(toget), 3)
     _ => fail("expected ToGet stream")
   }
 }

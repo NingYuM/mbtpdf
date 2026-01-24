@@ -127,7 +127,7 @@ test "decrypt_single_stream handles AES256 streams" {
     _ => fail("expected stream")
   }
   let input = @pdfio.input_of_string("data", source="stream")
-  let toget = @pdf.toget(input, 0, 4)
+  let toget = @pdf.ToGet::new(input, 0, 4)
   let toget_stream : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::ToGet(toget))),
   )

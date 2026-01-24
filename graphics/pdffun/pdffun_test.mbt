@@ -1062,7 +1062,7 @@ test "parse_function hits error branches" {
     ("/BitsPerSample", Name("/Bad")),
   ])
   assert_is_err(try? PdfFunction::parse(pdf, bad_bps))
-  let to_get = @pdf.toget(@pdfio.input_of_string("x"), 0, 1)
+  let to_get = @pdf.ToGet::new(@pdfio.input_of_string("x"), 0, 1)
   let sample_dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(0)),
     ("/Domain", Array([])),

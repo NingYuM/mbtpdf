@@ -144,7 +144,7 @@ test "encrypt AES V2 without metadata and AES256 with long passwords" {
   )
   @pdf.addobj_given_num(pdf, (11, got_stream))
   let input = @pdfio.input_of_string("data", source="stream")
-  let toget = @pdf.toget(input, 0, 4)
+  let toget = @pdf.ToGet::new(input, 0, 4)
   let toget_stream : @pdf.PdfObject = Stream(
     Ref::new((stream_dict, @pdf.Stream::ToGet(toget))),
   )

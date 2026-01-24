@@ -4,8 +4,8 @@ test "toget and predicates" {
   assert_true(is_whitespace('\n'))
   assert_true(!is_whitespace('A'))
   let input = @pdfio.input_of_string("abc", source="test")
-  let t = toget(input, 1, 2)
-  assert_eq(length_of_toget(t), 2)
+  let t = ToGet::new(input, 1, 2)
+  assert_eq(ToGet::length(t), 2)
 }
 
 ///|

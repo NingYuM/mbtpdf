@@ -3,7 +3,7 @@ test "streams and transforms" {
   let pdf = empty()
   addobj_given_num(pdf, (1, PdfObject::Integer(7)))
   let input = @pdfio.input_of_string("abcd", source="stream")
-  let t = toget(input, 0, 4)
+  let t = ToGet::new(input, 0, 4)
   let dict = PdfObject::Dictionary([("/Length", PdfObject::Integer(0))])
   let stream_ref = Ref::new((dict, Stream::ToGet(t)))
   let stream_obj = PdfObject::Stream(stream_ref)
@@ -180,14 +180,14 @@ test "getstream error cases" {
     keylength: 40,
     r: 5,
   })
-  let toget_crypt = toget(input, 0, 3, crypt~)
+  let toget_crypt = ToGet::new(input, 0, 3, crypt~)
   let crypt_ref = Ref::new(
     (PdfObject::Dictionary([]), Stream::ToGet(toget_crypt)),
   )
   let crypt_stream = PdfObject::Stream(crypt_ref)
   assert_is_err(try? getstream(crypt_stream))
   let plain = @pdfio.input_of_string("abc", source="plain")
-  let toget_plain = toget(plain, 0, 3)
+  let toget_plain = ToGet::new(plain, 0, 3)
   let plain_ref = Ref::new((PdfObject::Integer(9), Stream::ToGet(toget_plain)))
   let plain_stream = PdfObject::Stream(plain_ref)
   getstream(plain_stream)

@@ -212,7 +212,7 @@ test "pdf_to_output drops invalid object stream ids and writes toget" {
     keylength: 128,
     r: 5,
   }
-  let toget = @pdf.toget(
+  let toget = @pdf.ToGet::new(
     input,
     0,
     4,

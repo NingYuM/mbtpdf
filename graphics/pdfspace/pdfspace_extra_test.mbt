@@ -200,7 +200,7 @@ test "read_colourspace Indexed errors on invalid inputs" {
     Array(bad_lookup_arr),
   )
   assert_true(bad_lookup is Err(_))
-  let toget = @pdf.toget(@pdfio.input_of_string("abc"), 0, 3)
+  let toget = @pdf.ToGet::new(@pdfio.input_of_string("abc"), 0, 3)
   let stream_dict : @pdf.PdfObject = Dictionary([])
   let bad_stream : @pdf.PdfObject = Stream(
     Ref::new((stream_dict, @pdf.Stream::ToGet(toget))),
@@ -405,7 +405,7 @@ test "write_colourspace ICCBased preserves length and skips bad range" {
 ///|
 test "write_colourspace ICCBased handles non-dict stream data" {
   let pdf = @pdf.empty()
-  let toget = @pdf.toget(@pdfio.input_of_string("data"), 0, 4)
+  let toget = @pdf.ToGet::new(@pdfio.input_of_string("data"), 0, 4)
   let stream_dict : @pdf.PdfObject = Name("/Bad")
   let stream_obj : @pdf.PdfObject = Stream(
     Ref::new((stream_dict, @pdf.Stream::ToGet(toget))),

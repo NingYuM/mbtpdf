@@ -60,7 +60,7 @@ pub(all) struct ToGet {
 }
 
 ///|
-pub fn toget(
+pub fn ToGet::new(
   input : @pdfio.Input,
   position : Int,
   length : Int,
@@ -70,8 +70,8 @@ pub fn toget(
 }
 
 ///|
-pub fn length_of_toget(t : ToGet) -> Int {
-  t.length
+pub fn ToGet::length(self : ToGet) -> Int {
+  self.length
 }
 
 ///|

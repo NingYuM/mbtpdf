@@ -46,8 +46,6 @@ pub fn input_pdferror(@pdfio.Input, String) -> String
 
 pub fn is_whitespace(Char) -> Bool
 
-pub fn length_of_toget(ToGet) -> Int
-
 pub fn lookup_chain(Pdf, PdfObject, ArrayView[String]) -> PdfObject?
 
 pub fn lookup_direct(Pdf, String, PdfObject) -> PdfObject?
@@ -115,8 +113,6 @@ pub let string_of_pdf : Ref[(PdfObject) -> String]
 pub fn string_of_pdfobj(PdfObject) -> String
 
 pub fn string_of_pdfobj_including_data(PdfObject) -> String
-
-pub fn toget(@pdfio.Input, Int, Int, crypt? : ToGetCrypt) -> ToGet
 
 pub fn transform_quadpoints(Pdf, @pdftransform.TransformMatrix, PdfObject) -> PdfObject raise
 
@@ -192,6 +188,8 @@ pub(all) struct ToGet {
   length : Int
   crypt : ToGetCrypt
 }
+pub fn ToGet::length(Self) -> Int
+pub fn ToGet::new(@pdfio.Input, Int, Int, crypt? : ToGetCrypt) -> Self
 
 pub(all) enum ToGetCrypt {
   NoChange

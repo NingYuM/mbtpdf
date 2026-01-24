@@ -13,7 +13,7 @@ test "deep_copy copies streams and object data" {
     Ref::new(
       (
         PdfObject::Dictionary([("/Length", PdfObject::Integer(3))]),
-        Stream::ToGet(toget(input, 0, 3)),
+        Stream::ToGet(ToGet::new(input, 0, 3)),
       ),
     ),
   )
