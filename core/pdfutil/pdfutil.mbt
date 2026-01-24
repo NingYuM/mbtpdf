@@ -94,5 +94,9 @@ pub fn[K, V] PdfUtil::list_of_hashtbl(
   _self : PdfUtil,
   table : Map[K, V],
 ) -> Array[(K, V)] {
-  table.to_array()
+  let out = Array::new(capacity=table.length())
+  for entry in table {
+    out.push(entry)
+  }
+  out
 }
