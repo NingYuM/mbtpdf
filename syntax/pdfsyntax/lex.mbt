@@ -22,7 +22,7 @@ let lex_syntax : PdfSyntax = PdfSyntax::new()
 pub fn PdfSyntax::lex_name(
   _self : PdfSyntax,
   input : @pdfio.Input,
-) -> @pdfgenlex.Token raise {
+) -> Token raise {
   let bytes : @pdfio.MutableBytes = Array::new()
   let _ = (input.input_byte)()
   bytes.push('/'.to_int().to_byte())
@@ -81,7 +81,7 @@ pub fn PdfSyntax::lex_name(
 pub fn PdfSyntax::lex_number(
   _self : PdfSyntax,
   input : @pdfio.Input,
-) -> @pdfgenlex.Token raise {
+) -> Token raise {
   let s = lex_syntax.getuntil_white_or_delimiter_string(input)
   let mut number = s
   if number.length() > 1 {
@@ -124,7 +124,7 @@ pub fn PdfSyntax::lex_number(
 pub fn PdfSyntax::lex_string(
   _self : PdfSyntax,
   input : @pdfio.Input,
-) -> @pdfgenlex.Token raise {
+) -> Token raise {
   let bytes : @pdfio.MutableBytes = Array::new()
   let mut paren = 1
   let first = (input.input_byte)()
@@ -209,7 +209,7 @@ pub fn PdfSyntax::lex_string(
 pub fn PdfSyntax::lex_hexstring(
   _self : PdfSyntax,
   input : @pdfio.Input,
-) -> @pdfgenlex.Token raise {
+) -> Token raise {
   let _ = (input.input_byte)()
   let bytes : @pdfio.MutableBytes = Array::new()
   let mut pending : Int? = None
@@ -255,7 +255,7 @@ pub fn PdfSyntax::lex_hexstring(
 pub fn PdfSyntax::lex_comment(
   _self : PdfSyntax,
   input : @pdfio.Input,
-) -> @pdfgenlex.Token raise {
+) -> Token raise {
   lex_syntax.ignoreuntil(false, is_newline, input)
   LexComment("")
 }
@@ -365,7 +365,7 @@ fn find_endstream(input : @pdfio.Input) -> Int raise {
 pub fn PdfSyntax::lex_keyword(
   _self : PdfSyntax,
   input : @pdfio.Input,
-) -> @pdfgenlex.Token raise {
+) -> Token raise {
   let kw = lex_syntax.getuntil_white_or_delimiter_string(input)
   match kw {
     "obj" => LexObj
@@ -391,7 +391,7 @@ pub fn PdfSyntax::lex_keyword(
 }
 
 ///|
-fn lex_malformed_stream_data(input : @pdfio.Input) -> @pdfgenlex.Token raise {
+fn lex_malformed_stream_data(input : @pdfio.Input) -> Token raise {
   skip_stream_beginning(input)
   let curr = (input.pos_in)()
   let pos = find_endstream(input)
@@ -411,7 +411,7 @@ pub fn PdfSyntax::lex_stream_data(
   input : @pdfio.Input,
   length : Int,
   read_data : Bool,
-) -> @pdfgenlex.Token raise {
+) -> Token raise {
   let original_pos = (input.pos_in)()
   skip_stream_beginning(input)
   let pos = (input.pos_in)()
@@ -446,43 +446,45 @@ pub fn PdfSyntax::lex_stream_data(
 }
 
 ///|
-fn reverse_tokens(tokens : Array[@pdfgenlex.Token]) -> Array[@pdfgenlex.Token] {
+fn reverse_tokens(tokens : Array[Token]) -> Array[Token] {
   let out = Array::new(capacity=tokens.length())
-  if tokens.length() == 0 {
-    return out
-  }
-  let mut i = tokens.length() - 1
-  while true {
-    out.push(tokens[i])
-    if i == 0 {
-      break
+  match tokens {
+    [] => out
+    _ => {
+      let mut i = tokens.length() - 1
+      while true {
+        out.push(tokens[i])
+        if i == 0 {
+          break
+        }
+        i = i - 1
+      }
+      out
     }
-    i = i - 1
   }
-  out
 }
 
 ///|
-fn take_dict_lexemes(
-  previous_lexemes : Array[@pdfgenlex.Token],
-) -> Array[@pdfgenlex.Token] {
+fn take_dict_lexemes(previous_lexemes : Array[Token]) -> Array[Token] {
   let collected = Array::new()
-  if previous_lexemes.length() == 0 {
-    return collected
-  }
-  let mut i = previous_lexemes.length() - 1
-  while true {
-    let t = previous_lexemes[i]
-    if t is LexObj {
-      break
+  match previous_lexemes {
+    [] => collected
+    _ => {
+      let mut i = previous_lexemes.length() - 1
+      while true {
+        let t = previous_lexemes[i]
+        if t is LexObj {
+          break
+        }
+        collected.push(t)
+        if i == 0 {
+          break
+        }
+        i = i - 1
+      }
+      reverse_tokens(collected)
     }
-    collected.push(t)
-    if i == 0 {
-      break
-    }
-    i = i - 1
   }
-  reverse_tokens(collected)
 }
 
 ///|
@@ -490,21 +492,21 @@ fn take_dict_lexemes(
 pub fn PdfSyntax::lex_stream(
   _self : PdfSyntax,
   input : @pdfio.Input,
-  previous_lexemes : Array[@pdfgenlex.Token],
-  lexobj : (Int) -> Array[@pdfgenlex.Token] raise,
+  previous_lexemes : Array[Token],
+  lexobj : (Int) -> Array[Token] raise,
   read_stream_data : Bool,
-) -> @pdfgenlex.Token raise {
-  fn fail_stream() -> @pdfgenlex.Token raise {
+) -> Token raise {
+  fn fail_stream() -> Token raise {
     let message = @pdf.input_pdferror(input, "Failure lexing stream dict")
     raise @pdf.PdfError::Msg(message)
   }
 
   let dictlexemes = take_dict_lexemes(previous_lexemes)
   let (_, parsed) = lex_syntax.parse(dictlexemes)
-  match (parsed : @pdf.PdfObject) {
+  match (parsed : PdfObject) {
     Dictionary(_) => {
       let pos = (input.pos_in)()
-      fn findlength(value : @pdf.PdfObject) -> Int? raise {
+      fn findlength(value : PdfObject) -> Int? raise {
         match value {
           Integer(l) => Some(l)
           Indirect(k) => {
@@ -539,10 +541,10 @@ pub fn PdfSyntax::lex_next(
   array_level : Ref[Int],
   end_on_stream : Bool,
   input : @pdfio.Input,
-  previous_lexemes : Array[@pdfgenlex.Token],
+  previous_lexemes : Array[Token],
   read_stream_data : Bool,
-  lexobj : (Int) -> Array[@pdfgenlex.Token] raise,
-) -> @pdfgenlex.Token {
+  lexobj : (Int) -> Array[Token] raise,
+) -> Token {
   try {
     lex_syntax.dropwhite(input)
     let raw = (input.input_byte)()
@@ -637,7 +639,7 @@ pub fn PdfSyntax::lex_dictionary(
   _self : PdfSyntax,
   minus_one : Bool,
   input : @pdfio.Input,
-) -> Array[@pdfgenlex.Token] raise {
+) -> Array[Token] raise {
   let tokens = Array::new()
   let dict_level : Ref[Int] = { val: 0 }
   let array_level : Ref[Int] = { val: 0 }
@@ -653,7 +655,7 @@ pub fn PdfSyntax::lex_dictionary(
       _ => [],
     )
     tokens.push(t)
-    match (t : @pdfgenlex.Token) {
+    match (t : Token) {
       LexRightDict =>
         if dict_level.val == (if minus_one { -1 } else { 0 }) &&
           array_level.val == 0 {

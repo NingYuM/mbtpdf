@@ -1,8 +1,5 @@
 ///|
-fn lex_from_string(
-  oneonly : Bool,
-  source : String,
-) -> Array[@pdfgenlex.Token] raise {
+fn lex_from_string(oneonly : Bool, source : String) -> Array[Token] raise {
   let input = @pdfio.Input::of_string(source)
   @pdfsyntax.PdfSyntax::new().lex_object_at(oneonly, input, true, _ => [])
 }
@@ -11,7 +8,7 @@ fn lex_from_string(
 test "lex_object_at stops at atom when oneonly" {
   let tokens = lex_from_string(true, "123 456")
   match tokens {
-    [@pdfgenlex.Token::LexInt(123)] => ()
+    [LexInt(123)] => ()
     _ => fail("expected single integer lexeme")
   }
 }

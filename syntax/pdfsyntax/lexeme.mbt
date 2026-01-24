@@ -9,8 +9,8 @@ pub fn PdfSyntax::lex_object_at(
   oneonly : Bool,
   input : @pdfio.Input,
   read_stream_data : Bool,
-  lexobj : (Int) -> Array[@pdfgenlex.Token] raise,
-) -> Array[@pdfgenlex.Token] raise {
+  lexobj : (Int) -> Array[Token] raise,
+) -> Array[Token] raise {
   let dict_level : Ref[Int] = { val: 0 }
   let array_level : Ref[Int] = { val: 0 }
   let tokens = Array::new()
@@ -19,7 +19,7 @@ pub fn PdfSyntax::lex_object_at(
     let t = lexeme_syntax.lex_next(
       dict_level, array_level, false, input, tokens, read_stream_data, lexobj,
     )
-    match (t : @pdfgenlex.Token) {
+    match (t : Token) {
       LexEndObj => {
         tokens.push(t)
         done = true
@@ -63,7 +63,7 @@ pub fn PdfSyntax::lex_object_at(
 pub fn PdfSyntax::parse_single_object(
   _self : PdfSyntax,
   s : String,
-) -> @pdf.PdfObject raise {
+) -> PdfObject raise {
   let input = @pdfio.Input::of_string(s)
   let (_, obj) = lexeme_syntax.parse(
     lexeme_syntax.lex_object_at(true, input, true, _ => []),
@@ -191,42 +191,43 @@ fn expand_scientific(value : String) -> String {
           digits.push(ch)
         }
       }
-      if digits.length() == 0 {
-        sign + "0"
-      } else {
-        let new_pos = int_len + exp
-        let sb = StringBuilder::new()
-        sb.write_string(sign)
-        if new_pos <= 0 {
-          sb.write_string("0.")
-          let mut z = 0
-          while z < -new_pos {
-            sb.write_char('0')
-            z = z + 1
-          }
-          for ch in digits {
-            sb.write_char(ch)
-          }
-        } else if new_pos >= digits.length() {
-          for ch in digits {
-            sb.write_char(ch)
-          }
-          let mut z = 0
-          while z < new_pos - digits.length() {
-            sb.write_char('0')
-            z = z + 1
-          }
-        } else {
-          let mut i = 0
-          while i < digits.length() {
-            if i == new_pos {
-              sb.write_char('.')
+      match digits {
+        [] => sign + "0"
+        _ => {
+          let new_pos = int_len + exp
+          let sb = StringBuilder::new()
+          sb.write_string(sign)
+          if new_pos <= 0 {
+            sb.write_string("0.")
+            let mut z = 0
+            while z < -new_pos {
+              sb.write_char('0')
+              z = z + 1
             }
-            sb.write_char(digits[i])
-            i = i + 1
+            for ch in digits {
+              sb.write_char(ch)
+            }
+          } else if new_pos >= digits.length() {
+            for ch in digits {
+              sb.write_char(ch)
+            }
+            let mut z = 0
+            while z < new_pos - digits.length() {
+              sb.write_char('0')
+              z = z + 1
+            }
+          } else {
+            let mut i = 0
+            while i < digits.length() {
+              if i == new_pos {
+                sb.write_char('.')
+              }
+              sb.write_char(digits[i])
+              i = i + 1
+            }
           }
+          trim_trailing_zeros(sb.to_string())
         }
-        trim_trailing_zeros(sb.to_string())
       }
     }
   }
@@ -270,10 +271,7 @@ fn make_pdf_string(value : String) -> String {
 ///|
 /// String of a lexeme.
 #as_free_fn(string_of_lexeme, deprecated="Use `PdfSyntax::string_of_lexeme`")
-pub fn PdfSyntax::string_of_lexeme(
-  _self : PdfSyntax,
-  t : @pdfgenlex.Token,
-) -> String {
+pub fn PdfSyntax::string_of_lexeme(_self : PdfSyntax, t : Token) -> String {
   match t {
     LexNull => "null"
     LexBool(b) => if b { "true" } else { "false" }
