@@ -55,94 +55,52 @@ pub fn Paper::landscape(self : Paper) -> Paper {
 }
 
 ///|
+fn mm_paper(width : Double, height : Double) -> Paper {
+  { unit: @pdfunits.LengthUnit::Millimetre, width, height }
+}
+
+///|
+fn inch_paper(width : Double, height : Double) -> Paper {
+  { unit: @pdfunits.LengthUnit::Inch, width, height }
+}
+
+///|
 /// ISO A series paper sizes (portrait).
-pub let a0 : Paper = {
-  unit: @pdfunits.LengthUnit::Millimetre,
-  width: 841.0,
-  height: 1189.0,
-}
+pub let a0 : Paper = mm_paper(841.0, 1189.0)
 
 ///|
-pub let a1 : Paper = {
-  unit: @pdfunits.LengthUnit::Millimetre,
-  width: 594.0,
-  height: 841.0,
-}
+pub let a1 : Paper = mm_paper(594.0, 841.0)
 
 ///|
-pub let a2 : Paper = {
-  unit: @pdfunits.LengthUnit::Millimetre,
-  width: 420.0,
-  height: 594.0,
-}
+pub let a2 : Paper = mm_paper(420.0, 594.0)
 
 ///|
-pub let a3 : Paper = {
-  unit: @pdfunits.LengthUnit::Millimetre,
-  width: 297.0,
-  height: 420.0,
-}
+pub let a3 : Paper = mm_paper(297.0, 420.0)
 
 ///|
-pub let a4 : Paper = {
-  unit: @pdfunits.LengthUnit::Millimetre,
-  width: 210.0,
-  height: 297.0,
-}
+pub let a4 : Paper = mm_paper(210.0, 297.0)
 
 ///|
-pub let a5 : Paper = {
-  unit: @pdfunits.LengthUnit::Millimetre,
-  width: 148.0,
-  height: 210.0,
-}
+pub let a5 : Paper = mm_paper(148.0, 210.0)
 
 ///|
-pub let a6 : Paper = {
-  unit: @pdfunits.LengthUnit::Millimetre,
-  width: 105.0,
-  height: 148.0,
-}
+pub let a6 : Paper = mm_paper(105.0, 148.0)
 
 ///|
-pub let a7 : Paper = {
-  unit: @pdfunits.LengthUnit::Millimetre,
-  width: 74.0,
-  height: 105.0,
-}
+pub let a7 : Paper = mm_paper(74.0, 105.0)
 
 ///|
-pub let a8 : Paper = {
-  unit: @pdfunits.LengthUnit::Millimetre,
-  width: 52.0,
-  height: 74.0,
-}
+pub let a8 : Paper = mm_paper(52.0, 74.0)
 
 ///|
-pub let a9 : Paper = {
-  unit: @pdfunits.LengthUnit::Millimetre,
-  width: 37.0,
-  height: 52.0,
-}
+pub let a9 : Paper = mm_paper(37.0, 52.0)
 
 ///|
-pub let a10 : Paper = {
-  unit: @pdfunits.LengthUnit::Millimetre,
-  width: 26.0,
-  height: 37.0,
-}
+pub let a10 : Paper = mm_paper(26.0, 37.0)
 
 ///|
 /// United States paper sizes (portrait).
-pub let usletter : Paper = {
-  unit: @pdfunits.LengthUnit::Inch,
-  width: 8.5,
-  height: 11.0,
-}
+pub let usletter : Paper = inch_paper(8.5, 11.0)
 
 ///|
-pub let uslegal : Paper = {
-  unit: @pdfunits.LengthUnit::Inch,
-  width: 8.5,
-  height: 14.0,
-}
+pub let uslegal : Paper = inch_paper(8.5, 14.0)
