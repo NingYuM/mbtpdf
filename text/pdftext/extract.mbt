@@ -15,9 +15,6 @@ pub fn extract_text_by_page(pdf : @pdf.Pdf) -> Array[String] raise {
   pages.map(page => extract_text_from_page(pdf, page))
 }
 
-
-
-
 ///|
 fn extract_text_from_page(pdf : @pdf.Pdf, page : @pdfpage.Page) -> String raise {
   let builder = StringBuilder::new()
@@ -78,14 +75,15 @@ fn append_text_from_streams(
   }
 
   fn append_text_array(obj : @pdf.PdfObject) -> Unit {
-    if obj is Array(values) {
-      for value in values {
-        if value is String(text) {
-          append_text_value(text)
+    match obj {
+      Array(values) =>
+        for value in values {
+          if value is String(text) {
+            append_text_value(text)
+          }
         }
-      }
-    } else if obj is String(text) {
-      append_text_value(text)
+      String(text) => append_text_value(text)
+      _ => ()
     }
   }
 
@@ -110,20 +108,32 @@ fn append_text_from_streams(
   }
 
   fn append_text_from_xobject(name : String) -> Unit raise {
-    if @pdf.lookup_direct(pdf, "/XObject", resources)
-      is Some(Dictionary(entries)) &&
-      entries.search_by(pair => pair.0 == name) is Some(idx) {
-      let obj_ref = entries[idx].1
-      let obj_num : Int? = if obj_ref is Indirect(i) { Some(i) } else { None }
-      if mark_visited(obj_num) {
-        let xobj = @pdf.direct(pdf, obj_ref)
-        if @pdf.lookup_direct(pdf, "/Subtype", xobj) is Some(Name("/Form")) {
-          let xresources = @pdf.lookup_direct(pdf, "/Resources", xobj).unwrap_or(
-            resources,
-          )
-          append_text_from_streams(builder, pdf, xresources, [xobj], visited)
+    match @pdf.lookup_direct(pdf, "/XObject", resources) {
+      Some(Dictionary(entries)) =>
+        if entries.search_by(pair => pair.0 == name) is Some(idx) {
+          let obj_ref = entries[idx].1
+          let obj_num : Int? = if obj_ref is Indirect(i) {
+            Some(i)
+          } else {
+            None
+          }
+          if mark_visited(obj_num) {
+            let xobj = @pdf.direct(pdf, obj_ref)
+            if @pdf.lookup_direct(pdf, "/Subtype", xobj) is Some(Name("/Form")) {
+              let xresources = @pdf.lookup_direct(pdf, "/Resources", xobj).unwrap_or(
+                resources,
+              )
+              append_text_from_streams(
+                builder,
+                pdf,
+                xresources,
+                [xobj],
+                visited,
+              )
+            }
+          }
         }
-      }
+      _ => ()
     }
   }
 
@@ -170,7 +180,7 @@ fn lookup_text_extractor(
     return Some(extractor)
   }
   if @pdf.lookup_direct(pdf, "/Font", resources) is Some(fonts) &&
-     @pdf.lookup_direct(pdf, font_name, fonts) is Some(obj) {
+    @pdf.lookup_direct(pdf, font_name, fonts) is Some(obj) {
     try {
       let extractor = text_extractor_of_font(pdf, obj)
       cache.set(font_name, extractor)
