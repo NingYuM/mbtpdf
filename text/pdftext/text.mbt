@@ -2,6 +2,12 @@
 /// Text extraction and encoding conversions.
 
 ///|
+type Encoding = @pdffont.Encoding
+
+///|
+type CMapEncoding = @pdffont.CMapEncoding
+
+///|
 pub struct PdfTextUtil {
   unit : Unit
 }
@@ -155,7 +161,7 @@ pub fn PdfTextUtil::table_of_encoding(
   _self : PdfTextUtil,
   encoding : @pdffont.Encoding,
 ) -> Map[Int, String] {
-  @pdffont.Encoding::table(encoding)
+  Encoding::table(encoding)
 }
 
 ///|
@@ -164,15 +170,15 @@ pub fn PdfTextUtil::reverse_table_of_encoding(
   _self : PdfTextUtil,
   encoding : @pdffont.Encoding,
 ) -> Map[String, Int] {
-  @pdffont.Encoding::reverse_table(encoding)
+  Encoding::reverse_table(encoding)
 }
 
 ///|
 pub fn TextExtractor::new(font : @pdffont.Font) -> TextExtractor {
   let encoding = match font {
-    @pdffont.Font::StandardFont(_, e) => e
-    @pdffont.Font::SimpleFont(simple) => simple.encoding
-    _ => @pdffont.Encoding::ImplicitInFontFile
+    StandardFont(_, e) => e
+    SimpleFont(simple) => simple.encoding
+    _ => ImplicitInFontFile
   }
   let table = PdfTextUtil::new().table_of_encoding(encoding)
   let convert = (i : Int) => try {
@@ -206,11 +212,7 @@ pub fn PdfText::text_extractor_of_font(
 ///|
 fn is_identity_h(font : @pdffont.Font) -> Bool {
   match font {
-    @pdffont.Font::CIDKeyedFont(
-      _,
-      _,
-      @pdffont.CMapEncoding::Predefined("/Identity-H")
-    ) => true
+    CIDKeyedFont(_, _, Predefined("/Identity-H")) => true
     _ => false
   }
 }
@@ -236,7 +238,7 @@ fn codepoints_of_predefined_cmap(
   text : String,
 ) -> Array[Int]? {
   match font {
-    @pdffont.Font::CIDKeyedFont(_, _, @pdffont.CMapEncoding::Predefined(name)) =>
+    CIDKeyedFont(_, _, Predefined(name)) =>
       if is_shift_jis_cmap(name) {
         let bytes = @pdfio.int_array_of_bytes(@pdfio.bytes_of_string(text))
         Some(PdfTextUtil::new().codepoints_of_shift_jis(bytes))
@@ -339,9 +341,9 @@ fn charcode_extractor_of_font_real(
     @pdfutil.PdfUtil::new().flprint(font.to_string() + "\n")
   }
   let encoding = match font {
-    @pdffont.Font::StandardFont(_, e) => e
-    @pdffont.Font::SimpleFont(simple) => simple.encoding
-    _ => @pdffont.Encoding::ImplicitInFontFile
+    StandardFont(_, e) => e
+    SimpleFont(simple) => simple.encoding
+    _ => ImplicitInFontFile
   }
   let tounicode_reverse_table = match
     PdfTextUtil::new().find_tounicode_bytes(font) {
