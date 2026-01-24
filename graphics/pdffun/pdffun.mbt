@@ -97,6 +97,12 @@ pub(all) suberror BadFunctionEvaluation {
 }
 
 ///|
+type PdfObject = @pdf.PdfObject
+
+///|
+type Token = @pdfgenlex.Token
+
+///|
 fn calculator_to_string_inner(op : Calculator) -> String {
   match op {
     Calculator::If(ops) => "\{calculator_ops_to_string(ops)} if"
@@ -274,14 +280,12 @@ fn keyword_of_string(value : String) -> Calculator? {
 }
 
 ///|
-fn strip_outer_braces(
-  tokens : Array[@pdfgenlex.Token],
-) -> Array[@pdfgenlex.Token] {
+fn strip_outer_braces(tokens : Array[Token]) -> Array[Token] {
   let mut start = 0
   let mut end = tokens.length()
   while start < end {
     match tokens[start] {
-      @pdfgenlex.Token::LexName("{") | @pdfgenlex.Token::LexName("}") => {
+      Token::LexName("{") | Token::LexName("}") => {
         start = start + 1
         if end > start {
           end = end - 1
@@ -294,18 +298,16 @@ fn strip_outer_braces(
 }
 
 ///|
-fn group_operators(
-  tokens : Array[@pdfgenlex.Token],
-) -> Array[Array[@pdfgenlex.Token]] {
+fn group_operators(tokens : Array[Token]) -> Array[Array[Token]] {
   let groups = Array::new()
   let mut i = 0
   while i < tokens.length() {
     match tokens[i] {
-      @pdfgenlex.Token::LexName("{") => {
+      Token::LexName("{") => {
         let mut j = i + 1
         while j < tokens.length() {
           match tokens[j] {
-            @pdfgenlex.Token::LexName("}") => break
+            Token::LexName("}") => break
             _ => j = j + 1
           }
         }
@@ -323,17 +325,15 @@ fn group_operators(
 }
 
 ///|
-fn is_single_name(tokens : Array[@pdfgenlex.Token], name : String) -> Bool {
+fn is_single_name(tokens : Array[Token], name : String) -> Bool {
   match tokens {
-    [@pdfgenlex.Token::LexName(value)] => value == name
+    [Token::LexName(value)] => value == name
     _ => false
   }
 }
 
 ///|
-fn parse_groups(
-  groups : Array[Array[@pdfgenlex.Token]],
-) -> Array[Calculator] raise {
+fn parse_groups(groups : Array[Array[Token]]) -> Array[Calculator] raise {
   let out = Array::new()
   let mut i = 0
   while i < groups.length() {
@@ -349,12 +349,11 @@ fn parse_groups(
     } else {
       let group = groups[i]
       match group {
-        [@pdfgenlex.Token::LexName("true")] => out.push(Calculator::Bool(true))
-        [@pdfgenlex.Token::LexName("false")] =>
-          out.push(Calculator::Bool(false))
-        [@pdfgenlex.Token::LexReal(f)] => out.push(Calculator::Float(f))
-        [@pdfgenlex.Token::LexInt(v)] => out.push(Calculator::Int(v))
-        [@pdfgenlex.Token::LexName(name)] =>
+        [Token::LexName("true")] => out.push(Calculator::Bool(true))
+        [Token::LexName("false")] => out.push(Calculator::Bool(false))
+        [Token::LexReal(f)] => out.push(Calculator::Float(f))
+        [Token::LexInt(v)] => out.push(Calculator::Int(v))
+        [Token::LexName(name)] =>
           match keyword_of_string(name) {
             Some(op) => out.push(op)
             None => {
@@ -371,9 +370,7 @@ fn parse_groups(
 }
 
 ///|
-fn parse_calculator_tokens(
-  tokens : Array[@pdfgenlex.Token],
-) -> Array[Calculator] raise {
+fn parse_calculator_tokens(tokens : Array[Token]) -> Array[Calculator] raise {
   let stripped = strip_outer_braces(tokens)
   let groups = group_operators(stripped)
   parse_groups(groups)
@@ -531,37 +528,34 @@ fn rad_of_deg(deg : Double) -> Double {
 
 ///|
 /// Parse a function given a document and function object.
-pub fn PdfFunction::parse(
-  pdf : @pdf.Pdf,
-  obj : @pdf.PdfObject,
-) -> PdfFunction raise {
+pub fn PdfFunction::parse(pdf : @pdf.Pdf, obj : PdfObject) -> PdfFunction raise {
   let f = pdf.direct(obj)
-  let getnum_direct = (value : @pdf.PdfObject) => pdf.getnum(value)
+  let getnum_direct = (value : PdfObject) => pdf.getnum(value)
   let domain = match pdf.lookup_fail("No /Domain", "/Domain", f) {
-    @pdf.PdfObject::Array(values) => values.map(getnum_direct)
+    Array(values) => values.map(getnum_direct)
     _ => raise @pdf.PdfError::Msg("Bad /Domain")
   }
   let range = match pdf.lookup_direct("/Range", f) {
-    Some(@pdf.PdfObject::Array(values)) => Some(values.map(getnum_direct))
+    Some(Array(values)) => Some(values.map(getnum_direct))
     _ => None
   }
   let func = match pdf.lookup_fail("no /FunctionType", "/FunctionType", f) {
-    @pdf.PdfObject::Integer(0) => {
+    Integer(0) => {
       let size = match pdf.lookup_fail("no /Size (sampled fun)", "/Size", f) {
-        @pdf.PdfObject::Array(values) =>
+        Array(values) =>
           values.map(value => match value {
-            @pdf.PdfObject::Integer(n) => n
+            Integer(n) => n
             _ => raise @pdf.PdfError::Msg("bad /Size (sampled fun)")
           })
         _ => raise @pdf.PdfError::Msg("Bad /Size (sampled fun)")
       }
       let order = match pdf.lookup_direct("/Order", f) {
-        Some(@pdf.PdfObject::Integer(n)) => n
+        Some(Integer(n)) => n
         _ => 1
       }
       let encode = match pdf.lookup_direct("/Encode", f) {
-        Some(@pdf.PdfObject::Array(values)) if values.length() ==
-          2 * size.length() => values.map(getnum_direct)
+        Some(Array(values)) if values.length() == 2 * size.length() =>
+          values.map(getnum_direct)
         _ =>
           interleave_lists(
             many(0.0, size.length()),
@@ -569,7 +563,7 @@ pub fn PdfFunction::parse(
           )
       }
       let decode = match pdf.lookup_direct("/Decode", f) {
-        Some(@pdf.PdfObject::Array(values)) => values.map(getnum_direct)
+        Some(Array(values)) => values.map(getnum_direct)
         _ =>
           match range {
             Some(values) => values
@@ -578,13 +572,13 @@ pub fn PdfFunction::parse(
       }
       let bitspersample = match
         pdf.lookup_fail("no /BitsPerSample", "/BitsPerSample", f) {
-        @pdf.PdfObject::Integer(i) => i
+        Integer(i) => i
         _ => raise @pdf.PdfError::Msg("Bad /BitsPerSample")
       }
       @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, f)
       let samples_count = product(size) * (decode.length() / 2)
       let data = match f {
-        @pdf.PdfObject::Stream(r) =>
+        Stream(r) =>
           match r.val {
             (_, @pdf.Stream::Got(bytes)) => bytes
             _ => raise @pdf.PdfError::Msg("No stream data")
@@ -601,29 +595,29 @@ pub fn PdfFunction::parse(
         samples,
       })
     }
-    @pdf.PdfObject::Integer(2) => {
+    Integer(2) => {
       let c0 = match pdf.lookup_direct("/C0", f) {
-        Some(@pdf.PdfObject::Array(values)) => values.map(getnum_direct)
+        Some(Array(values)) => values.map(getnum_direct)
         _ => [0.0]
       }
       let c1 = match pdf.lookup_direct("/C1", f) {
-        Some(@pdf.PdfObject::Array(values)) => values.map(getnum_direct)
+        Some(Array(values)) => values.map(getnum_direct)
         _ => [1.0]
       }
       let n = getnum_direct(pdf.lookup_fail("No /N in Type 2 fun", "/N", f))
       PdfFunctionKind::Interpolation({ c0, c1, n })
     }
-    @pdf.PdfObject::Integer(3) => {
+    Integer(3) => {
       let functions = match pdf.lookup_fail("no /Functions", "/Functions", f) {
-        @pdf.PdfObject::Array(values) => values
+        Array(values) => values
         _ => raise @pdf.PdfError::Msg("Bad /Functions")
       }
       let bounds = match pdf.lookup_fail("no /Bounds", "/Bounds", f) {
-        @pdf.PdfObject::Array(values) => values.map(getnum_direct)
+        Array(values) => values.map(getnum_direct)
         _ => raise @pdf.PdfError::Msg("Bad /Bounds")
       }
       let encode = match pdf.lookup_fail("no /Encode", "/Encode", f) {
-        @pdf.PdfObject::Array(values) => values.map(getnum_direct)
+        Array(values) => values.map(getnum_direct)
         _ => raise @pdf.PdfError::Msg("Bad /Bounds")
       }
       PdfFunctionKind::Stitching({
@@ -632,10 +626,10 @@ pub fn PdfFunction::parse(
         stitch_encode: encode,
       })
     }
-    @pdf.PdfObject::Integer(4) => {
+    Integer(4) => {
       @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, f)
       match f {
-        @pdf.PdfObject::Stream(r) =>
+        Stream(r) =>
           match r.val {
             (_, @pdf.Stream::Got(bytes)) =>
               PdfFunctionKind::Calculator(
@@ -1237,38 +1231,35 @@ pub fn PdfFunction::eval(
       let mapped = clamped_inputs.map(v => interp(i.n, i.c0, i.c1, v))
       flatten(mapped)
     }
-    PdfFunctionKind::Stitching(s) => {
-      if clamped_inputs.length() != 1 || self.domain.length() != 2 {
-        raise BadFunctionEvaluation::Msg("stitching: Bad arity")
-      }
-      let i = clamped_inputs[0]
-      let points = concat_arrays(
-        [self.domain[0]],
-        concat_arrays(s.bounds, [self.domain[1]]),
-      )
-      let mut idx = 0
-      let mut subfun : PdfFunction? = None
-      while idx + 1 < points.length() {
-        let p = points[idx]
-        let p2 = points[idx + 1]
-        if (i >= p && i < p2) || i == p2 {
-          subfun = Some(s.functions[idx])
-          break
+    PdfFunctionKind::Stitching(s) =>
+      match (clamped_inputs, self.domain) {
+        ([i], [d0, d1]) => {
+          let points = concat_arrays([d0], concat_arrays(s.bounds, [d1]))
+          let mut idx = 0
+          let mut subfun : PdfFunction? = None
+          while idx + 1 < points.length() {
+            let p = points[idx]
+            let p2 = points[idx + 1]
+            if (i >= p && i < p2) || i == p2 {
+              subfun = Some(s.functions[idx])
+              break
+            }
+            idx = idx + 1
+          }
+          match subfun {
+            None => raise BadFunctionEvaluation::Msg("stitching: funs")
+            Some(f) => {
+              let a = select(idx + 1, points)
+              let b = select(idx + 2, points)
+              let c = select(idx * 2 + 1, s.stitch_encode)
+              let d = select(idx * 2 + 2, s.stitch_encode)
+              let encode = (x : Double) => interpolate(x, a, b, c, d)
+              f.eval([encode(i)])
+            }
+          }
         }
-        idx = idx + 1
+        _ => raise BadFunctionEvaluation::Msg("stitching: Bad arity")
       }
-      match subfun {
-        None => raise BadFunctionEvaluation::Msg("stitching: funs")
-        Some(f) => {
-          let a = select(idx + 1, points)
-          let b = select(idx + 2, points)
-          let c = select(idx * 2 + 1, s.stitch_encode)
-          let d = select(idx * 2 + 2, s.stitch_encode)
-          let encode = (x : Double) => interpolate(x, a, b, c, d)
-          f.eval([encode(i)])
-        }
-      }
-    }
   }
   match self.range {
     None => outputs
@@ -1287,13 +1278,13 @@ fn funtype_of_function(fun : PdfFunction) -> Int {
 }
 
 ///|
-fn mkreal(x : Double) -> @pdf.PdfObject {
-  @pdf.PdfObject::Real(x)
+fn mkreal(x : Double) -> PdfObject {
+  PdfObject::Real(x)
 }
 
 ///|
-fn mkint(x : Int) -> @pdf.PdfObject {
-  @pdf.PdfObject::Integer(x)
+fn mkint(x : Int) -> PdfObject {
+  PdfObject::Integer(x)
 }
 
 ///|
@@ -1356,13 +1347,11 @@ fn sampled_bytes(samples : Array[Int], bits : Int) -> @pdfio.MutableBytes {
 }
 
 ///|
-fn entries_of_interpolation(
-  i : Interpolation,
-) -> Array[(String, @pdf.PdfObject)] {
+fn entries_of_interpolation(i : Interpolation) -> Array[(String, PdfObject)] {
   [
-    ("/C0", @pdf.PdfObject::Array(i.c0.map(mkreal))),
-    ("/C1", @pdf.PdfObject::Array(i.c1.map(mkreal))),
-    ("/N", @pdf.PdfObject::Real(i.n)),
+    ("/C0", PdfObject::Array(i.c0.map(mkreal))),
+    ("/C1", PdfObject::Array(i.c1.map(mkreal))),
+    ("/N", PdfObject::Real(i.n)),
   ]
 }
 
@@ -1370,14 +1359,14 @@ fn entries_of_interpolation(
 fn entries_of_stitching(
   pdf : @pdf.Pdf,
   s : Stitching,
-) -> Array[(String, @pdf.PdfObject)] {
-  let numbers = s.functions.map(fun => @pdf.PdfObject::Indirect(
+) -> Array[(String, PdfObject)] {
+  let numbers = s.functions.map(fun => PdfObject::Indirect(
     pdf.addobj(fun.to_pdf_object(pdf)),
   ))
   [
-    ("/Functions", @pdf.PdfObject::Array(numbers)),
-    ("/Bounds", @pdf.PdfObject::Array(s.bounds.map(mkreal))),
-    ("/Encode", @pdf.PdfObject::Array(s.stitch_encode.map(mkreal))),
+    ("/Functions", PdfObject::Array(numbers)),
+    ("/Bounds", PdfObject::Array(s.bounds.map(mkreal))),
+    ("/Encode", PdfObject::Array(s.stitch_encode.map(mkreal))),
   ]
 }
 
@@ -1385,7 +1374,7 @@ fn entries_of_stitching(
 fn extra_entries_of_function(
   pdf : @pdf.Pdf,
   fun : PdfFunction,
-) -> Array[(String, @pdf.PdfObject)] {
+) -> Array[(String, PdfObject)] {
   match fun.func {
     PdfFunctionKind::Interpolation(i) => entries_of_interpolation(i)
     PdfFunctionKind::Stitching(s) => entries_of_stitching(pdf, s)
@@ -1399,14 +1388,14 @@ fn extra_entries_of_function(
 pub fn PdfFunction::to_pdf_object(
   self : PdfFunction,
   pdf : @pdf.Pdf,
-) -> @pdf.PdfObject {
-  let domain = @pdf.PdfObject::Array(self.domain.map(mkreal))
+) -> PdfObject {
+  let domain = PdfObject::Array(self.domain.map(mkreal))
   let range_entry = match self.range {
     None => []
-    Some(values) => [("/Range", @pdf.PdfObject::Array(values.map(mkreal)))]
+    Some(values) => [("/Range", PdfObject::Array(values.map(mkreal)))]
   }
   let base = [
-    ("/FunctionType", @pdf.PdfObject::Integer(funtype_of_function(self))),
+    ("/FunctionType", PdfObject::Integer(funtype_of_function(self))),
     ("/Domain", domain),
   ]
   match self.func {
@@ -1428,13 +1417,13 @@ pub fn PdfFunction::to_pdf_object(
         s.decode
       }
       let sampled_entries = [
-        ("/Size", @pdf.PdfObject::Array(s.size.map(mkint))),
-        ("/BitsPerSample", @pdf.PdfObject::Integer(s.bps)),
-        ("/Encode", @pdf.PdfObject::Array(encode_vals.map(mkreal))),
+        ("/Size", PdfObject::Array(s.size.map(mkint))),
+        ("/BitsPerSample", PdfObject::Integer(s.bps)),
+        ("/Encode", PdfObject::Array(encode_vals.map(mkreal))),
       ]
       let sampled_entries = if decode_vals.length() > 0 {
         concat_arrays(sampled_entries, [
-          ("/Decode", @pdf.PdfObject::Array(decode_vals.map(mkreal))),
+          ("/Decode", PdfObject::Array(decode_vals.map(mkreal))),
         ])
       } else {
         sampled_entries
@@ -1444,20 +1433,17 @@ pub fn PdfFunction::to_pdf_object(
         sampled_entries,
       )
       let entries_with_order = if s.order != 1 {
-        concat_arrays(entries, [("/Order", @pdf.PdfObject::Integer(s.order))])
+        concat_arrays(entries, [("/Order", PdfObject::Integer(s.order))])
       } else {
         entries
       }
       let data = sampled_bytes(s.samples, s.bps)
       let entries_with_length = concat_arrays(entries_with_order, [
-        ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+        ("/Length", PdfObject::Integer(@pdfio.bytes_size(data))),
       ])
-      @pdf.PdfObject::Stream(
+      PdfObject::Stream(
         Ref::new(
-          (
-            @pdf.PdfObject::Dictionary(entries_with_length),
-            @pdf.Stream::Got(data),
-          ),
+          (PdfObject::Dictionary(entries_with_length), @pdf.Stream::Got(data)),
         ),
       )
     }
@@ -1465,20 +1451,17 @@ pub fn PdfFunction::to_pdf_object(
       let entries = concat_arrays(base, range_entry)
       let data = @pdfio.bytes_of_string(calculator_ops_to_string(ops))
       let entries_with_length = concat_arrays(entries, [
-        ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+        ("/Length", PdfObject::Integer(@pdfio.bytes_size(data))),
       ])
-      @pdf.PdfObject::Stream(
+      PdfObject::Stream(
         Ref::new(
-          (
-            @pdf.PdfObject::Dictionary(entries_with_length),
-            @pdf.Stream::Got(data),
-          ),
+          (PdfObject::Dictionary(entries_with_length), @pdf.Stream::Got(data)),
         ),
       )
     }
     _ => {
       let extras = extra_entries_of_function(pdf, self)
-      @pdf.PdfObject::Dictionary(
+      PdfObject::Dictionary(
         concat_arrays(concat_arrays(base, range_entry), extras),
       )
     }
