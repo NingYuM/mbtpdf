@@ -23,14 +23,14 @@ pub struct CMap {
 - `map`: (character code, Unicode value) pairs
 - `wmode`: Writing mode (0=horizontal, 1=vertical)
 
-## Functions
+## Methods
 
-### parse_cmap
+### CMap::parse
 
 Parse a /ToUnicode CMap stream.
 
 ```moonbit nocheck
-pub fn parse_cmap(pdf : @pdf.Pdf, cmap : @pdf.PdfObject) -> CMap raise
+pub fn CMap::parse(pdf : @pdf.Pdf, cmap : @pdf.PdfObject) -> CMap raise
 ```
 
 ## CMap Format

@@ -647,7 +647,7 @@ pub fn PdfText::add_tounicode(
     @pdf.lookup_direct(self.pdf, "/ToUnicode", fontdict) {
     Some(tounicode) =>
       try {
-        let parsed = @pdfcmap.parse_cmap(self.pdf, tounicode)
+        let parsed = @pdfcmap.CMap::parse(self.pdf, tounicode)
         let bytes_map = @pdfutil.PdfUtil::new().hashtable_of_dictionary(
           parsed.map,
         )

@@ -351,7 +351,8 @@ fn extract_specifics(data : @pdfio.MutableBytes) -> Int? {
 }
 
 ///|
-pub fn parse_cmap(pdf : @pdf.Pdf, cmap : @pdf.PdfObject) -> CMap raise {
+#as_free_fn(parse_cmap, deprecated="Use `CMap::parse`")
+pub fn CMap::parse(pdf : @pdf.Pdf, cmap : @pdf.PdfObject) -> CMap raise {
   match cmap {
     @pdf.PdfObject::Stream(_) => {
       @pdfcodec.decode_pdfstream(pdf, cmap)
@@ -373,7 +374,7 @@ pub fn parse_cmap(pdf : @pdf.Pdf, cmap : @pdf.PdfObject) -> CMap raise {
             }
             @pdf.Stream::ToGet(_) => {
               @pdf.getstream(cmap)
-              parse_cmap(pdf, cmap)
+              CMap::parse(pdf, cmap)
             }
           }
         }
