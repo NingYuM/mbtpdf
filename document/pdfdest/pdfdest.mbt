@@ -1,4 +1,7 @@
 ///|
+type PdfObject = @pdf.PdfObject
+
+///|
 /// Target pages for destinations.
 pub(all) enum TargetPage {
   PageObject(Int)
@@ -8,7 +11,7 @@ pub(all) enum TargetPage {
 ///|
 /// Destinations (and actions).
 pub(all) enum Destination {
-  Action(@pdf.PdfObject)
+  Action(PdfObject)
   NullDestination
   NamedDestination(String)
   StringDestination(String)
@@ -24,18 +27,18 @@ pub(all) enum Destination {
 
 ///|
 #as_free_fn(read_targetpage, deprecated="Use `TargetPage::read` instead")
-fn TargetPage::read(obj : @pdf.PdfObject) -> TargetPage? {
+fn TargetPage::read(obj : PdfObject) -> TargetPage? {
   match obj {
-    @pdf.PdfObject::Indirect(i) => Some(TargetPage::PageObject(i))
-    @pdf.PdfObject::Integer(i) => Some(TargetPage::OtherDocPageNumber(i))
+    Indirect(i) => Some(PageObject(i))
+    Integer(i) => Some(OtherDocPageNumber(i))
     _ => None
   }
 }
 
 ///|
-fn option_getnum(pdf : @pdf.Pdf, obj : @pdf.PdfObject) -> Double? raise {
+fn option_getnum(pdf : @pdf.Pdf, obj : PdfObject) -> Double? raise {
   match obj {
-    @pdf.PdfObject::Null => None
+    Null => None
     _ => Some(pdf.getnum(obj))
   }
 }
@@ -43,145 +46,108 @@ fn option_getnum(pdf : @pdf.Pdf, obj : @pdf.PdfObject) -> Double? raise {
 ///|
 fn read_array_destination(
   pdf : @pdf.Pdf,
-  arr : Array[@pdf.PdfObject],
+  arr : Array[PdfObject],
 ) -> Destination? raise {
-  if arr.length() == 5 {
-    match arr[1] {
-      @pdf.PdfObject::Name("/XYZ") =>
-        match TargetPage::read(arr[0]) {
-          Some(p) =>
-            return Some(
-              Destination::XYZ(
-                p,
-                option_getnum(pdf, arr[2]),
-                option_getnum(pdf, arr[3]),
-                option_getnum(pdf, arr[4]),
-              ),
-            )
-          None => ()
-        }
-      _ => ()
-    }
+  match arr {
+    [page, Name("/XYZ"), left, top, zoom] =>
+      match TargetPage::read(page) {
+        Some(p) =>
+          Some(
+            XYZ(
+              p,
+              option_getnum(pdf, left),
+              option_getnum(pdf, top),
+              option_getnum(pdf, zoom),
+            ),
+          )
+        None => None
+      }
+    [page, Name("/XYZ"), left, top] =>
+      match TargetPage::read(page) {
+        Some(p) =>
+          Some(XYZ(p, option_getnum(pdf, left), option_getnum(pdf, top), None))
+        None => None
+      }
+    [page, Name("/XYZ"), left] =>
+      match TargetPage::read(page) {
+        Some(p) => Some(XYZ(p, option_getnum(pdf, left), None, None))
+        None => None
+      }
+    [page, Name("/FitH"), top] =>
+      match TargetPage::read(page) {
+        Some(p) => Some(FitH(p, option_getnum(pdf, top)))
+        None => None
+      }
+    [page, Name("/FitV"), left] =>
+      match TargetPage::read(page) {
+        Some(p) => Some(FitV(p, option_getnum(pdf, left)))
+        None => None
+      }
+    [page, Name("/FitBH"), top] =>
+      match TargetPage::read(page) {
+        Some(p) => Some(FitBH(p, option_getnum(pdf, top)))
+        None => None
+      }
+    [page, Name("/FitBV"), left] =>
+      match TargetPage::read(page) {
+        Some(p) => Some(FitBV(p, option_getnum(pdf, left)))
+        None => None
+      }
+    [page, Name("/Fit")] =>
+      match TargetPage::read(page) {
+        Some(p) => Some(Fit(p))
+        None => None
+      }
+    [page, Name("/FitB")] =>
+      match TargetPage::read(page) {
+        Some(p) => Some(FitB(p))
+        None => None
+      }
+    [page, Name("/FitR"), left, bottom, right, top] =>
+      match TargetPage::read(page) {
+        Some(p) =>
+          Some(
+            FitR(
+              p,
+              pdf.getnum(left),
+              pdf.getnum(bottom),
+              pdf.getnum(right),
+              pdf.getnum(top),
+            ),
+          )
+        None => None
+      }
+    _ => None
   }
-  if arr.length() == 4 {
-    match arr[1] {
-      @pdf.PdfObject::Name("/XYZ") =>
-        match TargetPage::read(arr[0]) {
-          Some(p) =>
-            return Some(
-              Destination::XYZ(
-                p,
-                option_getnum(pdf, arr[2]),
-                option_getnum(pdf, arr[3]),
-                None,
-              ),
-            )
-          None => ()
-        }
-      _ => ()
-    }
-  }
-  if arr.length() == 3 {
-    match arr[1] {
-      @pdf.PdfObject::Name("/XYZ") =>
-        match TargetPage::read(arr[0]) {
-          Some(p) =>
-            return Some(
-              Destination::XYZ(p, option_getnum(pdf, arr[2]), None, None),
-            )
-          None => ()
-        }
-      @pdf.PdfObject::Name("/FitH") =>
-        match TargetPage::read(arr[0]) {
-          Some(p) =>
-            return Some(Destination::FitH(p, option_getnum(pdf, arr[2])))
-          None => ()
-        }
-      @pdf.PdfObject::Name("/FitV") =>
-        match TargetPage::read(arr[0]) {
-          Some(p) =>
-            return Some(Destination::FitV(p, option_getnum(pdf, arr[2])))
-          None => ()
-        }
-      @pdf.PdfObject::Name("/FitBH") =>
-        match TargetPage::read(arr[0]) {
-          Some(p) =>
-            return Some(Destination::FitBH(p, option_getnum(pdf, arr[2])))
-          None => ()
-        }
-      @pdf.PdfObject::Name("/FitBV") =>
-        match TargetPage::read(arr[0]) {
-          Some(p) =>
-            return Some(Destination::FitBV(p, option_getnum(pdf, arr[2])))
-          None => ()
-        }
-      _ => ()
-    }
-  }
-  if arr.length() == 2 {
-    match arr[1] {
-      @pdf.PdfObject::Name("/Fit") =>
-        match TargetPage::read(arr[0]) {
-          Some(p) => return Some(Destination::Fit(p))
-          None => ()
-        }
-      @pdf.PdfObject::Name("/FitB") =>
-        match TargetPage::read(arr[0]) {
-          Some(p) => return Some(Destination::FitB(p))
-          None => ()
-        }
-      _ => ()
-    }
-  }
-  if arr.length() == 6 {
-    match arr[1] {
-      @pdf.PdfObject::Name("/FitR") =>
-        match TargetPage::read(arr[0]) {
-          Some(p) =>
-            return Some(
-              Destination::FitR(
-                p,
-                pdf.getnum(arr[2]),
-                pdf.getnum(arr[3]),
-                pdf.getnum(arr[4]),
-                pdf.getnum(arr[5]),
-              ),
-            )
-          None => ()
-        }
-      _ => ()
-    }
-  }
-  None
 }
 
 ///|
 /// Read a destination given a PDF and destination object.
 pub fn Destination::read(
   pdf : @pdf.Pdf,
-  pdfobject : @pdf.PdfObject,
+  pdfobject : PdfObject,
   shallow? : Bool = false,
 ) -> Destination raise {
   let resolved = pdf.direct(pdfobject)
   match resolved {
-    @pdf.PdfObject::Dictionary(_) =>
+    Dictionary(_) =>
       match pdf.lookup_direct("/D", resolved) {
         Some(dest) => Destination::read(pdf, dest, shallow~)
-        None => Destination::NullDestination
+        None => NullDestination
       }
-    @pdf.PdfObject::Array(arr) =>
+    Array(arr) =>
       match read_array_destination(pdf, arr) {
         Some(dest) => dest
         None => {
           @pdfe.Pdfe::new().log(
             "Warning: Could not read destination \{resolved.to_string()}\n",
           )
-          Destination::NullDestination
+          NullDestination
         }
       }
-    @pdf.PdfObject::Name(name) =>
+    Name(name) =>
       if shallow {
-        Destination::NamedDestination(name)
+        NamedDestination(name)
       } else {
         match pdf.lookup_direct("/Root", pdf.trailerdict) {
           Some(catalog) =>
@@ -189,111 +155,88 @@ pub fn Destination::read(
               Some(dests) =>
                 match pdf.lookup_direct(name, dests) {
                   Some(dest) => Destination::read(pdf, dest, shallow~)
-                  None => Destination::NamedDestination(name)
+                  None => NamedDestination(name)
                 }
-              None => Destination::NamedDestination(name)
+              None => NamedDestination(name)
             }
           None => raise @pdf.PdfError::Msg("read_destination: no catalog")
         }
       }
-    @pdf.PdfObject::String(s) =>
+    String(s) =>
       if shallow {
-        Destination::StringDestination(s)
+        StringDestination(s)
       } else {
         let rootdict = pdf.lookup_obj(pdf.root)
         match pdf.lookup_direct("/Names", rootdict) {
           Some(namedict) =>
             match pdf.lookup_direct("/Dests", namedict) {
               Some(destsdict) =>
-                match
-                  pdf.nametree_lookup(@pdf.PdfObject::String(s), destsdict) {
-                  None => Destination::StringDestination(s)
+                match pdf.nametree_lookup(String(s), destsdict) {
+                  None => StringDestination(s)
                   Some(dest) => Destination::read(pdf, dest, shallow~)
                 }
-              _ => Destination::StringDestination(s)
+              _ => StringDestination(s)
             }
-          _ => Destination::StringDestination(s)
+          _ => StringDestination(s)
         }
       }
     _ => {
       @pdfe.Pdfe::new().log(
         "Warning: Could not read destination \{resolved.to_string()}\n",
       )
-      Destination::NullDestination
+      NullDestination
     }
   }
 }
 
 ///|
 #as_free_fn(pdf_of_targetpage, deprecated="Use `TargetPage::to_pdf_object` instead")
-fn TargetPage::to_pdf_object(self : TargetPage) -> @pdf.PdfObject {
+fn TargetPage::to_pdf_object(self : TargetPage) -> PdfObject {
   match self {
-    TargetPage::PageObject(i) => @pdf.PdfObject::Indirect(i)
-    TargetPage::OtherDocPageNumber(i) => @pdf.PdfObject::Integer(i)
+    PageObject(i) => Indirect(i)
+    OtherDocPageNumber(i) => Integer(i)
   }
 }
 
 ///|
-fn pos_null(value : Double?) -> @pdf.PdfObject {
+fn pos_null(value : Double?) -> PdfObject {
   match value {
-    None => @pdf.PdfObject::Null
-    Some(v) => @pdf.PdfObject::Real(v)
+    None => Null
+    Some(v) => Real(v)
   }
 }
 
 ///|
 /// Write a destination to a PdfObject.
-pub fn Destination::to_pdf_object(self : Destination) -> @pdf.PdfObject {
+pub fn Destination::to_pdf_object(self : Destination) -> PdfObject {
   match self {
-    Destination::Action(a) => a
-    Destination::NullDestination => @pdf.PdfObject::Null
-    Destination::NamedDestination(s) => @pdf.PdfObject::Name(s)
-    Destination::StringDestination(s) => @pdf.PdfObject::String(s)
-    Destination::XYZ(p, left, top, zoom) =>
-      @pdf.PdfObject::Array([
+    Action(a) => a
+    NullDestination => Null
+    NamedDestination(s) => Name(s)
+    StringDestination(s) => String(s)
+    XYZ(p, left, top, zoom) =>
+      Array([
         p.to_pdf_object(),
-        @pdf.PdfObject::Name("/XYZ"),
+        Name("/XYZ"),
         pos_null(left),
         pos_null(top),
         pos_null(zoom),
       ])
-    Destination::Fit(p) =>
-      @pdf.PdfObject::Array([p.to_pdf_object(), @pdf.PdfObject::Name("/Fit")])
-    Destination::FitH(p, top) =>
-      @pdf.PdfObject::Array([
+    Fit(p) => Array([p.to_pdf_object(), Name("/Fit")])
+    FitH(p, top) => Array([p.to_pdf_object(), Name("/FitH"), pos_null(top)])
+    FitV(p, left) => Array([p.to_pdf_object(), Name("/FitV"), pos_null(left)])
+    FitR(p, left, bottom, right, top) =>
+      Array([
         p.to_pdf_object(),
-        @pdf.PdfObject::Name("/FitH"),
-        pos_null(top),
+        Name("/FitR"),
+        Real(left),
+        Real(bottom),
+        Real(right),
+        Real(top),
       ])
-    Destination::FitV(p, left) =>
-      @pdf.PdfObject::Array([
-        p.to_pdf_object(),
-        @pdf.PdfObject::Name("/FitV"),
-        pos_null(left),
-      ])
-    Destination::FitR(p, left, bottom, right, top) =>
-      @pdf.PdfObject::Array([
-        p.to_pdf_object(),
-        @pdf.PdfObject::Name("/FitR"),
-        @pdf.PdfObject::Real(left),
-        @pdf.PdfObject::Real(bottom),
-        @pdf.PdfObject::Real(right),
-        @pdf.PdfObject::Real(top),
-      ])
-    Destination::FitB(p) =>
-      @pdf.PdfObject::Array([p.to_pdf_object(), @pdf.PdfObject::Name("/FitB")])
-    Destination::FitBH(p, top) =>
-      @pdf.PdfObject::Array([
-        p.to_pdf_object(),
-        @pdf.PdfObject::Name("/FitBH"),
-        pos_null(top),
-      ])
-    Destination::FitBV(p, left) =>
-      @pdf.PdfObject::Array([
-        p.to_pdf_object(),
-        @pdf.PdfObject::Name("/FitBV"),
-        pos_null(left),
-      ])
+    FitB(p) => Array([p.to_pdf_object(), Name("/FitB")])
+    FitBH(p, top) => Array([p.to_pdf_object(), Name("/FitBH"), pos_null(top)])
+    FitBV(p, left) => Array([p.to_pdf_object(), Name("/FitBV"), pos_null(left)])
   }
 }
 
@@ -320,48 +263,48 @@ pub fn Destination::transform(
   t : @pdftransform.TransformMatrix,
 ) -> Destination raise {
   match self {
-    Destination::FitH(TargetPage::PageObject(i), Some(top)) => {
+    FitH(PageObject(i), Some(top)) => {
       let (_, top) = clip_pair(t.apply((0.0, top)))
-      Destination::FitH(TargetPage::PageObject(i), Some(top))
+      FitH(PageObject(i), Some(top))
     }
-    Destination::FitV(TargetPage::PageObject(i), Some(left)) => {
+    FitV(PageObject(i), Some(left)) => {
       let (left, _) = clip_pair(t.apply((left, 0.0)))
-      Destination::FitV(TargetPage::PageObject(i), Some(left))
+      FitV(PageObject(i), Some(left))
     }
-    Destination::FitBH(TargetPage::PageObject(i), Some(top)) => {
+    FitBH(PageObject(i), Some(top)) => {
       let (_, top) = clip_pair(t.apply((0.0, top)))
-      Destination::FitBH(TargetPage::PageObject(i), Some(top))
+      FitBH(PageObject(i), Some(top))
     }
-    Destination::FitBV(TargetPage::PageObject(i), Some(left)) => {
+    FitBV(PageObject(i), Some(left)) => {
       let (left, _) = clip_pair(t.apply((left, 0.0)))
-      Destination::FitBV(TargetPage::PageObject(i), Some(left))
+      FitBV(PageObject(i), Some(left))
     }
-    Destination::XYZ(TargetPage::PageObject(i), Some(left), Some(top), zoom) => {
+    XYZ(PageObject(i), Some(left), Some(top), zoom) => {
       let (left, top) = clip_pair(t.apply((left, top)))
-      Destination::XYZ(TargetPage::PageObject(i), Some(left), Some(top), zoom)
+      XYZ(PageObject(i), Some(left), Some(top), zoom)
     }
-    Destination::XYZ(TargetPage::PageObject(i), None, Some(top), zoom) => {
+    XYZ(PageObject(i), None, Some(top), zoom) => {
       let (_, top) = clip_pair(t.apply((0.0, top)))
-      Destination::XYZ(TargetPage::PageObject(i), None, Some(top), zoom)
+      XYZ(PageObject(i), None, Some(top), zoom)
     }
-    Destination::XYZ(TargetPage::PageObject(i), Some(left), None, zoom) => {
+    XYZ(PageObject(i), Some(left), None, zoom) => {
       let (left, _) = clip_pair(t.apply((left, 0.0)))
-      Destination::XYZ(TargetPage::PageObject(i), Some(left), None, zoom)
+      XYZ(PageObject(i), Some(left), None, zoom)
     }
-    Destination::FitR(TargetPage::PageObject(i), left, bottom, right, top) => {
+    FitR(PageObject(i), left, bottom, right, top) => {
       let (left, top) = clip_pair(t.apply((left, top)))
       let (right, bottom) = clip_pair(t.apply((right, bottom)))
-      Destination::FitR(TargetPage::PageObject(i), left, bottom, right, top)
+      FitR(PageObject(i), left, bottom, right, top)
     }
-    Destination::Action(a) =>
+    Action(a) =>
       match (pdf.lookup_direct("/S", a), pdf.lookup_direct("/D", a)) {
-        (Some(@pdf.PdfObject::Name("/GoTo")), Some(d)) => {
+        (Some(Name("/GoTo")), Some(d)) => {
           let transformed = Destination::read(pdf, d, shallow=true).transform(
             pdf, t,
           )
-          Destination::Action(a.add_entry("/D", transformed.to_pdf_object()))
+          Action(a.add_entry("/D", transformed.to_pdf_object()))
         }
-        _ => Destination::Action(a)
+        _ => Action(a)
       }
     _ => self
   }
