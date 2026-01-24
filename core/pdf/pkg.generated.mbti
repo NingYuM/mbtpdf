@@ -42,17 +42,9 @@ pub fn getstream(PdfObject) -> Unit raise
 
 pub fn indirect_number(Pdf, String, PdfObject) -> Int?
 
-pub fn input_of_toget(ToGet) -> @pdfio.Input
-
 pub fn input_pdferror(@pdfio.Input, String) -> String
 
-pub fn is_delimiter(Char) -> Bool
-
-pub fn is_not_whitespace(Char) -> Bool
-
 pub fn is_whitespace(Char) -> Bool
-
-pub fn iter_stream((PdfObject) -> Unit raise?, Pdf) -> Unit raise?
 
 pub fn length_of_toget(ToGet) -> Int
 
@@ -61,8 +53,6 @@ pub fn lookup_chain(Pdf, PdfObject, ArrayView[String]) -> PdfObject?
 pub fn lookup_direct(Pdf, String, PdfObject) -> PdfObject?
 
 pub fn lookup_direct_orelse(Pdf, String, String, PdfObject) -> PdfObject?
-
-pub fn lookup_exception(Error, Pdf, String, PdfObject) -> PdfObject raise
 
 pub fn lookup_fail(String, Pdf, String, PdfObject) -> PdfObject raise
 
@@ -75,8 +65,6 @@ pub fn make_matrix(@pdftransform.TransformMatrix) -> PdfObject
 pub fn nametree_lookup(Pdf, PdfObject, PdfObject) -> PdfObject? raise
 
 pub fn objcard(Pdf) -> Int
-
-pub fn objects_of_list(((Int) -> PdfObject)?, Array[(Int, (Ref[ObjectData], Int))]) -> PdfObjects
 
 pub fn objects_referenced(Array[String], Array[(String, PdfObject)], Pdf, PdfObject) -> Array[Int]
 
@@ -98,23 +86,13 @@ pub fn parse_matrix(Pdf, String, PdfObject) -> @pdftransform.TransformMatrix rai
 
 pub fn parse_rectangle(Pdf, PdfObject) -> (Double, Double, Double, Double) raise
 
-pub fn pdfobjmap_add(Int, (Ref[ObjectData], Int), Map[Int, (Ref[ObjectData], Int)]) -> Map[Int, (Ref[ObjectData], Int)]
-
 pub fn pdfobjmap_bindings(Map[Int, (Ref[ObjectData], Int)]) -> Array[(Int, (Ref[ObjectData], Int))]
 
 pub fn pdfobjmap_empty() -> Map[Int, (Ref[ObjectData], Int)]
 
 pub fn pdfobjmap_find(Int, Map[Int, (Ref[ObjectData], Int)]) -> (Ref[ObjectData], Int) raise
 
-pub fn pdfobjmap_remove(Int, Map[Int, (Ref[ObjectData], Int)]) -> Map[Int, (Ref[ObjectData], Int)]
-
-pub fn position_of_toget(ToGet) -> Int
-
 pub fn recurse_array((PdfObject) -> PdfObject, Array[PdfObject]) -> PdfObject
-
-pub fn recurse_dict((PdfObject) -> PdfObject, Array[(String, PdfObject)], preserve_order? : Bool) -> PdfObject
-
-pub fn remove_chain(Pdf, ArrayView[String]) -> Bool raise
 
 pub fn remove_dict_entry(PdfObject, String) -> PdfObject raise
 
@@ -143,8 +121,6 @@ pub fn toget(@pdfio.Input, Int, Int, crypt? : ToGetCrypt) -> ToGet
 pub fn transform_quadpoints(Pdf, @pdftransform.TransformMatrix, PdfObject) -> PdfObject raise
 
 pub fn transform_rect(Pdf, @pdftransform.TransformMatrix, PdfObject) -> PdfObject raise
-
-pub fn unique_key(String, PdfObject) -> String raise
 
 // Errors
 pub(all) suberror PdfError {
@@ -226,10 +202,6 @@ pub(all) enum ToGetCrypt {
 pub type EncryptionValues = (@pdfcryptprimitives.Encryption, String, String, Int, String, String?, String?)
 
 pub type PdfObjMap = Map[Int, (Ref[ObjectData], Int)]
-
-pub type PdfObjMapEntry = (Ref[ObjectData], Int)
-
-pub type PdfObjMapKey = Int
 
 // Traits
 

@@ -1,8 +1,4 @@
 ///|
-/// Debug flag for PDF writing.
-pub let write_debug : Ref[Bool] = { val: false }
-
-///|
 fn trim_trailing_zeros(value : String) -> String {
   let dot = value.find(".")
   match dot {
@@ -1027,32 +1023,8 @@ pub fn string_of_pdf(obj : @pdf.PdfObject) -> String {
 }
 
 ///|
-/// String of a PDF object including stream data.
-pub fn string_of_pdf_including_data(obj : @pdf.PdfObject) -> String {
-  let sb = StringBuilder::new()
-  write_pdf_object(obj, true, true, sb)
-  sb.to_string()
-}
-
-///|
-/// Debug print of a whole PDF.
-pub fn debug_whole_pdf(pdf : @pdf.Pdf) -> Unit {
-  @pdfe.log("trailerdict = \{string_of_pdf(pdf.trailerdict)}\n")
-  for pair in @pdf.pdfobjmap_bindings(pdf.objects.objects) {
-    let (objnum, entry) = pair
-    let (obj_ref, _gen) = entry
-    match obj_ref.val {
-      @pdf.ObjectData::Parsed(obj)
-      | @pdf.ObjectData::ParsedAlreadyDecrypted(obj) =>
-        @pdfe.log("\{objnum} = \{string_of_pdf(obj)}\n")
-      _ => ()
-    }
-  }
-}
-
-///|
 /// Convert a PDF string to hex representation.
-pub fn make_hex_pdf_string(value : String) -> String {
+fn make_hex_pdf_string(value : String) -> String {
   let bytes = @pdfio.bytes_of_string(value)
   let sb = StringBuilder::new()
   sb.write_char('<')

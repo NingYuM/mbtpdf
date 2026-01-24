@@ -118,36 +118,6 @@ test "encode/decode PNG predictor roundtrip" {
 }
 
 ///|
-test "decode_from_input handles filter array" {
-  let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Array([Name("/ASCIIHexDecode")])),
-  ])
-  let input = @pdfio.input_of_bytes(@pdfio.bytes_of_string("4869>"))
-  match decode_from_input(input, dict) {
-    Some(decoded) => assert_eq(@pdfio.string_of_bytes(decoded), "Hi")
-    None => fail("expected array filter decode")
-  }
-}
-
-///|
-test "decode_from_input rejects non-name filters" {
-  let dict : @pdf.PdfObject = Dictionary([("/Filter", Array([Integer(1)]))])
-  let input = @pdfio.input_of_bytes(@pdfio.bytes_of_string("4869>"))
-  let res = decode_from_input(input, dict)
-  assert_true(res is None)
-}
-
-///|
-test "decode_from_input handles Crypt filter" {
-  let dict : @pdf.PdfObject = Dictionary([("/Filter", Name("/Crypt"))])
-  let input = @pdfio.input_of_bytes(@pdfio.bytes_of_string("hi"))
-  match decode_from_input(input, dict) {
-    Some(decoded) => assert_eq(@pdfio.string_of_bytes(decoded), "hi")
-    None => fail("expected Crypt passthrough")
-  }
-}
-
-///|
 test "decode_pdfstream_onestage rejects missing filter" {
   let pdf = @pdf.empty()
   let data = @pdfio.bytes_of_string("4869>")
@@ -322,41 +292,6 @@ test "decode_pdfstream_onestage reports LZW errors" {
 }
 
 ///|
-async test "decode_pdfstream_onestage_async handles filter arrays" {
-  let pdf = @pdf.empty()
-  let data = @pdfio.bytes_of_string("4869>")
-  let dict : @pdf.PdfObject = Dictionary([
-    ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/Filter", Array([Name("/ASCIIHexDecode"), Name("/ASCIIHexDecode")])),
-    ("/DecodeParms", Array([Null, Null])),
-  ])
-  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
-  let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  decode_pdfstream_onestage_async(pdf, stream_obj)
-  let (updated_dict, _) = stream_ref.val
-  match (@pdf.lookup_direct(pdf, "/Filter", updated_dict) : @pdf.PdfObject?) {
-    Some(Array(filters)) => assert_eq(filters.length(), 1)
-    _ => fail("expected updated filter array")
-  }
-}
-
-///|
-async test "decode_pdfstream_onestage_async rejects missing jbig2dec" {
-  let pdf = @pdf.empty()
-  let data = @pdfio.bytes_of_string("data")
-  let dict : @pdf.PdfObject = Dictionary([
-    ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/Filter", Name("/JBIG2Decode")),
-  ])
-  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
-  let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  let res : Result[Unit, Error] = try? decode_pdfstream_onestage_async(
-    pdf, stream_obj,
-  )
-  assert_true(res is Err(_))
-}
-
-///|
 test "decode_pdfstream_until_unknown ignores unsupported filters" {
   let pdf = @pdf.empty()
   let data = @pdfio.bytes_of_string("data")
@@ -371,58 +306,12 @@ test "decode_pdfstream_until_unknown ignores unsupported filters" {
 
 ///|
 test "pdfcodec uses placeholder string_of_pdf" {
-  let rendered = (@pdfcodec.string_of_pdf.val)(Null)
+  let rendered = (string_of_pdf.val)(Null)
   assert_eq(rendered, "")
 }
 
 ///|
 async test "pdfcodec uses placeholder pdf_of_file" {
-  let pdf = (@pdfcodec.pdf_of_file.val)(None, None, None, "missing.pdf")
+  let pdf = (pdf_of_file.val)(None, None, None, "missing.pdf")
   assert_eq(pdf.root, 0)
-}
-
-///|
-async test "decode_pdfstream_async reports JBIG2 error with globals" {
-  let pdf = @pdf.empty()
-  let globals_bytes = @pdfio.bytes_of_string("globals")
-  let globals_dict : @pdf.PdfObject = Dictionary([
-    ("/Length", Integer(@pdfio.bytes_size(globals_bytes))),
-  ])
-  let globals_stream : @pdf.PdfObject = Stream(
-    Ref::new((globals_dict, @pdf.Stream::Got(globals_bytes))),
-  )
-  let globals_id = @pdf.addobj(pdf, globals_stream)
-  let parms : @pdf.PdfObject = Dictionary([
-    ("/JBIG2Globals", Indirect(globals_id)),
-  ])
-  let data = @pdfio.bytes_of_string("data")
-  let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name("/JBIG2Decode")),
-    ("/DecodeParms", parms),
-    ("/Length", Integer(@pdfio.bytes_size(data))),
-  ])
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let res : Result[Unit, Error] = try? decode_pdfstream_async(
-    pdf,
-    stream,
-    jbig2dec="/usr/bin/false",
-  )
-  assert_true(res is Err(_))
-}
-
-///|
-async test "decode_pdfstream_async reports JBIG2 error without globals" {
-  let pdf = @pdf.empty()
-  let data = @pdfio.bytes_of_string("data")
-  let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name("/JBIG2Decode")),
-    ("/Length", Integer(@pdfio.bytes_size(data))),
-  ])
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let res : Result[Unit, Error] = try? decode_pdfstream_async(
-    pdf,
-    stream,
-    jbig2dec="/usr/bin/false",
-  )
-  assert_true(res is Err(_))
 }

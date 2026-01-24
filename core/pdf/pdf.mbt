@@ -5,21 +5,10 @@ pub(all) suberror PdfError {
 }
 
 ///|
-/// PDF delimiter predicate.
-pub fn is_delimiter(c : Char) -> Bool {
-  c is ('(' | ')' | '<' | '>' | '[' | ']' | '{' | '}' | '%' | '/')
-}
-
-///|
 /// PDF whitespace predicate.
 pub fn is_whitespace(c : Char) -> Bool {
   let v = c.to_int()
   v == 0 || v == 9 || v == 10 || v == 12 || v == 13 || v == 32
-}
-
-///|
-pub fn is_not_whitespace(c : Char) -> Bool {
-  !is_whitespace(c)
 }
 
 ///|
@@ -86,16 +75,6 @@ pub fn length_of_toget(t : ToGet) -> Int {
 }
 
 ///|
-pub fn position_of_toget(t : ToGet) -> Int {
-  t.position
-}
-
-///|
-pub fn input_of_toget(t : ToGet) -> @pdfio.Input {
-  t.input
-}
-
-///|
 /// Stream payload, either in memory or deferred.
 pub(all) enum Stream {
   Got(@pdfio.MutableBytes)
@@ -140,13 +119,13 @@ pub(all) enum ObjectData {
 }
 
 ///|
-pub type PdfObjMapKey = Int
+type PdfObjMapKey = Int
 
 ///|
-pub type PdfObjMapEntry = (Ref[ObjectData], Int)
+type PdfObjMapEntry = (Ref[ObjectData], Int)
 
 ///|
-pub type PdfObjMap = Map[PdfObjMapKey, PdfObjMapEntry]
+pub type PdfObjMap = Map[Int, (Ref[ObjectData], Int)]
 
 ///|
 /// Container for document objects.
@@ -186,44 +165,10 @@ pub fn pdfobjmap_find(
 }
 
 ///|
-pub fn pdfobjmap_add(
-  key : PdfObjMapKey,
-  entry : PdfObjMapEntry,
-  map : PdfObjMap,
-) -> PdfObjMap {
-  map.set(key, entry)
-  map
-}
-
-///|
-pub fn pdfobjmap_remove(key : PdfObjMapKey, map : PdfObjMap) -> PdfObjMap {
-  map.remove(key)
-  map
-}
-
-///|
 pub fn pdfobjmap_bindings(
   map : PdfObjMap,
 ) -> Array[(PdfObjMapKey, PdfObjMapEntry)] {
   map.to_array()
-}
-
-///|
-/// Build an object map from a list of (number, entry) pairs.
-pub fn objects_of_list(
-  parse : ((Int) -> PdfObject)?,
-  entries : Array[(Int, PdfObjMapEntry)],
-) -> PdfObjects {
-  let mut max_obj_num = 0
-  let objects = pdfobjmap_empty()
-  for entry in entries {
-    let (num, obj) = entry
-    if num > max_obj_num {
-      max_obj_num = num
-    }
-    objects.set(num, obj)
-  }
-  { max_obj_num, parse, objects, object_stream_ids: Map::new() }
 }
 
 ///|
@@ -336,35 +281,6 @@ pub fn add_dict_entry(
     }
     _ => raise PdfError::Msg("add_dict_entry: not a dictionary")
   }
-}
-
-///|
-/// Return a name with the given prefix not already used in the dictionary.
-pub fn unique_key(prefix : String, obj : PdfObject) -> String raise {
-  let entries = match obj {
-    Dictionary(es) => es
-    Stream(r) => {
-      let (inner, _) = r.val
-      match inner {
-        Dictionary(es) => es
-        _ => raise PdfError::Msg("unique_key: Not a dictionary or stream")
-      }
-    }
-    _ => raise PdfError::Msg("unique_key: Not a dictionary or stream")
-  }
-  fn dict_has_key(dict : Array[(String, PdfObject)], key : String) -> Bool {
-    dict.search_by(pair => pair.0 == key) is Some(_)
-  }
-
-  fn name_of_num(n : Int) -> String {
-    "/\{prefix}\{n}"
-  }
-
-  let mut num = 0
-  while dict_has_key(entries, name_of_num(num)) {
-    num = num + 1
-  }
-  name_of_num(num)
 }
 
 ///|
@@ -617,53 +533,6 @@ pub fn replace_chain(
   }
 
   pdf.trailerdict = replace_in_obj(pdf, pdf.trailerdict, chain, obj)
-}
-
-///|
-/// Remove the object at the given chain. Returns true if removed.
-pub fn remove_chain(pdf : Pdf, chain : ArrayView[String]) -> Bool raise {
-  fn remove_in_obj(
-    current : PdfObject,
-    chain : ArrayView[String],
-  ) -> (PdfObject, Bool) raise {
-    if chain.length() == 0 {
-      return (current, false)
-    }
-    let key = chain[0]
-    let rest = chain.sub(start=1)
-    match current {
-      Dictionary(entries) => {
-        let mut removed = false
-        let out = Array::new(capacity=entries.length())
-        for entry in entries {
-          let (k, v) = entry
-          if k == key {
-            if rest.length() == 0 {
-              removed = true
-            } else {
-              let (updated, child_removed) = remove_in_obj(v, rest)
-              out.push((k, updated))
-              removed = child_removed
-            }
-          } else {
-            out.push((k, v))
-          }
-        }
-        (Dictionary(out), removed)
-      }
-      Stream(r) => {
-        let (inner, stream) = r.val
-        let (updated, removed) = remove_in_obj(inner, chain)
-        r.val = (updated, stream)
-        (Stream(r), removed)
-      }
-      _ => raise PdfError::Msg("remove_chain: not a dictionary")
-    }
-  }
-
-  let (updated, removed) = remove_in_obj(pdf.trailerdict, chain)
-  pdf.trailerdict = updated
-  removed
 }
 
 ///|
@@ -1146,20 +1015,6 @@ pub fn lookup_fail(
 }
 
 ///|
-/// Same as lookup_fail, but with a customized exception.
-pub fn lookup_exception(
-  err : Error,
-  pdf : Pdf,
-  key : String,
-  dict : PdfObject,
-) -> PdfObject raise {
-  match lookup_direct(pdf, key, dict) {
-    Some(obj) => obj
-    None => raise err
-  }
-}
-
-///|
 /// Find the indirect reference given by the value associated with a key.
 pub fn find_indirect(key : String, dict : PdfObject) -> Int? raise {
   match dict {
@@ -1193,7 +1048,7 @@ pub fn recurse_array(
 
 ///|
 /// Recursively rebuild a dictionary.
-pub fn recurse_dict(
+fn recurse_dict(
   f : (PdfObject) -> PdfObject,
   elts : Array[(String, PdfObject)],
   preserve_order? : Bool = false,
@@ -1259,18 +1114,6 @@ pub fn objselfmap(
       _ => obj_ref.val = Parsed(updated)
     }
   }
-}
-
-///|
-/// Iterate over stream objects in a document.
-pub fn iter_stream(f : (PdfObject) -> Unit raise?, pdf : Pdf) -> Unit raise? {
-  objiter(
-    (_num, obj) => match obj {
-      Stream(_) => f(obj)
-      _ => ()
-    },
-    pdf,
-  )
 }
 
 ///|

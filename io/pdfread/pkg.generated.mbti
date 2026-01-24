@@ -9,12 +9,6 @@ import {
 }
 
 // Values
-pub let debug_always_treat_malformed : Ref[Bool]
-
-pub let endpage : Ref[(@pdf.Pdf) -> Int]
-
-pub let error_on_malformed : Ref[Bool]
-
 pub fn is_linearized(@pdfio.Input) -> Bool
 
 pub async fn pdf_of_channel(revision? : Int, source? : String, String?, String?, @fs.File) -> @pdf.Pdf
@@ -28,10 +22,6 @@ pub fn pdf_of_input(revision? : Int, String?, String?, @pdfio.Input) -> @pdf.Pdf
 pub fn pdf_of_input_lazy(revision? : Int, String?, String?, @pdfio.Input) -> @pdf.Pdf raise
 
 pub fn permissions(@pdf.Pdf) -> Array[@pdfcrypt.Permission]
-
-pub let read_debug : Ref[Bool]
-
-pub fn read_header(@pdfio.Input) -> (Int, Int) raise
 
 pub fn revisions(@pdfio.Input) -> Int raise
 

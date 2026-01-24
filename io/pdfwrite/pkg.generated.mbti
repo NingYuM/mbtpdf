@@ -9,11 +9,7 @@ import {
 }
 
 // Values
-pub fn debug_whole_pdf(@pdf.Pdf) -> Unit
-
 pub fn make_encryption(@pdfcrypt.EncryptionMethod, String, String, Array[@pdfcrypt.Permission]) -> Encryption
-
-pub fn make_hex_pdf_string(String) -> String
 
 pub async fn pdf_to_channel(preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, @fs.File) -> Unit
 
@@ -24,10 +20,6 @@ pub async fn pdf_to_file_options(preserve_objstm? : Bool, generate_objstm? : Boo
 pub fn pdf_to_output(preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, @pdfio.Output) -> Unit raise
 
 pub fn string_of_pdf(@pdf.PdfObject) -> String
-
-pub fn string_of_pdf_including_data(@pdf.PdfObject) -> String
-
-pub let write_debug : Ref[Bool]
 
 // Errors
 

@@ -1,46 +1,22 @@
 ///|
-test "predicates and toget" {
-  assert_true(is_delimiter('('))
-  assert_true(is_delimiter('%'))
-  assert_true(!is_delimiter('A'))
+test "toget and predicates" {
   assert_true(is_whitespace(' '))
   assert_true(is_whitespace('\n'))
   assert_true(!is_whitespace('A'))
-  assert_true(is_not_whitespace('A'))
-  assert_true(!is_not_whitespace(' '))
   let input = @pdfio.input_of_string("abc", source="test")
   let t = toget(input, 1, 2)
   assert_eq(length_of_toget(t), 2)
-  assert_eq(position_of_toget(t), 1)
-  let message = input_pdferror(input_of_toget(t), "oops")
-  assert_true(message.contains("oops whilst reading file test"))
 }
 
 ///|
-test "objmap and objects_of_list" {
-  let entry1 : PdfObjMapEntry = (
-    Ref::new(ObjectData::Parsed(PdfObject::Null)),
-    0,
-  )
-  let entry2 : PdfObjMapEntry = (
-    Ref::new(ObjectData::Parsed(PdfObject::Integer(42))),
-    0,
-  )
+test "objmap basics" {
   let map0 = pdfobjmap_empty()
-  let map1 = pdfobjmap_add(1, entry1, map0)
-  assert_eq(pdfobjmap_bindings(map1).length(), 1)
-  match pdfobjmap_find(1, map1).0.val {
-    ObjectData::Parsed(PdfObject::Null) => ()
-    _ => fail("expected parsed null")
-  }
-  assert_is_err(try? pdfobjmap_find(99, map1))
-  let map2 = pdfobjmap_add(2, entry2, map1)
-  assert_eq(pdfobjmap_bindings(map2).length(), 2)
-  let map3 = pdfobjmap_remove(1, map2)
-  assert_eq(pdfobjmap_bindings(map3).length(), 1)
-  let objects = objects_of_list(None, [(2, entry2), (1, entry1)])
-  assert_eq(objects.max_obj_num, 2)
-  assert_eq(objects.objects.length(), 2)
+  assert_eq(pdfobjmap_bindings(map0).length(), 0)
+  // Basic map operations are tested via the Pdf structure
+  let pdf = empty()
+  addobj_given_num(pdf, (1, PdfObject::Null))
+  addobj_given_num(pdf, (2, PdfObject::Integer(42)))
+  assert_eq(objnumbers(pdf).length(), 2)
 }
 
 ///|
@@ -154,21 +130,6 @@ test "dictionary helpers" {
   assert_is_err(
     try? add_dict_entry(PdfObject::Integer(1), "/A", PdfObject::Integer(2)),
   )
-  assert_eq(
-    unique_key(
-      "P",
-      PdfObject::Dictionary([("/P0", PdfObject::Null), ("/P1", PdfObject::Null)]),
-    ),
-    "/P2",
-  )
-  let stream_obj4 = make_stream(
-    PdfObject::Dictionary([("/K0", PdfObject::Null)]),
-    data,
-  )
-  assert_eq(unique_key("K", stream_obj4), "/K1")
-  let bad_stream = make_stream(PdfObject::Integer(1), data)
-  assert_is_err(try? unique_key("X", bad_stream))
-  assert_is_err(try? unique_key("X", PdfObject::Integer(1)))
 }
 
 ///|
@@ -287,28 +248,6 @@ test "lookup and chains" {
       }
     _ => fail("expected stream")
   }
-  let removed = remove_chain(pdf2, ["/X", "/Y"][:])
-  assert_true(removed)
-  match lookup_chain(pdf2, pdf2.trailerdict, ["/X", "/Y"][:]) {
-    None => ()
-    _ => fail("expected none")
-  }
-  assert_true(!remove_chain(pdf2, ([] : Array[String])[:]))
-  pdf2.trailerdict = PdfObject::Dictionary([
-    ("/A", PdfObject::Integer(1)),
-    ("/B", PdfObject::Integer(2)),
-  ])
-  let removed_direct = remove_chain(pdf2, ["/A"][:])
-  assert_true(removed_direct)
-  let stream_chain = make_stream(
-    PdfObject::Dictionary([("/Z", PdfObject::Integer(1))]),
-    data,
-  )
-  pdf2.trailerdict = stream_chain
-  let removed_stream = remove_chain(pdf2, ["/Z"][:])
-  assert_true(removed_stream)
-  pdf2.trailerdict = PdfObject::Integer(1)
-  assert_is_err(try? remove_chain(pdf2, ["/Z", "/W"][:]))
   let dict_indirect = PdfObject::Dictionary([("/A", PdfObject::Indirect(1))])
   assert_eq(indirect_number(pdf, "/A", dict_indirect), Some(1))
   assert_eq(indirect_number(pdf, "/B", dict_indirect), None)

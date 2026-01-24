@@ -13,7 +13,7 @@ pub(all) enum Encoding {
 ///|
 /// Predictors for decoded data.
 #warnings("-unused_constructor")
-pub enum Predictor {
+enum Predictor {
   TIFF2
   PNGNone
   PNGSub
@@ -32,11 +32,7 @@ pub suberror CodecError {
 
 ///|
 /// Setting this changes globally the FlateDecode compression level. Default 6.
-pub let flate_level : Ref[Int] = { val: 6 }
-
-///|
-/// Setting this boolean prints some debug information.
-pub let debug : Ref[Bool] = { val: false }
+let flate_level : Ref[Int] = { val: 6 }
 
 ///|
 /// Inter-module recursion hooks (placeholders for now).
@@ -710,7 +706,7 @@ fn read_run(maxcols : Int, input : @pdfio.Bitstream) -> (Bool, Int) raise {
 
 ///|
 /// Encode data in CCITTDecode Group 3.
-pub fn encode_ccitt(
+fn encode_ccitt(
   _columns : Int,
   _rows : Int,
   _data : @pdfio.MutableBytes,
@@ -749,81 +745,6 @@ pub fn encode_ccitt(
     Failure::Failure(_) =>
       raise CodecError::CouldntDecodeStream("encode_ccitt: not enough data")
     _ => raise CodecError::CouldntDecodeStream("encode_ccitt: not enough data")
-  }
-}
-
-///|
-async fn[T] run_async_mapped(
-  context : String,
-  load : async () -> T,
-) -> T raise CodecError {
-  let res : Result[T, Error] = try? load()
-  match res {
-    Ok(value) => value
-    Err(err) => raise CodecError::CouldntDecodeStream("\{context}: \{err}")
-  }
-}
-
-///|
-
-///|
-fn extract_ccittg4_stream(
-  pdf : @pdf.Pdf,
-) -> @pdfio.MutableBytes raise CodecError {
-  fn fail_obj() -> @pdf.PdfObject raise CodecError {
-    raise CodecError::DecodeNotSupported("malformed PDF from imagemagick")
-  }
-
-  fn fail_bytes() -> @pdfio.MutableBytes raise CodecError {
-    raise CodecError::DecodeNotSupported("malformed PDF from imagemagick")
-  }
-
-  let root = match @pdf.lookup_direct(pdf, "/Root", pdf.trailerdict) {
-    Some(obj) => obj
-    None => fail_obj()
-  }
-  let pages = match @pdf.lookup_direct(pdf, "/Pages", root) {
-    Some(obj) => obj
-    None => fail_obj()
-  }
-  let kids_obj = match @pdf.lookup_direct(pdf, "/Kids", pages) {
-    Some(obj) => obj
-    None => fail_obj()
-  }
-  let kid0 = match (kids_obj : @pdf.PdfObject) {
-    Array(kids) =>
-      if kids.length() > 0 {
-        @pdf.direct(pdf, kids[0])
-      } else {
-        fail_obj()
-      }
-    _ => fail_obj()
-  }
-  let resources = match @pdf.lookup_direct(pdf, "/Resources", kid0) {
-    Some(obj) => obj
-    None => fail_obj()
-  }
-  let xobject = match @pdf.lookup_direct(pdf, "/XObject", resources) {
-    Some(obj) => obj
-    None => fail_obj()
-  }
-  let im0 = match @pdf.lookup_direct(pdf, "/Im0", xobject) {
-    Some(obj) => obj
-    None => fail_obj()
-  }
-  match (im0 : @pdf.PdfObject) {
-    Stream(r) => {
-      ignore(@pdf.getstream(im0)) catch {
-        _ =>
-          raise CodecError::DecodeNotSupported("malformed PDF from imagemagick")
-      }
-      let (_, stream_data) = r.val
-      match (stream_data : @pdf.Stream) {
-        Got(data) => data
-        _ => fail_bytes()
-      }
-    }
-    _ => fail_bytes()
   }
 }
 
@@ -965,7 +886,7 @@ fn encode_ccittg4_pure(
 
 ///|
 /// Encode data in CCITTDecode Group 4.
-pub fn encode_ccittg4(
+fn encode_ccittg4(
   _columns : Int,
   _rows : Int,
   _data : @pdfio.MutableBytes,
@@ -981,64 +902,6 @@ pub fn encode_ccittg4(
         "encode_ccittg4: use encode_ccittg4_async for imagemagick path",
       )
   }
-}
-
-///|
-/// Encode data in CCITTDecode Group 4 via imagemagick (async I/O).
-pub async fn encode_ccittg4_async(
-  columns : Int,
-  rows : Int,
-  data : @pdfio.MutableBytes,
-  im_path : String,
-) -> @pdfio.MutableBytes raise CodecError {
-  let dir = match @env.current_dir() {
-    Some(path) => path
-    None => "."
-  }
-  let stamp = @env.now().to_string()
-  let input_path = "\{dir}/mbtpdf_ccittg4_\{stamp}.raw"
-  let output_path = "\{dir}/mbtpdf_ccittg4_\{stamp}.pdf"
-  let bytes = try {
-    run_async_mapped("write ccittg4 input", () => @fs.write_file(
-      input_path,
-      Bytes::from_array(data),
-    ))
-    let args = [
-      "-depth",
-      "1",
-      "-size",
-      "\{columns}x\{rows}",
-      input_path,
-      "-compress",
-      "GROUP4",
-      output_path,
-    ]
-    let exit_code = run_async_mapped("run imagemagick", () => @process.run(
-      im_path, args,
-    ))
-    if exit_code > 0 {
-      raise CodecError::DecodeNotSupported("magick return code non-zero")
-    }
-    let pdf = (pdf_of_file.val)(None, None, None, output_path) catch {
-      _ =>
-        raise CodecError::DecodeNotSupported("malformed PDF from imagemagick")
-    }
-    extract_ccittg4_stream(pdf)
-  } catch {
-    CodecError::CouldntDecodeStream(msg) => {
-      let _ : Result[Unit, Error] = try? @fs.remove(input_path)
-      let _ : Result[Unit, Error] = try? @fs.remove(output_path)
-      raise CodecError::CouldntDecodeStream(msg)
-    }
-    CodecError::DecodeNotSupported(msg) => {
-      let _ : Result[Unit, Error] = try? @fs.remove(input_path)
-      let _ : Result[Unit, Error] = try? @fs.remove(output_path)
-      raise CodecError::DecodeNotSupported(msg)
-    }
-  }
-  let _ : Result[Unit, Error] = try? @fs.remove(input_path)
-  let _ : Result[Unit, Error] = try? @fs.remove(output_path)
-  bytes
 }
 
 ///|
@@ -1401,247 +1264,6 @@ pub fn decode_pdfstream_until_unknown(
 }
 
 ///|
-/// Decode a PDF stream, updating the document (async variant with JBIG2).
-pub async fn decode_pdfstream_async(
-  _pdf : @pdf.Pdf,
-  _obj : @pdf.PdfObject,
-  jbig2dec? : String,
-) -> Unit raise CodecError {
-  async fn decode_one_stage(
-    pdf : @pdf.Pdf,
-    obj : @pdf.PdfObject,
-  ) -> Unit raise CodecError {
-    match (obj : @pdf.PdfObject) {
-      Stream(r) => {
-        let (dict, _stream) = r.val
-        let filter_opt = @pdf.lookup_direct_orelse(pdf, "/Filter", "/F", dict)
-        match filter_opt {
-          None => ()
-          Some(Name(_)) | Some(Array(_)) => {
-            let before = (string_of_pdf.val)(dict)
-            decode_pdfstream_onestage_async(pdf, obj, jbig2dec?)
-            let (after_dict, _after_stream) = r.val
-            let after = (string_of_pdf.val)(after_dict)
-            if before != after {
-              decode_one_stage(pdf, obj)
-            }
-          }
-          Some(_) => raise CodecError::CouldntDecodeStream("malformed /Filter")
-        }
-      }
-      Indirect(i) => decode_one_stage(pdf, @pdf.direct(pdf, Indirect(i)))
-      _ => raise CodecError::CouldntDecodeStream("malformed stream")
-    }
-  }
-
-  decode_one_stage(_pdf, _obj)
-}
-
-///|
-/// Decode just one stage of a PDF stream (async variant with JBIG2).
-pub async fn decode_pdfstream_onestage_async(
-  pdf : @pdf.Pdf,
-  obj : @pdf.PdfObject,
-  jbig2dec? : String,
-) -> Unit raise CodecError {
-  match (obj : @pdf.PdfObject) {
-    Stream(r) => {
-      let (dict, _stream) = r.val
-      let (filter_key, filter_opt) = match
-        @pdf.lookup_immediate("/Filter", dict) {
-        Some(_) => ("/Filter", @pdf.lookup_direct(pdf, "/Filter", dict))
-        None =>
-          match @pdf.lookup_immediate("/F", dict) {
-            Some(_) => ("/F", @pdf.lookup_direct(pdf, "/F", dict))
-            None => ("/Filter", None)
-          }
-      }
-      let (parms_key, parms) = match
-        @pdf.lookup_immediate("/DecodeParms", dict) {
-        Some(_) =>
-          ("/DecodeParms", @pdf.lookup_direct(pdf, "/DecodeParms", dict))
-        None =>
-          match @pdf.lookup_immediate("/DP", dict) {
-            Some(_) => ("/DP", @pdf.lookup_direct(pdf, "/DP", dict))
-            None => ("/DecodeParms", None)
-          }
-      }
-      match filter_opt {
-        None => raise CodecError::DecodeNotSupported("no filter")
-        Some(filter_obj) => {
-          let (filter_name, remaining_filters) : (
-            String,
-            Array[@pdf.PdfObject]?,
-          ) = match (filter_obj : @pdf.PdfObject) {
-            Name(name) => (name, None)
-            Array([]) =>
-              raise CodecError::DecodeNotSupported("empty filter array")
-            Array([Name(name), .. rest]) => (name, Some(rest.to_array()))
-            Array(_) =>
-              raise CodecError::DecodeNotSupported("invalid filter entry")
-            _ => raise CodecError::DecodeNotSupported("invalid filter")
-          }
-          map_pdf_error("getstream", fn() raise { @pdf.getstream(obj) })
-          let data = match r.val {
-            (_, @pdf.Stream::Got(bytes)) => bytes
-            _ =>
-              raise CodecError::CouldntDecodeStream("stream data not available")
-          }
-          let parms_first = match parms {
-            Some(Array(arr)) =>
-              if arr.length() > 0 {
-                Some(arr[0])
-              } else {
-                None
-              }
-            Some(Null) => None
-            Some(other) => Some(other)
-            None => None
-          }
-          let decoded = if filter_name == "/FlateDecode" || filter_name == "/Fl" {
-            let mut decoded = decode_flate(data)
-            match parms_first {
-              Some(Dictionary(_)) => {
-                let predictor = get_int_param(pdf, parms_first, "/Predictor", 1)
-                if predictor != 1 {
-                  let colors = get_int_param(pdf, parms_first, "/Colors", 1)
-                  let bpc = get_int_param(
-                    pdf, parms_first, "/BitsPerComponent", 8,
-                  )
-                  let columns = get_int_param(pdf, parms_first, "/Columns", 1)
-                  decoded = decode_predictor(
-                    predictor, colors, bpc, columns, decoded,
-                  )
-                }
-              }
-              _ => ()
-            }
-            decoded
-          } else if filter_name == "/ASCIIHexDecode" || filter_name == "/AHx" {
-            decode_asciihex(@pdfio.input_of_bytes(data, source="asciihex"))
-          } else if filter_name == "/ASCII85Decode" || filter_name == "/A85" {
-            decode_ascii85(@pdfio.input_of_bytes(data, source="ascii85"))
-          } else if filter_name == "/RunLengthDecode" || filter_name == "/RL" {
-            decode_runlength(@pdfio.input_of_bytes(data, source="runlength"))
-          } else if filter_name == "/LZWDecode" || filter_name == "/LZW" {
-            let early = get_int_param(pdf, parms_first, "/EarlyChange", 1)
-            decode_lzw(early, @pdfio.input_of_bytes(data, source="lzw"))
-          } else if filter_name == "/Crypt" {
-            data
-          } else if filter_name == "/JBIG2Decode" {
-            let jbig2_path = match jbig2dec {
-              Some(path) => path
-              None =>
-                raise CodecError::DecodeNotSupported(
-                  "JBIG2Decode requires jbig2dec",
-                )
-            }
-            let globals = jbig2_globals(pdf, parms_first)
-            decode_jbig2(
-              globals,
-              jbig2_path,
-              @pdfio.input_of_bytes(data, source="jbig2"),
-            )
-          } else if filter_name == "/CCITTFaxDecode" || filter_name == "/CCF" {
-            let k = get_int_param(pdf, parms_first, "/K", 0)
-            let eol = get_bool_param(pdf, parms_first, "/EndOfLine", false)
-            let eba = get_bool_param(
-              pdf, parms_first, "/EncodedByteAlign", false,
-            )
-            let columns = get_int_param(pdf, parms_first, "/Columns", 1728)
-            let rows = get_int_param(pdf, parms_first, "/Rows", 0)
-            let eob = get_bool_param(pdf, parms_first, "/EndOfBlock", true)
-            let bone = get_bool_param(pdf, parms_first, "/BlackIs1", false)
-            let dra = get_int_param(
-              pdf, parms_first, "/DamagedRowsBeforeError", 0,
-            )
-            decode_ccittfax(
-              k,
-              eol,
-              eba,
-              columns,
-              rows,
-              eob,
-              bone,
-              dra,
-              @pdfio.input_of_bytes(data, source="ccitt"),
-            )
-          } else {
-            raise CodecError::DecodeNotSupported(
-              "filter not supported: \{filter_name}",
-            )
-          }
-          let mut new_dict = dict
-          new_dict = match remaining_filters {
-            None =>
-              map_pdf_error("remove filter", fn() raise {
-                @pdf.remove_dict_entry(new_dict, filter_key)
-              })
-            Some(rest) =>
-              if rest.length() == 0 {
-                map_pdf_error("remove filter", fn() raise {
-                  @pdf.remove_dict_entry(new_dict, filter_key)
-                })
-              } else {
-                map_pdf_error("replace filter", fn() raise {
-                  @pdf.replace_dict_entry(
-                    new_dict,
-                    filter_key,
-                    @pdf.PdfObject::Array(rest),
-                  )
-                })
-              }
-          }
-          new_dict = match parms {
-            None => new_dict
-            Some(Array(arr)) => {
-              let rest = arr.sub(start=1).to_array()
-              if rest.length() == 0 {
-                map_pdf_error("remove decode parms", fn() raise {
-                  @pdf.remove_dict_entry(new_dict, parms_key)
-                })
-              } else {
-                map_pdf_error("replace decode parms", fn() raise {
-                  @pdf.replace_dict_entry(
-                    new_dict,
-                    parms_key,
-                    @pdf.PdfObject::Array(rest),
-                  )
-                })
-              }
-            }
-            Some(_) =>
-              map_pdf_error("remove decode parms", fn() raise {
-                @pdf.remove_dict_entry(new_dict, parms_key)
-              })
-          }
-          new_dict = set_dict_entry(
-            new_dict,
-            "/Length",
-            @pdf.PdfObject::Integer(@pdfio.bytes_size(decoded)),
-          )
-          r.val = (new_dict, @pdf.Stream::Got(decoded))
-        }
-      }
-    }
-    _ => raise CodecError::DecodeNotSupported("not a stream")
-  }
-}
-
-///|
-/// Decode until there's an unknown decoder (async variant with JBIG2).
-pub async fn decode_pdfstream_until_unknown_async(
-  _pdf : @pdf.Pdf,
-  _obj : @pdf.PdfObject,
-  jbig2dec? : String,
-) -> Unit raise CodecError {
-  decode_pdfstream_async(_pdf, _obj, jbig2dec?) catch {
-    CodecError::DecodeNotSupported(_) => ()
-    err => raise err
-  }
-}
-
-///|
 /// Decode bytes using filters in dict; returns None when decoder unsupported.
 pub fn decode_from_bytes(
   bytes : @pdfio.MutableBytes,
@@ -1746,27 +1368,6 @@ pub fn decode_from_bytes(
     }
     _ => None
   }
-}
-
-///|
-/// Decode from input; returns None when decoder unsupported.
-pub fn decode_from_input(
-  input : @pdfio.Input,
-  dict : @pdf.PdfObject,
-) -> @pdfio.MutableBytes? {
-  let start = (input.pos_in)()
-  let length = input.in_channel_length - start
-  if length < 0 {
-    return None
-  }
-  let data_res : Result[@pdfio.MutableBytes, Error] = try? @pdfio.bytes_of_input(
-    input, start, length,
-  )
-  let data = match data_res {
-    Ok(bytes) => bytes
-    Err(_) => return None
-  }
-  decode_from_bytes(data, dict)
 }
 
 ///|
@@ -1933,7 +1534,7 @@ fn encode_tiff_predictor(
 }
 
 ///|
-pub fn encode_predictor(
+fn encode_predictor(
   _pred : Int,
   _colors : Int,
   _bpc : Int,
@@ -1958,7 +1559,7 @@ pub fn encode_predictor(
 
 ///|
 /// Decode predictor (placeholder).
-pub fn decode_predictor(
+fn decode_predictor(
   _pred : Int,
   _colors : Int,
   _bpc : Int,

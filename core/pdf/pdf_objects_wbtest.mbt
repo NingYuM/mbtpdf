@@ -30,9 +30,6 @@ test "lookup helpers and catalog" {
   let dict = PdfObject::Dictionary([("/A", PdfObject::Integer(1))])
   assert_integer(lookup_fail("err", pdf, "/A", dict), 1)
   assert_is_err(try? lookup_fail("err", pdf, "/B", dict))
-  let err = PdfError::Msg("boom")
-  assert_integer(lookup_exception(err, pdf, "/A", dict), 1)
-  assert_is_err(try? lookup_exception(err, pdf, "/B", dict))
   let dict_indirect = PdfObject::Dictionary([("/A", PdfObject::Indirect(5))])
   assert_eq(find_indirect("/A", dict_indirect), Some(5))
   let dict_non_indirect = PdfObject::Dictionary([("/A", PdfObject::Integer(7))])
@@ -63,17 +60,6 @@ test "recurse and iterators" {
     PdfObject::Array(values) => assert_eq(values.length(), 2)
     _ => fail("expected array")
   }
-  match
-    recurse_dict(
-      obj => match obj {
-        PdfObject::Integer(v) => PdfObject::Integer(v + 1)
-        _ => obj
-      },
-      [("/A", PdfObject::Integer(1))],
-    ) {
-    PdfObject::Dictionary(entries) => assert_eq(entries.length(), 1)
-    _ => fail("expected dictionary")
-  }
   let seen = Ref::new(([] : Array[Int]))
   objiter((num, _obj) => seen.val.push(num), pdf)
   assert_eq(seen.val, [1, 2])
@@ -100,9 +86,6 @@ test "recurse and iterators" {
     @pdfio.bytes_of_string("x"),
   )
   addobj_given_num(pdf, (4, stream))
-  let stream_count = Ref::new(0)
-  iter_stream(_obj => stream_count.val = stream_count.val + 1, pdf)
-  assert_eq(stream_count.val, 1)
   let selected = objselect(
     obj => match obj {
       PdfObject::Integer(_) => true

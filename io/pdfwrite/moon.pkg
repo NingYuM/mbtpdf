@@ -13,3 +13,10 @@ import "test" {
   "bobzhang/mbtpdf/document/pdfpage",
   "moonbitlang/async",
 }
+
+import "wbtest" {
+  "bobzhang/mbtpdf/core/pdfcryptprimitives",
+  "bobzhang/mbtpdf/io/pdfread",
+  "bobzhang/mbtpdf/document/pdfpage",
+  "moonbitlang/async",
+}
