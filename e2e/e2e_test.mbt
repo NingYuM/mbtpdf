@@ -885,10 +885,10 @@ async test "e2e merge preserves page labels" {
       startvalue: 1,
     },
   ]
-  @pdfpagelabels.write(left, left_labels)
-  @pdfpagelabels.write(right, right_labels)
-  let left_read = @pdfpagelabels.read(left)
-  let right_read = @pdfpagelabels.read(right)
+  @pdfpagelabels.PageLabel::write_all(left_labels, left)
+  @pdfpagelabels.PageLabel::write_all(right_labels, right)
+  let left_read = @pdfpagelabels.PageLabel::read_all(left)
+  let right_read = @pdfpagelabels.PageLabel::read_all(right)
   match left_read {
     [label, ..] =>
       match label.labelprefix {
@@ -919,13 +919,13 @@ async test "e2e merge preserves page labels" {
     [left, right],
     [full_range(left_count), full_range(right_count)],
   )
-  let in_memory_labels = @pdfpagelabels.read(merged)
+  let in_memory_labels = @pdfpagelabels.PageLabel::read_all(merged)
   assert_merged_label_prefixes(in_memory_labels, left_count)
   ensure_dir(OUTPUT_DIR)
   let out_path = OUTPUT_DIR + "/merged_labels.pdf"
   write_pdf(out_path, merged)
   let parsed = read_pdf(out_path)
-  let labels = @pdfpagelabels.read(parsed)
+  let labels = @pdfpagelabels.PageLabel::read_all(parsed)
   assert_merged_label_prefixes(labels, left_count)
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
@@ -1979,12 +1979,12 @@ async test "e2e page labels roundtrip" {
       startvalue: 1,
     },
   ]
-  @pdfpagelabels.write(pdf, labels)
+  @pdfpagelabels.PageLabel::write_all(labels, pdf)
   ensure_dir(OUTPUT_DIR)
   let out_path = OUTPUT_DIR + "/pagelabels.pdf"
   write_pdf(out_path, pdf)
   let parsed = read_pdf(out_path)
-  let read_back = @pdfpagelabels.read(parsed)
+  let read_back = @pdfpagelabels.PageLabel::read_all(parsed)
   assert_eq(read_back.length(), 2)
   match read_back[0].labelprefix {
     Some("E2E-") => ()

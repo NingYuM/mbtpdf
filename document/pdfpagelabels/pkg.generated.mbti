@@ -21,12 +21,6 @@ pub fn pagelabel_of_pagenumber(Int, Array[PageLabel]) -> PageLabel raise
 
 pub fn pagelabeltext_of_pagenumber(Int, Array[PageLabel]) -> String raise
 
-pub fn read(@pdf.Pdf) -> Array[PageLabel] raise
-
-pub fn remove(@pdf.Pdf) -> Unit raise
-
-pub fn write(@pdf.Pdf, Array[PageLabel]) -> Unit raise
-
 // Errors
 
 // Types and methods
@@ -47,7 +41,13 @@ pub(all) struct PageLabel {
   startpage : Int
   startvalue : Int
 }
+#as_free_fn(read, deprecated)
+pub fn PageLabel::read_all(@pdf.Pdf) -> Array[Self] raise
+#as_free_fn(remove, deprecated)
+pub fn PageLabel::remove_all(@pdf.Pdf) -> Unit raise
 pub fn PageLabel::to_string(Self) -> String
+#as_free_fn(write, deprecated)
+pub fn PageLabel::write_all(Array[Self], @pdf.Pdf) -> Unit raise
 pub impl @debug.Debug for PageLabel
 
 // Type aliases

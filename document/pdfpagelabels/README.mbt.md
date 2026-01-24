@@ -54,28 +54,28 @@ pub let basic_label : PageLabel
 
 ## Functions
 
-### read
+### PageLabel::read_all
 
 Read page labels from a document.
 
 ```moonbit nocheck
-pub fn read(pdf : @pdf.Pdf) -> Array[PageLabel] raise
+pub fn PageLabel::read_all(pdf : @pdf.Pdf) -> Array[PageLabel] raise
 ```
 
-### write
+### PageLabel::write_all
 
 Write page labels to a document, replacing any existing labels.
 
 ```moonbit nocheck
-pub fn write(pdf : @pdf.Pdf, labels : Array[PageLabel]) -> Unit raise
+pub fn PageLabel::write_all(labels : Array[PageLabel], pdf : @pdf.Pdf) -> Unit raise
 ```
 
-### remove
+### PageLabel::remove_all
 
 Remove all page labels from a document.
 
 ```moonbit nocheck
-pub fn remove(pdf : @pdf.Pdf) -> Unit raise
+pub fn PageLabel::remove_all(pdf : @pdf.Pdf) -> Unit raise
 ```
 
 ### complete

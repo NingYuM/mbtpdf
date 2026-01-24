@@ -1099,7 +1099,7 @@ pub fn merge_pdfs(
     saved_encryption: pdf.saved_encryption,
   }
   let pdf = merge_bookmarks(changes, pdfs, ranges, pdf)
-  @pdfpagelabels.write(pdf, page_labels)
+  @pdfpagelabels.PageLabel::write_all(page_labels, pdf)
   if do_remove_duplicate_fonts {
     remove_duplicate_fonts(pdf)
   }

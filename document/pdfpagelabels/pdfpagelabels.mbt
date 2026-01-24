@@ -86,7 +86,8 @@ fn label_of_range(
 
 ///|
 /// Read page labels from a document.
-pub fn read(pdf : @pdf.Pdf) -> Array[PageLabel] raise {
+#as_free_fn(read, deprecated="Use `PageLabel::read_all` instead")
+pub fn PageLabel::read_all(pdf : @pdf.Pdf) -> Array[PageLabel] raise {
   match @pdf.lookup_direct(pdf, "/PageLabels", @pdf.lookup_obj(pdf, pdf.root)) {
     None => []
     Some(labeltree) => {
@@ -320,7 +321,7 @@ pub fn merge_pagelabels(
 ) -> Array[PageLabel] raise {
   let completed = Array::new(capacity=pdfs.length())
   for pdf in pdfs {
-    completed.push(complete(read(pdf)))
+    completed.push(complete(PageLabel::read_all(pdf)))
   }
   let new_labels = Array::new(capacity=completed.length())
   for i in 0..<completed.length() {
@@ -346,9 +347,13 @@ pub fn merge_pagelabels(
 
 ///|
 /// Write page labels to a document, replacing any there.
-pub fn write(pdf : @pdf.Pdf, labels : Array[PageLabel]) -> Unit raise {
+#as_free_fn(write, deprecated="Use `PageLabel::write_all` instead")
+pub fn PageLabel::write_all(
+  labels : Array[PageLabel],
+  pdf : @pdf.Pdf,
+) -> Unit raise {
   if labels.length() == 0 {
-    remove(pdf)
+    PageLabel::remove_all(pdf)
   } else {
     let arr = Array::new()
     for label in labels {
@@ -392,7 +397,8 @@ pub fn write(pdf : @pdf.Pdf, labels : Array[PageLabel]) -> Unit raise {
 
 ///|
 /// Remove all page labels.
-pub fn remove(pdf : @pdf.Pdf) -> Unit raise {
+#as_free_fn(remove, deprecated="Use `PageLabel::remove_all` instead")
+pub fn PageLabel::remove_all(pdf : @pdf.Pdf) -> Unit raise {
   let rootnum = pdf.root
   let root = @pdf.lookup_obj(pdf, rootnum)
   let updated_root = root.remove_entry("/PageLabels")

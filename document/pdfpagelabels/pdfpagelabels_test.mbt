@@ -164,8 +164,8 @@ test "merge_pagelabels combines ranges" {
       startvalue: 1,
     },
   ]
-  @pdfpagelabels.write(pdf1, labels1)
-  @pdfpagelabels.write(pdf2, labels2)
+  @pdfpagelabels.PageLabel::write_all(labels1, pdf1)
+  @pdfpagelabels.PageLabel::write_all(labels2, pdf2)
   let merged = merge_pagelabels([pdf1, pdf2], [[1, 2], [1]])
   assert_eq(merged.length(), 2)
   match merged[0].labelprefix {
@@ -209,16 +209,16 @@ test "write/read pagelabels roundtrip" {
       startvalue: 1,
     },
   ]
-  @pdfpagelabels.write(pdf, labels)
-  let read_back = @pdfpagelabels.read(pdf)
+  @pdfpagelabels.PageLabel::write_all(labels, pdf)
+  let read_back = @pdfpagelabels.PageLabel::read_all(pdf)
   assert_eq(read_back.length(), 2)
   match read_back[0].labelprefix {
     Some("A") => ()
     _ => fail("expected prefix A")
   }
   assert_eq(read_back[1].startpage, 3)
-  @pdfpagelabels.remove(pdf)
-  assert_eq(@pdfpagelabels.read(pdf).length(), 0)
+  @pdfpagelabels.PageLabel::remove_all(pdf)
+  assert_eq(@pdfpagelabels.PageLabel::read_all(pdf).length(), 0)
 }
 
 ///|
@@ -259,7 +259,7 @@ test "read handles label styles and bad startpage" {
     Dictionary([("/P", String("P"))]),
   ]
   set_page_labels(pdf, nums)
-  let labels = @pdfpagelabels.read(pdf)
+  let labels = @pdfpagelabels.PageLabel::read_all(pdf)
   assert_eq(labels.length(), 6)
   assert_eq(labels[0].startpage, 1)
   match labels[0].labelstyle {
@@ -428,8 +428,8 @@ test "write handles all labelstyle variants" {
       startvalue: 2,
     },
   ]
-  @pdfpagelabels.write(pdf, labels)
-  let read_back = @pdfpagelabels.read(pdf)
+  @pdfpagelabels.PageLabel::write_all(labels, pdf)
+  let read_back = @pdfpagelabels.PageLabel::read_all(pdf)
   assert_eq(read_back.length(), 3)
   match read_back[0].labelstyle {
     LabelStyle::NoLabelPrefixOnly => ()

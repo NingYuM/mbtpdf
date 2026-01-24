@@ -115,9 +115,9 @@ test "pdf_of_pages retains page labels when requested" {
       startvalue: 1,
     },
   ]
-  @pdfpagelabels.write(pdf, labels)
+  @pdfpagelabels.PageLabel::write_all(labels, pdf)
   let subset = @pdfpage.pdf_of_pages(pdf, [1, 2], retain_numbering=true)
-  let read_back = @pdfpagelabels.read(subset)
+  let read_back = @pdfpagelabels.PageLabel::read_all(subset)
   assert_true(read_back.length() > 0)
 }
 

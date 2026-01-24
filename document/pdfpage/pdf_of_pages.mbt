@@ -139,7 +139,7 @@ pub fn pdf_of_pages(
   if range.length() == 0 {
     raise @pdf.PdfError::Msg("pdf_of_pages: cannot build PDF with no pages")
   }
-  let page_labels = if @pdfpagelabels.read(basepdf).length() == 0 {
+  let page_labels = if @pdfpagelabels.PageLabel::read_all(basepdf).length() == 0 {
     []
   } else if retain_numbering {
     @pdfpagelabels.merge_pagelabels([basepdf], [range])
@@ -243,7 +243,7 @@ pub fn pdf_of_pages(
   let new_pagetree = pdf_of_pages_build_pagetree(thetree, objnumbers, pdf)
   @pdf.addobj_given_num(pdf, (old_pagetree_root_num, new_pagetree))
   let pdf = add_root(old_pagetree_root_num, existing_root_entries, pdf)
-  @pdfpagelabels.write(pdf, page_labels)
+  @pdfpagelabels.PageLabel::write_all(page_labels, pdf)
   let pdf = @pdfmarks.add_bookmarks(marks, pdf)
   fixup_duplicate_pages(pdf)
   fixup_parents(pdf)
