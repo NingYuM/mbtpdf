@@ -56,14 +56,21 @@ Missing components default to sensible values (month/day to 1, time to 0, offset
 ///|
 test "date_of_string parses full dates" {
   let parsed = @pdfdate.date_of_string("D:20240203040506-07'15'")
-  inspect(parsed.year, content="2024")
-  inspect(parsed.month, content="2")
-  inspect(parsed.day, content="3")
-  inspect(parsed.hour, content="4")
-  inspect(parsed.minute, content="5")
-  inspect(parsed.second, content="6")
-  inspect(parsed.hour_offset, content="-7")
-  inspect(parsed.minute_offset, content="-15")
+  debug_inspect(
+    parsed,
+    content=(
+      #|{
+      #|  year: 2024,
+      #|  month: 2,
+      #|  day: 3,
+      #|  hour: 4,
+      #|  minute: 5,
+      #|  second: 6,
+      #|  hour_offset: -7,
+      #|  minute_offset: -15,
+      #|}
+    ),
+  )
 }
 ```
 
@@ -73,10 +80,21 @@ test "date_of_string parses full dates" {
 ///|
 test "date_of_string parses short forms" {
   let parsed = @pdfdate.date_of_string("2024")
-  inspect(parsed.year, content="2024")
-  inspect(parsed.month, content="1") // defaults to 1
-  inspect(parsed.day, content="1") // defaults to 1
-  inspect(parsed.hour, content="0") // defaults to 0
+  debug_inspect(
+    parsed,
+    content=(
+      #|{
+      #|  year: 2024,
+      #|  month: 1,
+      #|  day: 1,
+      #|  hour: 0,
+      #|  minute: 0,
+      #|  second: 0,
+      #|  hour_offset: 0,
+      #|  minute_offset: 0,
+      #|}
+    ),
+  )
 }
 ```
 
@@ -111,9 +129,21 @@ This parser recognizes the `19100` prefix as a special case and interprets it as
 test "date_of_string handles 19100 Y2K quirk" {
   // "19100" was a common Y2K bug: 1900 + 100 = 19100 instead of 2000
   let parsed = @pdfdate.date_of_string("D:19100")
-  inspect(parsed.year, content="2000") // Corrected to year 2000
-  inspect(parsed.month, content="1")
-  inspect(parsed.day, content="1")
+  debug_inspect(
+    parsed,
+    content=(
+      #|{
+      #|  year: 2000,
+      #|  month: 1,
+      #|  day: 1,
+      #|  hour: 0,
+      #|  minute: 0,
+      #|  second: 0,
+      #|  hour_offset: 0,
+      #|  minute_offset: 0,
+      #|}
+    ),
+  )
 }
 ```
 
