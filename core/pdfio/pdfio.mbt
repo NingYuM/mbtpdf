@@ -73,10 +73,9 @@ pub fn bset_unsafe(bytes : MutableBytes, index : Int, value : Int) -> Unit {
 ///|
 /// Make bytes from a string by taking the low 8 bits of each character.
 pub fn bytes_of_string(s : String) -> MutableBytes {
-  let chars = s.to_array()
-  let out = Array::new(capacity=chars.length())
-  for c in chars {
-    out.push(c.to_int().to_byte())
+  let out = Array::new(capacity=s.length())
+  for ch in s {
+    out.push(ch.to_int().to_byte())
   }
   out
 }
