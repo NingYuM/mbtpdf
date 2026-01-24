@@ -184,7 +184,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
       flags: 0,
     },
   ]
-  let pdf = @pdfmarks.add_bookmarks(bookmarks, pdf)
+  let pdf = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(bookmarks)
   let catalog = @pdf.catalog_of_pdf(pdf)
   let catalog = catalog.add_entry("/OpenAction", dest1)
   @pdf.addobj_given_num(pdf, (pdf.root, catalog))

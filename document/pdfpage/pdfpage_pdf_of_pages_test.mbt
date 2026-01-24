@@ -50,7 +50,7 @@ fn pdf_of_pages_with_bookmarks(count : Int) -> @pdf.Pdf raise {
       flags: 0,
     },
   ]
-  @pdfmarks.add_bookmarks(marks, pdf)
+  @pdfmarks.PdfMarks::new(pdf).add_bookmarks(marks)
 }
 
 ///|
@@ -98,7 +98,7 @@ test "pdf_of_pages builds pagetree for many pages" {
 test "pdf_of_pages keeps bookmark prefix chain" {
   let pdf = pdf_of_pages_with_bookmarks(3)
   let subset = @pdfpage.pdf_of_pages(pdf, [2])
-  let marks = @pdfmarks.read_bookmarks(subset)
+  let marks = @pdfmarks.PdfMarks::new(subset).read_bookmarks()
   assert_eq(marks.length(), 2)
   assert_eq(marks[0].text, "Root")
   assert_eq(marks[1].text, "Child")

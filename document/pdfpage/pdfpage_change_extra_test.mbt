@@ -93,7 +93,7 @@ fn add_bookmarks_for_pages(
       flags: 0,
     },
   ]
-  @pdfmarks.add_bookmarks(marks, pdf)
+  @pdfmarks.PdfMarks::new(pdf).add_bookmarks(marks)
 }
 
 ///|

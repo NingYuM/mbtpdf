@@ -92,7 +92,7 @@ test "merge_pdfs keeps named and action bookmarks while dropping out of range" {
       flags: 0,
     },
   ]
-  let pdf = @pdfmarks.add_bookmarks(bookmarks, pdf)
+  let pdf = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(bookmarks)
   let merged = merge_pdfs(
     false,
     false,
@@ -102,7 +102,9 @@ test "merge_pdfs keeps named and action bookmarks while dropping out of range" {
     [pdf],
     [[1]],
   )
-  let marks = @pdfmarks.read_bookmarks(merged, preserve_actions=true)
+  let marks = @pdfmarks.PdfMarks::new(merged).read_bookmarks(
+    preserve_actions=true,
+  )
   assert_eq(marks.length(), 2)
 }
 

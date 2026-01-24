@@ -153,7 +153,9 @@ pub fn pdf_of_pages(
     let mut first_index = -1
     let mut first_level = -1
     let mut index = -1
-    let marks = @pdfmarks.read_bookmarks(basepdf, preserve_actions=true)
+    let marks = @pdfmarks.PdfMarks::new(basepdf).read_bookmarks(
+      preserve_actions=true,
+    )
     let kept : Array[@pdfmarks.Bookmark] = Array::new(capacity=marks.length())
     for mark in marks {
       index = index + 1
@@ -244,7 +246,7 @@ pub fn pdf_of_pages(
   @pdf.addobj_given_num(pdf, (old_pagetree_root_num, new_pagetree))
   let pdf = add_root(old_pagetree_root_num, existing_root_entries, pdf)
   @pdfpagelabels.PageLabel::write_all(page_labels, pdf)
-  let pdf = @pdfmarks.add_bookmarks(marks, pdf)
+  let pdf = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(marks)
   fixup_duplicate_pages(pdf)
   fixup_parents(pdf)
   fixup_destinations(pdf)

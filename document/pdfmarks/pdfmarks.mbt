@@ -10,6 +10,16 @@ pub(all) struct Bookmark {
 }
 
 ///|
+pub struct PdfMarks {
+  pdf : @pdf.Pdf
+}
+
+///|
+pub fn PdfMarks::new(pdf : @pdf.Pdf) -> PdfMarks {
+  { pdf, }
+}
+
+///|
 /// Pretty-print a bookmark for debugging.
 pub fn Bookmark::to_string(self : Bookmark) -> String {
   let dest = self.target.to_pdf_object()
@@ -19,7 +29,9 @@ pub fn Bookmark::to_string(self : Bookmark) -> String {
 
 ///|
 /// Remove any existing /Outlines from the document.
-pub fn remove_bookmarks(pdf : @pdf.Pdf) -> @pdf.Pdf raise {
+#as_free_fn(remove_bookmarks, deprecated="Use `PdfMarks::remove_bookmarks`")
+pub fn PdfMarks::remove_bookmarks(self : PdfMarks) -> @pdf.Pdf raise {
+  let pdf = self.pdf
   match @pdf.lookup_direct(pdf, "/Root", pdf.trailerdict) {
     None => raise @pdf.PdfError::Msg("remove_bookmarks: Bad PDF: no root")
     Some(catalog) => {
@@ -366,12 +378,14 @@ fn make_outline_ntree(
 
 ///|
 /// Add bookmarks to the document.
-pub fn add_bookmarks(
+#as_free_fn(add_bookmarks, deprecated="Use `PdfMarks::add_bookmarks`")
+pub fn PdfMarks::add_bookmarks(
+  self : PdfMarks,
   parsed : Array[Bookmark],
-  pdf : @pdf.Pdf,
 ) -> @pdf.Pdf raise {
+  let pdf = self.pdf
   if parsed.length() == 0 {
-    remove_bookmarks(pdf)
+    self.remove_bookmarks()
   } else {
     let source = Ref::new(0)
     let tree = make_outline_ntree(source, pdf, parsed)
@@ -506,10 +520,12 @@ fn do_until_no_next_lb(
 
 ///|
 /// Read all bookmarks from the document.
-pub fn read_bookmarks(
-  pdf : @pdf.Pdf,
+#as_free_fn(read_bookmarks, deprecated="Use `PdfMarks::read_bookmarks`")
+pub fn PdfMarks::read_bookmarks(
+  self : PdfMarks,
   preserve_actions? : Bool = false,
 ) -> Array[Bookmark] raise {
+  let pdf = self.pdf
   match @pdf.lookup_direct(pdf, "/Root", pdf.trailerdict) {
     None => raise @pdf.PdfError::Msg("read_bookmarks - Bad PDF: no root")
     Some(catalog) =>

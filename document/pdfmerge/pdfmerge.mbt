@@ -484,7 +484,9 @@ fn merge_bookmarks(
       let range = ranges[i]
       let subset_changes = slice(changes, offset, range.length())
       let subset_oldnums = subset_changes.map(pair => pair.0)
-      let marks = @pdfmarks.read_bookmarks(pdfs[i], preserve_actions=true)
+      let marks = @pdfmarks.PdfMarks::new(pdfs[i]).read_bookmarks(
+        preserve_actions=true,
+      )
       for mark in marks {
         match process_mark(subset_oldnums, subset_changes, mark) {
           Some(updated) => bookmarks.push(updated)
@@ -493,7 +495,7 @@ fn merge_bookmarks(
       }
       offset = offset + range.length()
     }
-    @pdfmarks.add_bookmarks(bookmarks, pdf)
+    @pdfmarks.PdfMarks::new(pdf).add_bookmarks(bookmarks)
   } catch {
     _ => {
       @pdfe.log("failure in merge_bookmarks\n")

@@ -28,32 +28,47 @@ pub(all) struct Bookmark {
 - `colour`: RGB color (0.0-1.0)
 - `flags`: Style flags (bit 0 = italic, bit 1 = bold)
 
-## Functions
+## PdfMarks
 
-### read_bookmarks
+Construct a bookmarks context bound to a specific `Pdf`.
+
+```moonbit nocheck
+pub struct PdfMarks { ... }
+pub fn PdfMarks::new(pdf : @pdf.Pdf) -> PdfMarks
+```
+
+## Methods
+
+### PdfMarks::read_bookmarks
 
 Read all bookmarks from a PDF document.
 
 ```moonbit nocheck
-pub fn read_bookmarks(pdf : @pdf.Pdf, preserve_actions? : Bool) -> Array[Bookmark] raise
+pub fn PdfMarks::read_bookmarks(
+  self : PdfMarks,
+  preserve_actions? : Bool
+) -> Array[Bookmark] raise
 ```
 
 - `preserve_actions`: Keep action dictionaries as-is (default: false)
 
-### add_bookmarks
+### PdfMarks::add_bookmarks
 
 Add bookmarks to a document, replacing any existing bookmarks.
 
 ```moonbit nocheck
-pub fn add_bookmarks(parsed : Array[Bookmark], pdf : @pdf.Pdf) -> @pdf.Pdf raise
+pub fn PdfMarks::add_bookmarks(
+  self : PdfMarks,
+  parsed : Array[Bookmark]
+) -> @pdf.Pdf raise
 ```
 
-### remove_bookmarks
+### PdfMarks::remove_bookmarks
 
 Remove all bookmarks from the document.
 
 ```moonbit nocheck
-pub fn remove_bookmarks(pdf : @pdf.Pdf) -> @pdf.Pdf raise
+pub fn PdfMarks::remove_bookmarks(self : PdfMarks) -> @pdf.Pdf raise
 ```
 
 ### Bookmark::transform

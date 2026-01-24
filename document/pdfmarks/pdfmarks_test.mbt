@@ -11,7 +11,7 @@ async test "bookmark string roundtrip through file output" {
       flags: 0,
     },
   ]
-  let pdf_with = @pdfmarks.add_bookmarks(marks, pdf)
+  let pdf_with = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(marks)
   let dir = "tmp/pdfmarks"
   if !@fs.exists(dir) {
     @fs.mkdir(dir, permission=0o755, recursive=true)
@@ -21,7 +21,7 @@ async test "bookmark string roundtrip through file output" {
   defer file.close()
   @pdfwrite.pdf_to_channel(None, true, pdf_with, file)
   let parsed = @pdfread.pdf_of_file(None, None, filename)
-  let parsed_marks = @pdfmarks.read_bookmarks(parsed)
+  let parsed_marks = @pdfmarks.PdfMarks::new(parsed).read_bookmarks()
   assert_eq(parsed_marks.length(), 1)
   assert_eq(parsed_marks[0].text, "Café")
   let _ : Result[Unit, Error] = try? @fs.remove(filename)
@@ -71,10 +71,10 @@ test "remove_bookmarks clears outlines" {
       flags: 0,
     },
   ]
-  let pdf_with = @pdfmarks.add_bookmarks(marks, pdf)
-  assert_eq(@pdfmarks.read_bookmarks(pdf_with).length(), 1)
-  let removed = @pdfmarks.remove_bookmarks(pdf_with)
-  assert_eq(@pdfmarks.read_bookmarks(removed).length(), 0)
+  let pdf_with = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(marks)
+  assert_eq(@pdfmarks.PdfMarks::new(pdf_with).read_bookmarks().length(), 1)
+  let removed = @pdfmarks.PdfMarks::new(pdf_with).remove_bookmarks()
+  assert_eq(@pdfmarks.PdfMarks::new(removed).read_bookmarks().length(), 0)
 }
 
 ///|
@@ -150,7 +150,7 @@ test "add_bookmarks links siblings and counts" {
       flags: 0,
     },
   ]
-  let pdf_with = @pdfmarks.add_bookmarks(marks, pdf)
+  let pdf_with = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(marks)
   let outlines = outlines_root(pdf_with)
   match @pdf.lookup_direct(pdf_with, "/Count", outlines) {
     Some(Integer(i)) => assert_eq(i, 4)
@@ -199,7 +199,7 @@ test "add_bookmarks links siblings and counts" {
     Some(Integer(i)) => assert_eq(i, 2)
     _ => fail("expected positive /Count for open node")
   }
-  let marks_read = @pdfmarks.read_bookmarks(pdf_with)
+  let marks_read = @pdfmarks.PdfMarks::new(pdf_with).read_bookmarks()
   assert_eq(marks_read.length(), 5)
   match marks_read[2] {
     { text: "B", colour: (r, g, b), flags: f, .. } => {
@@ -229,13 +229,17 @@ test "read_bookmarks toggles action preservation" {
       flags: 0,
     },
   ]
-  let pdf_with = @pdfmarks.add_bookmarks(marks, pdf)
-  let preserved = @pdfmarks.read_bookmarks(pdf_with, preserve_actions=true)
+  let pdf_with = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(marks)
+  let preserved = @pdfmarks.PdfMarks::new(pdf_with).read_bookmarks(
+    preserve_actions=true,
+  )
   match preserved[0].target {
     @pdfdest.Destination::Action(_) => ()
     _ => fail("expected action preserved")
   }
-  let resolved = @pdfmarks.read_bookmarks(pdf_with, preserve_actions=false)
+  let resolved = @pdfmarks.PdfMarks::new(pdf_with).read_bookmarks(
+    preserve_actions=false,
+  )
   match resolved[0].target {
     @pdfdest.Destination::StringDestination("dest") => ()
     _ => fail("expected string destination")

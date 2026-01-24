@@ -779,12 +779,12 @@ async test "e2e split then bookmark" {
       flags: 0,
     },
   ]
-  let split_with = @pdfmarks.add_bookmarks(marks, split)
+  let split_with = @pdfmarks.PdfMarks::new(split).add_bookmarks(marks)
   ensure_dir(OUTPUT_DIR)
   let out_path = OUTPUT_DIR + "/split_bookmark.pdf"
   write_pdf(out_path, split_with)
   let parsed = read_pdf(out_path)
-  let parsed_marks = @pdfmarks.read_bookmarks(parsed)
+  let parsed_marks = @pdfmarks.PdfMarks::new(parsed).read_bookmarks()
   assert_eq(parsed_marks.length(), 1)
   let target_page = @pdfpage.pagenumber_of_target(
     parsed,
@@ -1572,7 +1572,7 @@ async test "e2e merge mixed feature pipeline" {
       flags: 0,
     },
   ]
-  let left = @pdfmarks.add_bookmarks(marks, left1)
+  let left = @pdfmarks.PdfMarks::new(left1).add_bookmarks(marks)
   add_names_tree(left, "/URLS", [
     ("MixURL", make_url_action("https://example.com/mixed")),
   ])
@@ -1597,7 +1597,7 @@ async test "e2e merge mixed feature pipeline" {
       }
     _ => fail("missing mixed annotation")
   }
-  let merged_marks = @pdfmarks.read_bookmarks(merged)
+  let merged_marks = @pdfmarks.PdfMarks::new(merged).read_bookmarks()
   assert_true(
     merged_marks.search_by(mark => mark.text == "Mixed bookmark") is Some(_),
   )
@@ -1621,7 +1621,7 @@ async test "e2e merge mixed feature pipeline" {
       }
     _ => fail("missing parsed mixed annotation")
   }
-  let parsed_marks = @pdfmarks.read_bookmarks(parsed)
+  let parsed_marks = @pdfmarks.PdfMarks::new(parsed).read_bookmarks()
   assert_true(
     parsed_marks.search_by(mark => mark.text == "Mixed bookmark") is Some(_),
   )
@@ -1669,7 +1669,7 @@ async test "e2e merge multi-copy mixed stress" {
         flags: 0,
       },
     ]
-    let pdf = @pdfmarks.add_bookmarks(marks, pdf)
+    let pdf = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(marks)
     let url_name = "StressURL-" + i.to_string()
     add_names_tree(pdf, "/URLS", [
       (url_name, make_url_action("https://example.com/stress/" + i.to_string())),
@@ -1688,7 +1688,7 @@ async test "e2e merge multi-copy mixed stress" {
     pdfs,
     ranges,
   )
-  let merged_marks = @pdfmarks.read_bookmarks(merged)
+  let merged_marks = @pdfmarks.PdfMarks::new(merged).read_bookmarks()
   assert_eq(merged_marks.length(), copies)
   let merged_urls = read_name_tree_entries(merged, "/URLS")
   for i in 0..<copies {
@@ -1702,7 +1702,7 @@ async test "e2e merge multi-copy mixed stress" {
   let out_path = OUTPUT_DIR + "/merged_mixed_stress.pdf"
   write_pdf(out_path, merged)
   let parsed = read_pdf(out_path)
-  let parsed_marks = @pdfmarks.read_bookmarks(parsed)
+  let parsed_marks = @pdfmarks.PdfMarks::new(parsed).read_bookmarks()
   assert_eq(parsed_marks.length(), copies)
   let parsed_urls = read_name_tree_entries(parsed, "/URLS")
   for i in 0..<copies {
@@ -1803,7 +1803,7 @@ async test "e2e merge preserves bookmark targets" {
       flags: 0,
     },
   ]
-  let left_with = @pdfmarks.add_bookmarks(marks, left)
+  let left_with = @pdfmarks.PdfMarks::new(left).add_bookmarks(marks)
   let merged = @pdfmerge.merge_pdfs(
     false,
     true,
@@ -1817,7 +1817,7 @@ async test "e2e merge preserves bookmark targets" {
   let out_path = OUTPUT_DIR + "/merged_marks.pdf"
   write_pdf(out_path, merged)
   let parsed = read_pdf(out_path)
-  let parsed_marks = @pdfmarks.read_bookmarks(parsed)
+  let parsed_marks = @pdfmarks.PdfMarks::new(parsed).read_bookmarks()
   assert_eq(parsed_marks.length(), 1)
   let target_page = @pdfpage.pagenumber_of_target(
     parsed,
@@ -1859,12 +1859,12 @@ async test "e2e bookmarks roundtrip" {
       flags: 0,
     },
   ]
-  let pdf_with = @pdfmarks.add_bookmarks(marks, pdf)
+  let pdf_with = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(marks)
   ensure_dir(OUTPUT_DIR)
   let out_path = OUTPUT_DIR + "/bookmarks.pdf"
   write_pdf(out_path, pdf_with)
   let parsed = read_pdf(out_path)
-  let parsed_marks = @pdfmarks.read_bookmarks(parsed)
+  let parsed_marks = @pdfmarks.PdfMarks::new(parsed).read_bookmarks()
   assert_eq(parsed_marks.length(), 2)
   assert_eq(parsed_marks[0].text, "E2E Intro")
   assert_eq(parsed_marks[1].text, "E2E Details")

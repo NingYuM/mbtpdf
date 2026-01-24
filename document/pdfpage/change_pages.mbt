@@ -118,7 +118,9 @@ fn change_pages_process_bookmarks(
   refnumstable : Map[Int, Int],
   pdf : @pdf.Pdf,
 ) -> @pdf.Pdf raise {
-  let bookmarks = @pdfmarks.read_bookmarks(pdf, preserve_actions=true)
+  let bookmarks = @pdfmarks.PdfMarks::new(pdf).read_bookmarks(
+    preserve_actions=true,
+  )
   let updated = bookmarks.map(m => {
     let tr = change_pages_find_matrix(m.target, mattable, refnumstable)
     if matrix_is_identity(tr) {
@@ -127,7 +129,7 @@ fn change_pages_process_bookmarks(
       m.transform(pdf, tr)
     }
   })
-  @pdfmarks.add_bookmarks(updated, pdf)
+  @pdfmarks.PdfMarks::new(pdf).add_bookmarks(updated)
 }
 
 ///|

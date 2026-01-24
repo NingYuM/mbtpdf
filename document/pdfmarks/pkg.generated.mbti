@@ -8,11 +8,6 @@ import {
 }
 
 // Values
-pub fn add_bookmarks(Array[Bookmark], @pdf.Pdf) -> @pdf.Pdf raise
-
-pub fn read_bookmarks(@pdf.Pdf, preserve_actions? : Bool) -> Array[Bookmark] raise
-
-pub fn remove_bookmarks(@pdf.Pdf) -> @pdf.Pdf raise
 
 // Errors
 
@@ -27,6 +22,17 @@ pub(all) struct Bookmark {
 }
 pub fn Bookmark::to_string(Self) -> String
 pub fn Bookmark::transform(Self, @pdf.Pdf, @pdftransform.TransformMatrix) -> Self raise
+
+pub struct PdfMarks {
+  pdf : @pdf.Pdf
+}
+#as_free_fn(add_bookmarks, deprecated)
+pub fn PdfMarks::add_bookmarks(Self, Array[Bookmark]) -> @pdf.Pdf raise
+pub fn PdfMarks::new(@pdf.Pdf) -> Self
+#as_free_fn(read_bookmarks, deprecated)
+pub fn PdfMarks::read_bookmarks(Self, preserve_actions? : Bool) -> Array[Bookmark] raise
+#as_free_fn(remove_bookmarks, deprecated)
+pub fn PdfMarks::remove_bookmarks(Self) -> @pdf.Pdf raise
 
 // Type aliases
 
