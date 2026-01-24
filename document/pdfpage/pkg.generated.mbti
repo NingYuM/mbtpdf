@@ -49,8 +49,6 @@ pub fn[A, B, C] ppstub((A, B) -> C raise?, A, B) -> (C, A, @pdftransform.Transfo
 
 pub fn process_xobject((@pdf.Pdf, @pdf.PdfObject, Array[@pdf.PdfObject]) -> Array[@pdf.PdfObject], @pdf.Pdf, @pdf.PdfObject, Int) -> Unit raise
 
-pub fn protect(Array[@pdfops.Op]) -> Array[@pdfops.Op]
-
 pub fn renumber_pages(@pdf.Pdf, Array[Page]) -> Array[Page] raise
 
 pub fn replace_inherit(@pdf.Pdf, Array[Int]) -> Unit raise
@@ -74,6 +72,8 @@ pub fn Page::custom(@pdf.PdfObject) -> Self
 pub fn Page::postpend_operators(Self, @pdf.Pdf, Array[@pdfops.Op], fast? : Bool) -> Self raise
 pub fn Page::prepend_operators(Self, @pdf.Pdf, Array[@pdfops.Op], fast? : Bool) -> Self raise
 pub fn Page::process_xobjects(Self, @pdf.Pdf, (@pdf.Pdf, @pdf.PdfObject, Array[@pdf.PdfObject]) -> Array[@pdf.PdfObject]) -> Unit raise
+#as_free_fn(protect, deprecated)
+pub fn Page::protect_ops(Array[@pdfops.Op]) -> Array[@pdfops.Op]
 
 pub(all) enum Rotation {
   Rotate0

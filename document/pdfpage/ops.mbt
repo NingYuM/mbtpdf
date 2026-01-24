@@ -28,7 +28,8 @@ pub fn Page::prepend_operators(
 
 ///|
 /// Add stack operators to a content stream to ensure it is composeable.
-pub fn protect(ops : Array[@pdfops.Op]) -> Array[@pdfops.Op] {
+#as_free_fn(protect, deprecated="Use `Page::protect_ops` instead")
+pub fn Page::protect_ops(ops : Array[@pdfops.Op]) -> Array[@pdfops.Op] {
   let mut qs = 0
   let mut bigqs = 0
   for op in ops {
@@ -85,7 +86,7 @@ pub fn Page::postpend_operators(
         rest: self.rest,
       }
     } else {
-      let protected_ops = protect(existing_ops)
+      let protected_ops = Page::protect_ops(existing_ops)
       let combined : Array[@pdfops.Op] = Array::new()
       combined.push(Opq)
       combined.append(existing_ops[:])
