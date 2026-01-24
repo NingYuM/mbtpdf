@@ -151,8 +151,8 @@ test "read_ocg uses config defaults" {
     OcgListMode::AllPages => ()
     _ => fail("expected AllPages list mode")
   }
-  assert_true(props.ocg_default_config.ocgconfig_on == None)
-  assert_true(props.ocg_default_config.ocgconfig_off == None)
+  assert_true(props.ocg_default_config.ocgconfig_on is None)
+  assert_true(props.ocg_default_config.ocgconfig_off is None)
   assert_eq(props.ocg_default_config.ocgconfig_locked.length(), 0)
 }
 
