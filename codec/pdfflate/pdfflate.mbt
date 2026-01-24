@@ -5,6 +5,16 @@ pub suberror FlateError {
 }
 
 ///|
+pub struct PdfFlate {
+  unit : Unit
+}
+
+///|
+pub fn PdfFlate::new() -> PdfFlate {
+  { unit: () }
+}
+
+///|
 priv struct BitReader {
   data : @pdfio.MutableBytes
   mut byte_pos : Int
@@ -395,7 +405,9 @@ fn zlib_start_offset(data : @pdfio.MutableBytes) -> Int raise FlateError {
 
 ///|
 /// Compress data using a streaming interface (stored blocks only).
-pub fn compress(
+#as_free_fn(compress, deprecated="Use `PdfFlate::compress`")
+pub fn PdfFlate::compress(
+  _self : PdfFlate,
   level? : Int = 6,
   header? : Bool = true,
   input : (@pdfio.MutableBytes) -> Int,
@@ -485,7 +497,9 @@ pub fn compress(
 
 ///|
 /// Uncompress data using a streaming interface.
-pub fn uncompress(
+#as_free_fn(uncompress, deprecated="Use `PdfFlate::uncompress`")
+pub fn PdfFlate::uncompress(
+  _self : PdfFlate,
   header? : Bool = true,
   input : (@pdfio.MutableBytes) -> Int,
   output : (@pdfio.MutableBytes, Int) -> Unit,

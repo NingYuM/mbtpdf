@@ -19,14 +19,26 @@ pub suberror FlateError {
 }
 ```
 
-## Functions
+## Types
 
-### compress
+### PdfFlate
+
+Compression/decompression context.
+
+```moonbit nocheck
+pub struct PdfFlate { ... }
+pub fn PdfFlate::new() -> PdfFlate
+```
+
+## Methods
+
+### PdfFlate::compress
 
 Compress data using the DEFLATE algorithm with a streaming interface.
 
 ```moonbit nocheck
-pub fn compress(
+pub fn PdfFlate::compress(
+  self : PdfFlate,
   level? : Int,
   header? : Bool,
   input : (@pdfio.MutableBytes) -> Int,
@@ -39,12 +51,13 @@ pub fn compress(
 - `input`: Read callback returning bytes read (0 for EOF)
 - `output`: Write callback for compressed data
 
-### uncompress
+### PdfFlate::uncompress
 
 Decompress DEFLATE data using a streaming interface. Supports all DEFLATE block types: stored, fixed Huffman, and dynamic Huffman.
 
 ```moonbit nocheck
-pub fn uncompress(
+pub fn PdfFlate::uncompress(
+  self : PdfFlate,
   header? : Bool,
   input : (@pdfio.MutableBytes) -> Int,
   output : (@pdfio.MutableBytes, Int) -> Unit

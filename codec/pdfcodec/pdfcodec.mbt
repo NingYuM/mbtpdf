@@ -77,7 +77,12 @@ pub fn encode_flate(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
   let output = (buf : @pdfio.MutableBytes, length : Int) => for i in 0..<length {
     out.push(buf[i])
   }
-  @pdfflate.compress(level=flate_level.val, header=true, input, output)
+  @pdfflate.PdfFlate::new().compress(
+    level=flate_level.val,
+    header=true,
+    input,
+    output,
+  )
   out
 }
 
@@ -105,7 +110,7 @@ pub fn decode_flate(
     out.push(buf[i])
   }
   try {
-    @pdfflate.uncompress(header=true, input, output)
+    @pdfflate.PdfFlate::new().uncompress(header=true, input, output)
     out
   } catch {
     @pdfflate.FlateError::Error(stage, msg) =>
