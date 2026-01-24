@@ -90,8 +90,9 @@ pub(all) enum StandardFont {
 } derive(Eq, Debug)
 
 ///|
-pub fn string_of_standard_font(font : StandardFont) -> String {
-  match font {
+#as_free_fn(string_of_standard_font, deprecated="Use `StandardFont::to_string` instead")
+pub fn StandardFont::to_string(self : StandardFont) -> String {
+  match self {
     StandardFont::TimesRoman => "Times-Roman"
     StandardFont::TimesBold => "Times-Bold"
     StandardFont::TimesItalic => "Times-Italic"
@@ -139,8 +140,9 @@ pub(all) enum Font {
 }
 
 ///|
-pub fn string_of_fonttype(fonttype : SimpleFontType) -> String {
-  match fonttype {
+#as_free_fn(string_of_fonttype, deprecated="Use `SimpleFontType::to_string` instead")
+pub fn SimpleFontType::to_string(self : SimpleFontType) -> String {
+  match self {
     SimpleFontType::Type1 => "Type 1"
     SimpleFontType::MMType1 => "MM Type 1"
     SimpleFontType::Type3(glyphs) =>
@@ -150,8 +152,9 @@ pub fn string_of_fonttype(fonttype : SimpleFontType) -> String {
 }
 
 ///|
-pub fn string_of_encoding(encoding : Encoding) -> String {
-  match encoding {
+#as_free_fn(string_of_encoding, deprecated="Use `Encoding::to_string` instead")
+pub fn Encoding::to_string(self : Encoding) -> String {
+  match self {
     Encoding::ImplicitInFontFile => "ImplicitInFontFile"
     Encoding::StandardEncoding => "StandardEncoding"
     Encoding::MacRomanEncoding => "MacRomanEncoding"
@@ -159,31 +162,32 @@ pub fn string_of_encoding(encoding : Encoding) -> String {
     Encoding::MacExpertEncoding => "MacExpertEncoding"
     Encoding::CustomEncoding(enc, diff) =>
       "CustomEncoding with base " +
-      string_of_encoding(enc) +
+      enc.to_string() +
       " and differences " +
       diff.map(pair => "\{pair.1} -> \{pair.0}, ").join("")
     Encoding::FillUndefinedWithStandard(enc) =>
-      "FillUndefinedWithStandard " + string_of_encoding(enc)
+      "FillUndefinedWithStandard " + enc.to_string()
   }
 }
 
 ///|
-pub fn string_of_simple_font(font : SimpleFont) -> String {
+#as_free_fn(string_of_simple_font, deprecated="Use `SimpleFont::to_string` instead")
+pub fn SimpleFont::to_string(self : SimpleFont) -> String {
   "fonttype = " +
-  string_of_fonttype(font.fonttype) +
+  self.fonttype.to_string() +
   "\nbasefont " +
-  font.basefont +
+  self.basefont +
   "\nencoding is " +
-  string_of_encoding(font.encoding) +
+  self.encoding.to_string() +
   "\n"
 }
 
 ///|
-pub fn string_of_font(font : Font) -> String {
-  match font {
-    Font::StandardFont(standard, _) =>
-      "StandardFont " + string_of_standard_font(standard)
-    Font::SimpleFont(simple) => "SimpleFont " + string_of_simple_font(simple)
+#as_free_fn(string_of_font, deprecated="Use `Font::to_string` instead")
+pub fn Font::to_string(self : Font) -> String {
+  match self {
+    Font::StandardFont(standard, _) => "StandardFont " + standard.to_string()
+    Font::SimpleFont(simple) => "SimpleFont " + simple.to_string()
     Font::CIDKeyedFont(name, _, _) => "CIDKeyedFont " + name
   }
 }

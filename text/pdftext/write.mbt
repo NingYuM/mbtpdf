@@ -9,10 +9,7 @@ pub fn make_font(
   @pdf.PdfObject::Dictionary([
     ("/Type", @pdf.PdfObject::Name("/Font")),
     ("/Subtype", @pdf.PdfObject::Name("/Type1")),
-    (
-      "/Encoding",
-      @pdf.PdfObject::Name("/" + @pdffont.string_of_encoding(encoding)),
-    ),
+    ("/Encoding", @pdf.PdfObject::Name("/" + encoding.to_string())),
     ("/BaseFont", @pdf.PdfObject::Name("/" + fontname)),
   ])
 }
@@ -289,7 +286,7 @@ pub fn PdfText::write_font(
                         (
                           "/Encoding",
                           @pdf.PdfObject::Name(
-                            "/" + @pdffont.string_of_encoding(simple.encoding),
+                            "/" + simple.encoding.to_string(),
                           ),
                         ),
                       ])
@@ -320,10 +317,7 @@ pub fn PdfText::write_font(
           )
       }
     @pdffont.Font::StandardFont(standard, encoding) =>
-      @pdf.addobj(
-        self.pdf,
-        make_font(@pdffont.string_of_standard_font(standard), encoding),
-      )
+      @pdf.addobj(self.pdf, make_font(standard.to_string(), encoding))
     _ =>
       raise @pdf.PdfError::Msg("Pdftext.write_font does not support this font")
   }

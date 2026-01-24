@@ -306,7 +306,7 @@ fn charcode_extractor_of_font_real(
   debug? : Bool = false,
 ) -> ((Int) -> Int?) raise {
   if debug {
-    @pdfutil.flprint(@pdffont.string_of_font(font) + "\n")
+    @pdfutil.flprint(font.to_string() + "\n")
   }
   let encoding = match font {
     @pdffont.Font::StandardFont(_, e) => e

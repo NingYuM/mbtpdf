@@ -132,26 +132,26 @@ pub(all) enum CMapEncoding {
 
 ## Functions
 
-### string_of_standard_font
+### StandardFont::to_string
 
 Get the PDF name for a standard font.
 
 ```moonbit nocheck
-pub fn string_of_standard_font(font : StandardFont) -> String
+pub fn StandardFont::to_string(self : StandardFont) -> String
 ```
 
-### string_of_encoding
+### Encoding::to_string
 
 Get a debug string for an encoding.
 
 ```moonbit nocheck
-pub fn string_of_encoding(encoding : Encoding) -> String
+pub fn Encoding::to_string(self : Encoding) -> String
 ```
 
-### string_of_font
+### Font::to_string
 
 Get a debug string for a font.
 
 ```moonbit nocheck
-pub fn string_of_font(font : Font) -> String
+pub fn Font::to_string(self : Font) -> String
 ```
