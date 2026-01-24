@@ -591,8 +591,8 @@ pub fn Pdf::lookup_direct_orelse(
 ///|
 /// Name tree helpers.
 fn compare_string(a : String, b : String) -> Int {
-  let ac = a.to_array()
-  let bc = b.to_array()
+  let ac = a[:]
+  let bc = b[:]
   let min_len = if ac.length() < bc.length() {
     ac.length()
   } else {
