@@ -64,12 +64,12 @@ fn append_text_from_streams(
     if is_unicode(value) {
       return utf8_of_pdfdocstring(value) catch { _ => value }
     }
-    match current_extractor {
-      Some(extractor) =>
-        utf8_of_codepoints(codepoints_of_text(extractor, value)) catch {
-          _ => decode_pdfdoc(value)
-        }
-      None => decode_pdfdoc(value)
+    if current_extractor is Some(extractor) {
+      utf8_of_codepoints(codepoints_of_text(extractor, value)) catch {
+        _ => decode_pdfdoc(value)
+      }
+    } else {
+      decode_pdfdoc(value)
     }
   }
 
@@ -78,16 +78,14 @@ fn append_text_from_streams(
   }
 
   fn append_text_array(obj : @pdf.PdfObject) -> Unit {
-    match obj {
-      Array(values) =>
-        for value in values {
-          match (value : @pdf.PdfObject) {
-            String(text) => append_text_value(text)
-            _ => ()
-          }
+    if obj is Array(values) {
+      for value in values {
+        if value is String(text) {
+          append_text_value(text)
         }
-      String(text) => append_text_value(text)
-      _ => ()
+      }
+    } else if obj is String(text) {
+      append_text_value(text)
     }
   }
 
@@ -186,24 +184,19 @@ fn lookup_text_extractor(
   font_name : String,
   cache : Map[String, TextExtractor],
 ) -> TextExtractor? {
-  match cache.get(font_name) {
-    Some(extractor) => Some(extractor)
-    None => {
-      let font_obj = match @pdf.lookup_direct(pdf, "/Font", resources) {
-        Some(fonts) => @pdf.lookup_direct(pdf, font_name, fonts)
-        None => None
-      }
-      match font_obj {
-        Some(obj) =>
-          try {
-            let extractor = text_extractor_of_font(pdf, obj)
-            cache.set(font_name, extractor)
-            Some(extractor)
-          } catch {
-            _ => None
-          }
-        None => None
-      }
+  if cache.get(font_name) is Some(extractor) {
+    return Some(extractor)
+  }
+  if @pdf.lookup_direct(pdf, "/Font", resources) is Some(fonts) &&
+     @pdf.lookup_direct(pdf, font_name, fonts) is Some(obj) {
+    try {
+      let extractor = text_extractor_of_font(pdf, obj)
+      cache.set(font_name, extractor)
+      Some(extractor)
+    } catch {
+      _ => None
     }
+  } else {
+    None
   }
 }
