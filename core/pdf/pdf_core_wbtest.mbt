@@ -14,8 +14,8 @@ test "objmap basics" {
   assert_eq(pdfobjmap_bindings(map0).length(), 0)
   // Basic map operations are tested via the Pdf structure
   let pdf = Pdf::empty()
-  addobj_given_num(pdf, (1, PdfObject::Null))
-  addobj_given_num(pdf, (2, PdfObject::Integer(42)))
+  pdf.addobj_given_num((1, PdfObject::Null))
+  pdf.addobj_given_num((2, PdfObject::Integer(42)))
   assert_eq(pdf.objnumbers().length(), 2)
 }
 
@@ -133,9 +133,8 @@ test "dictionary helpers" {
 ///|
 test "lookup and chains" {
   let pdf = Pdf::empty()
-  addobj_given_num(pdf, (1, PdfObject::Integer(99)))
-  addobj_given_num(
-    pdf,
+  pdf.addobj_given_num((1, PdfObject::Integer(99)))
+  pdf.addobj_given_num(
     (
       2,
       PdfObject::Dictionary([

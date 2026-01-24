@@ -45,9 +45,9 @@ fn make_basic_pdf() -> @pdf.Pdf {
     ("/Type", @pdf.PdfObject::Name("/Catalog")),
     ("/Pages", @pdf.PdfObject::Indirect(1)),
   ])
-  @pdf.addobj_given_num(base, (1, pages))
-  @pdf.addobj_given_num(base, (2, page))
-  @pdf.addobj_given_num(base, (3, catalog))
+  base.addobj_given_num((1, pages))
+  base.addobj_given_num((2, page))
+  base.addobj_given_num((3, catalog))
   @pdf.Pdf::{
     major: base.major,
     minor: base.minor,

@@ -6,7 +6,7 @@ test "deep_copy copies streams and object data" {
     PdfObject::Dictionary([("/Ref", PdfObject::Indirect(2))]),
     bytes,
   )
-  addobj_given_num(pdf, (4, stream))
+  pdf.addobj_given_num((4, stream))
   pdf.objects.object_stream_ids.set(4, 99)
   let input = @pdfio.input_of_string("xyz", source="toget")
   let toget_stream = PdfObject::Stream(
@@ -17,7 +17,7 @@ test "deep_copy copies streams and object data" {
       ),
     ),
   )
-  addobj_given_num(pdf, (7, toget_stream))
+  pdf.addobj_given_num((7, toget_stream))
   pdf.objects.objects.set(
     5,
     ({ val: ObjectData::ParsedAlreadyDecrypted(PdfObject::String("x")) }, 0),

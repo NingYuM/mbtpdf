@@ -63,7 +63,7 @@ test "decrypt_single_stream passes through unencrypted stream" {
 test "decrypt_single_stream restores AES256 stream bytes" {
   let pdf = pdf_with_stream()
   let (_orig_objnum, _orig_gen, orig_stream) = first_stream(pdf)
-  @pdf.getstream(orig_stream)
+  orig_stream.getstream()
   let orig_bytes = match (orig_stream : @pdf.PdfObject) {
     Stream(r) =>
       match r.val.1 {
@@ -88,7 +88,7 @@ test "decrypt_single_stream restores AES256 stream bytes" {
     gen,
     stream,
   )
-  @pdf.getstream(decrypted)
+  decrypted.getstream()
   match (decrypted : @pdf.PdfObject) {
     Stream(r) =>
       match r.val.1 {

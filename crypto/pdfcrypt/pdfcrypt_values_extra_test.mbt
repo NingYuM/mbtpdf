@@ -146,18 +146,18 @@ test "encrypt AES V2 without metadata and AES256 with long passwords" {
   )
   assert_true(dec is Some(_))
   let string_obj : @pdf.PdfObject = String("secret")
-  @pdf.addobj_given_num(pdf, (10, string_obj))
+  pdf.addobj_given_num((10, string_obj))
   let stream_dict : @pdf.PdfObject = Dictionary([("/Length", Integer(4))])
   let got_stream : @pdf.PdfObject = Stream(
     Ref::new((stream_dict, @pdf.Stream::Got(@pdfio.bytes_of_string("data")))),
   )
-  @pdf.addobj_given_num(pdf, (11, got_stream))
+  pdf.addobj_given_num((11, got_stream))
   let input = @pdfio.input_of_string("data", source="stream")
   let toget = @pdf.ToGet::new(input, 0, 4)
   let toget_stream : @pdf.PdfObject = Stream(
     Ref::new((stream_dict, @pdf.Stream::ToGet(toget))),
   )
-  @pdf.addobj_given_num(pdf, (12, toget_stream))
+  pdf.addobj_given_num((12, toget_stream))
   let long_pw = "a".repeat(130)
   let enc256 = @pdfcrypt.PdfCrypt::new().encrypt_pdf_AES256(
     true,

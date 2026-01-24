@@ -103,7 +103,7 @@ test "transform_annotations updates rect and quadpoints" {
     ),
     ("/L", Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)])),
   ])
-  let objnum = @pdf.addobj(pdf, annot_dict)
+  let objnum = pdf.addobj(annot_dict)
   let rest : @pdf.PdfObject = Dictionary([
     ("/Annots", Array([Indirect(objnum)])),
   ])
@@ -112,7 +112,7 @@ test "transform_annotations updates rect and quadpoints" {
   let updated = pdf.lookup_obj(objnum)
   match pdf.lookup_direct("/Rect", updated) {
     Some(rect) => {
-      let (x0, y0, x1, y1) = @pdf.parse_rectangle(pdf, rect)
+      let (x0, y0, x1, y1) = pdf.parse_rectangle(rect)
       assert_close(x0, 10.0)
       assert_close(y0, 20.0)
       assert_close(x1, 20.0)
@@ -122,14 +122,14 @@ test "transform_annotations updates rect and quadpoints" {
   }
   match (pdf.lookup_direct("/QuadPoints", updated) : @pdf.PdfObject?) {
     Some(Array(values)) => {
-      assert_close(@pdf.getnum(pdf, values[0]), 10.0)
-      assert_close(@pdf.getnum(pdf, values[1]), 20.0)
+      assert_close(pdf.getnum(values[0]), 10.0)
+      assert_close(pdf.getnum(values[1]), 20.0)
     }
     _ => fail("expected quadpoints")
   }
   match pdf.lookup_direct("/L", updated) {
     Some(line) => {
-      let (x0, y0, x1, y1) = @pdf.parse_rectangle(pdf, line)
+      let (x0, y0, x1, y1) = pdf.parse_rectangle(line)
       assert_close(x0, 10.0)
       assert_close(y0, 20.0)
       assert_close(x1, 20.0)
@@ -152,13 +152,13 @@ test "annotations_of_page skips popup parent" {
     ("/Subtype", Name("/Text")),
     ("/Rect", rect),
   ])
-  let parent_num = @pdf.addobj(pdf, parent_dict)
+  let parent_num = pdf.addobj(parent_dict)
   let popup_dict : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Popup")),
     ("/Rect", rect),
     ("/Parent", Indirect(parent_num)),
   ])
-  let popup_num = @pdf.addobj(pdf, popup_dict)
+  let popup_num = pdf.addobj(popup_dict)
   let rest : @pdf.PdfObject = Dictionary([
     ("/Annots", Array([Indirect(parent_num), Indirect(popup_num)])),
   ])
@@ -203,7 +203,7 @@ test "read_annotation uses /BS style" {
       ]),
     ),
   ])
-  let objnum = @pdf.addobj(pdf, annot_dict)
+  let objnum = pdf.addobj(annot_dict)
   let rest : @pdf.PdfObject = Dictionary([
     ("/Annots", Array([Indirect(objnum)])),
   ])
@@ -264,10 +264,10 @@ test "read_annotation parses styles and extras" {
     ("/Foo", Integer(7)),
   ])
   let nums = [
-    @pdf.addobj(pdf, solid),
-    @pdf.addobj(pdf, underline),
-    @pdf.addobj(pdf, border),
-    @pdf.addobj(pdf, extras),
+    pdf.addobj(solid),
+    pdf.addobj(underline),
+    pdf.addobj(border),
+    pdf.addobj(extras),
   ]
   let rest : @pdf.PdfObject = Dictionary([
     ("/Annots", Array(nums.map(fn(n) { Indirect(n) }))),
@@ -327,7 +327,7 @@ test "read_annotation handles unknown subtype and missing strings" {
     ("/Contents", Name("/Nope")),
     ("/Subj", Name("/Nope")),
   ])
-  let objnum = @pdf.addobj(pdf, annot_dict)
+  let objnum = pdf.addobj(annot_dict)
   let rest : @pdf.PdfObject = Dictionary([
     ("/Annots", Array([Indirect(objnum)])),
   ])
@@ -385,7 +385,7 @@ test "transform_annotations keeps malformed quadpoints" {
     ("/Rect", Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)])),
     ("/QuadPoints", Array([Real(0.0), Real(0.0), Real(10.0), Real(0.0)])),
   ])
-  let objnum = @pdf.addobj(pdf, annot_dict)
+  let objnum = pdf.addobj(annot_dict)
   let rest : @pdf.PdfObject = Dictionary([
     ("/Annots", Array([Indirect(objnum)])),
   ])
@@ -394,7 +394,7 @@ test "transform_annotations keeps malformed quadpoints" {
   let updated = pdf.lookup_obj(objnum)
   match pdf.lookup_direct("/Rect", updated) {
     Some(rect) => {
-      let (x0, y0, x1, y1) = @pdf.parse_rectangle(pdf, rect)
+      let (x0, y0, x1, y1) = pdf.parse_rectangle(rect)
       assert_close(x0, 5.0)
       assert_close(y0, 5.0)
       assert_close(x1, 15.0)
@@ -404,10 +404,10 @@ test "transform_annotations keeps malformed quadpoints" {
   }
   match (pdf.lookup_direct("/QuadPoints", updated) : @pdf.PdfObject?) {
     Some(Array(values)) => {
-      assert_close(@pdf.getnum(pdf, values[0]), 0.0)
-      assert_close(@pdf.getnum(pdf, values[1]), 0.0)
-      assert_close(@pdf.getnum(pdf, values[2]), 10.0)
-      assert_close(@pdf.getnum(pdf, values[3]), 0.0)
+      assert_close(pdf.getnum(values[0]), 0.0)
+      assert_close(pdf.getnum(values[1]), 0.0)
+      assert_close(pdf.getnum(values[2]), 10.0)
+      assert_close(pdf.getnum(values[3]), 0.0)
     }
     _ => fail("expected quadpoints")
   }
@@ -434,7 +434,7 @@ test "read_annotation handles more subtypes and popup fallback" {
     ]),
     Dictionary([("/Rect", rect)]),
   ]
-  let nums = annots.map(fn(annot) { @pdf.addobj(pdf, annot) })
+  let nums = annots.map(fn(annot) { pdf.addobj(annot) })
   let rest : @pdf.PdfObject = Dictionary([
     ("/Annots", Array(nums.map(fn(n) { Indirect(n) }))),
   ])
@@ -503,7 +503,7 @@ test "read_annotation covers border styles and dash array" {
       ),
     ]),
   ]
-  let nums = annots.map(fn(annot) { @pdf.addobj(pdf, annot) })
+  let nums = annots.map(fn(annot) { pdf.addobj(annot) })
   let rest : @pdf.PdfObject = Dictionary([
     ("/Annots", Array(nums.map(fn(n) { Indirect(n) }))),
   ])
@@ -609,7 +609,7 @@ test "transform_annotations leaves non-array quadpoints" {
     ("/Rect", Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)])),
     ("/QuadPoints", Name("/Bad")),
   ])
-  let objnum = @pdf.addobj(pdf, annot_dict)
+  let objnum = pdf.addobj(annot_dict)
   let rest : @pdf.PdfObject = Dictionary([
     ("/Annots", Array([Indirect(objnum)])),
   ])

@@ -28,8 +28,8 @@ test "renumber_object_parsed handles indirect and stream" {
 ///|
 test "renumber keeps root when missing change" {
   let pdf = make_basic_pdf()
-  addobj_given_num(pdf, (5, PdfObject::Integer(1)))
-  addobj_given_num(pdf, (6, PdfObject::Integer(2)))
+  pdf.addobj_given_num((5, PdfObject::Integer(1)))
+  pdf.addobj_given_num((6, PdfObject::Integer(2)))
   pdf.objects.object_stream_ids.set(5, 1)
   pdf.objects.object_stream_ids.set(6, 2)
   let change_table : Map[Int, Int] = Map::new()

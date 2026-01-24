@@ -24,7 +24,7 @@ test "pages_of_pagetree_quick detects cycle" {
     ("/Type", Name("/Pages")),
     ("/Kids", Array([Indirect(1)])),
   ])
-  @pdf.addobj_given_num(pdf0, (1, pages))
+  pdf0.addobj_given_num((1, pages))
   let pdf = PdfPageDoc::new(pdf0).add_root(1, [])
   let res : Result[Int, Error] = try? PdfPageDoc::new(pdf).pages_of_pagetree_quick()
   match res {

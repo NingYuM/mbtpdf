@@ -77,31 +77,13 @@ fn toint(f : Double) -> Int {
 }
 
 ///|
-fn fmin(a : Double, b : Double) -> Double {
-  if a < b {
-    a
-  } else {
-    b
-  }
-}
-
-///|
-fn fmax(a : Double, b : Double) -> Double {
-  if a > b {
-    a
-  } else {
-    b
-  }
-}
-
-///|
 fn int_array_of_numbers(
   pdf : @pdf.Pdf,
   values : Array[@pdf.PdfObject],
 ) -> Array[Int] raise {
   let out = Array::new(capacity=values.length())
   for v in values {
-    out.push(toint(@pdf.getnum(pdf, v)))
+    out.push(toint(pdf.getnum(v)))
   }
   out
 }
@@ -153,14 +135,13 @@ fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
     Some(String(s)) => Some(s)
     _ => None
   }
-  let rectangle = @pdf.parse_rectangle(
-    pdf,
-    @pdf.lookup_fail("No /rect in annot", pdf, "/Rect", annot),
+  let rectangle = pdf.parse_rectangle(
+    pdf.lookup_fail("No /rect in annot", "/Rect", annot),
   )
   let border = match pdf.lookup_direct("/BS", annot) {
     Some(bsdict) => {
       let width = match pdf.lookup_direct("/W", bsdict) {
-        Some(x) => @pdf.getnum(pdf, x)
+        Some(x) => pdf.getnum(x)
         _ => 1.0
       }
       let style : Style = match pdf.lookup_direct("/S", bsdict) {
@@ -181,17 +162,17 @@ fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
       match pdf.lookup_direct("/Border", annot) {
         Some(Array([h, v, w])) =>
           {
-            width: @pdf.getnum(pdf, w),
-            vradius: @pdf.getnum(pdf, v),
-            hradius: @pdf.getnum(pdf, h),
+            width: pdf.getnum(w),
+            vradius: pdf.getnum(v),
+            hradius: pdf.getnum(h),
             style: NoStyle,
             dasharray: [],
           }
         Some(Array([h, v, w, Array(dash)])) =>
           {
-            width: @pdf.getnum(pdf, w),
-            vradius: @pdf.getnum(pdf, v),
-            hradius: @pdf.getnum(pdf, h),
+            width: pdf.getnum(w),
+            vradius: pdf.getnum(v),
+            hradius: pdf.getnum(h),
             style: NoStyle,
             dasharray: int_array_of_numbers(pdf, dash),
           }
@@ -207,13 +188,7 @@ fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
   }
   let colour = match pdf.lookup_direct("/C", annot) {
     Some(Array([r, g, b])) =>
-      Some(
-        (
-          toint(@pdf.getnum(pdf, r)),
-          toint(@pdf.getnum(pdf, g)),
-          toint(@pdf.getnum(pdf, b)),
-        ),
-      )
+      Some((toint(pdf.getnum(r)), toint(pdf.getnum(g)), toint(pdf.getnum(b))))
     _ => None
   }
   let annotrest : @pdf.PdfObject = match pdf.direct(annot) {
@@ -456,103 +431,6 @@ pub fn PdfAnnot::add_annotation(
 }
 
 ///|
-fn transform_rect(
-  pdf : @pdf.Pdf,
-  transform : @pdftransform.TransformMatrix,
-  rect : @pdf.PdfObject,
-) -> @pdf.PdfObject raise {
-  let (minx, miny, maxx, maxy) = @pdf.parse_rectangle(pdf, rect)
-  let (x0, y0) = transform.apply((minx, miny))
-  let (x1, y1) = transform.apply((maxx, maxy))
-  let (x2, y2) = transform.apply((minx, maxy))
-  let (x3, y3) = transform.apply((maxx, miny))
-  let minx = fmin(fmin(x0, x1), fmin(x2, x3))
-  let miny = fmin(fmin(y0, y1), fmin(y2, y3))
-  let maxx = fmax(fmax(x0, x1), fmax(x2, x3))
-  let maxy = fmax(fmax(y0, y1), fmax(y2, y3))
-  @pdf.PdfObject::Array([
-    @pdf.PdfObject::Real(minx),
-    @pdf.PdfObject::Real(miny),
-    @pdf.PdfObject::Real(maxx),
-    @pdf.PdfObject::Real(maxy),
-  ])
-}
-
-///|
-fn transform_quadpoint_single(
-  pdf : @pdf.Pdf,
-  transform : @pdftransform.TransformMatrix,
-  qp : Array[@pdf.PdfObject],
-) -> Array[@pdf.PdfObject] raise {
-  if qp.length() != 8 {
-    @pdfe.Pdfe::new().log(
-      "Malformed /QuadPoints format: must be a multiple of 8 entries\n",
-    )
-    return qp
-  }
-  let x1 = @pdf.getnum(pdf, qp[0])
-  let y1 = @pdf.getnum(pdf, qp[1])
-  let x2 = @pdf.getnum(pdf, qp[2])
-  let y2 = @pdf.getnum(pdf, qp[3])
-  let x3 = @pdf.getnum(pdf, qp[4])
-  let y3 = @pdf.getnum(pdf, qp[5])
-  let x4 = @pdf.getnum(pdf, qp[6])
-  let y4 = @pdf.getnum(pdf, qp[7])
-  let (x1, y1) = transform.apply((x1, y1))
-  let (x2, y2) = transform.apply((x2, y2))
-  let (x3, y3) = transform.apply((x3, y3))
-  let (x4, y4) = transform.apply((x4, y4))
-  [
-    @pdf.PdfObject::Real(x1),
-    @pdf.PdfObject::Real(y1),
-    @pdf.PdfObject::Real(x2),
-    @pdf.PdfObject::Real(y2),
-    @pdf.PdfObject::Real(x3),
-    @pdf.PdfObject::Real(y3),
-    @pdf.PdfObject::Real(x4),
-    @pdf.PdfObject::Real(y4),
-  ]
-}
-
-///|
-fn[T] split_into(values : Array[T], size : Int) -> Array[Array[T]] {
-  let out = Array::new()
-  let mut i = 0
-  while i < values.length() {
-    let part = Array::new(capacity=size)
-    let mut j = 0
-    while j < size && i + j < values.length() {
-      part.push(values[i + j])
-      j = j + 1
-    }
-    out.push(part)
-    i = i + size
-  }
-  out
-}
-
-///|
-fn transform_quadpoints(
-  pdf : @pdf.Pdf,
-  transform : @pdftransform.TransformMatrix,
-  qp : @pdf.PdfObject,
-) -> @pdf.PdfObject raise {
-  match qp {
-    Array(qps) => {
-      let out = Array::new()
-      for chunk in split_into(qps, 8) {
-        out.append(transform_quadpoint_single(pdf, transform, chunk))
-      }
-      @pdf.PdfObject::Array(out)
-    }
-    _ => {
-      @pdfe.Pdfe::new().log("Unknown or malformed /QuadPoints format\n")
-      qp
-    }
-  }
-}
-
-///|
 /// Transform all annotations in a page dictionary.
 #as_free_fn(transform_annotations, deprecated="Use `PdfAnnot::transform_annotations`")
 pub fn PdfAnnot::transform_annotations(
@@ -568,16 +446,16 @@ pub fn PdfAnnot::transform_annotations(
             let annot_obj = self.pdf.lookup_obj(i)
             let rect_updated = match
               self.pdf.lookup_direct("/Rect", annot_obj) {
-              Some(rect) => Some(transform_rect(self.pdf, transform, rect))
+              Some(rect) => Some(self.pdf.transform_rect(transform, rect))
               None => None
             }
             let quadpoints_updated = match
               self.pdf.lookup_direct("/QuadPoints", annot_obj) {
-              Some(qp) => Some(transform_quadpoints(self.pdf, transform, qp))
+              Some(qp) => Some(self.pdf.transform_quadpoints(transform, qp))
               None => None
             }
             let line_updated = match self.pdf.lookup_direct("/L", annot_obj) {
-              Some(line) => Some(transform_rect(self.pdf, transform, line))
+              Some(line) => Some(self.pdf.transform_rect(transform, line))
               _ => None
             }
             let annot_obj = match rect_updated {
@@ -592,7 +470,7 @@ pub fn PdfAnnot::transform_annotations(
               Some(line) => annot_obj.add_entry("/L", line)
               None => annot_obj
             }
-            @pdf.addobj_given_num(self.pdf, (i, annot_obj))
+            self.pdf.addobj_given_num((i, annot_obj))
           }
           _ => @pdfe.Pdfe::new().log("transform_annotations: not indirect\n")
         }

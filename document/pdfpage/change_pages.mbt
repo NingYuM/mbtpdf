@@ -146,7 +146,7 @@ fn rewrite_dest(
   } else {
     let transformed = parsed_dest.transform(pdf, tr)
     let new_dest = transformed.to_pdf_object()
-    Some(@pdf.addobj(pdf, new_dest))
+    Some(pdf.addobj(new_dest))
   }
 }
 
@@ -198,7 +198,7 @@ fn change_pages_process_annotations(
                             "/Dest",
                             @pdf.PdfObject::Indirect(objnum),
                           )
-                          @pdf.addobj_given_num(pdf, (i, new_annot))
+                          pdf.addobj_given_num((i, new_annot))
                         }
                         None => ()
                       }
@@ -211,7 +211,7 @@ fn change_pages_process_annotations(
                               let new_annot = annot.add_entry(
                                 "/A", updated_action,
                               )
-                              @pdf.addobj_given_num(pdf, (i, new_annot))
+                              pdf.addobj_given_num((i, new_annot))
                             }
                             None => ()
                           }
@@ -240,7 +240,7 @@ fn change_pages_process_annotations(
 fn rewrite_openaction(pdf : @pdf.Pdf, action : @pdf.PdfObject) -> Unit raise {
   let catalog = @pdf.catalog_of_pdf(pdf)
   let updated = catalog.add_entry("/OpenAction", action)
-  @pdf.addobj_given_num(pdf, (pdf.root, updated))
+  pdf.addobj_given_num((pdf.root, updated))
 }
 
 ///|
@@ -303,7 +303,7 @@ pub fn PdfPageDoc::change_pages(
 ) -> @pdf.Pdf raise {
   let basepdf = self.pdf
   let pdf = @pdf.Pdf::empty()
-  @pdf.objiter((k, v) => @pdf.addobj_given_num(pdf, (k, v)), basepdf)
+  @pdf.objiter((k, v) => pdf.addobj_given_num((k, v)), basepdf)
   copy_object_stream_ids(pdf, basepdf)
   let old_page_numbers = @pdf.page_reference_numbers(basepdf)
   let (pdf, pagetree_num) = PdfPageDoc::new(pdf).add_pagetree(pages)

@@ -280,7 +280,7 @@ fn read_xref_stream(
     _ => raise err
   }
   @pdfcodec.PdfCodec::new().decode_pdfstream(@pdf.Pdf::empty(), stream_obj)
-  @pdf.getstream(stream_obj)
+  stream_obj.getstream()
   let (w1, w2, w3) = match @pdf.Pdf::empty().lookup_direct("/W", stream_obj) {
     Some(@pdf.PdfObject::Array(elts)) => {
       if elts.length() != 3 {
@@ -421,7 +421,7 @@ fn parse_object_stream(
     }
   }
   @pdfcodec.PdfCodec::new().decode_pdfstream(partial_pdf, stmobj)
-  @pdf.getstream(stmobj)
+  stmobj.getstream()
   let (dict, stream_bytes) = match stmobj {
     @pdf.PdfObject::Stream(r) => r.val
     _ => raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Bad objstm"))

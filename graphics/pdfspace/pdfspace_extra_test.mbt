@@ -512,7 +512,7 @@ test "ColourSpace::to_string covers cal and lab variants" {
 test "read_colourspace handles indirect and singleton array" {
   let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
-  let objnum = @pdf.addobj(pdf, Name("/DeviceGray"))
+  let objnum = pdf.addobj(Name("/DeviceGray"))
   let indirect = ColourSpace::read(pdf, resources, Indirect(objnum))
   match (indirect : ColourSpace) {
     ColourSpace::DeviceGray => ()

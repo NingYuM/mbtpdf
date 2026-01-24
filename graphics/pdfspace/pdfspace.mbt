@@ -65,8 +65,7 @@ fn read_point(
   key : String,
 ) -> Point raise {
   match (pdf.lookup_direct(key, dict) : @pdf.PdfObject?) {
-    Some(Array([a, b, c])) =>
-      (@pdf.getnum(pdf, a), @pdf.getnum(pdf, b), @pdf.getnum(pdf, c))
+    Some(Array([a, b, c])) => (pdf.getnum(a), pdf.getnum(b), pdf.getnum(c))
     _ => (0.0, 0.0, 0.0)
   }
 }
@@ -140,7 +139,7 @@ pub fn ColourSpace::read(
       let whitepoint = read_point(pdf, dict, "/WhitePoint")
       let blackpoint = read_point(pdf, dict, "/BlackPoint")
       let gamma = match pdf.lookup_direct("/Gamma", dict) {
-        Some(n) => @pdf.getnum(pdf, n)
+        Some(n) => pdf.getnum(n)
         None => 1.0
       }
       ColourSpace::CalGray(whitepoint, blackpoint, gamma)
@@ -149,23 +148,22 @@ pub fn ColourSpace::read(
       let whitepoint = read_point(pdf, dict, "/WhitePoint")
       let blackpoint = read_point(pdf, dict, "/BlackPoint")
       let gamma = match (pdf.lookup_direct("/Gamma", dict) : @pdf.PdfObject?) {
-        Some(Array([a, b, c])) =>
-          [@pdf.getnum(pdf, a), @pdf.getnum(pdf, b), @pdf.getnum(pdf, c)]
+        Some(Array([a, b, c])) => [pdf.getnum(a), pdf.getnum(b), pdf.getnum(c)]
         _ => [1.0, 1.0, 1.0]
       }
       let matrix = match
         (pdf.lookup_direct("/Matrix", dict) : @pdf.PdfObject?) {
         Some(Array([a, b, c, d, e, f, g, h, i])) =>
           [
-            @pdf.getnum(pdf, a),
-            @pdf.getnum(pdf, b),
-            @pdf.getnum(pdf, c),
-            @pdf.getnum(pdf, d),
-            @pdf.getnum(pdf, e),
-            @pdf.getnum(pdf, f),
-            @pdf.getnum(pdf, g),
-            @pdf.getnum(pdf, h),
-            @pdf.getnum(pdf, i),
+            pdf.getnum(a),
+            pdf.getnum(b),
+            pdf.getnum(c),
+            pdf.getnum(d),
+            pdf.getnum(e),
+            pdf.getnum(f),
+            pdf.getnum(g),
+            pdf.getnum(h),
+            pdf.getnum(i),
           ]
         _ => [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
       }
@@ -176,12 +174,7 @@ pub fn ColourSpace::read(
       let blackpoint = read_point(pdf, dict, "/BlackPoint")
       let range = match (pdf.lookup_direct("/Range", dict) : @pdf.PdfObject?) {
         Some(Array([a, b, c, d])) =>
-          [
-            @pdf.getnum(pdf, a),
-            @pdf.getnum(pdf, b),
-            @pdf.getnum(pdf, c),
-            @pdf.getnum(pdf, d),
-          ]
+          [pdf.getnum(a), pdf.getnum(b), pdf.getnum(c), pdf.getnum(d)]
         _ => [-100.0, 100.0, -100.0, 100.0]
       }
       ColourSpace::Lab(whitepoint, blackpoint, range)
@@ -212,7 +205,7 @@ pub fn ColourSpace::read(
           let range = match
             (pdf.lookup_direct("/Range", dict) : @pdf.PdfObject?) {
             Some(Array(values)) if values.length() == 2 * n =>
-              values.map(v => @pdf.getnum(pdf, v))
+              values.map(v => pdf.getnum(v))
             _ => interleave_defaults(n)
           }
           let metadata = pdf.lookup_direct("/Metadata", dict)
@@ -479,7 +472,7 @@ fn write_iccbased(pdf : @pdf.Pdf, icc : ICCBased) -> @pdf.PdfObject {
       let stream_obj : @pdf.PdfObject = Stream(
         Ref::new((Dictionary(entries), stream_data)),
       )
-      let objnum = @pdf.addobj(pdf, stream_obj)
+      let objnum = pdf.addobj(stream_obj)
       Indirect(objnum)
     }
     _ => {

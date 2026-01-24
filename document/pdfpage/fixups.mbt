@@ -59,7 +59,7 @@ fn rewrite_first_indirect(
           "/Kids",
           @pdf.PdfObject::Array(updated_kids),
         )
-        @pdf.addobj_given_num(pdf, (objnum, updated))
+        pdf.addobj_given_num((objnum, updated))
         true
       } else {
         false
@@ -126,7 +126,7 @@ fn rewrite_page_tree_first(
   pdf : @pdf.Pdf,
   old_num : Int,
 ) -> Unit raise {
-  let new_num = @pdf.addobj(pdf, pdf.lookup_obj(old_num))
+  let new_num = pdf.addobj(pdf.lookup_obj(old_num))
   let mut rewritten = false
   for node in nodes {
     if !rewritten {
@@ -223,7 +223,7 @@ fn fixup_parents_inner(
         "/Parent",
         @pdf.PdfObject::Indirect(parent_objnum),
       )
-      @pdf.addobj_given_num(pdf, (objnum, updated))
+      pdf.addobj_given_num((objnum, updated))
     }
     None => ()
   }
@@ -303,7 +303,7 @@ pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
   })
   for pair in to_copy {
     let (from, to) = pair
-    @pdf.addobj_given_num(pdf, (to, pdf.lookup_obj(from)))
+    pdf.addobj_given_num((to, pdf.lookup_obj(from)))
   }
   for i in 0..<existing_annots.length() {
     let old_annots = existing_annots[i]
@@ -316,7 +316,7 @@ pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
       let obj = pdf.lookup_obj(annot_num)
       let obj = fixup_link("/Popup", obj, assoc)
       let obj = fixup_link("/Parent", obj, assoc)
-      @pdf.addobj_given_num(pdf, (annot_num, obj))
+      pdf.addobj_given_num((annot_num, obj))
     }
   }
   let pagerefnums = @pdf.page_reference_numbers(pdf)
@@ -332,7 +332,7 @@ pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
             "/Annots",
             @pdf.PdfObject::Array(indirects),
           )
-          @pdf.addobj_given_num(pdf, (pagerefnum, updated))
+          pdf.addobj_given_num((pagerefnum, updated))
         }
         _ => ()
       }
@@ -404,7 +404,7 @@ fn replace_inherit_entry(
   match find_attribute(obj) {
     Some(replacement) => {
       let updated = obj.add_entry(entry, replacement)
-      @pdf.addobj_given_num(pdf, (objnum, updated))
+      pdf.addobj_given_num((objnum, updated))
     }
     None => ()
   }

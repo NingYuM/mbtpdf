@@ -536,8 +536,8 @@ pub fn PdfFunction::parse(
   obj : @pdf.PdfObject,
 ) -> PdfFunction raise {
   let f = pdf.direct(obj)
-  let getnum_direct = (value : @pdf.PdfObject) => @pdf.getnum(pdf, value)
-  let domain = match @pdf.lookup_fail("No /Domain", pdf, "/Domain", f) {
+  let getnum_direct = (value : @pdf.PdfObject) => pdf.getnum(value)
+  let domain = match pdf.lookup_fail("No /Domain", "/Domain", f) {
     @pdf.PdfObject::Array(values) => values.map(getnum_direct)
     _ => raise @pdf.PdfError::Msg("Bad /Domain")
   }
@@ -545,11 +545,9 @@ pub fn PdfFunction::parse(
     Some(@pdf.PdfObject::Array(values)) => Some(values.map(getnum_direct))
     _ => None
   }
-  let func = match
-    @pdf.lookup_fail("no /FunctionType", pdf, "/FunctionType", f) {
+  let func = match pdf.lookup_fail("no /FunctionType", "/FunctionType", f) {
     @pdf.PdfObject::Integer(0) => {
-      let size = match
-        @pdf.lookup_fail("no /Size (sampled fun)", pdf, "/Size", f) {
+      let size = match pdf.lookup_fail("no /Size (sampled fun)", "/Size", f) {
         @pdf.PdfObject::Array(values) =>
           values.map(value => match value {
             @pdf.PdfObject::Integer(n) => n
@@ -579,7 +577,7 @@ pub fn PdfFunction::parse(
           }
       }
       let bitspersample = match
-        @pdf.lookup_fail("no /BitsPerSample", pdf, "/BitsPerSample", f) {
+        pdf.lookup_fail("no /BitsPerSample", "/BitsPerSample", f) {
         @pdf.PdfObject::Integer(i) => i
         _ => raise @pdf.PdfError::Msg("Bad /BitsPerSample")
       }
@@ -612,22 +610,19 @@ pub fn PdfFunction::parse(
         Some(@pdf.PdfObject::Array(values)) => values.map(getnum_direct)
         _ => [1.0]
       }
-      let n = getnum_direct(
-        @pdf.lookup_fail("No /N in Type 2 fun", pdf, "/N", f),
-      )
+      let n = getnum_direct(pdf.lookup_fail("No /N in Type 2 fun", "/N", f))
       PdfFunctionKind::Interpolation({ c0, c1, n })
     }
     @pdf.PdfObject::Integer(3) => {
-      let functions = match
-        @pdf.lookup_fail("no /Functions", pdf, "/Functions", f) {
+      let functions = match pdf.lookup_fail("no /Functions", "/Functions", f) {
         @pdf.PdfObject::Array(values) => values
         _ => raise @pdf.PdfError::Msg("Bad /Functions")
       }
-      let bounds = match @pdf.lookup_fail("no /Bounds", pdf, "/Bounds", f) {
+      let bounds = match pdf.lookup_fail("no /Bounds", "/Bounds", f) {
         @pdf.PdfObject::Array(values) => values.map(getnum_direct)
         _ => raise @pdf.PdfError::Msg("Bad /Bounds")
       }
-      let encode = match @pdf.lookup_fail("no /Encode", pdf, "/Encode", f) {
+      let encode = match pdf.lookup_fail("no /Encode", "/Encode", f) {
         @pdf.PdfObject::Array(values) => values.map(getnum_direct)
         _ => raise @pdf.PdfError::Msg("Bad /Bounds")
       }
@@ -1377,7 +1372,7 @@ fn entries_of_stitching(
   s : Stitching,
 ) -> Array[(String, @pdf.PdfObject)] {
   let numbers = s.functions.map(fun => @pdf.PdfObject::Indirect(
-    @pdf.addobj(pdf, fun.to_pdf_object(pdf)),
+    pdf.addobj(fun.to_pdf_object(pdf)),
   ))
   [
     ("/Functions", @pdf.PdfObject::Array(numbers)),

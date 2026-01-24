@@ -1988,7 +1988,7 @@ pub fn Op::parse_operators(
   for stream in streams {
     let direct = pdf.direct(stream)
     @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, direct)
-    @pdf.getstream(direct)
+    direct.getstream()
     match direct {
       @pdf.PdfObject::Stream(r) =>
         match r.val {

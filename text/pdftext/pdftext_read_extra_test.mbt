@@ -86,9 +86,9 @@ test "read_fontdescriptor reads font file references" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let null_obj : @pdf.PdfObject = Null
-  let obj1 = @pdf.addobj(pdf, null_obj)
-  let obj2 = @pdf.addobj(pdf, null_obj)
-  let obj3 = @pdf.addobj(pdf, null_obj)
+  let obj1 = pdf.addobj(null_obj)
+  let obj2 = pdf.addobj(null_obj)
+  let obj3 = pdf.addobj(null_obj)
   let font1 : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", Dictionary([("/FontFile", Indirect(obj1))])),
   ])

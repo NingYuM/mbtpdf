@@ -270,8 +270,7 @@ fn read_pdf_internal(
           let (dict, _) = r.val
           match pdf.lookup_direct("/Type", dict) {
             Some(@pdf.PdfObject::Name("/XRef"))
-            | Some(@pdf.PdfObject::Name("/ObjStm")) =>
-              @pdf.removeobj(pdf, objnum)
+            | Some(@pdf.PdfObject::Name("/ObjStm")) => pdf.removeobj(objnum)
             _ => ()
           }
         }

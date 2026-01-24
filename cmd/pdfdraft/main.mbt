@@ -13,7 +13,7 @@ fn xobject_isimage(
     Dictionary(_) =>
       match pdf.lookup_direct("/XObject", resources) {
         Some(xobjects) => {
-          let xobj = @pdf.lookup_fail("xobject not there", pdf, name, xobjects)
+          let xobj = pdf.lookup_fail("xobject not there", name, xobjects)
           isimage(pdf, xobj)
         }
         _ => false

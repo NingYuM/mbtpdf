@@ -102,8 +102,8 @@ test "nametree lookup" {
       PdfObject::Array([PdfObject::String("M"), PdfObject::Integer(2)]),
     ),
   ])
-  addobj_given_num(kids_pdf, (2, kid1))
-  addobj_given_num(kids_pdf, (3, kid2))
+  kids_pdf.addobj_given_num((2, kid1))
+  kids_pdf.addobj_given_num((3, kid2))
   let parent_with_kids = PdfObject::Dictionary([
     (
       "/Limits",

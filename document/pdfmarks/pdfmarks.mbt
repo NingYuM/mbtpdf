@@ -36,7 +36,7 @@ pub fn PdfMarks::remove_bookmarks(self : PdfMarks) -> @pdf.Pdf raise {
     None => raise @pdf.PdfError::Msg("remove_bookmarks: Bad PDF: no root")
     Some(catalog) => {
       let catalog_updated = catalog.remove_entry("/Outlines")
-      let newcatalognum = @pdf.addobj(pdf, catalog_updated)
+      let newcatalognum = pdf.addobj(catalog_updated)
       let trailerdict = pdf.trailerdict.add_entry(
         "/Root",
         @pdf.PdfObject::Indirect(newcatalognum),
@@ -397,7 +397,7 @@ pub fn PdfMarks::add_bookmarks(
     let tree = add_counts(tree.map(node => add_parent(None, node)))
     let (pairs, tree_root_num) = flatten_tree(source, pdf, tree)
     for pair in pairs {
-      @pdf.addobj_given_num(pdf, pair)
+      pdf.addobj_given_num(pair)
     }
     match pdf.lookup_direct("/Root", pdf.trailerdict) {
       None => raise @pdf.PdfError::Msg("Bad PDF: no root")
@@ -406,7 +406,7 @@ pub fn PdfMarks::add_bookmarks(
           "/Outlines",
           @pdf.PdfObject::Indirect(tree_root_num),
         )
-        let newcatalognum = @pdf.addobj(pdf, catalog_updated)
+        let newcatalognum = pdf.addobj(catalog_updated)
         let trailerdict = pdf.trailerdict.add_entry(
           "/Root",
           @pdf.PdfObject::Indirect(newcatalognum),
@@ -488,7 +488,7 @@ fn do_until_no_next_lb(
   let colour = try {
     match pdf.lookup_direct("/C", outline) {
       Some(@pdf.PdfObject::Array([a, b, c])) =>
-        (@pdf.getnum(pdf, a), @pdf.getnum(pdf, b), @pdf.getnum(pdf, c))
+        (pdf.getnum(a), pdf.getnum(b), pdf.getnum(c))
       _ => (0.0, 0.0, 0.0)
     }
   } catch {

@@ -40,7 +40,7 @@ test "shortest_unused_prefix handles dense prefixes" {
   }
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
-  ignore(@pdf.addobj(pdf, Integer(1)))
+  ignore(pdf.addobj(Integer(1)))
   assert_eq(@pdfpage.PdfPageDoc::new(pdf).shortest_unused_prefix(), "bz")
 }
 
@@ -308,7 +308,7 @@ test "add_prefix handles single indirect contents" {
     _ => fail("expected contents array")
   }
   let updated = page_obj.add_entry("/Contents", first_content)
-  @pdf.addobj_given_num(pdf, (page_num, updated))
+  pdf.addobj_given_num((page_num, updated))
   @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let ops_out = @pdfops.Op::parse_operators(

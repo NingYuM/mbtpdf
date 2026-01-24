@@ -43,7 +43,7 @@ pub fn PdfText::write_encoding(
         Some(value) => value
         None => raise @pdf.PdfError::Msg("write_encoding: missing name")
       }
-      @pdf.addobj(self.pdf, @pdf.PdfObject::Name(name))
+      self.pdf.addobj(@pdf.PdfObject::Name(name))
     }
     @pdffont.Encoding::FillUndefinedWithStandard(inner) =>
       self.write_encoding(inner)
@@ -65,7 +65,7 @@ pub fn PdfText::write_encoding(
           )
         None => ()
       }
-      @pdf.addobj(self.pdf, encoding_dict)
+      self.pdf.addobj(encoding_dict)
     }
     @pdffont.Encoding::ImplicitInFontFile =>
       raise @pdf.PdfError::Msg("write_encoding: implicit encoding")
@@ -163,8 +163,7 @@ pub fn PdfText::write_tounicode(self : PdfText, u : Map[Int, String]) -> Int {
   let dict = @pdf.PdfObject::Dictionary([
     ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(bytes))),
   ])
-  @pdf.addobj(
-    self.pdf,
+  self.pdf.addobj(
     @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(bytes)))),
   )
 }
@@ -231,7 +230,7 @@ pub fn PdfText::write_font(
                   ),
                 ].add(encoding_entry),
               )
-              @pdf.addobj(self.pdf, dict)
+              self.pdf.addobj(dict)
             }
             None => raise @pdf.PdfError::Msg("Missing font descriptor")
           }
@@ -270,7 +269,7 @@ pub fn PdfText::write_font(
                     ("/MaxWidth", @pdf.PdfObject::Integer(fd.maxwidth.to_int())),
                     ("/FontFile2", @pdf.PdfObject::Indirect(ttf)),
                   ])
-                  let fontdesc_num = @pdf.addobj(self.pdf, fontdesc)
+                  let fontdesc_num = self.pdf.addobj(fontdesc)
                   let mut font_dict_entries : Array[(String, @pdf.PdfObject)] = [
                     ("/Type", @pdf.PdfObject::Name("/Font")),
                     ("/Subtype", @pdf.PdfObject::Name("/TrueType")),
@@ -305,9 +304,9 @@ pub fn PdfText::write_font(
                   }
                   let font_obj = @pdf.PdfObject::Dictionary(font_dict_entries)
                   match objnum {
-                    None => @pdf.addobj(self.pdf, font_obj)
+                    None => self.pdf.addobj(font_obj)
                     Some(o) => {
-                      @pdf.addobj_given_num(self.pdf, (o, font_obj))
+                      self.pdf.addobj_given_num((o, font_obj))
                       o
                     }
                   }
@@ -322,8 +321,7 @@ pub fn PdfText::write_font(
           )
       }
     @pdffont.Font::StandardFont(standard, encoding) =>
-      @pdf.addobj(
-        self.pdf,
+      self.pdf.addobj(
         PdfTextUtil::new().make_font(standard.to_string(), encoding),
       )
     _ =>

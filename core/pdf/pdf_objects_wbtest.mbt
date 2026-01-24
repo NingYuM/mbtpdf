@@ -10,9 +10,9 @@ fn make_basic_pdf() -> Pdf {
     ("/Type", PdfObject::Name("/Catalog")),
     ("/Pages", PdfObject::Indirect(1)),
   ])
-  addobj_given_num(base, (1, pages))
-  addobj_given_num(base, (2, page))
-  addobj_given_num(base, (3, catalog))
+  base.addobj_given_num((1, pages))
+  base.addobj_given_num((2, page))
+  base.addobj_given_num((3, catalog))
   Pdf::{
     major: base.major,
     minor: base.minor,
@@ -28,13 +28,13 @@ fn make_basic_pdf() -> Pdf {
 test "lookup helpers and catalog" {
   let pdf = Pdf::empty()
   let dict = PdfObject::Dictionary([("/A", PdfObject::Integer(1))])
-  assert_integer(lookup_fail("err", pdf, "/A", dict), 1)
-  assert_is_err(try? lookup_fail("err", pdf, "/B", dict))
+  assert_integer(pdf.lookup_fail("err", "/A", dict), 1)
+  assert_is_err(try? pdf.lookup_fail("err", "/B", dict))
   let dict_indirect = PdfObject::Dictionary([("/A", PdfObject::Indirect(5))])
-  assert_eq(find_indirect("/A", dict_indirect), Some(5))
+  assert_eq(dict_indirect.find_indirect("/A"), Some(5))
   let dict_non_indirect = PdfObject::Dictionary([("/A", PdfObject::Integer(7))])
-  assert_eq(find_indirect("/A", dict_non_indirect), None)
-  assert_is_err(try? find_indirect("/A", PdfObject::Integer(1)))
+  assert_eq(dict_non_indirect.find_indirect("/A"), None)
+  assert_is_err(try? PdfObject::Integer(1).find_indirect("/A"))
   let catalog_pdf = make_basic_pdf()
   match catalog_of_pdf(catalog_pdf) {
     PdfObject::Dictionary(_) => ()
@@ -47,8 +47,8 @@ test "lookup helpers and catalog" {
 ///|
 test "recurse and iterators" {
   let pdf = Pdf::empty()
-  addobj_given_num(pdf, (2, PdfObject::Integer(2)))
-  addobj_given_num(pdf, (1, PdfObject::Integer(1)))
+  pdf.addobj_given_num((2, PdfObject::Integer(2)))
+  pdf.addobj_given_num((1, PdfObject::Integer(1)))
   match
     recurse_array(
       obj => match obj {
@@ -85,7 +85,7 @@ test "recurse and iterators" {
     PdfObject::Dictionary([]),
     @pdfio.bytes_of_string("x"),
   )
-  addobj_given_num(pdf, (4, stream))
+  pdf.addobj_given_num((4, stream))
   let selected = objselect(
     obj => match obj {
       PdfObject::Integer(_) => true
@@ -99,7 +99,7 @@ test "recurse and iterators" {
 ///|
 test "references and renumbering" {
   let pdf = make_basic_pdf()
-  addobj_given_num(pdf, (4, PdfObject::Integer(99)))
+  pdf.addobj_given_num((4, PdfObject::Integer(99)))
   let referenced = objects_referenced([], [], pdf, PdfObject::Indirect(2))
   assert_true(referenced.contains(2))
   remove_unreferenced(pdf)

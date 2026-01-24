@@ -97,7 +97,7 @@ fn add_named_destination(
   )
   let tree_builder = @pdftree.PdfTree::new(pdf)
   let tree = tree_builder.build_name_tree(false, [(name, dest.to_pdf_object())])
-  let tree_num = @pdf.addobj(pdf, tree)
+  let tree_num = pdf.addobj(tree)
   let rootnum = pdf.root
   let root = pdf.lookup_obj(rootnum)
   let names : @pdf.PdfObject = match pdf.lookup_direct("/Names", root) {
@@ -106,7 +106,7 @@ fn add_named_destination(
   }
   let names = names.add_entry("/Dests", Indirect(tree_num))
   let updated_root = root.add_entry("/Names", names)
-  @pdf.addobj_given_num(pdf, (rootnum, updated_root))
+  pdf.addobj_given_num((rootnum, updated_root))
   pdf.trailerdict = pdf.trailerdict.add_entry("/Root", Indirect(rootnum))
 }
 
@@ -127,7 +127,7 @@ fn set_catalog_entry(
   let rootnum = pdf.root
   let root = pdf.lookup_obj(rootnum)
   let updated_root = root.add_entry(key, value)
-  @pdf.addobj_given_num(pdf, (rootnum, updated_root))
+  pdf.addobj_given_num((rootnum, updated_root))
   pdf.trailerdict = pdf.trailerdict.add_entry("/Root", Indirect(rootnum))
 }
 
@@ -138,7 +138,7 @@ fn add_names_tree(
   entries : Array[(String, @pdf.PdfObject)],
 ) -> Unit raise {
   let tree = @pdftree.PdfTree::new(pdf).build_name_tree(false, entries)
-  let tree_num = @pdf.addobj(pdf, tree)
+  let tree_num = pdf.addobj(tree)
   let rootnum = pdf.root
   let root = pdf.lookup_obj(rootnum)
   let names : @pdf.PdfObject = match pdf.lookup_direct("/Names", root) {
@@ -147,7 +147,7 @@ fn add_names_tree(
   }
   let names = names.add_entry(key, Indirect(tree_num))
   let updated_root = root.add_entry("/Names", names)
-  @pdf.addobj_given_num(pdf, (rootnum, updated_root))
+  pdf.addobj_given_num((rootnum, updated_root))
   pdf.trailerdict = pdf.trailerdict.add_entry("/Root", Indirect(rootnum))
 }
 
@@ -166,7 +166,7 @@ fn add_embedded_file(
   let stream_obj : @pdf.PdfObject = Stream(
     Ref::new((stream_dict, @pdf.Stream::Got(bytes))),
   )
-  let stream_num = @pdf.addobj(pdf, stream_obj)
+  let stream_num = pdf.addobj(stream_obj)
   let filespec : @pdf.PdfObject = Dictionary([
     ("/Type", Name("/Filespec")),
     ("/F", String(filename)),
@@ -196,7 +196,7 @@ fn make_ap_entry(
   payload : String,
 ) -> (String, @pdf.PdfObject) {
   let stream_obj = make_ap_stream(payload)
-  let objnum = @pdf.addobj(pdf, stream_obj)
+  let objnum = pdf.addobj(stream_obj)
   (name, Indirect(objnum))
 }
 
@@ -260,7 +260,7 @@ fn add_ocg_properties(pdf : @pdf.Pdf, ocg_name : String) -> Unit raise {
     ("/Type", Name("/OCG")),
     ("/Name", String(ocg_name)),
   ])
-  let ocg_num = @pdf.addobj(pdf, ocg)
+  let ocg_num = pdf.addobj(ocg)
   let default_dict : @pdf.PdfObject = Dictionary([
     ("/BaseState", Name("/ON")),
     ("/Intent", Name("/View")),
@@ -271,7 +271,7 @@ fn add_ocg_properties(pdf : @pdf.Pdf, ocg_name : String) -> Unit raise {
     ("/OCGs", Array([Indirect(ocg_num)])),
     ("/D", default_dict),
   ])
-  let ocprops_num = @pdf.addobj(pdf, ocprops)
+  let ocprops_num = pdf.addobj(ocprops)
   set_catalog_entry(pdf, "/OCProperties", Indirect(ocprops_num))
 }
 
@@ -285,7 +285,7 @@ fn add_ocg_properties_with_config(
     ("/Type", Name("/OCG")),
     ("/Name", String(ocg_name)),
   ])
-  let ocg_num = @pdf.addobj(pdf, ocg)
+  let ocg_num = pdf.addobj(ocg)
   let default_dict : @pdf.PdfObject = Dictionary([
     ("/BaseState", Name("/ON")),
     ("/Intent", Name("/View")),
@@ -303,7 +303,7 @@ fn add_ocg_properties_with_config(
     ("/D", default_dict),
     ("/Configs", Array([config_dict])),
   ])
-  let ocprops_num = @pdf.addobj(pdf, ocprops)
+  let ocprops_num = pdf.addobj(ocprops)
   set_catalog_entry(pdf, "/OCProperties", Indirect(ocprops_num))
 }
 
@@ -385,7 +385,7 @@ fn add_struct_tree_root(
     ("/S", Name("/P")),
     ("/Pg", Indirect(page_ref)),
   ])
-  let struct_elem_num = @pdf.addobj(pdf, struct_elem)
+  let struct_elem_num = pdf.addobj(struct_elem)
   let parent_tree = @pdftree.PdfTree::new(pdf).build_name_tree(true, [
     (parent_key.to_string(), Indirect(struct_elem_num)),
   ])
@@ -394,11 +394,11 @@ fn add_struct_tree_root(
     ("/K", Indirect(struct_elem_num)),
     ("/ParentTree", parent_tree),
   ])
-  let struct_root_num = @pdf.addobj(pdf, struct_root)
+  let struct_root_num = pdf.addobj(struct_root)
   set_catalog_entry(pdf, "/StructTreeRoot", Indirect(struct_root_num))
   let page_obj = pdf.lookup_obj(page_ref)
   let updated_page = page_obj.add_entry("/StructParents", Integer(parent_key))
-  @pdf.addobj_given_num(pdf, (page_ref, updated_page))
+  pdf.addobj_given_num((page_ref, updated_page))
 }
 
 ///|
@@ -447,7 +447,7 @@ fn assert_ap_stream(
     Some(Name("/Form")) => ()
     _ => fail("expected /Subtype /Form")
   }
-  let bytes = @pdf.bigarray_of_stream(stream)
+  let bytes = stream.bigarray_of_stream()
   let payload = @pdfio.string_of_bytes(bytes)
   assert_eq(payload, expected_payload)
   match (pdf.lookup_direct("/Length", stream) : @pdf.PdfObject?) {
@@ -505,7 +505,7 @@ fn assert_embedded_file_stream(
     Some(Name("/EmbeddedFile")) => ()
     _ => fail("expected /Type /EmbeddedFile")
   }
-  let bytes = @pdf.bigarray_of_stream(stream_obj)
+  let bytes = stream_obj.bigarray_of_stream()
   let payload = @pdfio.string_of_bytes(bytes)
   assert_eq(payload, expected_payload)
   match (pdf.lookup_direct("/Length", stream_obj) : @pdf.PdfObject?) {

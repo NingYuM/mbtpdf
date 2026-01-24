@@ -297,7 +297,7 @@ fn write_pdf_object(
       write_pdf_object(dict, include_stream_data, warn_on_toget, sb)
       sb.write_string("\nstream\n")
       if include_stream_data {
-        let _ = getstream(obj) catch { _ => () }
+        let _ = obj.getstream() catch { _ => () }
         match r.val {
           (_, Stream::Got(bytes)) =>
             sb.write_string(@pdfio.string_of_bytes(bytes))

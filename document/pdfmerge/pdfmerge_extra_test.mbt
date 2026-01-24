@@ -203,8 +203,8 @@ test "remove_duplicate_fonts updates object_stream_ids" {
   let stream2 : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::Got([0x01]))),
   )
-  let obj1 = @pdf.addobj(pdf, stream1)
-  let obj2 = @pdf.addobj(pdf, stream2)
+  let obj1 = pdf.addobj(stream1)
+  let obj2 = pdf.addobj(stream2)
   pdf.objects.object_stream_ids.set(obj1, 10)
   pdf.objects.object_stream_ids.set(obj2, 20)
   PdfMergeDoc::new(pdf).remove_duplicate_fonts()
@@ -221,8 +221,8 @@ test "remove_duplicate_fonts keeps distinct stream lengths" {
   let stream2 : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::Got([0x01, 0x02]))),
   )
-  ignore(@pdf.addobj(pdf, stream1))
-  ignore(@pdf.addobj(pdf, stream2))
+  ignore(pdf.addobj(stream1))
+  ignore(pdf.addobj(stream2))
   let before = pdf.objcard()
   PdfMergeDoc::new(pdf).remove_duplicate_fonts()
   assert_eq(pdf.objcard(), before)

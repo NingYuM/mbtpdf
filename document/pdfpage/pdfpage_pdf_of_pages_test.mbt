@@ -137,10 +137,10 @@ test "pdf_of_pages trims structure tree" {
   let struct_tree : @pdf.PdfObject = Dictionary([
     ("/Type", Name("/StructTreeRoot")),
   ])
-  let struct_num = @pdf.addobj(pdf, struct_tree)
+  let struct_num = pdf.addobj(struct_tree)
   let root = @pdf.catalog_of_pdf(pdf)
   let updated_root = root.add_entry("/StructTreeRoot", Indirect(struct_num))
-  @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
+  pdf.addobj_given_num((pdf.root, updated_root))
   let subset = @pdfpage.PdfPageDoc::new(pdf).pdf_of_pages(
     [1],
     process_struct_tree=true,
@@ -173,12 +173,12 @@ test "endpage_fast handles missing count" {
     ("/Type", Name("/Page")),
     ("/MediaBox", rect),
   ])
-  let page_num = @pdf.addobj(pdf0, page)
+  let page_num = pdf0.addobj(page)
   let pages : @pdf.PdfObject = Dictionary([
     ("/Type", Name("/Pages")),
     ("/Kids", Array([Indirect(page_num)])),
   ])
-  let pages_num = @pdf.addobj(pdf0, pages)
+  let pages_num = pdf0.addobj(pages)
   let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(pages_num, [])
   assert_eq(@pdfpage.PdfPageDoc::new(pdf).endpage_fast(), 0)
 }

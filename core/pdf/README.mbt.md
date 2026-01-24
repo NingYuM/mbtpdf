@@ -83,12 +83,12 @@ let pdf = @pdf.Pdf::empty()
 let pdf = @pdf.Pdf::empty()
 
 // Add an object and get its number
-let objnum = @pdf.addobj(pdf, @pdf.PdfObject::Dictionary([
+let objnum = pdf.addobj(@pdf.PdfObject::Dictionary([
   ("/Type", @pdf.PdfObject::Name("/Page")),
 ]))
 
 // Add with a specific object number
-@pdf.addobj_given_num(pdf, (42, @pdf.PdfObject::Integer(100)))
+pdf.addobj_given_num((42, @pdf.PdfObject::Integer(100)))
 ```
 
 ## Object Lookup
@@ -109,7 +109,7 @@ test "lookup_obj returns Null for missing objects" {
 ///|
 test "direct follows indirects" {
   let pdf = @pdf.Pdf::empty()
-  let objnum = @pdf.addobj(pdf, @pdf.PdfObject::Integer(42))
+  let objnum = pdf.addobj(@pdf.PdfObject::Integer(42))
   let indirect = @pdf.PdfObject::Indirect(objnum)
   guard pdf.direct(indirect) is Integer(n) else { fail("expected Integer") }
   inspect(n, content="42")
@@ -252,8 +252,8 @@ let page_nums = @pdf.objselect(
 ```mbt nocheck
 match obj {
   Stream(_) => {
-    @pdf.getstream!(obj)  // Loads data if deferred
-    let bytes = @pdf.bigarray_of_stream!(obj)
+    obj.getstream!()  // Loads data if deferred
+    let bytes = obj.bigarray_of_stream!()
     // Use bytes...
   }
   _ => ()
@@ -274,7 +274,7 @@ test "parse_rectangle" {
     @pdf.PdfObject::Real(612.0),
     @pdf.PdfObject::Real(792.0),
   ])
-  let (minx, miny, maxx, maxy) = @pdf.parse_rectangle(pdf, rect)
+  let (minx, miny, maxx, maxy) = pdf.parse_rectangle(rect)
   inspect((minx, miny, maxx, maxy), content="(0, 0, 612, 792)")
 }
 ```
@@ -285,7 +285,7 @@ test "parse_rectangle" {
 // Parse a matrix from a dictionary
 
 ///|
-let matrix = @pdf.parse_matrix(pdf, "/Matrix", dict)
+let matrix = pdf.parse_matrix("/Matrix", dict)
 
 // Create a matrix object
 

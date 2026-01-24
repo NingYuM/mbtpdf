@@ -202,10 +202,10 @@ pub fn PdfPageDoc::add_pagetree(
     raise @pdf.PdfError::Msg("add_pagetree: empty page tree")
   }
   for obj in objects {
-    @pdf.addobj_given_num(pdf, obj)
+    pdf.addobj_given_num(obj)
   }
   for extra in extras.val {
-    @pdf.addobj_given_num(pdf, extra)
+    pdf.addobj_given_num(extra)
   }
   (pdf, objects[0].0)
 }
@@ -229,7 +229,7 @@ pub fn PdfPageDoc::add_root(
   }
   root = root.add_entry("/Type", @pdf.PdfObject::Name("/Catalog"))
   root = root.add_entry("/Pages", @pdf.PdfObject::Indirect(pageroot))
-  let rootnum = @pdf.addobj(pdf, root)
+  let rootnum = pdf.addobj(root)
   let trailerdict = match pdf.trailerdict {
     @pdf.PdfObject::Dictionary(_) =>
       pdf.trailerdict.add_entry("/Root", @pdf.PdfObject::Indirect(rootnum))

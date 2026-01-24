@@ -9,8 +9,8 @@ test "page_reference_numbers variants" {
     ("/Type", PdfObject::Name("/Catalog")),
     ("/Pages", PdfObject::Indirect(1)),
   ])
-  addobj_given_num(base1, (1, pages_kid_non_indirect))
-  addobj_given_num(base1, (2, catalog1))
+  base1.addobj_given_num((1, pages_kid_non_indirect))
+  base1.addobj_given_num((2, catalog1))
   let pdf1 = Pdf::{
     major: base1.major,
     minor: base1.minor,
@@ -30,8 +30,8 @@ test "page_reference_numbers variants" {
     ("/Type", PdfObject::Name("/Catalog")),
     ("/Pages", PdfObject::Indirect(1)),
   ])
-  addobj_given_num(base2, (1, pages_kid_not_array))
-  addobj_given_num(base2, (2, catalog2))
+  base2.addobj_given_num((1, pages_kid_not_array))
+  base2.addobj_given_num((2, catalog2))
   let pdf2 = Pdf::{
     major: base2.major,
     minor: base2.minor,
@@ -44,7 +44,7 @@ test "page_reference_numbers variants" {
   assert_eq(page_reference_numbers(pdf2), [-1])
   let base3 = Pdf::empty()
   let root_only = PdfObject::Dictionary([("/Type", PdfObject::Name("/Catalog"))])
-  addobj_given_num(base3, (1, root_only))
+  base3.addobj_given_num((1, root_only))
   let pdf3 = Pdf::{
     major: base3.major,
     minor: base3.minor,
@@ -61,20 +61,20 @@ test "page_reference_numbers variants" {
 test "remove_unreferenced nullifies page refs" {
   let pdf = make_basic_pdf()
   let extra_page = PdfObject::Dictionary([("/Type", PdfObject::Name("/Page"))])
-  addobj_given_num(pdf, (4, extra_page))
+  pdf.addobj_given_num((4, extra_page))
   let stream = make_stream(
     PdfObject::Dictionary([("/Ref", PdfObject::Indirect(4))]),
     @pdfio.bytes_of_string("x"),
   )
-  addobj_given_num(pdf, (5, stream))
-  addobj_given_num(pdf, (6, PdfObject::Integer(7)))
+  pdf.addobj_given_num((5, stream))
+  pdf.addobj_given_num((6, PdfObject::Integer(7)))
   let catalog = pdf.lookup_obj(3)
   let catalog_with_stream = catalog.add_entry("/Stream", PdfObject::Indirect(5))
   let catalog_with_number = catalog_with_stream.add_entry(
     "/Number",
     PdfObject::Indirect(6),
   )
-  addobj_given_num(pdf, (3, catalog_with_number))
+  pdf.addobj_given_num((3, catalog_with_number))
   remove_unreferenced(pdf)
   assert_true(!pdf.objnumbers().contains(4))
   match pdf.lookup_obj(5) {

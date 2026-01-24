@@ -159,7 +159,7 @@ test "extract text handles invalid unicode and missing xobjects" {
 test "extract text visits xobjects once" {
   let pdf = @pdf.Pdf::empty()
   let form_indirect = form_xobject_stream("X1")
-  let form_indirect_id = @pdf.addobj(pdf, form_indirect)
+  let form_indirect_id = pdf.addobj(form_indirect)
   let form_direct = form_xobject_stream("X2")
   let xobjects : @pdf.PdfObject = Dictionary([
     ("/X1", Indirect(form_indirect_id)),

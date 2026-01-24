@@ -1027,7 +1027,7 @@ pub fn PdfCodec::encode_pdfstream(
 
   match (obj : @pdf.PdfObject) {
     Stream(r) => {
-      map_pdf_error("getstream", fn() raise { @pdf.getstream(obj) })
+      map_pdf_error("getstream", fn() raise { obj.getstream() })
       let (dict, stream_data) = r.val
       let data = match (stream_data : @pdf.Stream) {
         Got(bytes) => bytes
@@ -1135,7 +1135,7 @@ pub fn PdfCodec::decode_pdfstream_onestage(
               raise CodecError::DecodeNotSupported("invalid filter entry")
             _ => raise CodecError::DecodeNotSupported("invalid filter")
           }
-          map_pdf_error("getstream", fn() raise { @pdf.getstream(obj) })
+          map_pdf_error("getstream", fn() raise { obj.getstream() })
           let data = match r.val {
             (_, @pdf.Stream::Got(bytes)) => bytes
             _ =>

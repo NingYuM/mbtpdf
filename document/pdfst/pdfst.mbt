@@ -193,11 +193,11 @@ pub fn PdfStructTree::trim_structure_tree(
 
   while del.val.length() > 0 || replaceobjs.val.length() > 0 {
     for objnum in dedup_ints(del.val) {
-      @pdf.removeobj(pdf, objnum)
+      pdf.removeobj(objnum)
     }
     del.val = []
     for pair in dedup_pairs(replaceobjs.val) {
-      @pdf.addobj_given_num(pdf, pair)
+      pdf.addobj_given_num(pair)
     }
     replaceobjs.val = []
     @pdf.objiter(
@@ -315,7 +315,7 @@ pub fn PdfStructTrees::renumber_parent_trees(
             match struct_obj {
               @pdf.PdfObject::Dictionary(_) | @pdf.PdfObject::Stream(_) => {
                 let updated = struct_obj.add_entry("/ParentTree", parent_tree)
-                @pdf.addobj_given_num(pdf, (struct_num, updated))
+                pdf.addobj_given_num((struct_num, updated))
                 (root_obj, true)
               }
               _ => (root_obj, false)
@@ -351,7 +351,7 @@ pub fn PdfStructTrees::renumber_parent_trees(
           pdf, root_obj, parent_tree,
         )
         if changed {
-          @pdf.addobj_given_num(pdf, (root_num, updated_root))
+          pdf.addobj_given_num((root_num, updated_root))
         }
       }
       Some(root_obj) => {
@@ -460,7 +460,7 @@ pub fn PdfStructTree::merge_structure_trees(
     get_all(struct_tree_roots, "/PronunciationLexicon"),
   )
   let merged_af = merge_arrays(get_all(struct_tree_roots, "/AF"))
-  let struct_tree_objnum = @pdf.addobj(pdf, @pdf.PdfObject::Null)
+  let struct_tree_objnum = pdf.addobj(@pdf.PdfObject::Null)
   let existing_ks = flatten(
     struct_tree_roots.map(root => match root.lookup_immediate("/K") {
       Some(@pdf.PdfObject::Indirect(i)) => [@pdf.PdfObject::Indirect(i)]
@@ -478,7 +478,7 @@ pub fn PdfStructTree::merge_structure_trees(
           "/P",
           @pdf.PdfObject::Indirect(struct_tree_objnum),
         )
-        @pdf.addobj_given_num(pdf, (i, updated))
+        pdf.addobj_given_num((i, updated))
         updated_ks.push(@pdf.PdfObject::Indirect(i))
       }
       @pdf.PdfObject::Dictionary(_) => {
@@ -499,7 +499,7 @@ pub fn PdfStructTree::merge_structure_trees(
     match obj {
       @pdf.PdfObject::Dictionary(entries) if entries.length() == 0 => []
       @pdf.PdfObject::Array(entries) if entries.length() == 0 => []
-      _ => [(name, @pdf.PdfObject::Indirect(@pdf.addobj(pdf, obj)))]
+      _ => [(name, @pdf.PdfObject::Indirect(pdf.addobj(obj)))]
     }
   }
 
@@ -514,8 +514,7 @@ pub fn PdfStructTree::merge_structure_trees(
   )
   standard_entries.append(optional("/AF", merged_af)[:])
   if add_toplevel_document {
-    let namespace_objnum = @pdf.addobj(
-      pdf,
+    let namespace_objnum = pdf.addobj(
       @pdf.PdfObject::Dictionary([
         ("/NS", @pdf.PdfObject::String("http://iso.org/pdf2/ssn")),
       ]),
@@ -529,8 +528,7 @@ pub fn PdfStructTree::merge_structure_trees(
       }
       _ => merged_namespaces
     }
-    let top_level_objnum = @pdf.addobj(
-      pdf,
+    let top_level_objnum = pdf.addobj(
       @pdf.PdfObject::Dictionary([
         ("/NS", @pdf.PdfObject::Indirect(namespace_objnum)),
         ("/S", @pdf.PdfObject::Name("/Document")),
@@ -542,8 +540,7 @@ pub fn PdfStructTree::merge_structure_trees(
     new_entries.append(standard_entries[:])
     new_entries.append(optional("/Namespaces", merged_namespaces)[:])
     new_entries.push(("/K", @pdf.PdfObject::Indirect(top_level_objnum)))
-    @pdf.addobj_given_num(
-      pdf,
+    pdf.addobj_given_num(
       (struct_tree_objnum, @pdf.PdfObject::Dictionary(new_entries)),
     )
     Some(struct_tree_objnum)
@@ -552,8 +549,7 @@ pub fn PdfStructTree::merge_structure_trees(
     new_entries.append(standard_entries[:])
     new_entries.append(optional("/Namespaces", merged_namespaces)[:])
     new_entries.append(optional("/K", merged_k)[:])
-    @pdf.addobj_given_num(
-      pdf,
+    pdf.addobj_given_num(
       (struct_tree_objnum, @pdf.PdfObject::Dictionary(new_entries)),
     )
     Some(struct_tree_objnum)

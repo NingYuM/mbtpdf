@@ -184,7 +184,7 @@ test "get_image_24bpp returns JBIG2 with globals" {
   let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let globals_obj : @pdf.PdfObject = Dictionary([])
-  let globals = @pdf.addobj(pdf, globals_obj)
+  let globals = pdf.addobj(globals_obj)
   let data = @pdfio.bytes_of_list([9, 8, 7])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(1)),

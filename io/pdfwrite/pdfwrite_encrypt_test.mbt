@@ -46,10 +46,10 @@ fn build_minimal_pdf_for_encrypt() -> @pdf.Pdf {
     ("/Type", Name("/Catalog")),
     ("/Pages", Indirect(1)),
   ])
-  @pdf.addobj_given_num(pdf, (1, pages))
-  @pdf.addobj_given_num(pdf, (2, stream_obj))
-  @pdf.addobj_given_num(pdf, (3, page))
-  @pdf.addobj_given_num(pdf, (4, catalog))
+  pdf.addobj_given_num((1, pages))
+  pdf.addobj_given_num((2, stream_obj))
+  pdf.addobj_given_num((3, page))
+  pdf.addobj_given_num((4, catalog))
   pdf
 }
 

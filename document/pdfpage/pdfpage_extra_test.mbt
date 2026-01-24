@@ -61,13 +61,13 @@ test "pages_of_pagetree handles missing mediabox and non-stream contents" {
   }
   let page1_obj = pdf.lookup_obj(page1_num)
   let page1_updated = page1_obj.add_entry("/Contents", Array([Integer(1)]))
-  @pdf.addobj_given_num(pdf, (page1_num, page1_updated))
+  pdf.addobj_given_num((page1_num, page1_updated))
   let page2_obj = pdf.lookup_obj(page2_num)
   let page2_updated = page2_obj
     .remove_entry("/MediaBox")
     .remove_entry("/Resources")
     .add_entry("/Contents", Integer(2))
-  @pdf.addobj_given_num(pdf, (page2_num, page2_updated))
+  pdf.addobj_given_num((page2_num, page2_updated))
   let out_pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   assert_eq(out_pages.length(), 2)
   assert_eq(out_pages[0].content.length(), 0)
@@ -130,16 +130,16 @@ test "change_pages rewrites bookmarks and mixed annotations" {
     ("/A", Dictionary([("/S", Name("/GoTo")), ("/D", dest2)])),
   ])
   let annot_nums = [
-    @pdf.addobj(pdf, annot_dest1),
-    @pdf.addobj(pdf, annot_dest2),
-    @pdf.addobj(pdf, annot_action_missing),
-    @pdf.addobj(pdf, annot_action_other),
-    @pdf.addobj(pdf, annot_action_none),
+    pdf.addobj(annot_dest1),
+    pdf.addobj(annot_dest2),
+    pdf.addobj(annot_action_missing),
+    pdf.addobj(annot_action_other),
+    pdf.addobj(annot_action_none),
   ]
   let annots : @pdf.PdfObject = Array(annot_nums.map(fn(n) { Indirect(n) }))
   let page1_obj = pdf.lookup_obj(refs[0])
   let page1_updated = page1_obj.add_entry("/Annots", annots)
-  @pdf.addobj_given_num(pdf, (refs[0], page1_updated))
+  pdf.addobj_given_num((refs[0], page1_updated))
   let bookmarks : Array[@pdfmarks.Bookmark] = [
     {
       level: 0,
@@ -191,7 +191,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
   let pdf = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(bookmarks)
   let catalog = @pdf.catalog_of_pdf(pdf)
   let catalog = catalog.add_entry("/OpenAction", dest1)
-  @pdf.addobj_given_num(pdf, (pdf.root, catalog))
+  pdf.addobj_given_num((pdf.root, catalog))
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let matrix = @pdftransform.TransformMatrix::translate(10.0, 0.0)
   let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices=[
@@ -288,8 +288,8 @@ test "fixup_duplicate_pages creates unique refs" {
     ("/Kids", Array([Indirect(1), Indirect(1)])),
     ("/Count", Integer(2)),
   ])
-  @pdf.addobj_given_num(pdf0, (1, page))
-  @pdf.addobj_given_num(pdf0, (2, pages))
+  pdf0.addobj_given_num((1, page))
+  pdf0.addobj_given_num((2, pages))
   let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(2, [])
   @pdfpage.PdfPageDoc::new(pdf).fixup_duplicate_pages()
   let refs = @pdf.page_reference_numbers(pdf)
@@ -316,8 +316,8 @@ test "replace_inherit fills mediabox" {
     ("/Count", Integer(1)),
     ("/MediaBox", rect),
   ])
-  @pdf.addobj_given_num(pdf0, (1, page))
-  @pdf.addobj_given_num(pdf0, (2, pages))
+  pdf0.addobj_given_num((1, page))
+  pdf0.addobj_given_num((2, pages))
   let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(2, [])
   @pdfpage.PdfPageDoc::new(pdf).replace_inherit([1])
   let updated = pdf.lookup_obj(1)
@@ -444,15 +444,15 @@ test "change_pages rewrites annotation and openaction" {
     ("/Subtype", Name("/Link")),
     ("/A", Dictionary([("/S", Name("/GoTo")), ("/D", dest_array)])),
   ])
-  let annot1 = @pdf.addobj(pdf, annot_dest)
-  let annot2 = @pdf.addobj(pdf, annot_action)
+  let annot1 = pdf.addobj(annot_dest)
+  let annot2 = pdf.addobj(annot_action)
   let page_obj = pdf.lookup_obj(refs[0])
   let annots : @pdf.PdfObject = Array([Indirect(annot1), Indirect(annot2)])
   let updated_page = page_obj.add_entry("/Annots", annots)
-  @pdf.addobj_given_num(pdf, (refs[0], updated_page))
+  pdf.addobj_given_num((refs[0], updated_page))
   let catalog = @pdf.catalog_of_pdf(pdf)
   let updated_catalog = catalog.add_entry("/OpenAction", dest_array)
-  @pdf.addobj_given_num(pdf, (pdf.root, updated_catalog))
+  pdf.addobj_given_num((pdf.root, updated_catalog))
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let translated = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices=[
     (1, @pdftransform.TransformMatrix::translate(5.0, -3.0)),

@@ -199,8 +199,8 @@ fn stream_compare(pdf : @pdf.Pdf, x : Int, y : Int) -> Int {
   try {
     let xobj = pdf.lookup_obj(x)
     let yobj = pdf.lookup_obj(y)
-    @pdf.getstream(xobj)
-    @pdf.getstream(yobj)
+    xobj.getstream()
+    yobj.getstream()
     match (xobj, yobj) {
       (@pdf.PdfObject::Stream(rx), @pdf.PdfObject::Stream(ry)) => {
         let (dict, stream_x) = rx.val
@@ -287,7 +287,7 @@ fn new_dests(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int? raise {
     None
   } else {
     let merged = @pdf.PdfObject::Dictionary(flatten(dests))
-    Some(@pdf.addobj(pdf, merged))
+    Some(pdf.addobj(merged))
   }
 }
 
@@ -352,11 +352,11 @@ fn merge_namedicts(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int raise {
   let tree_ctx = @pdftree.PdfTree::new(pdf)
   for pair in trees {
     let merged = tree_ctx.merge_name_trees_no_clash(pair.1)
-    let num = @pdf.addobj(pdf, merged)
+    let num = pdf.addobj(merged)
     new_entries.push((pair.0, @pdf.PdfObject::Indirect(num)))
   }
   let newdict = @pdf.PdfObject::Dictionary(new_entries)
-  @pdf.addobj(pdf, newdict)
+  pdf.addobj(newdict)
 }
 
 ///|
@@ -617,8 +617,7 @@ fn apply_namechanges_to_destination_nametree(
         for kid in kids {
           match kid {
             @pdf.PdfObject::Indirect(i) =>
-              @pdf.addobj_given_num(
-                pdf,
+              pdf.addobj_given_num(
                 (i, rewrite(pdf.direct(@pdf.PdfObject::Indirect(i)))),
               )
             _ => ()
@@ -636,11 +635,10 @@ fn apply_namechanges_to_destination_nametree(
         Some(@pdf.PdfObject::Dictionary(dest_dict)) => {
           let newdest = rewrite(@pdf.PdfObject::Dictionary(dest_dict))
           let newcatalog = catalog.add_entry("/Dests", newdest)
-          @pdf.addobj_given_num(pdf, (pdf.root, newcatalog))
+          pdf.addobj_given_num((pdf.root, newcatalog))
         }
         Some(@pdf.PdfObject::Indirect(i)) =>
-          @pdf.addobj_given_num(
-            pdf,
+          pdf.addobj_given_num(
             (i, rewrite(pdf.direct(@pdf.PdfObject::Indirect(i)))),
           )
         _ => ()
@@ -902,7 +900,7 @@ fn merge_optional_content_groups(
     entries.push(("/Configs", @pdf.PdfObject::Array(merged_config_arrays)))
   }
   let new_ocproperties = @pdf.PdfObject::Dictionary(entries)
-  Some(@pdf.addobj(pdf, new_ocproperties))
+  Some(pdf.addobj(new_ocproperties))
 }
 
 ///|
@@ -941,7 +939,7 @@ fn merge_acroforms(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int? raise {
     "/Fields",
     @pdf.PdfObject::Array(merged_field_arrays),
   )
-  Some(@pdf.addobj(pdf, new_dict))
+  Some(pdf.addobj(new_dict))
 }
 
 ///|
@@ -1009,7 +1007,7 @@ pub fn PdfMerger::merge_pdfs(
     pages.append(selected[:])
   }
   for src in pdfs {
-    @pdf.objiter((k, v) => @pdf.addobj_given_num(pdf, (k, v)), src)
+    @pdf.objiter((k, v) => pdf.addobj_given_num((k, v)), src)
   }
   let (pdf, pagetree_num) = @pdfpage.PdfPageDoc::new(pdf).add_pagetree(pages)
   let page_labels = if retain_numbering {
@@ -1095,7 +1093,7 @@ pub fn PdfMerger::merge_pdfs(
     None => ()
     Some(info) =>
       pdf.trailerdict = @pdf.PdfObject::Dictionary([
-        ("/Info", @pdf.PdfObject::Indirect(@pdf.addobj(pdf, info))),
+        ("/Info", @pdf.PdfObject::Indirect(pdf.addobj(info))),
       ])
   }
   let pdf = @pdfpage.PdfPageDoc::new(pdf).add_root(

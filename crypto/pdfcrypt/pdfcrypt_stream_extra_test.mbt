@@ -4,7 +4,7 @@ fn replace_encrypt_entry(
   updated : @pdf.PdfObject,
 ) -> Unit raise {
   match pdf.trailerdict.lookup_immediate("/Encrypt") {
-    Some(Indirect(n)) => @pdf.addobj_given_num(pdf, (n, updated))
+    Some(Indirect(n)) => pdf.addobj_given_num((n, updated))
     _ => fail("expected /Encrypt indirect reference")
   }
 }

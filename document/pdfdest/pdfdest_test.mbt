@@ -114,8 +114,8 @@ test "transform_destination updates GoTo action" {
     Destination::Action(dict) =>
       match pdf.lookup_direct("/D", dict) {
         Some(Array([_, Name("/XYZ"), left, top, _])) => {
-          assert_close(@pdf.getnum(pdf, left), 15.0)
-          assert_close(@pdf.getnum(pdf, top), 17.0)
+          assert_close(pdf.getnum(left), 15.0)
+          assert_close(pdf.getnum(top), 17.0)
         }
         _ => fail("expected updated action destination")
       }
@@ -262,7 +262,7 @@ test "read_destination name resolution" {
   let root = pdf_missing_entry.lookup_obj(pdf_missing_entry.root)
   let dests : @pdf.PdfObject = Dictionary([("/Other", Null)])
   let root = root.add_entry("/Dests", dests)
-  @pdf.addobj_given_num(pdf_missing_entry, (pdf_missing_entry.root, root))
+  pdf_missing_entry.addobj_given_num((pdf_missing_entry.root, root))
   match Destination::read(pdf_missing_entry, Name("/Missing")) {
     Destination::NamedDestination("/Missing") => ()
     _ => fail("expected NamedDestination for missing entry")
@@ -283,7 +283,7 @@ test "read_destination string resolution" {
   let pdf_no_dests = @pdfpage.PdfPageDoc::minimum_valid()
   let root = pdf_no_dests.lookup_obj(pdf_no_dests.root)
   let root = root.add_entry("/Names", Dictionary([]))
-  @pdf.addobj_given_num(pdf_no_dests, (pdf_no_dests.root, root))
+  pdf_no_dests.addobj_given_num((pdf_no_dests.root, root))
   match Destination::read(pdf_no_dests, String("Missing")) {
     Destination::StringDestination("Missing") => ()
     _ => fail("expected StringDestination with missing /Dests")
@@ -296,7 +296,7 @@ test "read_destination string resolution" {
   let names : @pdf.PdfObject = Dictionary([("/Dests", dests)])
   let root = pdf_with_tree.lookup_obj(pdf_with_tree.root)
   let root = root.add_entry("/Names", names)
-  @pdf.addobj_given_num(pdf_with_tree, (pdf_with_tree.root, root))
+  pdf_with_tree.addobj_given_num((pdf_with_tree.root, root))
   match Destination::read(pdf_with_tree, String("Anchor")) {
     Destination::Fit(TargetPage::OtherDocPageNumber(0)) => ()
     _ => fail("expected resolved StringDestination")
@@ -308,7 +308,7 @@ test "read_destination string resolution" {
   let names : @pdf.PdfObject = Dictionary([("/Dests", dests)])
   let root = pdf_no_match.lookup_obj(pdf_no_match.root)
   let root = root.add_entry("/Names", names)
-  @pdf.addobj_given_num(pdf_no_match, (pdf_no_match.root, root))
+  pdf_no_match.addobj_given_num((pdf_no_match.root, root))
   match Destination::read(pdf_no_match, String("Missing")) {
     Destination::StringDestination("Missing") => ()
     _ => fail("expected StringDestination for missing name")
@@ -448,7 +448,7 @@ test "read_destination resolves named dests in catalog" {
   let dests : @pdf.PdfObject = Dictionary([("/Chapter1", dest)])
   let root_obj = pdf.lookup_obj(pdf.root)
   let updated_root = root_obj.add_entry("/Dests", dests)
-  @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
+  pdf.addobj_given_num((pdf.root, updated_root))
   let resolved = Destination::read(pdf, Name("/Chapter1"))
   match resolved {
     Destination::Fit(TargetPage::PageObject(n)) => assert_eq(n, refs[0])

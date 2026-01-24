@@ -822,7 +822,7 @@ pub fn Image::get_image_24bpp(
   stream : @pdf.PdfObject,
 ) -> Image raise {
   let stream = pdf.direct(stream)
-  @pdf.getstream(stream)
+  stream.getstream()
   let (streamdict, data) = match (stream : @pdf.PdfObject) {
     Stream(r) => {
       let (dict, payload) = r.val
@@ -851,7 +851,7 @@ pub fn Image::get_image_24bpp(
     let decode_entry = pdf.lookup_direct_orelse("/Decode", "/D", streamdict)
     let decode_entry = decode_defaults(pdf, resources, decode_entry, streamdict)
     match decode_entry {
-      Some(Array(nums)) => Some(nums.map(n => @pdf.getnum(pdf, n)))
+      Some(Array(nums)) => Some(nums.map(n => pdf.getnum(n)))
       _ => None
     }
   }
@@ -865,7 +865,7 @@ pub fn Image::get_image_24bpp(
         pdf, resources, decode_entry, streamdict,
       )
       let floats = match decode_entry {
-        Some(Array(elts)) => elts.map(e => @pdf.getnum(pdf, e))
+        Some(Array(elts)) => elts.map(e => pdf.getnum(e))
         None => []
         _ => raise @pdf.PdfError::Msg("Bad /Decode")
       }

@@ -20,15 +20,15 @@ fn PdfText::parse_matrix(
   key : String,
   dict : @pdf.PdfObject,
 ) -> @pdftransform.TransformMatrix raise {
-  let obj = @pdf.lookup_fail("No matrix", self.pdf, key, dict)
+  let obj = self.pdf.lookup_fail("No matrix", key, dict)
   match obj {
     @pdf.PdfObject::Array(vals) if vals.length() == 6 => {
-      let a = @pdf.getnum(self.pdf, vals[0])
-      let b = @pdf.getnum(self.pdf, vals[1])
-      let c = @pdf.getnum(self.pdf, vals[2])
-      let d = @pdf.getnum(self.pdf, vals[3])
-      let e = @pdf.getnum(self.pdf, vals[4])
-      let f = @pdf.getnum(self.pdf, vals[5])
+      let a = self.pdf.getnum(vals[0])
+      let b = self.pdf.getnum(vals[1])
+      let c = self.pdf.getnum(vals[2])
+      let d = self.pdf.getnum(vals[3])
+      let e = self.pdf.getnum(vals[4])
+      let f = self.pdf.getnum(vals[5])
       { a, b, c, d, e, f }
     }
     _ => raise @pdf.PdfError::Msg("Bad matrix")
@@ -41,13 +41,11 @@ pub fn PdfText::read_type3_data(
   font : @pdf.PdfObject,
 ) -> @pdffont.Type3Glyphs raise {
   {
-    fontbbox: @pdf.parse_rectangle(
-      self.pdf,
-      @pdf.lookup_fail("No fontbbox", self.pdf, "/FontBBox", font),
+    fontbbox: self.pdf.parse_rectangle(
+      self.pdf.lookup_fail("No fontbbox", "/FontBBox", font),
     ),
     fontmatrix: self.parse_matrix("/FontMatrix", font),
-    charprocs: match
-      @pdf.lookup_fail("Bad Charprocs", self.pdf, "/CharProcs", font) {
+    charprocs: match self.pdf.lookup_fail("Bad Charprocs", "/CharProcs", font) {
       @pdf.PdfObject::Dictionary(l) => l
       _ => raise @pdf.PdfError::Msg("Bad charprocs")
     },
@@ -118,7 +116,7 @@ pub fn PdfText::read_fontdescriptor(
     Some(fontdescriptor) => {
       fn num_or_zero(key : String) -> Double raise {
         match self.pdf.lookup_direct(key, fontdescriptor) {
-          Some(x) => @pdf.getnum(self.pdf, x)
+          Some(x) => self.pdf.getnum(x)
           None => 0.0
         }
       }

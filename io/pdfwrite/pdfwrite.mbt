@@ -448,7 +448,7 @@ fn bake_object_streams(
       index = index + 1
     }
     for objnum in objs {
-      @pdf.removeobj(pdf, objnum)
+      pdf.removeobj(objnum)
     }
     let header = StringBuilder::new()
     for i in 0..<objs.length() {
@@ -490,7 +490,7 @@ fn bake_object_streams(
         )
       }
     }
-    @pdf.addobj_given_num(pdf, (stream_id, stream_obj))
+    pdf.addobj_given_num((stream_id, stream_obj))
   }
   entries
 }
@@ -634,7 +634,7 @@ fn write_pdf_object_to_output(
     }
     @pdf.PdfObject::Stream(r) => {
       if include_stream_data {
-        let _ = @pdf.getstream(obj) catch { _ => () }
+        let _ = obj.getstream() catch { _ => () }
 
       }
       let (dict, stream_data) = r.val
@@ -696,7 +696,7 @@ fn write_pdf_object(
       write_pdf_object(dict, include_stream_data, warn_on_toget, sb)
       sb.write_string("\nstream\n")
       if include_stream_data {
-        let _ = @pdf.getstream(obj) catch { _ => () }
+        let _ = obj.getstream() catch { _ => () }
         match r.val {
           (_, @pdf.Stream::Got(bytes)) =>
             sb.write_string(@pdfio.string_of_bytes(bytes))

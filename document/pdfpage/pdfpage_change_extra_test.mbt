@@ -25,7 +25,7 @@ fn set_catalog_entry(
 ) -> Unit raise {
   let catalog = @pdf.catalog_of_pdf(pdf)
   let updated = catalog.add_entry(key, value)
-  @pdf.addobj_given_num(pdf, (pdf.root, updated))
+  pdf.addobj_given_num((pdf.root, updated))
 }
 
 ///|
@@ -58,7 +58,7 @@ fn update_page_annots(
   match (page_obj : @pdf.PdfObject) {
     Dictionary(_) => {
       let updated = page_obj.add_entry("/Annots", Array(annots))
-      @pdf.addobj_given_num(pdf, (page_objnum, updated))
+      pdf.addobj_given_num((page_objnum, updated))
     }
     _ => raise @pdf.PdfError::Msg("page object not a dictionary")
   }
@@ -134,19 +134,19 @@ test "change_pages rewrites bookmarks annotations and openaction" {
     ("/Subtype", Name("/Link")),
     ("/Dest", dest_page2),
   ])
-  let annot_dest_num = @pdf.addobj(pdf, annot_dest)
+  let annot_dest_num = pdf.addobj(annot_dest)
   let annot_action : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Link")),
     ("/A", action_for_dest(dest_page2)),
   ])
-  let annot_action_num = @pdf.addobj(pdf, annot_action)
+  let annot_action_num = pdf.addobj(annot_action)
   let annot_action_invalid : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Link")),
     ("/A", Null),
   ])
-  let annot_action_invalid_num = @pdf.addobj(pdf, annot_action_invalid)
+  let annot_action_invalid_num = pdf.addobj(annot_action_invalid)
   let annot_not_link : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Text"))])
-  let annot_not_link_num = @pdf.addobj(pdf, annot_not_link)
+  let annot_not_link_num = pdf.addobj(annot_not_link)
   let annots : Array[@pdf.PdfObject] = [
     Indirect(annot_dest_num),
     Indirect(annot_action_num),

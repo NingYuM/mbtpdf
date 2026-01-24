@@ -332,7 +332,7 @@ fn Pdf::parse_delayed_object_stream(
     }
     self.objects.objects.set(pair.0, pair.1)
   }
-  removeobj(self, streamobjnum)
+  self.removeobj(streamobjnum)
   if found {
     self.lookup_obj(objnum)
   } else {
@@ -763,8 +763,9 @@ fn process_deferred_cryption(
 
 ///|
 /// Get a stream from disk if it hasn't already been got.
-pub fn getstream(obj : PdfObject) -> Unit raise {
-  match obj {
+#as_free_fn(getstream, deprecated="Use PdfObject::getstream instead")
+pub fn PdfObject::getstream(self : PdfObject) -> Unit raise {
+  match self {
     Stream(r) =>
       match r.val {
         (dict, Stream::ToGet(toget)) => {
@@ -789,9 +790,12 @@ pub fn getstream(obj : PdfObject) -> Unit raise {
 
 ///|
 /// Find the contents of a stream as bytes.
-pub fn bigarray_of_stream(obj : PdfObject) -> @pdfio.MutableBytes raise {
-  getstream(obj)
-  match obj {
+#as_free_fn(bigarray_of_stream, deprecated="Use PdfObject::bigarray_of_stream instead")
+pub fn PdfObject::bigarray_of_stream(
+  self : PdfObject,
+) -> @pdfio.MutableBytes raise {
+  self.getstream()
+  match self {
     Stream(r) =>
       match r.val {
         (_, Stream::Got(bytes)) => bytes
@@ -803,28 +807,30 @@ pub fn bigarray_of_stream(obj : PdfObject) -> @pdfio.MutableBytes raise {
 
 ///|
 /// Return a float from a PDF number.
-pub fn getnum(pdf : Pdf, obj : PdfObject) -> Double raise {
+#as_free_fn(getnum, deprecated="Use Pdf::getnum instead")
+pub fn Pdf::getnum(self : Pdf, obj : PdfObject) -> Double raise {
   match obj {
     Real(a) => a
     Integer(a) => Double::from_int(a)
-    Indirect(i) => getnum(pdf, pdf.lookup_obj(i))
+    Indirect(i) => self.getnum(self.lookup_obj(i))
     _ => raise PdfError::Msg("getnum: not a number")
   }
 }
 
 ///|
 /// Parse a PDF rectangle structure into min x, min y, max x, max y.
-pub fn parse_rectangle(
-  pdf : Pdf,
+#as_free_fn(parse_rectangle, deprecated="Use Pdf::parse_rectangle instead")
+pub fn Pdf::parse_rectangle(
+  self : Pdf,
   obj : PdfObject,
 ) -> (Double, Double, Double, Double) raise {
   match obj {
     Array(vals) =>
       if vals.length() == 4 {
-        let x = getnum(pdf, vals[0])
-        let y = getnum(pdf, vals[1])
-        let x2 = getnum(pdf, vals[2])
-        let y2 = getnum(pdf, vals[3])
+        let x = self.getnum(vals[0])
+        let y = self.getnum(vals[1])
+        let x2 = self.getnum(vals[2])
+        let y2 = self.getnum(vals[3])
         let min_x = if x < x2 { x } else { x2 }
         let min_y = if y < y2 { y } else { y2 }
         let max_x = if x > x2 { x } else { x2 }
@@ -839,23 +845,24 @@ pub fn parse_rectangle(
 
 ///|
 /// Parse a transform matrix, or return the identity if missing.
-pub fn parse_matrix(
-  pdf : Pdf,
+#as_free_fn(parse_matrix, deprecated="Use Pdf::parse_matrix instead")
+pub fn Pdf::parse_matrix(
+  self : Pdf,
   key : String,
   dict : PdfObject,
 ) -> @pdftransform.TransformMatrix raise {
-  match pdf.lookup_direct(key, dict) {
+  match self.lookup_direct(key, dict) {
     None | Some(Null) => @pdftransform.TransformMatrix::identity()
     Some(Array(vals)) =>
       if vals.length() != 6 {
         raise PdfError::Msg("Malformed matrix")
       } else {
-        let a = getnum(pdf, vals[0])
-        let b = getnum(pdf, vals[1])
-        let c = getnum(pdf, vals[2])
-        let d = getnum(pdf, vals[3])
-        let e = getnum(pdf, vals[4])
-        let f = getnum(pdf, vals[5])
+        let a = self.getnum(vals[0])
+        let b = self.getnum(vals[1])
+        let c = self.getnum(vals[2])
+        let d = self.getnum(vals[3])
+        let e = self.getnum(vals[4])
+        let f = self.getnum(vals[5])
         { a, b, c, d, e, f }
       }
     _ => raise PdfError::Msg("Malformed matrix")
@@ -888,12 +895,13 @@ fn fmax(a : Double, b : Double) -> Double {
 
 ///|
 /// Transform a rectangle by a matrix, returning the bounding rectangle.
-pub fn transform_rect(
-  pdf : Pdf,
+#as_free_fn(transform_rect, deprecated="Use Pdf::transform_rect instead")
+pub fn Pdf::transform_rect(
+  self : Pdf,
   transform : @pdftransform.TransformMatrix,
   rect : PdfObject,
 ) -> PdfObject raise {
-  let (minx, miny, maxx, maxy) = parse_rectangle(pdf, rect)
+  let (minx, miny, maxx, maxy) = self.parse_rectangle(rect)
   let (x0, y0) = transform.apply((minx, miny))
   let (x1, y1) = transform.apply((maxx, maxy))
   let (x2, y2) = transform.apply((minx, maxy))
@@ -906,8 +914,8 @@ pub fn transform_rect(
 }
 
 ///|
-fn transform_quadpoint_single(
-  pdf : Pdf,
+fn Pdf::transform_quadpoint_single(
+  self : Pdf,
   transform : @pdftransform.TransformMatrix,
   qp : Array[PdfObject],
 ) -> Array[PdfObject] raise {
@@ -917,14 +925,14 @@ fn transform_quadpoint_single(
     )
     return qp
   }
-  let x1 = getnum(pdf, qp[0])
-  let y1 = getnum(pdf, qp[1])
-  let x2 = getnum(pdf, qp[2])
-  let y2 = getnum(pdf, qp[3])
-  let x3 = getnum(pdf, qp[4])
-  let y3 = getnum(pdf, qp[5])
-  let x4 = getnum(pdf, qp[6])
-  let y4 = getnum(pdf, qp[7])
+  let x1 = self.getnum(qp[0])
+  let y1 = self.getnum(qp[1])
+  let x2 = self.getnum(qp[2])
+  let y2 = self.getnum(qp[3])
+  let x3 = self.getnum(qp[4])
+  let y3 = self.getnum(qp[5])
+  let x4 = self.getnum(qp[6])
+  let y4 = self.getnum(qp[7])
   let (x1, y1) = transform.apply((x1, y1))
   let (x2, y2) = transform.apply((x2, y2))
   let (x3, y3) = transform.apply((x3, y3))
@@ -958,8 +966,9 @@ fn[T] split_into(values : Array[T], size : Int) -> Array[Array[T]] {
 
 ///|
 /// Transform quadpoints by a matrix.
-pub fn transform_quadpoints(
-  pdf : Pdf,
+#as_free_fn(transform_quadpoints, deprecated="Use Pdf::transform_quadpoints instead")
+pub fn Pdf::transform_quadpoints(
+  self : Pdf,
   transform : @pdftransform.TransformMatrix,
   qp : PdfObject,
 ) -> PdfObject raise {
@@ -967,7 +976,7 @@ pub fn transform_quadpoints(
     Array(qps) => {
       let out = Array::new()
       for chunk in split_into(qps, 8) {
-        out.append(transform_quadpoint_single(pdf, transform, chunk))
+        out.append(self.transform_quadpoint_single(transform, chunk))
       }
       Array(out)
     }
@@ -994,37 +1003,41 @@ pub fn Pdf::objnumbers(self : Pdf) -> Array[Int] {
 
 ///|
 /// Remove the given object.
-pub fn removeobj(pdf : Pdf, objnum : Int) -> Unit {
-  pdf.objects.objects.remove(objnum)
+#as_free_fn(removeobj, deprecated="Use Pdf::removeobj instead")
+pub fn Pdf::removeobj(self : Pdf, objnum : Int) -> Unit {
+  self.objects.objects.remove(objnum)
 }
 
 ///|
 /// Add an object. Returns the number chosen.
-pub fn addobj(pdf : Pdf, obj : PdfObject) -> Int {
-  let next = pdf.objects.max_obj_num + 1
-  addobj_given_num(pdf, (next, obj))
+#as_free_fn(addobj, deprecated="Use Pdf::addobj instead")
+pub fn Pdf::addobj(self : Pdf, obj : PdfObject) -> Int {
+  let next = self.objects.max_obj_num + 1
+  self.addobj_given_num((next, obj))
   next
 }
 
 ///|
 /// Same as addobj, but pick a number ourselves.
-pub fn addobj_given_num(pdf : Pdf, pair : (Int, PdfObject)) -> Unit {
+#as_free_fn(addobj_given_num, deprecated="Use Pdf::addobj_given_num instead")
+pub fn Pdf::addobj_given_num(self : Pdf, pair : (Int, PdfObject)) -> Unit {
   let (num, obj) = pair
-  if num > pdf.objects.max_obj_num {
-    pdf.objects.max_obj_num = num
+  if num > self.objects.max_obj_num {
+    self.objects.max_obj_num = num
   }
-  pdf.objects.objects.set(num, ({ val: Parsed(obj) }, 0))
+  self.objects.objects.set(num, ({ val: Parsed(obj) }, 0))
 }
 
 ///|
 /// Lookup an object, failing if not found.
-pub fn lookup_fail(
+#as_free_fn(lookup_fail, deprecated="Use Pdf::lookup_fail instead")
+pub fn Pdf::lookup_fail(
+  self : Pdf,
   errtext : String,
-  pdf : Pdf,
   key : String,
   dict : PdfObject,
 ) -> PdfObject raise {
-  match pdf.lookup_direct(key, dict) {
+  match self.lookup_direct(key, dict) {
     Some(obj) => obj
     None => raise PdfError::Msg(errtext)
   }
@@ -1032,10 +1045,11 @@ pub fn lookup_fail(
 
 ///|
 /// Find the indirect reference given by the value associated with a key.
-pub fn find_indirect(key : String, dict : PdfObject) -> Int? raise {
-  match dict {
+#as_free_fn(find_indirect, deprecated="Use PdfObject::find_indirect instead")
+pub fn PdfObject::find_indirect(self : PdfObject, key : String) -> Int? raise {
+  match self {
     Dictionary(_) =>
-      match dict.lookup_immediate(key) {
+      match self.lookup_immediate(key) {
         Some(Indirect(i)) => Some(i)
         _ => None
       }
@@ -1337,7 +1351,7 @@ pub fn remove_unreferenced(pdf : Pdf) -> Unit raise {
   pdf.objects.objects.clear()
   pdf.objects.object_stream_ids.clear()
   for i, num in eltnumbers {
-    addobj_given_num(pdf, (num, elements[i]))
+    pdf.addobj_given_num((num, elements[i]))
   }
 }
 

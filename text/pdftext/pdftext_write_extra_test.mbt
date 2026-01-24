@@ -76,7 +76,7 @@ fn add_font_descriptor(pdf : @pdf.Pdf, fontfile_obj : Int?) -> Int {
     Some(objnum) => entries.push(("/FontFile2", Indirect(objnum)))
     None => ()
   }
-  @pdf.addobj(pdf, Dictionary(entries))
+  pdf.addobj(Dictionary(entries))
 }
 
 ///|
@@ -85,7 +85,7 @@ fn add_fontfile_stream(pdf : @pdf.Pdf) -> Int {
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
   ])
-  @pdf.addobj(pdf, Stream(Ref::new((dict, @pdf.Stream::Got(data)))))
+  pdf.addobj(Stream(Ref::new((dict, @pdf.Stream::Got(data)))))
 }
 
 ///|
@@ -94,7 +94,7 @@ fn add_tounicode_stream(pdf : @pdf.Pdf) -> Int {
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(bytes))),
   ])
-  @pdf.addobj(pdf, Stream(Ref::new((dict, @pdf.Stream::Got(bytes)))))
+  pdf.addobj(Stream(Ref::new((dict, @pdf.Stream::Got(bytes)))))
 }
 
 ///|

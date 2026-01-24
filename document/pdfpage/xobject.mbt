@@ -24,7 +24,7 @@ pub fn PdfPageDoc::process_xobject(
   match pdf.lookup_direct("/Subtype", xobj) {
     None => raise @pdf.PdfError::Msg("No /Subtype in Xobject")
     Some(@pdf.PdfObject::Name("/Form")) => {
-      @pdf.getstream(xobj)
+      xobj.getstream()
       match xobj {
         @pdf.PdfObject::Stream(r) =>
           match r.val {

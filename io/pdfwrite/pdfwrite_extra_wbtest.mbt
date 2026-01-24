@@ -104,20 +104,17 @@ test "make_hex_pdf_string covers hex digits" {
 ///|
 test "pdf_to_output generates object streams with indirect lengths" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  let length_obj = @pdf.addobj(pdf, Integer(3))
+  let length_obj = pdf.addobj(Integer(3))
   let data = @pdfio.bytes_of_string("abc")
   let dict : @pdf.PdfObject = Dictionary([("/Length", Indirect(length_obj))])
-  let stream_num = @pdf.addobj(
-    pdf,
-    Stream(Ref::new((dict, @pdf.Stream::Got(data)))),
-  )
-  let marked_obj = @pdf.addobj(pdf, Integer(123))
+  let stream_num = pdf.addobj(Stream(Ref::new((dict, @pdf.Stream::Got(data)))))
+  let marked_obj = pdf.addobj(Integer(123))
   pdf.objects.object_stream_ids.set(marked_obj, stream_num)
   pdf.objects.object_stream_ids.set(stream_num, stream_num)
   let payload = "A".repeat(1000)
   let payload_ids = Array::new()
   for _ in 0..<=30 {
-    let objnum = @pdf.addobj(pdf, String(payload))
+    let objnum = pdf.addobj(String(payload))
     payload_ids.push(objnum)
   }
   for objnum in payload_ids {
@@ -175,13 +172,10 @@ test "pdf_to_output generates object streams with indirect lengths" {
 ///|
 test "pdf_to_output skips indirect length objects for objstm hints" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  let length_obj = @pdf.addobj(pdf, Integer(4))
+  let length_obj = pdf.addobj(Integer(4))
   let data = @pdfio.bytes_of_string("data")
   let dict : @pdf.PdfObject = Dictionary([("/Length", Indirect(length_obj))])
-  let stream_num = @pdf.addobj(
-    pdf,
-    Stream(Ref::new((dict, @pdf.Stream::Got(data)))),
-  )
+  let stream_num = pdf.addobj(Stream(Ref::new((dict, @pdf.Stream::Got(data)))))
   pdf.objects.object_stream_ids.set(stream_num, stream_num)
   pdf.objects.object_stream_ids.set(length_obj, stream_num)
   let (output, buffer) = @pdfio.input_output_of_bytes(1024)
@@ -225,7 +219,7 @@ test "pdf_to_output drops invalid object stream ids and writes toget" {
   let stream : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::ToGet(toget))),
   )
-  let stream_num = @pdf.addobj(pdf, stream)
+  let stream_num = pdf.addobj(stream)
   pdf.objects.object_stream_ids.set(9999, stream_num)
   pdf.objects.object_stream_ids.set(stream_num, stream_num)
   let (output, buffer) = @pdfio.input_output_of_bytes(4096)

@@ -413,7 +413,7 @@ pub fn PageLabel::write_all(
       "/PageLabels",
       @pdf.PdfObject::Dictionary([("/Nums", @pdf.PdfObject::Array(arr))]),
     )
-    @pdf.addobj_given_num(pdf, (rootnum, updated_root))
+    pdf.addobj_given_num((rootnum, updated_root))
     pdf.trailerdict = pdf.trailerdict.add_entry(
       "/Root",
       @pdf.PdfObject::Indirect(rootnum),
@@ -428,7 +428,7 @@ pub fn PageLabel::remove_all(pdf : @pdf.Pdf) -> Unit raise {
   let rootnum = pdf.root
   let root = pdf.lookup_obj(rootnum)
   let updated_root = root.remove_entry("/PageLabels")
-  @pdf.addobj_given_num(pdf, (rootnum, updated_root))
+  pdf.addobj_given_num((rootnum, updated_root))
   pdf.trailerdict = pdf.trailerdict.add_entry(
     "/Root",
     @pdf.PdfObject::Indirect(rootnum),

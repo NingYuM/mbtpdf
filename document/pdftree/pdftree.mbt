@@ -356,7 +356,7 @@ fn PdfTree::name_tree_of_nt(
           @pdf.PdfObject::Dictionary(_)
           | @pdf.PdfObject::Stream(_)
           | @pdf.PdfObject::Array(_) => {
-            let objnum = @pdf.addobj(self.pdf, child_obj)
+            let objnum = self.pdf.addobj(child_obj)
             kid_refs.push(@pdf.PdfObject::Indirect(objnum))
           }
           _ => kid_refs.push(child_obj)

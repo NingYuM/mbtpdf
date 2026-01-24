@@ -27,7 +27,7 @@ fn set_catalog_entry(
 ) -> Unit raise {
   let catalog = @pdf.catalog_of_pdf(pdf)
   let updated = catalog.add_entry(key, value)
-  @pdf.addobj_given_num(pdf, (pdf.root, updated))
+  pdf.addobj_given_num((pdf.root, updated))
 }
 
 ///|
@@ -36,7 +36,7 @@ fn add_dest_name_tree(pdf : @pdf.Pdf, name : String) -> Unit raise {
     ("/Names", Array([String(name), Null])),
     ("/Limits", Array([String(name), String(name)])),
   ])
-  let child_num = @pdf.addobj(pdf, child)
+  let child_num = pdf.addobj(child)
   let root_tree : @pdf.PdfObject = Dictionary([
     ("/Names", Array([String(name), Null])),
     ("/Limits", Array([String(name), String(name)])),
@@ -48,12 +48,12 @@ fn add_dest_name_tree(pdf : @pdf.Pdf, name : String) -> Unit raise {
 ///|
 fn add_dest_callsites(pdf : @pdf.Pdf, name : String) -> Unit {
   let dest_obj : @pdf.PdfObject = Dictionary([("/Dest", String(name))])
-  ignore(@pdf.addobj(pdf, dest_obj))
+  ignore(pdf.addobj(dest_obj))
   let action_obj : @pdf.PdfObject = Dictionary([
     ("/S", Name("/GoTo")),
     ("/D", String(name)),
   ])
-  ignore(@pdf.addobj(pdf, action_obj))
+  ignore(pdf.addobj(action_obj))
 }
 
 ///|
@@ -163,8 +163,8 @@ test "remove_duplicate_fonts merges identical streams" {
   let stream2 : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::Got(data2))),
   )
-  ignore(@pdf.addobj(pdf, stream1))
-  ignore(@pdf.addobj(pdf, stream2))
+  ignore(pdf.addobj(stream1))
+  ignore(pdf.addobj(stream2))
   let before = count_streams(pdf)
   PdfMergeDoc::new(pdf).remove_duplicate_fonts()
   let after = count_streams(pdf)
@@ -195,11 +195,11 @@ test "remove_duplicate_fonts keeps distinct streams" {
   let stream5 : @pdf.PdfObject = Stream(
     Ref::new((dict_alt, @pdf.Stream::Got([0x01]))),
   )
-  ignore(@pdf.addobj(pdf, stream1))
-  ignore(@pdf.addobj(pdf, stream2))
-  ignore(@pdf.addobj(pdf, stream3))
-  ignore(@pdf.addobj(pdf, stream4))
-  ignore(@pdf.addobj(pdf, stream5))
+  ignore(pdf.addobj(stream1))
+  ignore(pdf.addobj(stream2))
+  ignore(pdf.addobj(stream3))
+  ignore(pdf.addobj(stream4))
+  ignore(pdf.addobj(stream5))
   PdfMergeDoc::new(pdf).remove_duplicate_fonts()
   assert_eq(count_streams(pdf), 4)
 }

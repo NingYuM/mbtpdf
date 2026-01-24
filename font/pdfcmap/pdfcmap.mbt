@@ -373,7 +373,7 @@ pub fn CMap::parse(pdf : @pdf.Pdf, cmap : @pdf.PdfObject) -> CMap raise {
               { map: pairs, wmode }
             }
             @pdf.Stream::ToGet(_) => {
-              @pdf.getstream(cmap)
+              cmap.getstream()
               CMap::parse(pdf, cmap)
             }
           }

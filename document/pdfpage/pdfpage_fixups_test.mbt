@@ -39,15 +39,15 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
   ])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   let annot_base : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Text"))])
-  let annot_num = @pdf.addobj(pdf, annot_base)
+  let annot_num = pdf.addobj(annot_base)
   let annot_with_popup = annot_base.add_entry("/Popup", Indirect(annot_num))
-  @pdf.addobj_given_num(pdf, (annot_num, annot_with_popup))
+  pdf.addobj_given_num((annot_num, annot_with_popup))
   let refs = @pdf.page_reference_numbers(pdf)
   for refnum in refs {
     let page_obj = pdf.lookup_obj(refnum)
     let annots : @pdf.PdfObject = Array([Indirect(annot_num)])
     let updated = page_obj.add_entry("/Annots", annots)
-    @pdf.addobj_given_num(pdf, (refnum, updated))
+    pdf.addobj_given_num((refnum, updated))
   }
   @pdfpage.PdfPageDoc::new(pdf).fixup_duplicate_annots()
   let refs2 = @pdf.page_reference_numbers(pdf)
@@ -65,14 +65,14 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
 ///|
 test "fixup_destinations removes nulled entries" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  let null_num = @pdf.addobj(pdf, Null)
+  let null_num = pdf.addobj(Null)
   let dead_dest : @pdf.PdfObject = Array([Indirect(null_num), Name("/Fit")])
   let tree_ctx = @pdftree.PdfTree::new(pdf)
   let tree = tree_ctx.build_name_tree(false, [("Dead", dead_dest)])
   let names : @pdf.PdfObject = Dictionary([("/Dests", tree)])
   let catalog = @pdf.catalog_of_pdf(pdf)
   let updated_catalog = catalog.add_entry("/Names", names)
-  @pdf.addobj_given_num(pdf, (pdf.root, updated_catalog))
+  pdf.addobj_given_num((pdf.root, updated_catalog))
   let trailerdict = pdf.trailerdict.add_entry("/Root", updated_catalog)
   let pdf_direct : @pdf.Pdf = {
     major: pdf.major,
@@ -119,7 +119,7 @@ test "fixup_parents skips direct kids" {
     ("/Kids", Array([page])),
     ("/Count", Integer(1)),
   ])
-  let pages_num = @pdf.addobj(pdf0, pages)
+  let pages_num = pdf0.addobj(pages)
   let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(pages_num, [])
   @pdfpage.PdfPageDoc::new(pdf).fixup_parents()
 }

@@ -39,7 +39,7 @@ fn find_pages(
       match typ {
         Some(@pdf.PdfObject::Name("/Pages")) | None => {
           let kids = match
-            @pdf.lookup_fail("No /Kids in page tree", pdf, "/Kids", pages) {
+            pdf.lookup_fail("No /Kids in page tree", "/Kids", pages) {
             @pdf.PdfObject::Array(values) => values
             _ => raise @pdf.PdfError::Msg("Malformed /Kids in page tree node")
           }
@@ -163,8 +163,8 @@ pub fn PdfPageDoc::pages_of_pagetree(self : PdfPageDoc) -> Array[Page] raise {
   match document_catalog {
     @pdf.PdfObject::Null => raise @pdf.PdfError::Msg("/Root entry is incorrect")
     _ => {
-      let pages = @pdf.lookup_fail(
-        "No or malformed /Pages", pdf, "/Pages", document_catalog,
+      let pages = pdf.lookup_fail(
+        "No or malformed /Pages", "/Pages", document_catalog,
       )
       find_pages(pages, pdf, None, None, Rotation::Rotate0)
     }
@@ -205,7 +205,7 @@ fn find_pages_quick(
       match typ {
         Some(@pdf.PdfObject::Name("/Pages")) | None => {
           let kids = match
-            @pdf.lookup_fail("No /Kids in page tree", pdf, "/Kids", resolved) {
+            pdf.lookup_fail("No /Kids in page tree", "/Kids", resolved) {
             @pdf.PdfObject::Array(values) => values
             _ => raise @pdf.PdfError::Msg("Malformed /Kids in page tree node")
           }
@@ -239,8 +239,8 @@ pub fn PdfPageDoc::pages_of_pagetree_quick(self : PdfPageDoc) -> Int raise {
   match document_catalog {
     @pdf.PdfObject::Null => raise @pdf.PdfError::Msg("/Root entry is incorrect")
     _ => {
-      let pages = @pdf.lookup_fail(
-        "No or malformed /Pages", pdf, "/Pages", document_catalog,
+      let pages = pdf.lookup_fail(
+        "No or malformed /Pages", "/Pages", document_catalog,
       )
       let stack : Map[Int, Bool] = Map::new()
       find_pages_quick(0, pages, pdf, stack)
@@ -271,8 +271,8 @@ pub fn PdfPageDoc::endpage_fast(self : PdfPageDoc) -> Int raise {
   match document_catalog {
     @pdf.PdfObject::Null => raise @pdf.PdfError::Msg("/Root entry is incorrect")
     _ => {
-      let pages = @pdf.lookup_fail(
-        "No or malformed /Pages", pdf, "/Pages", document_catalog,
+      let pages = pdf.lookup_fail(
+        "No or malformed /Pages", "/Pages", document_catalog,
       )
       match pdf.lookup_direct("/Count", pages) {
         Some(@pdf.PdfObject::Integer(i)) => i

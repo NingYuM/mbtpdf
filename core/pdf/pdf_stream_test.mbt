@@ -1,13 +1,13 @@
 ///|
 test "streams and transforms" {
   let pdf = Pdf::empty()
-  addobj_given_num(pdf, (1, PdfObject::Integer(7)))
+  pdf.addobj_given_num((1, PdfObject::Integer(7)))
   let input = @pdfio.input_of_string("abcd", source="stream")
   let t = ToGet::new(input, 0, 4)
   let dict = PdfObject::Dictionary([("/Length", PdfObject::Integer(0))])
   let stream_ref = Ref::new((dict, Stream::ToGet(t)))
   let stream_obj = PdfObject::Stream(stream_ref)
-  getstream(stream_obj)
+  stream_obj.getstream()
   match stream_ref.val {
     (PdfObject::Dictionary(entries), Stream::Got(bytes)) => {
       assert_eq(@pdfio.bytes_size(bytes), 4)
@@ -18,17 +18,16 @@ test "streams and transforms" {
     }
     _ => fail("expected got stream")
   }
-  let bytes = bigarray_of_stream(stream_obj)
+  let bytes = stream_obj.bigarray_of_stream()
   assert_eq(@pdfio.bytes_size(bytes), 4)
-  assert_is_err(try? getstream(PdfObject::Integer(1)))
-  assert_is_err(try? bigarray_of_stream(PdfObject::Integer(1)))
-  assert_eq(getnum(pdf, PdfObject::Real(3.5)), 3.5)
-  assert_eq(getnum(pdf, PdfObject::Integer(4)), 4.0)
-  assert_eq(getnum(pdf, PdfObject::Indirect(1)), 7.0)
-  assert_is_err(try? getnum(pdf, PdfObject::Name("/A")))
+  assert_is_err(try? PdfObject::Integer(1).getstream())
+  assert_is_err(try? PdfObject::Integer(1).bigarray_of_stream())
+  assert_eq(pdf.getnum(PdfObject::Real(3.5)), 3.5)
+  assert_eq(pdf.getnum(PdfObject::Integer(4)), 4.0)
+  assert_eq(pdf.getnum(PdfObject::Indirect(1)), 7.0)
+  assert_is_err(try? pdf.getnum(PdfObject::Name("/A")))
   assert_eq(
-    parse_rectangle(
-      pdf,
+    pdf.parse_rectangle(
       PdfObject::Array([
         PdfObject::Integer(2),
         PdfObject::Integer(1),
@@ -39,9 +38,9 @@ test "streams and transforms" {
     (2.0, 1.0, 4.0, 3.0),
   )
   assert_is_err(
-    try? parse_rectangle(pdf, PdfObject::Array([PdfObject::Integer(1)])),
+    try? pdf.parse_rectangle(PdfObject::Array([PdfObject::Integer(1)])),
   )
-  assert_is_err(try? parse_rectangle(pdf, PdfObject::Integer(1)))
+  assert_is_err(try? pdf.parse_rectangle(PdfObject::Integer(1)))
   let dict_matrix = PdfObject::Dictionary([
     (
       "/Matrix",
@@ -55,17 +54,16 @@ test "streams and transforms" {
       ]),
     ),
   ])
-  let matrix = parse_matrix(pdf, "/Matrix", dict_matrix)
+  let matrix = pdf.parse_matrix("/Matrix", dict_matrix)
   assert_eq(matrix.a, 1.0)
   assert_eq(matrix.d, 1.0)
   assert_eq(matrix.e, 2.0)
   assert_eq(matrix.f, 3.0)
-  let identity = parse_matrix(pdf, "/Missing", dict_matrix)
+  let identity = pdf.parse_matrix("/Missing", dict_matrix)
   assert_eq(identity.a, @pdftransform.TransformMatrix::identity().a)
   assert_eq(identity.d, @pdftransform.TransformMatrix::identity().d)
   assert_is_err(
-    try? parse_matrix(
-      pdf,
+    try? pdf.parse_matrix(
       "/Matrix",
       PdfObject::Dictionary([
         ("/Matrix", PdfObject::Array([PdfObject::Integer(1)])),
@@ -73,8 +71,7 @@ test "streams and transforms" {
     ),
   )
   assert_is_err(
-    try? parse_matrix(
-      pdf,
+    try? pdf.parse_matrix(
       "/Matrix",
       PdfObject::Dictionary([("/Matrix", PdfObject::Integer(1))]),
     ),
@@ -89,7 +86,7 @@ test "streams and transforms" {
     PdfObject::Integer(2),
     PdfObject::Integer(3),
   ])
-  match transform_rect(pdf, @pdftransform.TransformMatrix::identity(), rect) {
+  match pdf.transform_rect(@pdftransform.TransformMatrix::identity(), rect) {
     PdfObject::Array(values) => {
       assert_eq(values.length(), 4)
       match values[0] {
@@ -126,7 +123,7 @@ test "streams and transforms" {
     PdfObject::Real(2.0),
   ])
   match
-    transform_quadpoints(pdf, @pdftransform.TransformMatrix::identity(), qp) {
+    pdf.transform_quadpoints(@pdftransform.TransformMatrix::identity(), qp) {
     PdfObject::Array(values) => assert_eq(values.length(), 16)
     _ => fail("expected quadpoints")
   }
@@ -143,8 +140,7 @@ test "streams and transforms" {
     PdfObject::Real(9.0),
   ])
   match
-    transform_quadpoints(
-      pdf,
+    pdf.transform_quadpoints(
       @pdftransform.TransformMatrix::identity(),
       qp_mixed,
     ) {
@@ -153,13 +149,12 @@ test "streams and transforms" {
   }
   let qp_bad = PdfObject::Array([PdfObject::Real(0.0), PdfObject::Real(1.0)])
   match
-    transform_quadpoints(pdf, @pdftransform.TransformMatrix::identity(), qp_bad) {
+    pdf.transform_quadpoints(@pdftransform.TransformMatrix::identity(), qp_bad) {
     PdfObject::Array(values) => assert_eq(values.length(), 2)
     _ => fail("expected quadpoints")
   }
   match
-    transform_quadpoints(
-      pdf,
+    pdf.transform_quadpoints(
       @pdftransform.TransformMatrix::identity(),
       PdfObject::Integer(1),
     ) {
@@ -185,12 +180,12 @@ test "getstream error cases" {
     (PdfObject::Dictionary([]), Stream::ToGet(toget_crypt)),
   )
   let crypt_stream = PdfObject::Stream(crypt_ref)
-  assert_is_err(try? getstream(crypt_stream))
+  assert_is_err(try? crypt_stream.getstream())
   let plain = @pdfio.input_of_string("abc", source="plain")
   let toget_plain = ToGet::new(plain, 0, 3)
   let plain_ref = Ref::new((PdfObject::Integer(9), Stream::ToGet(toget_plain)))
   let plain_stream = PdfObject::Stream(plain_ref)
-  getstream(plain_stream)
+  plain_stream.getstream()
   match plain_ref.val {
     (PdfObject::Integer(9), Stream::Got(bytes)) =>
       assert_eq(@pdfio.bytes_size(bytes), 3)

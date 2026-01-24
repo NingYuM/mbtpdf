@@ -36,7 +36,7 @@ fn TargetPage::read(obj : @pdf.PdfObject) -> TargetPage? {
 fn option_getnum(pdf : @pdf.Pdf, obj : @pdf.PdfObject) -> Double? raise {
   match obj {
     @pdf.PdfObject::Null => None
-    _ => Some(@pdf.getnum(pdf, obj))
+    _ => Some(pdf.getnum(obj))
   }
 }
 
@@ -141,10 +141,10 @@ fn read_array_destination(
             return Some(
               Destination::FitR(
                 p,
-                @pdf.getnum(pdf, arr[2]),
-                @pdf.getnum(pdf, arr[3]),
-                @pdf.getnum(pdf, arr[4]),
-                @pdf.getnum(pdf, arr[5]),
+                pdf.getnum(arr[2]),
+                pdf.getnum(arr[3]),
+                pdf.getnum(arr[4]),
+                pdf.getnum(arr[5]),
               ),
             )
           None => ()

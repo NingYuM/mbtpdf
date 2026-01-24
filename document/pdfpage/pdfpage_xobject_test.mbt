@@ -9,7 +9,7 @@ test "process_xobjects updates form xobject stream" {
   let stream : @pdf.PdfObject = Stream(
     Ref::new((stream_dict, @pdf.Stream::Got(data))),
   )
-  let xobj_num = @pdf.addobj(pdf, stream)
+  let xobj_num = pdf.addobj(stream)
   let resources : @pdf.PdfObject = Dictionary([
     ("/XObject", Dictionary([("/X1", Indirect(xobj_num))])),
   ])
@@ -52,7 +52,7 @@ test "process_xobjects updates form xobject stream" {
     None => ()
     _ => fail("expected filter removal")
   }
-  let updated_bytes = @pdf.bigarray_of_stream(updated)
+  let updated_bytes = updated.bigarray_of_stream()
   assert_eq(@pdfio.int_array_of_bytes(updated_bytes), [0x41, 0x42])
 }
 
