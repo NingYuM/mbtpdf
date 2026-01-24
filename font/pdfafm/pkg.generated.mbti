@@ -6,11 +6,16 @@ import {
 }
 
 // Values
-pub fn read(@pdfio.Input) -> (Array[(String, String)], Array[(Int, Int)], Array[(Int, Int, Int)], Array[(String, Int)]) raise
 
 // Errors
 
 // Types and methods
+pub struct PdfAfm {
+  unit : Unit
+}
+pub fn PdfAfm::new() -> Self
+#as_free_fn(read, deprecated)
+pub fn PdfAfm::read(Self, @pdfio.Input) -> (Array[(String, String)], Array[(Int, Int)], Array[(Int, Int, Int)], Array[(String, Int)]) raise
 
 // Type aliases
 

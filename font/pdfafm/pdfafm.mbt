@@ -2,6 +2,16 @@
 /// Parse Adobe Font Metrics (AFM) files.
 
 ///|
+pub struct PdfAfm {
+  unit : Unit
+}
+
+///|
+pub fn PdfAfm::new() -> PdfAfm {
+  { unit: () }
+}
+
+///|
 fn split_whitespace(line : String) -> Array[String] {
   let out = Array::new()
   let mut current = StringBuilder::new()
@@ -178,7 +188,9 @@ fn get_tables(
 }
 
 ///|
-pub fn read(
+#as_free_fn(read, deprecated="Use `PdfAfm::read`")
+pub fn PdfAfm::read(
+  _self : PdfAfm,
   input : @pdfio.Input,
 ) -> (
   Array[(String, String)],

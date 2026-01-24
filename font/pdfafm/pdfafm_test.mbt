@@ -13,7 +13,7 @@ test "read parses simple AFM data" {
     #|EndFontMetrics
     #|
   let input = @pdfio.input_of_string(afm)
-  let (headers, widths, kerns, widths_prime) = @pdfafm.read(input)
+  let (headers, widths, kerns, widths_prime) = @pdfafm.PdfAfm::new().read(input)
   match headers.search_by(pair => pair.0 == "FontName") {
     Some(index) => assert_eq(headers[index].1, "TestFont")
     None => fail("expected FontName header")
@@ -50,6 +50,6 @@ test "read rejects malformed kern lines" {
       Array[(String, Int)],
     ),
     Error,
-  ] = try? @pdfafm.read(input)
+  ] = try? @pdfafm.PdfAfm::new().read(input)
   assert_true(res is Err(_))
 }

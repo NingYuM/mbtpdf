@@ -6,14 +6,25 @@ Adobe Font Metrics (AFM) file parser.
 
 This package parses AFM files, which contain font metrics information including character widths, kerning pairs, and font properties. AFM data is used for the 14 standard PDF fonts.
 
-## Functions
+## Types
 
-### read
+### PdfAfm
+
+AFM parsing context.
+
+```moonbit nocheck
+pub struct PdfAfm { ... }
+pub fn PdfAfm::new() -> PdfAfm
+```
+
+## Methods
+
+### PdfAfm::read
 
 Parse an AFM file from an input stream.
 
 ```moonbit nocheck
-pub fn read(input : @pdfio.Input) -> (
+pub fn PdfAfm::read(self : PdfAfm, input : @pdfio.Input) -> (
   Array[(String, String)], // Header key-value pairs
   Array[(Int, Int)], // Character code to width mappings
   Array[(Int, Int, Int)], // Kerning: (char1, char2, adjustment)
