@@ -9,8 +9,8 @@ pub struct CMap {
 
 ///|
 priv enum Section {
-  BfChar(Array[Char])
-  BfRange(Array[Char])
+  BfChar(ArrayView[Char])
+  BfRange(ArrayView[Char])
 }
 
 ///|
@@ -20,7 +20,11 @@ fn is_whitespace(c : Char) -> Bool {
 }
 
 ///|
-fn match_at(chars : Array[Char], index : Int, token : Array[Char]) -> Bool {
+fn match_at(
+  chars : ArrayView[Char],
+  index : Int,
+  token : ArrayView[Char],
+) -> Bool {
   if index + token.length() > chars.length() {
     return false
   }
@@ -34,34 +38,53 @@ fn match_at(chars : Array[Char], index : Int, token : Array[Char]) -> Bool {
 
 ///|
 fn get_until(
-  chars : Array[Char],
+  chars : ArrayView[Char],
   start : Int,
-  end_token : Array[Char],
-) -> (Array[Char], Int) {
+  end_token : ArrayView[Char],
+) -> (ArrayView[Char], Int) {
   let mut i = start
   while i + end_token.length() <= chars.length() {
     if match_at(chars, i, end_token) {
-      return (chars[start:i].to_array(), i + end_token.length())
+      return (chars[start:i], i + end_token.length())
     }
     i = i + 1
   }
-  (chars[start:].to_array(), chars.length())
+  (chars[start:], chars.length())
 }
 
 ///|
-fn get_section(chars : Array[Char], start : Int) -> (Section, Int)? {
-  let bfchar = "beginbfchar".to_array()
-  let end_bfchar = "endbfchar".to_array()
-  let bfrange = "beginbfrange".to_array()
-  let end_bfrange = "endbfrange".to_array()
+let bfchar_token : Array[Char] = "beginbfchar".to_array()
+
+///|
+let end_bfchar_token : Array[Char] = "endbfchar".to_array()
+
+///|
+let bfrange_token : Array[Char] = "beginbfrange".to_array()
+
+///|
+let end_bfrange_token : Array[Char] = "endbfrange".to_array()
+
+///|
+let wmode_token : Array[Char] = "/WMode ".to_array()
+
+///|
+fn get_section(chars : ArrayView[Char], start : Int) -> (Section, Int)? {
   let mut i = start
   while i < chars.length() {
-    if match_at(chars, i, bfchar) {
-      let (numbers, next) = get_until(chars, i + bfchar.length(), end_bfchar)
+    if match_at(chars, i, bfchar_token) {
+      let (numbers, next) = get_until(
+        chars,
+        i + bfchar_token.length(),
+        end_bfchar_token,
+      )
       return Some((Section::BfChar(numbers), next))
     }
-    if match_at(chars, i, bfrange) {
-      let (numbers, next) = get_until(chars, i + bfrange.length(), end_bfrange)
+    if match_at(chars, i, bfrange_token) {
+      let (numbers, next) = get_until(
+        chars,
+        i + bfrange_token.length(),
+        end_bfrange_token,
+      )
       return Some((Section::BfRange(numbers), next))
     }
     i = i + 1
@@ -70,7 +93,7 @@ fn get_section(chars : Array[Char], start : Int) -> (Section, Int)? {
 }
 
 ///|
-fn get_sections(chars : Array[Char]) -> Array[Section] {
+fn get_sections(chars : ArrayView[Char]) -> Array[Section] {
   let sections = Array::new()
   let mut pos = 0
   while true {
@@ -86,7 +109,7 @@ fn get_sections(chars : Array[Char]) -> Array[Section] {
 }
 
 ///|
-fn skip_whitespace(chars : Array[Char], start : Int) -> Int {
+fn skip_whitespace(chars : ArrayView[Char], start : Int) -> Int {
   let mut i = start
   while i < chars.length() && is_whitespace(chars[i]) {
     i = i + 1
@@ -95,7 +118,10 @@ fn skip_whitespace(chars : Array[Char], start : Int) -> Int {
 }
 
 ///|
-fn read_hex_bytes(chars : Array[Char], start : Int) -> (Array[Int], Int) raise {
+fn read_hex_bytes(
+  chars : ArrayView[Char],
+  start : Int,
+) -> (Array[Int], Int) raise {
   let mut i = skip_whitespace(chars, start)
   if i >= chars.length() {
     fail("Not_found")
@@ -133,13 +159,13 @@ fn is_hex_digit(c : Char) -> Bool {
 }
 
 ///|
-fn read_code(chars : Array[Char], start : Int) -> (String, Int) raise {
+fn read_code(chars : ArrayView[Char], start : Int) -> (String, Int) raise {
   let (bytes, next) = read_hex_bytes(chars, start)
   (@pdfio.string_of_int_array(bytes), next)
 }
 
 ///|
-fn read_code_opt(chars : Array[Char], start : Int) -> (String, Int)? {
+fn read_code_opt(chars : ArrayView[Char], start : Int) -> (String, Int)? {
   let mut i = skip_whitespace(chars, start)
   while i < chars.length() {
     if chars[i] == '<' {
@@ -156,7 +182,7 @@ fn read_code_opt(chars : Array[Char], start : Int) -> (String, Int)? {
 }
 
 ///|
-fn read_unicode_opt(chars : Array[Char], start : Int) -> (String, Int)? {
+fn read_unicode_opt(chars : ArrayView[Char], start : Int) -> (String, Int)? {
   let mut i = skip_whitespace(chars, start)
   while i < chars.length() {
     if chars[i] == '<' {
@@ -231,7 +257,10 @@ fn pairs_of_section(section : Section) -> Array[(String, String)] {
     Section::BfRange(numbers) => {
       let results = Array::new()
       let mut pos = 0
-      fn find_dest_marker(chars : Array[Char], start : Int) -> (Char, Int)? {
+      fn find_dest_marker(
+        chars : ArrayView[Char],
+        start : Int,
+      ) -> (Char, Int)? {
         let mut i = skip_whitespace(chars, start)
         while i < chars.length() {
           match chars[i] {
@@ -242,7 +271,7 @@ fn pairs_of_section(section : Section) -> Array[(String, String)] {
         None
       }
 
-      fn skip_to_close_bracket(chars : Array[Char], start : Int) -> Int {
+      fn skip_to_close_bracket(chars : ArrayView[Char], start : Int) -> Int {
         let mut i = start
         while i < chars.length() && chars[i] != ']' {
           i = i + 1
@@ -324,11 +353,10 @@ fn pairs_of_section(section : Section) -> Array[(String, String)] {
 ///|
 fn extract_specifics(data : @pdfio.MutableBytes) -> Int? {
   let chars = @pdfio.charlist_of_bytes(data)
-  let token = "/WMode ".to_array()
   let mut i = 0
-  while i + token.length() <= chars.length() {
-    if match_at(chars, i, token) {
-      let mut j = i + token.length()
+  while i + wmode_token.length() <= chars.length() {
+    if match_at(chars, i, wmode_token) {
+      let mut j = i + wmode_token.length()
       let digits = Array::new()
       while j < chars.length() && chars[j].is_ascii_digit() {
         digits.push(chars[j])
