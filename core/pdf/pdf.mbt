@@ -730,7 +730,7 @@ fn process_deferred_cryption(
   match crypt {
     ToGetCrypt::NoChange => data
     ToGetCrypt::ToDecrypt(saved) =>
-      @pdfcryptprimitives.decrypt_stream_data(
+      @pdfcryptprimitives.PdfCryptPrimitives::new().decrypt_stream_data(
         saved.crypt_type,
         false,
         saved.file_encryption_key,

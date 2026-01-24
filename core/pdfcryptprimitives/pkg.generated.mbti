@@ -7,27 +7,6 @@ import {
 }
 
 // Values
-pub fn aes_decrypt_data(Int, Array[Int], Array[Byte], remove_padding? : Bool) -> Array[Byte]
-
-pub fn aes_decrypt_data_ecb(Int, Array[Int], Array[Byte], remove_padding? : Bool) -> Array[Byte]
-
-pub fn aes_encrypt_data(Int, Array[Int], Array[Byte], firstblock? : Array[Int]) -> Array[Byte]
-
-pub fn aes_encrypt_data_ecb(Int, Array[Int], Array[Byte]) -> Array[Byte]
-
-pub fn crypt(Array[Int], Array[Byte]) -> Array[Byte]
-
-pub fn decrypt_stream_data(Encryption, Bool, String?, Int, Int, Array[Int], Int, Int, Array[Byte]) -> Array[Byte] raise
-
-pub fn find_hash(Encryption, Int, Int, Array[Int], Int) -> Array[Int]
-
-pub fn md5(Array[Byte]) -> Array[Byte]
-
-pub fn sha256(@pdfio.Input) -> String raise
-
-pub fn sha384(@pdfio.Input) -> String raise
-
-pub fn sha512(@pdfio.Input) -> String raise
 
 // Errors
 
@@ -38,6 +17,33 @@ pub(all) enum Encryption {
   AESV3(Bool)
 }
 pub impl @debug.Debug for Encryption
+
+pub struct PdfCryptPrimitives {
+  unit : Unit
+}
+#as_free_fn(aes_decrypt_data, deprecated)
+pub fn PdfCryptPrimitives::aes_decrypt_data(Self, Int, Array[Int], Array[Byte], remove_padding? : Bool) -> Array[Byte]
+#as_free_fn(aes_decrypt_data_ecb, deprecated)
+pub fn PdfCryptPrimitives::aes_decrypt_data_ecb(Self, Int, Array[Int], Array[Byte], remove_padding? : Bool) -> Array[Byte]
+#as_free_fn(aes_encrypt_data, deprecated)
+pub fn PdfCryptPrimitives::aes_encrypt_data(Self, Int, Array[Int], Array[Byte], firstblock? : Array[Int]) -> Array[Byte]
+#as_free_fn(aes_encrypt_data_ecb, deprecated)
+pub fn PdfCryptPrimitives::aes_encrypt_data_ecb(Self, Int, Array[Int], Array[Byte]) -> Array[Byte]
+#as_free_fn(crypt, deprecated)
+pub fn PdfCryptPrimitives::crypt(Self, Array[Int], Array[Byte]) -> Array[Byte]
+#as_free_fn(decrypt_stream_data, deprecated)
+pub fn PdfCryptPrimitives::decrypt_stream_data(Self, Encryption, Bool, String?, Int, Int, Array[Int], Int, Int, Array[Byte]) -> Array[Byte] raise
+#as_free_fn(find_hash, deprecated)
+pub fn PdfCryptPrimitives::find_hash(Self, Encryption, Int, Int, Array[Int], Int) -> Array[Int]
+#as_free_fn(md5, deprecated)
+pub fn PdfCryptPrimitives::md5(Self, Array[Byte]) -> Array[Byte]
+pub fn PdfCryptPrimitives::new() -> Self
+#as_free_fn(sha256, deprecated)
+pub fn PdfCryptPrimitives::sha256(Self, @pdfio.Input) -> String raise
+#as_free_fn(sha384, deprecated)
+pub fn PdfCryptPrimitives::sha384(Self, @pdfio.Input) -> String raise
+#as_free_fn(sha512, deprecated)
+pub fn PdfCryptPrimitives::sha512(Self, @pdfio.Input) -> String raise
 
 // Type aliases
 

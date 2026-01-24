@@ -318,14 +318,22 @@ fn sha512_bytes(
 
 ///|
 /// SHA-256 digest of the input stream.
-pub fn sha256(input : @pdfio.Input) -> String raise {
+#as_free_fn(sha256, deprecated="Use `PdfCryptPrimitives::sha256`")
+pub fn PdfCryptPrimitives::sha256(
+  _self : PdfCryptPrimitives,
+  input : @pdfio.Input,
+) -> String raise {
   let bytes = input.bytes_of_input(0, input.in_channel_length)
   @pdfio.string_of_bytes(sha256_bytes(bytes))
 }
 
 ///|
 /// SHA-384 digest of the input stream.
-pub fn sha384(input : @pdfio.Input) -> String raise {
+#as_free_fn(sha384, deprecated="Use `PdfCryptPrimitives::sha384`")
+pub fn PdfCryptPrimitives::sha384(
+  _self : PdfCryptPrimitives,
+  input : @pdfio.Input,
+) -> String raise {
   let bytes = input.bytes_of_input(0, input.in_channel_length)
   let initial : Array[UInt64] = [
     0xcbbb9d5dc1059ed8, 0x629a292a367cd507, 0x9159015a3070dd17, 0x152fecd8f70e5939,
@@ -336,7 +344,11 @@ pub fn sha384(input : @pdfio.Input) -> String raise {
 
 ///|
 /// SHA-512 digest of the input stream.
-pub fn sha512(input : @pdfio.Input) -> String raise {
+#as_free_fn(sha512, deprecated="Use `PdfCryptPrimitives::sha512`")
+pub fn PdfCryptPrimitives::sha512(
+  _self : PdfCryptPrimitives,
+  input : @pdfio.Input,
+) -> String raise {
   let bytes = input.bytes_of_input(0, input.in_channel_length)
   let initial : Array[UInt64] = [
     0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,

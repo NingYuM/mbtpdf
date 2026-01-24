@@ -68,7 +68,11 @@ fn md5_pad(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
 
 ///|
 /// MD5 digest of bytes, returning 16 raw bytes.
-pub fn md5(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
+#as_free_fn(md5, deprecated="Use `PdfCryptPrimitives::md5`")
+pub fn PdfCryptPrimitives::md5(
+  _self : PdfCryptPrimitives,
+  data : @pdfio.MutableBytes,
+) -> @pdfio.MutableBytes {
   let padded = md5_pad(data)
   let mut a0 : UInt = 0x67452301
   let mut b0 : UInt = 0xefcdab89

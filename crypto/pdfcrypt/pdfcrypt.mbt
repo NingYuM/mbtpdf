@@ -100,17 +100,28 @@ fn decrypt_stream(
               match (crypt_type : @pdfcryptprimitives.Encryption) {
                 AESV2 =>
                   if encrypt {
-                    @pdfcryptprimitives.aes_encrypt_data(4, key_used, bytes)
+                    @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data(
+                      4, key_used, bytes,
+                    )
                   } else {
-                    @pdfcryptprimitives.aes_decrypt_data(4, key_used, bytes)
+                    @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data(
+                      4, key_used, bytes,
+                    )
                   }
                 AESV3(_) =>
                   if encrypt {
-                    @pdfcryptprimitives.aes_encrypt_data(8, key_used, bytes)
+                    @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data(
+                      8, key_used, bytes,
+                    )
                   } else {
-                    @pdfcryptprimitives.aes_decrypt_data(8, key_used, bytes)
+                    @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data(
+                      8, key_used, bytes,
+                    )
                   }
-                ARC4(_, _) => @pdfcryptprimitives.crypt(key_used, bytes)
+                ARC4(_, _) =>
+                  @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
+                    key_used, bytes,
+                  )
               }
             }
             let data_out : @pdf.Stream = if r == 5 || r == 6 {
@@ -138,7 +149,7 @@ fn decrypt_stream(
                   }
               }
             } else {
-              let hash = @pdfcryptprimitives.find_hash(
+              let hash = @pdfcryptprimitives.PdfCryptPrimitives::new().find_hash(
                 crypt_type, obj, gen, key, keylength,
               )
               match data {
@@ -220,36 +231,56 @@ fn decrypt(
           match (crypt_type : @pdfcryptprimitives.Encryption) {
             AESV2 =>
               if encrypt {
-                @pdfcryptprimitives.aes_encrypt_data(4, key_bytes, s_bytes)
+                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data(
+                  4, key_bytes, s_bytes,
+                )
               } else {
-                @pdfcryptprimitives.aes_decrypt_data(4, key_bytes, s_bytes)
+                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data(
+                  4, key_bytes, s_bytes,
+                )
               }
             AESV3(_) =>
               if encrypt {
-                @pdfcryptprimitives.aes_encrypt_data(8, key_bytes, s_bytes)
+                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data(
+                  8, key_bytes, s_bytes,
+                )
               } else {
-                @pdfcryptprimitives.aes_decrypt_data(8, key_bytes, s_bytes)
+                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data(
+                  8, key_bytes, s_bytes,
+                )
               }
-            ARC4(_, _) => @pdfcryptprimitives.crypt(key_bytes, s_bytes)
+            ARC4(_, _) =>
+              @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
+                key_bytes, s_bytes,
+              )
           }
         } else {
-          let hash = @pdfcryptprimitives.find_hash(
+          let hash = @pdfcryptprimitives.PdfCryptPrimitives::new().find_hash(
             crypt_type, obj, gen, key, keylength,
           )
           match (crypt_type : @pdfcryptprimitives.Encryption) {
             AESV2 =>
               if encrypt {
-                @pdfcryptprimitives.aes_encrypt_data(4, hash, s_bytes)
+                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data(
+                  4, hash, s_bytes,
+                )
               } else {
-                @pdfcryptprimitives.aes_decrypt_data(4, hash, s_bytes)
+                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data(
+                  4, hash, s_bytes,
+                )
               }
             AESV3(_) =>
               if encrypt {
-                @pdfcryptprimitives.aes_encrypt_data(8, hash, s_bytes)
+                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data(
+                  8, hash, s_bytes,
+                )
               } else {
-                @pdfcryptprimitives.aes_decrypt_data(8, hash, s_bytes)
+                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data(
+                  8, hash, s_bytes,
+                )
               }
-            ARC4(_, _) => @pdfcryptprimitives.crypt(hash, s_bytes)
+            ARC4(_, _) =>
+              @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(hash, s_bytes)
           }
         }
         String(@pdfio.string_of_bytes(out_bytes))
@@ -619,13 +650,22 @@ fn key_or_user_password_from_owner(
       let key = owner_key(padded_owner, keylength, r)
       if r == 2 {
         @pdfio.string_of_bytes(
-          @pdfcryptprimitives.crypt(key, @pdfio.bytes_of_string(o)),
+          @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
+            key,
+            @pdfio.bytes_of_string(o),
+          ),
         )
       } else {
-        let mut acc = @pdfcryptprimitives.crypt(key, @pdfio.bytes_of_string(o))
+        let mut acc = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
+          key,
+          @pdfio.bytes_of_string(o),
+        )
         let mut x = 19
         while x >= 0 {
-          acc = @pdfcryptprimitives.crypt(mkkey(key, x), acc)
+          acc = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
+            mkkey(key, x),
+            acc,
+          )
           x = x - 1
         }
         @pdfio.string_of_bytes(acc)
@@ -751,16 +791,22 @@ pub fn decrypt_single_stream(
               let key = owner_key(padded_owner, keylength, r)
               let user_pw_string = if r == 2 {
                 @pdfio.string_of_bytes(
-                  @pdfcryptprimitives.crypt(key, @pdfio.bytes_of_string(o)),
+                  @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
+                    key,
+                    @pdfio.bytes_of_string(o),
+                  ),
                 )
               } else {
-                let mut acc = @pdfcryptprimitives.crypt(
+                let mut acc = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
                   key,
                   @pdfio.bytes_of_string(o),
                 )
                 let mut x = 19
                 while x >= 0 {
-                  acc = @pdfcryptprimitives.crypt(mkkey(key, x), acc)
+                  acc = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
+                    mkkey(key, x),
+                    acc,
+                  )
                   x = x - 1
                 }
                 @pdfio.string_of_bytes(acc)

@@ -386,7 +386,9 @@ fn mkiv() -> Array[Int] {
 ///|
 /// [aes_decrypt_data nk key data] decrypts AES data for the given key length,
 /// key, and data. If [remove_padding] is true, padding is removed.
-pub fn aes_decrypt_data(
+#as_free_fn(aes_decrypt_data, deprecated="Use `PdfCryptPrimitives::aes_decrypt_data`")
+pub fn PdfCryptPrimitives::aes_decrypt_data(
+  _self : PdfCryptPrimitives,
   nk : Int,
   key : Array[Int],
   data : @pdfio.MutableBytes,
@@ -431,7 +433,9 @@ pub fn aes_decrypt_data(
 
 ///|
 /// As [aes_decrypt_data] but in ECB mode.
-pub fn aes_decrypt_data_ecb(
+#as_free_fn(aes_decrypt_data_ecb, deprecated="Use `PdfCryptPrimitives::aes_decrypt_data_ecb`")
+pub fn PdfCryptPrimitives::aes_decrypt_data_ecb(
+  _self : PdfCryptPrimitives,
   nk : Int,
   key : Array[Int],
   data : @pdfio.MutableBytes,
@@ -469,7 +473,9 @@ pub fn aes_decrypt_data_ecb(
 
 ///|
 /// [aes_encrypt_data nk key data] encrypts with AES (CBC), returning IV+data.
-pub fn aes_encrypt_data(
+#as_free_fn(aes_encrypt_data, deprecated="Use `PdfCryptPrimitives::aes_encrypt_data`")
+pub fn PdfCryptPrimitives::aes_encrypt_data(
+  _self : PdfCryptPrimitives,
   nk : Int,
   key : Array[Int],
   data : @pdfio.MutableBytes,
@@ -502,7 +508,9 @@ pub fn aes_encrypt_data(
 
 ///|
 /// [aes_encrypt_data_ecb nk key data] encrypts data in ECB mode.
-pub fn aes_encrypt_data_ecb(
+#as_free_fn(aes_encrypt_data_ecb, deprecated="Use `PdfCryptPrimitives::aes_encrypt_data_ecb`")
+pub fn PdfCryptPrimitives::aes_encrypt_data_ecb(
+  _self : PdfCryptPrimitives,
   nk : Int,
   key : Array[Int],
   data : @pdfio.MutableBytes,

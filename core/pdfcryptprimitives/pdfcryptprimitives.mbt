@@ -7,6 +7,16 @@ pub(all) enum Encryption {
 } derive(Debug)
 
 ///|
+pub struct PdfCryptPrimitives {
+  unit : Unit
+}
+
+///|
+pub fn PdfCryptPrimitives::new() -> PdfCryptPrimitives {
+  { unit: () }
+}
+
+///|
 fn bytes_of_int_arrays(values : Array[Array[Int]]) -> @pdfio.MutableBytes {
   let mut total = 0
   for v in values {
@@ -28,7 +38,9 @@ fn bytes_of_int_arrays(values : Array[Array[Int]]) -> @pdfio.MutableBytes {
 ///|
 /// Given an object number, generation number, input key and key length in bits,
 /// apply Algorithm 3.1 to obtain the hash to be used by the encryption function.
-pub fn find_hash(
+#as_free_fn(find_hash, deprecated="Use `PdfCryptPrimitives::find_hash`")
+pub fn PdfCryptPrimitives::find_hash(
+  self : PdfCryptPrimitives,
   crypt_type : Encryption,
   obj : Int,
   gen : Int,
@@ -46,7 +58,7 @@ pub fn find_hash(
     _ => []
   }
   let digest_input = bytes_of_int_arrays([key, from_obj, from_gen, extra])
-  let digest = md5(digest_input)
+  let digest = self.md5(digest_input)
   let out_len = Int::min(16, keylength / 8 + 5)
   let out = Array::make(out_len, 0)
   let mut i = 0
@@ -59,7 +71,9 @@ pub fn find_hash(
 
 ///|
 /// Decrypt or encrypt stream data using the active crypt settings.
-pub fn decrypt_stream_data(
+#as_free_fn(decrypt_stream_data, deprecated="Use `PdfCryptPrimitives::decrypt_stream_data`")
+pub fn PdfCryptPrimitives::decrypt_stream_data(
+  self : PdfCryptPrimitives,
   crypt_type : Encryption,
   encrypt : Bool,
   file_encryption_key : String?,
@@ -78,34 +92,34 @@ pub fn decrypt_stream_data(
     match crypt_type {
       AESV2 =>
         if encrypt {
-          aes_encrypt_data(4, key_bytes, data)
+          self.aes_encrypt_data(4, key_bytes, data)
         } else {
-          aes_decrypt_data(4, key_bytes, data)
+          self.aes_decrypt_data(4, key_bytes, data)
         }
       AESV3(_) =>
         if encrypt {
-          aes_encrypt_data(8, key_bytes, data)
+          self.aes_encrypt_data(8, key_bytes, data)
         } else {
-          aes_decrypt_data(8, key_bytes, data)
+          self.aes_decrypt_data(8, key_bytes, data)
         }
-      ARC4(_, _) => crypt(key_bytes, data)
+      ARC4(_, _) => self.crypt(key_bytes, data)
     }
   } else {
-    let hash = find_hash(crypt_type, obj, gen, key, keylength)
+    let hash = self.find_hash(crypt_type, obj, gen, key, keylength)
     match crypt_type {
       AESV2 =>
         if encrypt {
-          aes_encrypt_data(4, hash, data)
+          self.aes_encrypt_data(4, hash, data)
         } else {
-          aes_decrypt_data(4, hash, data)
+          self.aes_decrypt_data(4, hash, data)
         }
       AESV3(_) =>
         if encrypt {
-          aes_encrypt_data(8, hash, data)
+          self.aes_encrypt_data(8, hash, data)
         } else {
-          aes_decrypt_data(8, hash, data)
+          self.aes_decrypt_data(8, hash, data)
         }
-      ARC4(_, _) => crypt(hash, data)
+      ARC4(_, _) => self.crypt(hash, data)
     }
   }
 }

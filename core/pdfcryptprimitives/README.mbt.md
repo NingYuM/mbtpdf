@@ -21,54 +21,80 @@ pub(all) enum Encryption {
 }
 ```
 
-## Functions
+### PdfCryptPrimitives
 
-### crypt
+Cryptography helper context.
+
+```moonbit nocheck
+pub struct PdfCryptPrimitives { ... }
+pub fn PdfCryptPrimitives::new() -> PdfCryptPrimitives
+```
+
+## Methods
+
+### PdfCryptPrimitives::crypt
 
 ARC4 stream cipher encryption/decryption. The same function performs both operations since ARC4 is symmetric.
 
 ```moonbit nocheck
-pub fn crypt(key : Array[Int], data : @pdfio.MutableBytes) -> @pdfio.MutableBytes
+pub fn PdfCryptPrimitives::crypt(
+  self : PdfCryptPrimitives,
+  key : Array[Int],
+  data : @pdfio.MutableBytes
+) -> @pdfio.MutableBytes
 ```
 
-### md5
+### PdfCryptPrimitives::md5
 
 MD5 message digest, returning 16 raw bytes.
 
 ```moonbit nocheck
-pub fn md5(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes
+pub fn PdfCryptPrimitives::md5(
+  self : PdfCryptPrimitives,
+  data : @pdfio.MutableBytes
+) -> @pdfio.MutableBytes
 ```
 
-### sha256
+### PdfCryptPrimitives::sha256
 
 SHA-256 digest of input data.
 
 ```moonbit nocheck
-pub fn sha256(input : @pdfio.Input) -> String raise
+pub fn PdfCryptPrimitives::sha256(
+  self : PdfCryptPrimitives,
+  input : @pdfio.Input
+) -> String raise
 ```
 
-### sha384
+### PdfCryptPrimitives::sha384
 
 SHA-384 digest of input data.
 
 ```moonbit nocheck
-pub fn sha384(input : @pdfio.Input) -> String raise
+pub fn PdfCryptPrimitives::sha384(
+  self : PdfCryptPrimitives,
+  input : @pdfio.Input
+) -> String raise
 ```
 
-### sha512
+### PdfCryptPrimitives::sha512
 
 SHA-512 digest of input data.
 
 ```moonbit nocheck
-pub fn sha512(input : @pdfio.Input) -> String raise
+pub fn PdfCryptPrimitives::sha512(
+  self : PdfCryptPrimitives,
+  input : @pdfio.Input
+) -> String raise
 ```
 
-### aes_encrypt_data
+### PdfCryptPrimitives::aes_encrypt_data
 
 AES encryption in CBC mode. Returns IV concatenated with ciphertext.
 
 ```moonbit nocheck
-pub fn aes_encrypt_data(
+pub fn PdfCryptPrimitives::aes_encrypt_data(
+  self : PdfCryptPrimitives,
   nk : Int,
   key : Array[Int],
   data : @pdfio.MutableBytes,
@@ -79,12 +105,13 @@ pub fn aes_encrypt_data(
 - `nk`: Key length (4 for AES-128, 8 for AES-256)
 - `firstblock`: Optional IV (random if not provided)
 
-### aes_decrypt_data
+### PdfCryptPrimitives::aes_decrypt_data
 
 AES decryption in CBC mode. Expects IV as first 16 bytes of input.
 
 ```moonbit nocheck
-pub fn aes_decrypt_data(
+pub fn PdfCryptPrimitives::aes_decrypt_data(
+  self : PdfCryptPrimitives,
   nk : Int,
   key : Array[Int],
   data : @pdfio.MutableBytes,
@@ -96,16 +123,17 @@ pub fn aes_decrypt_data(
 - `data`: IV + ciphertext
 - `remove_padding`: Remove PKCS7 padding (default: true)
 
-### aes_encrypt_data_ecb / aes_decrypt_data_ecb
+### PdfCryptPrimitives::aes_encrypt_data_ecb / PdfCryptPrimitives::aes_decrypt_data_ecb
 
 AES encryption/decryption in ECB mode (used for specific PDF operations).
 
-### find_hash
+### PdfCryptPrimitives::find_hash
 
 Apply PDF Algorithm 3.1 to derive the per-object encryption key.
 
 ```moonbit nocheck
-pub fn find_hash(
+pub fn PdfCryptPrimitives::find_hash(
+  self : PdfCryptPrimitives,
   crypt_type : Encryption,
   obj : Int,
   gen : Int,
@@ -114,12 +142,13 @@ pub fn find_hash(
 ) -> Array[Int]
 ```
 
-### decrypt_stream_data
+### PdfCryptPrimitives::decrypt_stream_data
 
 Decrypt or encrypt stream data using the appropriate algorithm based on encryption settings.
 
 ```moonbit nocheck
-pub fn decrypt_stream_data(
+pub fn PdfCryptPrimitives::decrypt_stream_data(
+  self : PdfCryptPrimitives,
   crypt_type : Encryption,
   encrypt : Bool,
   file_encryption_key : String?,
