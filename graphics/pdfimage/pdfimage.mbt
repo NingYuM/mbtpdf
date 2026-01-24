@@ -620,7 +620,10 @@ fn bpc_value(bpc : @pdf.PdfObject?) -> Int? {
 }
 
 ///|
-fn read_raw_image(
+
+///|
+#as_free_fn(read_raw_image, deprecated="Use `Image::from_raw` instead")
+pub fn Image::from_raw(
   size : Int,
   colspace : @pdfspace.ColourSpace,
   bpc : @pdf.PdfObject?,
@@ -745,7 +748,7 @@ fn read_raw_image(
   }
   match colspace {
     @pdfspace.ColourSpace::ICCBased(icc) =>
-      read_raw_image(size, icc.icc_alternate, bpc, width, height, data)
+      Image::from_raw(size, icc.icc_alternate, bpc, width, height, data)
     _ => raise @pdf.PdfError::Msg("No image")
   }
 }
@@ -795,7 +798,10 @@ pub fn Image::bpc(pdf : @pdf.Pdf, dict : @pdf.PdfObject) -> @pdf.PdfObject? {
 }
 
 ///|
-fn get_raw_image(
+
+///|
+#as_free_fn(get_raw_image, deprecated="Use `Image::from_stream_data` instead")
+pub fn Image::from_stream_data(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,
   width : Int,
@@ -806,7 +812,7 @@ fn get_raw_image(
   let size = @pdfio.bytes_size(data)
   let space = Image::colspace(pdf, dict, resources)
   let bits = Image::bpc(pdf, dict)
-  read_raw_image(size, space, bits, width, height, data)
+  Image::from_raw(size, space, bits, width, height, data)
 }
 
 ///|
@@ -854,7 +860,9 @@ pub fn Image::get_image_24bpp(
   }
   match @pdf.lookup_direct_orelse(pdf, "/Filter", "/F", streamdict) {
     None | Some(Array([])) => {
-      let raw = get_raw_image(pdf, resources, width, height, streamdict, data)
+      let raw = Image::from_stream_data(
+        pdf, resources, width, height, streamdict, data,
+      )
       let decode_entry = @pdf.lookup_direct_orelse(
         pdf, "/Decode", "/D", streamdict,
       )
