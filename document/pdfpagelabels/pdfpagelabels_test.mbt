@@ -1,4 +1,7 @@
 ///|
+let ctx = PdfPageLabels::new()
+
+///|
 test "pagelabeltext roman" {
   let labels = [
     PageLabel::{
@@ -8,7 +11,7 @@ test "pagelabeltext roman" {
       startvalue: 1,
     },
   ]
-  let text = pagelabeltext_of_pagenumber(4, labels)
+  let text = ctx.pagelabeltext_of_pagenumber(4, labels)
   assert_eq(text, "iv")
 }
 
@@ -22,7 +25,7 @@ test "pagelabel_of_pagenumber" {
       startvalue: 1,
     },
   ]
-  let label = pagelabel_of_pagenumber(5, labels)
+  let label = ctx.pagelabel_of_pagenumber(5, labels)
   assert_eq(label.startpage, 5)
   assert_eq(label.startvalue, 5)
 }
@@ -67,7 +70,7 @@ test "coalesce labels" {
       startvalue: 5,
     },
   ]
-  let merged = coalesce(labels)
+  let merged = ctx.coalesce(labels)
   assert_eq(merged.length(), 2)
   assert_eq(merged[0].startpage, 1)
   match merged[1].labelprefix {
@@ -86,7 +89,7 @@ test "complete labels" {
       startvalue: 1,
     },
   ]
-  let completed = complete(labels)
+  let completed = ctx.complete(labels)
   assert_eq(completed.length(), 2)
   assert_eq(completed[0].startpage, 1)
 }
@@ -115,8 +118,8 @@ test "pagelabeltext with prefix and letters" {
       startvalue: 1,
     },
   ]
-  assert_eq(pagelabeltext_of_pagenumber(1, labels), "Sec-A")
-  assert_eq(pagelabeltext_of_pagenumber(27, labels), "Sec-AA")
+  assert_eq(ctx.pagelabeltext_of_pagenumber(1, labels), "Sec-A")
+  assert_eq(ctx.pagelabeltext_of_pagenumber(27, labels), "Sec-AA")
 }
 
 ///|
@@ -129,7 +132,7 @@ test "add_label inserts replica" {
       startvalue: 1,
     },
   ]
-  let inserted = add_label(
+  let inserted = ctx.add_label(
     6,
     labels,
     PageLabel::{
@@ -168,7 +171,7 @@ test "merge_pagelabels combines ranges" {
   ]
   @pdfpagelabels.PageLabel::write_all(labels1, pdf1)
   @pdfpagelabels.PageLabel::write_all(labels2, pdf2)
-  let merged = merge_pagelabels([pdf1, pdf2], [[1, 2], [1]])
+  let merged = ctx.merge_pagelabels([pdf1, pdf2], [[1, 2], [1]])
   assert_eq(merged.length(), 2)
   match merged[0].labelprefix {
     Some("A") => ()
@@ -295,11 +298,11 @@ test "read handles label styles and bad startpage" {
 ///|
 test "pagelabeltext and pagelabel_of_pagenumber error on missing labels" {
   let labels : Array[PageLabel] = []
-  let text_res : Result[String, Error] = try? pagelabeltext_of_pagenumber(
+  let text_res : Result[String, Error] = try? ctx.pagelabeltext_of_pagenumber(
     1, labels,
   )
   assert_true(text_res is Err(_))
-  let label_res : Result[PageLabel, Error] = try? pagelabel_of_pagenumber(
+  let label_res : Result[PageLabel, Error] = try? ctx.pagelabel_of_pagenumber(
     1, labels,
   )
   assert_true(label_res is Err(_))
@@ -315,7 +318,7 @@ test "pagelabeltext handles empty roman and letter values" {
       startvalue: 1,
     },
   ]
-  assert_eq(pagelabeltext_of_pagenumber(1, labels), "R-")
+  assert_eq(ctx.pagelabeltext_of_pagenumber(1, labels), "R-")
   let letter_labels = [
     PageLabel::{
       labelstyle: LabelStyle::LowercaseLetters,
@@ -324,7 +327,7 @@ test "pagelabeltext handles empty roman and letter values" {
       startvalue: 1,
     },
   ]
-  assert_eq(pagelabeltext_of_pagenumber(1, letter_labels), "L-")
+  assert_eq(ctx.pagelabeltext_of_pagenumber(1, letter_labels), "L-")
 }
 
 ///|
@@ -337,7 +340,7 @@ test "add_label replica branches" {
       startvalue: 1,
     },
   ]
-  let no_replica = add_label(
+  let no_replica = ctx.add_label(
     3,
     base,
     PageLabel::{
@@ -349,7 +352,7 @@ test "add_label replica branches" {
     3,
   )
   assert_eq(no_replica.length(), 2)
-  let with_after = add_label(
+  let with_after = ctx.add_label(
     10,
     [
       PageLabel::{
@@ -374,7 +377,7 @@ test "add_label replica branches" {
     4,
   )
   assert_eq(with_after.length(), 3)
-  let empty_before = add_label(
+  let empty_before = ctx.add_label(
     5,
     [
       PageLabel::{
@@ -405,7 +408,7 @@ test "coalesce handles single label" {
       startvalue: 1,
     },
   ]
-  let merged = coalesce(labels)
+  let merged = ctx.coalesce(labels)
   assert_eq(merged.length(), 1)
 }
 

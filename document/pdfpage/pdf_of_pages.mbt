@@ -144,7 +144,7 @@ pub fn PdfPageDoc::pdf_of_pages(
   let page_labels = if @pdfpagelabels.PageLabel::read_all(basepdf).length() == 0 {
     []
   } else if retain_numbering {
-    @pdfpagelabels.merge_pagelabels([basepdf], [range])
+    @pdfpagelabels.PdfPageLabels::new().merge_pagelabels([basepdf], [range])
   } else {
     []
   }

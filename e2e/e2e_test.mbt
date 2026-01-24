@@ -918,10 +918,10 @@ async test "e2e merge preserves page labels" {
       }
     _ => fail("missing right labels")
   }
-  let merged_labels = @pdfpagelabels.merge_pagelabels([left, right], [
-    full_range(left_count),
-    full_range(right_count),
-  ])
+  let merged_labels = @pdfpagelabels.PdfPageLabels::new().merge_pagelabels(
+    [left, right],
+    [full_range(left_count), full_range(right_count)],
+  )
   assert_merged_label_prefixes(merged_labels, left_count)
   let merged = @pdfmerge.PdfMerger::new(
     ["merge_labels_left", "merge_labels_right"],
@@ -2034,7 +2034,12 @@ async test "e2e page labels roundtrip" {
     _ => fail("expected prefix E2E-")
   }
   assert_eq(read_back[1].startpage, 3)
-  assert_eq(@pdfpagelabels.pagelabeltext_of_pagenumber(1, read_back), "E2E-1")
+  assert_eq(
+    @pdfpagelabels.PdfPageLabels::new().pagelabeltext_of_pagenumber(
+      1, read_back,
+    ),
+    "E2E-1",
+  )
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 
 }

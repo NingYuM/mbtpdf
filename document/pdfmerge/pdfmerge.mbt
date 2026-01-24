@@ -1013,7 +1013,7 @@ pub fn PdfMerger::merge_pdfs(
   }
   let (pdf, pagetree_num) = @pdfpage.PdfPageDoc::new(pdf).add_pagetree(pages)
   let page_labels = if retain_numbering {
-    @pdfpagelabels.merge_pagelabels(pdfs, ranges)
+    @pdfpagelabels.PdfPageLabels::new().merge_pagelabels(pdfs, ranges)
   } else {
     []
   }

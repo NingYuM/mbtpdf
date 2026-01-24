@@ -19,6 +19,16 @@ pub(all) struct PageLabel {
 } derive(Debug)
 
 ///|
+pub struct PdfPageLabels {
+  unit : Unit
+}
+
+///|
+pub fn PdfPageLabels::new() -> PdfPageLabels {
+  { unit: () }
+}
+
+///|
 pub let basic_label : PageLabel = {
   labelstyle: LabelStyle::DecimalArabic,
   labelprefix: None,
@@ -103,7 +113,11 @@ pub fn PageLabel::read_all(pdf : @pdf.Pdf) -> Array[PageLabel] raise {
 
 ///|
 /// Return a list where every page has a label.
-pub fn complete(labels : Array[PageLabel]) -> Array[PageLabel] {
+#as_free_fn(complete, deprecated="Use `PdfPageLabels::complete`")
+pub fn PdfPageLabels::complete(
+  _self : PdfPageLabels,
+  labels : Array[PageLabel],
+) -> Array[PageLabel] {
   if labels.length() == 0 {
     [basic_label]
   } else if labels[0].startpage > 1 {
@@ -184,7 +198,9 @@ fn pagelabeltext_of_single(n : Int, label : PageLabel) -> String {
 
 ///|
 /// Return the text for a page label.
-pub fn pagelabeltext_of_pagenumber(
+#as_free_fn(pagelabeltext_of_pagenumber, deprecated="Use `PdfPageLabels::pagelabeltext_of_pagenumber`")
+pub fn PdfPageLabels::pagelabeltext_of_pagenumber(
+  _self : PdfPageLabels,
   n : Int,
   labels : Array[PageLabel],
 ) -> String raise {
@@ -208,7 +224,9 @@ fn pagelabel_of_single(n : Int, label : PageLabel) -> PageLabel {
 
 ///|
 /// Single label representing a given page.
-pub fn pagelabel_of_pagenumber(
+#as_free_fn(pagelabel_of_pagenumber, deprecated="Use `PdfPageLabels::pagelabel_of_pagenumber`")
+pub fn PdfPageLabels::pagelabel_of_pagenumber(
+  _self : PdfPageLabels,
   n : Int,
   labels : Array[PageLabel],
 ) -> PageLabel raise {
@@ -236,7 +254,9 @@ fn label_index_for_page(n : Int, labels : Array[PageLabel]) -> Int? {
 
 ///|
 /// Add a range starting at label.startpage, ending at endpage.
-pub fn add_label(
+#as_free_fn(add_label, deprecated="Use `PdfPageLabels::add_label`")
+pub fn PdfPageLabels::add_label(
+  _self : PdfPageLabels,
   endpage : Int,
   labels : Array[PageLabel],
   label : PageLabel,
@@ -294,7 +314,11 @@ fn option_string_eq(a : String?, b : String?) -> Bool {
 
 ///|
 /// Optimise page labels, removing any which are not required.
-pub fn coalesce(labels : Array[PageLabel]) -> Array[PageLabel] {
+#as_free_fn(coalesce, deprecated="Use `PdfPageLabels::coalesce`")
+pub fn PdfPageLabels::coalesce(
+  _self : PdfPageLabels,
+  labels : Array[PageLabel],
+) -> Array[PageLabel] {
   if labels.length() <= 1 {
     return labels
   }
@@ -315,13 +339,15 @@ pub fn coalesce(labels : Array[PageLabel]) -> Array[PageLabel] {
 
 ///|
 /// Merge page labels for a set of PDFs and page ranges.
-pub fn merge_pagelabels(
+#as_free_fn(merge_pagelabels, deprecated="Use `PdfPageLabels::merge_pagelabels`")
+pub fn PdfPageLabels::merge_pagelabels(
+  self : PdfPageLabels,
   pdfs : Array[@pdf.Pdf],
   ranges : Array[Array[Int]],
 ) -> Array[PageLabel] raise {
   let completed = Array::new(capacity=pdfs.length())
   for pdf in pdfs {
-    completed.push(complete(PageLabel::read_all(pdf)))
+    completed.push(self.complete(PageLabel::read_all(pdf)))
   }
   let new_labels = Array::new(capacity=completed.length())
   for i in 0..<completed.length() {
@@ -329,7 +355,7 @@ pub fn merge_pagelabels(
     let range = ranges[i]
     let mapped = Array::new(capacity=range.length())
     for page in range {
-      mapped.push(pagelabel_of_pagenumber(page, labels))
+      mapped.push(self.pagelabel_of_pagenumber(page, labels))
     }
     new_labels.push(mapped)
   }
@@ -342,7 +368,7 @@ pub fn merge_pagelabels(
     startpage: sp,
     startvalue: label.startvalue,
   })
-  coalesce(changed)
+  self.coalesce(changed)
 }
 
 ///|

@@ -52,7 +52,18 @@ Default page label starting at page 1 with decimal arabic numbering.
 pub let basic_label : PageLabel
 ```
 
-## Functions
+## Types
+
+### PdfPageLabels
+
+Page label utility context.
+
+```moonbit nocheck
+pub struct PdfPageLabels { ... }
+pub fn PdfPageLabels::new() -> PdfPageLabels
+```
+
+## Methods
 
 ### PageLabel::read_all
 
@@ -78,44 +89,59 @@ Remove all page labels from a document.
 pub fn PageLabel::remove_all(pdf : @pdf.Pdf) -> Unit raise
 ```
 
-### complete
+### PdfPageLabels::complete
 
 Ensure the label array covers all pages (adds a default label at page 1 if needed).
 
 ```moonbit nocheck
-pub fn complete(labels : Array[PageLabel]) -> Array[PageLabel]
+pub fn PdfPageLabels::complete(
+  self : PdfPageLabels,
+  labels : Array[PageLabel]
+) -> Array[PageLabel]
 ```
 
-### coalesce
+### PdfPageLabels::coalesce
 
 Optimize page labels by removing redundant entries.
 
 ```moonbit nocheck
-pub fn coalesce(labels : Array[PageLabel]) -> Array[PageLabel]
+pub fn PdfPageLabels::coalesce(
+  self : PdfPageLabels,
+  labels : Array[PageLabel]
+) -> Array[PageLabel]
 ```
 
-### pagelabeltext_of_pagenumber
+### PdfPageLabels::pagelabeltext_of_pagenumber
 
 Get the display text for a specific page number.
 
 ```moonbit nocheck
-pub fn pagelabeltext_of_pagenumber(n : Int, labels : Array[PageLabel]) -> String raise
+pub fn PdfPageLabels::pagelabeltext_of_pagenumber(
+  self : PdfPageLabels,
+  n : Int,
+  labels : Array[PageLabel]
+) -> String raise
 ```
 
-### pagelabel_of_pagenumber
+### PdfPageLabels::pagelabel_of_pagenumber
 
 Get the page label definition for a specific page.
 
 ```moonbit nocheck
-pub fn pagelabel_of_pagenumber(n : Int, labels : Array[PageLabel]) -> PageLabel raise
+pub fn PdfPageLabels::pagelabel_of_pagenumber(
+  self : PdfPageLabels,
+  n : Int,
+  labels : Array[PageLabel]
+) -> PageLabel raise
 ```
 
-### add_label
+### PdfPageLabels::add_label
 
 Add a label range, properly handling overlaps with existing labels.
 
 ```moonbit nocheck
-pub fn add_label(
+pub fn PdfPageLabels::add_label(
+  self : PdfPageLabels,
   endpage : Int,
   labels : Array[PageLabel],
   label : PageLabel,
@@ -123,12 +149,13 @@ pub fn add_label(
 ) -> Array[PageLabel]
 ```
 
-### merge_pagelabels
+### PdfPageLabels::merge_pagelabels
 
 Merge page labels when combining multiple PDFs.
 
 ```moonbit nocheck
-pub fn merge_pagelabels(
+pub fn PdfPageLabels::merge_pagelabels(
+  self : PdfPageLabels,
   pdfs : Array[@pdf.Pdf],
   ranges : Array[Array[Int]]
 ) -> Array[PageLabel] raise
