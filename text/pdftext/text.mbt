@@ -155,7 +155,7 @@ pub fn PdfTextUtil::table_of_encoding(
   _self : PdfTextUtil,
   encoding : @pdffont.Encoding,
 ) -> Map[Int, String] {
-  @pdffont.table_of_encoding(encoding)
+  @pdffont.Encoding::table(encoding)
 }
 
 ///|
@@ -164,7 +164,7 @@ pub fn PdfTextUtil::reverse_table_of_encoding(
   _self : PdfTextUtil,
   encoding : @pdffont.Encoding,
 ) -> Map[String, Int] {
-  @pdffont.reverse_table_of_encoding(encoding)
+  @pdffont.Encoding::reverse_table(encoding)
 }
 
 ///|
