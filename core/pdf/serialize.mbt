@@ -315,16 +315,16 @@ fn write_pdf_object(
 
 ///|
 /// Convert a PDF object to its string representation.
-pub fn string_of_pdfobj(obj : PdfObject) -> String {
+pub fn PdfObject::to_string(self : PdfObject) -> String {
   let sb = StringBuilder::new()
-  write_pdf_object(obj, false, false, sb)
+  write_pdf_object(self, false, false, sb)
   sb.to_string()
 }
 
 ///|
 /// Convert a PDF object to string including stream data.
-pub fn string_of_pdfobj_including_data(obj : PdfObject) -> String {
+pub fn PdfObject::to_string_including_data(self : PdfObject) -> String {
   let sb = StringBuilder::new()
-  write_pdf_object(obj, true, true, sb)
+  write_pdf_object(self, true, true, sb)
   sb.to_string()
 }

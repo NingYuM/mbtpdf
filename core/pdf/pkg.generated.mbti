@@ -108,10 +108,6 @@ pub fn replace_dict_entry(PdfObject, String, PdfObject) -> PdfObject raise
 
 pub let string_of_pdf : Ref[(PdfObject) -> String]
 
-pub fn string_of_pdfobj(PdfObject) -> String
-
-pub fn string_of_pdfobj_including_data(PdfObject) -> String
-
 pub fn transform_quadpoints(Pdf, @pdftransform.TransformMatrix, PdfObject) -> PdfObject raise
 
 pub fn transform_rect(Pdf, @pdftransform.TransformMatrix, PdfObject) -> PdfObject raise
@@ -162,6 +158,8 @@ pub(all) enum PdfObject {
   Stream(Ref[(PdfObject, Stream)])
   Indirect(Int)
 }
+pub fn PdfObject::to_string(Self) -> String
+pub fn PdfObject::to_string_including_data(Self) -> String
 
 pub(all) struct PdfObjects {
   mut max_obj_num : Int

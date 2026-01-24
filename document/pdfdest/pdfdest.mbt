@@ -173,7 +173,7 @@ pub fn Destination::read(
         Some(dest) => dest
         None => {
           @pdfe.log(
-            "Warning: Could not read destination \{@pdf.string_of_pdfobj(resolved)}\n",
+            "Warning: Could not read destination \{resolved.to_string()}\n",
           )
           Destination::NullDestination
         }
@@ -219,9 +219,7 @@ pub fn Destination::read(
         }
       }
     _ => {
-      @pdfe.log(
-        "Warning: Could not read destination \{@pdf.string_of_pdfobj(resolved)}\n",
-      )
+      @pdfe.log("Warning: Could not read destination \{resolved.to_string()}\n")
       Destination::NullDestination
     }
   }

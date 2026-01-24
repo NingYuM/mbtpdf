@@ -13,7 +13,7 @@ pub(all) struct Bookmark {
 /// Pretty-print a bookmark for debugging.
 pub fn Bookmark::to_string(self : Bookmark) -> String {
   let dest = self.target.to_pdf_object()
-  let dest_string = @pdf.string_of_pdfobj(dest)
+  let dest_string = dest.to_string()
   "\{self.level} \{self.text} \{dest_string} \{self.isopen}\n"
 }
 
