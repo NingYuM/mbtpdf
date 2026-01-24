@@ -53,7 +53,7 @@ test "string_of_bookmark includes text" {
     colour: (0.1, 0.2, 0.3),
     flags: 0,
   }
-  let text = @pdfmarks.string_of_bookmark(mark)
+  let text = mark.to_string()
   assert_true(text.contains("Chapter"))
   assert_true(text.contains("true"))
 }
@@ -94,7 +94,7 @@ test "transform_bookmark translates destination" {
     flags: 0,
   }
   let tr = @pdftransform.TransformMatrix::translate(5.0, -3.0)
-  let moved = @pdfmarks.transform_bookmark(pdf, tr, mark)
+  let moved = mark.transform(pdf, tr)
   match moved.target {
     @pdfdest.Destination::XYZ(_, Some(left), Some(top), Some(zoom)) => {
       assert_close(left, 15.0)

@@ -14,10 +14,6 @@ pub fn read_bookmarks(@pdf.Pdf, preserve_actions? : Bool) -> Array[Bookmark] rai
 
 pub fn remove_bookmarks(@pdf.Pdf) -> @pdf.Pdf raise
 
-pub fn string_of_bookmark(Bookmark) -> String
-
-pub fn transform_bookmark(@pdf.Pdf, @pdftransform.TransformMatrix, Bookmark) -> Bookmark raise
-
 // Errors
 
 // Types and methods
@@ -29,6 +25,8 @@ pub(all) struct Bookmark {
   colour : (Double, Double, Double)
   flags : Int
 }
+pub fn Bookmark::to_string(Self) -> String
+pub fn Bookmark::transform(Self, @pdf.Pdf, @pdftransform.TransformMatrix) -> Self raise
 
 // Type aliases
 

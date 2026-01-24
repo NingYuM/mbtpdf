@@ -124,7 +124,7 @@ fn change_pages_process_bookmarks(
     if matrix_is_identity(tr) {
       m
     } else {
-      @pdfmarks.transform_bookmark(pdf, tr, m)
+      m.transform(pdf, tr)
     }
   })
   @pdfmarks.add_bookmarks(updated, pdf)

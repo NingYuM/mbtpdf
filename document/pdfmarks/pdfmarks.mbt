@@ -11,10 +11,10 @@ pub(all) struct Bookmark {
 
 ///|
 /// Pretty-print a bookmark for debugging.
-pub fn string_of_bookmark(mark : Bookmark) -> String {
-  let dest = mark.target.to_pdf_object()
+pub fn Bookmark::to_string(self : Bookmark) -> String {
+  let dest = self.target.to_pdf_object()
   let dest_string = @pdf.string_of_pdfobj(dest)
-  "\{mark.level} \{mark.text} \{dest_string} \{mark.isopen}\n"
+  "\{self.level} \{self.text} \{dest_string} \{self.isopen}\n"
 }
 
 ///|
@@ -550,17 +550,17 @@ pub fn read_bookmarks(
 
 ///|
 /// Transform a bookmark destination.
-pub fn transform_bookmark(
+pub fn Bookmark::transform(
+  self : Bookmark,
   pdf : @pdf.Pdf,
   tr : @pdftransform.TransformMatrix,
-  mark : Bookmark,
 ) -> Bookmark raise {
   {
-    level: mark.level,
-    text: mark.text,
-    target: mark.target.transform(pdf, tr),
-    isopen: mark.isopen,
-    colour: mark.colour,
-    flags: mark.flags,
+    level: self.level,
+    text: self.text,
+    target: self.target.transform(pdf, tr),
+    isopen: self.isopen,
+    colour: self.colour,
+    flags: self.flags,
   }
 }

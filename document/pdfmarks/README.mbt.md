@@ -56,22 +56,22 @@ Remove all bookmarks from the document.
 pub fn remove_bookmarks(pdf : @pdf.Pdf) -> @pdf.Pdf raise
 ```
 
-### transform_bookmark
+### Bookmark::transform
 
 Apply a transformation matrix to a bookmark's destination coordinates.
 
 ```moonbit nocheck
-pub fn transform_bookmark(
+pub fn Bookmark::transform(
+  self : Bookmark,
   pdf : @pdf.Pdf,
-  tr : @pdftransform.TransformMatrix,
-  mark : Bookmark
+  tr : @pdftransform.TransformMatrix
 ) -> Bookmark raise
 ```
 
-### string_of_bookmark
+### Bookmark::to_string
 
 Pretty-print a bookmark for debugging.
 
 ```moonbit nocheck
-pub fn string_of_bookmark(mark : Bookmark) -> String
+pub fn Bookmark::to_string(self : Bookmark) -> String
 ```
