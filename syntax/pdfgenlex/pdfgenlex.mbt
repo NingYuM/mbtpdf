@@ -63,23 +63,17 @@ pub fn PdfGenLex::string_of_tokens(
 ///|
 fn is_delimiter_byte(b : Int) -> Bool {
   match b {
-    b if b == '('.to_int() => true
-    b if b == ')'.to_int() => true
-    b if b == '<'.to_int() => true
-    b if b == '>'.to_int() => true
-    b if b == '['.to_int() => true
-    b if b == ']'.to_int() => true
-    b if b == '{'.to_int() => true
-    b if b == '}'.to_int() => true
-    b if b == '%'.to_int() => true
-    b if b == '/'.to_int() => true
+    '(' | ')' | '<' | '>' | '[' | ']' | '{' | '}' | '%' | '/' => true
     _ => false
   }
 }
 
 ///|
 fn is_whitespace_byte(b : Int) -> Bool {
-  b == 0 || b == 9 || b == 10 || b == 12 || b == 13 || b == 32
+  match b {
+    0 | 9 | 10 | 12 | 13 | 32 => true
+    _ => false
+  }
 }
 
 ///|
@@ -159,14 +153,12 @@ fn get_section(input : @pdfio.Input) -> String {
       dropwhite(input)
       match input.peek_byte() {
         b if b == @pdfio.no_more => ""
-        b if b == '"'.to_int() => get_string(input)
-        b =>
-          if is_delimiter_byte(b) {
-            input.nudge()
-            b.to_byte().to_char().to_string()
-          } else {
-            getuntil(input)
-          }
+        '"' => get_string(input)
+        b if is_delimiter_byte(b) => {
+          input.nudge()
+          b.to_byte().to_char().to_string()
+        }
+        _ => getuntil(input)
       }
     }
   }
