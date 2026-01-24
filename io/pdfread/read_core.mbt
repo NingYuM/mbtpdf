@@ -203,7 +203,7 @@ fn read_pdf_internal(
           )
       }
     }
-    if revision == Some(-1) {
+    if revision is Some(-1) {
       let real_revisions = if was_linearized {
         revisions_count - 1
       } else {

@@ -12,7 +12,7 @@ fn should_fallback_on_error(err : Error, revision : Int?) -> Bool {
   if error_on_malformed.val {
     return false
   }
-  if revision == Some(-1) {
+  if revision is Some(-1) {
     return false
   }
   match err {
