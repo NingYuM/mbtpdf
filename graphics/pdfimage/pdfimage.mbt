@@ -549,7 +549,7 @@ fn read_separation_cmyk_as_rgb24(
   for p in 0..<(width * height) {
     let v = @pdfio.bget(data, p)
     try {
-      match @pdffun.eval_function(fnn, [Double::from_int(v) / 255.0]) {
+      match fnn.eval([Double::from_int(v) / 255.0]) {
         [c, y, m, k] => {
           let c = toint(c * 255.0)
           let m = toint(m * 255.0)

@@ -178,14 +178,14 @@ fn print_ints(values : Array[Int]) -> Unit {
 
 ///|
 /// Print a function to stdout for debug.
-pub fn print_function(f : PdfFunction) -> Unit {
+pub fn PdfFunction::print(self : PdfFunction) -> Unit {
   log_line("Domain...")
-  print_doubles(f.domain)
-  match f.range {
+  print_doubles(self.domain)
+  match self.range {
     None => log_line("null range")
     Some(values) => print_doubles(values)
   }
-  match f.func {
+  match self.func {
     PdfFunctionKind::Sampled(s) => {
       log_line("Sampled")
       log_line("size: ")
@@ -208,7 +208,7 @@ pub fn print_function(f : PdfFunction) -> Unit {
     PdfFunctionKind::Stitching(s) => {
       log_line("Stitching")
       for fun in s.functions {
-        print_function(fun)
+        fun.print()
       }
       log_line("Bounds:")
       print_doubles(s.bounds)
@@ -525,7 +525,7 @@ fn rad_of_deg(deg : Double) -> Double {
 
 ///|
 /// Parse a function given a document and function object.
-pub fn parse_function(
+pub fn PdfFunction::parse(
   pdf : @pdf.Pdf,
   obj : @pdf.PdfObject,
 ) -> PdfFunction raise {
@@ -626,7 +626,7 @@ pub fn parse_function(
         _ => raise @pdf.PdfError::Msg("Bad /Bounds")
       }
       PdfFunctionKind::Stitching({
-        functions: functions.map(value => parse_function(pdf, value)),
+        functions: functions.map(value => PdfFunction::parse(pdf, value)),
         bounds,
         stitch_encode: encode,
       })
@@ -1214,15 +1214,16 @@ fn eval_function_calculator(
 
 ///|
 /// Evaluate a function on some inputs.
-pub fn eval_function(
-  fun : PdfFunction,
+pub fn PdfFunction::eval(
+  self : PdfFunction,
   inputs : Array[Double],
 ) -> Array[Double] raise BadFunctionEvaluation {
-  let clamped_inputs = clampvals(inputs, fun.domain)
-  let outputs = match fun.func {
+  let clamped_inputs = clampvals(inputs, self.domain)
+  let outputs = match self.func {
     PdfFunctionKind::Calculator(ops) =>
       eval_function_calculator(clamped_inputs, ops)
-    PdfFunctionKind::Sampled(s) => eval_function_sampled(fun, s, clamped_inputs)
+    PdfFunctionKind::Sampled(s) =>
+      eval_function_sampled(self, s, clamped_inputs)
     PdfFunctionKind::Interpolation(i) => {
       let interp = fn(
         n : Double,
@@ -1236,13 +1237,13 @@ pub fn eval_function(
       flatten(mapped)
     }
     PdfFunctionKind::Stitching(s) => {
-      if clamped_inputs.length() != 1 || fun.domain.length() != 2 {
+      if clamped_inputs.length() != 1 || self.domain.length() != 2 {
         raise BadFunctionEvaluation::Msg("stitching: Bad arity")
       }
       let i = clamped_inputs[0]
       let points = concat_arrays(
-        [fun.domain[0]],
-        concat_arrays(s.bounds, [fun.domain[1]]),
+        [self.domain[0]],
+        concat_arrays(s.bounds, [self.domain[1]]),
       )
       let mut idx = 0
       let mut subfun : PdfFunction? = None
@@ -1263,12 +1264,12 @@ pub fn eval_function(
           let c = select(idx * 2 + 1, s.stitch_encode)
           let d = select(idx * 2 + 2, s.stitch_encode)
           let encode = (x : Double) => interpolate(x, a, b, c, d)
-          eval_function(f, [encode(i)])
+          f.eval([encode(i)])
         }
       }
     }
   }
-  match fun.range {
+  match self.range {
     None => outputs
     Some(range) => clampvals(outputs, range)
   }
@@ -1370,7 +1371,7 @@ fn entries_of_stitching(
   s : Stitching,
 ) -> Array[(String, @pdf.PdfObject)] {
   let numbers = s.functions.map(fun => @pdf.PdfObject::Indirect(
-    @pdf.addobj(pdf, pdfobject_of_function(pdf, fun)),
+    @pdf.addobj(pdf, fun.to_pdf_object(pdf)),
   ))
   [
     ("/Functions", @pdf.PdfObject::Array(numbers)),
@@ -1394,20 +1395,20 @@ fn extra_entries_of_function(
 
 ///|
 /// Flatten a function to its PDF representation.
-pub fn pdfobject_of_function(
+pub fn PdfFunction::to_pdf_object(
+  self : PdfFunction,
   pdf : @pdf.Pdf,
-  fun : PdfFunction,
 ) -> @pdf.PdfObject {
-  let domain = @pdf.PdfObject::Array(fun.domain.map(mkreal))
-  let range_entry = match fun.range {
+  let domain = @pdf.PdfObject::Array(self.domain.map(mkreal))
+  let range_entry = match self.range {
     None => []
     Some(values) => [("/Range", @pdf.PdfObject::Array(values.map(mkreal)))]
   }
   let base = [
-    ("/FunctionType", @pdf.PdfObject::Integer(funtype_of_function(fun))),
+    ("/FunctionType", @pdf.PdfObject::Integer(funtype_of_function(self))),
     ("/Domain", domain),
   ]
-  match fun.func {
+  match self.func {
     PdfFunctionKind::Sampled(s) => {
       let encode_vals = if s.encode.length() == 0 {
         interleave_lists(
@@ -1418,7 +1419,7 @@ pub fn pdfobject_of_function(
         s.encode
       }
       let decode_vals = if s.decode.length() == 0 {
-        match fun.range {
+        match self.range {
           Some(values) => values
           None => []
         }
@@ -1475,7 +1476,7 @@ pub fn pdfobject_of_function(
       )
     }
     _ => {
-      let extras = extra_entries_of_function(pdf, fun)
+      let extras = extra_entries_of_function(pdf, self)
       @pdf.PdfObject::Dictionary(
         concat_arrays(concat_arrays(base, range_entry), extras),
       )

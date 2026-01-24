@@ -7,13 +7,6 @@ import {
 }
 
 // Values
-pub fn eval_function(PdfFunction, Array[Double]) -> Array[Double] raise BadFunctionEvaluation
-
-pub fn parse_function(@pdf.Pdf, @pdf.PdfObject) -> PdfFunction raise
-
-pub fn pdfobject_of_function(@pdf.Pdf, PdfFunction) -> @pdf.PdfObject
-
-pub fn print_function(PdfFunction) -> Unit
 
 // Errors
 pub(all) suberror BadFunctionEvaluation {
@@ -80,6 +73,10 @@ pub(all) struct PdfFunction {
   domain : Array[Double]
   range : Array[Double]?
 }
+pub fn PdfFunction::eval(Self, Array[Double]) -> Array[Double] raise BadFunctionEvaluation
+pub fn PdfFunction::parse(@pdf.Pdf, @pdf.PdfObject) -> Self raise
+pub fn PdfFunction::print(Self) -> Unit
+pub fn PdfFunction::to_pdf_object(Self, @pdf.Pdf) -> @pdf.PdfObject
 pub impl @debug.Debug for PdfFunction
 
 pub(all) enum PdfFunctionKind {

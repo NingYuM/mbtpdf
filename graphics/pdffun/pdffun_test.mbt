@@ -19,7 +19,7 @@ fn eval_calc(ops : Array[Calculator]) -> Array[Double] raise {
     domain: [],
     range: None,
   }
-  eval_function(fun, [])
+  PdfFunction::eval(fun, [])
 }
 
 ///|
@@ -32,8 +32,8 @@ test "eval calculator function" {
   let data = @pdfio.bytes_of_string("{ dup mul }")
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  let fun = parse_function(pdf, stream_obj)
-  let output = eval_function(fun, [2.0])
+  let fun = PdfFunction::parse(pdf, stream_obj)
+  let output = PdfFunction::eval(fun, [2.0])
   assert_eq(output.length(), 1)
   assert_close(output[0], 4.0)
 }
@@ -45,7 +45,7 @@ test "eval interpolation function" {
     domain: [0.0, 1.0],
     range: Some([0.0, 1.0]),
   }
-  let output = eval_function(fun, [0.25])
+  let output = PdfFunction::eval(fun, [0.25])
   assert_eq(output.length(), 1)
   assert_close(output[0], 0.25)
 }
@@ -65,13 +65,13 @@ test "serialize sampled function" {
     range: Some([0.0, 1.0]),
   }
   let pdf = @pdf.empty()
-  let obj = pdfobject_of_function(pdf, fun)
+  let obj = fun.to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
     Stream(_) => ()
     _ => fail("expected sampled function to be a stream")
   }
-  let parsed = parse_function(pdf, obj)
-  let output = eval_function(parsed, [1.0])
+  let parsed = PdfFunction::parse(pdf, obj)
+  let output = PdfFunction::eval(parsed, [1.0])
   assert_eq(output.length(), 1)
   assert_close(output[0], 1.0)
 }
@@ -84,13 +84,13 @@ test "serialize calculator function" {
     range: Some([0.0, 100.0]),
   }
   let pdf = @pdf.empty()
-  let obj = pdfobject_of_function(pdf, fun)
+  let obj = fun.to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
     Stream(_) => ()
     _ => fail("expected calculator function to be a stream")
   }
-  let parsed = parse_function(pdf, obj)
-  let output = eval_function(parsed, [3.0])
+  let parsed = PdfFunction::parse(pdf, obj)
+  let output = PdfFunction::eval(parsed, [3.0])
   assert_eq(output.length(), 1)
   assert_close(output[0], 9.0)
 }
@@ -107,7 +107,7 @@ test "parse sampled function stream" {
   ])
   let data = @pdfio.bytes_of_list([0, 255])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let fun = parse_function(pdf, stream)
+  let fun = PdfFunction::parse(pdf, stream)
   match (fun.func : PdfFunctionKind) {
     Sampled(sample) => {
       assert_eq(sample.size.length(), 1)
@@ -127,9 +127,9 @@ test "serialize interpolation function" {
     range: Some([0.0, 2.0]),
   }
   let pdf = @pdf.empty()
-  let obj = pdfobject_of_function(pdf, fun)
-  let parsed = parse_function(pdf, obj)
-  let output = eval_function(parsed, [0.5])
+  let obj = fun.to_pdf_object(pdf)
+  let parsed = PdfFunction::parse(pdf, obj)
+  let output = PdfFunction::eval(parsed, [0.5])
   assert_eq(output.length(), 1)
   assert_close(output[0], 1.0)
 }
@@ -156,10 +156,10 @@ test "serialize stitching function" {
     range: Some([0.0, 2.0]),
   }
   let pdf = @pdf.empty()
-  let obj = pdfobject_of_function(pdf, fun)
-  let parsed = parse_function(pdf, obj)
-  let out1 = eval_function(parsed, [0.25])
-  let out2 = eval_function(parsed, [0.75])
+  let obj = fun.to_pdf_object(pdf)
+  let parsed = PdfFunction::parse(pdf, obj)
+  let out1 = PdfFunction::eval(parsed, [0.25])
+  let out2 = PdfFunction::eval(parsed, [0.75])
   assert_eq(out1.length(), 1)
   assert_eq(out2.length(), 1)
   assert_close(out1[0], 0.5)
@@ -203,7 +203,7 @@ test "serialize calculator covers opcode strings" {
     range: None,
   }
   let pdf = @pdf.empty()
-  let obj = pdfobject_of_function(pdf, fun)
+  let obj = fun.to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
     Stream(r) =>
       match r.val.1 {
@@ -243,9 +243,9 @@ test "eval stitching function" {
     ("/Bounds", Array([Real(0.5)])),
     ("/Encode", Array([Real(0.0), Real(1.0), Real(0.0), Real(1.0)])),
   ])
-  let fun = parse_function(pdf, dict)
-  let out1 = eval_function(fun, [0.25])
-  let out2 = eval_function(fun, [0.75])
+  let fun = PdfFunction::parse(pdf, dict)
+  let out1 = PdfFunction::eval(fun, [0.25])
+  let out2 = PdfFunction::eval(fun, [0.75])
   assert_eq(out1.length(), 1)
   assert_eq(out2.length(), 1)
   assert_close(out1[0], 0.5)
@@ -253,7 +253,7 @@ test "eval stitching function" {
 }
 
 ///|
-test "print_function covers kinds and array sizes" {
+test "PdfFunction::print covers kinds and array sizes" {
   let prev_logger = @pdfe.logger.val
   @pdfe.logger.val = _ => ()
   defer {
@@ -326,11 +326,11 @@ test "print_function covers kinds and array sizes" {
     domain: empty_doubles,
     range: None,
   }
-  print_function(sampled_empty)
-  print_function(sampled_full)
-  print_function(interpolation)
-  print_function(stitching)
-  print_function(calculator)
+  sampled_empty.print()
+  sampled_full.print()
+  interpolation.print()
+  stitching.print()
+  calculator.print()
 }
 
 ///|
@@ -349,7 +349,7 @@ test "parse calculator keywords from stream" {
     "{ true 1.5 add 2 round 3 1 roll 2 atan 30 sin ceiling sqrt cos sub 2 abs 1 neg 0 index { 1 } if { 0 } { 1 } ifelse }",
   )
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let fun = parse_function(pdf, stream)
+  let fun = PdfFunction::parse(pdf, stream)
   match (fun.func : PdfFunctionKind) {
     Calculator(ops) => {
       assert_true(ops.length() >= 10)
@@ -388,7 +388,7 @@ test "parse calculator keywords from stream" {
     }
     _ => fail("expected calculator function")
   }
-  print_function(fun)
+  fun.print()
 }
 
 ///|
@@ -400,7 +400,7 @@ test "parse calculator rejects multi-token group" {
   ])
   let data = @pdfio.bytes_of_string("{ 0 { 1 2 } }")
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let res : Result[PdfFunction, Error] = try? parse_function(pdf, stream)
+  let res : Result[PdfFunction, Error] = try? PdfFunction::parse(pdf, stream)
   assert_true(res is Err(_))
 }
 
@@ -654,8 +654,8 @@ test "calculator if and ifelse parse" {
   let if_stream : @pdf.PdfObject = Stream(
     Ref::new((dict_if, @pdf.Stream::Got(data_if))),
   )
-  let fun_if = parse_function(pdf, if_stream)
-  let out_if = eval_function(fun_if, [])
+  let fun_if = PdfFunction::parse(pdf, if_stream)
+  let out_if = PdfFunction::eval(fun_if, [])
   assert_eq(out_if.length(), 1)
   assert_close(out_if[0], 5.0)
   let dict_ifelse : @pdf.PdfObject = Dictionary([
@@ -666,8 +666,8 @@ test "calculator if and ifelse parse" {
   let ifelse_stream : @pdf.PdfObject = Stream(
     Ref::new((dict_ifelse, @pdf.Stream::Got(data_ifelse))),
   )
-  let fun_ifelse = parse_function(pdf, ifelse_stream)
-  let out_ifelse = eval_function(fun_ifelse, [])
+  let fun_ifelse = PdfFunction::parse(pdf, ifelse_stream)
+  let out_ifelse = PdfFunction::eval(fun_ifelse, [])
   assert_eq(out_ifelse.length(), 1)
   assert_close(out_ifelse[0], 2.0)
 }
@@ -703,7 +703,7 @@ test "eval_function clamps range and rejects bad domain" {
     domain: [],
     range: Some([0.0, 1.0]),
   }
-  let clamped = eval_function(clamped_fun, [])
+  let clamped = PdfFunction::eval(clamped_fun, [])
   assert_eq(clamped.length(), 1)
   assert_close(clamped[0], 1.0)
   let bad_domain : PdfFunction = {
@@ -711,7 +711,7 @@ test "eval_function clamps range and rejects bad domain" {
     domain: [0.0],
     range: None,
   }
-  let bad_domain_result : Result[Array[Double], Error] = try? eval_function(
+  let bad_domain_result : Result[Array[Double], Error] = try? PdfFunction::eval(
     bad_domain,
     [0.0],
   )
@@ -730,7 +730,7 @@ test "parse function rejects bad inputs" {
     ("/FunctionType", Integer(9)),
     ("/Domain", Array([])),
   ])
-  let bad_type_result : Result[PdfFunction, Error] = try? parse_function(
+  let bad_type_result : Result[PdfFunction, Error] = try? PdfFunction::parse(
     pdf, bad_type,
   )
   assert_true(bad_type_result is Err(_))
@@ -742,7 +742,7 @@ test "parse function rejects bad inputs" {
   let bad_calc_stream : @pdf.PdfObject = Stream(
     Ref::new((bad_calc_dict, @pdf.Stream::Got(bad_calc_data))),
   )
-  let bad_calc_result : Result[PdfFunction, Error] = try? parse_function(
+  let bad_calc_result : Result[PdfFunction, Error] = try? PdfFunction::parse(
     pdf, bad_calc_stream,
   )
   assert_true(bad_calc_result is Err(_))
@@ -756,14 +756,14 @@ test "parse function rejects bad inputs" {
   let sampled_stream : @pdf.PdfObject = Stream(
     Ref::new((sampled_dict, @pdf.Stream::Got(sampled_data))),
   )
-  let sampled_result : Result[PdfFunction, Error] = try? parse_function(
+  let sampled_result : Result[PdfFunction, Error] = try? PdfFunction::parse(
     pdf, sampled_stream,
   )
   assert_true(sampled_result is Err(_))
 }
 
 ///|
-test "print_function covers extra calculator strings" {
+test "PdfFunction::print covers extra calculator strings" {
   let prev_logger = @pdfe.logger.val
   @pdfe.logger.val = _ => ()
   defer {
@@ -801,7 +801,7 @@ test "print_function covers extra calculator strings" {
     domain: [],
     range: None,
   }
-  print_function(fun)
+  fun.print()
 }
 
 ///|
@@ -815,7 +815,7 @@ test "parse calculator keywords covers remaining ops" {
     "{ cvi cvr div exp floor idiv ln log mod mul truncate and bitshift eq ge gt le lt ne not or xor copy exch pop dup index roll }",
   )
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let fun = parse_function(pdf, stream)
+  let fun = PdfFunction::parse(pdf, stream)
   match (fun.func : PdfFunctionKind) {
     Calculator(ops) => assert_true(ops.length() > 0)
     _ => fail("expected calculator function")
@@ -836,7 +836,7 @@ test "sampled function covers size multiplication" {
     domain: [0.0, 1.0, 0.0, 1.0],
     range: Some([0.0, 1.0]),
   }
-  let out = eval_function(fun, [0.5, 0.5])
+  let out = PdfFunction::eval(fun, [0.5, 0.5])
   assert_eq(out.length(), 1)
 }
 
@@ -854,7 +854,7 @@ test "sampled function errors on incompatible size" {
     domain: [0.0, 1.0],
     range: Some([0.0, 1.0]),
   }
-  assert_is_err(try? eval_function(fun, [0.5]))
+  assert_is_err(try? PdfFunction::eval(fun, [0.5]))
 }
 
 ///|
@@ -871,7 +871,7 @@ test "sampled function errors on missing range" {
     domain: [0.0, 1.0],
     range: None,
   }
-  assert_is_err(try? eval_function(fun, [0.5]))
+  assert_is_err(try? PdfFunction::eval(fun, [0.5]))
 }
 
 ///|
@@ -888,7 +888,7 @@ test "sampled function errors on bad encode length" {
     domain: [0.0, 1.0],
     range: Some([0.0, 1.0]),
   }
-  assert_is_err(try? eval_function(fun, [0.5]))
+  assert_is_err(try? PdfFunction::eval(fun, [0.5]))
 }
 
 ///|
@@ -898,7 +898,7 @@ test "eval_function rejects bad domain length" {
     domain: [0.0, 1.0],
     range: None,
   }
-  assert_is_err(try? eval_function(fun, [0.5, 0.5]))
+  assert_is_err(try? PdfFunction::eval(fun, [0.5, 0.5]))
 }
 
 ///|
@@ -908,7 +908,7 @@ test "clamp_double clamps to min" {
     domain: [],
     range: Some([0.0, 1.0]),
   }
-  let out = eval_function(fun, [])
+  let out = PdfFunction::eval(fun, [])
   assert_close(out[0], 0.0)
 }
 
@@ -1040,28 +1040,28 @@ test "parse_function hits error branches" {
     ("/Domain", Integer(1)),
     ("/N", Real(1.0)),
   ])
-  assert_is_err(try? parse_function(pdf, bad_domain))
+  assert_is_err(try? PdfFunction::parse(pdf, bad_domain))
   let bad_size : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(0)),
     ("/Domain", Array([])),
     ("/Size", Array([Real(2.0)])),
     ("/BitsPerSample", Integer(8)),
   ])
-  assert_is_err(try? parse_function(pdf, bad_size))
+  assert_is_err(try? PdfFunction::parse(pdf, bad_size))
   let bad_size_type : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(0)),
     ("/Domain", Array([])),
     ("/Size", Integer(1)),
     ("/BitsPerSample", Integer(8)),
   ])
-  assert_is_err(try? parse_function(pdf, bad_size_type))
+  assert_is_err(try? PdfFunction::parse(pdf, bad_size_type))
   let bad_bps : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(0)),
     ("/Domain", Array([])),
     ("/Size", Array([Integer(2)])),
     ("/BitsPerSample", Name("/Bad")),
   ])
-  assert_is_err(try? parse_function(pdf, bad_bps))
+  assert_is_err(try? PdfFunction::parse(pdf, bad_bps))
   let to_get = @pdf.toget(@pdfio.input_of_string("x"), 0, 1)
   let sample_dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(0)),
@@ -1073,7 +1073,7 @@ test "parse_function hits error branches" {
   let sample_stream : @pdf.PdfObject = Stream(
     Ref::new((sample_dict, @pdf.Stream::ToGet(to_get))),
   )
-  assert_is_err(try? parse_function(pdf, sample_stream))
+  assert_is_err(try? PdfFunction::parse(pdf, sample_stream))
   let calc_dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(4)),
     ("/Domain", Array([])),
@@ -1081,7 +1081,7 @@ test "parse_function hits error branches" {
   let calc_stream : @pdf.PdfObject = Stream(
     Ref::new((calc_dict, @pdf.Stream::ToGet(to_get))),
   )
-  assert_is_err(try? parse_function(pdf, calc_stream))
+  assert_is_err(try? PdfFunction::parse(pdf, calc_stream))
   let bad_functions : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(3)),
     ("/Domain", Array([])),
@@ -1089,7 +1089,7 @@ test "parse_function hits error branches" {
     ("/Bounds", Array([])),
     ("/Encode", Array([])),
   ])
-  assert_is_err(try? parse_function(pdf, bad_functions))
+  assert_is_err(try? PdfFunction::parse(pdf, bad_functions))
   let bad_bounds : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(3)),
     ("/Domain", Array([])),
@@ -1097,7 +1097,7 @@ test "parse_function hits error branches" {
     ("/Bounds", Integer(1)),
     ("/Encode", Array([])),
   ])
-  assert_is_err(try? parse_function(pdf, bad_bounds))
+  assert_is_err(try? PdfFunction::parse(pdf, bad_bounds))
   let bad_encode : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(3)),
     ("/Domain", Array([])),
@@ -1105,7 +1105,7 @@ test "parse_function hits error branches" {
     ("/Bounds", Array([])),
     ("/Encode", Integer(1)),
   ])
-  assert_is_err(try? parse_function(pdf, bad_encode))
+  assert_is_err(try? PdfFunction::parse(pdf, bad_encode))
 }
 
 ///|
@@ -1124,5 +1124,5 @@ test "stitching eval errors on encode length" {
     domain: [0.0, 1.0],
     range: None,
   }
-  assert_is_err(try? eval_function(fun, [0.25]))
+  assert_is_err(try? PdfFunction::eval(fun, [0.25]))
 }

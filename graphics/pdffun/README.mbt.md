@@ -118,38 +118,38 @@ pub(all) enum Calculator {
 }
 ```
 
-## Functions
+## Methods
 
-### parse_function
+### PdfFunction::parse
 
 Parse a PDF function from a stream or dictionary.
 
 ```moonbit nocheck
-pub fn parse_function(pdf : @pdf.Pdf, obj : @pdf.PdfObject) -> PdfFunction raise
+pub fn PdfFunction::parse(pdf : @pdf.Pdf, obj : @pdf.PdfObject) -> PdfFunction raise
 ```
 
-### eval_function
+### PdfFunction::eval
 
 Evaluate a function with given inputs.
 
 ```moonbit nocheck
-pub fn eval_function(f : PdfFunction, inputs : Array[Double]) -> Array[Double] raise BadFunctionEvaluation
+pub fn PdfFunction::eval(self : PdfFunction, inputs : Array[Double]) -> Array[Double] raise BadFunctionEvaluation
 ```
 
-### pdfobject_of_function
+### PdfFunction::to_pdf_object
 
 Convert a function back to a PDF object.
 
 ```moonbit nocheck
-pub fn pdfobject_of_function(pdf : @pdf.Pdf, f : PdfFunction) -> @pdf.PdfObject
+pub fn PdfFunction::to_pdf_object(self : PdfFunction, pdf : @pdf.Pdf) -> @pdf.PdfObject
 ```
 
-### print_function
+### PdfFunction::print
 
 Print a function for debugging.
 
 ```moonbit nocheck
-pub fn print_function(f : PdfFunction) -> Unit
+pub fn PdfFunction::print(self : PdfFunction) -> Unit
 ```
 
 ## Errors

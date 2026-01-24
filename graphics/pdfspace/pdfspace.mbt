@@ -287,7 +287,7 @@ pub fn read_colourspace(
     }
     Array([Name("/Separation"), Name(name), alternate, tint]) => {
       let alt_space = read_colourspace(pdf, resources, alternate)
-      let tint_transform = @pdffun.parse_function(pdf, tint)
+      let tint_transform = @pdffun.PdfFunction::parse(pdf, tint)
       ColourSpace::Separation(name, alt_space, tint_transform)
     }
     Array([Name("/DeviceN"), Array(names), alternate, tint]) => {
@@ -299,7 +299,7 @@ pub fn read_colourspace(
         }
       }
       let alt_space = read_colourspace(pdf, resources, alternate)
-      let tint_transform = @pdffun.parse_function(pdf, tint)
+      let tint_transform = @pdffun.PdfFunction::parse(pdf, tint)
       let empty_dict : @pdf.PdfObject = Dictionary([])
       ColourSpace::DeviceN(out_names, alt_space, tint_transform, empty_dict)
     }
@@ -312,7 +312,7 @@ pub fn read_colourspace(
         }
       }
       let alt_space = read_colourspace(pdf, resources, alternate)
-      let tint_transform = @pdffun.parse_function(pdf, tint)
+      let tint_transform = @pdffun.PdfFunction::parse(pdf, tint)
       ColourSpace::DeviceN(out_names, alt_space, tint_transform, attributes)
     }
     _ => fail("Not_found")
@@ -562,7 +562,7 @@ pub fn write_colourspace(pdf : @pdf.Pdf, space : ColourSpace) -> @pdf.PdfObject 
         Name("/Separation"),
         Name(normalize_name(name)),
         write_colourspace(pdf, alternate),
-        @pdffun.pdfobject_of_function(pdf, tint),
+        tint.to_pdf_object(pdf),
       ])
     ColourSpace::DeviceN(names, alternate, tint, attrs) => {
       let names_arr : Array[@pdf.PdfObject] = names.map(fn(name) {
@@ -573,7 +573,7 @@ pub fn write_colourspace(pdf : @pdf.Pdf, space : ColourSpace) -> @pdf.PdfObject 
         Name("/DeviceN"),
         names_obj,
         write_colourspace(pdf, alternate),
-        @pdffun.pdfobject_of_function(pdf, tint),
+        tint.to_pdf_object(pdf),
       ]
       if is_empty_dict(attrs) {
         Array(base)

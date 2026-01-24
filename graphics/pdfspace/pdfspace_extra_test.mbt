@@ -110,7 +110,7 @@ test "read_colourspace Indexed parses lookup stream" {
 ///|
 test "read_colourspace Indexed handles DeviceN base" {
   let pdf = @pdf.empty()
-  let tint = @pdffun.pdfobject_of_function(pdf, sample_tint_function())
+  let tint = sample_tint_function().to_pdf_object(pdf)
   let table = @pdfio.string_of_int_array([0, 0, 0])
   let indexed_arr : Array[@pdf.PdfObject] = [
     Name("/Indexed"),
@@ -593,7 +593,7 @@ test "read_colourspace rejects indexed base colourspaces" {
 ///|
 test "read_colourspace DeviceN attributes and name validation" {
   let pdf = @pdf.empty()
-  let tint = @pdffun.pdfobject_of_function(pdf, sample_tint_function())
+  let tint = sample_tint_function().to_pdf_object(pdf)
   let attrs : @pdf.PdfObject = Dictionary([("/Subtype", Name("/DeviceN"))])
   let space_arr : Array[@pdf.PdfObject] = [
     Name("/DeviceN"),

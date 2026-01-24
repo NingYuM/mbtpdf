@@ -8,14 +8,12 @@ fn eval_calc_inputs(
   ops : Array[Calculator],
   inputs : Array[Double],
 ) -> Array[Double] raise BadFunctionEvaluation {
-  eval_function(calc_fun(ops), inputs)
+  calc_fun(ops).eval(inputs)
 }
 
 ///|
 fn assert_calc_err(ops : Array[Calculator]) -> Unit raise {
-  let res : Result[Array[Double], Error] = try? eval_function(calc_fun(ops), [
-    0.0,
-  ])
+  let res : Result[Array[Double], Error] = try? calc_fun(ops).eval([0.0])
   assert_true(res is Err(_))
 }
 
@@ -33,7 +31,7 @@ test "parse_function sampled order" {
   ])
   let data = @pdfio.bytes_of_list([0x80])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let parsed = parse_function(pdf, stream)
+  let parsed = PdfFunction::parse(pdf, stream)
   match parsed.func {
     PdfFunctionKind::Sampled(s) => assert_eq(s.order, 3)
     _ => fail("expected sampled function")
@@ -48,7 +46,7 @@ test "parse_function defaults c0 c1" {
     ("/Domain", Array([Real(0.0), Real(1.0)])),
     ("/N", Real(1.0)),
   ])
-  let parsed = parse_function(pdf, dict)
+  let parsed = PdfFunction::parse(pdf, dict)
   match parsed.func {
     PdfFunctionKind::Interpolation(i) => {
       assert_eq(i.c0.length(), 1)
@@ -70,16 +68,14 @@ test "parse_function rejects bad bits per sample" {
     ("/Size", Array([Integer(1)])),
     ("/BitsPerSample", Name("/Bad")),
   ])
-  let res : Result[PdfFunction, Error] = try? parse_function(pdf, dict)
+  let res : Result[PdfFunction, Error] = try? PdfFunction::parse(pdf, dict)
   assert_true(res is Err(_))
 }
 
 ///|
 test "calculator bool output errors" {
   let ops = [Calculator::Float(1.0), Calculator::Float(1.0), Calculator::Eq]
-  let res : Result[Array[Double], Error] = try? eval_function(calc_fun(ops), [
-    0.0,
-  ])
+  let res : Result[Array[Double], Error] = try? calc_fun(ops).eval([0.0])
   assert_true(res is Err(_))
 }
 
@@ -264,13 +260,9 @@ test "stitching bad arity and NaN input" {
     domain: [0.0, 1.0],
     range: Some([0.0, 1.0]),
   }
-  let res_bad : Result[Array[Double], Error] = try? eval_function(fun, [
-    0.1, 0.2,
-  ])
+  let res_bad : Result[Array[Double], Error] = try? fun.eval([0.1, 0.2])
   assert_true(res_bad is Err(_))
-  let res_nan : Result[Array[Double], Error] = try? eval_function(fun, [
-    0.0 / 0.0,
-  ])
+  let res_nan : Result[Array[Double], Error] = try? fun.eval([0.0 / 0.0])
   assert_true(res_nan is Err(_))
 }
 
@@ -289,7 +281,7 @@ test "pdfobject_of_function handles zero bps" {
     range: Some([0.0, 1.0]),
   }
   let pdf = @pdf.empty()
-  let obj = pdfobject_of_function(pdf, fun)
+  let obj = fun.to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
     Stream(r) =>
       match (r.val.1 : @pdf.Stream) {

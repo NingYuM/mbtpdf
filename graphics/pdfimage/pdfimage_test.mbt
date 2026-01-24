@@ -298,7 +298,7 @@ test "get_image_24bpp default decode for ICCBased" {
 test "get_image_24bpp default decode for DeviceN" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
-  let tint = @pdffun.pdfobject_of_function(pdf, sample_tint_function())
+  let tint = sample_tint_function().to_pdf_object(pdf)
   let colorspace : @pdf.PdfObject = Array([
     Name("/DeviceN"),
     Array([Name("/C1"), Name("/C2")]),
@@ -592,7 +592,7 @@ test "get_image_24bpp handles ICCBased raw" {
 test "get_image_24bpp handles separation cmyk" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
-  let tint = @pdffun.pdfobject_of_function(pdf, sample_cmyk_function())
+  let tint = sample_cmyk_function().to_pdf_object(pdf)
   let colorspace : @pdf.PdfObject = Array([
     Name("/Separation"),
     Name("/Spot"),
@@ -617,7 +617,7 @@ test "get_image_24bpp handles separation cmyk" {
 test "get_image_24bpp rejects bad separation function" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
-  let tint = @pdffun.pdfobject_of_function(pdf, sample_tint_function())
+  let tint = sample_tint_function().to_pdf_object(pdf)
   let colorspace : @pdf.PdfObject = Array([
     Name("/Separation"),
     Name("/Spot"),
@@ -639,7 +639,7 @@ test "get_image_24bpp rejects bad separation function" {
 test "get_image_24bpp default decode for separation DCT" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
-  let tint = @pdffun.pdfobject_of_function(pdf, sample_tint_function())
+  let tint = sample_tint_function().to_pdf_object(pdf)
   let colorspace : @pdf.PdfObject = Array([
     Name("/Separation"),
     Name("/Spot"),
