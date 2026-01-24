@@ -7,7 +7,7 @@ fn trim_trailing_zeros(value : String) -> String {
   match dot {
     None => value
     Some(_) => {
-      let chars = value.to_array()
+      let chars = value[:]
       let mut end = chars.length() - 1
       while end >= 0 && chars[end] == '0' {
         end = end - 1
@@ -18,11 +18,7 @@ fn trim_trailing_zeros(value : String) -> String {
       if end < 0 {
         "0"
       } else {
-        let sb = StringBuilder::new()
-        for i in 0..<=end {
-          sb.write_char(chars[i])
-        }
-        sb.to_string()
+        slice_range(value, 0, end + 1)
       }
     }
   }
@@ -48,7 +44,7 @@ fn slice_range(value : String, start : Int, end : Int) -> String {
 
 ///|
 fn parse_signed_int(value : String) -> Int {
-  let chars = value.to_array()
+  let chars = value[:]
   if chars.length() == 0 {
     return 0
   }
