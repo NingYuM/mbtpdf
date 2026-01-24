@@ -26,14 +26,15 @@ fn type3_font_dict() -> @pdf.PdfObject {
 ///|
 test "write_encoding handles builtins and custom diffs" {
   let pdf = @pdf.empty()
-  let standard_encoding = @pdftext.read_encoding(pdf, standard_font_dict())
-  let standard = @pdftext.write_encoding(pdf, standard_encoding)
+  let ctx = @pdftext.PdfText::new(pdf)
+  let standard_encoding = ctx.read_encoding(standard_font_dict())
+  let standard = ctx.write_encoding(standard_encoding)
   match (@pdf.lookup_obj(pdf, standard) : @pdf.PdfObject) {
     Name("/StandardEncoding") => ()
     _ => fail("expected StandardEncoding name")
   }
-  let custom_encoding = @pdftext.read_encoding(pdf, custom_encoding_font_dict())
-  let custom = @pdftext.write_encoding(pdf, custom_encoding)
+  let custom_encoding = ctx.read_encoding(custom_encoding_font_dict())
+  let custom = ctx.write_encoding(custom_encoding)
   match (@pdf.lookup_obj(pdf, custom) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
       match (@pdf.lookup_direct(pdf, "/Differences", dict) : @pdf.PdfObject?) {
@@ -43,10 +44,8 @@ test "write_encoding handles builtins and custom diffs" {
     _ => fail("expected encoding dictionary")
   }
   let implicit_dict : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type0"))])
-  let implicit = @pdftext.read_encoding(pdf, implicit_dict)
-  let implicit_result : Result[Int, Error] = try? @pdftext.write_encoding(
-    pdf, implicit,
-  )
+  let implicit = ctx.read_encoding(implicit_dict)
+  let implicit_result : Result[Int, Error] = try? ctx.write_encoding(implicit)
   assert_true(implicit_result is Err(_))
 }
 
@@ -63,8 +62,9 @@ test "hex and tounicode_map encode bytes" {
 ///|
 test "write_font handles standard and type3 fonts" {
   let pdf = @pdf.empty()
-  let standard_font = @pdftext.read_font(pdf, win_ansi_font_dict())
-  let standard = @pdftext.write_font(pdf, standard_font)
+  let ctx = @pdftext.PdfText::new(pdf)
+  let standard_font = ctx.read_font(win_ansi_font_dict())
+  let standard = ctx.write_font(standard_font)
   match (@pdf.lookup_obj(pdf, standard) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
       match (@pdf.lookup_direct(pdf, "/BaseFont", dict) : @pdf.PdfObject?) {
@@ -73,8 +73,8 @@ test "write_font handles standard and type3 fonts" {
       }
     _ => fail("expected font dictionary")
   }
-  let type3_font = @pdftext.read_font(pdf, type3_font_dict())
-  let type3_num = @pdftext.write_font(pdf, type3_font)
+  let type3_font = ctx.read_font(type3_font_dict())
+  let type3_num = ctx.write_font(type3_font)
   match (@pdf.lookup_obj(pdf, type3_num) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
       match (@pdf.lookup_direct(pdf, "/Subtype", dict) : @pdf.PdfObject?) {

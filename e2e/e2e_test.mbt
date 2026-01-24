@@ -754,7 +754,7 @@ async test "e2e merge preserves text extraction" {
   let out_path = OUTPUT_DIR + "/merge_text.pdf"
   write_pdf(out_path, merged)
   let parsed = read_pdf(out_path)
-  let extracted = @pdftext.extract_text(parsed)
+  let extracted = @pdftext.PdfText::new(parsed).extract_text()
   assert_true(extracted.contains("ABCdef"))
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 

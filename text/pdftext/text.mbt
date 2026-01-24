@@ -140,7 +140,7 @@ pub fn reverse_table_of_encoding(
 }
 
 ///|
-pub fn text_extractor_of_font_real(font : @pdffont.Font) -> TextExtractor {
+pub fn TextExtractor::new(font : @pdffont.Font) -> TextExtractor {
   let encoding = match font {
     @pdffont.Font::StandardFont(_, e) => e
     @pdffont.Font::SimpleFont(simple) => simple.encoding
@@ -168,15 +168,15 @@ pub fn text_extractor_of_font_real(font : @pdffont.Font) -> TextExtractor {
 }
 
 ///|
-pub fn text_extractor_of_font(
-  pdf : @pdf.Pdf,
+pub fn PdfText::text_extractor_of_font(
+  self : PdfText,
   fontdict : @pdf.PdfObject,
 ) -> TextExtractor raise {
-  text_extractor_of_font_real(read_font(pdf, fontdict))
+  TextExtractor::new(self.read_font(fontdict))
 }
 
 ///|
-pub fn is_identity_h(font : @pdffont.Font) -> Bool {
+fn is_identity_h(font : @pdffont.Font) -> Bool {
   match font {
     @pdffont.Font::CIDKeyedFont(
       _,
@@ -220,7 +220,8 @@ fn codepoints_of_predefined_cmap(
 }
 
 ///|
-fn TextExtractor::glyphnames_and_codepoints_of_text(
+#as_free_fn(deprecated="Use `TextExtractor::glyphnames_and_codepoints_of_text`")
+pub fn TextExtractor::glyphnames_and_codepoints_of_text(
   self : TextExtractor,
   text : String,
 ) -> Array[(String, Array[Int])] raise {
@@ -277,7 +278,8 @@ fn TextExtractor::glyphnames_and_codepoints_of_text(
 }
 
 ///|
-fn TextExtractor::codepoints_of_text(
+#as_free_fn(deprecated="Use `TextExtractor::codepoints_of_text`")
+pub fn TextExtractor::codepoints_of_text(
   self : TextExtractor,
   text : String,
 ) -> Array[Int] raise {
@@ -290,7 +292,8 @@ fn TextExtractor::codepoints_of_text(
 }
 
 ///|
-fn TextExtractor::glyphnames_of_text(
+#as_free_fn(deprecated="Use `TextExtractor::glyphnames_of_text`")
+pub fn TextExtractor::glyphnames_of_text(
   self : TextExtractor,
   text : String,
 ) -> Array[String] raise {
@@ -298,31 +301,7 @@ fn TextExtractor::glyphnames_of_text(
 }
 
 ///|
-pub fn glyphnames_and_codepoints_of_text(
-  extractor : TextExtractor,
-  text : String,
-) -> Array[(String, Array[Int])] raise {
-  extractor.glyphnames_and_codepoints_of_text(text)
-}
-
-///|
-pub fn codepoints_of_text(
-  extractor : TextExtractor,
-  text : String,
-) -> Array[Int] raise {
-  extractor.codepoints_of_text(text)
-}
-
-///|
-pub fn glyphnames_of_text(
-  extractor : TextExtractor,
-  text : String,
-) -> Array[String] raise {
-  extractor.glyphnames_of_text(text)
-}
-
-///|
-pub fn charcode_extractor_of_font_real(
+fn charcode_extractor_of_font_real(
   font : @pdffont.Font,
   debug? : Bool = false,
 ) -> ((Int) -> Int?) raise {
@@ -385,12 +364,12 @@ pub fn charcode_extractor_of_font_real(
 }
 
 ///|
-pub fn charcode_extractor_of_font(
-  pdf : @pdf.Pdf,
+pub fn PdfText::charcode_extractor_of_font(
+  self : PdfText,
   fontdict : @pdf.PdfObject,
   debug? : Bool = false,
 ) -> ((Int) -> Int?) raise {
-  charcode_extractor_of_font_real(read_font(pdf, fontdict), debug~)
+  charcode_extractor_of_font_real(self.read_font(fontdict), debug~)
 }
 
 ///|

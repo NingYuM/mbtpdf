@@ -131,64 +131,62 @@ test "utf8 conversion helpers" {
 ///|
 test "encoding tables and extractors" {
   let pdf = @pdf.empty()
-  let encoding = @pdftext.read_encoding(pdf, win_ansi_font_dict())
+  let ctx = @pdftext.PdfText::new(pdf)
+  let encoding = ctx.read_encoding(win_ansi_font_dict())
   let table = @pdftext.table_of_encoding(encoding)
   let sample = @pdfglyphlist.name_to_win[0]
   assert_eq(table.get(sample.1), Some(sample.0))
   let reversed = @pdftext.reverse_table_of_encoding(encoding)
   assert_eq(reversed.get(sample.0), Some(sample.1))
-  let custom = @pdftext.read_encoding(pdf, custom_encoding_font_dict())
+  let custom = ctx.read_encoding(custom_encoding_font_dict())
   let custom_table = @pdftext.table_of_encoding(custom)
   assert_eq(custom_table.get(65), Some("/A"))
-  let extractor = @pdftext.text_extractor_of_font(pdf, standard_font_dict())
-  let pairs = @pdftext.glyphnames_and_codepoints_of_text(extractor, "A")
+  let extractor = ctx.text_extractor_of_font(standard_font_dict())
+  let pairs = extractor.glyphnames_and_codepoints_of_text("A")
   assert_eq(pairs.length(), 1)
   assert_eq(pairs[0].0, "/A")
   inspect(pairs[0].1, content="[65]")
-  inspect(@pdftext.codepoints_of_text(extractor, "AB"), content="[65, 66]")
-  let charcode = @pdftext.charcode_extractor_of_font(pdf, standard_font_dict())
+  inspect(extractor.codepoints_of_text("AB"), content="[65, 66]")
+  let charcode = ctx.charcode_extractor_of_font(standard_font_dict())
   assert_eq(charcode(0x41), Some(65))
 }
 
 ///|
 test "tounicode and cmap extraction" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let tounicode : Map[Int, String] = Map::new()
   tounicode.set(33, @pdfio.string_of_int_array([0x00, 0x42]))
-  let tounicode_ref = @pdftext.write_tounicode(pdf, tounicode)
-  let extractor = @pdftext.text_extractor_of_font(
-    pdf,
+  let tounicode_ref = ctx.write_tounicode(tounicode)
+  let extractor = ctx.text_extractor_of_font(
     simple_font_with_tounicode(tounicode_ref),
   )
-  let pairs = @pdftext.glyphnames_and_codepoints_of_text(extractor, "!")
+  let pairs = extractor.glyphnames_and_codepoints_of_text("!")
   assert_eq(pairs.length(), 1)
   inspect(pairs[0].1, content="[66]")
-  let miss = @pdftext.glyphnames_and_codepoints_of_text(extractor, "A")
+  let miss = extractor.glyphnames_and_codepoints_of_text("A")
   assert_eq(miss.length(), 1)
   inspect(miss[0].1, content="[65]")
-  let identity_extractor = @pdftext.text_extractor_of_font(
-    pdf,
+  let identity_extractor = ctx.text_extractor_of_font(
     cid_font_dict("/Identity-H"),
   )
   let identity_text = @pdfio.string_of_int_array([0x00, 0x41, 0x00, 0x42])
-  let identity_pairs = @pdftext.glyphnames_and_codepoints_of_text(
-    identity_extractor, identity_text,
+  let identity_pairs = identity_extractor.glyphnames_and_codepoints_of_text(
+    identity_text,
   )
   assert_eq(identity_pairs.length(), 2)
   inspect(identity_pairs[0].1, content="[65]")
   inspect(identity_pairs[1].1, content="[66]")
-  let odd_res : Result[Array[(String, Array[Int])], Error] = try? @pdftext.glyphnames_and_codepoints_of_text(
-    identity_extractor,
+  let odd_res : Result[Array[(String, Array[Int])], Error] = try? identity_extractor.glyphnames_and_codepoints_of_text(
     @pdfio.string_of_int_array([0x00]),
   )
   assert_true(odd_res is Err(_))
-  let shift_extractor = @pdftext.text_extractor_of_font(
-    pdf,
+  let shift_extractor = ctx.text_extractor_of_font(
     cid_font_dict("/90ms-RKSJ-H"),
   )
   let shift_text = @pdfio.string_of_int_array([0x81, 0x40])
-  let shift_pairs = @pdftext.glyphnames_and_codepoints_of_text(
-    shift_extractor, shift_text,
+  let shift_pairs = shift_extractor.glyphnames_and_codepoints_of_text(
+    shift_text,
   )
   assert_eq(shift_pairs.length(), 1)
   inspect(shift_pairs[0].1, content="[12288]")

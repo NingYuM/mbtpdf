@@ -28,6 +28,7 @@ fn type3_font_base(
 ///|
 test "read_type3_data validates matrix and charprocs" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let bad_len_matrix : @pdf.PdfObject = Array([
     Real(1.0),
     Real(0.0),
@@ -36,18 +37,18 @@ test "read_type3_data validates matrix and charprocs" {
     Real(0.0),
   ])
   let bad_len_font = type3_font_base(bad_len_matrix, type3_charprocs_ok())
-  let bad_len_result : Result[@pdffont.Type3Glyphs, Error] = try? @pdftext.read_type3_data(
-    pdf, bad_len_font,
+  let bad_len_result : Result[@pdffont.Type3Glyphs, Error] = try? ctx.read_type3_data(
+    bad_len_font,
   )
   assert_true(bad_len_result is Err(_))
   let bad_type_font = type3_font_base(Name("/Bad"), type3_charprocs_ok())
-  let bad_type_result : Result[@pdffont.Type3Glyphs, Error] = try? @pdftext.read_type3_data(
-    pdf, bad_type_font,
+  let bad_type_result : Result[@pdffont.Type3Glyphs, Error] = try? ctx.read_type3_data(
+    bad_type_font,
   )
   assert_true(bad_type_result is Err(_))
   let bad_charprocs_font = type3_font_base(type3_matrix_ok(), Name("/Bad"))
-  let bad_charprocs_result : Result[@pdffont.Type3Glyphs, Error] = try? @pdftext.read_type3_data(
-    pdf, bad_charprocs_font,
+  let bad_charprocs_result : Result[@pdffont.Type3Glyphs, Error] = try? ctx.read_type3_data(
+    bad_charprocs_font,
   )
   assert_true(bad_charprocs_result is Err(_))
   let with_resources = @pdf.add_dict_entry(
@@ -55,7 +56,7 @@ test "read_type3_data validates matrix and charprocs" {
     "/Resources",
     Dictionary([("/ProcSet", Array([]))]),
   )
-  let good = @pdftext.read_type3_data(pdf, with_resources)
+  let good = ctx.read_type3_data(with_resources)
   match (good.type3_resources : @pdf.PdfObject) {
     Dictionary(_) => ()
     _ => fail("expected type3 resources")
@@ -65,9 +66,10 @@ test "read_type3_data validates matrix and charprocs" {
 ///|
 test "simple_fonttype_of_string and read_basefont defaults" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([])
-  assert_true(@pdftext.simple_fonttype_of_string(pdf, font, "/Unknown") is None)
-  assert_eq(@pdftext.read_basefont(pdf, font), "")
+  assert_true(ctx.simple_fonttype_of_string(font, "/Unknown") is None)
+  assert_eq(ctx.read_basefont(font), "")
 }
 
 ///|
@@ -83,6 +85,7 @@ test "parse_charset handles invalid escapes" {
 ///|
 test "read_fontdescriptor reads font file references" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let null_obj : @pdf.PdfObject = Null
   let obj1 = @pdf.addobj(pdf, null_obj)
   let obj2 = @pdf.addobj(pdf, null_obj)
@@ -90,7 +93,7 @@ test "read_fontdescriptor reads font file references" {
   let font1 : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", Dictionary([("/FontFile", Indirect(obj1))])),
   ])
-  match @pdftext.read_fontdescriptor(pdf, font1) {
+  match ctx.read_fontdescriptor(font1) {
     Some(desc) =>
       match (desc.fontfile : @pdffont.FontFile?) {
         Some(FontFile(num)) => assert_eq(num, obj1)
@@ -101,7 +104,7 @@ test "read_fontdescriptor reads font file references" {
   let font2 : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", Dictionary([("/FontFile2", Indirect(obj2))])),
   ])
-  match @pdftext.read_fontdescriptor(pdf, font2) {
+  match ctx.read_fontdescriptor(font2) {
     Some(desc) =>
       match (desc.fontfile : @pdffont.FontFile?) {
         Some(FontFile2(num)) => assert_eq(num, obj2)
@@ -112,7 +115,7 @@ test "read_fontdescriptor reads font file references" {
   let font3 : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", Dictionary([("/FontFile3", Indirect(obj3))])),
   ])
-  match @pdftext.read_fontdescriptor(pdf, font3) {
+  match ctx.read_fontdescriptor(font3) {
     Some(desc) =>
       match (desc.fontfile : @pdffont.FontFile?) {
         Some(FontFile3(num)) => assert_eq(num, obj3)
@@ -125,14 +128,15 @@ test "read_fontdescriptor reads font file references" {
 ///|
 test "read_metrics validates required keys" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let descriptor : @pdf.PdfObject = Dictionary([])
   let missing_first : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", descriptor),
     ("/LastChar", Integer(0)),
     ("/Widths", Array([Integer(10)])),
   ])
-  let missing_first_result : Result[@pdffont.FontMetrics?, Error] = try? @pdftext.read_metrics(
-    pdf, missing_first,
+  let missing_first_result : Result[@pdffont.FontMetrics?, Error] = try? ctx.read_metrics(
+    missing_first,
   )
   assert_true(missing_first_result is Err(_))
   let bad_first : @pdf.PdfObject = Dictionary([
@@ -141,8 +145,8 @@ test "read_metrics validates required keys" {
     ("/LastChar", Integer(0)),
     ("/Widths", Array([Integer(10)])),
   ])
-  let bad_first_result : Result[@pdffont.FontMetrics?, Error] = try? @pdftext.read_metrics(
-    pdf, bad_first,
+  let bad_first_result : Result[@pdffont.FontMetrics?, Error] = try? ctx.read_metrics(
+    bad_first,
   )
   assert_true(bad_first_result is Err(_))
   let missing_last : @pdf.PdfObject = Dictionary([
@@ -150,8 +154,8 @@ test "read_metrics validates required keys" {
     ("/FirstChar", Integer(0)),
     ("/Widths", Array([Integer(10)])),
   ])
-  let missing_last_result : Result[@pdffont.FontMetrics?, Error] = try? @pdftext.read_metrics(
-    pdf, missing_last,
+  let missing_last_result : Result[@pdffont.FontMetrics?, Error] = try? ctx.read_metrics(
+    missing_last,
   )
   assert_true(missing_last_result is Err(_))
   let bad_last : @pdf.PdfObject = Dictionary([
@@ -160,8 +164,8 @@ test "read_metrics validates required keys" {
     ("/LastChar", Integer(999)),
     ("/Widths", Array([Integer(10)])),
   ])
-  let bad_last_result : Result[@pdffont.FontMetrics?, Error] = try? @pdftext.read_metrics(
-    pdf, bad_last,
+  let bad_last_result : Result[@pdffont.FontMetrics?, Error] = try? ctx.read_metrics(
+    bad_last,
   )
   assert_true(bad_last_result is Err(_))
   let missing_widths : @pdf.PdfObject = Dictionary([
@@ -169,8 +173,8 @@ test "read_metrics validates required keys" {
     ("/FirstChar", Integer(0)),
     ("/LastChar", Integer(0)),
   ])
-  let missing_widths_result : Result[@pdffont.FontMetrics?, Error] = try? @pdftext.read_metrics(
-    pdf, missing_widths,
+  let missing_widths_result : Result[@pdffont.FontMetrics?, Error] = try? ctx.read_metrics(
+    missing_widths,
   )
   assert_true(missing_widths_result is Err(_))
   let bad_widths : @pdf.PdfObject = Dictionary([
@@ -179,8 +183,8 @@ test "read_metrics validates required keys" {
     ("/LastChar", Integer(1)),
     ("/Widths", Array([Integer(10)])),
   ])
-  let bad_widths_result : Result[@pdffont.FontMetrics?, Error] = try? @pdftext.read_metrics(
-    pdf, bad_widths,
+  let bad_widths_result : Result[@pdffont.FontMetrics?, Error] = try? ctx.read_metrics(
+    bad_widths,
   )
   assert_true(bad_widths_result is Err(_))
 }
@@ -188,6 +192,7 @@ test "read_metrics validates required keys" {
 ///|
 test "read_metrics accepts real widths" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let descriptor : @pdf.PdfObject = Dictionary([("/MissingWidth", Real(12.5))])
   let font : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", descriptor),
@@ -195,7 +200,7 @@ test "read_metrics accepts real widths" {
     ("/LastChar", Integer(0)),
     ("/Widths", Array([Real(250.5)])),
   ])
-  match @pdftext.read_metrics(pdf, font) {
+  match ctx.read_metrics(font) {
     Some(metrics) => {
       assert_eq(metrics.length(), 256)
       assert_eq(metrics[0], 250.5)
@@ -208,14 +213,14 @@ test "read_metrics accepts real widths" {
 ///|
 test "pairs_of_differences rejects malformed inputs" {
   let pdf = @pdf.empty()
-  let not_array : Result[@pdffont.Differences, Error] = try? @pdftext.pairs_of_differences(
-    pdf,
+  let ctx = @pdftext.PdfText::new(pdf)
+  let not_array : Result[@pdffont.Differences, Error] = try? ctx.pairs_of_differences(
     Name("/Bad"),
   )
   assert_true(not_array is Err(_))
   let bad_array_obj : @pdf.PdfObject = Array([Name("/A")])
-  let bad_array : Result[@pdffont.Differences, Error] = try? @pdftext.pairs_of_differences(
-    pdf, bad_array_obj,
+  let bad_array : Result[@pdffont.Differences, Error] = try? ctx.pairs_of_differences(
+    bad_array_obj,
   )
   assert_true(bad_array is Err(_))
 }
@@ -223,48 +228,51 @@ test "pairs_of_differences rejects malformed inputs" {
 ///|
 test "is_standard14font rejects non-name basefont" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
     ("/BaseFont", Integer(1)),
   ])
-  assert_true(!@pdftext.is_standard14font(pdf, font))
+  assert_true(!ctx.is_standard14font(font))
 }
 
 ///|
 test "read_metrics rejects non-number width entries" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", Dictionary([])),
     ("/FirstChar", Integer(0)),
     ("/LastChar", Integer(0)),
     ("/Widths", Array([Name("/Bad")])),
   ])
-  let res : Result[@pdffont.FontMetrics?, Error] = try? @pdftext.read_metrics(
-    pdf, font,
-  )
+  let res : Result[@pdffont.FontMetrics?, Error] = try? ctx.read_metrics(font)
   assert_true(res is Err(_))
 }
 
 ///|
 test "is_embedded detects FontFile3" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", Dictionary([("/FontFile3", Null)])),
   ])
-  assert_true(@pdftext.is_embedded(pdf, font))
+  assert_true(ctx.is_embedded(font))
 }
 
 ///|
 test "is_symbolic errors when flags missing" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([("/FontDescriptor", Dictionary([]))])
-  let res : Result[Bool, Error] = try? @pdftext.is_symbolic(pdf, font)
+  let res : Result[Bool, Error] = try? ctx.is_symbolic(font)
   assert_true(res is Err(_))
 }
 
 ///|
 test "read_encoding handles TrueType differences and bad subtype" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let enc : @pdf.PdfObject = Dictionary([
     ("/BaseEncoding", Name("/WinAnsiEncoding")),
     ("/Differences", Array([Integer(65), Name("/A"), Name("/B")])),
@@ -273,7 +281,7 @@ test "read_encoding handles TrueType differences and bad subtype" {
     ("/Subtype", Name("/TrueType")),
     ("/Encoding", enc),
   ])
-  let encoding = @pdftext.read_encoding(pdf, font)
+  let encoding = ctx.read_encoding(font)
   match (encoding : @pdffont.Encoding) {
     FillUndefinedWithStandard(CustomEncoding(_, _)) => ()
     _ => fail("expected FillUndefinedWithStandard(CustomEncoding)")
@@ -282,23 +290,22 @@ test "read_encoding handles TrueType differences and bad subtype" {
     ("/Subtype", Name("/Type0")),
     ("/Encoding", enc),
   ])
-  let bad_res : Result[@pdffont.Encoding, Error] = try? @pdftext.read_encoding(
-    pdf, bad,
-  )
+  let bad_res : Result[@pdffont.Encoding, Error] = try? ctx.read_encoding(bad)
   assert_true(bad_res is Err(_))
 }
 
 ///|
 test "read_simple_font and standard14font error branches" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let missing_subtype : @pdf.PdfObject = Dictionary([])
-  let res_simple : Result[@pdffont.Font, Error] = try? @pdftext.read_simple_font(
-    pdf, missing_subtype,
+  let res_simple : Result[@pdffont.Font, Error] = try? ctx.read_simple_font(
+    missing_subtype,
   )
   assert_true(res_simple is Err(_))
   let bad_base : @pdf.PdfObject = Dictionary([("/BaseFont", Integer(1))])
-  let res_standard : Result[@pdffont.Font, Error] = try? @pdftext.read_standard14font(
-    pdf, bad_base,
+  let res_standard : Result[@pdffont.Font, Error] = try? ctx.read_standard14font(
+    bad_base,
   )
   assert_true(res_standard is Err(_))
 }
@@ -306,9 +313,10 @@ test "read_simple_font and standard14font error branches" {
 ///|
 test "read_cid_system_info and widths reject malformed input" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let bad_info : @pdf.PdfObject = Dictionary([("/Registry", String("Adobe"))])
-  let info_res : Result[@pdffont.CIDSystemInfo, Error] = try? @pdftext.read_cid_system_info(
-    pdf, bad_info,
+  let info_res : Result[@pdffont.CIDSystemInfo, Error] = try? ctx.read_cid_system_info(
+    bad_info,
   )
   assert_true(info_res is Err(_))
   let missing_tail_arr : Array[@pdf.PdfObject] = [Integer(1)]
@@ -343,20 +351,21 @@ test "read_cid_system_info and widths reject malformed input" {
 ///|
 test "read_descendant and cidkeyed_font error paths" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let desc : @pdf.PdfObject = Dictionary([
     ("/BaseFont", Name("/CIDFont")),
     ("/FontDescriptor", Dictionary([])),
   ])
-  let desc_res : Result[@pdffont.CompositeCIDFont, Error] = try? @pdftext.read_descendant(
-    pdf, desc,
+  let desc_res : Result[@pdffont.CompositeCIDFont, Error] = try? ctx.read_descendant(
+    desc,
   )
   assert_true(desc_res is Err(_))
   let bad_font : @pdf.PdfObject = Dictionary([
     ("/BaseFont", Name("/CIDFontType0")),
     ("/DescendantFonts", Array([desc])),
   ])
-  let bad_cid : Result[@pdffont.Font, Error] = try? @pdftext.read_cidkeyed_font(
-    pdf, bad_font,
+  let bad_cid : Result[@pdffont.Font, Error] = try? ctx.read_cidkeyed_font(
+    bad_font,
   )
   assert_true(bad_cid is Err(_))
 }
@@ -364,6 +373,7 @@ test "read_descendant and cidkeyed_font error paths" {
 ///|
 test "find_tounicode returns none for simple fonts without descriptor" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let fontdict : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
     ("/BaseFont", Name("/Helvetica")),
@@ -371,7 +381,7 @@ test "find_tounicode returns none for simple fonts without descriptor" {
     ("/LastChar", Integer(65)),
     ("/Widths", Array([Integer(500)])),
   ])
-  let font = @pdftext.read_simple_font(pdf, fontdict)
+  let font = ctx.read_simple_font(fontdict)
   assert_true(@pdftext.find_tounicode(font) is None)
   assert_true(@pdftext.find_tounicode_bytes(font) is None)
 }
@@ -379,21 +389,23 @@ test "find_tounicode returns none for simple fonts without descriptor" {
 ///|
 test "is_embedded and is_symbolic read flags and missing fontfiles" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", Dictionary([("/Flags", Integer(8))])),
   ])
-  assert_true(@pdftext.is_embedded(pdf, font) == false)
-  assert_true(@pdftext.is_symbolic(pdf, font))
+  assert_true(ctx.is_embedded(font) == false)
+  assert_true(ctx.is_symbolic(font))
 }
 
 ///|
 test "read_encoding base encoding branches and implicit fallback" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let mac_expert : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
     ("/Encoding", Dictionary([("/BaseEncoding", Name("/MacExpertEncoding"))])),
   ])
-  match (@pdftext.read_encoding(pdf, mac_expert) : @pdffont.Encoding) {
+  match (ctx.read_encoding(mac_expert) : @pdffont.Encoding) {
     MacExpertEncoding => ()
     _ => fail("expected MacExpertEncoding")
   }
@@ -402,7 +414,7 @@ test "read_encoding base encoding branches and implicit fallback" {
     ("/FontDescriptor", Dictionary([("/Flags", Integer(8))])),
     ("/Encoding", Dictionary([])),
   ])
-  match (@pdftext.read_encoding(pdf, implicit) : @pdffont.Encoding) {
+  match (ctx.read_encoding(implicit) : @pdffont.Encoding) {
     ImplicitInFontFile => ()
     _ => fail("expected implicit encoding")
   }
@@ -410,15 +422,15 @@ test "read_encoding base encoding branches and implicit fallback" {
     ("/Subtype", Name("/Type1")),
     ("/Encoding", Dictionary([("/BaseEncoding", Name("/BadEncoding"))])),
   ])
-  let bad_base_res : Result[@pdffont.Encoding, Error] = try? @pdftext.read_encoding(
-    pdf, bad_base,
+  let bad_base_res : Result[@pdffont.Encoding, Error] = try? ctx.read_encoding(
+    bad_base,
   )
   assert_true(bad_base_res is Err(_))
   let non_dict : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
     ("/Encoding", Integer(1)),
   ])
-  match (@pdftext.read_encoding(pdf, non_dict) : @pdffont.Encoding) {
+  match (ctx.read_encoding(non_dict) : @pdffont.Encoding) {
     ImplicitInFontFile => ()
     _ => fail("expected implicit encoding")
   }
@@ -427,32 +439,31 @@ test "read_encoding base encoding branches and implicit fallback" {
 ///|
 test "read_simple_font rejects non-simple subtype" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type0"))])
-  let res : Result[@pdffont.Font, Error] = try? @pdftext.read_simple_font(
-    pdf, font,
-  )
+  let res : Result[@pdffont.Font, Error] = try? ctx.read_simple_font(font)
   assert_true(res is Err(_))
 }
 
 ///|
 test "read_standard14font rejects unknown basefont" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([("/BaseFont", Name("/NotStandard"))])
-  let res : Result[@pdffont.Font, Error] = try? @pdftext.read_standard14font(
-    pdf, font,
-  )
+  let res : Result[@pdffont.Font, Error] = try? ctx.read_standard14font(font)
   assert_true(res is Err(_))
 }
 
 ///|
 test "read_cid_system_info rejects missing supplement" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let info : @pdf.PdfObject = Dictionary([
     ("/Registry", String("Adobe")),
     ("/Ordering", String("Identity")),
   ])
-  let res : Result[@pdffont.CIDSystemInfo, Error] = try? @pdftext.read_cid_system_info(
-    pdf, info,
+  let res : Result[@pdffont.CIDSystemInfo, Error] = try? ctx.read_cid_system_info(
+    info,
   )
   assert_true(res is Err(_))
 }
@@ -474,6 +485,7 @@ test "read_cid_widths handles real values and ranges" {
 ///|
 test "read_descendant and cidkeyed_font missing basefont" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let desc : @pdf.PdfObject = Dictionary([
     (
       "/CIDSystemInfo",
@@ -485,16 +497,16 @@ test "read_descendant and cidkeyed_font missing basefont" {
     ),
     ("/FontDescriptor", Dictionary([])),
   ])
-  let res_desc : Result[@pdffont.CompositeCIDFont, Error] = try? @pdftext.read_descendant(
-    pdf, desc,
+  let res_desc : Result[@pdffont.CompositeCIDFont, Error] = try? ctx.read_descendant(
+    desc,
   )
   assert_true(res_desc is Err(_))
   let cid_font : @pdf.PdfObject = Dictionary([
     ("/DescendantFonts", Array([desc])),
     ("/Encoding", Name("/Identity-H")),
   ])
-  let res_cid : Result[@pdffont.Font, Error] = try? @pdftext.read_cidkeyed_font(
-    pdf, cid_font,
+  let res_cid : Result[@pdffont.Font, Error] = try? ctx.read_cidkeyed_font(
+    cid_font,
   )
   assert_true(res_cid is Err(_))
 }
@@ -502,6 +514,7 @@ test "read_descendant and cidkeyed_font missing basefont" {
 ///|
 test "read_cidkeyed_font rejects bad descendants and encoding streams" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let descendant : @pdf.PdfObject = Dictionary([
     (
       "/CIDSystemInfo",
@@ -519,8 +532,8 @@ test "read_cidkeyed_font rejects bad descendants and encoding streams" {
     ("/DescendantFonts", Array([descendant, descendant])),
     ("/Encoding", Name("/Identity-H")),
   ])
-  let res_desc : Result[@pdffont.Font, Error] = try? @pdftext.read_cidkeyed_font(
-    pdf, bad_desc,
+  let res_desc : Result[@pdffont.Font, Error] = try? ctx.read_cidkeyed_font(
+    bad_desc,
   )
   assert_true(res_desc is Err(_))
   let stream_dict : @pdf.PdfObject = Dictionary([])
@@ -532,8 +545,8 @@ test "read_cidkeyed_font rejects bad descendants and encoding streams" {
     ("/DescendantFonts", Array([descendant])),
     ("/Encoding", stream),
   ])
-  let res_stream : Result[@pdffont.Font, Error] = try? @pdftext.read_cidkeyed_font(
-    pdf, bad_encoding,
+  let res_stream : Result[@pdffont.Font, Error] = try? ctx.read_cidkeyed_font(
+    bad_encoding,
   )
   assert_true(res_stream is Err(_))
 }
@@ -541,6 +554,7 @@ test "read_cidkeyed_font rejects bad descendants and encoding streams" {
 ///|
 test "find_tounicode uses descriptor fields when present" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let fontdict : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
     ("/BaseFont", Name("/Helvetica")),
@@ -549,7 +563,7 @@ test "find_tounicode uses descriptor fields when present" {
     ("/Widths", Array([Integer(500)])),
     ("/FontDescriptor", Dictionary([])),
   ])
-  let font = @pdftext.read_simple_font(pdf, fontdict)
+  let font = ctx.read_simple_font(fontdict)
   assert_true(@pdftext.find_tounicode(font) is None)
   let descendant : @pdf.PdfObject = Dictionary([
     (
@@ -568,7 +582,7 @@ test "find_tounicode uses descriptor fields when present" {
     ("/DescendantFonts", Array([descendant])),
     ("/Encoding", Name("/Identity-H")),
   ])
-  let cid = @pdftext.read_cidkeyed_font(pdf, cid_font)
+  let cid = ctx.read_cidkeyed_font(cid_font)
   assert_true(@pdftext.find_tounicode(cid) is None)
   assert_true(@pdftext.find_tounicode_bytes(cid) is None)
 }

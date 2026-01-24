@@ -47,22 +47,18 @@ fn font_with_difference(name : String) -> @pdf.PdfObject {
 ///|
 test "encoding tables include mac variants and filled standards" {
   let pdf = @pdf.empty()
-  let macroman_encoding = @pdftext.read_encoding(
-    pdf,
+  let ctx = @pdftext.PdfText::new(pdf)
+  let macroman_encoding = ctx.read_encoding(
     font_with_encoding_name("/MacRomanEncoding"),
   )
   let macroman = @pdftext.table_of_encoding(macroman_encoding)
   assert_eq(macroman.get(65), Some("/A"))
-  let macexpert_encoding = @pdftext.read_encoding(
-    pdf,
+  let macexpert_encoding = ctx.read_encoding(
     font_with_encoding_name("/MacExpertEncoding"),
   )
   let macexpert = @pdftext.table_of_encoding(macexpert_encoding)
   assert_eq(macexpert.get(97), Some("/Asmall"))
-  let filled_encoding = @pdftext.read_encoding(
-    pdf,
-    truetype_font_with_encoding_dict(),
-  )
+  let filled_encoding = ctx.read_encoding(truetype_font_with_encoding_dict())
   let filled = @pdftext.table_of_encoding(filled_encoding)
   assert_eq(filled.get(65), Some("/A"))
 }
@@ -70,29 +66,25 @@ test "encoding tables include mac variants and filled standards" {
 ///|
 test "reverse tables handle implicit and mac encodings" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let font_dict : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
     ("/BaseFont", Name("/CustomFont")),
   ])
-  let implicit_encoding = @pdftext.read_encoding(pdf, font_dict)
+  let implicit_encoding = ctx.read_encoding(font_dict)
   let implicit = @pdftext.reverse_table_of_encoding(implicit_encoding)
   assert_eq(implicit.get("/A"), None)
-  let macroman_encoding = @pdftext.read_encoding(
-    pdf,
+  let macroman_encoding = ctx.read_encoding(
     font_with_encoding_name("/MacRomanEncoding"),
   )
   let macroman = @pdftext.reverse_table_of_encoding(macroman_encoding)
   assert_eq(macroman.get("/A"), Some(65))
-  let macexpert_encoding = @pdftext.read_encoding(
-    pdf,
+  let macexpert_encoding = ctx.read_encoding(
     font_with_encoding_name("/MacExpertEncoding"),
   )
   let macexpert = @pdftext.reverse_table_of_encoding(macexpert_encoding)
   assert_eq(macexpert.get("/Asmall"), Some(97))
-  let filled_encoding = @pdftext.read_encoding(
-    pdf,
-    truetype_font_with_encoding_dict(),
-  )
+  let filled_encoding = ctx.read_encoding(truetype_font_with_encoding_dict())
   let filled = @pdftext.reverse_table_of_encoding(filled_encoding)
   assert_eq(filled.get("/A"), Some(65))
 }
@@ -100,7 +92,9 @@ test "reverse tables handle implicit and mac encodings" {
 ///|
 test "reverse table handles custom differences" {
   let pdf = @pdf.empty()
-  let encoding = @pdftext.read_encoding(pdf, font_with_difference("/NotAGlyph"))
+  let encoding = @pdftext.PdfText::new(pdf).read_encoding(
+    font_with_difference("/NotAGlyph"),
+  )
   let reversed = @pdftext.reverse_table_of_encoding(encoding)
   assert_eq(reversed.get("/NotAGlyph"), Some(70))
 }
@@ -110,26 +104,25 @@ test "text extractor handles missing glyph hashes" {
   let hashes = @pdfglyphlist.glyph_hashes()
   assert_true(hashes.get("/NotAGlyph") is None)
   let pdf = @pdf.empty()
-  let extractor = @pdftext.text_extractor_of_font(
-    pdf,
+  let extractor = @pdftext.PdfText::new(pdf).text_extractor_of_font(
     font_with_difference("/NotAGlyph"),
   )
-  let pairs = @pdftext.glyphnames_and_codepoints_of_text(extractor, "F")
+  let pairs = extractor.glyphnames_and_codepoints_of_text("F")
   assert_eq(pairs.length(), 1)
   assert_true(pairs[0].0.contains("NotAGlyph"))
   inspect(pairs[0].1, content="[70]")
-  let names = @pdftext.glyphnames_of_text(extractor, "F")
+  let names = extractor.glyphnames_of_text("F")
   assert_eq(names.length(), 1)
 }
 
 ///|
 test "charcode extractor uses tounicode bytes map" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let tounicode : Map[Int, String] = Map::new()
   tounicode.set(33, @pdfio.string_of_int_array([0x00, 0x42]))
-  let tounicode_ref = @pdftext.write_tounicode(pdf, tounicode)
-  let charcode = @pdftext.charcode_extractor_of_font(
-    pdf,
+  let tounicode_ref = ctx.write_tounicode(tounicode)
+  let charcode = ctx.charcode_extractor_of_font(
     simple_font_with_tounicode(tounicode_ref),
   )
   assert_eq(charcode(66), Some(33))

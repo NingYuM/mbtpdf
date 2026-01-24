@@ -71,8 +71,9 @@ test "textwidth handles missing widths and kerning" {
   assert_true(widths.get(999) is None)
   assert_true(kerns.get((999, 998)) is None)
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let implicit_font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type1"))])
-  let implicit_encoding = @pdftext.read_encoding(pdf, implicit_font)
+  let implicit_encoding = ctx.read_encoding(implicit_font)
   let implicit_width = @pdfstandard14.textwidth(
     true, implicit_encoding, font, missing,
   )
@@ -88,7 +89,7 @@ test "textwidth handles missing widths and kerning" {
       ]),
     ),
   ])
-  let encoding = @pdftext.read_encoding(pdf, custom_font)
+  let encoding = ctx.read_encoding(custom_font)
   let custom_width = @pdfstandard14.textwidth(false, encoding, font, "A")
   assert_eq(custom_width, 0)
 }
@@ -97,11 +98,12 @@ test "textwidth handles missing widths and kerning" {
 test "textwidth handles empty string and unicode fallback" {
   let font = @pdffont.StandardFont::Helvetica
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let winansi_font : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
     ("/Encoding", Name("/WinAnsiEncoding")),
   ])
-  let encoding = @pdftext.read_encoding(pdf, winansi_font)
+  let encoding = ctx.read_encoding(winansi_font)
   let width_empty = @pdfstandard14.textwidth(false, encoding, font, "")
   assert_eq(width_empty, 0)
   let unicode = String::from_array([Int::unsafe_to_char(256)])
@@ -113,8 +115,9 @@ test "textwidth handles empty string and unicode fallback" {
 test "textwidth applies kerning for standard fonts" {
   let font = @pdffont.StandardFont::TimesRoman
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let implicit_font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type1"))])
-  let encoding = @pdftext.read_encoding(pdf, implicit_font)
+  let encoding = ctx.read_encoding(implicit_font)
   let kerned = @pdfstandard14.textwidth(true, encoding, font, "AV")
   let plain = @pdfstandard14.textwidth(false, encoding, font, "AV")
   assert_true(kerned <= plain)

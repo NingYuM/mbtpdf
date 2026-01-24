@@ -7,27 +7,15 @@ import {
 }
 
 // Values
-pub fn add_tounicode(@pdf.Pdf, @pdffont.Font, @pdf.PdfObject) -> @pdffont.Font
-
-pub fn charcode_extractor_of_font(@pdf.Pdf, @pdf.PdfObject, debug? : Bool) -> ((Int) -> Int?) raise
-
-pub fn charcode_extractor_of_font_real(@pdffont.Font, debug? : Bool) -> ((Int) -> Int?) raise
-
 pub fn codepoint_of_pdfdocencoding_character(Int) -> Int raise
 
 pub fn codepoints_of_pdfdocstring(String) -> Array[Int] raise
 
 pub fn codepoints_of_shift_jis(Array[Int]) -> Array[Int]
 
-pub fn codepoints_of_text(TextExtractor, String) -> Array[Int] raise
-
 pub fn codepoints_of_utf16be(String) -> Array[Int] raise
 
 pub fn codepoints_of_utf8(String) -> Array[Int] raise
-
-pub fn extract_text(@pdf.Pdf, page_break? : String) -> String raise
-
-pub fn extract_text_by_page(@pdf.Pdf) -> Array[String] raise
 
 pub fn find_tounicode(@pdffont.Font) -> Map[Int, String]?
 
@@ -35,29 +23,11 @@ pub fn find_tounicode_bytes(@pdffont.Font) -> Map[String, String]?
 
 pub fn get_utf8_chars(Int) -> Array[Int] raise
 
-pub fn glyphnames_and_codepoints_of_text(TextExtractor, String) -> Array[(String, Array[Int])] raise
-
-pub fn glyphnames_of_text(TextExtractor, String) -> Array[String] raise
-
 pub fn hex(String) -> String
-
-pub fn is_cidkeyed_font(@pdf.Pdf, @pdf.PdfObject) -> Bool
-
-pub fn is_embedded(@pdf.Pdf, @pdf.PdfObject) -> Bool
-
-pub fn is_identity_h(@pdffont.Font) -> Bool
-
-pub fn is_simple_font(@pdf.Pdf, @pdf.PdfObject) -> Bool
-
-pub fn is_standard14font(@pdf.Pdf, @pdf.PdfObject) -> Bool
-
-pub fn is_symbolic(@pdf.Pdf, @pdf.PdfObject) -> Bool raise
 
 pub fn is_unicode(String) -> Bool
 
 pub fn make_font(String, @pdffont.Encoding) -> @pdf.PdfObject
-
-pub fn pairs_of_differences(@pdf.Pdf, @pdf.PdfObject) -> Array[(String, Int)] raise
 
 pub fn parse_charset(String) -> Array[String]
 
@@ -65,43 +35,15 @@ pub fn pdfdocstring_of_codepoints(Array[Int]) -> String raise
 
 pub fn pdfdocstring_of_utf8(String) -> String raise
 
-pub fn read_basefont(@pdf.Pdf, @pdf.PdfObject) -> String
-
-pub fn read_cid_system_info(@pdf.Pdf, @pdf.PdfObject) -> @pdffont.CIDSystemInfo raise
-
 pub fn read_cid_widths(Array[@pdf.PdfObject]) -> Array[(Int, Double)] raise
 
-pub fn read_cidkeyed_font(@pdf.Pdf, @pdf.PdfObject) -> @pdffont.Font raise
-
-pub fn read_descendant(@pdf.Pdf, @pdf.PdfObject) -> @pdffont.CompositeCIDFont raise
-
-pub fn read_encoding(@pdf.Pdf, @pdf.PdfObject) -> @pdffont.Encoding raise
-
-pub fn read_font(@pdf.Pdf, @pdf.PdfObject) -> @pdffont.Font raise
-
-pub fn read_fontdescriptor(@pdf.Pdf, @pdf.PdfObject) -> @pdffont.FontDescriptor? raise
-
-pub fn read_metrics(@pdf.Pdf, @pdf.PdfObject) -> Array[Double]? raise
-
-pub fn read_simple_font(@pdf.Pdf, @pdf.PdfObject) -> @pdffont.Font raise
-
-pub fn read_standard14font(@pdf.Pdf, @pdf.PdfObject) -> @pdffont.Font raise
-
-pub fn read_type3_data(@pdf.Pdf, @pdf.PdfObject) -> @pdffont.Type3Glyphs raise
-
 pub fn reverse_table_of_encoding(@pdffont.Encoding) -> Map[String, Int]
-
-pub fn simple_fonttype_of_string(@pdf.Pdf, @pdf.PdfObject, String) -> @pdffont.SimpleFontType? raise
 
 pub fn simplify_utf16be(String) -> String raise
 
 pub fn standard_font_of_name(String) -> @pdffont.StandardFont?
 
 pub fn table_of_encoding(@pdffont.Encoding) -> Map[Int, String]
-
-pub fn text_extractor_of_font(@pdf.Pdf, @pdf.PdfObject) -> TextExtractor raise
-
-pub fn text_extractor_of_font_real(@pdffont.Font) -> TextExtractor
 
 pub fn tounicode_map(Int, Array[String]) -> Array[Byte]
 
@@ -113,21 +55,53 @@ pub fn utf8_of_codepoints(Array[Int]) -> String raise
 
 pub fn utf8_of_pdfdocstring(String) -> String raise
 
-pub fn write_encoding(@pdf.Pdf, @pdffont.Encoding) -> Int raise
-
-pub fn write_font(objnum? : Int, @pdf.Pdf, @pdffont.Font) -> Int raise
-
-pub fn write_tounicode(@pdf.Pdf, Map[Int, String]) -> Int
-
 // Errors
 
 // Types and methods
+pub struct PdfText {
+  pdf : @pdf.Pdf
+}
+pub fn PdfText::add_tounicode(Self, @pdffont.Font, @pdf.PdfObject) -> @pdffont.Font
+pub fn PdfText::charcode_extractor_of_font(Self, @pdf.PdfObject, debug? : Bool) -> ((Int) -> Int?) raise
+pub fn PdfText::extract_text(Self, page_break? : String) -> String raise
+pub fn PdfText::extract_text_by_page(Self) -> Array[String] raise
+pub fn PdfText::is_cidkeyed_font(Self, @pdf.PdfObject) -> Bool
+pub fn PdfText::is_embedded(Self, @pdf.PdfObject) -> Bool
+pub fn PdfText::is_simple_font(Self, @pdf.PdfObject) -> Bool
+pub fn PdfText::is_standard14font(Self, @pdf.PdfObject) -> Bool
+pub fn PdfText::is_symbolic(Self, @pdf.PdfObject) -> Bool raise
+pub fn PdfText::new(@pdf.Pdf) -> Self
+pub fn PdfText::pairs_of_differences(Self, @pdf.PdfObject) -> Array[(String, Int)] raise
+pub fn PdfText::read_basefont(Self, @pdf.PdfObject) -> String
+pub fn PdfText::read_cid_system_info(Self, @pdf.PdfObject) -> @pdffont.CIDSystemInfo raise
+pub fn PdfText::read_cidkeyed_font(Self, @pdf.PdfObject) -> @pdffont.Font raise
+pub fn PdfText::read_descendant(Self, @pdf.PdfObject) -> @pdffont.CompositeCIDFont raise
+pub fn PdfText::read_encoding(Self, @pdf.PdfObject) -> @pdffont.Encoding raise
+pub fn PdfText::read_font(Self, @pdf.PdfObject) -> @pdffont.Font raise
+pub fn PdfText::read_fontdescriptor(Self, @pdf.PdfObject) -> @pdffont.FontDescriptor? raise
+pub fn PdfText::read_metrics(Self, @pdf.PdfObject) -> Array[Double]? raise
+pub fn PdfText::read_simple_font(Self, @pdf.PdfObject) -> @pdffont.Font raise
+pub fn PdfText::read_standard14font(Self, @pdf.PdfObject) -> @pdffont.Font raise
+pub fn PdfText::read_type3_data(Self, @pdf.PdfObject) -> @pdffont.Type3Glyphs raise
+pub fn PdfText::simple_fonttype_of_string(Self, @pdf.PdfObject, String) -> @pdffont.SimpleFontType? raise
+pub fn PdfText::text_extractor_of_font(Self, @pdf.PdfObject) -> TextExtractor raise
+pub fn PdfText::write_encoding(Self, @pdffont.Encoding) -> Int raise
+pub fn PdfText::write_font(Self, objnum? : Int, @pdffont.Font) -> Int raise
+pub fn PdfText::write_tounicode(Self, Map[Int, String]) -> Int
+
 pub struct TextExtractor {
   convert : (Int) -> (String, Array[Int])
   tounicode : Map[String, String]?
   tounicode_lengths : Array[Int]
   font : @pdffont.Font
 }
+#as_free_fn(deprecated)
+pub fn TextExtractor::codepoints_of_text(Self, String) -> Array[Int] raise
+#as_free_fn(deprecated)
+pub fn TextExtractor::glyphnames_and_codepoints_of_text(Self, String) -> Array[(String, Array[Int])] raise
+#as_free_fn(deprecated)
+pub fn TextExtractor::glyphnames_of_text(Self, String) -> Array[String] raise
+pub fn TextExtractor::new(@pdffont.Font) -> Self
 
 // Type aliases
 

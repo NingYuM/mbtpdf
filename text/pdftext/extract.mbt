@@ -2,36 +2,39 @@
 /// Extract text from PDFs using content stream operators.
 
 ///|
-pub fn extract_text(
-  pdf : @pdf.Pdf,
+pub fn PdfText::extract_text(
+  self : PdfText,
   page_break? : String = "\n\n",
 ) -> String raise {
-  extract_text_by_page(pdf).join(page_break)
+  self.extract_text_by_page().join(page_break)
 }
 
 ///|
-pub fn extract_text_by_page(pdf : @pdf.Pdf) -> Array[String] raise {
-  let pages = @pdfpage.pages_of_pagetree(pdf)
-  pages.map(page => extract_text_from_page(pdf, page))
+pub fn PdfText::extract_text_by_page(self : PdfText) -> Array[String] raise {
+  let pages = @pdfpage.pages_of_pagetree(self.pdf)
+  pages.map(page => self.extract_text_from_page(page))
 }
 
 ///|
-fn extract_text_from_page(pdf : @pdf.Pdf, page : @pdfpage.Page) -> String raise {
+fn PdfText::extract_text_from_page(
+  self : PdfText,
+  page : @pdfpage.Page,
+) -> String raise {
   let builder = StringBuilder::new()
   let visited : Map[Int, Bool] = Map::new()
-  append_text_from_streams(builder, pdf, page.resources, page.content, visited)
+  self.append_text_from_streams(builder, page.resources, page.content, visited)
   builder.to_string()
 }
 
 ///|
-fn append_text_from_streams(
+fn PdfText::append_text_from_streams(
+  self : PdfText,
   builder : StringBuilder,
-  pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,
   streams : Array[@pdf.PdfObject],
   visited : Map[Int, Bool],
 ) -> Unit raise {
-  let ops = @pdfops.parse_operators(pdf, resources, streams)
+  let ops = @pdfops.parse_operators(self.pdf, resources, streams)
   let mut in_text = false
   let mut current_extractor : TextExtractor? = None
   let mut last_newline = false
@@ -62,7 +65,7 @@ fn append_text_from_streams(
       return utf8_of_pdfdocstring(value) catch { _ => value }
     }
     if current_extractor is Some(extractor) {
-      utf8_of_codepoints(codepoints_of_text(extractor, value)) catch {
+      utf8_of_codepoints(extractor.codepoints_of_text(value)) catch {
         _ => decode_pdfdoc(value)
       }
     } else {
@@ -88,8 +91,8 @@ fn append_text_from_streams(
   }
 
   fn maybe_update_font(name : String) -> Unit {
-    current_extractor = lookup_text_extractor(
-      pdf, resources, name, extractor_cache,
+    current_extractor = self.lookup_text_extractor(
+      resources, name, extractor_cache,
     )
   }
 
@@ -108,7 +111,7 @@ fn append_text_from_streams(
   }
 
   fn append_text_from_xobject(name : String) -> Unit raise {
-    match @pdf.lookup_direct(pdf, "/XObject", resources) {
+    match @pdf.lookup_direct(self.pdf, "/XObject", resources) {
       Some(Dictionary(entries)) =>
         if entries.search_by(pair => pair.0 == name) is Some(idx) {
           let obj_ref = entries[idx].1
@@ -118,14 +121,14 @@ fn append_text_from_streams(
             None
           }
           if mark_visited(obj_num) {
-            let xobj = @pdf.direct(pdf, obj_ref)
-            if @pdf.lookup_direct(pdf, "/Subtype", xobj) is Some(Name("/Form")) {
-              let xresources = @pdf.lookup_direct(pdf, "/Resources", xobj).unwrap_or(
+            let xobj = @pdf.direct(self.pdf, obj_ref)
+            if @pdf.lookup_direct(self.pdf, "/Subtype", xobj)
+              is Some(Name("/Form")) {
+              let xresources = @pdf.lookup_direct(self.pdf, "/Resources", xobj).unwrap_or(
                 resources,
               )
-              append_text_from_streams(
+              self.append_text_from_streams(
                 builder,
-                pdf,
                 xresources,
                 [xobj],
                 visited,
@@ -170,8 +173,8 @@ fn append_text_from_streams(
 }
 
 ///|
-fn lookup_text_extractor(
-  pdf : @pdf.Pdf,
+fn PdfText::lookup_text_extractor(
+  self : PdfText,
   resources : @pdf.PdfObject,
   font_name : String,
   cache : Map[String, TextExtractor],
@@ -179,12 +182,12 @@ fn lookup_text_extractor(
   if cache.get(font_name) is Some(extractor) {
     return Some(extractor)
   }
-  match @pdf.lookup_direct(pdf, "/Font", resources) {
+  match @pdf.lookup_direct(self.pdf, "/Font", resources) {
     Some(fonts) =>
-      match @pdf.lookup_direct(pdf, font_name, fonts) {
+      match @pdf.lookup_direct(self.pdf, font_name, fonts) {
         Some(obj) =>
           try {
-            let extractor = text_extractor_of_font(pdf, obj)
+            let extractor = self.text_extractor_of_font(obj)
             cache.set(font_name, extractor)
             Some(extractor)
           } catch {

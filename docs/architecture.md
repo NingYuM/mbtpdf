@@ -139,7 +139,7 @@ Base utilities used across most packages:
   - Example:
     ```mbt
     let pages = @pdfpage.pages_of_pagetree(pdf)
-    let text = @pdftext.extract_text(pdf)
+    let text = @pdftext.PdfText::new(pdf).extract_text()
     let _ = pages.length()
     ```
 

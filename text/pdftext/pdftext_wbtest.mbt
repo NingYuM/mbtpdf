@@ -1,7 +1,8 @@
 ///|
 test "write_encoding predefined encodings" {
   let pdf = @pdf.empty()
-  let objnum = write_encoding(pdf, @pdffont.Encoding::WinAnsiEncoding)
+  let ctx = PdfText::new(pdf)
+  let objnum = ctx.write_encoding(@pdffont.Encoding::WinAnsiEncoding)
   let obj = @pdf.lookup_obj(pdf, objnum)
   match obj {
     @pdf.PdfObject::Name(name) => assert_eq(name, "/WinAnsiEncoding")
@@ -12,9 +13,9 @@ test "write_encoding predefined encodings" {
 ///|
 test "write_encoding custom encoding base and differences" {
   let pdf = @pdf.empty()
+  let ctx = PdfText::new(pdf)
   let diffs : @pdffont.Differences = [("/A", 65), ("/B", 66)]
-  let objnum = write_encoding(
-    pdf,
+  let objnum = ctx.write_encoding(
     @pdffont.Encoding::CustomEncoding(
       @pdffont.Encoding::StandardEncoding,
       diffs,

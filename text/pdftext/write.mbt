@@ -18,8 +18,8 @@ pub fn make_font(
 }
 
 ///|
-pub fn write_encoding(
-  pdf : @pdf.Pdf,
+pub fn PdfText::write_encoding(
+  self : PdfText,
   encoding : @pdffont.Encoding,
 ) -> Int raise {
   fn encoding_name(enc : @pdffont.Encoding) -> String? {
@@ -44,10 +44,10 @@ pub fn write_encoding(
         Some(value) => value
         None => raise @pdf.PdfError::Msg("write_encoding: missing name")
       }
-      @pdf.addobj(pdf, @pdf.PdfObject::Name(name))
+      @pdf.addobj(self.pdf, @pdf.PdfObject::Name(name))
     }
     @pdffont.Encoding::FillUndefinedWithStandard(inner) =>
-      write_encoding(pdf, inner)
+      self.write_encoding(inner)
     @pdffont.Encoding::CustomEncoding(base, diffs) => {
       let diff_array = Array::new()
       for diff in diffs {
@@ -67,7 +67,7 @@ pub fn write_encoding(
           )
         None => ()
       }
-      @pdf.addobj(pdf, encoding_dict)
+      @pdf.addobj(self.pdf, encoding_dict)
     }
     @pdffont.Encoding::ImplicitInFontFile =>
       raise @pdf.PdfError::Msg("write_encoding: implicit encoding")
@@ -154,7 +154,7 @@ pub fn tounicode_map(
 }
 
 ///|
-pub fn write_tounicode(pdf : @pdf.Pdf, u : Map[Int, String]) -> Int {
+pub fn PdfText::write_tounicode(self : PdfText, u : Map[Int, String]) -> Int {
   let pairs = @pdfutil.list_of_hashtbl(u)
   pairs.sort_by((a, b) => a.0 - b.0)
   let strings = pairs.map(pair => pair.1)
@@ -163,15 +163,15 @@ pub fn write_tounicode(pdf : @pdf.Pdf, u : Map[Int, String]) -> Int {
     ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(bytes))),
   ])
   @pdf.addobj(
-    pdf,
+    self.pdf,
     @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(bytes)))),
   )
 }
 
 ///|
-pub fn write_font(
+pub fn PdfText::write_font(
+  self : PdfText,
   objnum? : Int,
-  pdf : @pdf.Pdf,
   font : @pdffont.Font,
 ) -> Int raise {
   match font {
@@ -187,7 +187,7 @@ pub fn write_font(
                     (
                       "/Encoding",
                       @pdf.PdfObject::Indirect(
-                        write_encoding(pdf, simple.encoding),
+                        self.write_encoding(simple.encoding),
                       ),
                     ),
                   ]
@@ -230,7 +230,7 @@ pub fn write_font(
                   ),
                 ].add(encoding_entry),
               )
-              @pdf.addobj(pdf, dict)
+              @pdf.addobj(self.pdf, dict)
             }
             None => raise @pdf.PdfError::Msg("Missing font descriptor")
           }
@@ -269,7 +269,7 @@ pub fn write_font(
                     ("/MaxWidth", @pdf.PdfObject::Integer(fd.maxwidth.to_int())),
                     ("/FontFile2", @pdf.PdfObject::Indirect(ttf)),
                   ])
-                  let fontdesc_num = @pdf.addobj(pdf, fontdesc)
+                  let fontdesc_num = @pdf.addobj(self.pdf, fontdesc)
                   let mut font_dict_entries : Array[(String, @pdf.PdfObject)] = [
                     ("/Type", @pdf.PdfObject::Name("/Font")),
                     ("/Subtype", @pdf.PdfObject::Name("/TrueType")),
@@ -298,15 +298,15 @@ pub fn write_font(
                       font_dict_entries.add([
                         (
                           "/ToUnicode",
-                          @pdf.PdfObject::Indirect(write_tounicode(pdf, u)),
+                          @pdf.PdfObject::Indirect(self.write_tounicode(u)),
                         ),
                       ])
                   }
                   let font_obj = @pdf.PdfObject::Dictionary(font_dict_entries)
                   match objnum {
-                    None => @pdf.addobj(pdf, font_obj)
+                    None => @pdf.addobj(self.pdf, font_obj)
                     Some(o) => {
-                      @pdf.addobj_given_num(pdf, (o, font_obj))
+                      @pdf.addobj_given_num(self.pdf, (o, font_obj))
                       o
                     }
                   }
@@ -322,7 +322,7 @@ pub fn write_font(
       }
     @pdffont.Font::StandardFont(standard, encoding) =>
       @pdf.addobj(
-        pdf,
+        self.pdf,
         make_font(@pdffont.string_of_standard_font(standard), encoding),
       )
     _ =>

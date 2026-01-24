@@ -1,6 +1,6 @@
 ///|
 fn encoding_string(pdf : @pdf.Pdf, font : @pdf.PdfObject) -> String raise {
-  @pdffont.string_of_encoding(@pdftext.read_encoding(pdf, font))
+  @pdffont.string_of_encoding(@pdftext.PdfText::new(pdf).read_encoding(font))
 }
 
 ///|
@@ -34,16 +34,17 @@ test "string_of_standard_font covers all names" {
 ///|
 test "string_of_fonttype covers variants" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let dummy : @pdf.PdfObject = Dictionary([])
-  match @pdftext.simple_fonttype_of_string(pdf, dummy, "/Type1") {
+  match ctx.simple_fonttype_of_string(dummy, "/Type1") {
     Some(ft) => assert_eq(@pdffont.string_of_fonttype(ft), "Type 1")
     None => fail("expected Type1")
   }
-  match @pdftext.simple_fonttype_of_string(pdf, dummy, "/MMType1") {
+  match ctx.simple_fonttype_of_string(dummy, "/MMType1") {
     Some(ft) => assert_eq(@pdffont.string_of_fonttype(ft), "MM Type 1")
     None => fail("expected MMType1")
   }
-  match @pdftext.simple_fonttype_of_string(pdf, dummy, "/TrueType") {
+  match ctx.simple_fonttype_of_string(dummy, "/TrueType") {
     Some(ft) => assert_eq(@pdffont.string_of_fonttype(ft), "Truetype")
     None => fail("expected Truetype")
   }
@@ -55,7 +56,7 @@ test "string_of_fonttype covers variants" {
     ),
     ("/CharProcs", Dictionary([("/A", Null)])),
   ])
-  match @pdftext.simple_fonttype_of_string(pdf, type3_font, "/Type3") {
+  match ctx.simple_fonttype_of_string(type3_font, "/Type3") {
     Some(ft) =>
       assert_eq(@pdffont.string_of_fonttype(ft), "Type 3: charprocs for/A")
     None => fail("expected Type3")
@@ -114,6 +115,7 @@ test "string_of_encoding covers variants" {
 ///|
 test "string_of_simple_font formats details" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
     ("/BaseFont", Name("/Helvetica")),
@@ -128,7 +130,7 @@ test "string_of_simple_font formats details" {
       ]),
     ),
   ])
-  let simple = match (@pdftext.read_simple_font(pdf, font) : @pdffont.Font) {
+  let simple = match (ctx.read_simple_font(font) : @pdffont.Font) {
     SimpleFont(value) => value
     _ => fail("expected simple font")
   }
@@ -141,11 +143,12 @@ test "string_of_simple_font formats details" {
 ///|
 test "string_of_font covers variants" {
   let pdf = @pdf.empty()
+  let ctx = @pdftext.PdfText::new(pdf)
   let standard_font : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
     ("/BaseFont", Name("/Helvetica")),
   ])
-  let standard = @pdftext.read_standard14font(pdf, standard_font)
+  let standard = ctx.read_standard14font(standard_font)
   assert_eq(@pdffont.string_of_font(standard), "StandardFont Helvetica")
   let simple_font : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
@@ -154,7 +157,7 @@ test "string_of_font covers variants" {
     ("/LastChar", Integer(65)),
     ("/Widths", Array([Integer(500)])),
   ])
-  let simple = @pdftext.read_simple_font(pdf, simple_font)
+  let simple = ctx.read_simple_font(simple_font)
   assert_true(@pdffont.string_of_font(simple).contains("SimpleFont fonttype"))
   let descendant : @pdf.PdfObject = Dictionary([
     (
@@ -173,6 +176,6 @@ test "string_of_font covers variants" {
     ("/DescendantFonts", Array([descendant])),
     ("/Encoding", Name("/Identity-H")),
   ])
-  let cid = @pdftext.read_cidkeyed_font(pdf, cid_font)
+  let cid = ctx.read_cidkeyed_font(cid_font)
   assert_eq(@pdffont.string_of_font(cid), "CIDKeyedFont /CIDFontType0")
 }

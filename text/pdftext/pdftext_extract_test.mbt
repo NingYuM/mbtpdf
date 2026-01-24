@@ -5,10 +5,11 @@ async test "extract text intro pdf" {
     None,
     "camlpdf/introduction_to_camlpdf.pdf",
   )
-  let pages = extract_text_by_page(pdf)
+  let ctx = @pdftext.PdfText::new(pdf)
+  let pages = ctx.extract_text_by_page()
   assert_true(pages.length() > 0)
   assert_true(pages[0].contains("AnIntroductiontoPDFwithCamlPDF"))
-  let full_text = extract_text(pdf)
+  let full_text = ctx.extract_text()
   assert_true(full_text.contains("NextSteps"))
 }
 
@@ -19,14 +20,14 @@ async test "extract text pdf.js identity sample" {
     None,
     "testdata/pdfjs_identity_tounicode.pdf",
   )
-  let extracted = extract_text(pdf)
+  let extracted = @pdftext.PdfText::new(pdf).extract_text()
   assert_true(extracted.contains("ABCdef"))
 }
 
 ///|
 async test "extract text SFAA Japanese" {
   let pdf = @pdfread.pdf_of_file(None, None, "testdata/SFAA_Japanese.pdf")
-  let extracted = extract_text(pdf)
+  let extracted = @pdftext.PdfText::new(pdf).extract_text()
   assert_true(
     extracted.contains("すべてのアメリカ人のための科学"),
   )
@@ -66,7 +67,7 @@ fn build_unicode_pdf() -> @pdf.Pdf raise {
 test "extract unicode from generated pdf" {
   let pdf = build_unicode_pdf()
   let expected = utf8_of_codepoints([0x4f60, 0x597d, 0x4e16, 0x754c, 0x263a])
-  assert_eq(extract_text(pdf), expected)
+  assert_eq(@pdftext.PdfText::new(pdf).extract_text(), expected)
 }
 
 ///|
@@ -124,7 +125,7 @@ test "extract text handles text ops and arrays" {
   ]
   let page = extract_test_page(ops, Dictionary([]))
   let pdf = add_pages_to_pdf([page], @pdf.empty())
-  let pages = extract_text_by_page(pdf)
+  let pages = @pdftext.PdfText::new(pdf).extract_text_by_page()
   assert_eq(pages.length(), 1)
   assert_eq(pages[0], "A\nB\nC\nD\nE\nF")
 }
@@ -142,7 +143,7 @@ test "extract text handles invalid unicode and missing xobjects" {
   ]
   let page = extract_test_page(ops, Dictionary([]))
   let pdf = add_pages_to_pdf([page], @pdf.empty())
-  let pages = extract_text_by_page(pdf)
+  let pages = @pdftext.PdfText::new(pdf).extract_text_by_page()
   assert_eq(pages.length(), 1)
   let bytes = @pdfio.int_array_of_bytes(@pdfio.bytes_of_string(pages[0]))
   inspect(bytes, content="[254, 255, 0]")
@@ -169,7 +170,7 @@ test "extract text visits xobjects once" {
   ]
   let page = extract_test_page(ops, resources)
   let pdf = add_pages_to_pdf([page], pdf)
-  let pages = extract_text_by_page(pdf)
+  let pages = @pdftext.PdfText::new(pdf).extract_text_by_page()
   assert_eq(pages.length(), 1)
   assert_eq(pages[0], "X1X2")
 }
@@ -202,7 +203,7 @@ test "extract text ignores missing or invalid fonts" {
   let page2 = extract_test_page(ops_bad_font, resources_bad)
   let page3 = extract_test_page(ops_unknown_font, resources_bad)
   let pdf = add_pages_to_pdf([page1, page2, page3], @pdf.empty())
-  let pages = extract_text_by_page(pdf)
+  let pages = @pdftext.PdfText::new(pdf).extract_text_by_page()
   assert_eq(pages.length(), 3)
   assert_eq(pages[0], "A")
   assert_eq(pages[1], "B")
@@ -218,7 +219,7 @@ test "extract text falls back for odd identity-h text bytes" {
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F1", 12.0), OpTj("A"), OpET]
   let page = extract_test_page(ops, resources)
   let pdf = add_pages_to_pdf([page], @pdf.empty())
-  let pages = extract_text_by_page(pdf)
+  let pages = @pdftext.PdfText::new(pdf).extract_text_by_page()
   assert_eq(pages.length(), 1)
   assert_eq(pages[0], "A")
 }
