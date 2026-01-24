@@ -277,8 +277,11 @@ pub fn annotations_of_page(
 }
 
 ///|
-fn string_of_subtype(subtype : Subtype) -> String {
-  match subtype {
+
+///|
+#as_free_fn(string_of_subtype, deprecated="Use `Subtype::to_string` instead")
+fn Subtype::to_string(self : Subtype) -> String {
+  match self {
     Text => "/Text"
     Link => "/Link"
     FreeText => "/FreeText"
@@ -309,12 +312,15 @@ fn string_of_subtype(subtype : Subtype) -> String {
 }
 
 ///|
-fn obj_of_annot(annot : Annotation) -> @pdf.PdfObject raise {
+
+///|
+#as_free_fn(obj_of_annot, deprecated="Use `Annotation::to_pdf_object` instead")
+fn Annotation::to_pdf_object(self : Annotation) -> @pdf.PdfObject raise {
   let dict_entries : Array[(String, @pdf.PdfObject)] = [
-    ("/Subtype", @pdf.PdfObject::Name(string_of_subtype(annot.subtype))),
+    ("/Subtype", @pdf.PdfObject::Name(self.subtype.to_string())),
     (
       "/Contents",
-      match annot.annot_contents {
+      match self.annot_contents {
         None => @pdf.PdfObject::Null
         Some(s) => @pdf.PdfObject::String(s)
       },
@@ -322,7 +328,7 @@ fn obj_of_annot(annot : Annotation) -> @pdf.PdfObject raise {
     (
       "/Rect",
       {
-        let (a, b, c, d) = annot.rectangle
+        let (a, b, c, d) = self.rectangle
         @pdf.PdfObject::Array([
           @pdf.PdfObject::Real(a),
           @pdf.PdfObject::Real(b),
@@ -333,18 +339,18 @@ fn obj_of_annot(annot : Annotation) -> @pdf.PdfObject raise {
     ),
     (
       "/Border",
-      match annot.border.dasharray {
+      match self.border.dasharray {
         [] =>
           @pdf.PdfObject::Array([
-            @pdf.PdfObject::Real(annot.border.hradius),
-            @pdf.PdfObject::Real(annot.border.vradius),
-            @pdf.PdfObject::Real(annot.border.width),
+            @pdf.PdfObject::Real(self.border.hradius),
+            @pdf.PdfObject::Real(self.border.vradius),
+            @pdf.PdfObject::Real(self.border.width),
           ])
         dash =>
           @pdf.PdfObject::Array([
-            @pdf.PdfObject::Real(annot.border.hradius),
-            @pdf.PdfObject::Real(annot.border.vradius),
-            @pdf.PdfObject::Real(annot.border.width),
+            @pdf.PdfObject::Real(self.border.hradius),
+            @pdf.PdfObject::Real(self.border.vradius),
+            @pdf.PdfObject::Real(self.border.width),
             @pdf.PdfObject::Array(
               dash.map(value => @pdf.PdfObject::Integer(value)),
             ),
@@ -352,12 +358,12 @@ fn obj_of_annot(annot : Annotation) -> @pdf.PdfObject raise {
       },
     ),
   ]
-  let dict_entries = match (annot.annotrest : @pdf.PdfObject) {
+  let dict_entries = match (self.annotrest : @pdf.PdfObject) {
     Null => dict_entries
     Dictionary(extra) => dict_entries + extra
     _ => raise @pdf.PdfError::Msg("Bad annotation dictionary")
   }
-  let dict_entries = match annot.colour {
+  let dict_entries = match self.colour {
     None => dict_entries
     Some((r, g, b)) =>
       [
@@ -372,7 +378,7 @@ fn obj_of_annot(annot : Annotation) -> @pdf.PdfObject raise {
       ] +
       dict_entries
   }
-  let dict_entries = match annot.subject {
+  let dict_entries = match self.subject {
     None => dict_entries
     Some(s) => [("/Subj", @pdf.PdfObject::String(s))] + dict_entries
   }
@@ -381,7 +387,8 @@ fn obj_of_annot(annot : Annotation) -> @pdf.PdfObject raise {
 
 ///|
 /// Make a border.
-pub fn make_border(
+#as_free_fn(make_border, deprecated="Use `Border::new` instead")
+pub fn Border::new(
   width : Double,
   vradius? : Double = 0.0,
   hradius? : Double = 0.0,
@@ -393,10 +400,11 @@ pub fn make_border(
 
 ///|
 /// Make an annotation of a given subtype.
-pub fn make(
+#as_free_fn(make, deprecated="Use `Annotation::new` instead")
+pub fn Annotation::new(
   subtype : Subtype,
   content? : String,
-  border? : Border = make_border(0.0),
+  border? : Border = Border::new(0.0),
   rectangle? : (Double, Double, Double, Double) = (0.0, 0.0, 0.0, 0.0),
   colour? : (Int, Int, Int),
   subject? : String,
@@ -419,7 +427,7 @@ pub fn add_annotation(
   page : @pdfpage.Page,
   anno : Annotation,
 ) -> @pdfpage.Page raise {
-  let obj = obj_of_annot(anno)
+  let obj = anno.to_pdf_object()
   let new_rest = match @pdf.lookup_direct(pdf, "/Annots", page.rest) {
     Some(Array(annotations)) =>
       page.rest.add_entry("/Annots", @pdf.PdfObject::Array([obj] + annotations))

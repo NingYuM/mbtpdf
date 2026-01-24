@@ -110,12 +110,12 @@ Add an annotation to a page.
 pub fn add_annotation(pdf : @pdf.Pdf, page : @pdfpage.Page, anno : Annotation) -> @pdfpage.Page raise
 ```
 
-### make
+### Annotation::new
 
 Create a new annotation.
 
 ```moonbit nocheck
-pub fn make(
+pub fn Annotation::new(
   subtype : Subtype,
   content? : String,
   border? : Border,
@@ -125,12 +125,12 @@ pub fn make(
 ) -> Annotation
 ```
 
-### make_border
+### Border::new
 
 Create a border specification.
 
 ```moonbit nocheck
-pub fn make_border(
+pub fn Border::new(
   width : Double,
   vradius? : Double,
   hradius? : Double,

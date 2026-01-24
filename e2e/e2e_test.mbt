@@ -798,7 +798,7 @@ async test "e2e annotation roundtrip" {
   let pdf = read_pdf(MERGE_LEFT_PATH)
   let pages = @pdfpage.pages_of_pagetree(pdf)
   assert_true(pages.length() > 0)
-  let annot = @pdfannot.make(
+  let annot = @pdfannot.Annotation::new(
     @pdfannot.Subtype::Text,
     content="E2E note",
     rectangle=(10.0, 20.0, 30.0, 40.0),
@@ -827,7 +827,7 @@ async test "e2e merge preserves annotations" {
   let right = read_pdf(MERGE_RIGHT_PATH)
   let left_pages = @pdfpage.pages_of_pagetree(left)
   assert_true(left_pages.length() > 0)
-  let annot = @pdfannot.make(
+  let annot = @pdfannot.Annotation::new(
     @pdfannot.Subtype::Text,
     content="Merged note",
     rectangle=(15.0, 25.0, 35.0, 45.0),
@@ -1548,7 +1548,7 @@ async test "e2e merge stress large name trees" {
 async test "e2e merge mixed feature pipeline" {
   let left0 = @pdfpage.minimum_valid_pdf()
   let pages = @pdfpage.pages_of_pagetree(left0)
-  let annot = @pdfannot.make(
+  let annot = @pdfannot.Annotation::new(
     @pdfannot.Subtype::Text,
     content="Mixed note",
     rectangle=(12.0, 18.0, 40.0, 52.0),
@@ -1643,7 +1643,7 @@ async test "e2e merge multi-copy mixed stress" {
   while i < copies {
     let base = @pdfpage.minimum_valid_pdf()
     let pages = @pdfpage.pages_of_pagetree(base)
-    let annot = @pdfannot.make(
+    let annot = @pdfannot.Annotation::new(
       @pdfannot.Subtype::Text,
       content="Stress note " + i.to_string(),
       rectangle=(10.0 + i.to_double(), 10.0, 30.0, 40.0),

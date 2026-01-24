@@ -13,10 +13,6 @@ pub fn add_annotation(@pdf.Pdf, @pdfpage.Page, Annotation) -> @pdfpage.Page rais
 
 pub fn annotations_of_page(@pdf.Pdf, @pdfpage.Page) -> Array[Annotation] raise
 
-pub fn make(Subtype, content? : String, border? : Border, rectangle? : (Double, Double, Double, Double), colour? : (Int, Int, Int), subject? : String) -> Annotation
-
-pub fn make_border(Double, vradius? : Double, hradius? : Double, style? : Style, dasharray? : Array[Int]) -> Border
-
 pub fn transform_annotations(@pdf.Pdf, @pdftransform.TransformMatrix, @pdf.PdfObject) -> Unit raise
 
 // Errors
@@ -31,6 +27,8 @@ pub(all) struct Annotation {
   colour : (Int, Int, Int)?
   annotrest : @pdf.PdfObject
 }
+#as_free_fn(make, deprecated)
+pub fn Annotation::new(Subtype, content? : String, border? : Border, rectangle? : (Double, Double, Double, Double), colour? : (Int, Int, Int), subject? : String) -> Self
 
 pub(all) struct Border {
   width : Double
@@ -39,6 +37,8 @@ pub(all) struct Border {
   style : Style
   dasharray : Array[Int]
 }
+#as_free_fn(make_border, deprecated)
+pub fn Border::new(Double, vradius? : Double, hradius? : Double, style? : Style, dasharray? : Array[Int]) -> Self
 pub impl @debug.Debug for Border
 
 pub(all) enum Style {

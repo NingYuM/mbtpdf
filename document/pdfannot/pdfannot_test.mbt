@@ -22,8 +22,8 @@ test "annotation border dash array" {
     Real(100.0),
   ])
   let page = @pdfpage.Page::custom(rect)
-  let border = @pdfannot.make_border(1.0, dasharray=[2, 3])
-  let annot = @pdfannot.make(@pdfannot.Subtype::Text, border~)
+  let border = @pdfannot.Border::new(1.0, dasharray=[2, 3])
+  let annot = @pdfannot.Annotation::new(@pdfannot.Subtype::Text, border~)
   let updated = @pdfannot.add_annotation(pdf, page, annot)
   match (@pdf.lookup_direct(pdf, "/Annots", updated.rest) : @pdf.PdfObject?) {
     Some(Array([annot_obj, ..])) =>
@@ -51,8 +51,8 @@ test "add_annotation and read back" {
     Real(50.0),
   ])
   let page = @pdfpage.Page::custom(rect)
-  let border = @pdfannot.make_border(2.0)
-  let annot = @pdfannot.make(
+  let border = @pdfannot.Border::new(2.0)
+  let annot = @pdfannot.Annotation::new(
     @pdfannot.Subtype::Link,
     content="Go",
     border~,
@@ -374,7 +374,7 @@ test "annotations_of_page handles non-array and add_annotation rejects" {
   let pdf = @pdf.Pdf::empty()
   let annots = @pdfannot.annotations_of_page(pdf, page)
   assert_eq(annots.length(), 0)
-  let annot = @pdfannot.make(@pdfannot.Subtype::Text)
+  let annot = @pdfannot.Annotation::new(@pdfannot.Subtype::Text)
   assert_is_err(try? @pdfannot.add_annotation(pdf, page, annot))
 }
 
@@ -552,7 +552,7 @@ test "add_annotation merges existing annots and extras" {
     rotate: base.rotate,
     rest: Dictionary([("/Annots", Array([existing]))]),
   }
-  let base_annot = @pdfannot.make(@pdfannot.Subtype::FreeText)
+  let base_annot = @pdfannot.Annotation::new(@pdfannot.Subtype::FreeText)
   let annot : @pdfannot.Annotation = {
     subtype: base_annot.subtype,
     annot_contents: base_annot.annot_contents,
