@@ -6889,7 +6889,11 @@ let shift_jis_pairs : Array[(Int, Int)] = [
 let shift_jis_map : Map[Int, Int] = Map::from_array(shift_jis_pairs)
 
 ///|
-pub fn codepoints_of_shift_jis(bytes : Array[Int]) -> Array[Int] {
+#as_free_fn(codepoints_of_shift_jis, deprecated="Use `PdfTextUtil::codepoints_of_shift_jis`")
+pub fn PdfTextUtil::codepoints_of_shift_jis(
+  _self : PdfTextUtil,
+  bytes : Array[Int],
+) -> Array[Int] {
   let out = Array::new()
   let mut i = 0
   while i < bytes.length() {

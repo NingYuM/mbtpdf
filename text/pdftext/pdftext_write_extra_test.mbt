@@ -90,7 +90,7 @@ fn add_fontfile_stream(pdf : @pdf.Pdf) -> Int {
 
 ///|
 fn add_tounicode_stream(pdf : @pdf.Pdf) -> Int {
-  let bytes = @pdftext.tounicode_map(33, ["A"])
+  let bytes = @pdftext.PdfTextUtil::new().tounicode_map(33, ["A"])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(bytes))),
   ])

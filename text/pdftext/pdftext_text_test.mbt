@@ -67,20 +67,26 @@ fn cid_font_dict(encoding_name : String) -> @pdf.PdfObject {
 
 ///|
 test "utf16be conversions" {
-  inspect(@pdftext.utf16be_of_codepoint(0x41), content="[0, 65]")
-  inspect(@pdftext.utf16be_of_codepoint(0x1f600), content="[216, 61, 222, 0]")
-  let utf16 = @pdftext.utf16be_of_codepoints([0x41, 0x1f600])
+  inspect(
+    @pdftext.PdfTextUtil::new().utf16be_of_codepoint(0x41),
+    content="[0, 65]",
+  )
+  inspect(
+    @pdftext.PdfTextUtil::new().utf16be_of_codepoint(0x1f600),
+    content="[216, 61, 222, 0]",
+  )
+  let utf16 = @pdftext.PdfTextUtil::new().utf16be_of_codepoints([0x41, 0x1f600])
   let utf16_bytes = @pdfio.int_array_of_string(utf16)
   inspect(utf16_bytes, content="[254, 255, 0, 65, 216, 61, 222, 0]")
-  let decoded = @pdftext.codepoints_of_utf16be(
+  let decoded = @pdftext.PdfTextUtil::new().codepoints_of_utf16be(
     @pdfio.string_of_int_array([0x00, 0x41, 0xd8, 0x3d, 0xde, 0x00]),
   )
   inspect(decoded, content="[65, 128888]")
-  let invalid_len : Result[Array[Int], Error] = try? @pdftext.codepoints_of_utf16be(
+  let invalid_len : Result[Array[Int], Error] = try? @pdftext.PdfTextUtil::new().codepoints_of_utf16be(
     @pdfio.string_of_int_array([0x00]),
   )
   assert_true(invalid_len is Err(_))
-  let invalid_cp : Result[Array[Int], Error] = try? @pdftext.utf16be_of_codepoint(
+  let invalid_cp : Result[Array[Int], Error] = try? @pdftext.PdfTextUtil::new().utf16be_of_codepoint(
     0x110000,
   )
   assert_true(invalid_cp is Err(_))
@@ -88,20 +94,33 @@ test "utf16be conversions" {
 
 ///|
 test "pdfdocstring conversions" {
-  assert_true(!@pdftext.is_unicode("A"))
-  let unicode = @pdftext.utf16be_of_codepoints([0x41])
-  assert_true(@pdftext.is_unicode(unicode))
-  inspect(@pdftext.codepoints_of_pdfdocstring("A"), content="[65]")
-  inspect(@pdftext.codepoints_of_pdfdocstring(unicode), content="[65]")
-  assert_eq(@pdftext.utf8_of_pdfdocstring("AB"), "AB")
-  let simplified = @pdftext.simplify_utf16be(unicode)
+  assert_true(!@pdftext.PdfTextUtil::new().is_unicode("A"))
+  let unicode = @pdftext.PdfTextUtil::new().utf16be_of_codepoints([0x41])
+  assert_true(@pdftext.PdfTextUtil::new().is_unicode(unicode))
+  inspect(
+    @pdftext.PdfTextUtil::new().codepoints_of_pdfdocstring("A"),
+    content="[65]",
+  )
+  inspect(
+    @pdftext.PdfTextUtil::new().codepoints_of_pdfdocstring(unicode),
+    content="[65]",
+  )
+  assert_eq(@pdftext.PdfTextUtil::new().utf8_of_pdfdocstring("AB"), "AB")
+  let simplified = @pdftext.PdfTextUtil::new().simplify_utf16be(unicode)
   assert_eq(simplified, "A")
-  let pdfdoc_ascii = @pdftext.pdfdocstring_of_codepoints([0x41, 0x42])
+  let pdfdoc_ascii = @pdftext.PdfTextUtil::new().pdfdocstring_of_codepoints([
+    0x41, 0x42,
+  ])
   assert_eq(pdfdoc_ascii, "AB")
-  let pdfdoc_cjk = @pdftext.pdfdocstring_of_codepoints([0x4e2d])
-  assert_true(@pdftext.is_unicode(pdfdoc_cjk))
-  inspect(@pdftext.codepoints_of_pdfdocstring(pdfdoc_cjk), content="[20013]")
-  let bad : Result[Int, Error] = try? @pdftext.codepoint_of_pdfdocencoding_character(
+  let pdfdoc_cjk = @pdftext.PdfTextUtil::new().pdfdocstring_of_codepoints([
+    0x4e2d,
+  ])
+  assert_true(@pdftext.PdfTextUtil::new().is_unicode(pdfdoc_cjk))
+  inspect(
+    @pdftext.PdfTextUtil::new().codepoints_of_pdfdocstring(pdfdoc_cjk),
+    content="[20013]",
+  )
+  let bad : Result[Int, Error] = try? @pdftext.PdfTextUtil::new().codepoint_of_pdfdocencoding_character(
     300,
   )
   assert_true(bad is Err(_))
@@ -110,19 +129,23 @@ test "pdfdocstring conversions" {
 ///|
 test "utf8 conversion helpers" {
   let cps = [0x41, 0x20ac, 0x1f600]
-  let utf8 = @pdftext.utf8_of_codepoints(cps)
-  inspect(@pdftext.codepoints_of_utf8(utf8), content="[65, 8364, 128512]")
+  let utf8 = @pdftext.PdfTextUtil::new().utf8_of_codepoints(cps)
+  inspect(
+    @pdftext.PdfTextUtil::new().codepoints_of_utf8(utf8),
+    content="[65, 8364, 128512]",
+  )
   let bytes = @pdfio.int_array_of_bytes(
     @pdfio.bytes_of_caml_bytes(@utf8.encode(utf8)),
   )
-  let expected = @pdftext.get_utf8_chars(0x41)
-    .add(@pdftext.get_utf8_chars(0x20ac))
-    .add(@pdftext.get_utf8_chars(0x1f600))
+  let expected = @pdftext.PdfTextUtil::new()
+    .get_utf8_chars(0x41)
+    .add(@pdftext.PdfTextUtil::new().get_utf8_chars(0x20ac))
+    .add(@pdftext.PdfTextUtil::new().get_utf8_chars(0x1f600))
   assert_eq(bytes.length(), expected.length())
   for i in 0..<expected.length() {
     assert_eq(bytes[i], expected[i])
   }
-  let invalid_utf8 : Result[Array[Int], Error] = try? @pdftext.get_utf8_chars(
+  let invalid_utf8 : Result[Array[Int], Error] = try? @pdftext.PdfTextUtil::new().get_utf8_chars(
     0x110000,
   )
   assert_true(invalid_utf8 is Err(_))
@@ -133,13 +156,13 @@ test "encoding tables and extractors" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let encoding = ctx.read_encoding(win_ansi_font_dict())
-  let table = @pdftext.table_of_encoding(encoding)
+  let table = @pdftext.PdfTextUtil::new().table_of_encoding(encoding)
   let sample = @pdfglyphlist.name_to_win[0]
   assert_eq(table.get(sample.1), Some(sample.0))
-  let reversed = @pdftext.reverse_table_of_encoding(encoding)
+  let reversed = @pdftext.PdfTextUtil::new().reverse_table_of_encoding(encoding)
   assert_eq(reversed.get(sample.0), Some(sample.1))
   let custom = ctx.read_encoding(custom_encoding_font_dict())
-  let custom_table = @pdftext.table_of_encoding(custom)
+  let custom_table = @pdftext.PdfTextUtil::new().table_of_encoding(custom)
   assert_eq(custom_table.get(65), Some("/A"))
   let extractor = ctx.text_extractor_of_font(standard_font_dict())
   let pairs = extractor.glyphnames_and_codepoints_of_text("A")

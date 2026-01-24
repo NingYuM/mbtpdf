@@ -83,6 +83,15 @@ pub fn TextExtractor::glyphnames_of_text(
 ) -> Array[String] raise
 ```
 
+## PdfTextUtil
+
+Construct a text utility context.
+
+```moonbit nocheck
+pub struct PdfTextUtil { ... }
+pub fn PdfTextUtil::new() -> PdfTextUtil
+```
+
 ## Encoding Conversions
 
 ### utf8_of_pdfdocstring
@@ -90,7 +99,10 @@ pub fn TextExtractor::glyphnames_of_text(
 Convert a PDF string (UTF-16BE or PDFDocEncoding) to UTF-8.
 
 ```moonbit nocheck
-pub fn utf8_of_pdfdocstring(s : String) -> String raise
+pub fn PdfTextUtil::utf8_of_pdfdocstring(
+  self : PdfTextUtil,
+  s : String
+) -> String raise
 ```
 
 ### pdfdocstring_of_utf8
@@ -98,7 +110,10 @@ pub fn utf8_of_pdfdocstring(s : String) -> String raise
 Convert UTF-8 to a PDF string (PDFDocEncoding if possible, otherwise UTF-16BE).
 
 ```moonbit nocheck
-pub fn pdfdocstring_of_utf8(s : String) -> String raise
+pub fn PdfTextUtil::pdfdocstring_of_utf8(
+  self : PdfTextUtil,
+  s : String
+) -> String raise
 ```
 
 ### codepoints_of_utf16be / utf16be_of_codepoints
@@ -106,8 +121,14 @@ pub fn pdfdocstring_of_utf8(s : String) -> String raise
 Convert between UTF-16BE bytes and Unicode codepoints.
 
 ```moonbit nocheck
-pub fn codepoints_of_utf16be(str : String) -> Array[Int] raise
-pub fn utf16be_of_codepoints(codepoints : Array[Int]) -> String raise
+pub fn PdfTextUtil::codepoints_of_utf16be(
+  self : PdfTextUtil,
+  str : String
+) -> Array[Int] raise
+pub fn PdfTextUtil::utf16be_of_codepoints(
+  self : PdfTextUtil,
+  codepoints : Array[Int]
+) -> String raise
 ```
 
 ### codepoints_of_utf8 / utf8_of_codepoints
@@ -115,8 +136,14 @@ pub fn utf16be_of_codepoints(codepoints : Array[Int]) -> String raise
 Convert between UTF-8 strings and Unicode codepoints.
 
 ```moonbit nocheck
-pub fn codepoints_of_utf8(s : String) -> Array[Int] raise
-pub fn utf8_of_codepoints(codepoints : Array[Int]) -> String raise
+pub fn PdfTextUtil::codepoints_of_utf8(
+  self : PdfTextUtil,
+  s : String
+) -> Array[Int] raise
+pub fn PdfTextUtil::utf8_of_codepoints(
+  self : PdfTextUtil,
+  codepoints : Array[Int]
+) -> String raise
 ```
 
 ### Utility Functions
@@ -126,7 +153,7 @@ pub fn utf8_of_codepoints(codepoints : Array[Int]) -> String raise
 Check if a string starts with UTF-16BE BOM (0xFE 0xFF).
 
 ```moonbit nocheck
-pub fn is_unicode(s : String) -> Bool
+pub fn PdfTextUtil::is_unicode(self : PdfTextUtil, s : String) -> Bool
 ```
 
 #### simplify_utf16be
@@ -134,7 +161,10 @@ pub fn is_unicode(s : String) -> Bool
 Convert UTF-16BE to PDFDocEncoding if possible.
 
 ```moonbit nocheck
-pub fn simplify_utf16be(s : String) -> String raise
+pub fn PdfTextUtil::simplify_utf16be(
+  self : PdfTextUtil,
+  s : String
+) -> String raise
 ```
 
 ## PDF String Encodings

@@ -82,7 +82,11 @@ pub fn PdfText::read_basefont(self : PdfText, font : @pdf.PdfObject) -> String {
 }
 
 ///|
-pub fn parse_charset(s : String) -> Array[String] {
+#as_free_fn(parse_charset, deprecated="Use `PdfTextUtil::parse_charset`")
+pub fn PdfTextUtil::parse_charset(
+  _self : PdfTextUtil,
+  s : String,
+) -> Array[String] {
   let input = @pdfio.input_of_string(s)
   let out = Array::new()
   while true {
@@ -141,7 +145,8 @@ pub fn PdfText::read_fontdescriptor(
       let fontfile = find_fontfile()
       let charset = match
         @pdf.lookup_direct(self.pdf, "/CharSet", fontdescriptor) {
-        Some(@pdf.PdfObject::String(s)) => Some(parse_charset(s))
+        Some(@pdf.PdfObject::String(s)) =>
+          Some(PdfTextUtil::new().parse_charset(s))
         _ => None
       }
       Some({
@@ -272,7 +277,11 @@ pub fn PdfText::pairs_of_differences(
 }
 
 ///|
-pub fn standard_font_of_name(name : String) -> @pdffont.StandardFont? {
+#as_free_fn(standard_font_of_name, deprecated="Use `PdfTextUtil::standard_font_of_name`")
+pub fn PdfTextUtil::standard_font_of_name(
+  _self : PdfTextUtil,
+  name : String,
+) -> @pdffont.StandardFont? {
   match name {
     "/Times-Roman" | "/TimesNewRoman" => Some(@pdffont.StandardFont::TimesRoman)
     "/Times-Bold" | "/TimesNewRoman,Bold" =>
@@ -310,7 +319,7 @@ pub fn PdfText::is_standard14font(
     Some(@pdf.PdfObject::Name("/Type1")) =>
       match @pdf.lookup_direct(self.pdf, "/BaseFont", font) {
         Some(@pdf.PdfObject::Name(name)) =>
-          if standard_font_of_name(name) is Some(_) {
+          if PdfTextUtil::new().standard_font_of_name(name) is Some(_) {
             @pdf.lookup_direct(self.pdf, "/Widths", font) is None
           } else {
             false
@@ -454,7 +463,7 @@ pub fn PdfText::read_standard14font(
 ) -> @pdffont.Font raise {
   match @pdf.lookup_direct(self.pdf, "/BaseFont", font) {
     Some(@pdf.PdfObject::Name(name)) =>
-      match standard_font_of_name(name) {
+      match PdfTextUtil::new().standard_font_of_name(name) {
         None => raise @pdf.PdfError::Msg("Not a base 14 font")
         Some(f) => @pdffont.Font::StandardFont(f, self.read_encoding(font))
       }
@@ -503,7 +512,9 @@ pub fn PdfText::read_cid_system_info(
 }
 
 ///|
-pub fn read_cid_widths(
+#as_free_fn(read_cid_widths, deprecated="Use `PdfTextUtil::read_cid_widths`")
+pub fn PdfTextUtil::read_cid_widths(
+  _self : PdfTextUtil,
   elts : Array[@pdf.PdfObject],
 ) -> Array[(Int, Double)] raise {
   let out = Array::new()
@@ -571,7 +582,7 @@ pub fn PdfText::read_descendant(
     None => raise @pdf.PdfError::Msg("No FontDescriptor in CIDkeyed font")
   }
   let cid_widths = match @pdf.lookup_direct(self.pdf, "/W", dict) {
-    Some(@pdf.PdfObject::Array(ws)) => read_cid_widths(ws)
+    Some(@pdf.PdfObject::Array(ws)) => PdfTextUtil::new().read_cid_widths(ws)
     _ => []
   }
   let default_width = match @pdf.lookup_direct(self.pdf, "/DW", dict) {
@@ -746,7 +757,11 @@ pub fn PdfText::add_tounicode(
 }
 
 ///|
-pub fn find_tounicode(font : @pdffont.Font) -> Map[Int, String]? {
+#as_free_fn(find_tounicode, deprecated="Use `PdfTextUtil::find_tounicode`")
+pub fn PdfTextUtil::find_tounicode(
+  _self : PdfTextUtil,
+  font : @pdffont.Font,
+) -> Map[Int, String]? {
   match font {
     @pdffont.Font::SimpleFont(simple) =>
       match simple.fontdescriptor {
@@ -760,7 +775,11 @@ pub fn find_tounicode(font : @pdffont.Font) -> Map[Int, String]? {
 }
 
 ///|
-pub fn find_tounicode_bytes(font : @pdffont.Font) -> Map[String, String]? {
+#as_free_fn(find_tounicode_bytes, deprecated="Use `PdfTextUtil::find_tounicode_bytes`")
+pub fn PdfTextUtil::find_tounicode_bytes(
+  _self : PdfTextUtil,
+  font : @pdffont.Font,
+) -> Map[String, String]? {
   match font {
     @pdffont.Font::SimpleFont(simple) =>
       match simple.fontdescriptor {

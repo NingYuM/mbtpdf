@@ -51,8 +51,8 @@ test "write_encoding handles builtins and custom diffs" {
 
 ///|
 test "hex and tounicode_map encode bytes" {
-  assert_eq(@pdftext.hex("A"), "41")
-  let bytes = @pdftext.tounicode_map(33, ["A", "B"])
+  assert_eq(@pdftext.PdfTextUtil::new().hex("A"), "41")
+  let bytes = @pdftext.PdfTextUtil::new().tounicode_map(33, ["A", "B"])
   let text = @pdfio.string_of_bytes(bytes)
   assert_true(text.contains("begincmap"))
   assert_true(text.contains("<21><21><41>"))

@@ -24,7 +24,7 @@ test "string_of_standard_font covers all names" {
   for pair in cases {
     let name = pair.0
     let expected = pair.1
-    match @pdftext.standard_font_of_name(name) {
+    match @pdftext.PdfTextUtil::new().standard_font_of_name(name) {
       Some(font) => assert_eq(font.to_string(), expected)
       None => fail("expected standard font")
     }

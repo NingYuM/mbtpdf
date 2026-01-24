@@ -73,11 +73,11 @@ test "simple_fonttype_of_string and read_basefont defaults" {
 
 ///|
 test "parse_charset handles invalid escapes" {
-  let valid = @pdftext.parse_charset("/A/B/")
+  let valid = @pdftext.PdfTextUtil::new().parse_charset("/A/B/")
   assert_eq(valid.length(), 2)
   assert_eq(valid[0], "/A")
   assert_eq(valid[1], "/B")
-  let invalid = @pdftext.parse_charset("/A#4")
+  let invalid = @pdftext.PdfTextUtil::new().parse_charset("/A#4")
   assert_eq(invalid.length(), 0)
 }
 
@@ -319,7 +319,7 @@ test "read_cid_system_info and widths reject malformed input" {
   )
   assert_true(info_res is Err(_))
   let missing_tail_arr : Array[@pdf.PdfObject] = [Integer(1)]
-  let missing_tail : Result[Array[(Int, Double)], Error] = try? @pdftext.read_cid_widths(
+  let missing_tail : Result[Array[(Int, Double)], Error] = try? @pdftext.PdfTextUtil::new().read_cid_widths(
     missing_tail_arr,
   )
   assert_true(missing_tail is Err(_))
@@ -327,7 +327,7 @@ test "read_cid_system_info and widths reject malformed input" {
     Integer(1),
     Array([Name("/Bad")]),
   ]
-  let bad_width : Result[Array[(Int, Double)], Error] = try? @pdftext.read_cid_widths(
+  let bad_width : Result[Array[(Int, Double)], Error] = try? @pdftext.PdfTextUtil::new().read_cid_widths(
     bad_width_arr,
   )
   assert_true(bad_width is Err(_))
@@ -336,12 +336,12 @@ test "read_cid_system_info and widths reject malformed input" {
     Integer(3),
     Integer(100),
   ]
-  let bad_range : Result[Array[(Int, Double)], Error] = try? @pdftext.read_cid_widths(
+  let bad_range : Result[Array[(Int, Double)], Error] = try? @pdftext.PdfTextUtil::new().read_cid_widths(
     bad_range_arr,
   )
   assert_true(bad_range is Err(_))
   let bad_head_arr : Array[@pdf.PdfObject] = [Name("/Bad")]
-  let bad_head : Result[Array[(Int, Double)], Error] = try? @pdftext.read_cid_widths(
+  let bad_head : Result[Array[(Int, Double)], Error] = try? @pdftext.PdfTextUtil::new().read_cid_widths(
     bad_head_arr,
   )
   assert_true(bad_head is Err(_))
@@ -381,8 +381,8 @@ test "find_tounicode returns none for simple fonts without descriptor" {
     ("/Widths", Array([Integer(500)])),
   ])
   let font = ctx.read_simple_font(fontdict)
-  assert_true(@pdftext.find_tounicode(font) is None)
-  assert_true(@pdftext.find_tounicode_bytes(font) is None)
+  assert_true(@pdftext.PdfTextUtil::new().find_tounicode(font) is None)
+  assert_true(@pdftext.PdfTextUtil::new().find_tounicode_bytes(font) is None)
 }
 
 ///|
@@ -470,12 +470,12 @@ test "read_cid_system_info rejects missing supplement" {
 ///|
 test "read_cid_widths handles real values and ranges" {
   let widths_arr : Array[@pdf.PdfObject] = [Integer(1), Array([Real(10.5)])]
-  let widths = @pdftext.read_cid_widths(widths_arr)
+  let widths = @pdftext.PdfTextUtil::new().read_cid_widths(widths_arr)
   assert_eq(widths.length(), 1)
   assert_eq(widths[0].0, 1)
   assert_eq(widths[0].1, 10.5)
   let ranged_arr : Array[@pdf.PdfObject] = [Integer(2), Integer(3), Real(7.25)]
-  let ranged = @pdftext.read_cid_widths(ranged_arr)
+  let ranged = @pdftext.PdfTextUtil::new().read_cid_widths(ranged_arr)
   assert_eq(ranged.length(), 2)
   assert_eq(ranged[0].0, 2)
   assert_eq(ranged[1].0, 3)
@@ -563,7 +563,7 @@ test "find_tounicode uses descriptor fields when present" {
     ("/FontDescriptor", Dictionary([])),
   ])
   let font = ctx.read_simple_font(fontdict)
-  assert_true(@pdftext.find_tounicode(font) is None)
+  assert_true(@pdftext.PdfTextUtil::new().find_tounicode(font) is None)
   let descendant : @pdf.PdfObject = Dictionary([
     (
       "/CIDSystemInfo",
@@ -582,6 +582,6 @@ test "find_tounicode uses descriptor fields when present" {
     ("/Encoding", Name("/Identity-H")),
   ])
   let cid = ctx.read_cidkeyed_font(cid_font)
-  assert_true(@pdftext.find_tounicode(cid) is None)
-  assert_true(@pdftext.find_tounicode_bytes(cid) is None)
+  assert_true(@pdftext.PdfTextUtil::new().find_tounicode(cid) is None)
+  assert_true(@pdftext.PdfTextUtil::new().find_tounicode_bytes(cid) is None)
 }

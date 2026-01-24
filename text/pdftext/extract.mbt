@@ -55,17 +55,17 @@ fn PdfText::append_text_from_streams(
   }
 
   fn decode_pdfdoc(value : String) -> String {
-    utf8_of_pdfdocstring(value) catch {
+    PdfTextUtil::new().utf8_of_pdfdocstring(value) catch {
       _ => value
     }
   }
 
   fn decode_text(value : String) -> String {
-    if is_unicode(value) {
-      return utf8_of_pdfdocstring(value) catch { _ => value }
+    if PdfTextUtil::new().is_unicode(value) {
+      return PdfTextUtil::new().utf8_of_pdfdocstring(value) catch { _ => value }
     }
     if current_extractor is Some(extractor) {
-      utf8_of_codepoints(extractor.codepoints_of_text(value)) catch {
+      PdfTextUtil::new().utf8_of_codepoints(extractor.codepoints_of_text(value)) catch {
         _ => decode_pdfdoc(value)
       }
     } else {

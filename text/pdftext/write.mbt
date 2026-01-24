@@ -2,7 +2,9 @@
 /// Font writing helpers.
 
 ///|
-pub fn make_font(
+#as_free_fn(make_font, deprecated="Use `PdfTextUtil::make_font`")
+pub fn PdfTextUtil::make_font(
+  _self : PdfTextUtil,
   fontname : String,
   encoding : @pdffont.Encoding,
 ) -> @pdf.PdfObject {
@@ -120,7 +122,8 @@ fn hex_byte_lower(value : Int) -> String {
 }
 
 ///|
-pub fn hex(u : String) -> String {
+#as_free_fn(hex, deprecated="Use `PdfTextUtil::hex`")
+pub fn PdfTextUtil::hex(_self : PdfTextUtil, u : String) -> String {
   let sb = StringBuilder::new()
   let bytes = @pdfio.bytes_of_string(u)
   for b in bytes {
@@ -130,7 +133,9 @@ pub fn hex(u : String) -> String {
 }
 
 ///|
-pub fn tounicode_map(
+#as_free_fn(tounicode_map, deprecated="Use `PdfTextUtil::tounicode_map`")
+pub fn PdfTextUtil::tounicode_map(
+  self : PdfTextUtil,
   start_code : Int,
   us : Array[String],
 ) -> @pdfio.MutableBytes {
@@ -141,7 +146,7 @@ pub fn tounicode_map(
   ..write_string("\{us.length()} beginbfrange\n")
   for u in us {
     sb.write_string(
-      "<\{hex_byte_lower(code)}><\{hex_byte_lower(code)}><\{hex(u)}>\n",
+      "<\{hex_byte_lower(code)}><\{hex_byte_lower(code)}><\{self.hex(u)}>\n",
     )
     code = code + 1
   }
@@ -154,7 +159,7 @@ pub fn PdfText::write_tounicode(self : PdfText, u : Map[Int, String]) -> Int {
   let pairs = @pdfutil.PdfUtil::new().list_of_hashtbl(u)
   pairs.sort_by((a, b) => a.0 - b.0)
   let strings = pairs.map(pair => pair.1)
-  let bytes = tounicode_map(33, strings)
+  let bytes = PdfTextUtil::new().tounicode_map(33, strings)
   let dict = @pdf.PdfObject::Dictionary([
     ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(bytes))),
   ])
@@ -317,7 +322,10 @@ pub fn PdfText::write_font(
           )
       }
     @pdffont.Font::StandardFont(standard, encoding) =>
-      @pdf.addobj(self.pdf, make_font(standard.to_string(), encoding))
+      @pdf.addobj(
+        self.pdf,
+        PdfTextUtil::new().make_font(standard.to_string(), encoding),
+      )
     _ =>
       raise @pdf.PdfError::Msg("Pdftext.write_font does not support this font")
   }
