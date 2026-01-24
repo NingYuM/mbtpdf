@@ -2,6 +2,16 @@
 /// Compressed AFM data for standard 14 fonts (deflate stream bytes).
 
 ///|
+pub struct PdfAfmData {
+  unit : Unit
+}
+
+///|
+pub fn PdfAfmData::new() -> PdfAfmData {
+  { unit: () }
+}
+
+///|
 let courier_afm_data : Array[Byte] = [
   0x78, 0x01, 0xbd, 0x5b, 0x49, 0x77, 0xdc, 0xc6, 0x11, 0xbe, 0xf3, 0x57, 0xe0, 0x98,
   0xbc, 0x97, 0xf1, 0x03, 0x1a, 0x4b, 0x03, 0xf6, 0x89, 0xa2, 0x28, 0x9b, 0x89, 0x16,
@@ -290,7 +300,8 @@ let courier_afm_data : Array[Byte] = [
 ]
 
 ///|
-pub fn courier_afm() -> Array[Byte] {
+#as_free_fn(courier_afm, deprecated="Use `PdfAfmData::courier_afm`")
+pub fn PdfAfmData::courier_afm(_self : PdfAfmData) -> Array[Byte] {
   courier_afm_data.copy()
 }
 
@@ -591,7 +602,8 @@ let courier_oblique_afm_data : Array[Byte] = [
 ]
 
 ///|
-pub fn courier_oblique_afm() -> Array[Byte] {
+#as_free_fn(courier_oblique_afm, deprecated="Use `PdfAfmData::courier_oblique_afm`")
+pub fn PdfAfmData::courier_oblique_afm(_self : PdfAfmData) -> Array[Byte] {
   courier_oblique_afm_data.copy()
 }
 
@@ -884,7 +896,8 @@ let courier_bold_afm_data : Array[Byte] = [
 ]
 
 ///|
-pub fn courier_bold_afm() -> Array[Byte] {
+#as_free_fn(courier_bold_afm, deprecated="Use `PdfAfmData::courier_bold_afm`")
+pub fn PdfAfmData::courier_bold_afm(_self : PdfAfmData) -> Array[Byte] {
   courier_bold_afm_data.copy()
 }
 
@@ -1185,7 +1198,8 @@ let courier_bold_oblique_afm_data : Array[Byte] = [
 ]
 
 ///|
-pub fn courier_bold_oblique_afm() -> Array[Byte] {
+#as_free_fn(courier_bold_oblique_afm, deprecated="Use `PdfAfmData::courier_bold_oblique_afm`")
+pub fn PdfAfmData::courier_bold_oblique_afm(_self : PdfAfmData) -> Array[Byte] {
   courier_bold_oblique_afm_data.copy()
 }
 
@@ -2039,7 +2053,8 @@ let times_roman_afm_data : Array[Byte] = [
 ]
 
 ///|
-pub fn times_roman_afm() -> Array[Byte] {
+#as_free_fn(times_roman_afm, deprecated="Use `PdfAfmData::times_roman_afm`")
+pub fn PdfAfmData::times_roman_afm(_self : PdfAfmData) -> Array[Byte] {
   times_roman_afm_data.copy()
 }
 
@@ -2928,7 +2943,8 @@ let times_bold_afm_data : Array[Byte] = [
 ]
 
 ///|
-pub fn times_bold_afm() -> Array[Byte] {
+#as_free_fn(times_bold_afm, deprecated="Use `PdfAfmData::times_bold_afm`")
+pub fn PdfAfmData::times_bold_afm(_self : PdfAfmData) -> Array[Byte] {
   times_bold_afm_data.copy()
 }
 
@@ -3840,7 +3856,8 @@ let times_italic_afm_data : Array[Byte] = [
 ]
 
 ///|
-pub fn times_italic_afm() -> Array[Byte] {
+#as_free_fn(times_italic_afm, deprecated="Use `PdfAfmData::times_italic_afm`")
+pub fn PdfAfmData::times_italic_afm(_self : PdfAfmData) -> Array[Byte] {
   times_italic_afm_data.copy()
 }
 
@@ -4685,7 +4702,8 @@ let times_bold_italic_afm_data : Array[Byte] = [
 ]
 
 ///|
-pub fn times_bold_italic_afm() -> Array[Byte] {
+#as_free_fn(times_bold_italic_afm, deprecated="Use `PdfAfmData::times_bold_italic_afm`")
+pub fn PdfAfmData::times_bold_italic_afm(_self : PdfAfmData) -> Array[Byte] {
   times_bold_italic_afm_data.copy()
 }
 
@@ -5668,7 +5686,8 @@ let helvetica_afm_data : Array[Byte] = [
 ]
 
 ///|
-pub fn helvetica_afm() -> Array[Byte] {
+#as_free_fn(helvetica_afm, deprecated="Use `PdfAfmData::helvetica_afm`")
+pub fn PdfAfmData::helvetica_afm(_self : PdfAfmData) -> Array[Byte] {
   helvetica_afm_data.copy()
 }
 
@@ -6605,7 +6624,8 @@ let helvetica_bold_afm_data : Array[Byte] = [
 ]
 
 ///|
-pub fn helvetica_bold_afm() -> Array[Byte] {
+#as_free_fn(helvetica_bold_afm, deprecated="Use `PdfAfmData::helvetica_bold_afm`")
+pub fn PdfAfmData::helvetica_bold_afm(_self : PdfAfmData) -> Array[Byte] {
   helvetica_bold_afm_data.copy()
 }
 
@@ -7601,7 +7621,8 @@ let helvetica_oblique_afm_data : Array[Byte] = [
 ]
 
 ///|
-pub fn helvetica_oblique_afm() -> Array[Byte] {
+#as_free_fn(helvetica_oblique_afm, deprecated="Use `PdfAfmData::helvetica_oblique_afm`")
+pub fn PdfAfmData::helvetica_oblique_afm(_self : PdfAfmData) -> Array[Byte] {
   helvetica_oblique_afm_data.copy()
 }
 
@@ -8553,7 +8574,10 @@ let helvetica_bold_oblique_afm_data : Array[Byte] = [
 ]
 
 ///|
-pub fn helvetica_bold_oblique_afm() -> Array[Byte] {
+#as_free_fn(helvetica_bold_oblique_afm, deprecated="Use `PdfAfmData::helvetica_bold_oblique_afm`")
+pub fn PdfAfmData::helvetica_bold_oblique_afm(
+  _self : PdfAfmData,
+) -> Array[Byte] {
   helvetica_bold_oblique_afm_data.copy()
 }
 
@@ -8808,7 +8832,8 @@ let symbol_afm_data : Array[Byte] = [
 ]
 
 ///|
-pub fn symbol_afm() -> Array[Byte] {
+#as_free_fn(symbol_afm, deprecated="Use `PdfAfmData::symbol_afm`")
+pub fn PdfAfmData::symbol_afm(_self : PdfAfmData) -> Array[Byte] {
   symbol_afm_data.copy()
 }
 
@@ -8998,6 +9023,7 @@ let zapf_dingbats_afm_data : Array[Byte] = [
 ]
 
 ///|
-pub fn zapf_dingbats_afm() -> Array[Byte] {
+#as_free_fn(zapf_dingbats_afm, deprecated="Use `PdfAfmData::zapf_dingbats_afm`")
+pub fn PdfAfmData::zapf_dingbats_afm(_self : PdfAfmData) -> Array[Byte] {
   zapf_dingbats_afm_data.copy()
 }

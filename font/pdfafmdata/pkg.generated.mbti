@@ -2,37 +2,42 @@
 package "bobzhang/mbtpdf/font/pdfafmdata"
 
 // Values
-pub fn courier_afm() -> Array[Byte]
-
-pub fn courier_bold_afm() -> Array[Byte]
-
-pub fn courier_bold_oblique_afm() -> Array[Byte]
-
-pub fn courier_oblique_afm() -> Array[Byte]
-
-pub fn helvetica_afm() -> Array[Byte]
-
-pub fn helvetica_bold_afm() -> Array[Byte]
-
-pub fn helvetica_bold_oblique_afm() -> Array[Byte]
-
-pub fn helvetica_oblique_afm() -> Array[Byte]
-
-pub fn symbol_afm() -> Array[Byte]
-
-pub fn times_bold_afm() -> Array[Byte]
-
-pub fn times_bold_italic_afm() -> Array[Byte]
-
-pub fn times_italic_afm() -> Array[Byte]
-
-pub fn times_roman_afm() -> Array[Byte]
-
-pub fn zapf_dingbats_afm() -> Array[Byte]
 
 // Errors
 
 // Types and methods
+pub struct PdfAfmData {
+  unit : Unit
+}
+#as_free_fn(courier_afm, deprecated)
+pub fn PdfAfmData::courier_afm(Self) -> Array[Byte]
+#as_free_fn(courier_bold_afm, deprecated)
+pub fn PdfAfmData::courier_bold_afm(Self) -> Array[Byte]
+#as_free_fn(courier_bold_oblique_afm, deprecated)
+pub fn PdfAfmData::courier_bold_oblique_afm(Self) -> Array[Byte]
+#as_free_fn(courier_oblique_afm, deprecated)
+pub fn PdfAfmData::courier_oblique_afm(Self) -> Array[Byte]
+#as_free_fn(helvetica_afm, deprecated)
+pub fn PdfAfmData::helvetica_afm(Self) -> Array[Byte]
+#as_free_fn(helvetica_bold_afm, deprecated)
+pub fn PdfAfmData::helvetica_bold_afm(Self) -> Array[Byte]
+#as_free_fn(helvetica_bold_oblique_afm, deprecated)
+pub fn PdfAfmData::helvetica_bold_oblique_afm(Self) -> Array[Byte]
+#as_free_fn(helvetica_oblique_afm, deprecated)
+pub fn PdfAfmData::helvetica_oblique_afm(Self) -> Array[Byte]
+pub fn PdfAfmData::new() -> Self
+#as_free_fn(symbol_afm, deprecated)
+pub fn PdfAfmData::symbol_afm(Self) -> Array[Byte]
+#as_free_fn(times_bold_afm, deprecated)
+pub fn PdfAfmData::times_bold_afm(Self) -> Array[Byte]
+#as_free_fn(times_bold_italic_afm, deprecated)
+pub fn PdfAfmData::times_bold_italic_afm(Self) -> Array[Byte]
+#as_free_fn(times_italic_afm, deprecated)
+pub fn PdfAfmData::times_italic_afm(Self) -> Array[Byte]
+#as_free_fn(times_roman_afm, deprecated)
+pub fn PdfAfmData::times_roman_afm(Self) -> Array[Byte]
+#as_free_fn(zapf_dingbats_afm, deprecated)
+pub fn PdfAfmData::zapf_dingbats_afm(Self) -> Array[Byte]
 
 // Type aliases
 

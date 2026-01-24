@@ -6,42 +6,53 @@ Compressed AFM data for the 14 standard PDF fonts.
 
 This package contains FLATE-compressed Adobe Font Metrics (AFM) data for all 14 standard PDF fonts. The data includes character widths and kerning information needed for text layout calculations.
 
-## Functions
+## Types
+
+### PdfAfmData
+
+AFM data lookup context.
+
+```moonbit nocheck
+pub struct PdfAfmData { ... }
+pub fn PdfAfmData::new() -> PdfAfmData
+```
+
+## Methods
 
 Each function returns the compressed AFM data as a byte array. Decompress with FLATE to get the AFM text.
 
 ### Times Family
 
 ```moonbit nocheck
-pub fn times_roman_afm() -> Array[Byte]
-pub fn times_bold_afm() -> Array[Byte]
-pub fn times_italic_afm() -> Array[Byte]
-pub fn times_bold_italic_afm() -> Array[Byte]
+pub fn PdfAfmData::times_roman_afm(self : PdfAfmData) -> Array[Byte]
+pub fn PdfAfmData::times_bold_afm(self : PdfAfmData) -> Array[Byte]
+pub fn PdfAfmData::times_italic_afm(self : PdfAfmData) -> Array[Byte]
+pub fn PdfAfmData::times_bold_italic_afm(self : PdfAfmData) -> Array[Byte]
 ```
 
 ### Helvetica Family
 
 ```moonbit nocheck
-pub fn helvetica_afm() -> Array[Byte]
-pub fn helvetica_bold_afm() -> Array[Byte]
-pub fn helvetica_oblique_afm() -> Array[Byte]
-pub fn helvetica_bold_oblique_afm() -> Array[Byte]
+pub fn PdfAfmData::helvetica_afm(self : PdfAfmData) -> Array[Byte]
+pub fn PdfAfmData::helvetica_bold_afm(self : PdfAfmData) -> Array[Byte]
+pub fn PdfAfmData::helvetica_oblique_afm(self : PdfAfmData) -> Array[Byte]
+pub fn PdfAfmData::helvetica_bold_oblique_afm(self : PdfAfmData) -> Array[Byte]
 ```
 
 ### Courier Family
 
 ```moonbit nocheck
-pub fn courier_afm() -> Array[Byte]
-pub fn courier_bold_afm() -> Array[Byte]
-pub fn courier_oblique_afm() -> Array[Byte]
-pub fn courier_bold_oblique_afm() -> Array[Byte]
+pub fn PdfAfmData::courier_afm(self : PdfAfmData) -> Array[Byte]
+pub fn PdfAfmData::courier_bold_afm(self : PdfAfmData) -> Array[Byte]
+pub fn PdfAfmData::courier_oblique_afm(self : PdfAfmData) -> Array[Byte]
+pub fn PdfAfmData::courier_bold_oblique_afm(self : PdfAfmData) -> Array[Byte]
 ```
 
 ### Symbol Fonts
 
 ```moonbit nocheck
-pub fn symbol_afm() -> Array[Byte]
-pub fn zapf_dingbats_afm() -> Array[Byte]
+pub fn PdfAfmData::symbol_afm(self : PdfAfmData) -> Array[Byte]
+pub fn PdfAfmData::zapf_dingbats_afm(self : PdfAfmData) -> Array[Byte]
 ```
 
 ## Data Format
