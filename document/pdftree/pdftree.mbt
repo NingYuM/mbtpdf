@@ -4,6 +4,9 @@ pub struct PdfTree {
 }
 
 ///|
+type PdfObject = @pdf.PdfObject
+
+///|
 pub fn PdfTree::new(pdf : @pdf.Pdf) -> PdfTree {
   { pdf, }
 }
@@ -38,9 +41,9 @@ pub fn PdfTree::build_name_tree(
 ) -> @pdf.PdfObject {
   if entries.length() == 0 {
     if isnum {
-      @pdf.PdfObject::Dictionary([("/Nums", @pdf.PdfObject::Array([]))])
+      PdfObject::Dictionary([("/Nums", PdfObject::Array([]))])
     } else {
-      @pdf.PdfObject::Dictionary([("/Names", @pdf.PdfObject::Array([]))])
+      PdfObject::Dictionary([("/Names", PdfObject::Array([]))])
     }
   } else {
     let sorted = clone_entries(entries)
@@ -87,7 +90,7 @@ fn PdfTree::read_tree_raw(
   tree : @pdf.PdfObject,
 ) -> Array[(@pdf.PdfObject, @pdf.PdfObject)] {
   let names = match self.pdf.lookup_direct_orelse("/Names", "/Nums", tree) {
-    Some(@pdf.PdfObject::Array(elts)) =>
+    Some(PdfObject::Array(elts)) =>
       if elts.length() % 2 == 1 {
         @pdfe.Pdfe::new().log(
           "Bad /Names array. Name tree will be read as empty\n",
@@ -99,7 +102,7 @@ fn PdfTree::read_tree_raw(
     _ => []
   }
   match self.pdf.lookup_direct("/Kids", tree) {
-    Some(@pdf.PdfObject::Array(kids)) =>
+    Some(PdfObject::Array(kids)) =>
       concat_arrays(names, flatten(kids.map(kid => self.read_tree_raw(kid))))
     _ => names
   }
@@ -124,8 +127,8 @@ fn PdfTree::read_tree_strings(
     let key = pair.0
     let value = pair.1
     match key {
-      @pdf.PdfObject::Integer(i) if isnum => out.push((i.to_string(), value))
-      @pdf.PdfObject::String(s) if !isnum => out.push((s, value))
+      PdfObject::Integer(i) if isnum => out.push((i.to_string(), value))
+      PdfObject::String(s) if !isnum => out.push((s, value))
       _ => {
         let msg = if isnum {
           "Pdftree.read_number_tree: skipping malformed number tree\n"
@@ -143,7 +146,7 @@ fn PdfTree::read_tree_strings(
 ///|
 fn key_int(obj : @pdf.PdfObject) -> Int {
   match obj {
-    @pdf.PdfObject::Integer(i) => i
+    PdfObject::Integer(i) => i
     _ => 0
   }
 }
@@ -151,7 +154,7 @@ fn key_int(obj : @pdf.PdfObject) -> Int {
 ///|
 fn key_string(obj : @pdf.PdfObject) -> String {
   match obj {
-    @pdf.PdfObject::String(s) => s
+    PdfObject::String(s) => s
     _ => ""
   }
 }
@@ -167,8 +170,8 @@ fn parse_int(value : String) -> Int {
 
 ///|
 fn compare_string(a : String, b : String) -> Int {
-  let ac = a.to_array()
-  let bc = b.to_array()
+  let ac = a[:]
+  let bc = b[:]
   let mut i = 0
   while i < ac.length() && i < bc.length() {
     if ac[i] != bc[i] {
@@ -184,27 +187,28 @@ fn remove_duplicates(
   items : Array[(@pdf.PdfObject, @pdf.PdfObject)],
   isnum : Bool,
 ) -> Array[(@pdf.PdfObject, @pdf.PdfObject)] {
-  if items.length() == 0 {
-    return []
-  }
-  let out = Array::new()
-  let mut prev = items[0]
-  for i in 1..<items.length() {
-    let current = items[i]
-    let same = if isnum {
-      key_int(prev.0) == key_int(current.0)
-    } else {
-      key_string(prev.0) == key_string(current.0)
-    }
-    if same {
-      prev = current
-    } else {
+  match items {
+    [] => []
+    [first, .. rest] => {
+      let out = Array::new()
+      let mut prev = first
+      for current in rest {
+        let same = if isnum {
+          key_int(prev.0) == key_int(current.0)
+        } else {
+          key_string(prev.0) == key_string(current.0)
+        }
+        if same {
+          prev = current
+        } else {
+          out.push(prev)
+          prev = current
+        }
+      }
       out.push(prev)
-      prev = current
+      out
     }
   }
-  out.push(prev)
-  out
 }
 
 ///|
@@ -212,9 +216,20 @@ fn pairs_of_array(
   arr : Array[@pdf.PdfObject],
 ) -> Array[(@pdf.PdfObject, @pdf.PdfObject)] {
   let out = Array::new()
-  for i = 0; i + 1 < arr.length(); i = i + 2 {
-    out.push((arr[i], arr[i + 1]))
+  fn collect(
+    view : ArrayView[@pdf.PdfObject],
+    out : Array[(@pdf.PdfObject, @pdf.PdfObject)],
+  ) -> Unit {
+    match view {
+      [first, second, .. rest] => {
+        out.push((first, second))
+        collect(rest, out)
+      }
+      _ => ()
+    }
   }
+
+  collect(arr, out)
   out
 }
 
@@ -252,18 +267,19 @@ priv enum Nt {
 
 ///|
 fn build_nt_tree(items : Array[(String, @pdf.PdfObject)]) -> Nt {
-  if items.length() == 0 {
-    return Nt::Leaf("", [], "")
-  }
-  if items.length() <= maxsize {
-    Nt::Leaf(items[0].0, items, items[items.length() - 1].0)
-  } else {
-    let groups = split_into(items, maxsize)
-    let subtrees = Array::new()
-    for group in groups {
-      subtrees.push(build_nt_tree(group))
+  match items {
+    [] => Leaf("", [], "")
+    [only] => Leaf(only.0, items, only.0)
+    [first, .., last] if items.length() <= maxsize =>
+      Leaf(first.0, items, last.0)
+    [first, .., last] => {
+      let groups = split_into(items, maxsize)
+      let subtrees = Array::new()
+      for group in groups {
+        subtrees.push(build_nt_tree(group))
+      }
+      Branch(first.0, subtrees, last.0)
     }
-    Nt::Branch(items[0].0, subtrees, items[items.length() - 1].0)
   }
 }
 
@@ -321,60 +337,54 @@ fn PdfTree::name_tree_of_nt(
       let array_items = Array::new()
       for pair in items {
         let key_obj = if isnum {
-          @pdf.PdfObject::Integer(parse_int(pair.0))
+          PdfObject::Integer(parse_int(pair.0))
         } else {
-          @pdf.PdfObject::String(pair.0)
+          PdfObject::String(pair.0)
         }
         array_items.push(key_obj)
         array_items.push(pair.1)
       }
       let entry_key = if isnum { "/Nums" } else { "/Names" }
-      let entry = (entry_key, @pdf.PdfObject::Array(array_items))
+      let entry = (entry_key, PdfObject::Array(array_items))
       let limits = if isnum {
-        @pdf.PdfObject::Array([
-          @pdf.PdfObject::Integer(parse_int(llimit)),
-          @pdf.PdfObject::Integer(parse_int(rlimit)),
+        PdfObject::Array([
+          PdfObject::Integer(parse_int(llimit)),
+          PdfObject::Integer(parse_int(rlimit)),
         ])
       } else {
-        @pdf.PdfObject::Array([
-          @pdf.PdfObject::String(llimit),
-          @pdf.PdfObject::String(rlimit),
-        ])
+        PdfObject::Array([PdfObject::String(llimit), PdfObject::String(rlimit)])
       }
       let dict_entries = Array::new()
       dict_entries.push(entry)
       if !isroot {
         dict_entries.push(("/Limits", limits))
       }
-      @pdf.PdfObject::Dictionary(dict_entries)
+      PdfObject::Dictionary(dict_entries)
     }
     Nt::Branch(llimit, kids, rlimit) => {
       let kid_refs = Array::new()
       for child in kids {
         let child_obj = self.name_tree_of_nt(isnum, false, child)
         match child_obj {
-          @pdf.PdfObject::Dictionary(_)
-          | @pdf.PdfObject::Stream(_)
-          | @pdf.PdfObject::Array(_) => {
+          PdfObject::Dictionary(_)
+          | PdfObject::Stream(_)
+          | PdfObject::Array(_) => {
             let objnum = self.pdf.addobj(child_obj)
-            kid_refs.push(@pdf.PdfObject::Indirect(objnum))
+            kid_refs.push(PdfObject::Indirect(objnum))
           }
           _ => kid_refs.push(child_obj)
         }
       }
       let limits = if isnum {
-        @pdf.PdfObject::Array([
-          @pdf.PdfObject::Integer(parse_int(llimit)),
-          @pdf.PdfObject::Integer(parse_int(rlimit)),
+        PdfObject::Array([
+          PdfObject::Integer(parse_int(llimit)),
+          PdfObject::Integer(parse_int(rlimit)),
         ])
       } else {
-        @pdf.PdfObject::Array([
-          @pdf.PdfObject::String(llimit),
-          @pdf.PdfObject::String(rlimit),
-        ])
+        PdfObject::Array([PdfObject::String(llimit), PdfObject::String(rlimit)])
       }
-      @pdf.PdfObject::Dictionary([
-        ("/Kids", @pdf.PdfObject::Array(kid_refs)),
+      PdfObject::Dictionary([
+        ("/Kids", PdfObject::Array(kid_refs)),
         ("/Limits", limits),
       ])
     }
