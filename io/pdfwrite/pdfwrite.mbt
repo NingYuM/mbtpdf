@@ -846,7 +846,7 @@ pub fn PdfWrite::pdf_to_output(
       Some(enc) =>
         match enc.encryption_method {
           @pdfcrypt.EncryptionMethod::AlreadyEncrypted => ()
-          _ => pdf = @pdf.renumber(@pdf.changes(pdf), pdf)
+          _ => pdf = pdf.renumber(pdf.changes())
         }
       None => ()
     }

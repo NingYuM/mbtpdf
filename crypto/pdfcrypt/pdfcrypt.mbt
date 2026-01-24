@@ -1523,7 +1523,7 @@ pub fn PdfCrypt::recrypt_pdf(
       changes.set(n, i)
       i = i + 1
     }
-    pdf = @pdf.renumber(changes, pdf)
+    pdf = pdf.renumber(changes)
   }
   recrypt_pdf_user(pdf, pw) catch {
     _ =>

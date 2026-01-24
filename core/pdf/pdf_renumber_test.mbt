@@ -2,7 +2,7 @@
 test "renumber_object_parsed handles indirect and stream" {
   let pdf = Pdf::empty()
   let changes : Map[Int, Int] = Map::new()
-  match renumber_object_parsed(pdf, changes, PdfObject::Indirect(5)) {
+  match pdf.renumber_object_parsed(changes, PdfObject::Indirect(5)) {
     PdfObject::Indirect(5) => ()
     _ => fail("expected unchanged indirect")
   }
@@ -12,7 +12,7 @@ test "renumber_object_parsed handles indirect and stream" {
     PdfObject::Dictionary([("/Ref", PdfObject::Indirect(1))]),
     @pdfio.bytes_of_string("x"),
   )
-  match renumber_object_parsed(pdf, changes2, stream) {
+  match pdf.renumber_object_parsed(changes2, stream) {
     PdfObject::Stream(r) =>
       match r.val {
         (dict_obj, _) =>
@@ -34,7 +34,7 @@ test "renumber keeps root when missing change" {
   pdf.objects.object_stream_ids.set(6, 2)
   let change_table : Map[Int, Int] = Map::new()
   change_table.set(5, 7)
-  let renumbered = renumber(change_table, pdf)
+  let renumbered = pdf.renumber(change_table)
   assert_eq(renumbered.root, pdf.root)
   assert_eq(renumbered.objects.object_stream_ids.get(7), Some(1))
   assert_true(renumbered.objnumbers().contains(7))

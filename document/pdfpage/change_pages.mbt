@@ -347,7 +347,7 @@ pub fn PdfPageDoc::change_pages(
       }
     }
     let changes_map = map_of_pairs(changes)
-    pdf.objselfmap(obj => @pdf.renumber_object_parsed(pdf, changes_map, obj))
+    pdf.objselfmap(obj => pdf.renumber_object_parsed(changes_map, obj))
     match matrices {
       None => pdf
       Some(matpairs) => {

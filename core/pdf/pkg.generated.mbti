@@ -10,8 +10,6 @@ import {
 // Values
 pub fn change_id(Pdf, String) -> Unit raise
 
-pub fn changes(Pdf) -> Map[Int, Int]
-
 pub fn deep_copy(Pdf) -> Pdf
 
 pub let endpage : Ref[(Pdf) -> Int]
@@ -31,10 +29,6 @@ pub fn pdfobjmap_empty() -> Map[Int, (Ref[ObjectData], Int)]
 pub fn pdfobjmap_find(Int, Map[Int, (Ref[ObjectData], Int)]) -> (Ref[ObjectData], Int) raise
 
 pub fn recurse_array((PdfObject) -> PdfObject, Array[PdfObject]) -> PdfObject
-
-pub fn renumber(Map[Int, Int], Pdf, preserve_order? : Bool) -> Pdf
-
-pub fn renumber_object_parsed(Pdf, Map[Int, Int], PdfObject, preserve_order? : Bool) -> PdfObject
 
 pub fn renumber_pdfs(Array[Pdf]) -> Array[Pdf]
 
@@ -78,6 +72,8 @@ pub fn Pdf::addobj(Self, PdfObject) -> Int
 pub fn Pdf::addobj_given_num(Self, (Int, PdfObject)) -> Unit
 #as_free_fn(catalog_of_pdf, deprecated)
 pub fn Pdf::catalog_of_pdf(Self) -> PdfObject raise
+#as_free_fn(changes, deprecated)
+pub fn Pdf::changes(Self) -> Map[Int, Int]
 #as_free_fn(contents_of_nametree, deprecated)
 pub fn Pdf::contents_of_nametree(Self, PdfObject) -> Array[(PdfObject, PdfObject)] raise
 #as_free_fn(direct, deprecated)
@@ -123,6 +119,10 @@ pub fn Pdf::parse_rectangle(Self, PdfObject) -> (Double, Double, Double, Double)
 pub fn Pdf::remove_unreferenced(Self) -> Unit raise
 #as_free_fn(removeobj, deprecated)
 pub fn Pdf::removeobj(Self, Int) -> Unit
+#as_free_fn(renumber, deprecated)
+pub fn Pdf::renumber(Self, Map[Int, Int], preserve_order? : Bool) -> Self
+#as_free_fn(renumber_object_parsed, deprecated)
+pub fn Pdf::renumber_object_parsed(Self, Map[Int, Int], PdfObject, preserve_order? : Bool) -> PdfObject
 #as_free_fn(replace_chain, deprecated)
 pub fn Pdf::replace_chain(Self, ArrayView[String], PdfObject) -> Unit raise
 #as_free_fn(transform_quadpoints, deprecated)

@@ -316,12 +316,12 @@ pdf.remove_unreferenced!()
 // Calculate changes to renumber 1..n
 
 ///|
-let change_table = @pdf.changes(pdf)
+let change_table = pdf.changes()
 
 // Apply renumbering
 
 ///|
-let renumbered = @pdf.renumber(change_table, pdf)
+let renumbered = pdf.renumber(change_table)
 ```
 
 ### Deep Copy

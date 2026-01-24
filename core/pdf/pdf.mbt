@@ -1405,13 +1405,13 @@ pub fn Pdf::page_reference_numbers(self : Pdf) -> Array[Int] raise {
 
 ///|
 /// Renumber indirect references using a change table.
-pub fn renumber_object_parsed(
-  pdf : Pdf,
+#as_free_fn(renumber_object_parsed, deprecated="Use Pdf::renumber_object_parsed instead")
+pub fn Pdf::renumber_object_parsed(
+  self : Pdf,
   changes : Map[Int, Int],
   obj : PdfObject,
   preserve_order? : Bool = false,
 ) -> PdfObject {
-  let _ = pdf
   match obj {
     Indirect(i) =>
       match changes.get(i) {
@@ -1420,18 +1420,17 @@ pub fn renumber_object_parsed(
       }
     Array(values) =>
       Array(
-        values.map(v => renumber_object_parsed(pdf, changes, v, preserve_order~)),
+        values.map(v => self.renumber_object_parsed(changes, v, preserve_order~)),
       )
     Dictionary(entries) =>
       recurse_dict(
-        v => renumber_object_parsed(pdf, changes, v, preserve_order~),
+        v => self.renumber_object_parsed(changes, v, preserve_order~),
         entries,
         preserve_order~,
       )
     Stream(r) => {
       let (dict, stream) = r.val
-      let dict_updated = renumber_object_parsed(
-        pdf,
+      let dict_updated = self.renumber_object_parsed(
         changes,
         dict,
         preserve_order~,
@@ -1464,8 +1463,9 @@ fn check_object_contains_renumbering(
 
 ///|
 /// Calculate the change table required to renumber objects 1..n.
-pub fn changes(pdf : Pdf) -> Map[Int, Int] {
-  let keys = pdf.objnumbers()
+#as_free_fn(changes, deprecated="Use Pdf::changes instead")
+pub fn Pdf::changes(self : Pdf) -> Map[Int, Int] {
+  let keys = self.objnumbers()
   let table : Map[Int, Int] = Map::new(capacity=keys.length())
   let mut num = 1
   for key in keys {
@@ -1477,24 +1477,25 @@ pub fn changes(pdf : Pdf) -> Map[Int, Int] {
 
 ///|
 /// Renumber a PDF's objects using a change table.
-pub fn renumber(
+#as_free_fn(renumber, deprecated="Use Pdf::renumber instead")
+pub fn Pdf::renumber(
+  self : Pdf,
   change_table : Map[Int, Int],
-  pdf : Pdf,
   preserve_order? : Bool = false,
 ) -> Pdf {
-  let root = match change_table.get(pdf.root) {
+  let root = match change_table.get(self.root) {
     Some(value) => value
-    None => pdf.root
+    None => self.root
   }
   let trailerdict = if check_object_contains_renumbering(
       change_table,
-      pdf.trailerdict,
+      self.trailerdict,
     ) {
-    renumber_object_parsed(pdf, change_table, pdf.trailerdict, preserve_order~)
+    self.renumber_object_parsed(change_table, self.trailerdict, preserve_order~)
   } else {
-    pdf.trailerdict
+    self.trailerdict
   }
-  let entries = pdf.objects.objects.to_array()
+  let entries = self.objects.objects.to_array()
   entries.sort_by((a, b) => a.0 - b.0)
   let objects : PdfObjMap = Map::new(capacity=entries.length())
   let mut max_obj_num = 0
@@ -1504,9 +1505,9 @@ pub fn renumber(
       Some(value) => value
       None => old_num
     }
-    let obj = pdf.lookup_obj(old_num)
+    let obj = self.lookup_obj(old_num)
     let updated = if check_object_contains_renumbering(change_table, obj) {
-      renumber_object_parsed(pdf, change_table, obj, preserve_order~)
+      self.renumber_object_parsed(change_table, obj, preserve_order~)
     } else {
       obj
     }
@@ -1516,25 +1517,25 @@ pub fn renumber(
     }
   }
   let object_stream_ids = Map::new()
-  for key, value in pdf.objects.object_stream_ids {
+  for key, value in self.objects.object_stream_ids {
     match change_table.get(key) {
       Some(new_key) => object_stream_ids.set(new_key, value)
       None => ()
     }
   }
   {
-    major: pdf.major,
-    minor: pdf.minor,
+    major: self.major,
+    minor: self.minor,
     root,
     objects: {
       max_obj_num,
-      parse: pdf.objects.parse,
+      parse: self.objects.parse,
       objects,
       object_stream_ids,
     },
     trailerdict,
-    was_linearized: pdf.was_linearized,
-    saved_encryption: pdf.saved_encryption,
+    was_linearized: self.was_linearized,
+    saved_encryption: self.saved_encryption,
   }
 }
 
@@ -1552,7 +1553,7 @@ pub fn renumber_pdfs(pdfs : Array[Pdf]) -> Array[Pdf] {
       i = i + 1
     }
     base = base + keys.length()
-    out.push(renumber(changes, pdf))
+    out.push(pdf.renumber(changes))
   }
   out
 }

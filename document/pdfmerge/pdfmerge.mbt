@@ -250,7 +250,7 @@ pub fn PdfMergeDoc::remove_duplicate_fonts(self : PdfMergeDoc) -> Unit {
     for i in 1..<group.length() {
       changetable.set(group[i], keep)
     }
-    current = @pdf.renumber(changetable, current)
+    current = current.renumber(changetable)
   }
   let existing = pdf.objects.objects.to_array()
   for entry in existing {
@@ -1116,8 +1116,7 @@ pub fn PdfMerger::merge_pdfs(
   for pair in changes {
     changes_map.set(pair.0, pair.1)
   }
-  pdf.objselfmap(obj => @pdf.renumber_object_parsed(
-    pdf,
+  pdf.objselfmap(obj => pdf.renumber_object_parsed(
     changes_map,
     obj,
     preserve_order=false,
