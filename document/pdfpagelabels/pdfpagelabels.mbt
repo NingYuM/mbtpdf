@@ -1,4 +1,7 @@
 ///|
+type PdfObject = @pdf.PdfObject
+
+///|
 /// Styles for page labels.
 pub(all) enum LabelStyle {
   DecimalArabic
@@ -30,7 +33,7 @@ pub fn PdfPageLabels::new() -> PdfPageLabels {
 
 ///|
 pub let basic_label : PageLabel = {
-  labelstyle: LabelStyle::DecimalArabic,
+  labelstyle: DecimalArabic,
   labelprefix: None,
   startpage: 1,
   startvalue: 1,
@@ -40,12 +43,12 @@ pub let basic_label : PageLabel = {
 /// String of label style, e.g. DecimalArabic.
 pub fn LabelStyle::to_string(self : LabelStyle) -> String {
   match self {
-    LabelStyle::DecimalArabic => "DecimalArabic"
-    LabelStyle::UppercaseRoman => "UppercaseRoman"
-    LabelStyle::LowercaseRoman => "LowercaseRoman"
-    LabelStyle::UppercaseLetters => "UppercaseLetters"
-    LabelStyle::LowercaseLetters => "LowercaseLetters"
-    LabelStyle::NoLabelPrefixOnly => "NoLabelPrefixOnly"
+    DecimalArabic => "DecimalArabic"
+    UppercaseRoman => "UppercaseRoman"
+    LowercaseRoman => "LowercaseRoman"
+    UppercaseLetters => "UppercaseLetters"
+    LowercaseLetters => "LowercaseLetters"
+    NoLabelPrefixOnly => "NoLabelPrefixOnly"
   }
 }
 
@@ -63,32 +66,29 @@ pub fn PageLabel::to_string(self : PageLabel) -> String {
 }
 
 ///|
-fn label_of_range(
-  pdf : @pdf.Pdf,
-  range : (@pdf.PdfObject, @pdf.PdfObject),
-) -> PageLabel {
+fn label_of_range(pdf : @pdf.Pdf, range : (PdfObject, PdfObject)) -> PageLabel {
   let (startpage_obj, thing) = range
   let startpage = match startpage_obj {
-    @pdf.PdfObject::Integer(i) => i + 1
+    Integer(i) => i + 1
     _ => {
       @pdfe.Pdfe::new().log("Bad Number Tree\n")
       1
     }
   }
   let labelstyle = match pdf.lookup_direct("/S", thing) {
-    Some(@pdf.PdfObject::Name("/D")) => LabelStyle::DecimalArabic
-    Some(@pdf.PdfObject::Name("/R")) => LabelStyle::UppercaseRoman
-    Some(@pdf.PdfObject::Name("/r")) => LabelStyle::LowercaseRoman
-    Some(@pdf.PdfObject::Name("/A")) => LabelStyle::UppercaseLetters
-    Some(@pdf.PdfObject::Name("/a")) => LabelStyle::LowercaseLetters
-    _ => LabelStyle::NoLabelPrefixOnly
+    Some(Name("/D")) => DecimalArabic
+    Some(Name("/R")) => UppercaseRoman
+    Some(Name("/r")) => LowercaseRoman
+    Some(Name("/A")) => UppercaseLetters
+    Some(Name("/a")) => LowercaseLetters
+    _ => NoLabelPrefixOnly
   }
   let labelprefix = match pdf.lookup_direct("/P", thing) {
-    Some(@pdf.PdfObject::String(s)) => Some(s)
+    Some(String(s)) => Some(s)
     _ => None
   }
   let startvalue = match pdf.lookup_direct("/St", thing) {
-    Some(@pdf.PdfObject::Integer(i)) => i
+    Some(Integer(i)) => i
     _ => 1
   }
   { labelstyle, labelprefix, startpage, startvalue }
@@ -118,12 +118,10 @@ pub fn PdfPageLabels::complete(
   _self : PdfPageLabels,
   labels : Array[PageLabel],
 ) -> Array[PageLabel] {
-  if labels.length() == 0 {
-    [basic_label]
-  } else if labels[0].startpage > 1 {
-    concat_arrays([basic_label], labels)
-  } else {
-    labels
+  match labels {
+    [] => [basic_label]
+    [first, ..] if first.startpage > 1 => concat_arrays([basic_label], labels)
+    _ => labels
   }
 }
 
@@ -177,12 +175,12 @@ fn roman_upper(n : Int) -> String {
 ///|
 fn string_of_pagenumber(n : Int, style : LabelStyle) -> String {
   match style {
-    LabelStyle::NoLabelPrefixOnly => ""
-    LabelStyle::DecimalArabic => n.to_string()
-    LabelStyle::UppercaseRoman => roman_upper(n)
-    LabelStyle::LowercaseRoman => roman_upper(n).to_lower()
-    LabelStyle::UppercaseLetters => letter_string(n)
-    LabelStyle::LowercaseLetters => letter_string(n).to_lower()
+    NoLabelPrefixOnly => ""
+    DecimalArabic => n.to_string()
+    UppercaseRoman => roman_upper(n)
+    LowercaseRoman => roman_upper(n).to_lower()
+    UppercaseLetters => letter_string(n)
+    LowercaseLetters => letter_string(n).to_lower()
   }
 }
 
@@ -239,8 +237,9 @@ pub fn PdfPageLabels::pagelabel_of_pagenumber(
 
 ///|
 fn label_index_for_page(n : Int, labels : Array[PageLabel]) -> Int? {
-  if labels.length() == 0 {
-    return None
+  match labels {
+    [] => return None
+    _ => ()
   }
   let mut i = 0
   while i < labels.length() {
@@ -267,22 +266,23 @@ pub fn PdfPageLabels::add_label(
     label.startpage)
   let replica = if range_end == endpage {
     []
-  } else if after.length() > 0 && after[0].startpage == range_end + 1 {
-    []
-  } else if before_or_equal.length() == 0 {
-    []
   } else {
-    match last(before_or_equal) {
-      Some(lst) =>
-        [
-          {
-            labelstyle: lst.labelstyle,
-            labelprefix: lst.labelprefix,
-            startpage: range_end + 1,
-            startvalue: range_end + 1 + (lst.startvalue - lst.startpage),
-          },
-        ]
-      None => []
+    match (after, before_or_equal) {
+      ([first, ..], _) if first.startpage == range_end + 1 => []
+      (_, []) => []
+      _ =>
+        match last(before_or_equal) {
+          Some(lst) =>
+            [
+              {
+                labelstyle: lst.labelstyle,
+                labelprefix: lst.labelprefix,
+                startpage: range_end + 1,
+                startvalue: range_end + 1 + (lst.startvalue - lst.startpage),
+              },
+            ]
+          None => []
+        }
     }
   }
   let before = filter(before_or_during, x => !(x.startpage > label.startpage &&
@@ -293,12 +293,12 @@ pub fn PdfPageLabels::add_label(
 ///|
 fn labelstyle_eq(a : LabelStyle, b : LabelStyle) -> Bool {
   match (a, b) {
-    (LabelStyle::DecimalArabic, LabelStyle::DecimalArabic) => true
-    (LabelStyle::UppercaseRoman, LabelStyle::UppercaseRoman) => true
-    (LabelStyle::LowercaseRoman, LabelStyle::LowercaseRoman) => true
-    (LabelStyle::UppercaseLetters, LabelStyle::UppercaseLetters) => true
-    (LabelStyle::LowercaseLetters, LabelStyle::LowercaseLetters) => true
-    (LabelStyle::NoLabelPrefixOnly, LabelStyle::NoLabelPrefixOnly) => true
+    (DecimalArabic, DecimalArabic) => true
+    (UppercaseRoman, UppercaseRoman) => true
+    (LowercaseRoman, LowercaseRoman) => true
+    (UppercaseLetters, UppercaseLetters) => true
+    (LowercaseLetters, LowercaseLetters) => true
+    (NoLabelPrefixOnly, NoLabelPrefixOnly) => true
     _ => false
   }
 }
@@ -385,38 +385,33 @@ pub fn PageLabel::write_all(
     for label in labels {
       let entries = Array::new()
       match label.labelstyle {
-        LabelStyle::NoLabelPrefixOnly => ()
-        LabelStyle::DecimalArabic =>
-          entries.push(("/S", @pdf.PdfObject::Name("/D")))
-        LabelStyle::UppercaseRoman =>
-          entries.push(("/S", @pdf.PdfObject::Name("/R")))
-        LabelStyle::LowercaseRoman =>
-          entries.push(("/S", @pdf.PdfObject::Name("/r")))
-        LabelStyle::UppercaseLetters =>
-          entries.push(("/S", @pdf.PdfObject::Name("/A")))
-        LabelStyle::LowercaseLetters =>
-          entries.push(("/S", @pdf.PdfObject::Name("/a")))
+        NoLabelPrefixOnly => ()
+        DecimalArabic => entries.push(("/S", PdfObject::Name("/D")))
+        UppercaseRoman => entries.push(("/S", PdfObject::Name("/R")))
+        LowercaseRoman => entries.push(("/S", PdfObject::Name("/r")))
+        UppercaseLetters => entries.push(("/S", PdfObject::Name("/A")))
+        LowercaseLetters => entries.push(("/S", PdfObject::Name("/a")))
       }
       match label.labelprefix {
-        Some(p) => entries.push(("/P", @pdf.PdfObject::String(p)))
+        Some(p) => entries.push(("/P", PdfObject::String(p)))
         None => ()
       }
       if label.startvalue != 1 {
-        entries.push(("/St", @pdf.PdfObject::Integer(label.startvalue)))
+        entries.push(("/St", PdfObject::Integer(label.startvalue)))
       }
-      arr.push(@pdf.PdfObject::Integer(label.startpage - 1))
-      arr.push(@pdf.PdfObject::Dictionary(entries))
+      arr.push(PdfObject::Integer(label.startpage - 1))
+      arr.push(PdfObject::Dictionary(entries))
     }
     let rootnum = pdf.root
     let root = pdf.lookup_obj(rootnum)
     let updated_root = root.add_entry(
       "/PageLabels",
-      @pdf.PdfObject::Dictionary([("/Nums", @pdf.PdfObject::Array(arr))]),
+      PdfObject::Dictionary([("/Nums", PdfObject::Array(arr))]),
     )
     pdf.addobj_given_num((rootnum, updated_root))
     pdf.trailerdict = pdf.trailerdict.add_entry(
       "/Root",
-      @pdf.PdfObject::Indirect(rootnum),
+      PdfObject::Indirect(rootnum),
     )
   }
 }
@@ -431,7 +426,7 @@ pub fn PageLabel::remove_all(pdf : @pdf.Pdf) -> Unit raise {
   pdf.addobj_given_num((rootnum, updated_root))
   pdf.trailerdict = pdf.trailerdict.add_entry(
     "/Root",
-    @pdf.PdfObject::Indirect(rootnum),
+    PdfObject::Indirect(rootnum),
   )
 }
 
@@ -474,10 +469,9 @@ fn[T] partition(items : Array[T], pred : (T) -> Bool) -> (Array[T], Array[T]) {
 
 ///|
 fn[T] last(items : Array[T]) -> T? {
-  if items.length() == 0 {
-    None
-  } else {
-    Some(items[items.length() - 1])
+  match items {
+    [] => None
+    [.., last] => Some(last)
   }
 }
 
