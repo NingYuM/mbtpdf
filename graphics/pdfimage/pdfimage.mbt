@@ -629,7 +629,7 @@ pub fn Image::from_raw(
   data : @pdfio.MutableBytes,
 ) -> Image raise {
   let bpc_val = bpc_value(bpc)
-  if bpc_val == Some(8) {
+  if bpc_val is Some(8) {
     match colspace {
       @pdfspace.ColourSpace::DeviceRGB
       | @pdfspace.ColourSpace::CalRGB(_, _, _, _) =>
@@ -703,7 +703,7 @@ pub fn Image::from_raw(
       _ => ()
     }
   }
-  if bpc_val == Some(1) && size >= width * height / 8 {
+  if bpc_val is Some(1) && size >= width * height / 8 {
     return Image::Raw(
       width,
       height,
@@ -711,7 +711,7 @@ pub fn Image::from_raw(
       read_1bpp_as_rgb24(width, height, data),
     )
   }
-  if bpc_val == Some(4) {
+  if bpc_val is Some(4) {
     match colspace {
       @pdfspace.ColourSpace::DeviceGray =>
         if size >= width * height / 2 {
