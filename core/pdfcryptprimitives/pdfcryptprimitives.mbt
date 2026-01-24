@@ -25,11 +25,9 @@ fn bytes_of_int_arrays(values : Array[Array[Int]]) -> @pdfio.MutableBytes {
   let out = @pdfio.mkbytes(total)
   let mut pos = 0
   for v in values {
-    let mut i = 0
-    while i < v.length() {
-      @pdfio.bset(out, pos, v[i])
+    for value in v {
+      @pdfio.bset(out, pos, value)
       pos = pos + 1
-      i = i + 1
     }
   }
   out
@@ -61,10 +59,8 @@ pub fn PdfCryptPrimitives::find_hash(
   let digest = self.md5(digest_input)
   let out_len = Int::min(16, keylength / 8 + 5)
   let out = Array::make(out_len, 0)
-  let mut i = 0
-  while i < out_len {
+  for i in 0..<out_len {
     out[i] = @pdfio.bget(digest, i)
-    i = i + 1
   }
   out
 }
