@@ -2,6 +2,7 @@
 package "bobzhang/mbtpdf/document/pdfpaper"
 
 import {
+  "bobzhang/mbtpdf/core/pdf",
   "bobzhang/mbtpdf/core/pdfunits",
   "moonbitlang/core/debug",
 }
@@ -44,6 +45,7 @@ pub struct Paper {
 pub fn Paper::height(Self) -> Double
 pub fn Paper::landscape(Self) -> Self
 pub fn Paper::new(@pdfunits.LengthUnit, Double, Double) -> Self
+pub fn Paper::rectangle(Self) -> @pdf.PdfObject
 pub fn Paper::unit(Self) -> @pdfunits.LengthUnit
 pub fn Paper::width(Self) -> Double
 pub impl @debug.Debug for Paper

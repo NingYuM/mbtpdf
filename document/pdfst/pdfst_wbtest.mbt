@@ -1,8 +1,8 @@
 ///|
 fn build_two_page_pdf() -> @pdf.Pdf raise {
   let pages = [
-    @pdfpage.blankpage(@pdfpaper.a4),
-    @pdfpage.blankpage(@pdfpaper.a4),
+    @pdfpage.Page::blank(@pdfpaper.a4),
+    @pdfpage.Page::blank(@pdfpaper.a4),
   ]
   let (pdf, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
   @pdfpage.add_root(pageroot, [], pdf)
@@ -13,7 +13,7 @@ fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
   let pages = Array::new()
   let mut i = 0
   while i < count {
-    pages.push(@pdfpage.blankpage(@pdfpaper.a4))
+    pages.push(@pdfpage.Page::blank(@pdfpaper.a4))
     i = i + 1
   }
   let (pdf, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())

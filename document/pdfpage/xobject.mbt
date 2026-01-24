@@ -55,17 +55,17 @@ pub fn process_xobject(
 
 ///|
 /// Process XObjects within a page resources dictionary.
-pub fn process_xobjects(
+pub fn Page::process_xobjects(
+  self : Page,
   pdf : @pdf.Pdf,
-  page : Page,
   f : (@pdf.Pdf, @pdf.PdfObject, Array[@pdf.PdfObject]) -> Array[@pdf.PdfObject],
 ) -> Unit raise {
-  match @pdf.lookup_direct(pdf, "/XObject", page.resources) {
+  match @pdf.lookup_direct(pdf, "/XObject", self.resources) {
     Some(@pdf.PdfObject::Dictionary(elts)) =>
       for entry in elts {
         match entry.1 {
           @pdf.PdfObject::Indirect(i) =>
-            process_xobject(f, pdf, page.resources, i)
+            process_xobject(f, pdf, self.resources, i)
           _ => raise @pdf.PdfError::Msg("process_xobject")
         }
       }

@@ -20,7 +20,7 @@ async fn main {
     let stream = @pdfops.stream_of_ops(ops)
     let page : @pdfpage.Page = {
       content: [stream],
-      mediabox: @pdfpage.blankpage(@pdfpaper.a4).mediabox,
+      mediabox: @pdfpage.Page::blank(@pdfpaper.a4).mediabox,
       resources: @pdf.PdfObject::Dictionary([
         ("/Font", @pdf.PdfObject::Dictionary([("/F0", font)])),
       ]),

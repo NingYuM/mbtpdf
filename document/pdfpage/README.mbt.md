@@ -80,7 +80,7 @@ let lastpage = @pdfpage.endpage_fast(pdf)
 // Create blank A4 page
 
 ///|
-let page = @pdfpage.blankpage(@pdfpaper.Paper::A4Portrait)
+let page = @pdfpage.Page::blank(@pdfpaper.Paper::A4Portrait)
 ```
 
 ### Custom Page
@@ -97,7 +97,7 @@ let rect = @pdf.PdfObject::Array([
 ])
 
 ///|
-let page = @pdfpage.custompage(rect)
+let page = @pdfpage.Page::custom(rect)
 ```
 
 ### Minimum Valid PDF
@@ -148,7 +148,7 @@ let new_pdf = @pdfpage.pdf_of_pages(
 // Add operators before page content
 
 ///|
-let modified_page = @pdfpage.prepend_operators(pdf, ops, page)
+let modified_page = page.prepend_operators(pdf, ops)
 ```
 
 ### Append Operators
@@ -157,7 +157,7 @@ let modified_page = @pdfpage.prepend_operators(pdf, ops, page)
 // Add operators after page content
 
 ///|
-let modified_page = @pdfpage.postpend_operators(pdf, ops, page)
+let modified_page = page.postpend_operators(pdf, ops)
 ```
 
 ### Protect Content
@@ -226,7 +226,7 @@ let combined = @pdfpage.combine_pdf_resources(pdf, resources_a, resources_b)
 Apply function to all XObjects on a page:
 
 ```mbt nocheck
-@pdfpage.process_xobjects!(pdf, page, fn(pdf, resources, ops) {
+page.process_xobjects!(pdf, fn(pdf, resources, ops) {
   // Transform content
   ops
 })
@@ -286,8 +286,8 @@ let objnum = @pdfpage.page_object_number(pdf, 1)
 ```mbt check
 ///|
 test "rotation conversions" {
-  inspect(@pdfpage.int_of_rotation(@pdfpage.Rotation::Rotate90), content="90")
-  guard @pdfpage.rotation_of_int(180) is Rotate180 else {
+  inspect(@pdfpage.Rotation::Rotate90.to_int(), content="90")
+  guard @pdfpage.Rotation::from_int(180) is Rotate180 else {
     fail("expected Rotate180")
   }
 }

@@ -76,7 +76,7 @@ fn mkpage(
     ("/Resources", page.resources),
     ("/MediaBox", page.mediabox),
   ]
-  let rotation = int_of_rotation(page.rotate)
+  let rotation = page.rotate.to_int()
   if rotation != 0 {
     entries.push(("/Rotate", @pdf.PdfObject::Integer(rotation)))
   }

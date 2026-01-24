@@ -1,27 +1,27 @@
 ///|
 /// Prepend operators to a page.
-pub fn prepend_operators(
+pub fn Page::prepend_operators(
+  self : Page,
   pdf : @pdf.Pdf,
   ops : Array[@pdfops.Op],
-  page : Page,
   fast? : Bool = false,
 ) -> Page raise {
   if fast {
     {
-      content: [@pdfops.stream_of_ops(ops)] + page.content,
-      mediabox: page.mediabox,
-      resources: page.resources,
-      rotate: page.rotate,
-      rest: page.rest,
+      content: [@pdfops.stream_of_ops(ops)] + self.content,
+      mediabox: self.mediabox,
+      resources: self.resources,
+      rotate: self.rotate,
+      rest: self.rest,
     }
   } else {
-    let old_ops = @pdfops.parse_operators(pdf, page.resources, page.content)
+    let old_ops = @pdfops.parse_operators(pdf, self.resources, self.content)
     {
       content: [@pdfops.stream_of_ops(ops + old_ops)],
-      mediabox: page.mediabox,
-      resources: page.resources,
-      rotate: page.rotate,
-      rest: page.rest,
+      mediabox: self.mediabox,
+      resources: self.resources,
+      rotate: self.rotate,
+      rest: self.rest,
     }
   }
 }
@@ -52,10 +52,10 @@ pub fn protect(ops : Array[@pdfops.Op]) -> Array[@pdfops.Op] {
 
 ///|
 /// Postpend operators to a page.
-pub fn postpend_operators(
+pub fn Page::postpend_operators(
+  self : Page,
   pdf : @pdf.Pdf,
   ops : Array[@pdfops.Op],
-  page : Page,
   fast? : Bool = false,
 ) -> Page raise {
   if fast {
@@ -64,25 +64,25 @@ pub fn postpend_operators(
     wrapped.append(ops[:])
     wrapped.push(OpQ)
     {
-      content: page.content + [@pdfops.stream_of_ops(wrapped)],
-      mediabox: page.mediabox,
-      resources: page.resources,
-      rotate: page.rotate,
-      rest: page.rest,
+      content: self.content + [@pdfops.stream_of_ops(wrapped)],
+      mediabox: self.mediabox,
+      resources: self.resources,
+      rotate: self.rotate,
+      rest: self.rest,
     }
   } else {
     let existing_ops = @pdfops.parse_operators(
       pdf,
-      page.resources,
-      page.content,
+      self.resources,
+      self.content,
     )
     if existing_ops.length() == 0 {
       {
         content: [@pdfops.stream_of_ops(ops)],
-        mediabox: page.mediabox,
-        resources: page.resources,
-        rotate: page.rotate,
-        rest: page.rest,
+        mediabox: self.mediabox,
+        resources: self.resources,
+        rotate: self.rotate,
+        rest: self.rest,
       }
     } else {
       let protected_ops = protect(existing_ops)
@@ -94,10 +94,10 @@ pub fn postpend_operators(
       combined.append(ops[:])
       {
         content: [@pdfops.stream_of_ops(combined)],
-        mediabox: page.mediabox,
-        resources: page.resources,
-        rotate: page.rotate,
-        rest: page.rest,
+        mediabox: self.mediabox,
+        resources: self.resources,
+        rotate: self.rotate,
+        rest: self.rest,
       }
     }
   }

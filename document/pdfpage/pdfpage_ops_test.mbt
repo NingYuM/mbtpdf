@@ -19,7 +19,7 @@ test "prepend_operators fast path inserts ops" {
   let pdf = @pdf.empty()
   let base_ops : Array[@pdfops.Op] = [Opq, OpQ]
   let page = ops_page_with_ops(base_ops)
-  let updated = @pdfpage.prepend_operators(pdf, [Opw(2.0)], page, fast=true)
+  let updated = page.prepend_operators(pdf, [Opw(2.0)], fast=true)
   let ops = @pdfops.parse_operators(pdf, updated.resources, updated.content)
   match (ops[0] : @pdfops.Op) {
     Opw(2.0) => ()
@@ -32,7 +32,7 @@ test "postpend_operators fast path wraps ops" {
   let pdf = @pdf.empty()
   let base_ops : Array[@pdfops.Op] = [OpBT, OpET]
   let page = ops_page_with_ops(base_ops)
-  let updated = @pdfpage.postpend_operators(pdf, [Opw(3.0)], page, fast=true)
+  let updated = page.postpend_operators(pdf, [Opw(3.0)], fast=true)
   let ops = @pdfops.parse_operators(pdf, updated.resources, updated.content)
   let len = ops.length()
   match ((ops[len - 3], ops[len - 2], ops[len - 1]) : (@pdfops.Op, _, _)) {
@@ -44,8 +44,8 @@ test "postpend_operators fast path wraps ops" {
 ///|
 test "postpend_operators handles empty content" {
   let pdf = @pdf.empty()
-  let page = @pdfpage.custompage(ops_sample_rect())
-  let updated = @pdfpage.postpend_operators(pdf, [Opw(1.0)], page)
+  let page = @pdfpage.Page::custom(ops_sample_rect())
+  let updated = page.postpend_operators(pdf, [Opw(1.0)])
   let ops = @pdfops.parse_operators(pdf, updated.resources, updated.content)
   match (ops : Array[@pdfops.Op]) {
     [Opw(1.0)] => ()

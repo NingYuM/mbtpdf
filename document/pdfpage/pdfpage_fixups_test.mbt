@@ -21,7 +21,7 @@ fn annot_numbers(pdf : @pdf.Pdf, page_obj : @pdf.PdfObject) -> Array[Int] {
 test "add_pagetree handles large page sets" {
   let pages : Array[@pdfpage.Page] = []
   for _ in 0..<12 {
-    pages.push(@pdfpage.custompage(fixups_sample_rect()))
+    pages.push(@pdfpage.Page::custom(fixups_sample_rect()))
   }
   let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
   let pdf = @pdfpage.add_root(pageroot, [], pdf0)
@@ -31,7 +31,7 @@ test "add_pagetree handles large page sets" {
 ///|
 test "fixup_duplicate_annots clones duplicates and updates popup" {
   let pdf0 = @pdf.empty()
-  let page = @pdfpage.custompage(fixups_sample_rect())
+  let page = @pdfpage.Page::custom(fixups_sample_rect())
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page, page], pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
   let annot_base : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Text"))])

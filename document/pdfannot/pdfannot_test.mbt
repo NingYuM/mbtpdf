@@ -21,7 +21,7 @@ test "annotation border dash array" {
     Real(100.0),
     Real(100.0),
   ])
-  let page = @pdfpage.custompage(rect)
+  let page = @pdfpage.Page::custom(rect)
   let border = @pdfannot.make_border(1.0, dasharray=[2, 3])
   let annot = @pdfannot.make(@pdfannot.Subtype::Text, border~)
   let updated = @pdfannot.add_annotation(pdf, page, annot)
@@ -50,7 +50,7 @@ test "add_annotation and read back" {
     Real(50.0),
     Real(50.0),
   ])
-  let page = @pdfpage.custompage(rect)
+  let page = @pdfpage.Page::custom(rect)
   let border = @pdfannot.make_border(2.0)
   let annot = @pdfannot.make(
     @pdfannot.Subtype::Link,
@@ -162,7 +162,7 @@ test "annotations_of_page skips popup parent" {
   let rest : @pdf.PdfObject = Dictionary([
     ("/Annots", Array([Indirect(parent_num), Indirect(popup_num)])),
   ])
-  let base = @pdfpage.custompage(rect)
+  let base = @pdfpage.Page::custom(rect)
   let page : @pdfpage.Page = {
     content: base.content,
     mediabox: base.mediabox,
@@ -207,7 +207,7 @@ test "read_annotation uses /BS style" {
   let rest : @pdf.PdfObject = Dictionary([
     ("/Annots", Array([Indirect(objnum)])),
   ])
-  let base = @pdfpage.custompage(rect)
+  let base = @pdfpage.Page::custom(rect)
   let page : @pdfpage.Page = {
     content: base.content,
     mediabox: base.mediabox,
@@ -272,7 +272,7 @@ test "read_annotation parses styles and extras" {
   let rest : @pdf.PdfObject = Dictionary([
     ("/Annots", Array(nums.map(fn(n) { Indirect(n) }))),
   ])
-  let base = @pdfpage.custompage(rect)
+  let base = @pdfpage.Page::custom(rect)
   let page : @pdfpage.Page = {
     content: base.content,
     mediabox: base.mediabox,
@@ -332,7 +332,7 @@ test "read_annotation handles unknown subtype and missing strings" {
   let rest : @pdf.PdfObject = Dictionary([
     ("/Annots", Array([Indirect(objnum)])),
   ])
-  let base = @pdfpage.custompage(rect)
+  let base = @pdfpage.Page::custom(rect)
   let page : @pdfpage.Page = {
     content: base.content,
     mediabox: base.mediabox,
@@ -363,7 +363,7 @@ test "annotations_of_page handles non-array and add_annotation rejects" {
     Real(10.0),
     Real(10.0),
   ])
-  let base = @pdfpage.custompage(rect)
+  let base = @pdfpage.Page::custom(rect)
   let page : @pdfpage.Page = {
     content: base.content,
     mediabox: base.mediabox,
@@ -439,7 +439,7 @@ test "read_annotation handles more subtypes and popup fallback" {
   let rest : @pdf.PdfObject = Dictionary([
     ("/Annots", Array(nums.map(fn(n) { Indirect(n) }))),
   ])
-  let base = @pdfpage.custompage(rect)
+  let base = @pdfpage.Page::custom(rect)
   let page : @pdfpage.Page = {
     content: base.content,
     mediabox: base.mediabox,
@@ -508,7 +508,7 @@ test "read_annotation covers border styles and dash array" {
   let rest : @pdf.PdfObject = Dictionary([
     ("/Annots", Array(nums.map(fn(n) { Indirect(n) }))),
   ])
-  let base = @pdfpage.custompage(rect)
+  let base = @pdfpage.Page::custom(rect)
   let page : @pdfpage.Page = {
     content: base.content,
     mediabox: base.mediabox,
@@ -544,7 +544,7 @@ test "add_annotation merges existing annots and extras" {
     ("/Subtype", Name("/Text")),
     ("/Rect", rect),
   ])
-  let base = @pdfpage.custompage(rect)
+  let base = @pdfpage.Page::custom(rect)
   let page : @pdfpage.Page = {
     content: base.content,
     mediabox: base.mediabox,
@@ -590,7 +590,7 @@ test "annotations_of_page errors on non-dictionary annots" {
     Real(10.0),
     Real(10.0),
   ])
-  let base = @pdfpage.custompage(rect)
+  let base = @pdfpage.Page::custom(rect)
   let page : @pdfpage.Page = {
     content: base.content,
     mediabox: base.mediabox,

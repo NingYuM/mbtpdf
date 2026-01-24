@@ -1126,10 +1126,10 @@ async test "e2e merge preserves AcroForm entries" {
 
 ///|
 async test "e2e merge preserves /OCProperties" {
-  let left_page = @pdfpage.blankpage(@pdfpaper.a4)
+  let left_page = @pdfpage.Page::blank(@pdfpaper.a4)
   let (left0, left_root) = @pdfpage.add_pagetree([left_page], @pdf.empty())
   let left = @pdfpage.add_root(left_root, [], left0)
-  let right_page = @pdfpage.blankpage(@pdfpaper.a4)
+  let right_page = @pdfpage.Page::blank(@pdfpaper.a4)
   let (right0, right_root) = @pdfpage.add_pagetree([right_page], @pdf.empty())
   let right = @pdfpage.add_root(right_root, [], right0)
   add_ocg_properties(left, "LayerLeft")
@@ -1173,10 +1173,10 @@ async test "e2e merge preserves /OCProperties" {
 
 ///|
 async test "e2e merge preserves OCG configs" {
-  let left_page = @pdfpage.blankpage(@pdfpaper.a4)
+  let left_page = @pdfpage.Page::blank(@pdfpaper.a4)
   let (left0, left_root) = @pdfpage.add_pagetree([left_page], @pdf.empty())
   let left = @pdfpage.add_root(left_root, [], left0)
-  let right_page = @pdfpage.blankpage(@pdfpaper.a4)
+  let right_page = @pdfpage.Page::blank(@pdfpaper.a4)
   let (right0, right_root) = @pdfpage.add_pagetree([right_page], @pdf.empty())
   let right = @pdfpage.add_root(right_root, [], right0)
   add_ocg_properties_with_config(left, "LayerLeft", "ConfigLeft")
@@ -1228,13 +1228,13 @@ async test "e2e merge preserves OCG configs" {
 
 ///|
 async test "e2e merge preserves structure trees" {
-  let left_page = @pdfpage.blankpage(@pdfpaper.a4)
+  let left_page = @pdfpage.Page::blank(@pdfpaper.a4)
   let (left0, left_root) = @pdfpage.add_pagetree([left_page], @pdf.empty())
   let left = @pdfpage.add_root(left_root, [], left0)
   let left_refs = @pdf.page_reference_numbers(left)
   assert_true(left_refs.length() > 0)
   add_struct_tree_root(left, left_refs[0], 0)
-  let right_page = @pdfpage.blankpage(@pdfpaper.a4)
+  let right_page = @pdfpage.Page::blank(@pdfpaper.a4)
   let (right0, right_root) = @pdfpage.add_pagetree([right_page], @pdf.empty())
   let right = @pdfpage.add_root(right_root, [], right0)
   let right_refs = @pdf.page_reference_numbers(right)
@@ -2023,10 +2023,9 @@ async test "e2e page ops roundtrip" {
   let (pdf0, pageroot) = @pdfpage.add_pagetree([page], @pdf.empty())
   let pdf = @pdfpage.add_root(pageroot, [], pdf0)
   let pages = @pdfpage.pages_of_pagetree(pdf)
-  let updated = @pdfpage.postpend_operators(
+  let updated = pages[0].postpend_operators(
     pdf,
     [@pdfops.Op::Opw(5.0)],
-    pages[0],
     fast=true,
   )
   pages[0] = updated

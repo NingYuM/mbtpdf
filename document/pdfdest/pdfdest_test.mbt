@@ -437,7 +437,7 @@ test "read_destination resolves named dests in catalog" {
     Real(100.0),
     Real(100.0),
   ])
-  let page = @pdfpage.custompage(rect)
+  let page = @pdfpage.Page::custom(rect)
   let (pdf0, pageroot) = @pdfpage.add_pagetree([page], @pdf.empty())
   let pdf = @pdfpage.add_root(pageroot, [], pdf0)
   let refs = @pdf.page_reference_numbers(pdf)

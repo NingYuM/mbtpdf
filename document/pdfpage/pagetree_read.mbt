@@ -68,7 +68,7 @@ fn find_pages(
             None => mediabox
           }
           let rotate = match @pdf.lookup_direct(pdf, "/Rotate", pages) {
-            Some(@pdf.PdfObject::Integer(r)) => rotation_of_int(r)
+            Some(@pdf.PdfObject::Integer(r)) => Rotation::from_int(r)
             _ => rotate
           }
           let out = Array::new()
@@ -100,7 +100,7 @@ fn find_pages(
             _ => raise @pdf.PdfError::Msg("Pages not a dictionary")
           }
           let rotate = match @pdf.lookup_direct(pdf, "/Rotate", pages) {
-            Some(@pdf.PdfObject::Integer(r)) => rotation_of_int(r)
+            Some(@pdf.PdfObject::Integer(r)) => Rotation::from_int(r)
             _ => rotate
           }
           let content = match contents {

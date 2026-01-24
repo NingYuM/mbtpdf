@@ -38,7 +38,7 @@ test "process_xobjects updates form xobject stream" {
     let updated_data = @pdfio.bytes_of_list([0x41, 0x42])
     [Stream(Ref::new((dict_updated, @pdf.Stream::Got(updated_data))))]
   }
-  @pdfpage.process_xobjects(pdf, page, update)
+  page.process_xobjects(pdf, update)
   let updated = @pdf.lookup_obj(pdf, xobj_num)
   match (@pdf.lookup_direct(pdf, "/Subtype", updated) : @pdf.PdfObject?) {
     Some(Name("/Form")) => ()

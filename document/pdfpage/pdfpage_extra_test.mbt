@@ -20,7 +20,7 @@ test "add_pagetree builds page objects" {
     Real(100.0),
     Real(100.0),
   ])
-  let pages = [@pdfpage.custompage(rect), @pdfpage.custompage(rect)]
+  let pages = [@pdfpage.Page::custom(rect), @pdfpage.Page::custom(rect)]
   let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
   let pdf = @pdfpage.add_root(pageroot, [], pdf0)
   assert_eq(@pdfpage.pages_of_pagetree(pdf).length(), 2)
@@ -44,7 +44,7 @@ test "pages_of_pagetree handles missing mediabox and non-stream contents" {
     Real(200.0),
     Real(220.0),
   ])
-  let pages = [@pdfpage.custompage(rect1), @pdfpage.custompage(rect2)]
+  let pages = [@pdfpage.Page::custom(rect1), @pdfpage.Page::custom(rect2)]
   let (pdf1, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
   let page1_num = match @pdfpage.page_object_number(pdf, 1) {
@@ -102,7 +102,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
     Real(100.0),
     Real(100.0),
   ])
-  let pages_in = [@pdfpage.custompage(rect), @pdfpage.custompage(rect)]
+  let pages_in = [@pdfpage.Page::custom(rect), @pdfpage.Page::custom(rect)]
   let (pdf1, pageroot) = @pdfpage.add_pagetree(pages_in, pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
   let refs = @pdf.page_reference_numbers(pdf)
@@ -211,9 +211,9 @@ test "pdf_of_pages extracts subset" {
     Real(100.0),
   ])
   let pages = [
-    @pdfpage.custompage(rect),
-    @pdfpage.custompage(rect),
-    @pdfpage.custompage(rect),
+    @pdfpage.Page::custom(rect),
+    @pdfpage.Page::custom(rect),
+    @pdfpage.Page::custom(rect),
   ]
   let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
   let pdf = @pdfpage.add_root(pageroot, [], pdf0)
@@ -235,7 +235,7 @@ test "prepend/postpend operators update content" {
     Real(100.0),
     Real(100.0),
   ])
-  let base_page = @pdfpage.custompage(rect)
+  let base_page = @pdfpage.Page::custom(rect)
   let base_ops : Array[@pdfops.Op] = [Opq, OpQ]
   let page = Page::{
     content: [@pdfops.stream_of_ops(base_ops)],
@@ -244,13 +244,13 @@ test "prepend/postpend operators update content" {
     rotate: base_page.rotate,
     rest: base_page.rest,
   }
-  let pre = @pdfpage.prepend_operators(pdf, [Opw(2.0)], page)
+  let pre = page.prepend_operators(pdf, [Opw(2.0)])
   let ops_pre = @pdfops.parse_operators(pdf, pre.resources, pre.content)
   match (ops_pre[0] : @pdfops.Op) {
     Opw(2.0) => ()
     _ => fail("expected prepend to be first")
   }
-  let post = @pdfpage.postpend_operators(pdf, [Opw(3.0)], pre)
+  let post = pre.postpend_operators(pdf, [Opw(3.0)])
   let ops_post = @pdfops.parse_operators(pdf, post.resources, post.content)
   let last = ops_post[ops_post.length() - 1]
   match (last : @pdfops.Op) {
@@ -261,7 +261,9 @@ test "prepend/postpend operators update content" {
 
 ///|
 test "rotation_of_int rejects invalid" {
-  let res : Result[@pdfpage.Rotation, Error] = try? @pdfpage.rotation_of_int(13)
+  let res : Result[@pdfpage.Rotation, Error] = try? @pdfpage.Rotation::from_int(
+    13,
+  )
   match res {
     Err(_) => ()
     _ => fail("expected error")
@@ -420,7 +422,7 @@ test "change_pages rewrites annotation and openaction" {
     Real(100.0),
     Real(100.0),
   ])
-  let page = @pdfpage.custompage(rect)
+  let page = @pdfpage.Page::custom(rect)
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
   let refs = @pdf.page_reference_numbers(pdf)

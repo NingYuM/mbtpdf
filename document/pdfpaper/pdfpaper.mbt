@@ -35,6 +35,20 @@ pub fn Paper::height(self : Paper) -> Double {
 }
 
 ///|
+/// Convert a paper size to a PDF rectangle.
+pub fn Paper::rectangle(self : Paper) -> @pdf.PdfObject {
+  let unit = self.unit()
+  let width = unit.to_points(self.width())
+  let height = unit.to_points(self.height())
+  @pdf.PdfObject::Array([
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(0.0),
+    @pdf.PdfObject::Real(width),
+    @pdf.PdfObject::Real(height),
+  ])
+}
+
+///|
 /// Flip a paper size between landscape and portrait.
 pub fn Paper::landscape(self : Paper) -> Paper {
   { unit: self.unit, width: self.height, height: self.width }

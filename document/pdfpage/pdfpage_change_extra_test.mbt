@@ -10,8 +10,8 @@ fn page_objnum(pdf : @pdf.Pdf, index : Int) -> Int raise {
 fn build_two_page_pdf() -> @pdf.Pdf raise {
   let pdf = @pdf.empty()
   let pages = [
-    @pdfpage.blankpage(@pdfpaper.a4),
-    @pdfpage.blankpage(@pdfpaper.a4),
+    @pdfpage.Page::blank(@pdfpaper.a4),
+    @pdfpage.Page::blank(@pdfpaper.a4),
   ]
   let (pdf, pagetree) = @pdfpage.add_pagetree(pages, pdf)
   @pdfpage.add_root(pagetree, [], pdf)
@@ -210,7 +210,7 @@ test "change_pages keeps array openaction for identity matrices" {
 ///|
 test "change_pages logs when lengths differ with matrices" {
   let pdf = build_two_page_pdf()
-  let pages = [@pdfpage.blankpage(@pdfpaper.a4)]
+  let pages = [@pdfpage.Page::blank(@pdfpaper.a4)]
   let matrices = [(1, @pdftransform.TransformMatrix::identity())]
   let updated = @pdfpage.change_pages(true, pdf, pages, matrices~)
   assert_eq(@pdfpage.pages_of_pagetree_quick(updated), 1)

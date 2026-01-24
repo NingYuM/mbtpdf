@@ -1,3 +1,4 @@
 import {
+  "bobzhang/mbtpdf/core/pdf",
   "bobzhang/mbtpdf/core/pdfunits",
 }

@@ -8,7 +8,7 @@ fn pdf_of_pages_make_pdf(count : Int) -> @pdf.Pdf raise {
   let rect = pdf_of_pages_rect()
   let pages = Array::new(capacity=count)
   for _ in 0..<count {
-    pages.push(@pdfpage.custompage(rect))
+    pages.push(@pdfpage.Page::custom(rect))
   }
   let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
   @pdfpage.add_root(pageroot, [], pdf0)

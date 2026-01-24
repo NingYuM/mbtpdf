@@ -95,10 +95,10 @@ let custom = @pdfpaper.Paper::new(
 // Create blank page with A4 size
 
 ///|
-let page = @pdfpage.blankpage(@pdfpaper.a4)
+let page = @pdfpage.Page::blank(@pdfpaper.a4)
 
 // Get rectangle for paper
 
 ///|
-let rect = @pdfpage.rectangle_of_paper(@pdfpaper.usletter)
+let rect = @pdfpaper.usletter.rectangle()
 ```
