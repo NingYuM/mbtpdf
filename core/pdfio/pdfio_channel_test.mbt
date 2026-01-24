@@ -3,7 +3,7 @@ async test "channel io helpers roundtrip" {
   let input_path = "pdfio_async_input.txt"
   @fs.write_file(input_path, "hello", create=0o644, truncate=true)
   let in_file = @fs.open(input_path, mode=ReadOnly)
-  let input = @pdfio.input_of_channel(in_file)
+  let input = @pdfio.Input::of_channel(in_file)
   assert_eq(input.to_string(), "hello")
   in_file.close()
   let in_file2 = @fs.open(input_path, mode=ReadOnly)
@@ -22,7 +22,7 @@ async test "channel io helpers roundtrip" {
     create=0o644,
     truncate=true,
   )
-  let output = @pdfio.output_of_channel(out_file2)
+  let output = @pdfio.Output::of_channel(out_file2)
   let big = "a".repeat(5000)
   (output.output_string)(big)
   (output.seek_out)(0)

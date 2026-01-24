@@ -507,7 +507,7 @@ fn inline_image_end_ahead(input : @pdfio.Input) -> Bool {
 fn read_inline_image_encoded_data(
   input : @pdfio.Input,
 ) -> @pdfio.MutableBytes raise {
-  let (output, data) = @pdfio.input_output_of_bytes(4096)
+  let (output, data) = @pdfio.Output::of_bytes(4096)
   let mut done = false
   while !done {
     let pos = (input.pos_in)()
@@ -528,7 +528,7 @@ fn read_inline_image_encoded_data(
       _ => (output.output_byte)(b)
     }
   }
-  @pdfio.extract_bytes_from_input_output(output, data)
+  output.extract_bytes(data)
 }
 
 ///|
@@ -837,7 +837,7 @@ pub fn Op::components(
 
 ///|
 fn get_jpeg_data(input : @pdfio.Input) -> @pdfio.MutableBytes raise {
-  let (output, data) = @pdfio.input_output_of_bytes(4096)
+  let (output, data) = @pdfio.Output::of_bytes(4096)
   let mut finished = false
   let mut last = 0
   while !finished {
@@ -857,7 +857,7 @@ fn get_jpeg_data(input : @pdfio.Input) -> @pdfio.MutableBytes raise {
       (output.output_byte)(b)
     }
   }
-  @pdfio.extract_bytes_from_input_output(output, data)
+  output.extract_bytes(data)
 }
 
 ///|
@@ -1957,7 +1957,7 @@ pub fn Op::parse_single_stream(
   resources : @pdf.PdfObject,
   stream : @pdfio.MutableBytes,
 ) -> Array[Op] raise {
-  let input = @pdfio.input_of_bytes(stream)
+  let input = @pdfio.Input::of_bytes(stream)
   let lexemes = lex_stream(pdf, resources, input)
   parse_lexemes({ val: 0 }, lexemes)
 }

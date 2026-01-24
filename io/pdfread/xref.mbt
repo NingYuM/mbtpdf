@@ -300,7 +300,7 @@ fn read_xref_stream(
   let raw_input = match stream_obj {
     @pdf.PdfObject::Stream(r) =>
       match r.val {
-        (_, @pdf.Stream::Got(bytes)) => @pdfio.input_of_bytes(bytes)
+        (_, @pdf.Stream::Got(bytes)) => @pdfio.Input::of_bytes(bytes)
         _ => raise err
       }
     _ => raise err
@@ -442,7 +442,7 @@ fn parse_object_stream(
         @pdf.input_pdferror(input, "couldn't decode objstream"),
       )
   }
-  let stm_input = @pdfio.input_of_bytes(raw)
+  let stm_input = @pdfio.Input::of_bytes(raw)
   let rawnums = Array::new()
   let mut i = 0
   while i < n * 2 {

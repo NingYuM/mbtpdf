@@ -39,18 +39,6 @@ pub fn copybytes(Array[Byte]) -> Array[Byte]
 
 pub fn debug_next_n_chars(Int, Input) -> Unit
 
-pub fn extract_bytes_from_input_output(Output, Ref[Array[Byte]]) -> Array[Byte]
-
-pub fn input_of_bytes(Array[Byte], source? : String) -> Input
-
-pub async fn input_of_channel(@fs.File, source? : String) -> Input
-
-pub async fn input_of_file(String, source? : String) -> Input
-
-pub fn input_of_string(String, source? : String) -> Input
-
-pub fn input_output_of_bytes(Int) -> (Output, Ref[Array[Byte]])
-
 pub fn int_array_of_bytes(Array[Byte]) -> Array[Int]
 
 pub fn int_array_of_string(String) -> Array[Int]
@@ -58,8 +46,6 @@ pub fn int_array_of_string(String) -> Array[Int]
 pub fn mkbytes(Int) -> Array[Byte]
 
 pub let no_more : Int
-
-pub fn output_of_channel(@fs.File) -> Output
 
 pub fn string_of_bytes(Array[Byte]) -> String
 
@@ -124,6 +110,14 @@ pub struct Input {
 }
 pub fn Input::bytes_of_input(Self, Int, Int) -> Array[Byte] raise
 pub fn Input::nudge(Self) -> Unit
+#as_free_fn(input_of_bytes, deprecated)
+pub fn Input::of_bytes(Array[Byte], source? : String) -> Self
+#as_free_fn(input_of_channel, deprecated)
+pub async fn Input::of_channel(@fs.File, source? : String) -> Self
+#as_free_fn(input_of_file, deprecated)
+pub async fn Input::of_file(String, source? : String) -> Self
+#as_free_fn(input_of_string, deprecated)
+pub fn Input::of_string(String, source? : String) -> Self
 pub fn Input::peek_byte(Self) -> Int
 pub fn Input::peek_char(Self) -> Char?
 pub fn Input::read_char_back(Self) -> Char?
@@ -142,7 +136,13 @@ pub struct Output {
   out_channel_length : () -> Int
   flush : async () -> Unit
 }
+#as_free_fn(extract_bytes_from_input_output, deprecated)
+pub fn Output::extract_bytes(Self, Ref[Array[Byte]]) -> Array[Byte]
 pub fn Output::getinit(Self, Array[Byte], Int, Int) -> Unit raise
+#as_free_fn(input_output_of_bytes, deprecated)
+pub fn Output::of_bytes(Int) -> (Self, Ref[Array[Byte]])
+#as_free_fn(output_of_channel, deprecated)
+pub fn Output::of_channel(@fs.File) -> Self
 
 // Type aliases
 pub type MutableBytes = Array[Byte]

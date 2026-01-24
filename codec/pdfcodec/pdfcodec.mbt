@@ -735,7 +735,7 @@ fn encode_ccitt(
   let columns = _columns
   let rows = _rows
   let data = _data
-  let input = @pdfio.Bitstream::of_input(@pdfio.input_of_bytes(data))
+  let input = @pdfio.Bitstream::of_input(@pdfio.Input::of_bytes(data))
   let output = @pdfio.BitstreamWrite::new()
   try {
     let mut rows_left = rows
@@ -879,7 +879,7 @@ fn encode_ccittg4_pure(
   rows : Int,
   data : @pdfio.MutableBytes,
 ) -> @pdfio.MutableBytes raise CodecError {
-  let input = @pdfio.Bitstream::of_input(@pdfio.input_of_bytes(data))
+  let input = @pdfio.Bitstream::of_input(@pdfio.Input::of_bytes(data))
   let output = @pdfio.BitstreamWrite::new()
   try {
     let mut rows_left = rows
@@ -1172,14 +1172,14 @@ pub fn PdfCodec::decode_pdfstream_onestage(
             }
             decoded
           } else if filter_name == "/ASCIIHexDecode" || filter_name == "/AHx" {
-            decode_asciihex(@pdfio.input_of_bytes(data, source="asciihex"))
+            decode_asciihex(@pdfio.Input::of_bytes(data, source="asciihex"))
           } else if filter_name == "/ASCII85Decode" || filter_name == "/A85" {
-            decode_ascii85(@pdfio.input_of_bytes(data, source="ascii85"))
+            decode_ascii85(@pdfio.Input::of_bytes(data, source="ascii85"))
           } else if filter_name == "/RunLengthDecode" || filter_name == "/RL" {
-            decode_runlength(@pdfio.input_of_bytes(data, source="runlength"))
+            decode_runlength(@pdfio.Input::of_bytes(data, source="runlength"))
           } else if filter_name == "/LZWDecode" || filter_name == "/LZW" {
             let early = get_int_param(pdf, parms_first, "/EarlyChange", 1)
-            decode_lzw(early, @pdfio.input_of_bytes(data, source="lzw"))
+            decode_lzw(early, @pdfio.Input::of_bytes(data, source="lzw"))
           } else if filter_name == "/Crypt" {
             data
           } else if filter_name == "/JBIG2Decode" {
@@ -1209,7 +1209,7 @@ pub fn PdfCodec::decode_pdfstream_onestage(
               eob,
               bone,
               dra,
-              @pdfio.input_of_bytes(data, source="ccitt"),
+              @pdfio.Input::of_bytes(data, source="ccitt"),
             )
           } else {
             raise CodecError::DecodeNotSupported(
@@ -1332,19 +1332,19 @@ pub fn PdfCodec::decode_from_bytes(
       }
       Some(decoded)
     } else if filter_name == "/ASCIIHexDecode" || filter_name == "/AHx" {
-      let input = @pdfio.input_of_bytes(bytes, source="asciihex")
+      let input = @pdfio.Input::of_bytes(bytes, source="asciihex")
       let decoded = decode_asciihex(input) catch { _ => return None }
       Some(decoded)
     } else if filter_name == "/ASCII85Decode" || filter_name == "/A85" {
-      let input = @pdfio.input_of_bytes(bytes, source="ascii85")
+      let input = @pdfio.Input::of_bytes(bytes, source="ascii85")
       let decoded = decode_ascii85(input) catch { _ => return None }
       Some(decoded)
     } else if filter_name == "/RunLengthDecode" || filter_name == "/RL" {
-      let input = @pdfio.input_of_bytes(bytes, source="runlength")
+      let input = @pdfio.Input::of_bytes(bytes, source="runlength")
       Some(decode_runlength(input))
     } else if filter_name == "/LZWDecode" || filter_name == "/LZW" {
       let early = get_int_param(pdf, parms, "/EarlyChange", 1)
-      let input = @pdfio.input_of_bytes(bytes, source="lzw")
+      let input = @pdfio.Input::of_bytes(bytes, source="lzw")
       let decoded = decode_lzw(early, input) catch { _ => return None }
       Some(decoded)
     } else if filter_name == "/Crypt" {
@@ -1358,7 +1358,7 @@ pub fn PdfCodec::decode_from_bytes(
       let eob = get_bool_param(pdf, parms, "/EndOfBlock", true)
       let bone = get_bool_param(pdf, parms, "/BlackIs1", false)
       let dra = get_int_param(pdf, parms, "/DamagedRowsBeforeError", 0)
-      let input = @pdfio.input_of_bytes(bytes, source="ccitt")
+      let input = @pdfio.Input::of_bytes(bytes, source="ccitt")
       let decoded = decode_ccittfax(
         k, eol, eba, columns, rows, eob, bone, dra, input,
       ) catch {
@@ -1501,7 +1501,7 @@ fn encode_png_predictor(
   }
   let scanline_width = (colors * bpc * columns + 7) / 8
   let bytes_per_pixel = (bpc * colors + 7) / 8
-  let (output, data) = @pdfio.input_output_of_bytes(4096)
+  let (output, data) = @pdfio.Output::of_bytes(4096)
   let lines = if scanline_width == 0 {
     0
   } else {
@@ -1524,7 +1524,7 @@ fn encode_png_predictor(
       prior[i] = current[i]
     }
   }
-  @pdfio.extract_bytes_from_input_output(output, data)
+  output.extract_bytes(data)
 }
 
 ///|

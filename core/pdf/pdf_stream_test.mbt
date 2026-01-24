@@ -2,7 +2,7 @@
 test "streams and transforms" {
   let pdf = Pdf::empty()
   pdf.addobj_given_num((1, PdfObject::Integer(7)))
-  let input = @pdfio.input_of_string("abcd", source="stream")
+  let input = @pdfio.Input::of_string("abcd", source="stream")
   let t = ToGet::new(input, 0, 4)
   let dict = PdfObject::Dictionary([("/Length", PdfObject::Integer(0))])
   let stream_ref = Ref::new((dict, Stream::ToGet(t)))
@@ -165,7 +165,7 @@ test "streams and transforms" {
 
 ///|
 test "getstream error cases" {
-  let input = @pdfio.input_of_string("abc", source="crypt")
+  let input = @pdfio.Input::of_string("abc", source="crypt")
   let crypt = ToGetCrypt::ToDecrypt(DeferredEncryption::{
     crypt_type: @pdfcryptprimitives.Encryption::AESV2,
     file_encryption_key: None,
@@ -181,7 +181,7 @@ test "getstream error cases" {
   )
   let crypt_stream = PdfObject::Stream(crypt_ref)
   assert_is_err(try? crypt_stream.getstream())
-  let plain = @pdfio.input_of_string("abc", source="plain")
+  let plain = @pdfio.Input::of_string("abc", source="plain")
   let toget_plain = ToGet::new(plain, 0, 3)
   let plain_ref = Ref::new((PdfObject::Integer(9), Stream::ToGet(toget_plain)))
   let plain_stream = PdfObject::Stream(plain_ref)

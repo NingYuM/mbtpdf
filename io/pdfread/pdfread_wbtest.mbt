@@ -1,6 +1,6 @@
 ///|
 test "@pdfsyntax.PdfSyntax::new().lex_keyword rewinds endobj suffix" {
-  let input = @pdfio.input_of_string("endobj123 0 obj")
+  let input = @pdfio.Input::of_string("endobj123 0 obj")
   let token = @pdfsyntax.PdfSyntax::new().lex_keyword(input)
   match token {
     @pdfgenlex.Token::LexEndObj => ()
@@ -14,7 +14,7 @@ test "@pdfsyntax.PdfSyntax::new().lex_keyword rewinds endobj suffix" {
 
 ///|
 test "@pdfsyntax.PdfSyntax::new().lex_next returns LexNone for unknown uppercase" {
-  let input = @pdfio.input_of_string("T")
+  let input = @pdfio.Input::of_string("T")
   let dict_level : Ref[Int] = { val: 0 }
   let array_level : Ref[Int] = { val: 0 }
   let previous = Array::new()
@@ -35,7 +35,7 @@ test "@pdfsyntax.PdfSyntax::new().lex_next returns LexNone for unknown uppercase
 
 ///|
 test "@pdfsyntax.PdfSyntax::new().lex_next recovers from lex errors" {
-  let input = @pdfio.input_of_string("(")
+  let input = @pdfio.Input::of_string("(")
   let dict_level : Ref[Int] = { val: 0 }
   let array_level : Ref[Int] = { val: 0 }
   let previous = Array::new()
@@ -56,7 +56,7 @@ test "@pdfsyntax.PdfSyntax::new().lex_next recovers from lex errors" {
 
 ///|
 test "@pdfsyntax.PdfSyntax::new().lex_hexstring rejects invalid hex" {
-  let input = @pdfio.input_of_string("<G>")
+  let input = @pdfio.Input::of_string("<G>")
   let res : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.PdfSyntax::new().lex_hexstring(
     input,
   )
@@ -68,7 +68,7 @@ test "@pdfsyntax.PdfSyntax::new().lex_hexstring rejects invalid hex" {
 
 ///|
 test "@pdfsyntax.PdfSyntax::new().lex_hexstring pads odd nibble" {
-  let input = @pdfio.input_of_string("<F>")
+  let input = @pdfio.Input::of_string("<F>")
   let token = @pdfsyntax.PdfSyntax::new().lex_hexstring(input)
   match token {
     @pdfgenlex.Token::LexString(s) => {
@@ -82,7 +82,7 @@ test "@pdfsyntax.PdfSyntax::new().lex_hexstring pads odd nibble" {
 
 ///|
 test "@pdfsyntax.PdfSyntax::new().lex_hexstring ignores whitespace" {
-  let input = @pdfio.input_of_string("<0F 0A>")
+  let input = @pdfio.Input::of_string("<0F 0A>")
   let token = @pdfsyntax.PdfSyntax::new().lex_hexstring(input)
   match token {
     @pdfgenlex.Token::LexString(s) => {
@@ -97,7 +97,7 @@ test "@pdfsyntax.PdfSyntax::new().lex_hexstring ignores whitespace" {
 
 ///|
 test "@pdfsyntax.PdfSyntax::new().lex_dictionary minus_one stops after closing dict" {
-  let input = @pdfio.input_of_string("/Type /Example >> trailer")
+  let input = @pdfio.Input::of_string("/Type /Example >> trailer")
   let tokens = @pdfsyntax.PdfSyntax::new().lex_dictionary(true, input)
   if tokens.length() == 0 {
     fail("expected tokens")
@@ -111,7 +111,7 @@ test "@pdfsyntax.PdfSyntax::new().lex_dictionary minus_one stops after closing d
 
 ///|
 test "@pdfsyntax.PdfSyntax::new().lex_name rejects invalid hex" {
-  let input = @pdfio.input_of_string("/#GZ")
+  let input = @pdfio.Input::of_string("/#GZ")
   let res : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.PdfSyntax::new().lex_name(
     input,
   )
@@ -123,7 +123,7 @@ test "@pdfsyntax.PdfSyntax::new().lex_name rejects invalid hex" {
 
 ///|
 test "@pdfsyntax.PdfSyntax::new().lex_name rejects truncated hex" {
-  let input = @pdfio.input_of_string("/#1")
+  let input = @pdfio.Input::of_string("/#1")
   let res : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.PdfSyntax::new().lex_name(
     input,
   )

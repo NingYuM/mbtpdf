@@ -177,7 +177,8 @@ pub fn copybytes(bytes : MutableBytes) -> MutableBytes {
 
 ///|
 /// Build an input from bytes.
-pub fn input_of_bytes(
+#as_free_fn(input_of_bytes, deprecated="Use Input::of_bytes instead")
+pub fn Input::of_bytes(
   bytes : MutableBytes,
   source? : String = "bytes",
 ) -> Input {
@@ -209,8 +210,9 @@ pub fn input_of_bytes(
 
 ///|
 /// Build an input from a string.
-pub fn input_of_string(s : String, source? : String = "string") -> Input {
-  input_of_bytes(bytes_of_string(s), source~)
+#as_free_fn(input_of_string, deprecated="Use Input::of_string instead")
+pub fn Input::of_string(s : String, source? : String = "string") -> Input {
+  Input::of_bytes(bytes_of_string(s), source~)
 }
 
 ///|
@@ -226,27 +228,30 @@ async fn run_async_unit(load : async () -> Unit) -> Unit {
 
 ///|
 /// Build an input from a file path (native-only, reads entire file).
-pub async fn input_of_file(
+#as_free_fn(input_of_file, deprecated="Use Input::of_file instead")
+pub async fn Input::of_file(
   filename : String,
   source? : String = "file",
 ) -> Input {
   let bytes = read_data_to_bytes(() => @fs.read_file(filename))
-  input_of_bytes(bytes, source~)
+  Input::of_bytes(bytes, source~)
 }
 
 ///|
 /// Build an input from a channel (native-only, reads entire stream).
-pub async fn input_of_channel(
+#as_free_fn(input_of_channel, deprecated="Use Input::of_channel instead")
+pub async fn Input::of_channel(
   ch : @fs.File,
   source? : String = "channel",
 ) -> Input {
   let bytes = read_data_to_bytes(() => ch.read_all())
-  input_of_bytes(bytes, source~)
+  Input::of_bytes(bytes, source~)
 }
 
 ///|
 /// Build an output from a channel (native-only).
-pub fn output_of_channel(ch : @fs.File) -> Output {
+#as_free_fn(output_of_channel, deprecated="Use Output::of_channel instead")
+pub fn Output::of_channel(ch : @fs.File) -> Output {
   let mut pos = 0
   let mut highest_written = -1
   let single : MutableBytes = mkbytes(1)
@@ -300,18 +305,20 @@ pub fn output_of_channel(ch : @fs.File) -> Output {
 
 ///|
 /// Build an input-output, with an initial buffer size.
-pub fn input_output_of_bytes(size : Int) -> (Output, Ref[MutableBytes]) {
+#as_free_fn(input_output_of_bytes, deprecated="Use Output::of_bytes instead")
+pub fn Output::of_bytes(size : Int) -> (Output, Ref[MutableBytes]) {
   let data : Ref[MutableBytes] = { val: mkbytes(size) }
   (output_of_bytes(data), data)
 }
 
 ///|
 /// Extract the contents of an input-output in bytes.
-pub fn extract_bytes_from_input_output(
-  output : Output,
+#as_free_fn(extract_bytes_from_input_output, deprecated="Use Output::extract_bytes instead")
+pub fn Output::extract_bytes(
+  self : Output,
   data : Ref[MutableBytes],
 ) -> MutableBytes {
-  let len = (output.pos_out)()
+  let len = (self.pos_out)()
   let out = mkbytes(len)
   for i in 0..<len {
     bset_unsafe(out, i, bget_unsafe(data.val, i))

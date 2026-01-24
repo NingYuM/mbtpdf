@@ -697,7 +697,7 @@ test "get_image_24bpp loads ToGet stream" {
     ("/Length", Integer(3)),
   ])
   let data = @pdfio.bytes_of_list([0, 255, 0])
-  let input = @pdfio.input_of_bytes(data)
+  let input = @pdfio.Input::of_bytes(data)
   let toget = @pdf.ToGet::new(input, 0, 3)
   let stream : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::ToGet(toget))),

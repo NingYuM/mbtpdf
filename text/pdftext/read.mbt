@@ -85,7 +85,7 @@ pub fn PdfTextUtil::parse_charset(
   _self : PdfTextUtil,
   s : String,
 ) -> Array[String] {
-  let input = @pdfio.input_of_string(s)
+  let input = @pdfio.Input::of_string(s)
   let out = Array::new()
   while true {
     try {

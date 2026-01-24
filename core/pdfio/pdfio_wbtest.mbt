@@ -19,7 +19,7 @@ test "string_of_int_arrays flattens" {
 
 ///|
 test "input_of_string supports read_line" {
-  let input = input_of_string("first\nsecond")
+  let input = Input::of_string("first\nsecond")
   assert_eq(input.read_line(), "first")
   assert_eq(input.read_line(), "second")
   let res : Result[String, Error] = try? input.read_line()
@@ -28,7 +28,7 @@ test "input_of_string supports read_line" {
 
 ///|
 test "peek_char and read_char_back" {
-  let input = input_of_string("ab")
+  let input = Input::of_string("ab")
   assert_eq(input.peek_char(), Some('a'))
   let _ = (input.input_char)()
   let back = input.read_char_back()
@@ -37,18 +37,18 @@ test "peek_char and read_char_back" {
 
 ///|
 test "read_lines reads all lines" {
-  let input = input_of_string("first\nsecond\n")
+  let input = Input::of_string("first\nsecond\n")
   let lines = input.read_lines()
   assert_eq(lines, ["first", "second"])
 }
 
 ///|
 test "setinit and bytes_of_input read slices" {
-  let input = input_of_string("abcd")
+  let input = Input::of_string("abcd")
   let buf = mkbytes(4)
   input.setinit(buf, 0, 4)
   assert_eq(string_of_bytes(buf), "abcd")
-  let input2 = input_of_string("abcd")
+  let input2 = Input::of_string("abcd")
   let slice = input2.bytes_of_input(1, 2)
   assert_eq(string_of_bytes(slice), "bc")
   let res : Result[Unit, Error] = try? input2.setinit(buf, 10, 1)
@@ -57,11 +57,11 @@ test "setinit and bytes_of_input read slices" {
 
 ///|
 test "string_of_input and getinit write output" {
-  let input = input_of_string("xyz")
+  let input = Input::of_string("xyz")
   assert_eq(input.to_string(), "xyz")
   let data = bytes_of_string("hi")
-  let (output, buffer) = input_output_of_bytes(2)
+  let (output, buffer) = Output::of_bytes(2)
   output.getinit(data, 0, data.length())
-  let out = extract_bytes_from_input_output(output, buffer)
+  let out = output.extract_bytes(buffer)
   assert_eq(string_of_bytes(out), "hi")
 }

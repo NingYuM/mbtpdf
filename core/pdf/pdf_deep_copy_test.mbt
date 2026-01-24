@@ -8,7 +8,7 @@ test "deep_copy copies streams and object data" {
   )
   pdf.addobj_given_num((4, stream))
   pdf.objects.object_stream_ids.set(4, 99)
-  let input = @pdfio.input_of_string("xyz", source="toget")
+  let input = @pdfio.Input::of_string("xyz", source="toget")
   let toget_stream = PdfObject::Stream(
     Ref::new(
       (

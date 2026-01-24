@@ -40,7 +40,7 @@ fn mod3_bytes(bytes : @pdfio.MutableBytes) -> Int {
 ///|
 fn shamix(password : String, udata : String?, s : String) -> String raise {
   let mut k = @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-    @pdfio.input_of_string(s),
+    @pdfio.Input::of_string(s),
   )
   let mut k_bytes = @pdfio.bytes_of_string(k)
   let mut fin = false
@@ -84,15 +84,15 @@ fn shamix(password : String, udata : String?, s : String) -> String raise {
     let next_k = match mod3_bytes(e) {
       0 =>
         @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-          @pdfio.input_of_bytes(e),
+          @pdfio.Input::of_bytes(e),
         )
       1 =>
         @pdfcryptprimitives.PdfCryptPrimitives::new().sha384(
-          @pdfio.input_of_bytes(e),
+          @pdfio.Input::of_bytes(e),
         )
       _ =>
         @pdfcryptprimitives.PdfCryptPrimitives::new().sha512(
-          @pdfio.input_of_bytes(e),
+          @pdfio.Input::of_bytes(e),
         )
     }
     k = next_k
@@ -130,7 +130,7 @@ fn file_encryption_key_aesv3(
         shamix(utf8pw, Some(u), @pdfio.string_of_bytes(concat))
       } else {
         @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-          @pdfio.input_of_bytes(concat),
+          @pdfio.Input::of_bytes(concat),
         )
       }
       @pdfio.int_array_of_string(digest_str)
@@ -167,7 +167,7 @@ fn file_encryption_key_aesv3_user(
     shamix(utf8pw, None, @pdfio.string_of_bytes(concat))
   } else {
     @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-      @pdfio.input_of_bytes(concat),
+      @pdfio.Input::of_bytes(concat),
     )
   }
   let key = @pdfio.int_array_of_string(digest_str)
@@ -204,7 +204,7 @@ fn authenticate_owner_password_aesv3(
     shamix(utf8pw, Some(u), @pdfio.string_of_bytes(concat))
   } else {
     @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-      @pdfio.input_of_bytes(concat),
+      @pdfio.Input::of_bytes(concat),
     )
   }
   let digest = @pdfio.bytes_of_string(digest_str)
@@ -229,7 +229,7 @@ fn authenticate_user_password_aesv3(
     shamix(utf8pw, None, @pdfio.string_of_bytes(concat))
   } else {
     @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-      @pdfio.input_of_bytes(concat),
+      @pdfio.Input::of_bytes(concat),
     )
   }
   let digest = @pdfio.bytes_of_string(digest_str)
@@ -308,7 +308,7 @@ fn make_ue(
       shamix(user_pw, None, s)
     } else {
       @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-        @pdfio.input_of_string(s),
+        @pdfio.Input::of_string(s),
       )
     }
   }
@@ -339,7 +339,7 @@ fn make_oe(
       shamix(owner_pw, Some(u), s)
     } else {
       @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-        @pdfio.input_of_string(s),
+        @pdfio.Input::of_string(s),
       )
     }
   }

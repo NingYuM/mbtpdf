@@ -44,7 +44,7 @@ test "ccitt g3 roundtrip" {
     true,
     false,
     0,
-    @pdfio.input_of_bytes(encoded, source="ccitt-g3"),
+    @pdfio.Input::of_bytes(encoded, source="ccitt-g3"),
   )
   assert_bytes_eq(decoded, raw)
 }
@@ -65,7 +65,7 @@ test "ccitt g4 roundtrip" {
     true,
     false,
     0,
-    @pdfio.input_of_bytes(encoded, source="ccitt-g4"),
+    @pdfio.Input::of_bytes(encoded, source="ccitt-g4"),
   )
   assert_bytes_eq(decoded, raw)
 }

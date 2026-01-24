@@ -254,6 +254,6 @@ pub fn PdfGenLex::lex(_self : PdfGenLex, input : @pdfio.Input) -> Array[Token] {
 /// Lex all tokens from a string.
 #as_free_fn(lex_string, deprecated="Use `PdfGenLex::lex_string`")
 pub fn PdfGenLex::lex_string(_self : PdfGenLex, s : String) -> Array[Token] {
-  let input = @pdfio.input_of_string(s)
+  let input = @pdfio.Input::of_string(s)
   PdfGenLex::new().lex(input)
 }

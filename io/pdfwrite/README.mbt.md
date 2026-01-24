@@ -59,14 +59,14 @@ pub fn PdfWrite::new() -> PdfWrite
 ### To Output Stream
 
 ```mbt nocheck
-let (output, data) = @pdfio.input_output_of_bytes(65536)
+let (output, data) = @pdfio.Output::of_bytes(65536)
 @pdfwrite.PdfWrite::new().pdf_to_output!(
   encryption=None,
   build_new_id=true,
   pdf~,
   output~,
 )
-let bytes = @pdfio.extract_bytes_from_input_output(output, data)
+let bytes = output.extract_bytes(data)
 ```
 
 ## Encryption

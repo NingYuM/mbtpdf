@@ -57,7 +57,7 @@ pub async fn PdfRead::pdf_of_channel(
   owner_password : String?,
   channel : @fs.File,
 ) -> @pdf.Pdf {
-  let input = @pdfio.input_of_channel(channel, source~)
+  let input = @pdfio.Input::of_channel(channel, source~)
   read_pdf_internal(revision, user_password, owner_password, input, true)
 }
 
@@ -72,7 +72,7 @@ pub async fn PdfRead::pdf_of_channel_lazy(
   owner_password : String?,
   channel : @fs.File,
 ) -> @pdf.Pdf {
-  let input = @pdfio.input_of_channel(channel, source~)
+  let input = @pdfio.Input::of_channel(channel, source~)
   read_pdf_internal(revision, user_password, owner_password, input, false)
 }
 
@@ -86,7 +86,7 @@ pub async fn PdfRead::pdf_of_file(
   owner_password : String?,
   filename : String,
 ) -> @pdf.Pdf {
-  let input = @pdfio.input_of_file(filename, source=filename)
+  let input = @pdfio.Input::of_file(filename, source=filename)
   read_pdf_internal(revision, user_password, owner_password, input, true)
 }
 

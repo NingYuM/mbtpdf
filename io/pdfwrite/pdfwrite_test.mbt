@@ -25,9 +25,9 @@ test "string_of_pdf escapes names" {
 ///|
 test "pdf_to_output writes binary header" {
   let pdf = build_minimal_pdf()
-  let (output, buffer) = @pdfio.input_output_of_bytes(128)
+  let (output, buffer) = @pdfio.Output::of_bytes(128)
   @pdfwrite.PdfWrite::new().pdf_to_output(None, false, pdf, output)
-  let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let bytes = output.extract_bytes(buffer)
   let expected = [
     '%'.to_int(),
     'P'.to_int(),

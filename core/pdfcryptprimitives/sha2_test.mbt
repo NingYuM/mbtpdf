@@ -3,7 +3,7 @@ fn digest_bytes(
   f : (@pdfio.Input) -> String raise,
   input : String,
 ) -> Array[Int] raise {
-  let digest = f(@pdfio.input_of_string(input))
+  let digest = f(@pdfio.Input::of_string(input))
   @pdfio.int_array_of_bytes(@pdfio.bytes_of_string(digest))
 }
 

@@ -64,7 +64,7 @@ pub fn PdfSyntax::parse_single_object(
   _self : PdfSyntax,
   s : String,
 ) -> @pdf.PdfObject raise {
-  let input = @pdfio.input_of_string(s)
+  let input = @pdfio.Input::of_string(s)
   let (_, obj) = lexeme_syntax.parse(
     lexeme_syntax.lex_object_at(true, input, true, _ => []),
   )

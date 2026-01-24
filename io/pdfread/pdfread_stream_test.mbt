@@ -1,6 +1,6 @@
 ///|
 test "lex_stream_data reads stream bytes" {
-  let input = @pdfio.input_of_string("stream\nABCendstream")
+  let input = @pdfio.Input::of_string("stream\nABCendstream")
   match @pdfsyntax.PdfSyntax::new().lex_stream_data(input, 3, true) {
     @pdfgenlex.Token::LexStream(@pdf.Stream::Got(bytes)) =>
       assert_eq(@pdfio.string_of_bytes(bytes), "ABC")
@@ -10,7 +10,7 @@ test "lex_stream_data reads stream bytes" {
 
 ///|
 test "lex_stream_data returns ToGet for unread stream" {
-  let input = @pdfio.input_of_string("stream\nXYZendstream")
+  let input = @pdfio.Input::of_string("stream\nXYZendstream")
   match @pdfsyntax.PdfSyntax::new().lex_stream_data(input, 3, false) {
     @pdfgenlex.Token::LexStream(@pdf.Stream::ToGet(toget)) =>
       assert_eq(@pdf.ToGet::length(toget), 3)
@@ -20,7 +20,7 @@ test "lex_stream_data returns ToGet for unread stream" {
 
 ///|
 test "lex_stream_data falls back for malformed length" {
-  let input = @pdfio.input_of_string("stream\nendstreamXXXX")
+  let input = @pdfio.Input::of_string("stream\nendstreamXXXX")
   match @pdfsyntax.PdfSyntax::new().lex_stream_data(input, 2, true) {
     @pdfgenlex.Token::LexStream(@pdf.Stream::Got(bytes)) =>
       assert_eq(@pdfio.string_of_bytes(bytes), "")
@@ -30,7 +30,7 @@ test "lex_stream_data falls back for malformed length" {
 
 ///|
 test "lex_stream_data fallback ignores read_data flag" {
-  let input = @pdfio.input_of_string("stream\nendstreamXXXX")
+  let input = @pdfio.Input::of_string("stream\nendstreamXXXX")
   match @pdfsyntax.PdfSyntax::new().lex_stream_data(input, 2, false) {
     @pdfgenlex.Token::LexStream(@pdf.Stream::Got(bytes)) =>
       assert_eq(@pdfio.string_of_bytes(bytes), "")
@@ -40,7 +40,7 @@ test "lex_stream_data fallback ignores read_data flag" {
 
 ///|
 test "lex_dictionary parses nested dictionary" {
-  let input = @pdfio.input_of_string("<< /A 1 /B << /C 2 >> >>")
+  let input = @pdfio.Input::of_string("<< /A 1 /B << /C 2 >> >>")
   let tokens = @pdfsyntax.PdfSyntax::new().lex_dictionary(false, input)
   let (_, parsed) = @pdfsyntax.PdfSyntax::new().parse(tokens)
   match (@pdf.Pdf::empty().lookup_direct("/B", parsed) : @pdf.PdfObject?) {
@@ -51,7 +51,7 @@ test "lex_dictionary parses nested dictionary" {
 
 ///|
 test "lex_dictionary minus_one accepts preconsumed marker" {
-  let input = @pdfio.input_of_string("<< /A 1 >>")
+  let input = @pdfio.Input::of_string("<< /A 1 >>")
   input.nudge()
   input.nudge()
   let tokens = @pdfsyntax.PdfSyntax::new().lex_dictionary(true, input)
@@ -71,7 +71,7 @@ test "lex_dictionary minus_one accepts preconsumed marker" {
 test "lex_dictionary errors on unexpected token" {
   let res : Result[Array[@pdfgenlex.Token], Error] = try? @pdfsyntax.PdfSyntax::new().lex_dictionary(
     false,
-    @pdfio.input_of_string("<< @ >>"),
+    @pdfio.Input::of_string("<< @ >>"),
   )
   assert_true(res is Err(_))
 }
@@ -80,7 +80,7 @@ test "lex_dictionary errors on unexpected token" {
 test "lex_dictionary stops on stream without dict" {
   let tokens = @pdfsyntax.PdfSyntax::new().lex_dictionary(
     false,
-    @pdfio.input_of_string("stream\nendstreamXXXX"),
+    @pdfio.Input::of_string("stream\nendstreamXXXX"),
   )
   assert_true(tokens.exists(t => t is @pdfgenlex.Token::StopLexing))
 }

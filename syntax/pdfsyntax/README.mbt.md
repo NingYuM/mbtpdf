@@ -53,7 +53,7 @@ test "parse_single_object parses dictionary" {
 ```mbt check
 ///|
 test "lex_name reads PDF name" {
-  let input = @pdfio.input_of_string("/Type")
+  let input = @pdfio.Input::of_string("/Type")
   guard @pdfsyntax.PdfSyntax::new().lex_name(input) is LexName(name) else {
     fail("expected name")
   }
@@ -66,7 +66,7 @@ test "lex_name reads PDF name" {
 ```mbt check
 ///|
 test "lex_number reads integer" {
-  let input = @pdfio.input_of_string("123")
+  let input = @pdfio.Input::of_string("123")
   guard @pdfsyntax.PdfSyntax::new().lex_number(input) is LexInt(n) else {
     fail("expected int")
   }
@@ -77,7 +77,7 @@ test "lex_number reads integer" {
 ```mbt check
 ///|
 test "lex_number reads float" {
-  let input = @pdfio.input_of_string("3.14159")
+  let input = @pdfio.Input::of_string("3.14159")
   guard @pdfsyntax.PdfSyntax::new().lex_number(input) is LexReal(r) else {
     fail("expected real")
   }
@@ -90,7 +90,7 @@ test "lex_number reads float" {
 ```mbt check
 ///|
 test "lex_string reads literal string" {
-  let input = @pdfio.input_of_string("(Hello World)")
+  let input = @pdfio.Input::of_string("(Hello World)")
   guard @pdfsyntax.PdfSyntax::new().lex_string(input) is LexString(s) else {
     fail("expected string")
   }
@@ -103,7 +103,7 @@ test "lex_string reads literal string" {
 ```mbt check
 ///|
 test "lex_hexstring reads hex" {
-  let input = @pdfio.input_of_string("<48656C6C6F>")
+  let input = @pdfio.Input::of_string("<48656C6C6F>")
   guard @pdfsyntax.PdfSyntax::new().lex_hexstring(input) is LexString(s) else {
     fail("expected string")
   }
@@ -116,7 +116,7 @@ test "lex_hexstring reads hex" {
 ```mbt check
 ///|
 test "lex_comment skips comment" {
-  let input = @pdfio.input_of_string("%This is a comment\nnext")
+  let input = @pdfio.Input::of_string("%This is a comment\nnext")
   guard @pdfsyntax.PdfSyntax::new().lex_comment(input) is LexComment(_) else {
     fail("expected comment")
   }
@@ -188,7 +188,7 @@ test "string_of_lexeme" {
 ```mbt check
 ///|
 test "dropwhite skips whitespace" {
-  let input = @pdfio.input_of_string("   hello")
+  let input = @pdfio.Input::of_string("   hello")
   @pdfsyntax.PdfSyntax::new().dropwhite(input)
   inspect((input.input_char)(), content="Some('h')")
 }
@@ -199,7 +199,7 @@ test "dropwhite skips whitespace" {
 ```mbt check
 ///|
 test "getuntil_string reads until delimiter" {
-  let input = @pdfio.input_of_string("name/next")
+  let input = @pdfio.Input::of_string("name/next")
   let syntax = @pdfsyntax.PdfSyntax::new()
   let s = syntax.getuntil_string(
     true,
@@ -215,7 +215,7 @@ test "getuntil_string reads until delimiter" {
 ```mbt check
 ///|
 test "input_line reads until newline" {
-  let input = @pdfio.input_of_string("first line\nsecond line")
+  let input = @pdfio.Input::of_string("first line\nsecond line")
   inspect(@pdfsyntax.PdfSyntax::new().input_line(input), content="first line")
 }
 ```
@@ -225,7 +225,7 @@ test "input_line reads until newline" {
 ```mbt check
 ///|
 test "find_eof locates %%EOF" {
-  let input = @pdfio.input_of_string("content\n%%EOF\n")
+  let input = @pdfio.Input::of_string("content\n%%EOF\n")
   @pdfsyntax.PdfSyntax::new().find_eof(input)
   // Input is now positioned at %%EOF
 }

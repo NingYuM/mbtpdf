@@ -85,7 +85,7 @@ test "lex_string parses multiple tokens" {
 ```mbt check
 ///|
 test "lex_single returns one token" {
-  let input = @pdfio.input_of_string("123 456")
+  let input = @pdfio.Input::of_string("123 456")
   guard @pdfgenlex.PdfGenLex::new().lex_single(input) is LexInt(n) else {
     fail("expected int")
   }
@@ -102,7 +102,7 @@ test "lex_single returns one token" {
 ```mbt check
 ///|
 test "lex returns all tokens" {
-  let input = @pdfio.input_of_string("1 2 3")
+  let input = @pdfio.Input::of_string("1 2 3")
   let tokens = @pdfgenlex.PdfGenLex::new().lex(input)
   inspect(tokens.length(), content="3")
 }

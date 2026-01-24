@@ -19,7 +19,7 @@ test "malformed pdf honors /Version in catalog when forced" {
   let pdf = PdfRead::new().pdf_of_input(
     None,
     None,
-    @pdfio.input_of_string(data),
+    @pdfio.Input::of_string(data),
   )
   assert_eq(pdf.major, 1)
   assert_eq(pdf.minor, 7)
@@ -46,7 +46,7 @@ test "malformed pdf falls back to catalog when /Root is direct" {
   let pdf = PdfRead::new().pdf_of_input(
     None,
     None,
-    @pdfio.input_of_string(data),
+    @pdfio.Input::of_string(data),
   )
   assert_eq(pdf.root, 1)
 }
@@ -69,7 +69,7 @@ test "malformed pdf without /Root and catalog errors" {
   let res : Result[@pdf.Pdf, Error] = try? PdfRead::new().pdf_of_input(
     None,
     None,
-    @pdfio.input_of_string(data),
+    @pdfio.Input::of_string(data),
   )
   assert_true(res is Err(_))
 }
@@ -95,7 +95,7 @@ test "malformed pdf ignores invalid /Version name" {
   let pdf = PdfRead::new().pdf_of_input(
     None,
     None,
-    @pdfio.input_of_string(data),
+    @pdfio.Input::of_string(data),
   )
   assert_eq(pdf.major, 1)
   assert_eq(pdf.minor, 4)
@@ -122,7 +122,7 @@ test "malformed pdf ignores short /Version name" {
   let pdf = PdfRead::new().pdf_of_input(
     None,
     None,
-    @pdfio.input_of_string(data),
+    @pdfio.Input::of_string(data),
   )
   assert_eq(pdf.major, 1)
   assert_eq(pdf.minor, 4)
@@ -148,7 +148,7 @@ test "malformed pdf errors on missing startxref digits" {
   let res : Result[@pdf.Pdf, Error] = try? PdfRead::new().pdf_of_input(
     None,
     None,
-    @pdfio.input_of_string(data),
+    @pdfio.Input::of_string(data),
   )
   assert_true(res is Err(_))
 }
@@ -163,7 +163,7 @@ test "malformed pdf errors on missing root and trailer" {
   let res : Result[@pdf.Pdf, Error] = try? PdfRead::new().pdf_of_input(
     None,
     None,
-    @pdfio.input_of_string("trailer"),
+    @pdfio.Input::of_string("trailer"),
   )
   assert_true(res is Err(_))
 }
@@ -198,7 +198,7 @@ test "malformed pdf parses stream with indirect length" {
   let pdf = PdfRead::new().pdf_of_input(
     None,
     None,
-    @pdfio.input_of_string(data),
+    @pdfio.Input::of_string(data),
   )
   assert_eq(pdf.root, 3)
 }
@@ -209,7 +209,7 @@ test "pdf_of_input rejects invalid revision" {
     revision=0,
     None,
     None,
-    @pdfio.input_of_string("%PDF-1.4"),
+    @pdfio.Input::of_string("%PDF-1.4"),
   )
   assert_true(res is Err(_))
 }

@@ -26,7 +26,7 @@ async fn main {
     let data = file.read_exactly(size)
     file.close()
     let bytes = data.to_array()
-    let input = @pdfio.input_of_bytes(bytes, source=in_name)
+    let input = @pdfio.Input::of_bytes(bytes, source=in_name)
     let pdf = @pdfread.PdfRead::new().pdf_of_input(None, None, input)
     if @pdfcrypt.PdfCrypt::new().is_encrypted(pdf) {
       fail("File is encrypted.")
@@ -38,9 +38,9 @@ async fn main {
     }
     let pdf = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, rebuilt)
     pdf.remove_unreferenced()
-    let (output, buffer) = @pdfio.input_output_of_bytes(1024)
+    let (output, buffer) = @pdfio.Output::of_bytes(1024)
     @pdfwrite.PdfWrite::new().pdf_to_output(None, true, pdf, output)
-    let out_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+    let out_bytes = output.extract_bytes(buffer)
     @fs.write_file(out_name, Bytes::from_array(out_bytes))
   } catch {
     err => {

@@ -3,7 +3,7 @@ fn lex_from_string(
   oneonly : Bool,
   source : String,
 ) -> Array[@pdfgenlex.Token] raise {
-  let input = @pdfio.input_of_string(source)
+  let input = @pdfio.Input::of_string(source)
   @pdfsyntax.PdfSyntax::new().lex_object_at(oneonly, input, true, _ => [])
 }
 

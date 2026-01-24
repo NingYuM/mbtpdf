@@ -530,7 +530,7 @@ fn build_xref_stream(
   let w1 = bytes_required(max_type)
   let w2 = bytes_required(max_field2)
   let w3 = bytes_required(max_field3)
-  let (output, buffer) = @pdfio.input_output_of_bytes(256)
+  let (output, buffer) = @pdfio.Output::of_bytes(256)
   for i in 0..<size {
     let (typ, field2, field3) = match object_stream_entries.get(i) {
       Some((stream_id, index)) => (2, stream_id, index)
@@ -545,7 +545,7 @@ fn build_xref_stream(
     write_int_be(output, field2, w2)
     write_int_be(output, field3, w3)
   }
-  let data = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let data = output.extract_bytes(buffer)
   let dict_with_type = pdf.trailerdict.add_entry(
     "/Type",
     @pdf.PdfObject::Name("/XRef"),
@@ -938,7 +938,7 @@ pub async fn PdfWrite::pdf_to_channel(
   pdf : @pdf.Pdf,
   channel : @fs.File,
 ) -> Unit {
-  let output = @pdfio.output_of_channel(channel)
+  let output = @pdfio.Output::of_channel(channel)
   match recrypt {
     Some(value) =>
       self.pdf_to_output(

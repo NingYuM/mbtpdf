@@ -3677,7 +3677,7 @@ let glyphmap_memo : () -> Array[(String, Array[Int])] raise = @pdfutil.PdfUtil::
       PdfGlyphList::new().glyphlist_src(),
     )
     let text = @pdfio.string_of_bytes(decoded)
-    parse_glyphlist(@pdfio.input_of_string(text))
+    parse_glyphlist(@pdfio.Input::of_string(text))
   },
 )
 

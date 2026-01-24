@@ -14,7 +14,7 @@ test "malformed pdf without xref uses fallback" {
   let pdf = PdfRead::new().pdf_of_input(
     None,
     None,
-    @pdfio.input_of_string(data),
+    @pdfio.Input::of_string(data),
   )
   assert_eq(pdf.root, 1)
   assert_eq(pdf.objcard(), 2)
@@ -38,7 +38,7 @@ test "malformed pdf without trailer infers root" {
   let pdf = PdfRead::new().pdf_of_input(
     None,
     None,
-    @pdfio.input_of_string(data),
+    @pdfio.Input::of_string(data),
   )
   assert_eq(pdf.root, 1)
   match (pdf.trailerdict.lookup_immediate("/Root") : @pdf.PdfObject?) {
@@ -66,7 +66,7 @@ test "malformed pdf honors error_on_malformed" {
   let res : Result[@pdf.Pdf, Error] = try? PdfRead::new().pdf_of_input(
     None,
     None,
-    @pdfio.input_of_string(data),
+    @pdfio.Input::of_string(data),
   )
   assert_true(res is Err(_))
 }
@@ -89,7 +89,7 @@ test "malformed pdf skips bad objects and trailers" {
   let pdf = PdfRead::new().pdf_of_input(
     None,
     None,
-    @pdfio.input_of_string(data),
+    @pdfio.Input::of_string(data),
   )
   assert_eq(pdf.root, 1)
   assert_eq(pdf.objcard(), 2)

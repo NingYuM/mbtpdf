@@ -92,7 +92,7 @@ fn version_from_catalog(pdf : @pdf.Pdf) -> (Int, Int)? {
         view => view.to_string()
       }
       let header = "%PDF-\{version}"
-      try read_header(@pdfio.input_of_string(header)) catch {
+      try read_header(@pdfio.Input::of_string(header)) catch {
         _ => None
       } noraise {
         pair => Some(pair)

@@ -19,7 +19,7 @@ pub fn PdfJpeg::get_jpeg_data(
   _self : PdfJpeg,
   input : @pdfio.Input,
 ) -> @pdfio.MutableBytes raise {
-  let (output, data) = @pdfio.input_output_of_bytes(4096)
+  let (output, data) = @pdfio.Output::of_bytes(4096)
   let mut fin = false
   let mut last = 0
   while !fin {
@@ -39,5 +39,5 @@ pub fn PdfJpeg::get_jpeg_data(
       (output.output_byte)(x)
     }
   }
-  @pdfio.extract_bytes_from_input_output(output, data)
+  output.extract_bytes(data)
 }

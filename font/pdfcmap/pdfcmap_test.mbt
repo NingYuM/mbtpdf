@@ -62,7 +62,7 @@ test "parse_cmap parses bfrange array mapping" {
 test "parse_cmap handles ToGet streams" {
   let data = "beginbfchar<01><0041>endbfchar"
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(data.length()))])
-  let toget = @pdf.ToGet::new(@pdfio.input_of_string(data), 0, data.length())
+  let toget = @pdf.ToGet::new(@pdfio.Input::of_string(data), 0, data.length())
   let cmap : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::ToGet(toget))),
   )

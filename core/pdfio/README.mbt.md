@@ -113,7 +113,7 @@ pub struct Input {
 ///|
 test "input_of_bytes" {
   let bytes = @pdfio.bytes_of_string("Hello")
-  let input = @pdfio.input_of_bytes(bytes)
+  let input = @pdfio.Input::of_bytes(bytes)
   inspect(input.in_channel_length, content="5")
   inspect((input.input_byte)(), content="72") // 'H'
   inspect((input.input_byte)(), content="101") // 'e'
@@ -125,7 +125,7 @@ test "input_of_bytes" {
 ```mbt check
 ///|
 test "input_of_string" {
-  let input = @pdfio.input_of_string("ABC")
+  let input = @pdfio.Input::of_string("ABC")
   inspect((input.input_char)(), content="Some('A')")
   inspect((input.input_char)(), content="Some('B')")
 }
@@ -136,7 +136,7 @@ test "input_of_string" {
 ```mbt check
 ///|
 test "peek_byte does not advance" {
-  let input = @pdfio.input_of_string("XY")
+  let input = @pdfio.Input::of_string("XY")
   let first = input.peek_byte()
   let second = input.peek_byte()
   inspect(first, content="88") // 'X'
@@ -149,7 +149,7 @@ test "peek_byte does not advance" {
 ```mbt check
 ///|
 test "read_line" {
-  let input = @pdfio.input_of_string("line1\nline2\n")
+  let input = @pdfio.Input::of_string("line1\nline2\n")
   inspect(input.read_line(), content="line1")
   inspect(input.read_line(), content="line2")
 }
@@ -160,7 +160,7 @@ test "read_line" {
 ```mbt check
 ///|
 test "bytes_of_input extracts range" {
-  let input = @pdfio.input_of_string("Hello World")
+  let input = @pdfio.Input::of_string("Hello World")
   let bytes = input.bytes_of_input(0, 5)
   inspect(@pdfio.string_of_bytes(bytes), content="Hello")
 }
@@ -188,9 +188,9 @@ pub struct Output {
 ```mbt check
 ///|
 test "input_output_of_bytes" {
-  let (output, data) = @pdfio.input_output_of_bytes(16)
+  let (output, data) = @pdfio.Output::of_bytes(16)
   (output.output_string)("test")
-  let bytes = @pdfio.extract_bytes_from_input_output(output, data)
+  let bytes = output.extract_bytes(data)
   inspect(@pdfio.string_of_bytes(bytes), content="test")
 }
 ```
@@ -205,7 +205,7 @@ For reading data at the bit level (MSB-first order).
 ///|
 test "bitstream reading" {
   // Byte 0xA5 = 10100101 in binary
-  let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0xA5]))
+  let input = @pdfio.Input::of_bytes(@pdfio.bytes_of_list([0xA5]))
   let bits = @pdfio.Bitstream::of_input(input)
 
   // Read first 4 bits: 1010 = 10
@@ -219,7 +219,7 @@ test "bitstream reading" {
 ```mbt check
 ///|
 test "getbit reads individual bits" {
-  let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0x80])) // 10000000
+  let input = @pdfio.Input::of_bytes(@pdfio.bytes_of_list([0x80])) // 10000000
   let bits = @pdfio.Bitstream::of_input(input)
   inspect(bits.getbit(), content="true") // bit 7
   inspect(bits.getbit(), content="false") // bit 6
@@ -231,7 +231,7 @@ test "getbit reads individual bits" {
 ```mbt nocheck
 ///|
 test "bitstream save and restore" {
-  let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0xFF, 0x00]))
+  let input = @pdfio.Input::of_bytes(@pdfio.bytes_of_list([0xFF, 0x00]))
   let bits = @pdfio.Bitstream::of_input(input)
   let pos = bits.position()
   ignore(getval_32(bits, 8)) // read 8 bits (internal function)
@@ -245,7 +245,7 @@ test "bitstream save and restore" {
 ```mbt nocheck
 ///|
 test "align skips to next byte" {
-  let input = @pdfio.input_of_bytes(@pdfio.bytes_of_list([0xFF, 0xAB]))
+  let input = @pdfio.Input::of_bytes(@pdfio.bytes_of_list([0xFF, 0xAB]))
   let bits = @pdfio.Bitstream::of_input(input)
   ignore(bits.getbit()) // read 1 bit
   bits.align() // skip to byte boundary

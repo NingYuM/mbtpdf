@@ -152,7 +152,7 @@ test "pdf_to_output generates object streams with indirect lengths" {
   let encoded = @pdfcodec.PdfCodec::new().encode_flate(objstm_data)
   let should_compress = @pdfio.bytes_size(encoded) + 20 <
     @pdfio.bytes_size(objstm_data)
-  let (output, buffer) = @pdfio.input_output_of_bytes(4096)
+  let (output, buffer) = @pdfio.Output::of_bytes(4096)
   write_ctx.pdf_to_output(
     generate_objstm=true,
     preserve_objstm=true,
@@ -162,7 +162,7 @@ test "pdf_to_output generates object streams with indirect lengths" {
     pdf,
     output,
   )
-  let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let bytes = output.extract_bytes(buffer)
   let text = @pdfio.string_of_bytes(bytes)
   assert_true(text.contains("/ObjStm"))
   let has_flate = text.contains("/FlateDecode")
@@ -178,7 +178,7 @@ test "pdf_to_output skips indirect length objects for objstm hints" {
   let stream_num = pdf.addobj(Stream(Ref::new((dict, @pdf.Stream::Got(data)))))
   pdf.objects.object_stream_ids.set(stream_num, stream_num)
   pdf.objects.object_stream_ids.set(length_obj, stream_num)
-  let (output, buffer) = @pdfio.input_output_of_bytes(1024)
+  let (output, buffer) = @pdfio.Output::of_bytes(1024)
   write_ctx.pdf_to_output(
     generate_objstm=true,
     preserve_objstm=false,
@@ -188,7 +188,7 @@ test "pdf_to_output skips indirect length objects for objstm hints" {
     pdf,
     output,
   )
-  let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let bytes = output.extract_bytes(buffer)
   let text = @pdfio.string_of_bytes(bytes)
   assert_true(text.contains("/ObjStm"))
 }
@@ -199,7 +199,7 @@ test "pdf_to_output skips indirect length objects for objstm hints" {
 test "pdf_to_output drops invalid object stream ids and writes toget" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let data = @pdfio.bytes_of_string("a")
-  let input = @pdfio.input_of_bytes(data, source="toget-output")
+  let input = @pdfio.Input::of_bytes(data, source="toget-output")
   let deferred : @pdf.DeferredEncryption = {
     crypt_type: @pdfcryptprimitives.Encryption::AESV2,
     file_encryption_key: None,
@@ -222,7 +222,7 @@ test "pdf_to_output drops invalid object stream ids and writes toget" {
   let stream_num = pdf.addobj(stream)
   pdf.objects.object_stream_ids.set(9999, stream_num)
   pdf.objects.object_stream_ids.set(stream_num, stream_num)
-  let (output, buffer) = @pdfio.input_output_of_bytes(4096)
+  let (output, buffer) = @pdfio.Output::of_bytes(4096)
   write_ctx.pdf_to_output(
     preserve_objstm=true,
     generate_objstm=false,
@@ -234,7 +234,7 @@ test "pdf_to_output drops invalid object stream ids and writes toget" {
   )
   assert_true(pdf.objects.object_stream_ids.get(9999) is None)
   assert_true(pdf.objects.object_stream_ids.get(stream_num) is None)
-  let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
+  let bytes = output.extract_bytes(buffer)
   assert_true(bytes.length() > 0)
 }
 

@@ -25,7 +25,7 @@ fn read_afm(afm : Array[Byte]) -> AfmTables raise {
     @pdfcodec.PdfCodec::new().decode_flate(afm),
   )
   let (headers, ws, ks, ws_prime) = @pdfafm.PdfAfm::new().read(
-    @pdfio.input_of_string(decompressed),
+    @pdfio.Input::of_string(decompressed),
   )
   (
     @pdfutil.PdfUtil::new().hashtable_of_dictionary(headers),
