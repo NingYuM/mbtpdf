@@ -12,42 +12,46 @@ priv struct BitReader {
 }
 
 ///|
-fn read_bit(reader : BitReader) -> Int raise FlateError {
-  if reader.byte_pos >= reader.data.length() {
+#as_free_fn(read_bit, deprecated="Use `BitReader::read_bit` instead")
+fn BitReader::read_bit(self : BitReader) -> Int raise FlateError {
+  if self.byte_pos >= self.data.length() {
     raise FlateError::Error("uncompress", "unexpected end of input")
   }
-  let byte = reader.data[reader.byte_pos].to_int()
-  let bit = (byte >> reader.bit_pos) & 1
-  reader.bit_pos = reader.bit_pos + 1
-  if reader.bit_pos == 8 {
-    reader.bit_pos = 0
-    reader.byte_pos = reader.byte_pos + 1
+  let byte = self.data[self.byte_pos].to_int()
+  let bit = (byte >> self.bit_pos) & 1
+  self.bit_pos = self.bit_pos + 1
+  if self.bit_pos == 8 {
+    self.bit_pos = 0
+    self.byte_pos = self.byte_pos + 1
   }
   bit
 }
 
 ///|
-fn read_bits(reader : BitReader, count : Int) -> Int raise FlateError {
+#as_free_fn(read_bits, deprecated="Use `BitReader::read_bits` instead")
+fn BitReader::read_bits(self : BitReader, count : Int) -> Int raise FlateError {
   let mut value = 0
   for i in 0..<count {
-    let bit = read_bit(reader)
+    let bit = self.read_bit()
     value = value | (bit << i)
   }
   value
 }
 
 ///|
-fn align_byte(reader : BitReader) -> Unit {
-  if reader.bit_pos != 0 {
-    reader.bit_pos = 0
-    reader.byte_pos = reader.byte_pos + 1
+#as_free_fn(align_byte, deprecated="Use `BitReader::align_byte` instead")
+fn BitReader::align_byte(self : BitReader) -> Unit {
+  if self.bit_pos != 0 {
+    self.bit_pos = 0
+    self.byte_pos = self.byte_pos + 1
   }
 }
 
 ///|
-fn read_u16_le(reader : BitReader) -> Int raise FlateError {
-  let lo = read_bits(reader, 8)
-  let hi = read_bits(reader, 8)
+#as_free_fn(read_u16_le, deprecated="Use `BitReader::read_u16_le` instead")
+fn BitReader::read_u16_le(self : BitReader) -> Int raise FlateError {
+  let lo = self.read_bits(8)
+  let hi = self.read_bits(8)
   lo | (hi << 8)
 }
 
@@ -104,7 +108,7 @@ fn build_huffman(lengths : Array[Int]) -> Huffman {
 fn decode_symbol(reader : BitReader, huff : Huffman) -> Int raise FlateError {
   let mut code = 0
   for len = 1; len <= huff.max_bits; len = len + 1 {
-    let bit = read_bit(reader)
+    let bit = reader.read_bit()
     code = code | (bit << (len - 1))
     match huff.table[len].get(code) {
       Some(sym) => return sym
@@ -190,14 +194,14 @@ fn inflate_stored(
   reader : BitReader,
   out : @pdfio.MutableBytes,
 ) -> Unit raise FlateError {
-  align_byte(reader)
-  let len = read_u16_le(reader)
-  let nlen = read_u16_le(reader)
+  reader.align_byte()
+  let len = reader.read_u16_le()
+  let nlen = reader.read_u16_le()
   if ((len ^ 0xFFFF) & 0xFFFF) != nlen {
     raise FlateError::Error("uncompress", "stored block length mismatch")
   }
   for _ in 0..<len {
-    let b = read_bits(reader, 8)
+    let b = reader.read_bits(8)
     out.push(b.to_byte())
   }
 }
@@ -221,14 +225,14 @@ fn inflate_fixed(
       let index = symbol - 257
       let base = length_base[index]
       let extra = length_extra[index]
-      let length = base + (if extra > 0 { read_bits(reader, extra) } else { 0 })
+      let length = base + (if extra > 0 { reader.read_bits(extra) } else { 0 })
       let dist_symbol = decode_symbol(reader, fixed_distance_huffman)
       if dist_symbol < 0 || dist_symbol >= dist_base.length() {
         raise FlateError::Error("uncompress", "invalid distance symbol")
       }
       let dist = dist_base[dist_symbol] +
         (if dist_extra[dist_symbol] > 0 {
-          read_bits(reader, dist_extra[dist_symbol])
+          reader.read_bits(dist_extra[dist_symbol])
         } else {
           0
         })
@@ -247,16 +251,16 @@ fn inflate_dynamic(
   reader : BitReader,
   out : @pdfio.MutableBytes,
 ) -> Unit raise FlateError {
-  let hlit = read_bits(reader, 5) + 257
-  let hdist = read_bits(reader, 5) + 1
-  let hclen = read_bits(reader, 4) + 4
+  let hlit = reader.read_bits(5) + 257
+  let hdist = reader.read_bits(5) + 1
+  let hclen = reader.read_bits(4) + 4
   let code_length_order : Array[Int] = [
     16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15,
   ]
   let code_lengths = Array::make(19, 0)
   for i in 0..<hclen {
     let symbol = code_length_order[i]
-    code_lengths[symbol] = read_bits(reader, 3)
+    code_lengths[symbol] = reader.read_bits(3)
   }
   let code_length_huff = build_huffman(code_lengths)
   let total = hlit + hdist
@@ -273,7 +277,7 @@ fn inflate_dynamic(
           "uncompress", "repeat with no previous code length",
         )
       }
-      let repeat = 3 + read_bits(reader, 2)
+      let repeat = 3 + reader.read_bits(2)
       for _ in 0..<repeat {
         if lengths.length() >= total {
           raise FlateError::Error("uncompress", "code length overflow")
@@ -281,7 +285,7 @@ fn inflate_dynamic(
         lengths.push(prev)
       }
     } else if sym == 17 {
-      let repeat = 3 + read_bits(reader, 3)
+      let repeat = 3 + reader.read_bits(3)
       for _ in 0..<repeat {
         if lengths.length() >= total {
           raise FlateError::Error("uncompress", "code length overflow")
@@ -290,7 +294,7 @@ fn inflate_dynamic(
       }
       prev = 0
     } else if sym == 18 {
-      let repeat = 11 + read_bits(reader, 7)
+      let repeat = 11 + reader.read_bits(7)
       for _ in 0..<repeat {
         if lengths.length() >= total {
           raise FlateError::Error("uncompress", "code length overflow")
@@ -326,14 +330,14 @@ fn inflate_dynamic(
       let index = symbol - 257
       let base = length_base[index]
       let extra = length_extra[index]
-      let length = base + (if extra > 0 { read_bits(reader, extra) } else { 0 })
+      let length = base + (if extra > 0 { reader.read_bits(extra) } else { 0 })
       let dist_symbol = decode_symbol(reader, dist_huff)
       if dist_symbol < 0 || dist_symbol >= dist_base.length() {
         raise FlateError::Error("uncompress", "invalid distance symbol")
       }
       let dist = dist_base[dist_symbol] +
         (if dist_extra[dist_symbol] > 0 {
-          read_bits(reader, dist_extra[dist_symbol])
+          reader.read_bits(dist_extra[dist_symbol])
         } else {
           0
         })
@@ -494,8 +498,8 @@ pub fn uncompress(
     reader : BitReader,
     out : @pdfio.MutableBytes,
   ) -> Unit raise FlateError {
-    let bfinal = read_bits(reader, 1)
-    let btype = read_bits(reader, 2)
+    let bfinal = reader.read_bits(1)
+    let btype = reader.read_bits(2)
     match btype {
       0 => inflate_stored(reader, out)
       1 => inflate_fixed(reader, out)
