@@ -91,8 +91,8 @@ pub fn PdfTextUtil::parse_charset(
   let out = Array::new()
   while true {
     try {
-      @pdfsyntax.dropwhite(input)
-      match @pdfsyntax.lex_name(input) {
+      @pdfsyntax.PdfSyntax::new().dropwhite(input)
+      match @pdfsyntax.PdfSyntax::new().lex_name(input) {
         @pdfgenlex.Token::LexName(name) =>
           if name == "/" {
             break

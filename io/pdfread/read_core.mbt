@@ -11,10 +11,14 @@ fn is_digit(c : Char) -> Bool {
 
 ///|
 fn read_startxref(input : @pdfio.Input) -> Int raise {
-  @pdfsyntax.find_eof(input)
-  @pdfsyntax.backline(input)
-  @pdfsyntax.ignoreuntil(false, is_digit, input)
-  let digits = @pdfsyntax.getuntil_string(false, c => !is_digit(c), input)
+  @pdfsyntax.PdfSyntax::new().find_eof(input)
+  @pdfsyntax.PdfSyntax::new().backline(input)
+  @pdfsyntax.PdfSyntax::new().ignoreuntil(false, is_digit, input)
+  let digits = @pdfsyntax.PdfSyntax::new().getuntil_string(
+    false,
+    c => !is_digit(c),
+    input,
+  )
   if digits.length() == 0 {
     let message = @pdf.input_pdferror(input, "Could not find xref pointer")
     raise @pdf.PdfError::Msg(message)
@@ -48,8 +52,13 @@ fn read_trailer_dict_from_table(
   input : @pdfio.Input,
   read_stream_data : Bool,
 ) -> @pdf.PdfObject raise {
-  let lexemes = @pdfsyntax.lex_object_at(true, input, read_stream_data, _ => [])
-  let (_, parsed) = @pdfsyntax.parse(lexemes)
+  let lexemes = @pdfsyntax.PdfSyntax::new().lex_object_at(
+    true,
+    input,
+    read_stream_data,
+    _ => [],
+  )
+  let (_, parsed) = @pdfsyntax.PdfSyntax::new().parse(lexemes)
   extract_trailer_dict(parsed)
 }
 
@@ -138,7 +147,7 @@ fn read_pdf_internal(
     while !got_all_xref_sections {
       (input.seek_in)(xref_offset)
       current_revision = current_revision + 1
-      @pdfsyntax.dropwhite(input)
+      @pdfsyntax.PdfSyntax::new().dropwhite(input)
       let skip = match revision {
         None => false
         Some(r) => r > current_revision
@@ -168,7 +177,7 @@ fn read_pdf_internal(
       match @pdf.lookup_immediate("/XRefStm", trailerdict_current) {
         Some(@pdf.PdfObject::Integer(n)) => {
           (input.seek_in)(n)
-          @pdfsyntax.dropwhite(input)
+          @pdfsyntax.PdfSyntax::new().dropwhite(input)
           let (entries, xref_objnum, _stream_obj) = read_xref_stream(input)
           if !skip {
             let filtered = entries.filter(pair => pair.0 != xref_objnum)

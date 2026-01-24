@@ -21,19 +21,36 @@ fn is_delimiter(c : Char) -> Bool {
 }
 
 ///|
-pub fn is_whitespace_or_delimiter(c : Char) -> Bool {
+let input_syntax : PdfSyntax = PdfSyntax::new()
+
+///|
+#as_free_fn(is_whitespace_or_delimiter, deprecated="Use `PdfSyntax::is_whitespace_or_delimiter`")
+pub fn PdfSyntax::is_whitespace_or_delimiter(
+  _self : PdfSyntax,
+  c : Char,
+) -> Bool {
   is_whitespace(c) || is_delimiter(c)
 }
 
 ///|
 /// Read chars until whitespace or delimiter.
-pub fn getuntil_white_or_delimiter_string(input : @pdfio.Input) -> String raise {
-  getuntil_string(true, is_whitespace_or_delimiter, input)
+#as_free_fn(getuntil_white_or_delimiter_string, deprecated="Use `PdfSyntax::getuntil_white_or_delimiter_string`")
+pub fn PdfSyntax::getuntil_white_or_delimiter_string(
+  _self : PdfSyntax,
+  input : @pdfio.Input,
+) -> String raise {
+  input_syntax.getuntil_string(
+    true,
+    c => input_syntax.is_whitespace_or_delimiter(c),
+    input,
+  )
 }
 
 ///|
 /// Read chars until predicate is true.
-pub fn getuntil(
+#as_free_fn(getuntil, deprecated="Use `PdfSyntax::getuntil`")
+pub fn PdfSyntax::getuntil(
+  _self : PdfSyntax,
   eof_is_delimiter : Bool,
   pred : (Char) -> Bool,
   input : @pdfio.Input,
@@ -65,7 +82,9 @@ pub fn getuntil(
 
 ///|
 /// Read chars until predicate is true, returning a string.
-pub fn getuntil_string(
+#as_free_fn(getuntil_string, deprecated="Use `PdfSyntax::getuntil_string`")
+pub fn PdfSyntax::getuntil_string(
+  _self : PdfSyntax,
   eof_is_delimiter : Bool,
   pred : (Char) -> Bool,
   input : @pdfio.Input,
@@ -95,7 +114,9 @@ pub fn getuntil_string(
 
 ///|
 /// Ignore chars until predicate is true.
-pub fn ignoreuntil(
+#as_free_fn(ignoreuntil, deprecated="Use `PdfSyntax::ignoreuntil`")
+pub fn PdfSyntax::ignoreuntil(
+  _self : PdfSyntax,
   eof_is_delimiter : Bool,
   pred : (Char) -> Bool,
   input : @pdfio.Input,
@@ -121,8 +142,12 @@ pub fn ignoreuntil(
 
 ///|
 /// Drop whitespace.
-pub fn dropwhite(input : @pdfio.Input) -> Unit raise {
-  ignoreuntil(true, is_not_whitespace, input)
+#as_free_fn(dropwhite, deprecated="Use `PdfSyntax::dropwhite`")
+pub fn PdfSyntax::dropwhite(
+  _self : PdfSyntax,
+  input : @pdfio.Input,
+) -> Unit raise {
+  input_syntax.ignoreuntil(true, is_not_whitespace, input)
 }
 
 ///|
@@ -130,7 +155,8 @@ pub fn dropwhite(input : @pdfio.Input) -> Unit raise {
 
 ///|
 /// Read a line from input (newline not included).
-pub fn input_line(input : @pdfio.Input) -> String {
+#as_free_fn(input_line, deprecated="Use `PdfSyntax::input_line`")
+pub fn PdfSyntax::input_line(_self : PdfSyntax, input : @pdfio.Input) -> String {
   let sb = StringBuilder::new()
   let mut got_eol = false
   let mut finished = false
@@ -167,7 +193,11 @@ fn read_back_until(pred : (Char) -> Bool, input : @pdfio.Input) -> Unit raise {
 
 ///|
 /// Go back one line.
-pub fn backline(input : @pdfio.Input) -> Unit raise {
+#as_free_fn(backline, deprecated="Use `PdfSyntax::backline`")
+pub fn PdfSyntax::backline(
+  _self : PdfSyntax,
+  input : @pdfio.Input,
+) -> Unit raise {
   read_back_until(is_newline, input)
   read_back_until(c => !is_newline(c), input)
   read_back_until(is_newline, input)
@@ -179,7 +209,11 @@ pub fn backline(input : @pdfio.Input) -> Unit raise {
 
 ///|
 /// Find the EOF marker and position input there.
-pub fn find_eof(input : @pdfio.Input) -> Unit raise {
+#as_free_fn(find_eof, deprecated="Use `PdfSyntax::find_eof`")
+pub fn PdfSyntax::find_eof(
+  _self : PdfSyntax,
+  input : @pdfio.Input,
+) -> Unit raise {
   fn fail_find() -> Unit raise {
     let message = @pdf.input_pdferror(input, "Could not find EOF marker")
     raise @pdf.PdfError::Msg(message)

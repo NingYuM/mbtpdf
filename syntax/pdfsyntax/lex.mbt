@@ -14,8 +14,15 @@ fn hex_value(c : Char) -> Int? {
 }
 
 ///|
+let lex_syntax : PdfSyntax = PdfSyntax::new()
+
+///|
 /// Lex a name.
-pub fn lex_name(input : @pdfio.Input) -> @pdfgenlex.Token raise {
+#as_free_fn(lex_name, deprecated="Use `PdfSyntax::lex_name`")
+pub fn PdfSyntax::lex_name(
+  _self : PdfSyntax,
+  input : @pdfio.Input,
+) -> @pdfgenlex.Token raise {
   let bytes : @pdfio.MutableBytes = Array::new()
   let _ = (input.input_byte)()
   bytes.push('/'.to_int().to_byte())
@@ -26,7 +33,7 @@ pub fn lex_name(input : @pdfio.Input) -> @pdfgenlex.Token raise {
       done = true
     } else {
       let c = b.to_byte().to_char()
-      if is_whitespace_or_delimiter(c) {
+      if lex_syntax.is_whitespace_or_delimiter(c) {
         input.rewind()
         done = true
       } else if c == '#' {
@@ -70,8 +77,12 @@ pub fn lex_name(input : @pdfio.Input) -> @pdfgenlex.Token raise {
 
 ///|
 /// Lex a number.
-pub fn lex_number(input : @pdfio.Input) -> @pdfgenlex.Token raise {
-  let s = getuntil_white_or_delimiter_string(input)
+#as_free_fn(lex_number, deprecated="Use `PdfSyntax::lex_number`")
+pub fn PdfSyntax::lex_number(
+  _self : PdfSyntax,
+  input : @pdfio.Input,
+) -> @pdfgenlex.Token raise {
+  let s = lex_syntax.getuntil_white_or_delimiter_string(input)
   let mut number = s
   if number.length() > 1 {
     match (number.get_char(0), number.get_char(1)) {
@@ -109,7 +120,11 @@ pub fn lex_number(input : @pdfio.Input) -> @pdfgenlex.Token raise {
 
 ///|
 /// Lex a string.
-pub fn lex_string(input : @pdfio.Input) -> @pdfgenlex.Token raise {
+#as_free_fn(lex_string, deprecated="Use `PdfSyntax::lex_string`")
+pub fn PdfSyntax::lex_string(
+  _self : PdfSyntax,
+  input : @pdfio.Input,
+) -> @pdfgenlex.Token raise {
   let bytes : @pdfio.MutableBytes = Array::new()
   let mut paren = 1
   let first = (input.input_byte)()
@@ -190,7 +205,11 @@ pub fn lex_string(input : @pdfio.Input) -> @pdfgenlex.Token raise {
 
 ///|
 /// Lex a hex string.
-pub fn lex_hexstring(input : @pdfio.Input) -> @pdfgenlex.Token raise {
+#as_free_fn(lex_hexstring, deprecated="Use `PdfSyntax::lex_hexstring`")
+pub fn PdfSyntax::lex_hexstring(
+  _self : PdfSyntax,
+  input : @pdfio.Input,
+) -> @pdfgenlex.Token raise {
   let _ = (input.input_byte)()
   let bytes : @pdfio.MutableBytes = Array::new()
   let mut pending : Int? = None
@@ -232,18 +251,27 @@ pub fn lex_hexstring(input : @pdfio.Input) -> @pdfgenlex.Token raise {
 
 ///|
 /// Lex a comment.
-pub fn lex_comment(input : @pdfio.Input) -> @pdfgenlex.Token raise {
-  ignoreuntil(false, is_newline, input)
+#as_free_fn(lex_comment, deprecated="Use `PdfSyntax::lex_comment`")
+pub fn PdfSyntax::lex_comment(
+  _self : PdfSyntax,
+  input : @pdfio.Input,
+) -> @pdfgenlex.Token raise {
+  lex_syntax.ignoreuntil(false, is_newline, input)
   LexComment("")
 }
 
 ///|
 fn ignoreuntilwhite(input : @pdfio.Input) -> Unit raise {
-  ignoreuntil(true, is_whitespace, input)
+  lex_syntax.ignoreuntil(true, is_whitespace, input)
 }
 
 ///|
-pub fn read_chunk(count : Int, input : @pdfio.Input) -> String raise {
+#as_free_fn(read_chunk, deprecated="Use `PdfSyntax::read_chunk`")
+pub fn PdfSyntax::read_chunk(
+  _self : PdfSyntax,
+  count : Int,
+  input : @pdfio.Input,
+) -> String raise {
   let pos = (input.pos_in)()
   let sb = StringBuilder::new()
   let mut i = 0
@@ -264,12 +292,12 @@ pub fn read_chunk(count : Int, input : @pdfio.Input) -> String raise {
 ///|
 fn is_malformed(input : @pdfio.Input) -> Bool {
   try {
-    if read_chunk(9, input) == "endstream" {
+    if lex_syntax.read_chunk(9, input) == "endstream" {
       false
-    } else if read_chunk(10, input) == "\nendstream" ||
-      read_chunk(10, input) == "\rendstream" {
+    } else if lex_syntax.read_chunk(10, input) == "\nendstream" ||
+      lex_syntax.read_chunk(10, input) == "\rendstream" {
       false
-    } else if read_chunk(11, input) == "\r\nendstream" {
+    } else if lex_syntax.read_chunk(11, input) == "\r\nendstream" {
       false
     } else {
       true
@@ -282,7 +310,7 @@ fn is_malformed(input : @pdfio.Input) -> Bool {
 ///|
 fn skip_stream_beginning(input : @pdfio.Input) -> Unit raise {
   ignoreuntilwhite(input)
-  ignoreuntil(
+  lex_syntax.ignoreuntil(
     true,
     c => {
       let v = c.to_int()
@@ -307,7 +335,7 @@ fn skip_stream_beginning(input : @pdfio.Input) -> Unit raise {
 fn find_endstream(input : @pdfio.Input) -> Int raise {
   fn match_chunk(s : String, input : @pdfio.Input) -> Bool raise {
     let pos = (input.pos_in)()
-    let ok = read_chunk(s.length(), input) == s
+    let ok = lex_syntax.read_chunk(s.length(), input) == s
     (input.seek_in)(pos)
     ok
   }
@@ -333,8 +361,12 @@ fn find_endstream(input : @pdfio.Input) -> Int raise {
 }
 
 ///|
-pub fn lex_keyword(input : @pdfio.Input) -> @pdfgenlex.Token raise {
-  let kw = getuntil_white_or_delimiter_string(input)
+#as_free_fn(lex_keyword, deprecated="Use `PdfSyntax::lex_keyword`")
+pub fn PdfSyntax::lex_keyword(
+  _self : PdfSyntax,
+  input : @pdfio.Input,
+) -> @pdfgenlex.Token raise {
+  let kw = lex_syntax.getuntil_white_or_delimiter_string(input)
   match kw {
     "obj" => LexObj
     "endobj" => LexEndObj
@@ -373,7 +405,9 @@ fn lex_malformed_stream_data(input : @pdfio.Input) -> @pdfgenlex.Token raise {
 }
 
 ///|
-pub fn lex_stream_data(
+#as_free_fn(lex_stream_data, deprecated="Use `PdfSyntax::lex_stream_data`")
+pub fn PdfSyntax::lex_stream_data(
+  _self : PdfSyntax,
   input : @pdfio.Input,
   length : Int,
   read_data : Bool,
@@ -452,7 +486,9 @@ fn take_dict_lexemes(
 }
 
 ///|
-pub fn lex_stream(
+#as_free_fn(lex_stream, deprecated="Use `PdfSyntax::lex_stream`")
+pub fn PdfSyntax::lex_stream(
+  _self : PdfSyntax,
   input : @pdfio.Input,
   previous_lexemes : Array[@pdfgenlex.Token],
   lexobj : (Int) -> Array[@pdfgenlex.Token] raise,
@@ -464,7 +500,7 @@ pub fn lex_stream(
   }
 
   let dictlexemes = take_dict_lexemes(previous_lexemes)
-  let (_, parsed) = parse(dictlexemes)
+  let (_, parsed) = lex_syntax.parse(dictlexemes)
   match (parsed : @pdf.PdfObject) {
     Dictionary(_) => {
       let pos = (input.pos_in)()
@@ -472,7 +508,7 @@ pub fn lex_stream(
         match value {
           Integer(l) => Some(l)
           Indirect(k) => {
-            let (_, obj) = parse(lexobj(k))
+            let (_, obj) = lex_syntax.parse(lexobj(k))
             findlength(obj)
           }
           _ => None
@@ -483,7 +519,7 @@ pub fn lex_stream(
         None => lex_malformed_stream_data(input)
         Some(v) =>
           match findlength(v) {
-            Some(l) => lex_stream_data(input, l, read_stream_data)
+            Some(l) => lex_syntax.lex_stream_data(input, l, read_stream_data)
             None => {
               (input.seek_in)(pos)
               lex_malformed_stream_data(input)
@@ -496,7 +532,9 @@ pub fn lex_stream(
 }
 
 ///|
-pub fn lex_next(
+#as_free_fn(lex_next, deprecated="Use `PdfSyntax::lex_next`")
+pub fn PdfSyntax::lex_next(
+  _self : PdfSyntax,
   dict_level : Ref[Int],
   array_level : Ref[Int],
   end_on_stream : Bool,
@@ -506,7 +544,7 @@ pub fn lex_next(
   lexobj : (Int) -> Array[@pdfgenlex.Token] raise,
 ) -> @pdfgenlex.Token {
   try {
-    dropwhite(input)
+    lex_syntax.dropwhite(input)
     let raw = (input.input_byte)()
     if raw == @pdfio.no_more {
       return StopLexing
@@ -514,8 +552,8 @@ pub fn lex_next(
     let ch = raw.to_byte().to_char()
     input.rewind()
     match ch {
-      '%' => lex_comment(input)
-      '/' => lex_name(input)
+      '%' => lex_syntax.lex_comment(input)
+      '/' => lex_syntax.lex_name(input)
       '[' => {
         input.nudge()
         array_level.val = array_level.val + 1
@@ -526,7 +564,7 @@ pub fn lex_next(
         array_level.val = array_level.val - 1
         LexRightSquare
       }
-      '(' => lex_string(input)
+      '(' => lex_syntax.lex_string(input)
       '<' => {
         input.nudge()
         match input.peek_byte() {
@@ -537,7 +575,7 @@ pub fn lex_next(
           }
           _ => {
             input.rewind()
-            lex_hexstring(input)
+            lex_syntax.lex_hexstring(input)
           }
         }
       }
@@ -572,14 +610,16 @@ pub fn lex_next(
           } else if end_on_stream {
             StopLexing
           } else {
-            lex_stream(input, previous_lexemes, lexobj, read_stream_data)
+            lex_syntax.lex_stream(
+              input, previous_lexemes, lexobj, read_stream_data,
+            )
           }
         }
       }
       'I' => StopLexing
       c if (c >= '0' && c <= '9') || c == '-' || c == '+' || c == '.' =>
-        lex_number(input)
-      c if c >= 'a' && c <= 'z' => lex_keyword(input)
+        lex_syntax.lex_number(input)
+      c if c >= 'a' && c <= 'z' => lex_syntax.lex_keyword(input)
       _ => LexNone
     }
   } catch {
@@ -592,7 +632,9 @@ pub fn lex_next(
 
 ///|
 /// Lex a dictionary. If minus_one is true, assume the opening << was consumed.
-pub fn lex_dictionary(
+#as_free_fn(lex_dictionary, deprecated="Use `PdfSyntax::lex_dictionary`")
+pub fn PdfSyntax::lex_dictionary(
+  _self : PdfSyntax,
   minus_one : Bool,
   input : @pdfio.Input,
 ) -> Array[@pdfgenlex.Token] raise {
@@ -601,7 +643,15 @@ pub fn lex_dictionary(
   let array_level : Ref[Int] = { val: 0 }
   let mut done = false
   while !done {
-    let t = lex_next(dict_level, array_level, false, input, tokens, false, _ => [])
+    let t = lex_syntax.lex_next(
+      dict_level,
+      array_level,
+      false,
+      input,
+      tokens,
+      false,
+      _ => [],
+    )
     tokens.push(t)
     match (t : @pdfgenlex.Token) {
       LexRightDict =>

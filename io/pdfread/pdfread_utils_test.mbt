@@ -1,7 +1,10 @@
 ///|
+let syntax : @pdfsyntax.PdfSyntax = @pdfsyntax.PdfSyntax::new()
+
+///|
 test "getuntil_white_or_delimiter_string stops before delimiter" {
   let input = @pdfio.input_of_string("abc/def")
-  let token = @pdfsyntax.getuntil_white_or_delimiter_string(input)
+  let token = syntax.getuntil_white_or_delimiter_string(input)
   assert_eq(token, "abc")
   match (input.input_char)() {
     Some('/') => ()
@@ -12,7 +15,7 @@ test "getuntil_white_or_delimiter_string stops before delimiter" {
 ///|
 test "dropwhite skips whitespace" {
   let input = @pdfio.input_of_string(" \t\nabc")
-  @pdfsyntax.dropwhite(input)
+  syntax.dropwhite(input)
   match (input.input_char)() {
     Some('a') => ()
     _ => fail("expected first non-whitespace char")
@@ -22,7 +25,7 @@ test "dropwhite skips whitespace" {
 ///|
 test "ignoreuntil leaves delimiter" {
   let input = @pdfio.input_of_string("xx#yy")
-  @pdfsyntax.ignoreuntil(true, c => c == '#', input)
+  syntax.ignoreuntil(true, c => c == '#', input)
   match (input.input_char)() {
     Some('#') => ()
     _ => fail("expected # delimiter")
@@ -32,7 +35,7 @@ test "ignoreuntil leaves delimiter" {
 ///|
 test "getuntil fails on eof when required" {
   let input = @pdfio.input_of_string("abc")
-  let res : Result[Array[Char], Error] = try? @pdfsyntax.getuntil(
+  let res : Result[Array[Char], Error] = try? syntax.getuntil(
     false,
     c => c == '/',
     input,

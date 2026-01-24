@@ -563,7 +563,7 @@ fn strip_dict_markers(value : String) -> String {
 fn string_of_lexeme(lexeme : Lexeme) -> String raise {
   match lexeme {
     Lexeme::LexComment => ""
-    Lexeme::Obj(token) => @pdfsyntax.string_of_lexeme(token)
+    Lexeme::Obj(token) => @pdfsyntax.PdfSyntax::new().string_of_lexeme(token)
     Lexeme::Op(op) => op
     Lexeme::PdfObj(obj) => obj.to_string()
     Lexeme::LexInlineImage((dict, dp, data)) => {
@@ -725,7 +725,8 @@ fn lex_name(input : @pdfio.Input) -> Lexeme raise {
   input.nudge()
   Lexeme::Obj(
     @pdfgenlex.Token::LexName(
-      "/" + @pdfsyntax.getuntil_white_or_delimiter_string(input),
+      "/" +
+      @pdfsyntax.PdfSyntax::new().getuntil_white_or_delimiter_string(input),
     ),
   )
 }
@@ -741,7 +742,7 @@ fn nocontent(input : @pdfio.Input) -> Unit raise {
 
 ///|
 fn lex_number(input : @pdfio.Input) -> Lexeme raise {
-  match (@pdfsyntax.lex_number(input) : @pdfgenlex.Token) {
+  match (@pdfsyntax.PdfSyntax::new().lex_number(input) : @pdfgenlex.Token) {
     LexReal(value) => Obj(@pdfgenlex.Token::LexReal(value))
     LexInt(value) => Obj(@pdfgenlex.Token::LexReal(Double::from_int(value)))
     _ => {
@@ -753,7 +754,11 @@ fn lex_number(input : @pdfio.Input) -> Lexeme raise {
 
 ///|
 fn get_dictionary(input : @pdfio.Input) -> Lexeme raise {
-  Lexeme::PdfObj(@pdfsyntax.parse(@pdfsyntax.lex_dictionary(false, input)).1)
+  Lexeme::PdfObj(
+    @pdfsyntax.PdfSyntax::new().parse(
+      @pdfsyntax.PdfSyntax::new().lex_dictionary(false, input),
+    ).1,
+  )
 }
 
 ///|
@@ -869,7 +874,7 @@ fn lex_inline_image(
     @pdfe.Pdfe::new().log("lex_inline_image at \{(input.pos_in)()}\n")
   }
   try {
-    let lexemes = @pdfsyntax.lex_dictionary(true, input)
+    let lexemes = @pdfsyntax.PdfSyntax::new().lex_dictionary(true, input)
     let tokens : Array[@pdfgenlex.Token] = Array::new(
       capacity=lexemes.length() + 2,
     )
@@ -881,11 +886,11 @@ fn lex_inline_image(
       }
     }
     tokens.push(@pdfgenlex.Token::LexRightDict)
-    let dict = @pdfsyntax.parse(tokens).1
+    let dict = @pdfsyntax.PdfSyntax::new().parse(tokens).1
     if debug.val {
       @pdfe.Pdfe::new().log("dict was \{dict.to_string()}\n")
     }
-    @pdfsyntax.dropwhite(input)
+    @pdfsyntax.PdfSyntax::new().dropwhite(input)
     let c = (input.input_byte)()
     let c2 = (input.input_byte)()
     if c != 'I'.to_int() || c2 != 'D'.to_int() {
@@ -1065,17 +1070,17 @@ fn lex_inline_image(
         }
       }
     }
-    @pdfsyntax.dropwhite(input)
+    @pdfsyntax.PdfSyntax::new().dropwhite(input)
     let end1 = (input.input_byte)()
     let end2 = (input.input_byte)()
     if end1 != 'E'.to_int() || end2 != 'I'.to_int() {
       @pdfe.Pdfe::new().log(
         "warning: bad end to inline image \{end1}, \{end2}\n",
       )
-      @pdfsyntax.ignoreuntil(true, chr => chr == 'E', input)
-      @pdfsyntax.ignoreuntil(true, chr => chr == 'I', input)
+      @pdfsyntax.PdfSyntax::new().ignoreuntil(true, chr => chr == 'E', input)
+      @pdfsyntax.PdfSyntax::new().ignoreuntil(true, chr => chr == 'I', input)
       input.nudge()
-      @pdfsyntax.dropwhite(input)
+      @pdfsyntax.PdfSyntax::new().dropwhite(input)
     }
     let dict_clean = match filter_opt {
       Some(@pdf.PdfObject::Name(name)) =>
@@ -1146,7 +1151,7 @@ fn lex_keyword(
   resources : @pdf.PdfObject,
   input : @pdfio.Input,
 ) -> Lexeme raise {
-  match @pdfsyntax.getuntil_white_or_delimiter_string(input) {
+  match @pdfsyntax.PdfSyntax::new().getuntil_white_or_delimiter_string(input) {
     "true" => Obj(@pdfgenlex.Token::LexBool(true))
     "false" => Obj(@pdfgenlex.Token::LexBool(false))
     "BI" => LexInlineImage(lex_inline_image(pdf, resources, input))
@@ -1160,7 +1165,7 @@ fn lex_keyword(
 
 ///|
 fn lex_string(input : @pdfio.Input) -> Lexeme raise {
-  match (@pdfsyntax.lex_string(input) : @pdfgenlex.Token) {
+  match (@pdfsyntax.PdfSyntax::new().lex_string(input) : @pdfgenlex.Token) {
     LexString(text) => Obj(@pdfgenlex.Token::LexString(text))
     _ => {
       nocontent(input)
@@ -1171,7 +1176,7 @@ fn lex_string(input : @pdfio.Input) -> Lexeme raise {
 
 ///|
 fn lex_hexstring(input : @pdfio.Input) -> Lexeme raise {
-  match (@pdfsyntax.lex_hexstring(input) : @pdfgenlex.Token) {
+  match (@pdfsyntax.PdfSyntax::new().lex_hexstring(input) : @pdfgenlex.Token) {
     LexString(text) => Obj(@pdfgenlex.Token::LexString(text))
     _ => {
       nocontent(input)
@@ -1187,7 +1192,7 @@ fn lex_next(
   input : @pdfio.Input,
 ) -> Lexeme raise {
   try {
-    @pdfsyntax.dropwhite(input)
+    @pdfsyntax.PdfSyntax::new().dropwhite(input)
     let next = input.peek_byte()
     if next == @pdfio.no_more {
       raise LexingEnd
@@ -1217,7 +1222,7 @@ fn lex_next(
         }
       }
       Some('%') => {
-        ignore(@pdfsyntax.lex_comment(input))
+        ignore(@pdfsyntax.PdfSyntax::new().lex_comment(input))
         LexComment
       }
       _ => raise @pdf.PdfError::Msg("Lexing failure in content stream")
@@ -1307,7 +1312,7 @@ fn lexeme_string(lexeme : Lexeme) -> String? {
 fn lexeme_pdfobj(lexeme : Lexeme) -> @pdf.PdfObject? raise {
   match lexeme {
     Lexeme::PdfObj(obj) => Some(obj)
-    Lexeme::Obj(token) => Some(@pdfsyntax.parse([token]).1)
+    Lexeme::Obj(token) => Some(@pdfsyntax.PdfSyntax::new().parse([token]).1)
     _ => None
   }
 }

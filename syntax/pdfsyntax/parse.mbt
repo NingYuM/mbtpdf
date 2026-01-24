@@ -177,7 +177,9 @@ fn parse_finish(
 
 ///|
 /// Parse a PDF object from tokens.
-pub fn parse(
+#as_free_fn(parse, deprecated="Use `PdfSyntax::parse`")
+pub fn PdfSyntax::parse(
+  _self : PdfSyntax,
   tokens : Array[@pdfgenlex.Token],
   failure_is_ok? : Bool = false,
 ) -> (Int, @pdf.PdfObject) raise {

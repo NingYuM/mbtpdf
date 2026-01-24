@@ -1,6 +1,11 @@
 ///|
+let lexeme_syntax : PdfSyntax = PdfSyntax::new()
+
+///|
 /// Lex tokens for a single object.
-pub fn lex_object_at(
+#as_free_fn(lex_object_at, deprecated="Use `PdfSyntax::lex_object_at`")
+pub fn PdfSyntax::lex_object_at(
+  _self : PdfSyntax,
   oneonly : Bool,
   input : @pdfio.Input,
   read_stream_data : Bool,
@@ -11,7 +16,7 @@ pub fn lex_object_at(
   let tokens = Array::new()
   let mut done = false
   while !done {
-    let t = lex_next(
+    let t = lexeme_syntax.lex_next(
       dict_level, array_level, false, input, tokens, read_stream_data, lexobj,
     )
     match (t : @pdfgenlex.Token) {
@@ -54,9 +59,15 @@ pub fn lex_object_at(
 
 ///|
 /// Parse a single object from a string.
-pub fn parse_single_object(s : String) -> @pdf.PdfObject raise {
+#as_free_fn(parse_single_object, deprecated="Use `PdfSyntax::parse_single_object`")
+pub fn PdfSyntax::parse_single_object(
+  _self : PdfSyntax,
+  s : String,
+) -> @pdf.PdfObject raise {
   let input = @pdfio.input_of_string(s)
-  let (_, obj) = parse(lex_object_at(true, input, true, _ => []))
+  let (_, obj) = lexeme_syntax.parse(
+    lexeme_syntax.lex_object_at(true, input, true, _ => []),
+  )
   obj
 }
 
@@ -258,7 +269,11 @@ fn make_pdf_string(value : String) -> String {
 
 ///|
 /// String of a lexeme.
-pub fn string_of_lexeme(t : @pdfgenlex.Token) -> String {
+#as_free_fn(string_of_lexeme, deprecated="Use `PdfSyntax::string_of_lexeme`")
+pub fn PdfSyntax::string_of_lexeme(
+  _self : PdfSyntax,
+  t : @pdfgenlex.Token,
+) -> String {
   match t {
     LexNull => "null"
     LexBool(b) => if b { "true" } else { "false" }

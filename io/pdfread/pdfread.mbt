@@ -193,8 +193,11 @@ pub fn PdfRead::permissions(
 pub fn PdfRead::is_linearized(_self : PdfRead, input : @pdfio.Input) -> Bool {
   try {
     let _ = read_header(input)
-    let lexemes = @pdfsyntax.lex_dictionary(false, input)
-    let (_, parsed) = @pdfsyntax.parse(lexemes, failure_is_ok=true)
+    let lexemes = @pdfsyntax.PdfSyntax::new().lex_dictionary(false, input)
+    let (_, parsed) = @pdfsyntax.PdfSyntax::new().parse(
+      lexemes,
+      failure_is_ok=true,
+    )
     match @pdf.lookup_direct(@pdf.Pdf::empty(), "/Linearized", parsed) {
       Some(@pdf.PdfObject::Integer(_)) | Some(@pdf.PdfObject::Real(_)) => true
       _ => false

@@ -9,11 +9,14 @@ fn lex_object_for_xref(
   match xrefs.get(objnum) {
     Some(XRef::Plain(offset, _gen)) => {
       (input.seek_in)(offset)
-      let tokens = @pdfsyntax.lex_object_at(false, input, read_stream_data, fn(
-        k : Int,
-      ) -> Array[@pdfgenlex.Token] raise {
-        lex_object_for_xref(input, xrefs, read_stream_data, k)
-      })
+      let tokens = @pdfsyntax.PdfSyntax::new().lex_object_at(
+        false,
+        input,
+        read_stream_data,
+        fn(k : Int) -> Array[@pdfgenlex.Token] raise {
+          lex_object_for_xref(input, xrefs, read_stream_data, k)
+        },
+      )
       (input.seek_in)(current_pos)
       tokens
     }
