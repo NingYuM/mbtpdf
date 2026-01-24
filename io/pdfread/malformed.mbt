@@ -176,9 +176,9 @@ fn read_malformed_trailerdicts(
 
 ///|
 fn find_catalog_object(objects : @pdf.PdfObjMap) -> Int? {
-  for pair in objects.to_array() {
-    let objnum = pair.0
-    let (obj_ref, _gen) = pair.1
+  for entry in objects {
+    let objnum = entry.0
+    let (obj_ref, _gen) = entry.1
     match obj_ref.val {
       @pdf.ObjectData::Parsed(obj)
       | @pdf.ObjectData::ParsedAlreadyDecrypted(obj) =>
