@@ -10,6 +10,9 @@ pub struct PdfOcg {
 }
 
 ///|
+type PdfObject = @pdf.PdfObject
+
+///|
 pub fn PdfOcg::new(pdf : @pdf.Pdf) -> PdfOcg {
   { pdf, }
 }
@@ -84,64 +87,64 @@ fn read_ocgappdict(pdf : @pdf.Pdf, appdict : @pdf.PdfObject) -> OcgAppDict {
 ///|
 fn read_config(pdf : @pdf.Pdf, config : @pdf.PdfObject) -> OcgConfig {
   let ocgconfig_name = match pdf.lookup_direct("/Name", config) {
-    Some(@pdf.PdfObject::String(s)) => Some(s)
+    Some(PdfObject::String(s)) => Some(s)
     _ => None
   }
   let ocgconfig_creator = match pdf.lookup_direct("/Creator", config) {
-    Some(@pdf.PdfObject::String(s)) => Some(s)
+    Some(PdfObject::String(s)) => Some(s)
     _ => None
   }
   let ocgconfig_basestate = match pdf.lookup_direct("/BaseState", config) {
-    Some(@pdf.PdfObject::Name("/ON")) => OcgState::On
-    Some(@pdf.PdfObject::Name("/OFF")) => OcgState::Off
-    Some(@pdf.PdfObject::Name("/Unchanged")) => OcgState::Unchanged
+    Some(PdfObject::Name("/ON")) => OcgState::On
+    Some(PdfObject::Name("/OFF")) => OcgState::Off
+    Some(PdfObject::Name("/Unchanged")) => OcgState::Unchanged
     _ => OcgState::On
   }
   let ocgconfig_on = match pdf.lookup_direct("/ON", config) {
-    Some(@pdf.PdfObject::Array(indirects)) =>
+    Some(PdfObject::Array(indirects)) =>
       Some(
         indirects.map(obj => match obj {
-          @pdf.PdfObject::Indirect(n) => n
+          PdfObject::Indirect(n) => n
           _ => 0
         }),
       )
     _ => None
   }
   let ocgconfig_off = match pdf.lookup_direct("/OFF", config) {
-    Some(@pdf.PdfObject::Array(indirects)) =>
+    Some(PdfObject::Array(indirects)) =>
       Some(
         indirects.map(obj => match obj {
-          @pdf.PdfObject::Indirect(n) => n
+          PdfObject::Indirect(n) => n
           _ => 0
         }),
       )
     _ => None
   }
   let ocgconfig_intent = match pdf.lookup_direct("/Intent", config) {
-    Some(@pdf.PdfObject::Name(n)) => [n]
-    Some(@pdf.PdfObject::Array(items)) =>
+    Some(PdfObject::Name(n)) => [n]
+    Some(PdfObject::Array(items)) =>
       items.map(item => match pdf.direct(item) {
-        @pdf.PdfObject::Name(n) => n
+        PdfObject::Name(n) => n
         _ => ""
       })
     _ => ["/View"]
   }
   let ocgconfig_usage_application_dictionaries = match
     pdf.lookup_direct("/AS", config) {
-    Some(@pdf.PdfObject::Array(appdicts)) =>
+    Some(PdfObject::Array(appdicts)) =>
       Some(appdicts.map(appdict => read_ocgappdict(pdf, appdict)))
     _ => None
   }
   let ocgconfig_order = None
   let ocgconfig_listmode = match pdf.lookup_direct("/ListMode", config) {
-    Some(@pdf.PdfObject::Name("/VisiblePages")) => OcgListMode::VisiblePages
+    Some(PdfObject::Name("/VisiblePages")) => OcgListMode::VisiblePages
     _ => OcgListMode::AllPages
   }
   let ocgconfig_rbgroups = []
   let ocgconfig_locked = match pdf.lookup_direct("/Locked", config) {
-    Some(@pdf.PdfObject::Array(items)) =>
+    Some(PdfObject::Array(items)) =>
       items.map(item => match pdf.direct(item) {
-        @pdf.PdfObject::Indirect(n) => n
+        PdfObject::Indirect(n) => n
         _ => 0
       })
     _ => []
@@ -171,21 +174,16 @@ fn read_ocg_usage(pdf : @pdf.Pdf, usage : @pdf.PdfObject) -> OcgUsage? {
 ///|
 fn read_individual_ocg(pdf : @pdf.Pdf, ocg : @pdf.PdfObject) -> Ocg raise {
   let ocg_name = match pdf.lookup_direct("/Name", ocg) {
-    Some(@pdf.PdfObject::String(s)) => s
+    Some(PdfObject::String(s)) => s
     _ => raise @pdf.PdfError::Msg("No /Name in optional content group")
   }
   let ocg_intent = match pdf.lookup_direct("/Intent", ocg) {
-    Some(@pdf.PdfObject::Name(n)) => [n]
-    Some(@pdf.PdfObject::Array(items)) => {
-      let out = Array::new()
-      for item in items {
-        match pdf.direct(item) {
-          @pdf.PdfObject::Name(n) => out.push(n)
-          _ => ()
-        }
-      }
-      out
-    }
+    Some(PdfObject::Name(n)) => [n]
+    Some(PdfObject::Array(items)) =>
+      items.filter_map(item => match pdf.direct(item) {
+        PdfObject::Name(n) => Some(n)
+        _ => None
+      })
     _ => ["/View"]
   }
   let ocg_usage = match pdf.lookup_direct("/Usage", ocg) {
@@ -206,11 +204,11 @@ pub fn OcgProperties::read(pdf : @pdf.Pdf) -> OcgProperties? raise {
         None => None
         Some(ocproperties) => {
           let ocgs = match pdf.lookup_direct("/OCGs", ocproperties) {
-            Some(@pdf.PdfObject::Array(indirects)) => {
+            Some(PdfObject::Array(indirects)) => {
               let out = Array::new()
               for entry in indirects {
                 let num = match entry {
-                  @pdf.PdfObject::Indirect(n) => n
+                  PdfObject::Indirect(n) => n
                   _ => 0
                 }
                 out.push((num, read_individual_ocg(pdf, entry)))
@@ -225,7 +223,7 @@ pub fn OcgProperties::read(pdf : @pdf.Pdf) -> OcgProperties? raise {
             Some(config) => read_config(pdf, config)
           }
           let ocg_configs = match pdf.lookup_direct("/Configs", ocproperties) {
-            Some(@pdf.PdfObject::Array(configs)) =>
+            Some(PdfObject::Array(configs)) =>
               configs.map(config => read_config(pdf, config))
             _ => []
           }
