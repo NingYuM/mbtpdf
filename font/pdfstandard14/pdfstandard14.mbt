@@ -2,6 +2,16 @@
 /// The 14 Standard PDF Fonts (Widths and Kerns).
 
 ///|
+pub struct PdfStandard14 {
+  unit : Unit
+}
+
+///|
+pub fn PdfStandard14::new() -> PdfStandard14 {
+  { unit: () }
+}
+
+///|
 type AfmTables = (
   Map[String, String],
   Map[Int, Int],
@@ -116,7 +126,11 @@ fn lookup_tables(font : @pdffont.StandardFont) -> AfmTables raise {
 }
 
 ///|
-pub fn baseline_adjustment(font : @pdffont.StandardFont) -> Int {
+#as_free_fn(baseline_adjustment, deprecated="Use `PdfStandard14::baseline_adjustment`")
+pub fn PdfStandard14::baseline_adjustment(
+  _self : PdfStandard14,
+  font : @pdffont.StandardFont,
+) -> Int {
   match font {
     @pdffont.StandardFont::TimesRoman => 662 / 2
     @pdffont.StandardFont::TimesBold => 676 / 2
@@ -200,7 +214,9 @@ fn width(
 }
 
 ///|
-pub fn textwidth(
+#as_free_fn(textwidth, deprecated="Use `PdfStandard14::textwidth`")
+pub fn PdfStandard14::textwidth(
+  _self : PdfStandard14,
   dokern : Bool,
   encoding : @pdffont.Encoding,
   font : @pdffont.StandardFont,
@@ -215,12 +231,20 @@ pub fn textwidth(
 }
 
 ///|
-pub fn afm_data(font : @pdffont.StandardFont) -> AfmTables raise {
+#as_free_fn(afm_data, deprecated="Use `PdfStandard14::afm_data`")
+pub fn PdfStandard14::afm_data(
+  _self : PdfStandard14,
+  font : @pdffont.StandardFont,
+) -> AfmTables raise {
   lookup_tables(font)
 }
 
 ///|
-pub fn stemv_of_standard_font(font : @pdffont.StandardFont) -> Int {
+#as_free_fn(stemv_of_standard_font, deprecated="Use `PdfStandard14::stemv_of_standard_font`")
+pub fn PdfStandard14::stemv_of_standard_font(
+  _self : PdfStandard14,
+  font : @pdffont.StandardFont,
+) -> Int {
   match font {
     @pdffont.StandardFont::TimesRoman => 116
     @pdffont.StandardFont::TimesBold => 122
@@ -240,7 +264,11 @@ pub fn stemv_of_standard_font(font : @pdffont.StandardFont) -> Int {
 }
 
 ///|
-pub fn flags_of_standard_font(font : @pdffont.StandardFont) -> Int {
+#as_free_fn(flags_of_standard_font, deprecated="Use `PdfStandard14::flags_of_standard_font`")
+pub fn PdfStandard14::flags_of_standard_font(
+  _self : PdfStandard14,
+  font : @pdffont.StandardFont,
+) -> Int {
   match font {
     @pdffont.StandardFont::Symbol => 65541
     @pdffont.StandardFont::ZapfDingbats => 4

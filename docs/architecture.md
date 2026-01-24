@@ -153,7 +153,7 @@ Base utilities used across most packages:
 - `text/pdftext`: font reading/writing and text extraction.
   - Example:
     ```mbt
-    let width = @pdfstandard14.textwidth(
+    let width = @pdfstandard14.PdfStandard14::new().textwidth(
       true,
       @pdffont.Encoding::WinAnsiEncoding,
       @pdffont.StandardFont::Helvetica,

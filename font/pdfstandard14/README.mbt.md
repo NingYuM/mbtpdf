@@ -30,14 +30,24 @@ type AfmTables = (
 )
 ```
 
-## Functions
+### PdfStandard14
 
-### textwidth
+Standard 14 font metrics context.
+
+```moonbit nocheck
+pub struct PdfStandard14 { ... }
+pub fn PdfStandard14::new() -> PdfStandard14
+```
+
+## Methods
+
+### PdfStandard14::textwidth
 
 Calculate the width of a text string in font units (1/1000 of point size).
 
 ```moonbit nocheck
-pub fn textwidth(
+pub fn PdfStandard14::textwidth(
+  self : PdfStandard14,
   dokern : Bool,
   encoding : @pdffont.Encoding,
   font : @pdffont.StandardFont,
@@ -45,36 +55,48 @@ pub fn textwidth(
 ) -> Int raise
 ```
 
-### baseline_adjustment
+### PdfStandard14::baseline_adjustment
 
 Get the baseline adjustment (half cap height) for a font.
 
 ```moonbit nocheck
-pub fn baseline_adjustment(font : @pdffont.StandardFont) -> Int
+pub fn PdfStandard14::baseline_adjustment(
+  self : PdfStandard14,
+  font : @pdffont.StandardFont
+) -> Int
 ```
 
-### stemv_of_standard_font
+### PdfStandard14::stemv_of_standard_font
 
 Get the vertical stem width for a font (used in font descriptors).
 
 ```moonbit nocheck
-pub fn stemv_of_standard_font(font : @pdffont.StandardFont) -> Int
+pub fn PdfStandard14::stemv_of_standard_font(
+  self : PdfStandard14,
+  font : @pdffont.StandardFont
+) -> Int
 ```
 
-### flags_of_standard_font
+### PdfStandard14::flags_of_standard_font
 
 Get the font descriptor flags for a font.
 
 ```moonbit nocheck
-pub fn flags_of_standard_font(font : @pdffont.StandardFont) -> Int
+pub fn PdfStandard14::flags_of_standard_font(
+  self : PdfStandard14,
+  font : @pdffont.StandardFont
+) -> Int
 ```
 
-### afm_data
+### PdfStandard14::afm_data
 
 Get the full AFM tables for a font.
 
 ```moonbit nocheck
-pub fn afm_data(font : @pdffont.StandardFont) -> AfmTables raise
+pub fn PdfStandard14::afm_data(
+  self : PdfStandard14,
+  font : @pdffont.StandardFont
+) -> AfmTables raise
 ```
 
 ## Usage

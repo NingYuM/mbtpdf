@@ -21,7 +21,9 @@ fn all_standard_fonts() -> Array[@pdffont.StandardFont] {
 ///|
 test "afm_data loads standard fonts" {
   for font in all_standard_fonts() {
-    let (headers, widths, _, widths_by_name) = @pdfstandard14.afm_data(font)
+    let (headers, widths, _, widths_by_name) = @pdfstandard14.PdfStandard14::new().afm_data(
+      font,
+    )
     assert_true(headers.length() > 0)
     assert_true(widths.length() > 0)
     assert_true(widths_by_name.length() > 0)
@@ -30,32 +32,40 @@ test "afm_data loads standard fonts" {
 
 ///|
 test "baseline_adjustment covers all fonts" {
-  let values = all_standard_fonts().map(font => @pdfstandard14.baseline_adjustment(
+  let values = all_standard_fonts().map(font => @pdfstandard14.PdfStandard14::new().baseline_adjustment(
     font,
   ))
   assert_eq(values.length(), all_standard_fonts().length())
   assert_eq(
-    @pdfstandard14.baseline_adjustment(@pdffont.StandardFont::TimesBold),
+    @pdfstandard14.PdfStandard14::new().baseline_adjustment(
+      @pdffont.StandardFont::TimesBold,
+    ),
     338,
   )
   assert_eq(
-    @pdfstandard14.baseline_adjustment(@pdffont.StandardFont::HelveticaBold),
+    @pdfstandard14.PdfStandard14::new().baseline_adjustment(
+      @pdffont.StandardFont::HelveticaBold,
+    ),
     359,
   )
 }
 
 ///|
 test "stemv_of_standard_font covers all fonts" {
-  let values = all_standard_fonts().map(font => @pdfstandard14.stemv_of_standard_font(
+  let values = all_standard_fonts().map(font => @pdfstandard14.PdfStandard14::new().stemv_of_standard_font(
     font,
   ))
   assert_eq(values.length(), all_standard_fonts().length())
   assert_eq(
-    @pdfstandard14.stemv_of_standard_font(@pdffont.StandardFont::TimesBold),
+    @pdfstandard14.PdfStandard14::new().stemv_of_standard_font(
+      @pdffont.StandardFont::TimesBold,
+    ),
     122,
   )
   assert_eq(
-    @pdfstandard14.stemv_of_standard_font(@pdffont.StandardFont::ZapfDingbats),
+    @pdfstandard14.PdfStandard14::new().stemv_of_standard_font(
+      @pdffont.StandardFont::ZapfDingbats,
+    ),
     125,
   )
 }
@@ -67,14 +77,16 @@ test "textwidth handles missing widths and kerning" {
     Int::unsafe_to_char(999),
     Int::unsafe_to_char(998),
   ])
-  let (_, widths, kerns, widths_by_name) = @pdfstandard14.afm_data(font)
+  let (_, widths, kerns, widths_by_name) = @pdfstandard14.PdfStandard14::new().afm_data(
+    font,
+  )
   assert_true(widths.get(999) is None)
   assert_true(kerns.get((999, 998)) is None)
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let implicit_font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type1"))])
   let implicit_encoding = ctx.read_encoding(implicit_font)
-  let implicit_width = @pdfstandard14.textwidth(
+  let implicit_width = @pdfstandard14.PdfStandard14::new().textwidth(
     true, implicit_encoding, font, missing,
   )
   assert_eq(implicit_width, 0)
@@ -90,7 +102,9 @@ test "textwidth handles missing widths and kerning" {
     ),
   ])
   let encoding = ctx.read_encoding(custom_font)
-  let custom_width = @pdfstandard14.textwidth(false, encoding, font, "A")
+  let custom_width = @pdfstandard14.PdfStandard14::new().textwidth(
+    false, encoding, font, "A",
+  )
   assert_eq(custom_width, 0)
 }
 
@@ -104,10 +118,14 @@ test "textwidth handles empty string and unicode fallback" {
     ("/Encoding", Name("/WinAnsiEncoding")),
   ])
   let encoding = ctx.read_encoding(winansi_font)
-  let width_empty = @pdfstandard14.textwidth(false, encoding, font, "")
+  let width_empty = @pdfstandard14.PdfStandard14::new().textwidth(
+    false, encoding, font, "",
+  )
   assert_eq(width_empty, 0)
   let unicode = String::from_array([Int::unsafe_to_char(256)])
-  let width_space = @pdfstandard14.textwidth(false, encoding, font, unicode)
+  let width_space = @pdfstandard14.PdfStandard14::new().textwidth(
+    false, encoding, font, unicode,
+  )
   assert_true(width_space > 0)
 }
 
@@ -118,27 +136,37 @@ test "textwidth applies kerning for standard fonts" {
   let ctx = @pdftext.PdfText::new(pdf)
   let implicit_font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type1"))])
   let encoding = ctx.read_encoding(implicit_font)
-  let kerned = @pdfstandard14.textwidth(true, encoding, font, "AV")
-  let plain = @pdfstandard14.textwidth(false, encoding, font, "AV")
+  let kerned = @pdfstandard14.PdfStandard14::new().textwidth(
+    true, encoding, font, "AV",
+  )
+  let plain = @pdfstandard14.PdfStandard14::new().textwidth(
+    false, encoding, font, "AV",
+  )
   assert_true(kerned <= plain)
-  let single = @pdfstandard14.textwidth(false, encoding, font, "A")
+  let single = @pdfstandard14.PdfStandard14::new().textwidth(
+    false, encoding, font, "A",
+  )
   assert_true(single > 0)
 }
 
 ///|
 test "flags_of_standard_font covers branches" {
   assert_eq(
-    @pdfstandard14.flags_of_standard_font(@pdffont.StandardFont::Symbol),
+    @pdfstandard14.PdfStandard14::new().flags_of_standard_font(
+      @pdffont.StandardFont::Symbol,
+    ),
     65541,
   )
   assert_eq(
-    @pdfstandard14.flags_of_standard_font(
+    @pdfstandard14.PdfStandard14::new().flags_of_standard_font(
       @pdffont.StandardFont::CourierBoldOblique,
     ),
     33,
   )
   assert_eq(
-    @pdfstandard14.flags_of_standard_font(@pdffont.StandardFont::Helvetica),
+    @pdfstandard14.PdfStandard14::new().flags_of_standard_font(
+      @pdffont.StandardFont::Helvetica,
+    ),
     32,
   )
 }
