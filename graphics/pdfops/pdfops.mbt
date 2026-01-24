@@ -80,11 +80,20 @@ pub(all) enum Op {
 }
 
 ///|
+type PdfObject = @pdf.PdfObject
+
+///|
+type Token = @pdfgenlex.Token
+
+///|
+type PdfSyntax = @pdfsyntax.PdfSyntax
+
+///|
 priv enum Lexeme {
   Op(String)
-  Obj(@pdfgenlex.Token)
-  PdfObj(@pdf.PdfObject)
-  LexInlineImage((@pdf.PdfObject, @pdf.PdfObject?, @pdfio.MutableBytes))
+  Obj(Token)
+  PdfObj(PdfObject)
+  LexInlineImage((PdfObject, PdfObject?, @pdfio.MutableBytes))
   LexComment
 }
 
@@ -121,92 +130,92 @@ fn lexemes_of_op(op : Op) -> Array[Lexeme] {
 
   match op {
     Op::Opw(w) => {
-      push(Obj(@pdfgenlex.Token::LexReal(w)))
+      push(Obj(Token::LexReal(w)))
       push(Op("w"))
     }
     Op::OpJ(j) => {
-      push(Obj(@pdfgenlex.Token::LexInt(j)))
+      push(Obj(Token::LexInt(j)))
       push(Op("J"))
     }
     Op::Opj(j) => {
-      push(Obj(@pdfgenlex.Token::LexInt(j)))
+      push(Obj(Token::LexInt(j)))
       push(Op("j"))
     }
     Op::OpM(m) => {
-      push(Obj(@pdfgenlex.Token::LexReal(m)))
+      push(Obj(Token::LexReal(m)))
       push(Op("M"))
     }
     Op::Opd(values, phase) => {
-      push(Obj(@pdfgenlex.Token::LexLeftSquare))
+      push(Obj(Token::LexLeftSquare))
       for value in values {
-        push(Obj(@pdfgenlex.Token::LexReal(value)))
+        push(Obj(Token::LexReal(value)))
       }
-      push(Obj(@pdfgenlex.Token::LexRightSquare))
-      push(Obj(@pdfgenlex.Token::LexReal(phase)))
+      push(Obj(Token::LexRightSquare))
+      push(Obj(Token::LexReal(phase)))
       push(Op("d"))
     }
     Op::Opri(name) => {
-      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Obj(Token::LexName(name)))
       push(Op("ri"))
     }
     Op::Opi(value) => {
-      push(Obj(@pdfgenlex.Token::LexInt(value)))
+      push(Obj(Token::LexInt(value)))
       push(Op("i"))
     }
     Op::Opgs(name) => {
-      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Obj(Token::LexName(name)))
       push(Op("gs"))
     }
     Op::Opq => push(Op("q"))
     Op::OpQ => push(Op("Q"))
     Op::Opcm(t) => {
-      push(Obj(@pdfgenlex.Token::LexReal(t.a)))
-      push(Obj(@pdfgenlex.Token::LexReal(t.b)))
-      push(Obj(@pdfgenlex.Token::LexReal(t.c)))
-      push(Obj(@pdfgenlex.Token::LexReal(t.d)))
-      push(Obj(@pdfgenlex.Token::LexReal(t.e)))
-      push(Obj(@pdfgenlex.Token::LexReal(t.f)))
+      push(Obj(Token::LexReal(t.a)))
+      push(Obj(Token::LexReal(t.b)))
+      push(Obj(Token::LexReal(t.c)))
+      push(Obj(Token::LexReal(t.d)))
+      push(Obj(Token::LexReal(t.e)))
+      push(Obj(Token::LexReal(t.f)))
       push(Op("cm"))
     }
     Op::Opm(x, y) => {
-      push(Obj(@pdfgenlex.Token::LexReal(x)))
-      push(Obj(@pdfgenlex.Token::LexReal(y)))
+      push(Obj(Token::LexReal(x)))
+      push(Obj(Token::LexReal(y)))
       push(Op("m"))
     }
     Op::Opl(x, y) => {
-      push(Obj(@pdfgenlex.Token::LexReal(x)))
-      push(Obj(@pdfgenlex.Token::LexReal(y)))
+      push(Obj(Token::LexReal(x)))
+      push(Obj(Token::LexReal(y)))
       push(Op("l"))
     }
     Op::Opc(x1, y1, x2, y2, x3, y3) => {
-      push(Obj(@pdfgenlex.Token::LexReal(x1)))
-      push(Obj(@pdfgenlex.Token::LexReal(y1)))
-      push(Obj(@pdfgenlex.Token::LexReal(x2)))
-      push(Obj(@pdfgenlex.Token::LexReal(y2)))
-      push(Obj(@pdfgenlex.Token::LexReal(x3)))
-      push(Obj(@pdfgenlex.Token::LexReal(y3)))
+      push(Obj(Token::LexReal(x1)))
+      push(Obj(Token::LexReal(y1)))
+      push(Obj(Token::LexReal(x2)))
+      push(Obj(Token::LexReal(y2)))
+      push(Obj(Token::LexReal(x3)))
+      push(Obj(Token::LexReal(y3)))
       push(Op("c"))
     }
     Op::Opv(x2, y2, x3, y3) => {
-      push(Obj(@pdfgenlex.Token::LexReal(x2)))
-      push(Obj(@pdfgenlex.Token::LexReal(y2)))
-      push(Obj(@pdfgenlex.Token::LexReal(x3)))
-      push(Obj(@pdfgenlex.Token::LexReal(y3)))
+      push(Obj(Token::LexReal(x2)))
+      push(Obj(Token::LexReal(y2)))
+      push(Obj(Token::LexReal(x3)))
+      push(Obj(Token::LexReal(y3)))
       push(Op("v"))
     }
     Op::Opy(x1, y1, x3, y3) => {
-      push(Obj(@pdfgenlex.Token::LexReal(x1)))
-      push(Obj(@pdfgenlex.Token::LexReal(y1)))
-      push(Obj(@pdfgenlex.Token::LexReal(x3)))
-      push(Obj(@pdfgenlex.Token::LexReal(y3)))
+      push(Obj(Token::LexReal(x1)))
+      push(Obj(Token::LexReal(y1)))
+      push(Obj(Token::LexReal(x3)))
+      push(Obj(Token::LexReal(y3)))
       push(Op("y"))
     }
     Op::Oph => push(Op("h"))
     Op::Opre(x, y, w, h) => {
-      push(Obj(@pdfgenlex.Token::LexReal(x)))
-      push(Obj(@pdfgenlex.Token::LexReal(y)))
-      push(Obj(@pdfgenlex.Token::LexReal(w)))
-      push(Obj(@pdfgenlex.Token::LexReal(h)))
+      push(Obj(Token::LexReal(x)))
+      push(Obj(Token::LexReal(y)))
+      push(Obj(Token::LexReal(w)))
+      push(Obj(Token::LexReal(h)))
       push(Op("re"))
     }
     Op::OpS => push(Op("S"))
@@ -224,56 +233,56 @@ fn lexemes_of_op(op : Op) -> Array[Lexeme] {
     Op::OpBT => push(Op("BT"))
     Op::OpET => push(Op("ET"))
     Op::OpTc(value) => {
-      push(Obj(@pdfgenlex.Token::LexReal(value)))
+      push(Obj(Token::LexReal(value)))
       push(Op("Tc"))
     }
     Op::OpTw(value) => {
-      push(Obj(@pdfgenlex.Token::LexReal(value)))
+      push(Obj(Token::LexReal(value)))
       push(Op("Tw"))
     }
     Op::OpTz(value) => {
-      push(Obj(@pdfgenlex.Token::LexReal(value)))
+      push(Obj(Token::LexReal(value)))
       push(Op("Tz"))
     }
     Op::OpTL(value) => {
-      push(Obj(@pdfgenlex.Token::LexReal(value)))
+      push(Obj(Token::LexReal(value)))
       push(Op("TL"))
     }
     Op::OpTf(name, size) => {
-      push(Obj(@pdfgenlex.Token::LexName(name)))
-      push(Obj(@pdfgenlex.Token::LexReal(size)))
+      push(Obj(Token::LexName(name)))
+      push(Obj(Token::LexReal(size)))
       push(Op("Tf"))
     }
     Op::OpTr(value) => {
-      push(Obj(@pdfgenlex.Token::LexInt(value)))
+      push(Obj(Token::LexInt(value)))
       push(Op("Tr"))
     }
     Op::OpTs(value) => {
-      push(Obj(@pdfgenlex.Token::LexReal(value)))
+      push(Obj(Token::LexReal(value)))
       push(Op("Ts"))
     }
     Op::OpTd(tx, ty) => {
-      push(Obj(@pdfgenlex.Token::LexReal(tx)))
-      push(Obj(@pdfgenlex.Token::LexReal(ty)))
+      push(Obj(Token::LexReal(tx)))
+      push(Obj(Token::LexReal(ty)))
       push(Op("Td"))
     }
     Op::OpTD(tx, ty) => {
-      push(Obj(@pdfgenlex.Token::LexReal(tx)))
-      push(Obj(@pdfgenlex.Token::LexReal(ty)))
+      push(Obj(Token::LexReal(tx)))
+      push(Obj(Token::LexReal(ty)))
       push(Op("TD"))
     }
     Op::OpTm(t) => {
-      push(Obj(@pdfgenlex.Token::LexReal(t.a)))
-      push(Obj(@pdfgenlex.Token::LexReal(t.b)))
-      push(Obj(@pdfgenlex.Token::LexReal(t.c)))
-      push(Obj(@pdfgenlex.Token::LexReal(t.d)))
-      push(Obj(@pdfgenlex.Token::LexReal(t.e)))
-      push(Obj(@pdfgenlex.Token::LexReal(t.f)))
+      push(Obj(Token::LexReal(t.a)))
+      push(Obj(Token::LexReal(t.b)))
+      push(Obj(Token::LexReal(t.c)))
+      push(Obj(Token::LexReal(t.d)))
+      push(Obj(Token::LexReal(t.e)))
+      push(Obj(Token::LexReal(t.f)))
       push(Op("Tm"))
     }
     Op::OpTStar => push(Op("T*"))
     Op::OpTj(text) => {
-      push(Obj(@pdfgenlex.Token::LexString(text)))
+      push(Obj(Token::LexString(text)))
       push(Op("Tj"))
     }
     Op::OpTJ(obj) => {
@@ -281,133 +290,133 @@ fn lexemes_of_op(op : Op) -> Array[Lexeme] {
       push(Op("TJ"))
     }
     Op::OpSingleQuote(text) => {
-      push(Obj(@pdfgenlex.Token::LexString(text)))
+      push(Obj(Token::LexString(text)))
       push(Op("'"))
     }
     Op::OpDoubleQuote(word, char, text) => {
-      push(Obj(@pdfgenlex.Token::LexReal(word)))
-      push(Obj(@pdfgenlex.Token::LexReal(char)))
-      push(Obj(@pdfgenlex.Token::LexString(text)))
+      push(Obj(Token::LexReal(word)))
+      push(Obj(Token::LexReal(char)))
+      push(Obj(Token::LexString(text)))
       push(Op("\""))
     }
     Op::Opd0(wx, wy) => {
-      push(Obj(@pdfgenlex.Token::LexReal(wx)))
-      push(Obj(@pdfgenlex.Token::LexReal(wy)))
+      push(Obj(Token::LexReal(wx)))
+      push(Obj(Token::LexReal(wy)))
       push(Op("d0"))
     }
     Op::Opd1(wx, wy, llx, lly, urx, ury) => {
-      push(Obj(@pdfgenlex.Token::LexReal(wx)))
-      push(Obj(@pdfgenlex.Token::LexReal(wy)))
-      push(Obj(@pdfgenlex.Token::LexReal(llx)))
-      push(Obj(@pdfgenlex.Token::LexReal(lly)))
-      push(Obj(@pdfgenlex.Token::LexReal(urx)))
-      push(Obj(@pdfgenlex.Token::LexReal(ury)))
+      push(Obj(Token::LexReal(wx)))
+      push(Obj(Token::LexReal(wy)))
+      push(Obj(Token::LexReal(llx)))
+      push(Obj(Token::LexReal(lly)))
+      push(Obj(Token::LexReal(urx)))
+      push(Obj(Token::LexReal(ury)))
       push(Op("d1"))
     }
     Op::OpCS(name) => {
-      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Obj(Token::LexName(name)))
       push(Op("CS"))
     }
     Op::Opcs(name) => {
-      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Obj(Token::LexName(name)))
       push(Op("cs"))
     }
     Op::OpSC(values) => {
       for value in values {
-        push(Obj(@pdfgenlex.Token::LexReal(value)))
+        push(Obj(Token::LexReal(value)))
       }
       push(Op("SC"))
     }
     Op::Opsc(values) => {
       for value in values {
-        push(Obj(@pdfgenlex.Token::LexReal(value)))
+        push(Obj(Token::LexReal(value)))
       }
       push(Op("sc"))
     }
     Op::OpSCN(values) => {
       for value in values {
-        push(Obj(@pdfgenlex.Token::LexReal(value)))
+        push(Obj(Token::LexReal(value)))
       }
       push(Op("SCN"))
     }
     Op::Opscn(values) => {
       for value in values {
-        push(Obj(@pdfgenlex.Token::LexReal(value)))
+        push(Obj(Token::LexReal(value)))
       }
       push(Op("scn"))
     }
     Op::OpSCNName(name, values) => {
       for value in values {
-        push(Obj(@pdfgenlex.Token::LexReal(value)))
+        push(Obj(Token::LexReal(value)))
       }
-      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Obj(Token::LexName(name)))
       push(Op("SCN"))
     }
     Op::OpscnName(name, values) => {
       for value in values {
-        push(Obj(@pdfgenlex.Token::LexReal(value)))
+        push(Obj(Token::LexReal(value)))
       }
-      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Obj(Token::LexName(name)))
       push(Op("scn"))
     }
     Op::OpG(value) => {
-      push(Obj(@pdfgenlex.Token::LexReal(value)))
+      push(Obj(Token::LexReal(value)))
       push(Op("G"))
     }
     Op::Opg(value) => {
-      push(Obj(@pdfgenlex.Token::LexReal(value)))
+      push(Obj(Token::LexReal(value)))
       push(Op("g"))
     }
     Op::OpRG(r, g, b) => {
-      push(Obj(@pdfgenlex.Token::LexReal(r)))
-      push(Obj(@pdfgenlex.Token::LexReal(g)))
-      push(Obj(@pdfgenlex.Token::LexReal(b)))
+      push(Obj(Token::LexReal(r)))
+      push(Obj(Token::LexReal(g)))
+      push(Obj(Token::LexReal(b)))
       push(Op("RG"))
     }
     Op::Oprg(r, g, b) => {
-      push(Obj(@pdfgenlex.Token::LexReal(r)))
-      push(Obj(@pdfgenlex.Token::LexReal(g)))
-      push(Obj(@pdfgenlex.Token::LexReal(b)))
+      push(Obj(Token::LexReal(r)))
+      push(Obj(Token::LexReal(g)))
+      push(Obj(Token::LexReal(b)))
       push(Op("rg"))
     }
     Op::OpK(c, m, y, k) => {
-      push(Obj(@pdfgenlex.Token::LexReal(c)))
-      push(Obj(@pdfgenlex.Token::LexReal(m)))
-      push(Obj(@pdfgenlex.Token::LexReal(y)))
-      push(Obj(@pdfgenlex.Token::LexReal(k)))
+      push(Obj(Token::LexReal(c)))
+      push(Obj(Token::LexReal(m)))
+      push(Obj(Token::LexReal(y)))
+      push(Obj(Token::LexReal(k)))
       push(Op("K"))
     }
     Op::Opk(c, m, y, k) => {
-      push(Obj(@pdfgenlex.Token::LexReal(c)))
-      push(Obj(@pdfgenlex.Token::LexReal(m)))
-      push(Obj(@pdfgenlex.Token::LexReal(y)))
-      push(Obj(@pdfgenlex.Token::LexReal(k)))
+      push(Obj(Token::LexReal(c)))
+      push(Obj(Token::LexReal(m)))
+      push(Obj(Token::LexReal(y)))
+      push(Obj(Token::LexReal(k)))
       push(Op("k"))
     }
     Op::Opsh(name) => {
-      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Obj(Token::LexName(name)))
       push(Op("sh"))
     }
     Op::InlineImage(data) => push(Lexeme::LexInlineImage(data))
     Op::OpDo(name) => {
-      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Obj(Token::LexName(name)))
       push(Op("Do"))
     }
     Op::OpMP(name) => {
-      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Obj(Token::LexName(name)))
       push(Op("MP"))
     }
     Op::OpDP(name, obj) => {
-      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Obj(Token::LexName(name)))
       push(Lexeme::PdfObj(obj))
       push(Op("DP"))
     }
     Op::OpBMC(name) => {
-      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Obj(Token::LexName(name)))
       push(Op("BMC"))
     }
     Op::OpBDC(name, obj) => {
-      push(Obj(@pdfgenlex.Token::LexName(name)))
+      push(Obj(Token::LexName(name)))
       push(Lexeme::PdfObj(obj))
       push(Op("BDC"))
     }
@@ -417,7 +426,7 @@ fn lexemes_of_op(op : Op) -> Array[Lexeme] {
     Op::OpUnknown(_) => ()
     Op::OpComment(text) =>
       if write_comments.val {
-        push(Obj(@pdfgenlex.Token::LexComment(text)))
+        push(Obj(Token::LexComment(text)))
       } else {
         ()
       }
@@ -450,12 +459,8 @@ fn lexemelists_of_ops(ops : Array[Op]) -> Array[Array[Lexeme]] {
 fn filterspecial(filters : Array[@pdf.PdfObject]) -> Bool {
   for filter in filters {
     match filter {
-      @pdf.PdfObject::Name(
-        "/ASCIIHexDecode"
-        | "/ASCII85Decode"
-        | "/AHx"
-        | "/A85"
-      ) => return true
+      Name("/ASCIIHexDecode" | "/ASCII85Decode" | "/AHx" | "/A85") =>
+        return true
       _ => ()
     }
   }
@@ -472,8 +477,10 @@ fn is_delimiter_char(chr : Char) -> Bool {
 
 ///|
 fn is_inline_image_whitespace(chr : Char) -> Bool {
-  let v = chr.to_int()
-  v == 0 || v == 9 || v == 10 || v == 12 || v == 13 || v == 32
+  match chr.to_int() {
+    0 | 9 | 10 | 12 | 13 | 32 => true
+    _ => false
+  }
 }
 
 ///|
@@ -563,15 +570,15 @@ fn strip_dict_markers(value : String) -> String {
 fn string_of_lexeme(lexeme : Lexeme) -> String raise {
   match lexeme {
     Lexeme::LexComment => ""
-    Lexeme::Obj(token) => @pdfsyntax.PdfSyntax::new().string_of_lexeme(token)
+    Lexeme::Obj(token) => PdfSyntax::new().string_of_lexeme(token)
     Lexeme::Op(op) => op
     Lexeme::PdfObj(obj) => obj.to_string()
     Lexeme::LexInlineImage((dict, dp, data)) => {
       let dict_data = match
         @pdf.Pdf::empty().lookup_direct_orelse("/F", "/Filter", dict) {
-        None | Some(@pdf.PdfObject::Array([])) => {
+        None | Some(Array([])) => {
           let _ = dp
-          let dict = dict.add_entry("/F", @pdf.PdfObject::Name("/Fl"))
+          let dict = dict.add_entry("/F", PdfObject::Name("/Fl"))
           let encoded = @pdfcodec.PdfCodec::new().encode_flate(data)
           (dict, encoded)
         }
@@ -581,14 +588,14 @@ fn string_of_lexeme(lexeme : Lexeme) -> String raise {
       let data = dict_data.1
       let dict = dict.add_entry(
         "/L",
-        @pdf.PdfObject::Integer(@pdfio.bytes_size(data)),
+        PdfObject::Integer(@pdfio.bytes_size(data)),
       )
       let dict_string = dict.to_string()
       let dict_body = strip_dict_markers(dict_string)
       let filters = match
         @pdf.Pdf::empty().lookup_direct_orelse("/F", "/Filter", dict) {
-        Some(@pdf.PdfObject::Array(items)) => items
-        Some(@pdf.PdfObject::Name(name)) => [@pdf.PdfObject::Name(name)]
+        Some(Array(items)) => items
+        Some(Name(name)) => [PdfObject::Name(name)]
         _ => []
       }
       let space = if filterspecial(filters) { "" } else { " " }
@@ -706,11 +713,11 @@ fn stream_of_lexemes(
 /// Flatten a list of operators to an uncompressed PDF stream.
 pub fn Op::stream_of_ops(ops : Array[Op]) -> @pdf.PdfObject raise {
   let data = stream_of_lexemes(lexemelists_of_ops(ops))
-  @pdf.PdfObject::Stream(
+  PdfObject::Stream(
     Ref::new(
       (
-        @pdf.PdfObject::Dictionary([
-          ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(data))),
+        PdfObject::Dictionary([
+          ("/Length", PdfObject::Integer(@pdfio.bytes_size(data))),
         ]),
         @pdf.Stream::Got(data),
       ),
@@ -724,9 +731,8 @@ pub fn Op::stream_of_ops(ops : Array[Op]) -> @pdf.PdfObject raise {
 fn lex_name(input : @pdfio.Input) -> Lexeme raise {
   input.nudge()
   Lexeme::Obj(
-    @pdfgenlex.Token::LexName(
-      "/" +
-      @pdfsyntax.PdfSyntax::new().getuntil_white_or_delimiter_string(input),
+    Token::LexName(
+      "/" + PdfSyntax::new().getuntil_white_or_delimiter_string(input),
     ),
   )
 }
@@ -742,12 +748,12 @@ fn nocontent(input : @pdfio.Input) -> Unit raise {
 
 ///|
 fn lex_number(input : @pdfio.Input) -> Lexeme raise {
-  match (@pdfsyntax.PdfSyntax::new().lex_number(input) : @pdfgenlex.Token) {
-    LexReal(value) => Obj(@pdfgenlex.Token::LexReal(value))
-    LexInt(value) => Obj(@pdfgenlex.Token::LexReal(Double::from_int(value)))
+  match (PdfSyntax::new().lex_number(input) : Token) {
+    LexReal(value) => Obj(Token::LexReal(value))
+    LexInt(value) => Obj(Token::LexReal(Double::from_int(value)))
     _ => {
       nocontent(input)
-      Obj(@pdfgenlex.Token::LexReal(0.0))
+      Obj(Token::LexReal(0.0))
     }
   }
 }
@@ -755,9 +761,7 @@ fn lex_number(input : @pdfio.Input) -> Lexeme raise {
 ///|
 fn get_dictionary(input : @pdfio.Input) -> Lexeme raise {
   Lexeme::PdfObj(
-    @pdfsyntax.PdfSyntax::new().parse(
-      @pdfsyntax.PdfSyntax::new().lex_dictionary(false, input),
-    ).1,
+    PdfSyntax::new().parse(PdfSyntax::new().lex_dictionary(false, input)).1,
   )
 }
 
@@ -769,7 +773,7 @@ pub fn Op::components(
   space : @pdf.PdfObject,
 ) -> Int raise {
   match space {
-    @pdf.PdfObject::Name(name) => {
+    Name(name) => {
       if name == "/CalGray" || name == "/DeviceGray" || name == "/G" {
         return 1
       }
@@ -791,23 +795,23 @@ pub fn Op::components(
         None => raise @pdf.PdfError::Msg("ColorSpace dict not found")
       }
     }
-    @pdf.PdfObject::Array(items) => {
+    Array(items) => {
       if items.length() >= 2 {
         match items[0] {
-          @pdf.PdfObject::Name(name) =>
+          Name(name) =>
             match name {
               "/Lab" => if items.length() == 2 { return 3 }
               "/ICCBased" =>
                 if items.length() == 2 {
                   let iccstream = items[1]
                   match pdf.lookup_direct("/N", iccstream) {
-                    Some(@pdf.PdfObject::Integer(n)) => return n
+                    Some(Integer(n)) => return n
                     _ => raise @pdf.PdfError::Msg("Bad iccstream")
                   }
                 }
               "/DeviceN" =>
                 match items[1] {
-                  @pdf.PdfObject::Array(names) => return names.length()
+                  Array(names) => return names.length()
                   _ => ()
                 }
               "/Separation" => if items.length() == 4 { return 1 }
@@ -870,23 +874,21 @@ fn lex_inline_image(
     @pdfe.Pdfe::new().log("lex_inline_image at \{(input.pos_in)()}\n")
   }
   try {
-    let lexemes = @pdfsyntax.PdfSyntax::new().lex_dictionary(true, input)
-    let tokens : Array[@pdfgenlex.Token] = Array::new(
-      capacity=lexemes.length() + 2,
-    )
-    tokens.push(@pdfgenlex.Token::LexLeftDict)
+    let lexemes = PdfSyntax::new().lex_dictionary(true, input)
+    let tokens : Array[Token] = Array::new(capacity=lexemes.length() + 2)
+    tokens.push(Token::LexLeftDict)
     for token in lexemes {
       match token {
-        @pdfgenlex.Token::StopLexing => ()
+        Token::StopLexing => ()
         _ => tokens.push(token)
       }
     }
-    tokens.push(@pdfgenlex.Token::LexRightDict)
-    let dict = @pdfsyntax.PdfSyntax::new().parse(tokens).1
+    tokens.push(Token::LexRightDict)
+    let dict = PdfSyntax::new().parse(tokens).1
     if debug.val {
       @pdfe.Pdfe::new().log("dict was \{dict.to_string()}\n")
     }
-    @pdfsyntax.PdfSyntax::new().dropwhite(input)
+    PdfSyntax::new().dropwhite(input)
     let c = (input.input_byte)()
     let c2 = (input.input_byte)()
     if c != 'I'.to_int() || c2 != 'D'.to_int() {
@@ -894,8 +896,8 @@ fn lex_inline_image(
       nocontent(input)
     }
     let filters = match pdf.lookup_direct_orelse("/F", "/Filter", dict) {
-      Some(@pdf.PdfObject::Array(items)) => items
-      Some(@pdf.PdfObject::Name(name)) => [@pdf.PdfObject::Name(name)]
+      Some(Array(items)) => items
+      Some(Name(name)) => [PdfObject::Name(name)]
       _ => []
     }
     let toskip = !filterspecial(filters)
@@ -907,7 +909,7 @@ fn lex_inline_image(
     }
     let bpc = match
       pdf.lookup_direct_orelse("/BPC", "/BitsPerComponent", dict) {
-      Some(@pdf.PdfObject::Integer(value)) => value
+      Some(Integer(value)) => value
       _ => {
         @pdfe.Pdfe::new().log("no BPC\n")
         nocontent(input)
@@ -915,54 +917,53 @@ fn lex_inline_image(
       }
     }
     let cspace = match pdf.lookup_direct_orelse("/CS", "/ColorSpace", dict) {
-      Some(@pdf.PdfObject::Name(name)) =>
+      Some(Name(name)) =>
         if name == "/DeviceGray" ||
           name == "/DeviceRGB" ||
           name == "/DeviceCMYK" ||
           name == "/G" ||
           name == "/RGB" ||
           name == "/CMYK" {
-          @pdf.PdfObject::Name(name)
+          PdfObject::Name(name)
         } else {
           if debug.val {
             @pdfe.Pdfe::new().log("resources is \{resources.to_string()}\n")
           }
           match pdf.lookup_direct("/ColorSpace", resources) {
-            Some(@pdf.PdfObject::Dictionary(_) as d) =>
+            Some(Dictionary(_) as d) =>
               match pdf.lookup_direct(name, d) {
                 Some(space) => space
                 None => {
                   @pdfe.Pdfe::new().log("no colourspace A\n")
                   nocontent(input)
-                  @pdf.PdfObject::Null
+                  PdfObject::Null
                 }
               }
             _ => {
               @pdfe.Pdfe::new().log("no colourspace B\n")
               nocontent(input)
-              @pdf.PdfObject::Null
+              PdfObject::Null
             }
           }
         }
-      Some(@pdf.PdfObject::Array(_) as n) => n
+      Some(Array(_) as n) => n
       None =>
         match pdf.lookup_direct_orelse("/IM", "/ImageMask", dict) {
-          Some(@pdf.PdfObject::Boolean(true)) =>
-            @pdf.PdfObject::Name("/DeviceGray")
+          Some(Boolean(true)) => PdfObject::Name("/DeviceGray")
           _ => {
             @pdfe.Pdfe::new().log("no colourspace C\n")
             nocontent(input)
-            @pdf.PdfObject::Null
+            PdfObject::Null
           }
         }
       _ => {
         @pdfe.Pdfe::new().log("no colourspace D\n")
         nocontent(input)
-        @pdf.PdfObject::Null
+        PdfObject::Null
       }
     }
     let width = match pdf.lookup_direct_orelse("/W", "/Width", dict) {
-      Some(@pdf.PdfObject::Integer(value)) => value
+      Some(Integer(value)) => value
       _ => {
         @pdfe.Pdfe::new().log("no or malformed /W")
         nocontent(input)
@@ -970,7 +971,7 @@ fn lex_inline_image(
       }
     }
     let height = match pdf.lookup_direct_orelse("/H", "/Height", dict) {
-      Some(@pdf.PdfObject::Integer(value)) => value
+      Some(Integer(value)) => value
       _ => {
         @pdfe.Pdfe::new().log("no or malformed /H")
         nocontent(input)
@@ -988,14 +989,14 @@ fn lex_inline_image(
       "/F", "/Filter", dict,
     )
     let data = match filter_opt {
-      None | Some(@pdf.PdfObject::Array([])) => {
+      None | Some(Array([])) => {
         let out = @pdfio.mkbytes(bytes)
         for i in 0..<bytes {
           @pdfio.bset_unsafe(out, i, (input.input_byte)())
         }
         out
       }
-      Some(@pdf.PdfObject::Name(name)) =>
+      Some(Name(name)) =>
         if name == "/DCT" || name == "/DCTDecode" {
           get_jpeg_data(input)
         } else {
@@ -1009,10 +1010,10 @@ fn lex_inline_image(
             }
           }
         }
-      Some(@pdf.PdfObject::Array(items)) =>
+      Some(Array(items)) =>
         if items.length() == 1 {
           match items[0] {
-            @pdf.PdfObject::Name(name) =>
+            Name(name) =>
               if name == "/DCT" || name == "/DCTDecode" {
                 get_jpeg_data(input)
               } else {
@@ -1062,20 +1063,20 @@ fn lex_inline_image(
         }
       }
     }
-    @pdfsyntax.PdfSyntax::new().dropwhite(input)
+    PdfSyntax::new().dropwhite(input)
     let end1 = (input.input_byte)()
     let end2 = (input.input_byte)()
     if end1 != 'E'.to_int() || end2 != 'I'.to_int() {
       @pdfe.Pdfe::new().log(
         "warning: bad end to inline image \{end1}, \{end2}\n",
       )
-      @pdfsyntax.PdfSyntax::new().ignoreuntil(true, chr => chr == 'E', input)
-      @pdfsyntax.PdfSyntax::new().ignoreuntil(true, chr => chr == 'I', input)
+      PdfSyntax::new().ignoreuntil(true, chr => chr == 'E', input)
+      PdfSyntax::new().ignoreuntil(true, chr => chr == 'I', input)
       input.nudge()
-      @pdfsyntax.PdfSyntax::new().dropwhite(input)
+      PdfSyntax::new().dropwhite(input)
     }
     let dict_clean = match filter_opt {
-      Some(@pdf.PdfObject::Name(name)) =>
+      Some(Name(name)) =>
         if name == "/DCT" || name == "/DCTDecode" {
           dict
         } else {
@@ -1085,10 +1086,10 @@ fn lex_inline_image(
           }
           cleaned
         }
-      Some(@pdf.PdfObject::Array(items)) =>
+      Some(Array(items)) =>
         if items.length() == 1 {
           match items[0] {
-            @pdf.PdfObject::Name(name) =>
+            Name(name) =>
               if name == "/DCT" || name == "/DCTDecode" {
                 dict
               } else {
@@ -1127,7 +1128,7 @@ fn lex_inline_image(
     err => {
       @pdfe.Pdfe::new().log("inline image reading failed: \{err}\n")
       nocontent(input)
-      (@pdf.PdfObject::Null, None, @pdfio.mkbytes(0))
+      (PdfObject::Null, None, @pdfio.mkbytes(0))
     }
   }
 }
@@ -1138,9 +1139,9 @@ fn lex_keyword(
   resources : @pdf.PdfObject,
   input : @pdfio.Input,
 ) -> Lexeme raise {
-  match @pdfsyntax.PdfSyntax::new().getuntil_white_or_delimiter_string(input) {
-    "true" => Obj(@pdfgenlex.Token::LexBool(true))
-    "false" => Obj(@pdfgenlex.Token::LexBool(false))
+  match PdfSyntax::new().getuntil_white_or_delimiter_string(input) {
+    "true" => Obj(Token::LexBool(true))
+    "false" => Obj(Token::LexBool(false))
     "BI" => LexInlineImage(lex_inline_image(pdf, resources, input))
     "ID" | "EI" | "" => {
       nocontent(input)
@@ -1152,22 +1153,22 @@ fn lex_keyword(
 
 ///|
 fn lex_string(input : @pdfio.Input) -> Lexeme raise {
-  match (@pdfsyntax.PdfSyntax::new().lex_string(input) : @pdfgenlex.Token) {
-    LexString(text) => Obj(@pdfgenlex.Token::LexString(text))
+  match (PdfSyntax::new().lex_string(input) : Token) {
+    LexString(text) => Obj(Token::LexString(text))
     _ => {
       nocontent(input)
-      Obj(@pdfgenlex.Token::LexString(""))
+      Obj(Token::LexString(""))
     }
   }
 }
 
 ///|
 fn lex_hexstring(input : @pdfio.Input) -> Lexeme raise {
-  match (@pdfsyntax.PdfSyntax::new().lex_hexstring(input) : @pdfgenlex.Token) {
-    LexString(text) => Obj(@pdfgenlex.Token::LexString(text))
+  match (PdfSyntax::new().lex_hexstring(input) : Token) {
+    LexString(text) => Obj(Token::LexString(text))
     _ => {
       nocontent(input)
-      Obj(@pdfgenlex.Token::LexString(""))
+      Obj(Token::LexString(""))
     }
   }
 }
@@ -1179,7 +1180,7 @@ fn lex_next(
   input : @pdfio.Input,
 ) -> Lexeme raise {
   try {
-    @pdfsyntax.PdfSyntax::new().dropwhite(input)
+    PdfSyntax::new().dropwhite(input)
     let next = input.peek_byte()
     if next == @pdfio.no_more {
       raise LexingEnd
@@ -1193,11 +1194,11 @@ fn lex_next(
       Some('(') => lex_string(input)
       Some('[') => {
         input.nudge()
-        Obj(@pdfgenlex.Token::LexLeftSquare)
+        Obj(Token::LexLeftSquare)
       }
       Some(']') => {
         input.nudge()
-        Obj(@pdfgenlex.Token::LexRightSquare)
+        Obj(Token::LexRightSquare)
       }
       Some('<') => {
         input.nudge()
@@ -1209,7 +1210,7 @@ fn lex_next(
         }
       }
       Some('%') => {
-        ignore(@pdfsyntax.PdfSyntax::new().lex_comment(input))
+        ignore(PdfSyntax::new().lex_comment(input))
         LexComment
       }
       _ => raise @pdf.PdfError::Msg("Lexing failure in content stream")
@@ -1299,7 +1300,7 @@ fn lexeme_string(lexeme : Lexeme) -> String? {
 fn lexeme_pdfobj(lexeme : Lexeme) -> @pdf.PdfObject? raise {
   match lexeme {
     Lexeme::PdfObj(obj) => Some(obj)
-    Lexeme::Obj(token) => Some(@pdfsyntax.PdfSyntax::new().parse([token]).1)
+    Lexeme::Obj(token) => Some(PdfSyntax::new().parse([token]).1)
     _ => None
   }
 }
@@ -1383,15 +1384,15 @@ fn parse_tj_op(section : Array[Lexeme]) -> Op raise {
       let elements : Array[@pdf.PdfObject] = Array::new()
       for idx in (left_index + 1)..<(section.length() - 2) {
         match section[idx] {
-          Obj(LexReal(value)) => elements.push(@pdf.PdfObject::Real(value))
+          Obj(LexReal(value)) => elements.push(PdfObject::Real(value))
           Obj(LexInt(value)) =>
-            elements.push(@pdf.PdfObject::Real(Double::from_int(value)))
-          Obj(LexString(text)) => elements.push(@pdf.PdfObject::String(text))
+            elements.push(PdfObject::Real(Double::from_int(value)))
+          Obj(LexString(text)) => elements.push(PdfObject::String(text))
           _ =>
             @pdfe.Pdfe::new().log("Warning: malformed TJ element; skipping\n")
         }
       }
-      return Op::OpTJ(@pdf.PdfObject::Array(elements))
+      return Op::OpTJ(PdfObject::Array(elements))
     }
   }
   raise @pdf.PdfError::Msg("malformed TJ op")
@@ -1990,7 +1991,7 @@ pub fn Op::parse_operators(
     @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, direct)
     direct.getstream()
     match direct {
-      @pdf.PdfObject::Stream(r) =>
+      Stream(r) =>
         match r.val {
           (_, @pdf.Stream::Got(data)) => rawstreams.push(data)
           _ => raise @pdf.PdfError::Msg("Malformed stream")
