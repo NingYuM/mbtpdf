@@ -2,9 +2,23 @@
 /// JPEG data extraction helpers.
 
 ///|
+pub struct PdfJpeg {
+  unit : Unit
+}
+
+///|
+pub fn PdfJpeg::new() -> PdfJpeg {
+  { unit: () }
+}
+
+///|
 /// Return JPEG data starting at the current input position, leaving the input
 /// ready at the byte following the JPEG data.
-pub fn get_jpeg_data(input : @pdfio.Input) -> @pdfio.MutableBytes raise {
+#as_free_fn(get_jpeg_data, deprecated="Use `PdfJpeg::get_jpeg_data`")
+pub fn PdfJpeg::get_jpeg_data(
+  _self : PdfJpeg,
+  input : @pdfio.Input,
+) -> @pdfio.MutableBytes raise {
   let (output, data) = @pdfio.input_output_of_bytes(4096)
   let mut fin = false
   let mut last = 0

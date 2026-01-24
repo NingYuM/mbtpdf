@@ -6,14 +6,28 @@ JPEG data extraction helpers for PDF streams.
 
 This package provides utilities for extracting JPEG image data from PDF streams. PDF documents often embed JPEG images directly in content streams using the DCTDecode filter.
 
-## Functions
+## Types
 
-### get_jpeg_data
+### PdfJpeg
+
+JPEG extraction context.
+
+```moonbit nocheck
+pub struct PdfJpeg { ... }
+pub fn PdfJpeg::new() -> PdfJpeg
+```
+
+## Methods
+
+### PdfJpeg::get_jpeg_data
 
 Read JPEG data from an input stream, scanning for the JPEG end-of-image marker (FFD9).
 
 ```moonbit nocheck
-pub fn get_jpeg_data(input : @pdfio.Input) -> @pdfio.MutableBytes raise
+pub fn PdfJpeg::get_jpeg_data(
+  self : PdfJpeg,
+  input : @pdfio.Input
+) -> @pdfio.MutableBytes raise
 ```
 
 The function:
