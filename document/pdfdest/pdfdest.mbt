@@ -363,9 +363,7 @@ pub fn Destination::transform(
           let transformed = Destination::read(pdf, d, shallow=true).transform(
             pdf, t,
           )
-          Destination::Action(
-            @pdf.add_dict_entry(a, "/D", transformed.to_pdf_object()),
-          )
+          Destination::Action(a.add_entry("/D", transformed.to_pdf_object()))
         }
         _ => Destination::Action(a)
       }

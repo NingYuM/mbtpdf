@@ -23,10 +23,9 @@ pub fn remove_bookmarks(pdf : @pdf.Pdf) -> @pdf.Pdf raise {
   match @pdf.lookup_direct(pdf, "/Root", pdf.trailerdict) {
     None => raise @pdf.PdfError::Msg("remove_bookmarks: Bad PDF: no root")
     Some(catalog) => {
-      let catalog_updated = @pdf.remove_dict_entry(catalog, "/Outlines")
+      let catalog_updated = catalog.remove_entry("/Outlines")
       let newcatalognum = @pdf.addobj(pdf, catalog_updated)
-      let trailerdict = @pdf.add_dict_entry(
-        pdf.trailerdict,
+      let trailerdict = pdf.trailerdict.add_entry(
         "/Root",
         @pdf.PdfObject::Indirect(newcatalognum),
       )
@@ -125,8 +124,7 @@ fn total_visible(nodes : Array[Ntree]) -> Int {
 
 ///|
 fn add_root_parent(root_objnum : Int, node : Ntree) -> Ntree raise {
-  let obj = @pdf.add_dict_entry(
-    ntree_obj(node),
+  let obj = ntree_obj(node).add_entry(
     "/Parent",
     @pdf.PdfObject::Indirect(root_objnum),
   )
@@ -179,14 +177,12 @@ fn add_count(node : Ntree) -> Ntree raise {
   let obj = if children.length() == 0 {
     ntree_obj(node)
   } else if ntree_isopen(node) {
-    @pdf.add_dict_entry(
-      ntree_obj(node),
+    ntree_obj(node).add_entry(
       "/Count",
       @pdf.PdfObject::Integer(total_visible(children)),
     )
   } else {
-    @pdf.add_dict_entry(
-      ntree_obj(node),
+    ntree_obj(node).add_entry(
       "/Count",
       @pdf.PdfObject::Integer(-total_visible(children)),
     )
@@ -199,11 +195,7 @@ fn add_parent(parent : Int?, node : Ntree) -> Ntree raise {
   let obj = match parent {
     None => ntree_obj(node)
     Some(parent_num) =>
-      @pdf.add_dict_entry(
-        ntree_obj(node),
-        "/Parent",
-        @pdf.PdfObject::Indirect(parent_num),
-      )
+      ntree_obj(node).add_entry("/Parent", @pdf.PdfObject::Indirect(parent_num))
   }
   let children = ntree_children(node).map(child => add_parent(
     Some(ntree_objnum(node)),
@@ -220,15 +212,9 @@ fn add_firstlast(node : Ntree) -> Ntree raise {
   } else {
     let first = ntree_objnum(children[0])
     let last = ntree_objnum(children[children.length() - 1])
-    let obj = @pdf.add_dict_entry(
-      @pdf.add_dict_entry(
-        ntree_obj(node),
-        "/First",
-        @pdf.PdfObject::Indirect(first),
-      ),
-      "/Last",
-      @pdf.PdfObject::Indirect(last),
-    )
+    let obj = ntree_obj(node)
+      .add_entry("/First", @pdf.PdfObject::Indirect(first))
+      .add_entry("/Last", @pdf.PdfObject::Indirect(last))
     Ntree::Br(
       ntree_objnum(node),
       obj,
@@ -256,8 +242,7 @@ fn add_next(node : Ntree) -> Ntree raise {
       let child = children[i]
       let updated = if i + 1 < children.length() {
         let nextnum = ntree_objnum(children[i + 1])
-        let obj = @pdf.add_dict_entry(
-          ntree_obj(child),
+        let obj = ntree_obj(child).add_entry(
           "/Next",
           @pdf.PdfObject::Indirect(nextnum),
         )
@@ -294,8 +279,7 @@ fn add_prev(node : Ntree) -> Ntree raise {
       let child = children[i]
       let updated = if i > 0 {
         let prevnum = ntree_objnum(children[i - 1])
-        let obj = @pdf.add_dict_entry(
-          ntree_obj(child),
+        let obj = ntree_obj(child).add_entry(
           "/Prev",
           @pdf.PdfObject::Indirect(prevnum),
         )
@@ -404,14 +388,12 @@ pub fn add_bookmarks(
     match @pdf.lookup_direct(pdf, "/Root", pdf.trailerdict) {
       None => raise @pdf.PdfError::Msg("Bad PDF: no root")
       Some(catalog) => {
-        let catalog_updated = @pdf.add_dict_entry(
-          catalog,
+        let catalog_updated = catalog.add_entry(
           "/Outlines",
           @pdf.PdfObject::Indirect(tree_root_num),
         )
         let newcatalognum = @pdf.addobj(pdf, catalog_updated)
-        let trailerdict = @pdf.add_dict_entry(
-          pdf.trailerdict,
+        let trailerdict = pdf.trailerdict.add_entry(
           "/Root",
           @pdf.PdfObject::Indirect(newcatalognum),
         )

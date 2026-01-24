@@ -129,11 +129,7 @@ test "pdf_of_pages trims structure tree" {
   ])
   let struct_num = @pdf.addobj(pdf, struct_tree)
   let root = @pdf.catalog_of_pdf(pdf)
-  let updated_root = @pdf.add_dict_entry(
-    root,
-    "/StructTreeRoot",
-    Indirect(struct_num),
-  )
+  let updated_root = root.add_entry("/StructTreeRoot", Indirect(struct_num))
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
   let subset = @pdfpage.pdf_of_pages(pdf, [1], process_struct_tree=true)
   let root2 = @pdf.catalog_of_pdf(subset)

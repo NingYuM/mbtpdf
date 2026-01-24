@@ -26,7 +26,7 @@ fn set_catalog_entry(
   value : @pdf.PdfObject,
 ) -> Unit raise {
   let catalog = @pdf.catalog_of_pdf(pdf)
-  let updated = @pdf.add_dict_entry(catalog, key, value)
+  let updated = catalog.add_entry(key, value)
   @pdf.addobj_given_num(pdf, (pdf.root, updated))
 }
 

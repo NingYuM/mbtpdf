@@ -8,8 +8,6 @@ import {
 }
 
 // Values
-pub fn add_dict_entry(PdfObject, String, PdfObject) -> PdfObject raise
-
 pub fn addobj(Pdf, PdfObject) -> Int
 
 pub fn addobj_given_num(Pdf, (Int, PdfObject)) -> Unit
@@ -86,8 +84,6 @@ pub fn pdfobjmap_find(Int, Map[Int, (Ref[ObjectData], Int)]) -> (Ref[ObjectData]
 
 pub fn recurse_array((PdfObject) -> PdfObject, Array[PdfObject]) -> PdfObject
 
-pub fn remove_dict_entry(PdfObject, String) -> PdfObject raise
-
 pub fn remove_unreferenced(Pdf) -> Unit raise
 
 pub fn removeobj(Pdf, Int) -> Unit
@@ -99,8 +95,6 @@ pub fn renumber_object_parsed(Pdf, Map[Int, Int], PdfObject, preserve_order? : B
 pub fn renumber_pdfs(Array[Pdf]) -> Array[Pdf]
 
 pub fn replace_chain(Pdf, ArrayView[String], PdfObject) -> Unit raise
-
-pub fn replace_dict_entry(PdfObject, String, PdfObject) -> PdfObject raise
 
 pub let string_of_pdf : Ref[(PdfObject) -> String]
 
@@ -156,6 +150,9 @@ pub(all) enum PdfObject {
   Stream(Ref[(PdfObject, Stream)])
   Indirect(Int)
 }
+pub fn PdfObject::add_entry(Self, String, Self) -> Self raise
+pub fn PdfObject::remove_entry(Self, String) -> Self raise
+pub fn PdfObject::replace_entry(Self, String, Self) -> Self raise
 pub fn PdfObject::to_string(Self) -> String
 pub fn PdfObject::to_string_including_data(Self) -> String
 

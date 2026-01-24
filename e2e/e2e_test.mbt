@@ -103,14 +103,10 @@ fn add_named_destination(
     Some(obj) => obj
     None => Dictionary([])
   }
-  let names = @pdf.add_dict_entry(names, "/Dests", Indirect(tree_num))
-  let updated_root = @pdf.add_dict_entry(root, "/Names", names)
+  let names = names.add_entry("/Dests", Indirect(tree_num))
+  let updated_root = root.add_entry("/Names", names)
   @pdf.addobj_given_num(pdf, (rootnum, updated_root))
-  pdf.trailerdict = @pdf.add_dict_entry(
-    pdf.trailerdict,
-    "/Root",
-    Indirect(rootnum),
-  )
+  pdf.trailerdict = pdf.trailerdict.add_entry("/Root", Indirect(rootnum))
 }
 
 ///|
@@ -129,13 +125,9 @@ fn set_catalog_entry(
 ) -> Unit raise {
   let rootnum = pdf.root
   let root = @pdf.lookup_obj(pdf, rootnum)
-  let updated_root = @pdf.add_dict_entry(root, key, value)
+  let updated_root = root.add_entry(key, value)
   @pdf.addobj_given_num(pdf, (rootnum, updated_root))
-  pdf.trailerdict = @pdf.add_dict_entry(
-    pdf.trailerdict,
-    "/Root",
-    Indirect(rootnum),
-  )
+  pdf.trailerdict = pdf.trailerdict.add_entry("/Root", Indirect(rootnum))
 }
 
 ///|
@@ -152,14 +144,10 @@ fn add_names_tree(
     Some(obj) => obj
     None => Dictionary([])
   }
-  let names = @pdf.add_dict_entry(names, key, Indirect(tree_num))
-  let updated_root = @pdf.add_dict_entry(root, "/Names", names)
+  let names = names.add_entry(key, Indirect(tree_num))
+  let updated_root = root.add_entry("/Names", names)
   @pdf.addobj_given_num(pdf, (rootnum, updated_root))
-  pdf.trailerdict = @pdf.add_dict_entry(
-    pdf.trailerdict,
-    "/Root",
-    Indirect(rootnum),
-  )
+  pdf.trailerdict = pdf.trailerdict.add_entry("/Root", Indirect(rootnum))
 }
 
 ///|
@@ -409,11 +397,7 @@ fn add_struct_tree_root(
   let struct_root_num = @pdf.addobj(pdf, struct_root)
   set_catalog_entry(pdf, "/StructTreeRoot", Indirect(struct_root_num))
   let page_obj = @pdf.lookup_obj(pdf, page_ref)
-  let updated_page = @pdf.add_dict_entry(
-    page_obj,
-    "/StructParents",
-    Integer(parent_key),
-  )
+  let updated_page = page_obj.add_entry("/StructParents", Integer(parent_key))
   @pdf.addobj_given_num(pdf, (page_ref, updated_page))
 }
 

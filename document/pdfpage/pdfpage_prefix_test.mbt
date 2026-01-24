@@ -305,7 +305,7 @@ test "add_prefix handles single indirect contents" {
     Some(Array(contents)) => contents[0]
     _ => fail("expected contents array")
   }
-  let updated = @pdf.add_dict_entry(page_obj, "/Contents", first_content)
+  let updated = page_obj.add_entry("/Contents", first_content)
   @pdf.addobj_given_num(pdf, (page_num, updated))
   @pdfpage.add_prefix(pdf, "p")
   let pages = @pdfpage.pages_of_pagetree(pdf)

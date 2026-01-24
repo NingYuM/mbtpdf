@@ -5,7 +5,7 @@ fn merge_dict_entries(
 ) -> @pdf.PdfObject raise {
   let mut updated = base
   for entry in extras {
-    updated = @pdf.add_dict_entry(updated, entry.0, entry.1)
+    updated = updated.add_entry(entry.0, entry.1)
   }
   updated
 }
@@ -30,16 +30,13 @@ pub fn process_xobject(
               match f(pdf, resources, [xobj]) {
                 [@pdf.PdfObject::Stream(updated)] => {
                   let (dict_updated, data) = updated.val
-                  let merged = @pdf.remove_dict_entry(
-                    merge_dict_entries(
-                      @pdf.PdfObject::Dictionary(dict),
-                      match dict_updated {
-                        @pdf.PdfObject::Dictionary(d) => d
-                        _ => []
-                      },
-                    ),
-                    "/Filter",
-                  )
+                  let merged = merge_dict_entries(
+                    @pdf.PdfObject::Dictionary(dict),
+                    match dict_updated {
+                      @pdf.PdfObject::Dictionary(d) => d
+                      _ => []
+                    },
+                  ).remove_entry("/Filter")
                   r.val = (merged, data)
                 }
                 _ => fail("process_xobject: bad stream")
@@ -113,13 +110,13 @@ pub fn combine_pdf_resources(
   let combined_known = resource_keys.filter_map(combine_entries)
   let mut out = @pdf.PdfObject::Dictionary([])
   for entry in unknown_keys_a {
-    out = @pdf.add_dict_entry(out, entry.0, entry.1)
+    out = out.add_entry(entry.0, entry.1)
   }
   for entry in unknown_keys_b {
-    out = @pdf.add_dict_entry(out, entry.0, entry.1)
+    out = out.add_entry(entry.0, entry.1)
   }
   for entry in combined_known {
-    out = @pdf.add_dict_entry(out, entry.0, entry.1)
+    out = out.add_entry(entry.0, entry.1)
   }
   out
 }

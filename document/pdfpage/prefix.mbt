@@ -136,15 +136,8 @@ fn prefix_operator(
         Some(@pdf.PdfObject::Name(n)) if direct_cs_names_inline.contains(n) =>
           dict
         Some(@pdf.PdfObject::Name(n)) => {
-          let stripped = @pdf.remove_dict_entry(
-            @pdf.remove_dict_entry(dict, "/ColorSpace"),
-            "/CS",
-          )
-          @pdf.add_dict_entry(
-            stripped,
-            "/CS",
-            @pdf.PdfObject::Name(addp(prefix, n)),
-          )
+          let stripped = dict.remove_entry("/ColorSpace").remove_entry("/CS")
+          stripped.add_entry("/CS", @pdf.PdfObject::Name(addp(prefix, n)))
         }
         _ => dict
       }
@@ -173,7 +166,7 @@ fn change_resources(
   let newdicts = resource_keys.map(newdict)
   let mut updated = resources
   for i, key in resource_keys {
-    updated = @pdf.add_dict_entry(updated, key, newdicts[i])
+    updated = updated.add_entry(key, newdicts[i])
   }
   updated
 }
@@ -286,7 +279,7 @@ fn add_prefix_impl(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
                 None => ()
               }
               match resources_updated {
-                Some(updated) => @pdf.add_dict_entry(obj, "/Resources", updated)
+                Some(updated) => obj.add_entry("/Resources", updated)
                 None => obj
               }
             }
@@ -356,8 +349,7 @@ fn merge_content_streams(pdf : @pdf.Pdf) -> Unit raise {
                           ),
                         )
                         let objnum = @pdf.addobj(pdf, stream)
-                        @pdf.add_dict_entry(
-                          obj,
+                        obj.add_entry(
                           "/Contents",
                           @pdf.PdfObject::Indirect(objnum),
                         )

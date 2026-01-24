@@ -36,17 +36,13 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
   let annot_base : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Text"))])
   let annot_num = @pdf.addobj(pdf, annot_base)
-  let annot_with_popup = @pdf.add_dict_entry(
-    annot_base,
-    "/Popup",
-    Indirect(annot_num),
-  )
+  let annot_with_popup = annot_base.add_entry("/Popup", Indirect(annot_num))
   @pdf.addobj_given_num(pdf, (annot_num, annot_with_popup))
   let refs = @pdf.page_reference_numbers(pdf)
   for refnum in refs {
     let page_obj = @pdf.lookup_obj(pdf, refnum)
     let annots : @pdf.PdfObject = Array([Indirect(annot_num)])
-    let updated = @pdf.add_dict_entry(page_obj, "/Annots", annots)
+    let updated = page_obj.add_entry("/Annots", annots)
     @pdf.addobj_given_num(pdf, (refnum, updated))
   }
   @pdfpage.fixup_duplicate_annots(pdf)
@@ -70,13 +66,9 @@ test "fixup_destinations removes nulled entries" {
   let tree = @pdftree.build_name_tree(false, pdf, [("Dead", dead_dest)])
   let names : @pdf.PdfObject = Dictionary([("/Dests", tree)])
   let catalog = @pdf.catalog_of_pdf(pdf)
-  let updated_catalog = @pdf.add_dict_entry(catalog, "/Names", names)
+  let updated_catalog = catalog.add_entry("/Names", names)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_catalog))
-  let trailerdict = @pdf.add_dict_entry(
-    pdf.trailerdict,
-    "/Root",
-    updated_catalog,
-  )
+  let trailerdict = pdf.trailerdict.add_entry("/Root", updated_catalog)
   let pdf_direct : @pdf.Pdf = {
     major: pdf.major,
     minor: pdf.minor,

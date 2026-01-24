@@ -69,13 +69,8 @@ test "remove_unreferenced nullifies page refs" {
   addobj_given_num(pdf, (5, stream))
   addobj_given_num(pdf, (6, PdfObject::Integer(7)))
   let catalog = lookup_obj(pdf, 3)
-  let catalog_with_stream = add_dict_entry(
-    catalog,
-    "/Stream",
-    PdfObject::Indirect(5),
-  )
-  let catalog_with_number = add_dict_entry(
-    catalog_with_stream,
+  let catalog_with_stream = catalog.add_entry("/Stream", PdfObject::Indirect(5))
+  let catalog_with_number = catalog_with_stream.add_entry(
     "/Number",
     PdfObject::Indirect(6),
   )

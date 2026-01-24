@@ -38,7 +38,7 @@ fn remove_image_xobjects(
               out.push(entry)
             }
           }
-          @pdf.replace_dict_entry(resources, "/XObject", Dictionary(out))
+          resources.replace_entry("/XObject", Dictionary(out))
         }
         _ => resources
       }

@@ -86,12 +86,8 @@ fn change_operator(
         | Some(@pdf.PdfObject::Name("/RGB"))
         | Some(@pdf.PdfObject::Name("/CMYK")) => dict
         Some(@pdf.PdfObject::Name(n)) => {
-          let stripped = @pdf.remove_dict_entry(
-            @pdf.remove_dict_entry(dict, "/ColorSpace"),
-            "/CS",
-          )
-          @pdf.add_dict_entry(
-            stripped,
+          let stripped = dict.remove_entry("/ColorSpace").remove_entry("/CS")
+          stripped.add_entry(
             "/CS",
             @pdf.PdfObject::Name(lookup("/ColorSpace", seqnum, n)),
           )
@@ -151,7 +147,7 @@ pub fn renumber_pages(pdf : @pdf.Pdf, pages : Array[Page]) -> Array[Page] raise 
     let newdicts = resource_keys.map(newdict)
     let mut updated = resources
     for i, key in resource_keys {
-      updated = @pdf.add_dict_entry(updated, key, newdicts[i])
+      updated = updated.add_entry(key, newdicts[i])
     }
     updated
   }

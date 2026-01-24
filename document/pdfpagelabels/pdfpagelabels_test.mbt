@@ -236,13 +236,9 @@ fn set_page_labels(pdf : @pdf.Pdf, nums : Array[@pdf.PdfObject]) -> Unit raise {
   let rootnum = pdf.root
   let root = @pdf.lookup_obj(pdf, rootnum)
   let labels : @pdf.PdfObject = Dictionary([("/Nums", Array(nums))])
-  let updated = @pdf.add_dict_entry(root, "/PageLabels", labels)
+  let updated = root.add_entry("/PageLabels", labels)
   @pdf.addobj_given_num(pdf, (rootnum, updated))
-  pdf.trailerdict = @pdf.add_dict_entry(
-    pdf.trailerdict,
-    "/Root",
-    Indirect(rootnum),
-  )
+  pdf.trailerdict = pdf.trailerdict.add_entry("/Root", Indirect(rootnum))
 }
 
 ///|

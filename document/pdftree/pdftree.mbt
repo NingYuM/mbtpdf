@@ -38,7 +38,7 @@ pub fn build_name_tree(
     }
     let nt = build_nt_tree(sorted)
     let tree_obj = name_tree_of_nt(isnum, true, pdf, nt)
-    try @pdf.remove_dict_entry(tree_obj, "/Limits") catch {
+    try tree_obj.remove_entry("/Limits") catch {
       _ => tree_obj
     } noraise {
       updated => updated

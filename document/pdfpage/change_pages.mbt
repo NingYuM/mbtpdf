@@ -161,13 +161,7 @@ fn rewrite_action(
         Some(dest) =>
           match rewrite_dest(pdf, mattable, refnumstable, dest) {
             Some(objnum) =>
-              Some(
-                @pdf.add_dict_entry(
-                  action,
-                  "/D",
-                  @pdf.PdfObject::Indirect(objnum),
-                ),
-              )
+              Some(action.add_entry("/D", @pdf.PdfObject::Indirect(objnum)))
             None => None
           }
         None => None
@@ -198,8 +192,7 @@ fn change_pages_process_annotations(
                     Some(dest) =>
                       match rewrite_dest(pdf, mattable, refnumstable, dest) {
                         Some(objnum) => {
-                          let new_annot = @pdf.add_dict_entry(
-                            annot,
+                          let new_annot = annot.add_entry(
                             "/Dest",
                             @pdf.PdfObject::Indirect(objnum),
                           )
@@ -213,8 +206,8 @@ fn change_pages_process_annotations(
                           match
                             rewrite_action(pdf, mattable, refnumstable, action) {
                             Some(updated_action) => {
-                              let new_annot = @pdf.add_dict_entry(
-                                annot, "/A", updated_action,
+                              let new_annot = annot.add_entry(
+                                "/A", updated_action,
                               )
                               @pdf.addobj_given_num(pdf, (i, new_annot))
                             }
@@ -239,7 +232,7 @@ fn change_pages_process_annotations(
 ///|
 fn rewrite_openaction(pdf : @pdf.Pdf, action : @pdf.PdfObject) -> Unit raise {
   let catalog = @pdf.catalog_of_pdf(pdf)
-  let updated = @pdf.add_dict_entry(catalog, "/OpenAction", action)
+  let updated = catalog.add_entry("/OpenAction", action)
   @pdf.addobj_given_num(pdf, (pdf.root, updated))
 }
 

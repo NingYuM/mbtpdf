@@ -29,11 +29,7 @@ fn install_struct_root(pdf : @pdf.Pdf, root : @pdf.PdfObject) -> Int raise {
     _ => raise @pdf.PdfError::Msg("missing root")
   }
   let catalog = @pdf.lookup_obj(pdf, catalog_num)
-  let updated = @pdf.add_dict_entry(
-    catalog,
-    "/StructTreeRoot",
-    Indirect(root_num),
-  )
+  let updated = catalog.add_entry("/StructTreeRoot", Indirect(root_num))
   @pdf.addobj_given_num(pdf, (catalog_num, updated))
   root_num
 }
@@ -55,11 +51,7 @@ fn add_struct_tree(pdf : @pdf.Pdf) -> (Int, Int) raise {
     _ => raise @pdf.PdfError::Msg("missing root")
   }
   let catalog = @pdf.lookup_obj(pdf, catalog_num)
-  let updated = @pdf.add_dict_entry(
-    catalog,
-    "/StructTreeRoot",
-    Indirect(root_num),
-  )
+  let updated = catalog.add_entry("/StructTreeRoot", Indirect(root_num))
   @pdf.addobj_given_num(pdf, (catalog_num, updated))
   (root_num, struct2_num)
 }

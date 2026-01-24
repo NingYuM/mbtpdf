@@ -198,29 +198,32 @@ pub fn input_pdferror(input : @pdfio.Input, message : String) -> String {
 
 ///|
 /// Remove a dictionary entry (also works for streams).
-pub fn remove_dict_entry(dict : PdfObject, key : String) -> PdfObject raise {
-  match dict {
+pub fn PdfObject::remove_entry(
+  self : PdfObject,
+  key : String,
+) -> PdfObject raise {
+  match self {
     Dictionary(entries) => {
       let out = entries.filter(pair => pair.0 != key)
       Dictionary(out)
     }
     Stream(r) => {
       let (inner, stream) = r.val
-      r.val = (remove_dict_entry(inner, key), stream)
+      r.val = (inner.remove_entry(key), stream)
       Stream(r)
     }
-    _ => raise PdfError::Msg("remove_dict_entry: not a dictionary")
+    _ => raise PdfError::Msg("remove_entry: not a dictionary")
   }
 }
 
 ///|
 /// Replace a dictionary entry, raising if it's not present (also works for streams).
-pub fn replace_dict_entry(
-  dict : PdfObject,
+pub fn PdfObject::replace_entry(
+  self : PdfObject,
   key : String,
   value : PdfObject,
 ) -> PdfObject raise {
-  match dict {
+  match self {
     Null => Dictionary([(key, value)])
     Dictionary(entries) => {
       let mut replaced = false
@@ -235,27 +238,27 @@ pub fn replace_dict_entry(
         }
       }
       if !replaced {
-        raise PdfError::Msg("replace_dict_entry: key not found")
+        raise PdfError::Msg("replace_entry: key not found")
       }
       Dictionary(out)
     }
     Stream(r) => {
       let (inner, stream) = r.val
-      r.val = (replace_dict_entry(inner, key, value), stream)
+      r.val = (inner.replace_entry(key, value), stream)
       Stream(r)
     }
-    _ => raise PdfError::Msg("replace_dict_entry: not a dictionary")
+    _ => raise PdfError::Msg("replace_entry: not a dictionary")
   }
 }
 
 ///|
 /// Add a dictionary entry, replacing if already present (also works for streams).
-pub fn add_dict_entry(
-  dict : PdfObject,
+pub fn PdfObject::add_entry(
+  self : PdfObject,
   key : String,
   value : PdfObject,
 ) -> PdfObject raise {
-  match dict {
+  match self {
     Null => Dictionary([(key, value)])
     Dictionary(entries) => {
       let mut replaced = false
@@ -276,10 +279,10 @@ pub fn add_dict_entry(
     }
     Stream(r) => {
       let (inner, stream) = r.val
-      r.val = (add_dict_entry(inner, key, value), stream)
+      r.val = (inner.add_entry(key, value), stream)
       Stream(r)
     }
-    _ => raise PdfError::Msg("add_dict_entry: not a dictionary")
+    _ => raise PdfError::Msg("add_entry: not a dictionary")
   }
 }
 
@@ -754,11 +757,7 @@ pub fn getstream(obj : PdfObject) -> Unit raise {
           }
           let dict_updated = match dict {
             Dictionary(_) =>
-              replace_dict_entry(
-                dict,
-                "/Length",
-                Integer(@pdfio.bytes_size(data)),
-              )
+              dict.replace_entry("/Length", Integer(@pdfio.bytes_size(data)))
             _ => dict
           }
           r.val = (dict_updated, Stream::Got(data))
@@ -1605,8 +1604,7 @@ pub fn generate_id(
 pub fn change_id(pdf : Pdf, path : String) -> Unit raise {
   match pdf.trailerdict {
     Dictionary(_) =>
-      pdf.trailerdict = add_dict_entry(
-        pdf.trailerdict,
+      pdf.trailerdict = pdf.trailerdict.add_entry(
         "/ID",
         generate_id(pdf, path, () => @env.now().to_double()),
       )

@@ -6,16 +6,12 @@ fn bytes_string(len : Int, value : Int) -> String {
 ///|
 fn add_id(pdf : @pdf.Pdf) -> Unit raise {
   let id : @pdf.PdfObject = Array([String("id"), String("id")])
-  pdf.trailerdict = @pdf.add_dict_entry(pdf.trailerdict, "/ID", id)
+  pdf.trailerdict = pdf.trailerdict.add_entry("/ID", id)
 }
 
 ///|
 fn attach_encrypt(pdf : @pdf.Pdf, encrypt_dict : @pdf.PdfObject) -> Unit raise {
-  pdf.trailerdict = @pdf.add_dict_entry(
-    pdf.trailerdict,
-    "/Encrypt",
-    encrypt_dict,
-  )
+  pdf.trailerdict = pdf.trailerdict.add_entry("/Encrypt", encrypt_dict)
 }
 
 ///|

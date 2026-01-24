@@ -56,21 +56,13 @@ test "pages_of_pagetree handles missing mediabox and non-stream contents" {
     None => fail("expected page object number")
   }
   let page1_obj = @pdf.lookup_obj(pdf, page1_num)
-  let page1_updated = @pdf.add_dict_entry(
-    page1_obj,
-    "/Contents",
-    Array([Integer(1)]),
-  )
+  let page1_updated = page1_obj.add_entry("/Contents", Array([Integer(1)]))
   @pdf.addobj_given_num(pdf, (page1_num, page1_updated))
   let page2_obj = @pdf.lookup_obj(pdf, page2_num)
-  let page2_updated = @pdf.add_dict_entry(
-    @pdf.remove_dict_entry(
-      @pdf.remove_dict_entry(page2_obj, "/MediaBox"),
-      "/Resources",
-    ),
-    "/Contents",
-    Integer(2),
-  )
+  let page2_updated = page2_obj
+    .remove_entry("/MediaBox")
+    .remove_entry("/Resources")
+    .add_entry("/Contents", Integer(2))
   @pdf.addobj_given_num(pdf, (page2_num, page2_updated))
   let out_pages = @pdfpage.pages_of_pagetree(pdf)
   assert_eq(out_pages.length(), 2)
@@ -142,7 +134,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
   ]
   let annots : @pdf.PdfObject = Array(annot_nums.map(fn(n) { Indirect(n) }))
   let page1_obj = @pdf.lookup_obj(pdf, refs[0])
-  let page1_updated = @pdf.add_dict_entry(page1_obj, "/Annots", annots)
+  let page1_updated = page1_obj.add_entry("/Annots", annots)
   @pdf.addobj_given_num(pdf, (refs[0], page1_updated))
   let bookmarks : Array[@pdfmarks.Bookmark] = [
     {
@@ -194,7 +186,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
   ]
   let pdf = @pdfmarks.add_bookmarks(bookmarks, pdf)
   let catalog = @pdf.catalog_of_pdf(pdf)
-  let catalog = @pdf.add_dict_entry(catalog, "/OpenAction", dest1)
+  let catalog = catalog.add_entry("/OpenAction", dest1)
   @pdf.addobj_given_num(pdf, (pdf.root, catalog))
   let pages = @pdfpage.pages_of_pagetree(pdf)
   let matrix = @pdftransform.TransformMatrix::translate(10.0, 0.0)
@@ -449,10 +441,10 @@ test "change_pages rewrites annotation and openaction" {
   let annot2 = @pdf.addobj(pdf, annot_action)
   let page_obj = @pdf.lookup_obj(pdf, refs[0])
   let annots : @pdf.PdfObject = Array([Indirect(annot1), Indirect(annot2)])
-  let updated_page = @pdf.add_dict_entry(page_obj, "/Annots", annots)
+  let updated_page = page_obj.add_entry("/Annots", annots)
   @pdf.addobj_given_num(pdf, (refs[0], updated_page))
   let catalog = @pdf.catalog_of_pdf(pdf)
-  let updated_catalog = @pdf.add_dict_entry(catalog, "/OpenAction", dest_array)
+  let updated_catalog = catalog.add_entry("/OpenAction", dest_array)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_catalog))
   let pages = @pdfpage.pages_of_pagetree(pdf)
   let translated = @pdfpage.change_pages(true, pdf, pages, matrices=[

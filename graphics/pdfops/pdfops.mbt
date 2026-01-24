@@ -571,11 +571,7 @@ fn string_of_lexeme(lexeme : Lexeme) -> String raise {
         @pdf.lookup_direct_orelse(@pdf.Pdf::empty(), "/F", "/Filter", dict) {
         None | Some(@pdf.PdfObject::Array([])) => {
           let _ = dp
-          let dict = @pdf.add_dict_entry(
-            dict,
-            "/F",
-            @pdf.PdfObject::Name("/Fl"),
-          )
+          let dict = dict.add_entry("/F", @pdf.PdfObject::Name("/Fl"))
           let encoded = @pdfcodec.encode_flate(data)
           (dict, encoded)
         }
@@ -583,8 +579,7 @@ fn string_of_lexeme(lexeme : Lexeme) -> String raise {
       }
       let dict = dict_data.0
       let data = dict_data.1
-      let dict = @pdf.add_dict_entry(
-        dict,
+      let dict = dict.add_entry(
         "/L",
         @pdf.PdfObject::Integer(@pdfio.bytes_size(data)),
       )
@@ -1086,7 +1081,7 @@ fn lex_inline_image(
         } else {
           let mut cleaned = dict
           for key in ["/Filter", "/F", "/DecodeParms", "/DP"] {
-            cleaned = @pdf.remove_dict_entry(cleaned, key)
+            cleaned = cleaned.remove_entry(key)
           }
           cleaned
         }
@@ -1099,14 +1094,14 @@ fn lex_inline_image(
               } else {
                 let mut cleaned = dict
                 for key in ["/Filter", "/F", "/DecodeParms", "/DP"] {
-                  cleaned = @pdf.remove_dict_entry(cleaned, key)
+                  cleaned = cleaned.remove_entry(key)
                 }
                 cleaned
               }
             _ => {
               let mut cleaned = dict
               for key in ["/Filter", "/F", "/DecodeParms", "/DP"] {
-                cleaned = @pdf.remove_dict_entry(cleaned, key)
+                cleaned = cleaned.remove_entry(key)
               }
               cleaned
             }
@@ -1114,14 +1109,14 @@ fn lex_inline_image(
         } else {
           let mut cleaned = dict
           for key in ["/Filter", "/F", "/DecodeParms", "/DP"] {
-            cleaned = @pdf.remove_dict_entry(cleaned, key)
+            cleaned = cleaned.remove_entry(key)
           }
           cleaned
         }
       _ => {
         let mut cleaned = dict
         for key in ["/Filter", "/F", "/DecodeParms", "/DP"] {
-          cleaned = @pdf.remove_dict_entry(cleaned, key)
+          cleaned = cleaned.remove_entry(key)
         }
         cleaned
       }

@@ -261,7 +261,7 @@ test "read_destination name resolution" {
   let pdf_missing_entry = @pdfpage.minimum_valid_pdf()
   let root = @pdf.lookup_obj(pdf_missing_entry, pdf_missing_entry.root)
   let dests : @pdf.PdfObject = Dictionary([("/Other", Null)])
-  let root = @pdf.add_dict_entry(root, "/Dests", dests)
+  let root = root.add_entry("/Dests", dests)
   @pdf.addobj_given_num(pdf_missing_entry, (pdf_missing_entry.root, root))
   match Destination::read(pdf_missing_entry, Name("/Missing")) {
     Destination::NamedDestination("/Missing") => ()
@@ -282,7 +282,7 @@ test "read_destination string resolution" {
   }
   let pdf_no_dests = @pdfpage.minimum_valid_pdf()
   let root = @pdf.lookup_obj(pdf_no_dests, pdf_no_dests.root)
-  let root = @pdf.add_dict_entry(root, "/Names", Dictionary([]))
+  let root = root.add_entry("/Names", Dictionary([]))
   @pdf.addobj_given_num(pdf_no_dests, (pdf_no_dests.root, root))
   match Destination::read(pdf_no_dests, String("Missing")) {
     Destination::StringDestination("Missing") => ()
@@ -295,7 +295,7 @@ test "read_destination string resolution" {
   ])
   let names : @pdf.PdfObject = Dictionary([("/Dests", dests)])
   let root = @pdf.lookup_obj(pdf_with_tree, pdf_with_tree.root)
-  let root = @pdf.add_dict_entry(root, "/Names", names)
+  let root = root.add_entry("/Names", names)
   @pdf.addobj_given_num(pdf_with_tree, (pdf_with_tree.root, root))
   match Destination::read(pdf_with_tree, String("Anchor")) {
     Destination::Fit(TargetPage::OtherDocPageNumber(0)) => ()
@@ -307,7 +307,7 @@ test "read_destination string resolution" {
   ])
   let names : @pdf.PdfObject = Dictionary([("/Dests", dests)])
   let root = @pdf.lookup_obj(pdf_no_match, pdf_no_match.root)
-  let root = @pdf.add_dict_entry(root, "/Names", names)
+  let root = root.add_entry("/Names", names)
   @pdf.addobj_given_num(pdf_no_match, (pdf_no_match.root, root))
   match Destination::read(pdf_no_match, String("Missing")) {
     Destination::StringDestination("Missing") => ()
@@ -444,7 +444,7 @@ test "read_destination resolves named dests in catalog" {
   let dest : @pdf.PdfObject = Array([Indirect(refs[0]), Name("/Fit")])
   let dests : @pdf.PdfObject = Dictionary([("/Chapter1", dest)])
   let root_obj = @pdf.lookup_obj(pdf, pdf.root)
-  let updated_root = @pdf.add_dict_entry(root_obj, "/Dests", dests)
+  let updated_root = root_obj.add_entry("/Dests", dests)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
   let resolved = Destination::read(pdf, Name("/Chapter1"))
   match resolved {

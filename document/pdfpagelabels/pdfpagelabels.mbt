@@ -378,14 +378,12 @@ pub fn write(pdf : @pdf.Pdf, labels : Array[PageLabel]) -> Unit raise {
     }
     let rootnum = pdf.root
     let root = @pdf.lookup_obj(pdf, rootnum)
-    let updated_root = @pdf.add_dict_entry(
-      root,
+    let updated_root = root.add_entry(
       "/PageLabels",
       @pdf.PdfObject::Dictionary([("/Nums", @pdf.PdfObject::Array(arr))]),
     )
     @pdf.addobj_given_num(pdf, (rootnum, updated_root))
-    pdf.trailerdict = @pdf.add_dict_entry(
-      pdf.trailerdict,
+    pdf.trailerdict = pdf.trailerdict.add_entry(
       "/Root",
       @pdf.PdfObject::Indirect(rootnum),
     )
@@ -397,10 +395,9 @@ pub fn write(pdf : @pdf.Pdf, labels : Array[PageLabel]) -> Unit raise {
 pub fn remove(pdf : @pdf.Pdf) -> Unit raise {
   let rootnum = pdf.root
   let root = @pdf.lookup_obj(pdf, rootnum)
-  let updated_root = @pdf.remove_dict_entry(root, "/PageLabels")
+  let updated_root = root.remove_entry("/PageLabels")
   @pdf.addobj_given_num(pdf, (rootnum, updated_root))
-  pdf.trailerdict = @pdf.add_dict_entry(
-    pdf.trailerdict,
+  pdf.trailerdict = pdf.trailerdict.add_entry(
     "/Root",
     @pdf.PdfObject::Indirect(rootnum),
   )

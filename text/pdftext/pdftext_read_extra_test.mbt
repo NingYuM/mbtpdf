@@ -51,8 +51,7 @@ test "read_type3_data validates matrix and charprocs" {
     bad_charprocs_font,
   )
   assert_true(bad_charprocs_result is Err(_))
-  let with_resources = @pdf.add_dict_entry(
-    type3_font_base(type3_matrix_ok(), type3_charprocs_ok()),
+  let with_resources = type3_font_base(type3_matrix_ok(), type3_charprocs_ok()).add_entry(
     "/Resources",
     Dictionary([("/ProcSet", Array([]))]),
   )

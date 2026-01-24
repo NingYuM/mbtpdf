@@ -422,14 +422,9 @@ pub fn add_annotation(
   let obj = obj_of_annot(anno)
   let new_rest = match @pdf.lookup_direct(pdf, "/Annots", page.rest) {
     Some(Array(annotations)) =>
-      @pdf.add_dict_entry(
-        page.rest,
-        "/Annots",
-        @pdf.PdfObject::Array([obj] + annotations),
-      )
+      page.rest.add_entry("/Annots", @pdf.PdfObject::Array([obj] + annotations))
     Some(_) => raise @pdf.PdfError::Msg("Bad annotation dictionary")
-    None =>
-      @pdf.add_dict_entry(page.rest, "/Annots", @pdf.PdfObject::Array([obj]))
+    None => page.rest.add_entry("/Annots", @pdf.PdfObject::Array([obj]))
   }
   {
     content: page.content,
@@ -564,14 +559,14 @@ pub fn transform_annotations(
             }
             let annot_obj = match rect_updated {
               None => annot_obj
-              Some(rect) => @pdf.add_dict_entry(annot_obj, "/Rect", rect)
+              Some(rect) => annot_obj.add_entry("/Rect", rect)
             }
             let annot_obj = match quadpoints_updated {
-              Some(qp) => @pdf.add_dict_entry(annot_obj, "/QuadPoints", qp)
+              Some(qp) => annot_obj.add_entry("/QuadPoints", qp)
               None => annot_obj
             }
             let annot_obj = match line_updated {
-              Some(line) => @pdf.add_dict_entry(annot_obj, "/L", line)
+              Some(line) => annot_obj.add_entry("/L", line)
               None => annot_obj
             }
             @pdf.addobj_given_num(pdf, (i, annot_obj))

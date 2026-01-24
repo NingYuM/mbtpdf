@@ -221,18 +221,14 @@ pub fn add_root(
   }
   let mut root = @pdf.PdfObject::Dictionary(extras)
   for entry in existing_entries {
-    root = @pdf.add_dict_entry(root, entry.0, entry.1)
+    root = root.add_entry(entry.0, entry.1)
   }
-  root = @pdf.add_dict_entry(root, "/Type", @pdf.PdfObject::Name("/Catalog"))
-  root = @pdf.add_dict_entry(root, "/Pages", @pdf.PdfObject::Indirect(pageroot))
+  root = root.add_entry("/Type", @pdf.PdfObject::Name("/Catalog"))
+  root = root.add_entry("/Pages", @pdf.PdfObject::Indirect(pageroot))
   let rootnum = @pdf.addobj(pdf, root)
   let trailerdict = match pdf.trailerdict {
     @pdf.PdfObject::Dictionary(_) =>
-      @pdf.add_dict_entry(
-        pdf.trailerdict,
-        "/Root",
-        @pdf.PdfObject::Indirect(rootnum),
-      )
+      pdf.trailerdict.add_entry("/Root", @pdf.PdfObject::Indirect(rootnum))
     _ => raise @pdf.PdfError::Msg("add_root: bad trailer dictionary")
   }
   {

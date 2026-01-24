@@ -1197,17 +1197,16 @@ pub fn decode_pdfstream_onestage(
           new_dict = match remaining_filters {
             None =>
               map_pdf_error("remove filter", fn() raise {
-                @pdf.remove_dict_entry(new_dict, filter_key)
+                new_dict.remove_entry(filter_key)
               })
             Some(rest) =>
               if rest.length() == 0 {
                 map_pdf_error("remove filter", fn() raise {
-                  @pdf.remove_dict_entry(new_dict, filter_key)
+                  new_dict.remove_entry(filter_key)
                 })
               } else {
                 map_pdf_error("replace filter", fn() raise {
-                  @pdf.replace_dict_entry(
-                    new_dict,
+                  new_dict.replace_entry(
                     filter_key,
                     @pdf.PdfObject::Array(rest),
                   )
@@ -1220,21 +1219,17 @@ pub fn decode_pdfstream_onestage(
               let rest = arr.sub(start=1).to_array()
               if rest.length() == 0 {
                 map_pdf_error("remove decode parms", fn() raise {
-                  @pdf.remove_dict_entry(new_dict, parms_key)
+                  new_dict.remove_entry(parms_key)
                 })
               } else {
                 map_pdf_error("replace decode parms", fn() raise {
-                  @pdf.replace_dict_entry(
-                    new_dict,
-                    parms_key,
-                    @pdf.PdfObject::Array(rest),
-                  )
+                  new_dict.replace_entry(parms_key, @pdf.PdfObject::Array(rest))
                 })
               }
             }
             Some(_) =>
               map_pdf_error("remove decode parms", fn() raise {
-                @pdf.remove_dict_entry(new_dict, parms_key)
+                new_dict.remove_entry(parms_key)
               })
           }
           new_dict = set_dict_entry(
@@ -1599,12 +1594,10 @@ fn set_dict_entry(
   match @pdf.lookup_immediate(key, dict) {
     Some(_) =>
       map_pdf_error("replace dict entry", fn() raise {
-        @pdf.replace_dict_entry(dict, key, value)
+        dict.replace_entry(key, value)
       })
     None =>
-      map_pdf_error("add dict entry", fn() raise {
-        @pdf.add_dict_entry(dict, key, value)
-      })
+      map_pdf_error("add dict entry", fn() raise { dict.add_entry(key, value) })
   }
 }
 

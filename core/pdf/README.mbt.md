@@ -166,7 +166,7 @@ test "add_dict_entry" {
   let dict = @pdf.PdfObject::Dictionary([
     ("/Type", @pdf.PdfObject::Name("/Page")),
   ])
-  let updated = @pdf.add_dict_entry(dict, "/Count", @pdf.PdfObject::Integer(1))
+  let updated = dict.add_entry("/Count", @pdf.PdfObject::Integer(1))
   match updated {
     Dictionary(entries) => inspect(entries.length(), content="2")
     _ => fail("expected dictionary")
@@ -180,11 +180,7 @@ test "add_dict_entry" {
 ///|
 test "replace_dict_entry" {
   let dict = @pdf.PdfObject::Dictionary([("/Count", @pdf.PdfObject::Integer(1))])
-  let updated = @pdf.replace_dict_entry(
-    dict,
-    "/Count",
-    @pdf.PdfObject::Integer(5),
-  )
+  let updated = dict.replace_entry("/Count", @pdf.PdfObject::Integer(5))
   guard @pdf.lookup_immediate("/Count", updated) is Some(Integer(n)) else {
     fail("expected Integer")
   }
@@ -201,7 +197,7 @@ test "remove_dict_entry" {
     ("/Type", @pdf.PdfObject::Name("/Page")),
     ("/Count", @pdf.PdfObject::Integer(1)),
   ])
-  let updated = @pdf.remove_dict_entry(dict, "/Count")
+  let updated = dict.remove_entry("/Count")
   match updated {
     Dictionary(entries) => inspect(entries.length(), content="1")
     _ => fail("expected dictionary")

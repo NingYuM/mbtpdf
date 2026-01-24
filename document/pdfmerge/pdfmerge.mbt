@@ -603,7 +603,7 @@ fn apply_namechanges_to_destination_nametree(
       match lookup("/Dests", d) {
         Some(@pdf.PdfObject::Dictionary(dest_dict)) => {
           let newdest = rewrite(@pdf.PdfObject::Dictionary(dest_dict))
-          let newcatalog = @pdf.add_dict_entry(catalog, "/Dests", newdest)
+          let newcatalog = catalog.add_entry("/Dests", newdest)
           @pdf.addobj_given_num(pdf, (pdf.root, newcatalog))
         }
         Some(@pdf.PdfObject::Indirect(i)) =>
@@ -896,8 +896,7 @@ fn merge_acroforms(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int? raise {
     match dict {
       @pdf.PdfObject::Dictionary(entries) =>
         for entry in entries {
-          merged_nonfield_items = @pdf.add_dict_entry(
-            merged_nonfield_items,
+          merged_nonfield_items = merged_nonfield_items.add_entry(
             entry.0,
             entry.1,
           )
@@ -905,8 +904,7 @@ fn merge_acroforms(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int? raise {
       _ => ()
     }
   }
-  let new_dict = @pdf.add_dict_entry(
-    merged_nonfield_items,
+  let new_dict = merged_nonfield_items.add_entry(
     "/Fields",
     @pdf.PdfObject::Array(merged_field_arrays),
   )

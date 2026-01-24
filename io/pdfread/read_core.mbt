@@ -64,10 +64,10 @@ fn sanitize_trailerdict(
   ]
   for key in keys {
     if @pdf.lookup_immediate(key, cleaned) is Some(_) {
-      cleaned = @pdf.remove_dict_entry(cleaned, key)
+      cleaned = cleaned.remove_entry(key)
     }
   }
-  @pdf.add_dict_entry(cleaned, "/Size", @pdf.PdfObject::Integer(object_count))
+  cleaned.add_entry("/Size", @pdf.PdfObject::Integer(object_count))
 }
 
 ///|

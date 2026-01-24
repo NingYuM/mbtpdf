@@ -47,7 +47,7 @@ test "dictionary helpers" {
     ("/A", PdfObject::Integer(1)),
     ("/B", PdfObject::Integer(2)),
   ])
-  match remove_dict_entry(dict, "/A") {
+  match dict.remove_entry("/A") {
     PdfObject::Dictionary(entries) => assert_eq(entries.length(), 1)
     _ => fail("expected dictionary")
   }
@@ -57,7 +57,7 @@ test "dictionary helpers" {
     ("/A", PdfObject::Integer(1)),
   ])
   let stream_obj = make_stream(stream_dict, data)
-  match remove_dict_entry(stream_obj, "/A") {
+  match stream_obj.remove_entry("/A") {
     PdfObject::Stream(r) =>
       match r.val {
         (PdfObject::Dictionary(entries), _) =>
@@ -66,14 +66,13 @@ test "dictionary helpers" {
       }
     _ => fail("expected stream")
   }
-  assert_is_err(try? remove_dict_entry(PdfObject::Integer(1), "/A"))
-  match replace_dict_entry(PdfObject::Null, "/A", PdfObject::Integer(1)) {
+  assert_is_err(try? PdfObject::Integer(1).remove_entry("/A"))
+  match PdfObject::Null.replace_entry("/A", PdfObject::Integer(1)) {
     PdfObject::Dictionary(entries) => assert_eq(entries.length(), 1)
     _ => fail("expected dictionary from null")
   }
   assert_is_err(
-    try? replace_dict_entry(
-      PdfObject::Dictionary([("/B", PdfObject::Integer(2))]),
+    try? PdfObject::Dictionary([("/B", PdfObject::Integer(2))]).replace_entry(
       "/A",
       PdfObject::Integer(1),
     ),
@@ -82,7 +81,7 @@ test "dictionary helpers" {
     PdfObject::Dictionary([("/A", PdfObject::Integer(1))]),
     data,
   )
-  match replace_dict_entry(stream_obj2, "/A", PdfObject::Integer(9)) {
+  match stream_obj2.replace_entry("/A", PdfObject::Integer(9)) {
     PdfObject::Stream(r) =>
       match r.val {
         (PdfObject::Dictionary(entries), _) =>
@@ -95,15 +94,14 @@ test "dictionary helpers" {
     _ => fail("expected stream")
   }
   assert_is_err(
-    try? replace_dict_entry(PdfObject::Integer(1), "/A", PdfObject::Integer(2)),
+    try? PdfObject::Integer(1).replace_entry("/A", PdfObject::Integer(2)),
   )
-  match add_dict_entry(PdfObject::Null, "/A", PdfObject::Integer(1)) {
+  match PdfObject::Null.add_entry("/A", PdfObject::Integer(1)) {
     PdfObject::Dictionary(entries) => assert_eq(entries.length(), 1)
     _ => fail("expected dictionary from null")
   }
   match
-    add_dict_entry(
-      PdfObject::Dictionary([("/A", PdfObject::Integer(1))]),
+    PdfObject::Dictionary([("/A", PdfObject::Integer(1))]).add_entry(
       "/A",
       PdfObject::Integer(2),
     ) {
@@ -118,7 +116,7 @@ test "dictionary helpers" {
     PdfObject::Dictionary([("/A", PdfObject::Integer(1))]),
     data,
   )
-  match add_dict_entry(stream_obj3, "/B", PdfObject::Integer(3)) {
+  match stream_obj3.add_entry("/B", PdfObject::Integer(3)) {
     PdfObject::Stream(r) =>
       match r.val {
         (PdfObject::Dictionary(entries), _) =>
@@ -128,7 +126,7 @@ test "dictionary helpers" {
     _ => fail("expected stream")
   }
   assert_is_err(
-    try? add_dict_entry(PdfObject::Integer(1), "/A", PdfObject::Integer(2)),
+    try? PdfObject::Integer(1).add_entry("/A", PdfObject::Integer(2)),
   )
 }
 

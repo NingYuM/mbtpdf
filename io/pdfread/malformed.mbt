@@ -213,11 +213,7 @@ fn read_malformed_pdf(
     }
   }
   if @pdf.lookup_immediate("/Root", trailerdict) is None {
-    trailerdict = @pdf.add_dict_entry(
-      trailerdict,
-      "/Root",
-      @pdf.PdfObject::Indirect(root),
-    )
+    trailerdict = trailerdict.add_entry("/Root", @pdf.PdfObject::Indirect(root))
   }
   let sanitized_trailer = sanitize_trailerdict(objects.length(), trailerdict)
   let pdf_objects : @pdf.PdfObjects = {

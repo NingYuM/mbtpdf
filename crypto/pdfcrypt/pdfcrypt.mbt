@@ -172,8 +172,7 @@ fn decrypt_stream(
             }
             let dict_updated = match data_out {
               Got(bytes) =>
-                @pdf.replace_dict_entry(
-                  dict_out,
+                dict_out.replace_entry(
                   "/Length",
                   @pdf.PdfObject::Integer(bytes.length()),
                 )
@@ -338,7 +337,7 @@ fn process_cryption(
         @pdf.addobj_given_num(pdf, (objnum, new_obj))
       }
     }
-    pdf.trailerdict = @pdf.remove_dict_entry(pdf.trailerdict, "/Encrypt")
+    pdf.trailerdict = pdf.trailerdict.remove_entry("/Encrypt")
     Some(pdf)
   }
   if r == 5 || r == 6 {
@@ -868,7 +867,7 @@ fn get_or_add_id(pdf : @pdf.Pdf) -> (String, @pdf.Pdf) raise {
         @pdf.PdfObject::String(id),
         @pdf.PdfObject::String(id),
       ])
-      pdf.trailerdict = @pdf.add_dict_entry(pdf.trailerdict, "/ID", idobj)
+      pdf.trailerdict = pdf.trailerdict.add_entry("/ID", idobj)
       (id, pdf)
     }
   }
@@ -908,8 +907,7 @@ fn encrypt_pdf_40bit_inner(
     ) {
     Some(pdf_val) => {
       let crypt_dict_num = @pdf.addobj(pdf_val, crypt_dict)
-      pdf_val.trailerdict = @pdf.add_dict_entry(
-        pdf_val.trailerdict,
+      pdf_val.trailerdict = pdf_val.trailerdict.add_entry(
         "/Encrypt",
         @pdf.PdfObject::Indirect(crypt_dict_num),
       )
@@ -969,8 +967,7 @@ fn encrypt_pdf_128bit_inner(
     ) {
     Some(pdf_val) => {
       let crypt_dict_num = @pdf.addobj(pdf_val, crypt_dict)
-      pdf_val.trailerdict = @pdf.add_dict_entry(
-        pdf_val.trailerdict,
+      pdf_val.trailerdict = pdf_val.trailerdict.add_entry(
         "/Encrypt",
         @pdf.PdfObject::Indirect(crypt_dict_num),
       )
@@ -1032,8 +1029,7 @@ fn encrypt_pdf_128bit_inner_r4(
     ) {
     Some(pdf_val) => {
       let crypt_dict_num = @pdf.addobj(pdf_val, crypt_dict)
-      pdf_val.trailerdict = @pdf.add_dict_entry(
-        pdf_val.trailerdict,
+      pdf_val.trailerdict = pdf_val.trailerdict.add_entry(
         "/Encrypt",
         @pdf.PdfObject::Indirect(crypt_dict_num),
       )
@@ -1110,8 +1106,7 @@ fn encrypt_pdf_AES_inner(
     ) {
     Some(pdf_val) => {
       let crypt_dict_num = @pdf.addobj(pdf_val, crypt_dict)
-      pdf_val.trailerdict = @pdf.add_dict_entry(
-        pdf_val.trailerdict,
+      pdf_val.trailerdict = pdf_val.trailerdict.add_entry(
         "/Encrypt",
         @pdf.PdfObject::Indirect(crypt_dict_num),
       )
@@ -1202,8 +1197,7 @@ fn encrypt_pdf_AES256_inner(
     ) {
     Some(pdf_val) => {
       let crypt_dict_num = @pdf.addobj(pdf_val, crypt_dict)
-      pdf_val.trailerdict = @pdf.add_dict_entry(
-        pdf_val.trailerdict,
+      pdf_val.trailerdict = pdf_val.trailerdict.add_entry(
         "/Encrypt",
         @pdf.PdfObject::Indirect(crypt_dict_num),
       )

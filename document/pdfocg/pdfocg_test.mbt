@@ -36,7 +36,7 @@ test "read_ocg parses ocproperties" {
     ("/Configs", Array([alt_config])),
   ])
   let root = @pdf.lookup_obj(pdf, pdf.root)
-  let updated_root = @pdf.add_dict_entry(root, "/OCProperties", ocprops)
+  let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
   let props = match read_ocg(pdf) {
     Some(result) => result
@@ -112,7 +112,7 @@ test "read_ocg raises when ocg is missing name" {
     ("/D", Dictionary([])),
   ])
   let root = @pdf.lookup_obj(pdf, pdf.root)
-  let updated_root = @pdf.add_dict_entry(root, "/OCProperties", ocprops)
+  let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
   let res : Result[@pdfocg.OcgProperties?, Error] = try? read_ocg(pdf)
   match res {
@@ -135,7 +135,7 @@ test "read_ocg uses config defaults" {
     ("/D", default_config),
   ])
   let root = @pdf.lookup_obj(pdf, pdf.root)
-  let updated_root = @pdf.add_dict_entry(root, "/OCProperties", ocprops)
+  let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
   let props = match read_ocg(pdf) {
     Some(result) => result
@@ -165,7 +165,7 @@ test "read_ocg parses ocg intent name" {
     ("/D", Dictionary([])),
   ])
   let root = @pdf.lookup_obj(pdf, pdf.root)
-  let updated_root = @pdf.add_dict_entry(root, "/OCProperties", ocprops)
+  let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
   let props = match read_ocg(pdf) {
     Some(result) => result
@@ -200,7 +200,7 @@ test "read_ocg handles direct ocgs and usage defaults" {
     ("/D", default_config),
   ])
   let root = @pdf.lookup_obj(pdf, pdf.root)
-  let updated_root = @pdf.add_dict_entry(root, "/OCProperties", ocprops)
+  let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
   let props = match read_ocg(pdf) {
     Some(result) => result
@@ -232,7 +232,7 @@ test "read_ocg raises without default config" {
   let pdf = @pdfpage.minimum_valid_pdf()
   let ocprops : @pdf.PdfObject = Dictionary([("/OCGs", Name("/NotArray"))])
   let root = @pdf.lookup_obj(pdf, pdf.root)
-  let updated_root = @pdf.add_dict_entry(root, "/OCProperties", ocprops)
+  let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
   let res : Result[@pdfocg.OcgProperties?, Error] = try? read_ocg(pdf)
   assert_true(res is Err(_))

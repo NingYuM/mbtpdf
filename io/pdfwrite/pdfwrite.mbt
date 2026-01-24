@@ -467,13 +467,11 @@ fn bake_object_streams(
     if compress {
       let encoded = @pdfcodec.encode_flate(data)
       if @pdfio.bytes_size(encoded) + 20 < @pdfio.bytes_size(data) {
-        let dict_with_filter = @pdf.add_dict_entry(
-          dict,
+        let dict_with_filter = dict.add_entry(
           "/Filter",
           @pdf.PdfObject::Name("/FlateDecode"),
         )
-        let dict_with_length = @pdf.add_dict_entry(
-          dict_with_filter,
+        let dict_with_length = dict_with_filter.add_entry(
           "/Length",
           @pdf.PdfObject::Integer(@pdfio.bytes_size(encoded)),
         )
@@ -538,23 +536,19 @@ fn build_xref_stream(
     write_int_be(output, field3, w3)
   }
   let data = @pdfio.extract_bytes_from_input_output(output, buffer)
-  let dict_with_type = @pdf.add_dict_entry(
-    pdf.trailerdict,
+  let dict_with_type = pdf.trailerdict.add_entry(
     "/Type",
     @pdf.PdfObject::Name("/XRef"),
   )
-  let dict_with_size = @pdf.add_dict_entry(
-    dict_with_type,
+  let dict_with_size = dict_with_type.add_entry(
     "/Size",
     @pdf.PdfObject::Integer(size),
   )
-  let dict_with_root = @pdf.add_dict_entry(
-    dict_with_size,
+  let dict_with_root = dict_with_size.add_entry(
     "/Root",
     @pdf.PdfObject::Indirect(pdf.root),
   )
-  let dict_with_w = @pdf.add_dict_entry(
-    dict_with_root,
+  let dict_with_w = dict_with_root.add_entry(
     "/W",
     @pdf.PdfObject::Array([
       @pdf.PdfObject::Integer(w1),
@@ -562,8 +556,7 @@ fn build_xref_stream(
       @pdf.PdfObject::Integer(w3),
     ]),
   )
-  let dict_with_length = @pdf.add_dict_entry(
-    dict_with_w,
+  let dict_with_length = dict_with_w.add_entry(
     "/Length",
     @pdf.PdfObject::Integer(@pdfio.bytes_size(data)),
   )
@@ -907,15 +900,9 @@ pub fn pdf_to_output(
       }
     }
     (output.output_string)("trailer\n")
-    let trailerdict = @pdf.add_dict_entry(
-      @pdf.add_dict_entry(
-        pdf.trailerdict,
-        "/Size",
-        @pdf.PdfObject::Integer(size),
-      ),
-      "/Root",
-      @pdf.PdfObject::Indirect(pdf.root),
-    )
+    let trailerdict = pdf.trailerdict
+      .add_entry("/Size", @pdf.PdfObject::Integer(size))
+      .add_entry("/Root", @pdf.PdfObject::Indirect(pdf.root))
     write_pdf_object_to_output(trailerdict, output, false, true)
     (output.output_string)("\nstartxref\n")
     (output.output_string)("\{xref_start}\n%%EOF\n")

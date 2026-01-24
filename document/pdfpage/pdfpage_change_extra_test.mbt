@@ -24,7 +24,7 @@ fn set_catalog_entry(
   value : @pdf.PdfObject,
 ) -> Unit raise {
   let catalog = @pdf.catalog_of_pdf(pdf)
-  let updated = @pdf.add_dict_entry(catalog, key, value)
+  let updated = catalog.add_entry(key, value)
   @pdf.addobj_given_num(pdf, (pdf.root, updated))
 }
 
@@ -57,7 +57,7 @@ fn update_page_annots(
   let page_obj = @pdf.lookup_obj(pdf, page_objnum)
   match (page_obj : @pdf.PdfObject) {
     Dictionary(_) => {
-      let updated = @pdf.add_dict_entry(page_obj, "/Annots", Array(annots))
+      let updated = page_obj.add_entry("/Annots", Array(annots))
       @pdf.addobj_given_num(pdf, (page_objnum, updated))
     }
     _ => raise @pdf.PdfError::Msg("page object not a dictionary")

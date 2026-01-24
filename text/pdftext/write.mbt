@@ -60,8 +60,7 @@ pub fn PdfText::write_encoding(
       ])
       match encoding_name(base) {
         Some(name) =>
-          encoding_dict = @pdf.add_dict_entry(
-            encoding_dict,
+          encoding_dict = encoding_dict.add_entry(
             "/BaseEncoding",
             @pdf.PdfObject::Name(name),
           )

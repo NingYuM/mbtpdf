@@ -103,8 +103,8 @@ fn add_pages_to_pdf(
 fn form_xobject_stream(text : String) -> @pdf.PdfObject raise {
   let ops : Array[@pdfops.Op] = [OpBT, OpTj(text), OpET]
   let stream = @pdfops.Op::stream_of_ops(ops)
-  let stream = @pdf.add_dict_entry(stream, "/Type", Name("/XObject"))
-  @pdf.add_dict_entry(stream, "/Subtype", Name("/Form"))
+  let stream = stream.add_entry("/Type", Name("/XObject"))
+  stream.add_entry("/Subtype", Name("/Form"))
 }
 
 ///|
