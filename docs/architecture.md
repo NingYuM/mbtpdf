@@ -175,6 +175,21 @@ Base utilities used across most packages:
 
 ## Entry Points and Tests
 
-- `cmd/*`: CLI examples (text extraction, merge, encrypt, etc.).
-- `e2e/*` and per-package `_test.mbt` files: end-to-end and unit tests.
-  See `docs/e2e-tests.md` for roundtrip coverage details.
+### CLI Tools (`cmd/`)
+
+| Tool | Description |
+|------|-------------|
+| `main` | General-purpose PDF utility |
+| `pdftext` | Extract text content from PDFs |
+| `pdfmergeexample` | Merge multiple PDF documents |
+| `pdfencrypt` | Encrypt PDFs with password protection |
+| `pdfdraft` | Create draft/preview versions of PDFs |
+| `pdfdecomp` | Decompress PDF streams for inspection |
+| `pdfhello` | Simple "hello world" PDF generation example |
+| `pdftest` | Test utilities for development |
+
+### Tests
+
+- `e2e/*`: End-to-end roundtrip tests (merge, split, annotate, encrypt, etc.)
+- Per-package `*_test.mbt` files: Unit tests for individual packages
+- See `docs/e2e-tests.md` for detailed test coverage information

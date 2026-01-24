@@ -81,9 +81,13 @@ snake_case. Optional arguments map to labeled optional parameters.
 should be generated or stored as dedicated MoonBit data files to keep the main
 logic readable and to avoid huge diffs during refactors.
 
-## Open questions (Phase 0)
-- How much of `core/pdfutil` should be exposed publicly vs kept internal helpers?
-- Do we want a small "compat" package that re-exports common names for easier
-  cross-language porting?
-- Should we preserve lazy stream fetching (`Got`/`ToGet`) as-is, or normalize
-  into an explicit stream handle abstraction in `core/pdfio`?
+## Resolution Notes
+
+The Phase 0 port is complete. Key decisions made:
+
+- **`core/pdfutil`**: Minimized public API to essential helpers only (memoization,
+  debug utilities). OCaml-specific compatibility functions were removed.
+- **Compat package**: Not implemented. Direct package imports with `@` aliases
+  (e.g., `@pdf`, `@pdfio`) provide clear naming without a compatibility layer.
+- **Lazy streams**: Preserved `Got`/`ToGet` pattern in `core/pdf` for lazy stream
+  materialization, which works well with the object graph model.
