@@ -24,7 +24,7 @@ test "annotation border dash array" {
   let page = @pdfpage.Page::custom(rect)
   let border = @pdfannot.Border::new(1.0, dasharray=[2, 3])
   let annot = @pdfannot.Annotation::new(@pdfannot.Subtype::Text, border~)
-  let updated = @pdfannot.add_annotation(pdf, page, annot)
+  let updated = @pdfannot.PdfAnnot::new(pdf).add_annotation(page, annot)
   match (@pdf.lookup_direct(pdf, "/Annots", updated.rest) : @pdf.PdfObject?) {
     Some(Array([annot_obj, ..])) =>
       match (@pdf.lookup_direct(pdf, "/Border", annot_obj) : @pdf.PdfObject?) {
@@ -60,8 +60,8 @@ test "add_annotation and read back" {
     colour=(10, 20, 30),
     subject="Subject",
   )
-  let updated = @pdfannot.add_annotation(pdf, page, annot)
-  let annots = @pdfannot.annotations_of_page(pdf, updated)
+  let updated = @pdfannot.PdfAnnot::new(pdf).add_annotation(page, annot)
+  let annots = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(updated)
   assert_eq(annots.length(), 1)
   let a = annots[0]
   match (a.subtype : @pdfannot.Subtype) {
@@ -108,7 +108,7 @@ test "transform_annotations updates rect and quadpoints" {
     ("/Annots", Array([Indirect(objnum)])),
   ])
   let tr = @pdftransform.TransformMatrix::translate(10.0, 20.0)
-  @pdfannot.transform_annotations(pdf, tr, rest)
+  @pdfannot.PdfAnnot::new(pdf).transform_annotations(tr, rest)
   let updated = @pdf.lookup_obj(pdf, objnum)
   match @pdf.lookup_direct(pdf, "/Rect", updated) {
     Some(rect) => {
@@ -170,7 +170,7 @@ test "annotations_of_page skips popup parent" {
     rotate: base.rotate,
     rest,
   }
-  let annots = @pdfannot.annotations_of_page(pdf, page)
+  let annots = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   assert_eq(annots.length(), 1)
   match (annots[0].subtype : @pdfannot.Subtype) {
     Popup(inner) =>
@@ -215,7 +215,7 @@ test "read_annotation uses /BS style" {
     rotate: base.rotate,
     rest,
   }
-  let annots = @pdfannot.annotations_of_page(pdf, page)
+  let annots = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   assert_eq(annots.length(), 1)
   match (annots[0].border.style : @pdfannot.Style) {
     Dashed => ()
@@ -280,7 +280,7 @@ test "read_annotation parses styles and extras" {
     rotate: base.rotate,
     rest,
   }
-  let annots = @pdfannot.annotations_of_page(pdf, page)
+  let annots = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   assert_eq(annots.length(), 4)
   match (annots[0].border.style : @pdfannot.Style) {
     Solid => ()
@@ -340,7 +340,7 @@ test "read_annotation handles unknown subtype and missing strings" {
     rotate: base.rotate,
     rest,
   }
-  let annots = @pdfannot.annotations_of_page(pdf, page)
+  let annots = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   match (annots[0].subtype : @pdfannot.Subtype) {
     Unknown("/Weird") => ()
     _ => fail("expected unknown subtype")
@@ -372,10 +372,10 @@ test "annotations_of_page handles non-array and add_annotation rejects" {
     rest: Dictionary([("/Annots", Null)]),
   }
   let pdf = @pdf.Pdf::empty()
-  let annots = @pdfannot.annotations_of_page(pdf, page)
+  let annots = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   assert_eq(annots.length(), 0)
   let annot = @pdfannot.Annotation::new(@pdfannot.Subtype::Text)
-  assert_is_err(try? @pdfannot.add_annotation(pdf, page, annot))
+  assert_is_err(try? @pdfannot.PdfAnnot::new(pdf).add_annotation(page, annot))
 }
 
 ///|
@@ -391,7 +391,7 @@ test "transform_annotations keeps malformed quadpoints" {
     ("/Annots", Array([Indirect(objnum)])),
   ])
   let tr = @pdftransform.TransformMatrix::translate(5.0, 5.0)
-  @pdfannot.transform_annotations(pdf, tr, rest)
+  @pdfannot.PdfAnnot::new(pdf).transform_annotations(tr, rest)
   let updated = @pdf.lookup_obj(pdf, objnum)
   match @pdf.lookup_direct(pdf, "/Rect", updated) {
     Some(rect) => {
@@ -447,7 +447,7 @@ test "read_annotation handles more subtypes and popup fallback" {
     rotate: base.rotate,
     rest,
   }
-  let parsed = @pdfannot.annotations_of_page(pdf, page)
+  let parsed = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   assert_eq(parsed.length(), 6)
   match (parsed[0].subtype : @pdfannot.Subtype) {
     FreeText => ()
@@ -516,7 +516,7 @@ test "read_annotation covers border styles and dash array" {
     rotate: base.rotate,
     rest,
   }
-  let parsed = @pdfannot.annotations_of_page(pdf, page)
+  let parsed = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   assert_eq(parsed.length(), 3)
   match (parsed[0].border.style : @pdfannot.Style) {
     Beveled => ()
@@ -562,7 +562,7 @@ test "add_annotation merges existing annots and extras" {
     colour: base_annot.colour,
     annotrest: Dictionary([("/Foo", Integer(9))]),
   }
-  let updated = @pdfannot.add_annotation(pdf, page, annot)
+  let updated = @pdfannot.PdfAnnot::new(pdf).add_annotation(page, annot)
   match (@pdf.lookup_direct(pdf, "/Annots", updated.rest) : @pdf.PdfObject?) {
     Some(Array([first, second])) => {
       match (@pdf.lookup_direct(pdf, "/Subtype", first) : @pdf.PdfObject?) {
@@ -599,7 +599,7 @@ test "annotations_of_page errors on non-dictionary annots" {
     rest: Dictionary([("/Annots", Array([Integer(1)]))]),
   }
   let pdf = @pdf.Pdf::empty()
-  assert_is_err(try? @pdfannot.annotations_of_page(pdf, page))
+  assert_is_err(try? @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page))
 }
 
 ///|
@@ -615,7 +615,7 @@ test "transform_annotations leaves non-array quadpoints" {
     ("/Annots", Array([Indirect(objnum)])),
   ])
   let tr = @pdftransform.TransformMatrix::translate(5.0, 5.0)
-  @pdfannot.transform_annotations(pdf, tr, rest)
+  @pdfannot.PdfAnnot::new(pdf).transform_annotations(tr, rest)
   let updated = @pdf.lookup_obj(pdf, objnum)
   match (@pdf.lookup_direct(pdf, "/QuadPoints", updated) : @pdf.PdfObject?) {
     Some(Name("/Bad")) => ()

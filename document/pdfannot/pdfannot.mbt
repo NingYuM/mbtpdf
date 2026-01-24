@@ -2,6 +2,16 @@
 /// Annotation helpers.
 
 ///|
+pub struct PdfAnnot {
+  pdf : @pdf.Pdf
+}
+
+///|
+pub fn PdfAnnot::new(pdf : @pdf.Pdf) -> PdfAnnot {
+  { pdf, }
+}
+
+///|
 pub(all) enum Style {
   NoStyle
   Solid
@@ -247,15 +257,16 @@ fn get_popup_parent(pdf : @pdf.Pdf, annotation : @pdf.PdfObject) -> Int? raise {
 
 ///|
 /// Return the annotations on a page in a document.
-pub fn annotations_of_page(
-  pdf : @pdf.Pdf,
+#as_free_fn(annotations_of_page, deprecated="Use `PdfAnnot::annotations_of_page`")
+pub fn PdfAnnot::annotations_of_page(
+  self : PdfAnnot,
   page : @pdfpage.Page,
 ) -> Array[Annotation] raise {
-  match @pdf.lookup_direct(pdf, "/Annots", page.rest) {
+  match @pdf.lookup_direct(self.pdf, "/Annots", page.rest) {
     Some(Array(annotations)) => {
       let popup_parents : Map[Int, Unit] = Map::new()
       for annot in annotations {
-        match get_popup_parent(pdf, annot) {
+        match get_popup_parent(self.pdf, annot) {
           Some(i) => popup_parents.set(i, ())
           None => ()
         }
@@ -265,9 +276,9 @@ pub fn annotations_of_page(
         match (annot : @pdf.PdfObject) {
           Indirect(i) =>
             if popup_parents.get(i) is None {
-              out.push(read_annotation(pdf, annot))
+              out.push(read_annotation(self.pdf, annot))
             }
-          _ => out.push(read_annotation(pdf, annot))
+          _ => out.push(read_annotation(self.pdf, annot))
         }
       }
       out
@@ -422,13 +433,14 @@ pub fn Annotation::new(
 
 ///|
 /// Add an annotation to a page in a document.
-pub fn add_annotation(
-  pdf : @pdf.Pdf,
+#as_free_fn(add_annotation, deprecated="Use `PdfAnnot::add_annotation`")
+pub fn PdfAnnot::add_annotation(
+  self : PdfAnnot,
   page : @pdfpage.Page,
   anno : Annotation,
 ) -> @pdfpage.Page raise {
   let obj = anno.to_pdf_object()
-  let new_rest = match @pdf.lookup_direct(pdf, "/Annots", page.rest) {
+  let new_rest = match @pdf.lookup_direct(self.pdf, "/Annots", page.rest) {
     Some(Array(annotations)) =>
       page.rest.add_entry("/Annots", @pdf.PdfObject::Array([obj] + annotations))
     Some(_) => raise @pdf.PdfError::Msg("Bad annotation dictionary")
@@ -540,29 +552,31 @@ fn transform_quadpoints(
 
 ///|
 /// Transform all annotations in a page dictionary.
-pub fn transform_annotations(
-  pdf : @pdf.Pdf,
+#as_free_fn(transform_annotations, deprecated="Use `PdfAnnot::transform_annotations`")
+pub fn PdfAnnot::transform_annotations(
+  self : PdfAnnot,
   transform : @pdftransform.TransformMatrix,
   rest : @pdf.PdfObject,
 ) -> Unit raise {
-  match @pdf.lookup_direct(pdf, "/Annots", rest) {
+  match @pdf.lookup_direct(self.pdf, "/Annots", rest) {
     Some(Array(annots)) =>
       for annot in annots {
         match (annot : @pdf.PdfObject) {
           Indirect(i) => {
-            let annot_obj = @pdf.lookup_obj(pdf, i)
+            let annot_obj = @pdf.lookup_obj(self.pdf, i)
             let rect_updated = match
-              @pdf.lookup_direct(pdf, "/Rect", annot_obj) {
-              Some(rect) => Some(transform_rect(pdf, transform, rect))
+              @pdf.lookup_direct(self.pdf, "/Rect", annot_obj) {
+              Some(rect) => Some(transform_rect(self.pdf, transform, rect))
               None => None
             }
             let quadpoints_updated = match
-              @pdf.lookup_direct(pdf, "/QuadPoints", annot_obj) {
-              Some(qp) => Some(transform_quadpoints(pdf, transform, qp))
+              @pdf.lookup_direct(self.pdf, "/QuadPoints", annot_obj) {
+              Some(qp) => Some(transform_quadpoints(self.pdf, transform, qp))
               None => None
             }
-            let line_updated = match @pdf.lookup_direct(pdf, "/L", annot_obj) {
-              Some(line) => Some(transform_rect(pdf, transform, line))
+            let line_updated = match
+              @pdf.lookup_direct(self.pdf, "/L", annot_obj) {
+              Some(line) => Some(transform_rect(self.pdf, transform, line))
               _ => None
             }
             let annot_obj = match rect_updated {
@@ -577,7 +591,7 @@ pub fn transform_annotations(
               Some(line) => annot_obj.add_entry("/L", line)
               None => annot_obj
             }
-            @pdf.addobj_given_num(pdf, (i, annot_obj))
+            @pdf.addobj_given_num(self.pdf, (i, annot_obj))
           }
           _ => @pdfe.log("transform_annotations: not indirect\n")
         }

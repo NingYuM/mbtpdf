@@ -92,22 +92,40 @@ pub(all) struct Annotation {
 }
 ```
 
-## Functions
+## Types
 
-### annotations_of_page
+### PdfAnnot
+
+Annotation context tied to a PDF document.
+
+```moonbit nocheck
+pub struct PdfAnnot { ... }
+pub fn PdfAnnot::new(pdf : @pdf.Pdf) -> PdfAnnot
+```
+
+## Methods
+
+### PdfAnnot::annotations_of_page
 
 Get all annotations on a page.
 
 ```moonbit nocheck
-pub fn annotations_of_page(pdf : @pdf.Pdf, page : @pdfpage.Page) -> Array[Annotation] raise
+pub fn PdfAnnot::annotations_of_page(
+  self : PdfAnnot,
+  page : @pdfpage.Page
+) -> Array[Annotation] raise
 ```
 
-### add_annotation
+### PdfAnnot::add_annotation
 
 Add an annotation to a page.
 
 ```moonbit nocheck
-pub fn add_annotation(pdf : @pdf.Pdf, page : @pdfpage.Page, anno : Annotation) -> @pdfpage.Page raise
+pub fn PdfAnnot::add_annotation(
+  self : PdfAnnot,
+  page : @pdfpage.Page,
+  anno : Annotation
+) -> @pdfpage.Page raise
 ```
 
 ### Annotation::new
@@ -139,13 +157,13 @@ pub fn Border::new(
 ) -> Border
 ```
 
-### transform_annotations
+### PdfAnnot::transform_annotations
 
 Apply a transformation matrix to all annotations in a page.
 
 ```moonbit nocheck
-pub fn transform_annotations(
-  pdf : @pdf.Pdf,
+pub fn PdfAnnot::transform_annotations(
+  self : PdfAnnot,
   transform : @pdftransform.TransformMatrix,
   rest : @pdf.PdfObject
 ) -> Unit raise

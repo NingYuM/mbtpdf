@@ -803,7 +803,10 @@ async test "e2e annotation roundtrip" {
     content="E2E note",
     rectangle=(10.0, 20.0, 30.0, 40.0),
   )
-  let updated_page = @pdfannot.add_annotation(pdf, pages[0], annot)
+  let updated_page = @pdfannot.PdfAnnot::new(pdf).add_annotation(
+    pages[0],
+    annot,
+  )
   pages[0] = updated_page
   let updated_pdf = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages)
   ensure_dir(OUTPUT_DIR)
@@ -811,7 +814,9 @@ async test "e2e annotation roundtrip" {
   write_pdf(out_path, updated_pdf)
   let parsed = read_pdf(out_path)
   let parsed_pages = @pdfpage.PdfPageDoc::new(parsed).pages_of_pagetree()
-  let annots = @pdfannot.annotations_of_page(parsed, parsed_pages[0])
+  let annots = @pdfannot.PdfAnnot::new(parsed).annotations_of_page(
+    parsed_pages[0],
+  )
   assert_eq(annots.length(), 1)
   match annots[0].annot_contents {
     Some("E2E note") => ()
@@ -832,7 +837,10 @@ async test "e2e merge preserves annotations" {
     content="Merged note",
     rectangle=(15.0, 25.0, 35.0, 45.0),
   )
-  let updated_page = @pdfannot.add_annotation(left, left_pages[0], annot)
+  let updated_page = @pdfannot.PdfAnnot::new(left).add_annotation(
+    left_pages[0],
+    annot,
+  )
   left_pages[0] = updated_page
   let updated_left = @pdfpage.PdfPageDoc::new(left).change_pages(
     true, left_pages,
@@ -854,7 +862,9 @@ async test "e2e merge preserves annotations" {
   write_pdf(out_path, merged)
   let parsed = read_pdf(out_path)
   let parsed_pages = @pdfpage.PdfPageDoc::new(parsed).pages_of_pagetree()
-  let annots = @pdfannot.annotations_of_page(parsed, parsed_pages[0])
+  let annots = @pdfannot.PdfAnnot::new(parsed).annotations_of_page(
+    parsed_pages[0],
+  )
   assert_eq(annots.length(), 1)
   match annots[0].annot_contents {
     Some("Merged note") => ()
@@ -1579,7 +1589,10 @@ async test "e2e merge mixed feature pipeline" {
     content="Mixed note",
     rectangle=(12.0, 18.0, 40.0, 52.0),
   )
-  let updated_page = @pdfannot.add_annotation(left0, pages[0], annot)
+  let updated_page = @pdfannot.PdfAnnot::new(left0).add_annotation(
+    pages[0],
+    annot,
+  )
   pages[0] = updated_page
   let left1 = @pdfpage.PdfPageDoc::new(left0).change_pages(true, pages)
   let page1 = match @pdfpage.PdfPageDoc::new(left1).page_object_number(1) {
@@ -1613,7 +1626,9 @@ async test "e2e merge mixed feature pipeline" {
     add_toplevel_document=false,
   )
   let merged_pages = @pdfpage.PdfPageDoc::new(merged).pages_of_pagetree()
-  let merged_annots = @pdfannot.annotations_of_page(merged, merged_pages[0])
+  let merged_annots = @pdfannot.PdfAnnot::new(merged).annotations_of_page(
+    merged_pages[0],
+  )
   match merged_annots {
     [first, ..] =>
       match first.annot_contents {
@@ -1637,7 +1652,9 @@ async test "e2e merge mixed feature pipeline" {
   write_pdf(out_path, merged)
   let parsed = read_pdf(out_path)
   let parsed_pages = @pdfpage.PdfPageDoc::new(parsed).pages_of_pagetree()
-  let parsed_annots = @pdfannot.annotations_of_page(parsed, parsed_pages[0])
+  let parsed_annots = @pdfannot.PdfAnnot::new(parsed).annotations_of_page(
+    parsed_pages[0],
+  )
   match parsed_annots {
     [first, ..] =>
       match first.annot_contents {
@@ -1675,7 +1692,10 @@ async test "e2e merge multi-copy mixed stress" {
       content="Stress note " + i.to_string(),
       rectangle=(10.0 + i.to_double(), 10.0, 30.0, 40.0),
     )
-    let updated_page = @pdfannot.add_annotation(base, pages[0], annot)
+    let updated_page = @pdfannot.PdfAnnot::new(base).add_annotation(
+      pages[0],
+      annot,
+    )
     pages[0] = updated_page
     let pdf = @pdfpage.PdfPageDoc::new(base).change_pages(true, pages)
     let page1 = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(1) {
