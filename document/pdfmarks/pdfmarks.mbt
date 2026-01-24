@@ -451,7 +451,7 @@ fn do_until_no_next_lb(
   let title = match @pdf.lookup_direct(pdf, "/Title", outline) {
     Some(@pdf.PdfObject::String(s)) => s
     _ => {
-      @pdfe.log(
+      @pdfe.Pdfe::new().log(
         "/Title not a string or not present in document outline entry. Using the empty string.\n",
       )
       ""

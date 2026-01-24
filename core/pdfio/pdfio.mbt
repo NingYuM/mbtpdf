@@ -676,7 +676,7 @@ async fn noop_flush() -> Unit {
 ///|
 fn debug_next_char(input : Input) -> Unit {
   match (input.input_char)() {
-    Some(chr) => @pdfe.log("\{chr} = \{chr.to_int()}\n")
+    Some(chr) => @pdfe.Pdfe::new().log("\{chr} = \{chr.to_int()}\n")
     None => ()
   }
 }
@@ -689,7 +689,7 @@ pub fn debug_next_n_chars(count : Int, input : Input) -> Unit {
     debug_next_char(input)
     i = i + 1
   }
-  @pdfe.log("\n")
+  @pdfe.Pdfe::new().log("\n")
   let mut rewind_count = 0
   while rewind_count < count {
     input.rewind()

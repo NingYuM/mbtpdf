@@ -706,7 +706,9 @@ pub fn contents_of_nametree(
         out.push((names[i], names[i + 1]))
       }
       if names.length() % 2 == 1 {
-        @pdfe.log("warning: contents_of_nametree: odd number of /Names\n")
+        @pdfe.Pdfe::new().log(
+          "warning: contents_of_nametree: odd number of /Names\n",
+        )
       }
       out
     }
@@ -893,7 +895,9 @@ fn transform_quadpoint_single(
   qp : Array[PdfObject],
 ) -> Array[PdfObject] raise {
   if qp.length() != 8 {
-    @pdfe.log("Malformed /QuadPoints format: must be a multiple of 8 entries\n")
+    @pdfe.Pdfe::new().log(
+      "Malformed /QuadPoints format: must be a multiple of 8 entries\n",
+    )
     return qp
   }
   let x1 = getnum(pdf, qp[0])
@@ -951,7 +955,7 @@ pub fn transform_quadpoints(
       Array(out)
     }
     _ => {
-      @pdfe.log("Unknown or malformed /QuadPoints format\n")
+      @pdfe.Pdfe::new().log("Unknown or malformed /QuadPoints format\n")
       qp
     }
   }

@@ -732,7 +732,7 @@ fn lex_name(input : @pdfio.Input) -> Lexeme raise {
 
 ///|
 fn nocontent(input : @pdfio.Input) -> Unit raise {
-  @pdfe.log("Failed to understand content on page\n")
+  @pdfe.Pdfe::new().log("Failed to understand content on page\n")
   if @pdfe.read_debug.val {
     @pdfio.debug_next_n_chars(20, input)
   }
@@ -824,11 +824,11 @@ pub fn Op::components(
           _ => ()
         }
       }
-      @pdfe.log("\{space.to_string()}\n")
+      @pdfe.Pdfe::new().log("\{space.to_string()}\n")
       raise @pdf.PdfError::Msg("Unknown colourspace")
     }
     other => {
-      @pdfe.log("\{other.to_string()}\n")
+      @pdfe.Pdfe::new().log("\{other.to_string()}\n")
       raise @pdf.PdfError::Msg("Unknown colourspace")
     }
   }
@@ -866,7 +866,7 @@ fn lex_inline_image(
   input : @pdfio.Input,
 ) -> (@pdf.PdfObject, @pdf.PdfObject?, @pdfio.MutableBytes) raise {
   if debug.val {
-    @pdfe.log("lex_inline_image at \{(input.pos_in)()}\n")
+    @pdfe.Pdfe::new().log("lex_inline_image at \{(input.pos_in)()}\n")
   }
   try {
     let lexemes = @pdfsyntax.lex_dictionary(true, input)
@@ -883,13 +883,13 @@ fn lex_inline_image(
     tokens.push(@pdfgenlex.Token::LexRightDict)
     let dict = @pdfsyntax.parse(tokens).1
     if debug.val {
-      @pdfe.log("dict was \{dict.to_string()}\n")
+      @pdfe.Pdfe::new().log("dict was \{dict.to_string()}\n")
     }
     @pdfsyntax.dropwhite(input)
     let c = (input.input_byte)()
     let c2 = (input.input_byte)()
     if c != 'I'.to_int() || c2 != 'D'.to_int() {
-      @pdfe.log("Did not recognise beginning of inline image ID\n")
+      @pdfe.Pdfe::new().log("Did not recognise beginning of inline image ID\n")
       nocontent(input)
     }
     let filters = match @pdf.lookup_direct_orelse(pdf, "/F", "/Filter", dict) {
@@ -902,13 +902,13 @@ fn lex_inline_image(
       ignore((input.input_byte)())
     }
     if debug.val {
-      @pdfe.log("**got ID header, skipped possible byte\n")
+      @pdfe.Pdfe::new().log("**got ID header, skipped possible byte\n")
     }
     let bpc = match
       @pdf.lookup_direct_orelse(pdf, "/BPC", "/BitsPerComponent", dict) {
       Some(@pdf.PdfObject::Integer(value)) => value
       _ => {
-        @pdfe.log("no BPC\n")
+        @pdfe.Pdfe::new().log("no BPC\n")
         nocontent(input)
         0
       }
@@ -925,20 +925,20 @@ fn lex_inline_image(
           @pdf.PdfObject::Name(name)
         } else {
           if debug.val {
-            @pdfe.log("resources is \{resources.to_string()}\n")
+            @pdfe.Pdfe::new().log("resources is \{resources.to_string()}\n")
           }
           match @pdf.lookup_direct(pdf, "/ColorSpace", resources) {
             Some(@pdf.PdfObject::Dictionary(_) as d) =>
               match @pdf.lookup_direct(pdf, name, d) {
                 Some(space) => space
                 None => {
-                  @pdfe.log("no colourspace A\n")
+                  @pdfe.Pdfe::new().log("no colourspace A\n")
                   nocontent(input)
                   @pdf.PdfObject::Null
                 }
               }
             _ => {
-              @pdfe.log("no colourspace B\n")
+              @pdfe.Pdfe::new().log("no colourspace B\n")
               nocontent(input)
               @pdf.PdfObject::Null
             }
@@ -950,13 +950,13 @@ fn lex_inline_image(
           Some(@pdf.PdfObject::Boolean(true)) =>
             @pdf.PdfObject::Name("/DeviceGray")
           _ => {
-            @pdfe.log("no colourspace C\n")
+            @pdfe.Pdfe::new().log("no colourspace C\n")
             nocontent(input)
             @pdf.PdfObject::Null
           }
         }
       _ => {
-        @pdfe.log("no colourspace D\n")
+        @pdfe.Pdfe::new().log("no colourspace D\n")
         nocontent(input)
         @pdf.PdfObject::Null
       }
@@ -964,7 +964,7 @@ fn lex_inline_image(
     let width = match @pdf.lookup_direct_orelse(pdf, "/W", "/Width", dict) {
       Some(@pdf.PdfObject::Integer(value)) => value
       _ => {
-        @pdfe.log("no or malformed /W")
+        @pdfe.Pdfe::new().log("no or malformed /W")
         nocontent(input)
         0
       }
@@ -972,7 +972,7 @@ fn lex_inline_image(
     let height = match @pdf.lookup_direct_orelse(pdf, "/H", "/Height", dict) {
       Some(@pdf.PdfObject::Integer(value)) => value
       _ => {
-        @pdfe.log("no or malformed /H")
+        @pdfe.Pdfe::new().log("no or malformed /H")
         nocontent(input)
         0
       }
@@ -1006,7 +1006,7 @@ fn lex_inline_image(
           match @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) {
             Some(decoded) => decoded
             None => {
-              @pdfe.log("decode_from_bytes failed\n")
+              @pdfe.Pdfe::new().log("decode_from_bytes failed\n")
               nocontent(input)
               @pdfio.mkbytes(0)
             }
@@ -1024,7 +1024,7 @@ fn lex_inline_image(
                   @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) {
                   Some(decoded) => decoded
                   None => {
-                    @pdfe.log("decode_from_bytes failed\n")
+                    @pdfe.Pdfe::new().log("decode_from_bytes failed\n")
                     nocontent(input)
                     @pdfio.mkbytes(0)
                   }
@@ -1035,7 +1035,7 @@ fn lex_inline_image(
               match @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) {
                 Some(decoded) => decoded
                 None => {
-                  @pdfe.log("decode_from_bytes failed\n")
+                  @pdfe.Pdfe::new().log("decode_from_bytes failed\n")
                   nocontent(input)
                   @pdfio.mkbytes(0)
                 }
@@ -1047,7 +1047,7 @@ fn lex_inline_image(
           match @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) {
             Some(decoded) => decoded
             None => {
-              @pdfe.log("decode_from_bytes failed\n")
+              @pdfe.Pdfe::new().log("decode_from_bytes failed\n")
               nocontent(input)
               @pdfio.mkbytes(0)
             }
@@ -1058,7 +1058,7 @@ fn lex_inline_image(
         match @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) {
           Some(decoded) => decoded
           None => {
-            @pdfe.log("decode_from_bytes failed\n")
+            @pdfe.Pdfe::new().log("decode_from_bytes failed\n")
             nocontent(input)
             @pdfio.mkbytes(0)
           }
@@ -1069,7 +1069,9 @@ fn lex_inline_image(
     let end1 = (input.input_byte)()
     let end2 = (input.input_byte)()
     if end1 != 'E'.to_int() || end2 != 'I'.to_int() {
-      @pdfe.log("warning: bad end to inline image \{end1}, \{end2}\n")
+      @pdfe.Pdfe::new().log(
+        "warning: bad end to inline image \{end1}, \{end2}\n",
+      )
       @pdfsyntax.ignoreuntil(true, chr => chr == 'E', input)
       @pdfsyntax.ignoreuntil(true, chr => chr == 'I', input)
       input.nudge()
@@ -1131,7 +1133,7 @@ fn lex_inline_image(
     (dict_clean, dp, data)
   } catch {
     err => {
-      @pdfe.log("inline image reading failed: \{err}\n")
+      @pdfe.Pdfe::new().log("inline image reading failed: \{err}\n")
       nocontent(input)
       (@pdf.PdfObject::Null, None, @pdfio.mkbytes(0))
     }
@@ -1320,7 +1322,7 @@ fn reals_of_lexemes(
     match lexeme_real(lexeme) {
       Some(value) => out.push(value)
       None => {
-        @pdfe.log(errtext + "\n")
+        @pdfe.Pdfe::new().log(errtext + "\n")
         return [0.0, 0.0, 0.0]
       }
     }
@@ -1393,7 +1395,8 @@ fn parse_tj_op(section : Array[Lexeme]) -> Op raise {
           Obj(LexInt(value)) =>
             elements.push(@pdf.PdfObject::Real(Double::from_int(value)))
           Obj(LexString(text)) => elements.push(@pdf.PdfObject::String(text))
-          _ => @pdfe.log("Warning: malformed TJ element; skipping\n")
+          _ =>
+            @pdfe.Pdfe::new().log("Warning: malformed TJ element; skipping\n")
         }
       }
       return Op::OpTJ(@pdf.PdfObject::Array(elements))
@@ -1926,13 +1929,13 @@ fn parse_operator(
         "TJ" => return (parse_tj_op(section), next_index)
         _ => ()
       }
-      @pdfe.log(
+      @pdfe.Pdfe::new().log(
         "Empty or malformed graphics operation \{string_of_lexemes(section)}.\n",
       )
       (Op::OpUnknown(string_of_lexemes(section)), next_index)
     }
     _ => {
-      @pdfe.log(
+      @pdfe.Pdfe::new().log(
         "Empty or malformed graphics operation \{string_of_lexemes(section)}.\n",
       )
       (Op::OpUnknown(string_of_lexemes(section)), next_index)

@@ -109,7 +109,9 @@ fn find_pages(
               cs.filter_map(c => match @pdf.direct(pdf, c) {
                 @pdf.PdfObject::Stream(_) => Some(c)
                 _ => {
-                  @pdfe.log("Page /Contents not a stream: ignoring.\n")
+                  @pdfe.Pdfe::new().log(
+                    "Page /Contents not a stream: ignoring.\n",
+                  )
                   None
                 }
               })
@@ -117,7 +119,9 @@ fn find_pages(
               match @pdf.direct(pdf, obj) {
                 @pdf.PdfObject::Stream(_) => [obj]
                 _ => {
-                  @pdfe.log("Page /Contents not a stream: ignoring.\n")
+                  @pdfe.Pdfe::new().log(
+                    "Page /Contents not a stream: ignoring.\n",
+                  )
                   []
                 }
               }
@@ -128,7 +132,7 @@ fn find_pages(
               m
             }
             None => {
-              @pdfe.log(
+              @pdfe.Pdfe::new().log(
                 "Warning: missing mediabox. Using most recently seen.\n",
               )
               last_mediabox_seen.val

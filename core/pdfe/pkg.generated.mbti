@@ -2,8 +2,6 @@
 package "bobzhang/mbtpdf/core/pdfe"
 
 // Values
-pub fn log(String) -> Unit
-
 pub let logger : Ref[(String) -> Unit]
 
 pub let read_debug : Ref[Bool]
@@ -11,6 +9,12 @@ pub let read_debug : Ref[Bool]
 // Errors
 
 // Types and methods
+pub struct Pdfe {
+  unit : Unit
+}
+#as_free_fn(log, deprecated)
+pub fn Pdfe::log(Self, String) -> Unit
+pub fn Pdfe::new() -> Self
 
 // Type aliases
 

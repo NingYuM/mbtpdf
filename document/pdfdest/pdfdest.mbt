@@ -173,7 +173,7 @@ pub fn Destination::read(
       match read_array_destination(pdf, arr) {
         Some(dest) => dest
         None => {
-          @pdfe.log(
+          @pdfe.Pdfe::new().log(
             "Warning: Could not read destination \{resolved.to_string()}\n",
           )
           Destination::NullDestination
@@ -220,7 +220,9 @@ pub fn Destination::read(
         }
       }
     _ => {
-      @pdfe.log("Warning: Could not read destination \{resolved.to_string()}\n")
+      @pdfe.Pdfe::new().log(
+        "Warning: Could not read destination \{resolved.to_string()}\n",
+      )
       Destination::NullDestination
     }
   }

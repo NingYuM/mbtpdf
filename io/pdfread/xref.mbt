@@ -213,12 +213,12 @@ fn read_xref_stream(
     ) {
     @pdfgenlex.Token::LexInt(i) => i
     _ => {
-      @pdfe.log("couldn't lex object number\n")
+      @pdfe.Pdfe::new().log("couldn't lex object number\n")
       raise err
     }
   }
   if read_debug.val {
-    @pdfe.log(
+    @pdfe.Pdfe::new().log(
       "Object number of this xref stream is \{xrefstream_objectnumber}\n",
     )
   }
@@ -541,7 +541,7 @@ fn build_pdf_objects(
     } catch {
       _ => {
         if read_debug.val {
-          @pdfe.log("parse_obj failed for object \{num}\n")
+          @pdfe.Pdfe::new().log("parse_obj failed for object \{num}\n")
         }
         @pdf.PdfObject::Null
       }
@@ -568,7 +568,9 @@ fn build_pdf_objects(
         input, xrefs, stream_id, user_password, owner_password, partial_pdf,
       ) catch {
         _ => {
-          @pdfe.log("Warning: unable to parse object stream \{stream_id}\n")
+          @pdfe.Pdfe::new().log(
+            "Warning: unable to parse object stream \{stream_id}\n",
+          )
           Array::new()
         }
       }

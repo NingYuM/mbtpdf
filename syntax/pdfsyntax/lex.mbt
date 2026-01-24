@@ -584,7 +584,7 @@ pub fn lex_next(
     }
   } catch {
     err => {
-      @pdfe.log("Recovering from lex error: \{err}\n")
+      @pdfe.Pdfe::new().log("Recovering from lex error: \{err}\n")
       StopLexing
     }
   }

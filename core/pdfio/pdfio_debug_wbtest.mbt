@@ -14,10 +14,10 @@ async test "input_output_of_bytes supports seek and flush" {
 ///|
 test "debug_next_n_chars rewinds input" {
   let input = input_of_string("abc")
-  let prev_logger = @pdfe.logger.val
-  @pdfe.logger.val = _ => ()
+  let prev_logger = @pdfe.Pdfe::new().logger.val
+  @pdfe.Pdfe::new().logger.val = _ => ()
   defer {
-    @pdfe.logger.val = prev_logger
+    @pdfe.Pdfe::new().logger.val = prev_logger
   }
   debug_next_n_chars(2, input)
   match (input.input_char)() {

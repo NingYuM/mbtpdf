@@ -71,7 +71,7 @@ fn label_of_range(
   let startpage = match startpage_obj {
     @pdf.PdfObject::Integer(i) => i + 1
     _ => {
-      @pdfe.log("Bad Number Tree\n")
+      @pdfe.Pdfe::new().log("Bad Number Tree\n")
       1
     }
   }

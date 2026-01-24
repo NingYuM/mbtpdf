@@ -254,10 +254,10 @@ test "eval stitching function" {
 
 ///|
 test "PdfFunction::print covers kinds and array sizes" {
-  let prev_logger = @pdfe.logger.val
-  @pdfe.logger.val = _ => ()
+  let prev_logger = @pdfe.Pdfe::new().logger.val
+  @pdfe.Pdfe::new().logger.val = _ => ()
   defer {
-    @pdfe.logger.val = prev_logger
+    @pdfe.Pdfe::new().logger.val = prev_logger
   }
   let empty_doubles : Array[Double] = []
   let some_doubles : Array[Double] = [0.0, 1.0]
@@ -335,10 +335,10 @@ test "PdfFunction::print covers kinds and array sizes" {
 
 ///|
 test "parse calculator keywords from stream" {
-  let prev_logger = @pdfe.logger.val
-  @pdfe.logger.val = _ => ()
+  let prev_logger = @pdfe.Pdfe::new().logger.val
+  @pdfe.Pdfe::new().logger.val = _ => ()
   defer {
-    @pdfe.logger.val = prev_logger
+    @pdfe.Pdfe::new().logger.val = prev_logger
   }
   let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
@@ -720,10 +720,10 @@ test "eval_function clamps range and rejects bad domain" {
 
 ///|
 test "parse function rejects bad inputs" {
-  let prev_logger = @pdfe.logger.val
-  @pdfe.logger.val = _ => ()
+  let prev_logger = @pdfe.Pdfe::new().logger.val
+  @pdfe.Pdfe::new().logger.val = _ => ()
   defer {
-    @pdfe.logger.val = prev_logger
+    @pdfe.Pdfe::new().logger.val = prev_logger
   }
   let pdf = @pdf.Pdf::empty()
   let bad_type : @pdf.PdfObject = Dictionary([
@@ -764,10 +764,10 @@ test "parse function rejects bad inputs" {
 
 ///|
 test "PdfFunction::print covers extra calculator strings" {
-  let prev_logger = @pdfe.logger.val
-  @pdfe.logger.val = _ => ()
+  let prev_logger = @pdfe.Pdfe::new().logger.val
+  @pdfe.Pdfe::new().logger.val = _ => ()
   defer {
-    @pdfe.logger.val = prev_logger
+    @pdfe.Pdfe::new().logger.val = prev_logger
   }
   let fun : PdfFunction = {
     func: PdfFunctionKind::Calculator([

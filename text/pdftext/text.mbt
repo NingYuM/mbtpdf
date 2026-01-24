@@ -359,7 +359,7 @@ fn charcode_extractor_of_font_real(
       } catch {
         err => {
           let _ = err
-          @pdfe.log("bad tounicode\n")
+          @pdfe.Pdfe::new().log("bad tounicode\n")
           (@pdfutil.PdfUtil::new().null_hash(), false)
         }
       }
@@ -385,7 +385,7 @@ fn charcode_extractor_of_font_real(
         }
         None => {
           if debug {
-            @pdfe.log("Found no charcode for unicode codepoint.\n")
+            @pdfe.Pdfe::new().log("Found no charcode for unicode codepoint.\n")
           }
           None
         }

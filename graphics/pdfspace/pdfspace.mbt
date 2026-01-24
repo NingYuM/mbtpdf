@@ -486,7 +486,7 @@ fn write_iccbased(pdf : @pdf.Pdf, icc : ICCBased) -> @pdf.PdfObject {
       Indirect(objnum)
     }
     _ => {
-      @pdfe.log("write_colourspace: ICCBased stream missing\n")
+      @pdfe.Pdfe::new().log("write_colourspace: ICCBased stream missing\n")
       icc.icc_alternate.to_pdf_object(pdf)
     }
   }
@@ -537,7 +537,7 @@ pub fn ColourSpace::to_pdf_object(
     ColourSpace::Indexed(base, table) => {
       let components = components_of_colourspace(base)
       if components == 0 {
-        @pdfe.log("write_colourspace: Indexed base not supported\n")
+        @pdfe.Pdfe::new().log("write_colourspace: Indexed base not supported\n")
         Null
       } else {
         let mut hival = -1

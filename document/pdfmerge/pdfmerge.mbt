@@ -526,7 +526,7 @@ fn merge_bookmarks(
     @pdfmarks.PdfMarks::new(pdf).add_bookmarks(bookmarks)
   } catch {
     _ => {
-      @pdfe.log("failure in merge_bookmarks\n")
+      @pdfe.Pdfe::new().log("failure in merge_bookmarks\n")
       pdf
     }
   }
@@ -545,7 +545,7 @@ fn apply_namechanges_to_destination_nametree(
     match changes_map.get(s) {
       Some(r) => r
       None => {
-        @pdfe.log(
+        @pdfe.Pdfe::new().log(
           "apply_namechanges_to_destination_nametree: destination not found: \{s}\n",
         )
         s
@@ -592,7 +592,7 @@ fn apply_namechanges_to_destination_nametree(
               @pdf.PdfObject::Array(rebuilt),
             )
           }
-          None => @pdfe.log("Warning: malformed /Names")
+          None => @pdfe.Pdfe::new().log("Warning: malformed /Names")
         }
       _ => ()
     }
@@ -974,7 +974,7 @@ pub fn PdfMerger::merge_pdfs(
   let pdfs = self.pdfs
   let ranges = self.ranges
   if process_struct_trees && setify_strings(names).length() < names.length() {
-    @pdfe.log(
+    @pdfe.Pdfe::new().log(
       "Warning: multiply-included files will not merge structure trees properly.\n",
     )
   }
@@ -1046,7 +1046,7 @@ pub fn PdfMerger::merge_pdfs(
     }
   } catch {
     _ => {
-      @pdfe.log("Warning: failed to merge OCGs\n")
+      @pdfe.Pdfe::new().log("Warning: failed to merge OCGs\n")
       extra_catalog_entries
     }
   }
@@ -1062,7 +1062,7 @@ pub fn PdfMerger::merge_pdfs(
     }
   } catch {
     _ => {
-      @pdfe.log("Warning: failed to merge Acroforms\n")
+      @pdfe.Pdfe::new().log("Warning: failed to merge Acroforms\n")
       extra_catalog_entries
     }
   }
@@ -1085,7 +1085,7 @@ pub fn PdfMerger::merge_pdfs(
       }
     } catch {
       _ => {
-        @pdfe.log("Warning: failed to merge structure tree roots\n")
+        @pdfe.Pdfe::new().log("Warning: failed to merge structure tree roots\n")
         extra_catalog_entries
       }
     }

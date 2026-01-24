@@ -161,7 +161,7 @@ pub fn Calculator::to_string(self : Array[Calculator]) -> String {
 
 ///|
 fn log_line(message : String) -> Unit {
-  @pdfe.log(message + "\n")
+  @pdfe.Pdfe::new().log(message + "\n")
 }
 
 ///|
@@ -358,7 +358,7 @@ fn parse_groups(
           match keyword_of_string(name) {
             Some(op) => out.push(op)
             None => {
-              @pdfe.log("Bad keyword \{name}\n")
+              @pdfe.Pdfe::new().log("Bad keyword \{name}\n")
               raise @pdf.PdfError::Msg("Cannot parse Type 4 function")
             }
           }

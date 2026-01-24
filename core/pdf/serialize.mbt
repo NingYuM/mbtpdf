@@ -210,7 +210,7 @@ fn make_pdf_name(name : String) -> String {
   let normalized = match name.get_char(0) {
     Some('/') => name
     _ => {
-      @pdfe.log("warning: bad name |\{name}|\n")
+      @pdfe.Pdfe::new().log("warning: bad name |\{name}|\n")
       "/" + name
     }
   }
@@ -303,7 +303,9 @@ fn write_pdf_object(
             sb.write_string(@pdfio.string_of_bytes(bytes))
           _ =>
             if warn_on_toget {
-              @pdfe.log("WARNING: toget in string_of_pdfobj_including_data\n")
+              @pdfe.Pdfe::new().log(
+                "WARNING: toget in string_of_pdfobj_including_data\n",
+              )
             }
         }
       }

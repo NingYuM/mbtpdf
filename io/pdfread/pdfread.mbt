@@ -264,7 +264,7 @@ fn read_header(input : @pdfio.Input) -> (Int, Int) raise {
         raise @pdf.PdfError::Msg(message)
       }
       if read_debug.val {
-        @pdfe.log("setting offset to \{pos}\n")
+        @pdfe.Pdfe::new().log("setting offset to \{pos}\n")
       }
       (input.set_offset)(pos)
       return (major_char.to_int() - '0'.to_int(), digits_to_int(minor_digits))

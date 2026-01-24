@@ -485,7 +485,9 @@ fn transform_quadpoint_single(
   qp : Array[@pdf.PdfObject],
 ) -> Array[@pdf.PdfObject] raise {
   if qp.length() != 8 {
-    @pdfe.log("Malformed /QuadPoints format: must be a multiple of 8 entries\n")
+    @pdfe.Pdfe::new().log(
+      "Malformed /QuadPoints format: must be a multiple of 8 entries\n",
+    )
     return qp
   }
   let x1 = @pdf.getnum(pdf, qp[0])
@@ -544,7 +546,7 @@ fn transform_quadpoints(
       @pdf.PdfObject::Array(out)
     }
     _ => {
-      @pdfe.log("Unknown or malformed /QuadPoints format\n")
+      @pdfe.Pdfe::new().log("Unknown or malformed /QuadPoints format\n")
       qp
     }
   }
@@ -593,7 +595,7 @@ pub fn PdfAnnot::transform_annotations(
             }
             @pdf.addobj_given_num(self.pdf, (i, annot_obj))
           }
-          _ => @pdfe.log("transform_annotations: not indirect\n")
+          _ => @pdfe.Pdfe::new().log("transform_annotations: not indirect\n")
         }
       }
     _ => ()
