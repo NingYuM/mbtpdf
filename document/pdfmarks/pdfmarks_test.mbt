@@ -93,7 +93,7 @@ test "transform_bookmark translates destination" {
     colour: (0.0, 0.0, 0.0),
     flags: 0,
   }
-  let tr = @pdftransform.mktranslate(5.0, -3.0)
+  let tr = @pdftransform.TransformMatrix::translate(5.0, -3.0)
   let moved = @pdfmarks.transform_bookmark(pdf, tr, mark)
   match moved.target {
     @pdfdest.Destination::XYZ(_, Some(left), Some(top), Some(zoom)) => {

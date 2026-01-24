@@ -61,8 +61,8 @@ test "streams and transforms" {
   assert_eq(matrix.e, 2.0)
   assert_eq(matrix.f, 3.0)
   let identity = parse_matrix(pdf, "/Missing", dict_matrix)
-  assert_eq(identity.a, @pdftransform.i_matrix.a)
-  assert_eq(identity.d, @pdftransform.i_matrix.d)
+  assert_eq(identity.a, @pdftransform.TransformMatrix::identity().a)
+  assert_eq(identity.d, @pdftransform.TransformMatrix::identity().d)
   assert_is_err(
     try? parse_matrix(
       pdf,
@@ -79,7 +79,7 @@ test "streams and transforms" {
       PdfObject::Dictionary([("/Matrix", PdfObject::Integer(1))]),
     ),
   )
-  match make_matrix(@pdftransform.i_matrix) {
+  match make_matrix(@pdftransform.TransformMatrix::identity()) {
     PdfObject::Array(values) => assert_eq(values.length(), 6)
     _ => fail("expected matrix array")
   }
@@ -89,7 +89,7 @@ test "streams and transforms" {
     PdfObject::Integer(2),
     PdfObject::Integer(3),
   ])
-  match transform_rect(pdf, @pdftransform.i_matrix, rect) {
+  match transform_rect(pdf, @pdftransform.TransformMatrix::identity(), rect) {
     PdfObject::Array(values) => {
       assert_eq(values.length(), 4)
       match values[0] {
@@ -125,7 +125,8 @@ test "streams and transforms" {
     PdfObject::Real(0.0),
     PdfObject::Real(2.0),
   ])
-  match transform_quadpoints(pdf, @pdftransform.i_matrix, qp) {
+  match
+    transform_quadpoints(pdf, @pdftransform.TransformMatrix::identity(), qp) {
     PdfObject::Array(values) => assert_eq(values.length(), 16)
     _ => fail("expected quadpoints")
   }
@@ -141,17 +142,27 @@ test "streams and transforms" {
     PdfObject::Real(8.0),
     PdfObject::Real(9.0),
   ])
-  match transform_quadpoints(pdf, @pdftransform.i_matrix, qp_mixed) {
+  match
+    transform_quadpoints(
+      pdf,
+      @pdftransform.TransformMatrix::identity(),
+      qp_mixed,
+    ) {
     PdfObject::Array(values) => assert_eq(values.length(), 10)
     _ => fail("expected quadpoints")
   }
   let qp_bad = PdfObject::Array([PdfObject::Real(0.0), PdfObject::Real(1.0)])
-  match transform_quadpoints(pdf, @pdftransform.i_matrix, qp_bad) {
+  match
+    transform_quadpoints(pdf, @pdftransform.TransformMatrix::identity(), qp_bad) {
     PdfObject::Array(values) => assert_eq(values.length(), 2)
     _ => fail("expected quadpoints")
   }
   match
-    transform_quadpoints(pdf, @pdftransform.i_matrix, PdfObject::Integer(1)) {
+    transform_quadpoints(
+      pdf,
+      @pdftransform.TransformMatrix::identity(),
+      PdfObject::Integer(1),
+    ) {
     PdfObject::Integer(1) => ()
     _ => fail("expected passthrough")
   }

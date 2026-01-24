@@ -60,7 +60,7 @@ test "transform_destination translate" {
     Some(20.0),
     Some(1.0),
   )
-  let tr = @pdftransform.mktranslate(5.0, -3.0)
+  let tr = @pdftransform.TransformMatrix::translate(5.0, -3.0)
   let transformed = transform_destination(pdf, tr, dest)
   match transformed {
     Destination::XYZ(
@@ -80,7 +80,7 @@ test "transform_destination translate" {
 ///|
 test "transform_destination clips FitV/FitBH" {
   let pdf = @pdf.empty()
-  let tr = @pdftransform.i_matrix
+  let tr = @pdftransform.TransformMatrix::identity()
   let fitv = transform_destination(
     pdf,
     tr,
@@ -112,7 +112,7 @@ test "transform_destination updates GoTo action" {
       Array([Indirect(refs[0]), Name("/XYZ"), Real(10.0), Real(20.0), Null]),
     ),
   ])
-  let tr = @pdftransform.mktranslate(5.0, -3.0)
+  let tr = @pdftransform.TransformMatrix::translate(5.0, -3.0)
   let updated = transform_destination(pdf, tr, Destination::Action(action))
   match updated {
     Destination::Action(dict) =>
@@ -366,7 +366,7 @@ test "pdfobject_of_destination variants" {
 ///|
 test "transform_destination variants" {
   let pdf = @pdf.empty()
-  let tr = @pdftransform.mktranslate(5.0, -3.0)
+  let tr = @pdftransform.TransformMatrix::translate(5.0, -3.0)
   let fith = transform_destination(
     pdf,
     tr,

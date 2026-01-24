@@ -12,8 +12,8 @@ test "ppstub returns identity matrix" {
   assert_eq(value, 5)
   assert_eq(n, 2)
   assert_eq(
-    @pdftransform.string_of_matrix(matrix),
-    @pdftransform.string_of_matrix(@pdftransform.i_matrix),
+    matrix.to_string(),
+    @pdftransform.TransformMatrix::identity().to_string(),
   )
 }
 

@@ -80,7 +80,7 @@ pub fn[A, B, C] ppstub(
   n : A,
   p : B,
 ) -> (C, A, @pdftransform.TransformMatrix) raise? {
-  (f(n, p), n, @pdftransform.i_matrix)
+  (f(n, p), n, @pdftransform.TransformMatrix::identity())
 }
 
 ///|
@@ -102,13 +102,13 @@ fn change_pages_find_matrix(
             Some(pagenumber) =>
               match mattable.get(pagenumber) {
                 Some(tr) => tr
-                None => @pdftransform.i_matrix
+                None => @pdftransform.TransformMatrix::identity()
               }
-            None => @pdftransform.i_matrix
+            None => @pdftransform.TransformMatrix::identity()
           }
-        _ => @pdftransform.i_matrix
+        _ => @pdftransform.TransformMatrix::identity()
       }
-    _ => @pdftransform.i_matrix
+    _ => @pdftransform.TransformMatrix::identity()
   }
 }
 

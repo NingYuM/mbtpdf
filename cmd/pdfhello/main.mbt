@@ -8,9 +8,9 @@ async fn main {
     ])
     let ops : Array[@pdfops.Op] = [
       Opcm(
-        @pdftransform.matrix_of_transform([
+        @pdftransform.Transform::new([
           @pdftransform.TransformOp::Translate(50.0, 770.0),
-        ]),
+        ]).to_matrix(),
       ),
       OpBT,
       OpTf("/F0", 36.0),

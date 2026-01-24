@@ -326,42 +326,36 @@ pub fn transform_destination(
 ) -> Destination raise {
   match dest {
     Destination::FitH(TargetPage::PageObject(i), Some(top)) => {
-      let (_, top) = clip_pair(@pdftransform.transform_matrix(t, (0.0, top)))
+      let (_, top) = clip_pair(t.apply((0.0, top)))
       Destination::FitH(TargetPage::PageObject(i), Some(top))
     }
     Destination::FitV(TargetPage::PageObject(i), Some(left)) => {
-      let (left, _) = clip_pair(@pdftransform.transform_matrix(t, (left, 0.0)))
+      let (left, _) = clip_pair(t.apply((left, 0.0)))
       Destination::FitV(TargetPage::PageObject(i), Some(left))
     }
     Destination::FitBH(TargetPage::PageObject(i), Some(top)) => {
-      let (_, top) = clip_pair(@pdftransform.transform_matrix(t, (0.0, top)))
+      let (_, top) = clip_pair(t.apply((0.0, top)))
       Destination::FitBH(TargetPage::PageObject(i), Some(top))
     }
     Destination::FitBV(TargetPage::PageObject(i), Some(left)) => {
-      let (left, _) = clip_pair(@pdftransform.transform_matrix(t, (left, 0.0)))
+      let (left, _) = clip_pair(t.apply((left, 0.0)))
       Destination::FitBV(TargetPage::PageObject(i), Some(left))
     }
     Destination::XYZ(TargetPage::PageObject(i), Some(left), Some(top), zoom) => {
-      let (left, top) = clip_pair(
-        @pdftransform.transform_matrix(t, (left, top)),
-      )
+      let (left, top) = clip_pair(t.apply((left, top)))
       Destination::XYZ(TargetPage::PageObject(i), Some(left), Some(top), zoom)
     }
     Destination::XYZ(TargetPage::PageObject(i), None, Some(top), zoom) => {
-      let (_, top) = clip_pair(@pdftransform.transform_matrix(t, (0.0, top)))
+      let (_, top) = clip_pair(t.apply((0.0, top)))
       Destination::XYZ(TargetPage::PageObject(i), None, Some(top), zoom)
     }
     Destination::XYZ(TargetPage::PageObject(i), Some(left), None, zoom) => {
-      let (left, _) = clip_pair(@pdftransform.transform_matrix(t, (left, 0.0)))
+      let (left, _) = clip_pair(t.apply((left, 0.0)))
       Destination::XYZ(TargetPage::PageObject(i), Some(left), None, zoom)
     }
     Destination::FitR(TargetPage::PageObject(i), left, bottom, right, top) => {
-      let (left, top) = clip_pair(
-        @pdftransform.transform_matrix(t, (left, top)),
-      )
-      let (right, bottom) = clip_pair(
-        @pdftransform.transform_matrix(t, (right, bottom)),
-      )
+      let (left, top) = clip_pair(t.apply((left, top)))
+      let (right, bottom) = clip_pair(t.apply((right, bottom)))
       Destination::FitR(TargetPage::PageObject(i), left, bottom, right, top)
     }
     Destination::Action(a) =>

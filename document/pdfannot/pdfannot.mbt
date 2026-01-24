@@ -447,10 +447,10 @@ fn transform_rect(
   rect : @pdf.PdfObject,
 ) -> @pdf.PdfObject raise {
   let (minx, miny, maxx, maxy) = @pdf.parse_rectangle(pdf, rect)
-  let (x0, y0) = @pdftransform.transform_matrix(transform, (minx, miny))
-  let (x1, y1) = @pdftransform.transform_matrix(transform, (maxx, maxy))
-  let (x2, y2) = @pdftransform.transform_matrix(transform, (minx, maxy))
-  let (x3, y3) = @pdftransform.transform_matrix(transform, (maxx, miny))
+  let (x0, y0) = transform.apply((minx, miny))
+  let (x1, y1) = transform.apply((maxx, maxy))
+  let (x2, y2) = transform.apply((minx, maxy))
+  let (x3, y3) = transform.apply((maxx, miny))
   let minx = fmin(fmin(x0, x1), fmin(x2, x3))
   let miny = fmin(fmin(y0, y1), fmin(y2, y3))
   let maxx = fmax(fmax(x0, x1), fmax(x2, x3))
@@ -481,10 +481,10 @@ fn transform_quadpoint_single(
   let y3 = @pdf.getnum(pdf, qp[5])
   let x4 = @pdf.getnum(pdf, qp[6])
   let y4 = @pdf.getnum(pdf, qp[7])
-  let (x1, y1) = @pdftransform.transform_matrix(transform, (x1, y1))
-  let (x2, y2) = @pdftransform.transform_matrix(transform, (x2, y2))
-  let (x3, y3) = @pdftransform.transform_matrix(transform, (x3, y3))
-  let (x4, y4) = @pdftransform.transform_matrix(transform, (x4, y4))
+  let (x1, y1) = transform.apply((x1, y1))
+  let (x2, y2) = transform.apply((x2, y2))
+  let (x3, y3) = transform.apply((x3, y3))
+  let (x4, y4) = transform.apply((x4, y4))
   [
     @pdf.PdfObject::Real(x1),
     @pdf.PdfObject::Real(y1),

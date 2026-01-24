@@ -39,7 +39,7 @@ Represents the matrix:
 ```mbt check
 ///|
 test "identity matrix" {
-  let m = @pdftransform.i_matrix
+  let m = @pdftransform.TransformMatrix::identity()
   inspect(m.a, content="1")
   inspect(m.d, content="1")
   inspect(m.e, content="0")
@@ -52,8 +52,8 @@ test "identity matrix" {
 
 ```mbt check
 ///|
-test "mktranslate" {
-  let m = @pdftransform.mktranslate(10.0, 20.0)
+test "translate" {
+  let m = @pdftransform.TransformMatrix::translate(10.0, 20.0)
   inspect(m.e, content="10")
   inspect(m.f, content="20")
 }
@@ -65,7 +65,7 @@ test "mktranslate" {
 // Scale by (sx, sy) around center point
 
 ///|
-let m = @pdftransform.mkscale((0.0, 0.0), 2.0, 2.0)
+let m = @pdftransform.TransformMatrix::scale((0.0, 0.0), 2.0, 2.0)
 ```
 
 ### Rotation
@@ -74,7 +74,7 @@ let m = @pdftransform.mkscale((0.0, 0.0), 2.0, 2.0)
 // Rotate by angle (radians) around center point
 
 ///|
-let m = @pdftransform.mkrotate((0.0, 0.0), 1.5708) // 90 degrees
+let m = @pdftransform.TransformMatrix::rotate((0.0, 0.0), 1.5708) // 90 degrees
 ```
 
 ### Shearing
@@ -83,12 +83,12 @@ let m = @pdftransform.mkrotate((0.0, 0.0), 1.5708) // 90 degrees
 // Horizontal shear
 
 ///|
-let m = @pdftransform.mkshearx((0.0, 0.0), 0.5)
+let m = @pdftransform.TransformMatrix::shear_x((0.0, 0.0), 0.5)
 
 // Vertical shear
 
 ///|
-let m = @pdftransform.mksheary((0.0, 0.0), 0.5)
+let m = @pdftransform.TransformMatrix::shear_y((0.0, 0.0), 0.5)
 ```
 
 ## Transform Operations
@@ -112,9 +112,8 @@ pub(all) enum TransformOp {
 // Build transform from operations
 
 ///|
-let tr = @pdftransform.compose(
+let tr = @pdftransform.Transform::identity().compose(
   @pdftransform.TransformOp::Translate(100.0, 100.0),
-  @pdftransform.i,
 )
 ```
 
@@ -122,7 +121,7 @@ let tr = @pdftransform.compose(
 
 ```mbt nocheck
 ///|
-let combined = @pdftransform.append(tr1, tr2)
+let combined = tr1.append(tr2)
 ```
 
 ## Matrix Operations
@@ -131,10 +130,10 @@ let combined = @pdftransform.append(tr1, tr2)
 
 ```mbt check
 ///|
-test "matrix_compose" {
-  let t1 = @pdftransform.mktranslate(10.0, 0.0)
-  let t2 = @pdftransform.mktranslate(0.0, 20.0)
-  let combined = @pdftransform.matrix_compose(t1, t2)
+test "matrix compose" {
+  let t1 = @pdftransform.TransformMatrix::translate(10.0, 0.0)
+  let t2 = @pdftransform.TransformMatrix::translate(0.0, 20.0)
+  let combined = t1.compose(t2)
   inspect(combined.e, content="10")
   inspect(combined.f, content="20")
 }
@@ -144,7 +143,7 @@ test "matrix_compose" {
 
 ```mbt nocheck
 try {
-  let inv = @pdftransform.matrix_invert!(m)
+  let inv = m.invert!()
   // Use inverted matrix...
 } catch {
   @pdftransform.NonInvertable => println("Matrix not invertible")
@@ -158,7 +157,7 @@ try {
 let op = @pdftransform.TransformOp::Translate(50.0, 50.0)
 
 ///|
-let matrix = @pdftransform.matrix_of_op(op)
+let matrix = op.to_matrix()
 ```
 
 ## Transforming Points
@@ -167,9 +166,9 @@ let matrix = @pdftransform.matrix_of_op(op)
 
 ```mbt check
 ///|
-test "transform_matrix applies to point" {
-  let m = @pdftransform.mktranslate(10.0, 20.0)
-  let (x, y) = @pdftransform.transform_matrix(m, (5.0, 5.0))
+test "matrix applies to point" {
+  let m = @pdftransform.TransformMatrix::translate(10.0, 20.0)
+  let (x, y) = m.apply((5.0, 5.0))
   inspect(x, content="15")
   inspect(y, content="25")
 }
@@ -178,7 +177,7 @@ test "transform_matrix applies to point" {
 ### With Transform
 
 ```mbt nocheck
-let (new_x, new_y) = @pdftransform.transform(tr, (x, y))
+let (new_x, new_y) = tr.apply((x, y))
 ```
 
 ## Decomposition
@@ -186,7 +185,7 @@ let (new_x, new_y) = @pdftransform.transform(tr, (x, y))
 Extract scale, rotation, shear, and translation from a matrix:
 
 ```mbt nocheck
-let (scale, aspect, rotation, shear, tx, ty) = @pdftransform.decompose(m)
+let (scale, aspect, rotation, shear, tx, ty) = m.decompose()
 ```
 
 ## Recomposition
@@ -195,16 +194,18 @@ Rebuild a matrix from components:
 
 ```mbt nocheck
 ///|
-let m = @pdftransform.recompose(scale, aspect, rotation, shear, tx, ty)
+let m = @pdftransform.TransformMatrix::recompose(
+  scale, aspect, rotation, shear, tx, ty,
+)
 ```
 
 ## Debug Utilities
 
 ```mbt check
 ///|
-test "string_of_matrix" {
-  let m = @pdftransform.i_matrix
-  let s = @pdftransform.string_of_matrix(m)
+test "matrix to_string" {
+  let m = @pdftransform.TransformMatrix::identity()
+  let s = m.to_string()
   assert_true(s.contains("1"))
 }
 ```

@@ -297,7 +297,7 @@ let matrix = @pdf.parse_matrix(pdf, "/Matrix", dict)
 // Create a matrix object
 
 ///|
-let matrix_obj = @pdf.make_matrix(@pdftransform.i_matrix)
+let matrix_obj = @pdf.make_matrix(@pdftransform.TransformMatrix::identity())
 ```
 
 ## Reference Management

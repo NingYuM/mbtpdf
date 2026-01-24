@@ -197,7 +197,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
   let catalog = @pdf.add_dict_entry(catalog, "/OpenAction", dest1)
   @pdf.addobj_given_num(pdf, (pdf.root, catalog))
   let pages = @pdfpage.pages_of_pagetree(pdf)
-  let matrix = @pdftransform.mktranslate(10.0, 0.0)
+  let matrix = @pdftransform.TransformMatrix::translate(10.0, 0.0)
   let updated = @pdfpage.change_pages(true, pdf, pages, matrices=[(1, matrix)])
   assert_eq(@pdfpage.endpage(updated), 2)
 }
@@ -450,7 +450,7 @@ test "change_pages rewrites annotation and openaction" {
   @pdf.addobj_given_num(pdf, (pdf.root, updated_catalog))
   let pages = @pdfpage.pages_of_pagetree(pdf)
   let translated = @pdfpage.change_pages(true, pdf, pages, matrices=[
-    (1, @pdftransform.mktranslate(5.0, -3.0)),
+    (1, @pdftransform.TransformMatrix::translate(5.0, -3.0)),
   ])
   let catalog2 = @pdf.catalog_of_pdf(translated)
   let openaction = match
