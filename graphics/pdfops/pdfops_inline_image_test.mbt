@@ -1,6 +1,6 @@
 ///|
 test "parse inline image flate data" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
@@ -32,7 +32,7 @@ test "parse inline image flate data" {
 
 ///|
 test "parse inline image uses resources for colorspace" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([
     ("/ColorSpace", Dictionary([("/Cs1", Name("/DeviceRGB"))])),
   ])
@@ -62,7 +62,7 @@ test "parse inline image uses resources for colorspace" {
 
 ///|
 test "parse inline image handles DCT data" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
@@ -101,7 +101,7 @@ test "string_of_ops ignores non-name inline filters" {
 
 ///|
 test "parse inline image handles colorspace array" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
@@ -135,7 +135,7 @@ test "parse inline image handles colorspace array" {
 
 ///|
 test "parse inline image uses ImageMask when colorspace missing" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(2)),
@@ -166,7 +166,7 @@ test "parse inline image uses ImageMask when colorspace missing" {
 
 ///|
 test "parse inline image decodes flate filter" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let raw = @pdfio.bytes_of_list([0x7f])
   let encoded = @pdfcodec.encode_flate(raw)
@@ -201,7 +201,7 @@ test "parse inline image decodes flate filter" {
 
 ///|
 test "parse inline image flate handles trailing operators" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let raw = @pdfio.bytes_of_list([0x7f])
   let encoded = @pdfcodec.encode_flate(raw)
@@ -228,7 +228,7 @@ test "parse inline image flate handles trailing operators" {
 
 ///|
 fn parse_inline_image_error(dict : @pdf.PdfObject) -> Unit raise {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let rendered = try
     @pdfops.Op::string_of_ops([
@@ -281,7 +281,7 @@ test "parse inline image errors on missing colorspace" {
 
 ///|
 test "parse inline image cleans filter arrays" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let raw = @pdfio.bytes_of_list([0x7f])
   let encoded = @pdfcodec.encode_flate(raw)
@@ -316,7 +316,7 @@ test "parse inline image cleans filter arrays" {
 
 ///|
 test "parse inline image decode failures raise" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
@@ -338,7 +338,7 @@ test "parse inline image decode failures raise" {
 
 ///|
 test "parse inline image errors on missing colorspace entry and type" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
     ("/H", Integer(1)),
@@ -382,7 +382,7 @@ test "parse inline image errors on missing colorspace entry and type" {
 
 ///|
 test "parse inline image errors on invalid ID marker" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let text = "BI << /W 1 /H 1 /BPC 8 /CS /DeviceGray >> XX 0 EI"
   let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.Op::parse_single_stream(
@@ -395,7 +395,7 @@ test "parse inline image errors on invalid ID marker" {
 
 ///|
 test "parse inline image handles bad filters" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
@@ -469,7 +469,7 @@ fn concat_bytes(parts : Array[@pdfio.MutableBytes]) -> @pdfio.MutableBytes {
 
 ///|
 test "parse inline image reads raw bytes without filter" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let header = @pdfio.bytes_of_string("BI /W 1 /H 1 /BPC 8 /CS /DeviceGray ID ")
   let data = @pdfio.bytes_of_list([0x7f])
@@ -491,7 +491,7 @@ test "parse inline image reads raw bytes without filter" {
 
 ///|
 test "parse inline image DCT reads JPEG marker data" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let header = @pdfio.bytes_of_string(
     "BI /W 1 /H 1 /BPC 8 /CS /DeviceRGB /Filter /DCT ID ",
@@ -515,7 +515,7 @@ test "parse inline image DCT reads JPEG marker data" {
 
 ///|
 test "parse inline image errors on invalid filter array" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
@@ -537,7 +537,7 @@ test "parse inline image errors on invalid filter array" {
 
 ///|
 test "components handles indexed shorthand and errors" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let indexed : @pdf.PdfObject = Array([Name("/I"), Name("/DeviceRGB")])
   assert_eq(@pdfops.Op::components(pdf, resources, indexed), 1)
@@ -551,7 +551,7 @@ test "components handles indexed shorthand and errors" {
 
 ///|
 test "parse_single_stream errors on ID keyword" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let old = @pdfe.read_debug.val
   @pdfe.read_debug.val = true

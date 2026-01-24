@@ -28,8 +28,6 @@ pub fn deep_copy(Pdf) -> Pdf
 
 pub fn direct(Pdf, PdfObject) -> PdfObject
 
-pub fn empty() -> Pdf
-
 pub let endpage : Ref[(Pdf) -> Int]
 
 pub fn find_indirect(String, PdfObject) -> Int? raise
@@ -150,6 +148,7 @@ pub(all) struct Pdf {
   was_linearized : Bool
   mut saved_encryption : SavedEncryption?
 }
+pub fn Pdf::empty() -> Self
 
 pub(all) enum PdfObject {
   Null

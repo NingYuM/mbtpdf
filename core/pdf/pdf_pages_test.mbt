@@ -1,6 +1,6 @@
 ///|
 test "page_reference_numbers variants" {
-  let base1 = empty()
+  let base1 = Pdf::empty()
   let pages_kid_non_indirect = PdfObject::Dictionary([
     ("/Type", PdfObject::Name("/Pages")),
     ("/Kids", PdfObject::Array([PdfObject::Integer(1)])),
@@ -21,7 +21,7 @@ test "page_reference_numbers variants" {
     saved_encryption: base1.saved_encryption,
   }
   assert_eq(page_reference_numbers(pdf1).length(), 0)
-  let base2 = empty()
+  let base2 = Pdf::empty()
   let pages_kid_not_array = PdfObject::Dictionary([
     ("/Type", PdfObject::Name("/Pages")),
     ("/Kids", PdfObject::Integer(9)),
@@ -42,7 +42,7 @@ test "page_reference_numbers variants" {
     saved_encryption: base2.saved_encryption,
   }
   assert_eq(page_reference_numbers(pdf2), [-1])
-  let base3 = empty()
+  let base3 = Pdf::empty()
   let root_only = PdfObject::Dictionary([("/Type", PdfObject::Name("/Catalog"))])
   addobj_given_num(base3, (1, root_only))
   let pdf3 = Pdf::{

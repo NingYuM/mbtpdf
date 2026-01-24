@@ -1,6 +1,6 @@
 ///|
 fn make_basic_pdf() -> Pdf {
-  let base = empty()
+  let base = Pdf::empty()
   let pages = PdfObject::Dictionary([
     ("/Type", PdfObject::Name("/Pages")),
     ("/Kids", PdfObject::Array([PdfObject::Indirect(2)])),
@@ -26,7 +26,7 @@ fn make_basic_pdf() -> Pdf {
 
 ///|
 test "lookup helpers and catalog" {
-  let pdf = empty()
+  let pdf = Pdf::empty()
   let dict = PdfObject::Dictionary([("/A", PdfObject::Integer(1))])
   assert_integer(lookup_fail("err", pdf, "/A", dict), 1)
   assert_is_err(try? lookup_fail("err", pdf, "/B", dict))
@@ -40,13 +40,13 @@ test "lookup helpers and catalog" {
     PdfObject::Dictionary(_) => ()
     _ => fail("expected catalog")
   }
-  let missing = empty()
+  let missing = Pdf::empty()
   assert_is_err(try? catalog_of_pdf(missing))
 }
 
 ///|
 test "recurse and iterators" {
-  let pdf = empty()
+  let pdf = Pdf::empty()
   addobj_given_num(pdf, (2, PdfObject::Integer(2)))
   addobj_given_num(pdf, (1, PdfObject::Integer(1)))
   match
@@ -143,7 +143,7 @@ test "references and renumbering" {
     Some(PdfObject::Array(values)) => assert_eq(values.length(), 2)
     _ => fail("expected id entry")
   }
-  let bad = empty()
+  let bad = Pdf::empty()
   bad.trailerdict = PdfObject::Integer(1)
   assert_is_err(try? change_id(bad, "path-"))
 }

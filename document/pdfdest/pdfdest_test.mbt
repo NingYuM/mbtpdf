@@ -6,7 +6,7 @@ fn assert_close(a : Double, b : Double) -> Unit raise {
 
 ///|
 test "read_destination array" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let obj : @pdf.PdfObject = Array([Indirect(7), Name("/FitH"), Real(200.0)])
   let dest = Destination::read(pdf, obj)
   match dest {
@@ -18,7 +18,7 @@ test "read_destination array" {
 
 ///|
 test "read_destination shallow name" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dest = Destination::read(pdf, Name("/Chapter1"), shallow=true)
   match dest {
     Destination::NamedDestination("/Chapter1") => ()
@@ -53,7 +53,7 @@ test "destination to_pdf_object" {
 
 ///|
 test "transform_destination translate" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dest = Destination::XYZ(
     TargetPage::PageObject(1),
     Some(10.0),
@@ -79,7 +79,7 @@ test "transform_destination translate" {
 
 ///|
 test "transform_destination clips FitV/FitBH" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let tr = @pdftransform.TransformMatrix::identity()
   let fitv = Destination::FitV(TargetPage::PageObject(1), Some(40000.0)).transform(
     pdf, tr,
@@ -125,7 +125,7 @@ test "transform_destination updates GoTo action" {
 
 ///|
 test "read_destination from dictionary /D" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let inner : @pdf.PdfObject = Array([
     Integer(0),
     Name("/XYZ"),
@@ -152,7 +152,7 @@ test "read_destination from dictionary /D" {
 
 ///|
 test "read_destination array Fit and FitR" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let fit : @pdf.PdfObject = Array([Indirect(5), Name("/Fit")])
   match Destination::read(pdf, fit) {
     Destination::Fit(TargetPage::PageObject(5)) => ()
@@ -179,7 +179,7 @@ test "read_destination array Fit and FitR" {
 
 ///|
 test "read_destination array variants" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let xyz4 : @pdf.PdfObject = Array([
     Indirect(1),
     Name("/XYZ"),
@@ -232,7 +232,7 @@ test "read_destination array variants" {
 
 ///|
 test "read_destination handles missing and invalid objects" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([])
   match Destination::read(pdf, dict) {
     Destination::NullDestination => ()
@@ -246,7 +246,7 @@ test "read_destination handles missing and invalid objects" {
 
 ///|
 test "read_destination name resolution" {
-  let pdf_no_root = @pdf.empty()
+  let pdf_no_root = @pdf.Pdf::empty()
   pdf_no_root.trailerdict = Dictionary([])
   let no_root : Result[Destination, Error] = try? Destination::read(
     pdf_no_root,
@@ -361,7 +361,7 @@ test "destination to_pdf_object variants" {
 
 ///|
 test "transform_destination variants" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let tr = @pdftransform.TransformMatrix::translate(5.0, -3.0)
   let fith = Destination::FitH(TargetPage::PageObject(1), Some(10.0)).transform(
     pdf, tr,
@@ -438,7 +438,7 @@ test "read_destination resolves named dests in catalog" {
     Real(100.0),
   ])
   let page = @pdfpage.Page::custom(rect)
-  let (pdf0, pageroot) = @pdfpage.add_pagetree([page], @pdf.empty())
+  let (pdf0, pageroot) = @pdfpage.add_pagetree([page], @pdf.Pdf::empty())
   let pdf = @pdfpage.add_root(pageroot, [], pdf0)
   let refs = @pdf.page_reference_numbers(pdf)
   let dest : @pdf.PdfObject = Array([Indirect(refs[0]), Name("/Fit")])

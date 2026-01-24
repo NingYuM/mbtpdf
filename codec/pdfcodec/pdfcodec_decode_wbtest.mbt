@@ -4,7 +4,7 @@ fn decode_stream(
   data : @pdfio.MutableBytes,
   parms? : @pdf.PdfObject,
 ) -> @pdfio.MutableBytes raise {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let entries : Array[(String, @pdf.PdfObject)] = [
     ("/Length", Integer(@pdfio.bytes_size(data))),
     ("/Filter", filter),
@@ -119,7 +119,7 @@ test "encode/decode PNG predictor roundtrip" {
 
 ///|
 test "decode_pdfstream_onestage rejects missing filter" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let data = @pdfio.bytes_of_string("4869>")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
@@ -134,7 +134,7 @@ test "decode_pdfstream_onestage rejects missing filter" {
 
 ///|
 test "decode_pdfstream_onestage rejects empty filter array" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let data = @pdfio.bytes_of_string("4869>")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
@@ -150,7 +150,7 @@ test "decode_pdfstream_onestage rejects empty filter array" {
 
 ///|
 test "decode_pdfstream_onestage rejects invalid filter entry" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let data = @pdfio.bytes_of_string("4869>")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
@@ -166,7 +166,7 @@ test "decode_pdfstream_onestage rejects invalid filter entry" {
 
 ///|
 test "decode_pdfstream_onestage rejects invalid filter type" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let data = @pdfio.bytes_of_string("4869>")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
@@ -182,7 +182,7 @@ test "decode_pdfstream_onestage rejects invalid filter type" {
 
 ///|
 test "decode_pdfstream_onestage handles /F and /DP keys" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let data = @pdfio.bytes_of_string("4869>")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
@@ -202,7 +202,7 @@ test "decode_pdfstream_onestage handles /F and /DP keys" {
 
 ///|
 test "decode_pdfstream_onestage trims filter and decode parms arrays" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let data = @pdfio.bytes_of_string("4869>")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
@@ -226,7 +226,7 @@ test "decode_pdfstream_onestage trims filter and decode parms arrays" {
 
 ///|
 test "decode_pdfstream_onestage handles Crypt filter" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let data = @pdfio.bytes_of_string("plain")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
@@ -245,7 +245,7 @@ test "decode_pdfstream_onestage handles Crypt filter" {
 
 ///|
 test "decode_pdfstream_onestage rejects JBIG2 in sync path" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let data = @pdfio.bytes_of_string("data")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
@@ -261,7 +261,7 @@ test "decode_pdfstream_onestage rejects JBIG2 in sync path" {
 
 ///|
 test "decode_pdfstream_onestage reports CCITT errors" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let data = @pdfio.bytes_of_string("data")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
@@ -277,7 +277,7 @@ test "decode_pdfstream_onestage reports CCITT errors" {
 
 ///|
 test "decode_pdfstream_onestage reports LZW errors" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let data = @pdfio.bytes_of_string("data")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
@@ -293,7 +293,7 @@ test "decode_pdfstream_onestage reports LZW errors" {
 
 ///|
 test "decode_pdfstream_until_unknown ignores unsupported filters" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let data = @pdfio.bytes_of_string("data")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),

@@ -25,7 +25,7 @@ fn type3_font_dict() -> @pdf.PdfObject {
 
 ///|
 test "write_encoding handles builtins and custom diffs" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let standard_encoding = ctx.read_encoding(standard_font_dict())
   let standard = ctx.write_encoding(standard_encoding)
@@ -61,7 +61,7 @@ test "hex and tounicode_map encode bytes" {
 
 ///|
 test "write_font handles standard and type3 fonts" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let standard_font = ctx.read_font(win_ansi_font_dict())
   let standard = ctx.write_font(standard_font)

@@ -23,14 +23,14 @@ test "add_pagetree handles large page sets" {
   for _ in 0..<12 {
     pages.push(@pdfpage.Page::custom(fixups_sample_rect()))
   }
-  let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
+  let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.Pdf::empty())
   let pdf = @pdfpage.add_root(pageroot, [], pdf0)
   assert_eq(@pdfpage.pages_of_pagetree(pdf).length(), 12)
 }
 
 ///|
 test "fixup_duplicate_annots clones duplicates and updates popup" {
-  let pdf0 = @pdf.empty()
+  let pdf0 = @pdf.Pdf::empty()
   let page = @pdfpage.Page::custom(fixups_sample_rect())
   let (pdf1, pageroot) = @pdfpage.add_pagetree([page, page], pdf0)
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
@@ -100,7 +100,7 @@ test "fixup_destinations removes nulled entries" {
 
 ///|
 test "fixup_parents raises without page tree" {
-  let res : Result[Unit, Error] = try? @pdfpage.fixup_parents(@pdf.empty())
+  let res : Result[Unit, Error] = try? @pdfpage.fixup_parents(@pdf.Pdf::empty())
   match res {
     Err(_) => ()
     _ => fail("expected missing /Pages error")
@@ -109,7 +109,7 @@ test "fixup_parents raises without page tree" {
 
 ///|
 test "fixup_parents skips direct kids" {
-  let pdf0 = @pdf.empty()
+  let pdf0 = @pdf.Pdf::empty()
   let page : @pdf.PdfObject = Dictionary([
     ("/Type", Name("/Page")),
     ("/Resources", Dictionary([])),

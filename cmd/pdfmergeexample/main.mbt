@@ -12,7 +12,7 @@ fn merge_pdfs(pdfs : Array[@pdf.Pdf]) -> @pdf.Pdf raise {
     let pagelist = @pdfpage.pages_of_pagetree(pdf)
     pages.append(pagelist[:])
   }
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   for src in renumbered {
     @pdf.objiter((k, v) => @pdf.addobj_given_num(pdf, (k, v)), src)
   }

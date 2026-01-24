@@ -1,6 +1,6 @@
 ///|
 test "encode/decode flate stream" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let original = @pdfio.bytes_of_string("hello flate")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(original))),
@@ -49,7 +49,7 @@ fn roundtrip_encoding(
   encoding : Encoding,
   original : @pdfio.MutableBytes,
 ) -> @pdfio.MutableBytes raise {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(original))),
   ])
@@ -93,7 +93,7 @@ test "encode/decode LZW stream" {
 
 ///|
 test "encode_pdfstream prepends filter when name already set" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let data = @pdfio.bytes_of_string("filter chain")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
@@ -117,7 +117,7 @@ test "encode_pdfstream prepends filter when name already set" {
 
 ///|
 test "encode_pdfstream prepends filter when array already set" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let data = @pdfio.bytes_of_string("array filter")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
@@ -139,7 +139,7 @@ test "encode_pdfstream prepends filter when array already set" {
 
 ///|
 test "encode_pdfstream keeps data when only_if_smaller" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let data = @pdfio.bytes_of_string("x")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
@@ -155,10 +155,10 @@ test "encode_pdfstream keeps data when only_if_smaller" {
 
 ///|
 test "decode_pdfstream handles filter arrays" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let old = @pdfcodec.string_of_pdf.val
   @pdfcodec.string_of_pdf.val = obj => match
-    (@pdf.lookup_direct(@pdf.empty(), "/Filter", obj) : @pdf.PdfObject?) {
+    (@pdf.lookup_direct(@pdf.Pdf::empty(), "/Filter", obj) : @pdf.PdfObject?) {
     Some(Array(filters)) => "\{filters.length()}"
     Some(Name(name)) => name
     None => ""

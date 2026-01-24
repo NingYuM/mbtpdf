@@ -45,7 +45,7 @@ fn assert_decode_parms(
 
 ///|
 fn roundtrip_predictor(pred : Predictor, pred_value : Int) -> Unit raise {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let original = @pdfio.bytes_of_string("abcdefghi")
   let dict = @pdf.PdfObject::Dictionary([
     ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(original))),

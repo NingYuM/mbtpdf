@@ -184,7 +184,7 @@ pub fn pdf_of_pages(
     }
     prefix_rev + kept
   }
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   @pdf.objiter((k, v) => @pdf.addobj_given_num(pdf, (k, v)), basepdf)
   let page_numbers = @pdf.page_reference_numbers(basepdf)
   let pdf : @pdf.Pdf = {

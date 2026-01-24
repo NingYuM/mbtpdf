@@ -46,7 +46,7 @@ fn font_with_difference(name : String) -> @pdf.PdfObject {
 
 ///|
 test "encoding tables include mac variants and filled standards" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let macroman_encoding = ctx.read_encoding(
     font_with_encoding_name("/MacRomanEncoding"),
@@ -65,7 +65,7 @@ test "encoding tables include mac variants and filled standards" {
 
 ///|
 test "reverse tables handle implicit and mac encodings" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let font_dict : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
@@ -91,7 +91,7 @@ test "reverse tables handle implicit and mac encodings" {
 
 ///|
 test "reverse table handles custom differences" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let encoding = @pdftext.PdfText::new(pdf).read_encoding(
     font_with_difference("/NotAGlyph"),
   )
@@ -103,7 +103,7 @@ test "reverse table handles custom differences" {
 test "text extractor handles missing glyph hashes" {
   let hashes = @pdfglyphlist.glyph_hashes()
   assert_true(hashes.get("/NotAGlyph") is None)
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let extractor = @pdftext.PdfText::new(pdf).text_extractor_of_font(
     font_with_difference("/NotAGlyph"),
   )
@@ -117,7 +117,7 @@ test "text extractor handles missing glyph hashes" {
 
 ///|
 test "charcode extractor uses tounicode bytes map" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let tounicode : Map[Int, String] = Map::new()
   tounicode.set(33, @pdfio.string_of_int_array([0x00, 0x42]))

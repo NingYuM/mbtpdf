@@ -27,7 +27,7 @@ async fn main {
       rotate: @pdfpage.Rotation::Rotate0,
       rest: @pdf.PdfObject::Dictionary([]),
     }
-    let (pdf, pageroot) = @pdfpage.add_pagetree([page], @pdf.empty())
+    let (pdf, pageroot) = @pdfpage.add_pagetree([page], @pdf.Pdf::empty())
     let pdf = @pdfpage.add_root(pageroot, [], pdf)
     @pdfwrite.pdf_to_file(pdf, "hello.pdf")
   } catch {

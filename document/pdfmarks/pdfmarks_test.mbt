@@ -79,7 +79,7 @@ test "remove_bookmarks clears outlines" {
 
 ///|
 test "transform_bookmark translates destination" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let mark : @pdfmarks.Bookmark = {
     level: 0,
     text: "Move",

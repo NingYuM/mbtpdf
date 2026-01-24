@@ -33,7 +33,7 @@ test "string_of_standard_font covers all names" {
 
 ///|
 test "string_of_fonttype covers variants" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let dummy : @pdf.PdfObject = Dictionary([])
   match ctx.simple_fonttype_of_string(dummy, "/Type1") {
@@ -65,7 +65,7 @@ test "string_of_fonttype covers variants" {
 
 ///|
 test "string_of_encoding covers variants" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let implicit_font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type1"))])
   assert_eq(encoding_string(pdf, implicit_font), "ImplicitInFontFile")
   let mac_font : @pdf.PdfObject = Dictionary([
@@ -114,7 +114,7 @@ test "string_of_encoding covers variants" {
 
 ///|
 test "string_of_simple_font formats details" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
@@ -142,7 +142,7 @@ test "string_of_simple_font formats details" {
 
 ///|
 test "string_of_font covers variants" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let standard_font : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),

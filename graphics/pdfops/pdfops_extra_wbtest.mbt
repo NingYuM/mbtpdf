@@ -29,7 +29,7 @@ test "string_of_op delegates to string_of_ops" {
 
 ///|
 test "parse_single_stream ignores comments and yields unknown" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_string("%c\ntrue false ZZ q Q")
   let ops = Op::parse_single_stream(pdf, resources, data)
@@ -40,7 +40,7 @@ test "parse_single_stream ignores comments and yields unknown" {
 
 ///|
 test "components handles extra branches and errors" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   assert_eq(Op::components(pdf, resources, Name("/CalCMYK")), 4)
   assert_eq(
@@ -92,7 +92,7 @@ test "components handles extra branches and errors" {
 
 ///|
 test "components handles /I alias" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   assert_eq(
     Op::components(pdf, resources, Array([Name("/I"), Name("/DeviceRGB")])),
@@ -102,7 +102,7 @@ test "components handles /I alias" {
 
 ///|
 test "components errors on array without name leader" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let res : Result[Int, Error] = try? Op::components(
     pdf,

@@ -1,6 +1,6 @@
 ///|
 test "nametree lookup" {
-  let pdf = empty()
+  let pdf = Pdf::empty()
   let names = PdfObject::Array([
     PdfObject::String("A"),
     PdfObject::Integer(1),
@@ -89,7 +89,7 @@ test "nametree lookup" {
   assert_is_err(try? nametree_lookup(pdf, PdfObject::String("A"), malformed))
   let bad_names = PdfObject::Dictionary([("/Names", PdfObject::Integer(1))])
   assert_is_err(try? nametree_lookup(pdf, PdfObject::String("A"), bad_names))
-  let kids_pdf = empty()
+  let kids_pdf = Pdf::empty()
   let kid1 = PdfObject::Dictionary([
     (
       "/Names",
@@ -135,7 +135,7 @@ test "nametree lookup" {
 
 ///|
 test "contents_of_nametree" {
-  let pdf = empty()
+  let pdf = Pdf::empty()
   let tree = PdfObject::Dictionary([
     (
       "/Names",

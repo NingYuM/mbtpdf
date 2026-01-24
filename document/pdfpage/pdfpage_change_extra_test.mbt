@@ -8,7 +8,7 @@ fn page_objnum(pdf : @pdf.Pdf, index : Int) -> Int raise {
 
 ///|
 fn build_two_page_pdf() -> @pdf.Pdf raise {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let pages = [
     @pdfpage.Page::blank(@pdfpaper.a4),
     @pdfpage.Page::blank(@pdfpaper.a4),

@@ -10,7 +10,7 @@ fn make_pdf_pages(count : Int) -> @pdf.Pdf raise {
   for _ in 0..<count {
     pages.push(@pdfpage.Page::custom(rect))
   }
-  let (pdf, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
+  let (pdf, pageroot) = @pdfpage.add_pagetree(pages, @pdf.Pdf::empty())
   @pdfpage.add_root(pageroot, [], pdf)
 }
 
@@ -194,7 +194,7 @@ test "merge_pdfs uses highest version and removes duplicates" {
 
 ///|
 test "remove_duplicate_fonts updates object_stream_ids" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(1))])
   let stream1 : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::Got([0x01]))),
@@ -212,7 +212,7 @@ test "remove_duplicate_fonts updates object_stream_ids" {
 
 ///|
 test "remove_duplicate_fonts keeps distinct stream lengths" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(1))])
   let stream1 : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::Got([0x01]))),

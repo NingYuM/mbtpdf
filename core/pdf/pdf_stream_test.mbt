@@ -1,6 +1,6 @@
 ///|
 test "streams and transforms" {
-  let pdf = empty()
+  let pdf = Pdf::empty()
   addobj_given_num(pdf, (1, PdfObject::Integer(7)))
   let input = @pdfio.input_of_string("abcd", source="stream")
   let t = ToGet::new(input, 0, 4)

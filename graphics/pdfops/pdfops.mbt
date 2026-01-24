@@ -568,7 +568,7 @@ fn string_of_lexeme(lexeme : Lexeme) -> String raise {
     Lexeme::PdfObj(obj) => @pdf.string_of_pdfobj(obj)
     Lexeme::LexInlineImage((dict, dp, data)) => {
       let dict_data = match
-        @pdf.lookup_direct_orelse(@pdf.empty(), "/F", "/Filter", dict) {
+        @pdf.lookup_direct_orelse(@pdf.Pdf::empty(), "/F", "/Filter", dict) {
         None | Some(@pdf.PdfObject::Array([])) => {
           let _ = dp
           let dict = @pdf.add_dict_entry(
@@ -591,7 +591,7 @@ fn string_of_lexeme(lexeme : Lexeme) -> String raise {
       let dict_string = @pdf.string_of_pdfobj(dict)
       let dict_body = strip_dict_markers(dict_string)
       let filters = match
-        @pdf.lookup_direct_orelse(@pdf.empty(), "/F", "/Filter", dict) {
+        @pdf.lookup_direct_orelse(@pdf.Pdf::empty(), "/F", "/Filter", dict) {
         Some(@pdf.PdfObject::Array(items)) => items
         Some(@pdf.PdfObject::Name(name)) => [@pdf.PdfObject::Name(name)]
         _ => []
@@ -990,7 +990,7 @@ fn lex_inline_image(
     }
     let bytes = bytewidth * height
     let filter_opt = @pdf.lookup_direct_orelse(
-      @pdf.empty(),
+      @pdf.Pdf::empty(),
       "/F",
       "/Filter",
       dict,
@@ -1127,7 +1127,7 @@ fn lex_inline_image(
       }
     }
     let dp = @pdf.lookup_direct_orelse(
-      @pdf.empty(),
+      @pdf.Pdf::empty(),
       "/DP",
       "/DecodeParms",
       dict,

@@ -300,7 +300,7 @@ pub fn change_pages(
   matrices? : Array[(Int, @pdftransform.TransformMatrix)],
   changes? : Array[(Int, Int)],
 ) -> @pdf.Pdf raise {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   @pdf.objiter((k, v) => @pdf.addobj_given_num(pdf, (k, v)), basepdf)
   copy_object_stream_ids(pdf, basepdf)
   let old_page_numbers = @pdf.page_reference_numbers(basepdf)

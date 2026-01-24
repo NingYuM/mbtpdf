@@ -39,14 +39,14 @@ fn renumber_page(rect : @pdf.PdfObject) -> @pdfpage.Page raise {
 
 ///|
 test "renumber_pages returns empty on no pages" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let updated = @pdfpage.renumber_pages(pdf, [])
   assert_eq(updated.length(), 0)
 }
 
 ///|
 test "renumber_pages renames resource operators consistently" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let rect : @pdf.PdfObject = Array([
     Real(0.0),
     Real(0.0),

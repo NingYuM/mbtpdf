@@ -27,7 +27,7 @@ fn type3_font_base(
 
 ///|
 test "read_type3_data validates matrix and charprocs" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let bad_len_matrix : @pdf.PdfObject = Array([
     Real(1.0),
@@ -65,7 +65,7 @@ test "read_type3_data validates matrix and charprocs" {
 
 ///|
 test "simple_fonttype_of_string and read_basefont defaults" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([])
   assert_true(ctx.simple_fonttype_of_string(font, "/Unknown") is None)
@@ -84,7 +84,7 @@ test "parse_charset handles invalid escapes" {
 
 ///|
 test "read_fontdescriptor reads font file references" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let null_obj : @pdf.PdfObject = Null
   let obj1 = @pdf.addobj(pdf, null_obj)
@@ -127,7 +127,7 @@ test "read_fontdescriptor reads font file references" {
 
 ///|
 test "read_metrics validates required keys" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let descriptor : @pdf.PdfObject = Dictionary([])
   let missing_first : @pdf.PdfObject = Dictionary([
@@ -191,7 +191,7 @@ test "read_metrics validates required keys" {
 
 ///|
 test "read_metrics accepts real widths" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let descriptor : @pdf.PdfObject = Dictionary([("/MissingWidth", Real(12.5))])
   let font : @pdf.PdfObject = Dictionary([
@@ -212,7 +212,7 @@ test "read_metrics accepts real widths" {
 
 ///|
 test "pairs_of_differences rejects malformed inputs" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let not_array : Result[@pdffont.Differences, Error] = try? ctx.pairs_of_differences(
     Name("/Bad"),
@@ -227,7 +227,7 @@ test "pairs_of_differences rejects malformed inputs" {
 
 ///|
 test "is_standard14font rejects non-name basefont" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
@@ -238,7 +238,7 @@ test "is_standard14font rejects non-name basefont" {
 
 ///|
 test "read_metrics rejects non-number width entries" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", Dictionary([])),
@@ -252,7 +252,7 @@ test "read_metrics rejects non-number width entries" {
 
 ///|
 test "is_embedded detects FontFile3" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", Dictionary([("/FontFile3", Null)])),
@@ -262,7 +262,7 @@ test "is_embedded detects FontFile3" {
 
 ///|
 test "is_symbolic errors when flags missing" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([("/FontDescriptor", Dictionary([]))])
   let res : Result[Bool, Error] = try? ctx.is_symbolic(font)
@@ -271,7 +271,7 @@ test "is_symbolic errors when flags missing" {
 
 ///|
 test "read_encoding handles TrueType differences and bad subtype" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let enc : @pdf.PdfObject = Dictionary([
     ("/BaseEncoding", Name("/WinAnsiEncoding")),
@@ -296,7 +296,7 @@ test "read_encoding handles TrueType differences and bad subtype" {
 
 ///|
 test "read_simple_font and standard14font error branches" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let missing_subtype : @pdf.PdfObject = Dictionary([])
   let res_simple : Result[@pdffont.Font, Error] = try? ctx.read_simple_font(
@@ -312,7 +312,7 @@ test "read_simple_font and standard14font error branches" {
 
 ///|
 test "read_cid_system_info and widths reject malformed input" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let bad_info : @pdf.PdfObject = Dictionary([("/Registry", String("Adobe"))])
   let info_res : Result[@pdffont.CIDSystemInfo, Error] = try? ctx.read_cid_system_info(
@@ -350,7 +350,7 @@ test "read_cid_system_info and widths reject malformed input" {
 
 ///|
 test "read_descendant and cidkeyed_font error paths" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let desc : @pdf.PdfObject = Dictionary([
     ("/BaseFont", Name("/CIDFont")),
@@ -372,7 +372,7 @@ test "read_descendant and cidkeyed_font error paths" {
 
 ///|
 test "find_tounicode returns none for simple fonts without descriptor" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let fontdict : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
@@ -388,7 +388,7 @@ test "find_tounicode returns none for simple fonts without descriptor" {
 
 ///|
 test "is_embedded and is_symbolic read flags and missing fontfiles" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", Dictionary([("/Flags", Integer(8))])),
@@ -399,7 +399,7 @@ test "is_embedded and is_symbolic read flags and missing fontfiles" {
 
 ///|
 test "read_encoding base encoding branches and implicit fallback" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let mac_expert : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
@@ -438,7 +438,7 @@ test "read_encoding base encoding branches and implicit fallback" {
 
 ///|
 test "read_simple_font rejects non-simple subtype" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type0"))])
   let res : Result[@pdffont.Font, Error] = try? ctx.read_simple_font(font)
@@ -447,7 +447,7 @@ test "read_simple_font rejects non-simple subtype" {
 
 ///|
 test "read_standard14font rejects unknown basefont" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([("/BaseFont", Name("/NotStandard"))])
   let res : Result[@pdffont.Font, Error] = try? ctx.read_standard14font(font)
@@ -456,7 +456,7 @@ test "read_standard14font rejects unknown basefont" {
 
 ///|
 test "read_cid_system_info rejects missing supplement" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let info : @pdf.PdfObject = Dictionary([
     ("/Registry", String("Adobe")),
@@ -484,7 +484,7 @@ test "read_cid_widths handles real values and ranges" {
 
 ///|
 test "read_descendant and cidkeyed_font missing basefont" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let desc : @pdf.PdfObject = Dictionary([
     (
@@ -513,7 +513,7 @@ test "read_descendant and cidkeyed_font missing basefont" {
 
 ///|
 test "read_cidkeyed_font rejects bad descendants and encoding streams" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let descendant : @pdf.PdfObject = Dictionary([
     (
@@ -553,7 +553,7 @@ test "read_cidkeyed_font rejects bad descendants and encoding streams" {
 
 ///|
 test "find_tounicode uses descriptor fields when present" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let fontdict : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),

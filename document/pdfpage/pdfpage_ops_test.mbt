@@ -16,7 +16,7 @@ fn ops_page_with_ops(ops : Array[@pdfops.Op]) -> @pdfpage.Page raise {
 
 ///|
 test "prepend_operators fast path inserts ops" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let base_ops : Array[@pdfops.Op] = [Opq, OpQ]
   let page = ops_page_with_ops(base_ops)
   let updated = page.prepend_operators(pdf, [Opw(2.0)], fast=true)
@@ -29,7 +29,7 @@ test "prepend_operators fast path inserts ops" {
 
 ///|
 test "postpend_operators fast path wraps ops" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let base_ops : Array[@pdfops.Op] = [OpBT, OpET]
   let page = ops_page_with_ops(base_ops)
   let updated = page.postpend_operators(pdf, [Opw(3.0)], fast=true)
@@ -43,7 +43,7 @@ test "postpend_operators fast path wraps ops" {
 
 ///|
 test "postpend_operators handles empty content" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let page = @pdfpage.Page::custom(ops_sample_rect())
   let updated = page.postpend_operators(pdf, [Opw(1.0)])
   let ops = @pdfops.Op::parse_operators(pdf, updated.resources, updated.content)

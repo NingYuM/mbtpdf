@@ -955,7 +955,7 @@ pub fn merge_pdfs(
   merge_pdfs_rename_name_trees(names, pdfs)
   let (major, minor) = max_version_number(pdfs)
   let pagelists = pdfs.map(pdf => @pdfpage.pages_of_pagetree(pdf))
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   fn select_pages(
     range : Array[Int],
     pagelist : Array[@pdfpage.Page],

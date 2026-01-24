@@ -18,7 +18,7 @@ fn prefix_resources() -> @pdf.PdfObject {
 
 ///|
 test "shortest_unused_prefix handles dense prefixes" {
-  let pdf0 = @pdf.empty()
+  let pdf0 = @pdf.Pdf::empty()
   let font_entries : Array[(String, @pdf.PdfObject)] = []
   for code in 'a'.to_int()..<='z'.to_int() {
     match code.to_char() {
@@ -46,7 +46,7 @@ test "shortest_unused_prefix handles dense prefixes" {
 
 ///|
 test "add_prefix rewrites resources and operators" {
-  let pdf0 = @pdf.empty()
+  let pdf0 = @pdf.Pdf::empty()
   let resources = prefix_resources()
   let ops_primary : Array[@pdfops.Op] = [
     OpTf("/F1", 12.0),
@@ -164,7 +164,7 @@ test "add_prefix rewrites resources and operators" {
 
 ///|
 test "add_prefix rewrites inline image colorspace names" {
-  let pdf0 = @pdf.empty()
+  let pdf0 = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([
     ("/ColorSpace", Dictionary([("/CS1", Name("/DeviceRGB"))])),
   ])
@@ -212,7 +212,7 @@ test "add_prefix rewrites inline image colorspace names" {
 
 ///|
 test "add_prefix handles filtered inline images with trailing ops" {
-  let pdf0 = @pdf.empty()
+  let pdf0 = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([
     ("/ColorSpace", Dictionary([("/CS1", Name("/DeviceRGB"))])),
   ])
@@ -263,7 +263,7 @@ test "add_prefix handles filtered inline images with trailing ops" {
 
 ///|
 test "add_prefix rejects blank resource names" {
-  let pdf0 = @pdf.empty()
+  let pdf0 = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([
     ("/Font", Dictionary([("", Null)])),
   ])
@@ -282,7 +282,7 @@ test "add_prefix rejects blank resource names" {
 
 ///|
 test "add_prefix handles single indirect contents" {
-  let pdf0 = @pdf.empty()
+  let pdf0 = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([
     ("/Font", Dictionary([("/F1", Null)])),
   ])
@@ -322,7 +322,7 @@ test "add_prefix handles single indirect contents" {
 
 ///|
 test "add_prefix keeps direct inline colorspace names" {
-  let pdf0 = @pdf.empty()
+  let pdf0 = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
     ("/H", Integer(1)),
@@ -367,7 +367,7 @@ test "add_prefix keeps direct inline colorspace names" {
 
 ///|
 test "add_prefix preserves inline colorspace arrays" {
-  let pdf0 = @pdf.empty()
+  let pdf0 = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
     ("/H", Integer(1)),
@@ -448,7 +448,7 @@ test "add_prefix merges non-iso content streams" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf1, pageroot) = @pdfpage.add_pagetree([page], @pdf.empty())
+  let (pdf1, pageroot) = @pdfpage.add_pagetree([page], @pdf.Pdf::empty())
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
   @pdfpage.add_prefix(pdf, "p")
   let pages = @pdfpage.pages_of_pagetree(pdf)

@@ -1,6 +1,6 @@
 ///|
 test "write_encoding covers mac and custom encodings" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let macroman_encoding = ctx.read_encoding(
     font_with_encoding_name("/MacRomanEncoding"),
@@ -49,7 +49,7 @@ test "write_encoding covers mac and custom encodings" {
 
 ///|
 test "write_font errors on unsupported fonts" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let simple_dict : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
@@ -147,7 +147,7 @@ fn type3_font_dict_extra(font_descriptor : Int?) -> @pdf.PdfObject {
 
 ///|
 test "write_font writes type3 font with encoding" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let fd = add_font_descriptor(pdf, None)
   let font_dict = type3_font_dict_extra(Some(fd))
@@ -165,7 +165,7 @@ test "write_font writes type3 font with encoding" {
 
 ///|
 test "write_font writes truetype with tounicode" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let fontfile = add_fontfile_stream(pdf)
   let fd = add_font_descriptor(pdf, Some(fontfile))
@@ -187,7 +187,7 @@ test "write_font writes truetype with tounicode" {
 
 ///|
 test "write_font writes truetype with encoding entry" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let fontfile = add_fontfile_stream(pdf)
   let fd = add_font_descriptor(pdf, Some(fontfile))
@@ -203,7 +203,7 @@ test "write_font writes truetype with encoding entry" {
 
 ///|
 test "write_font errors when truetype descriptor missing" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let font_dict = truetype_font_dict(None, "/WinAnsiEncoding", None)
   let font = ctx.read_font(font_dict)
@@ -213,7 +213,7 @@ test "write_font errors when truetype descriptor missing" {
 
 ///|
 test "write_font errors when truetype fontfile missing" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let fd = add_font_descriptor(pdf, None)
   let font_dict = truetype_font_dict(Some(fd), "/WinAnsiEncoding", None)

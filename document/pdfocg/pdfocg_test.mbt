@@ -94,7 +94,7 @@ test "read_ocg parses ocproperties" {
 
 ///|
 test "read_ocg raises without root" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let res : Result[@pdfocg.OcgProperties?, Error] = try? read_ocg(pdf)
   match res {
     Err(_) => ()

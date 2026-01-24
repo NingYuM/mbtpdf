@@ -10,7 +10,7 @@ fn pdf_of_pages_make_pdf(count : Int) -> @pdf.Pdf raise {
   for _ in 0..<count {
     pages.push(@pdfpage.Page::custom(rect))
   }
-  let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
+  let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.Pdf::empty())
   @pdfpage.add_root(pageroot, [], pdf0)
 }
 
@@ -145,7 +145,7 @@ test "pdf_of_pages trims structure tree" {
 
 ///|
 test "pdf_of_pages fails without root" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let res : Result[@pdf.Pdf, Error] = try? @pdfpage.pdf_of_pages(pdf, [1])
   match res {
     Err(_) => ()
@@ -155,7 +155,7 @@ test "pdf_of_pages fails without root" {
 
 ///|
 test "endpage_fast handles missing count" {
-  let pdf0 = @pdf.empty()
+  let pdf0 = @pdf.Pdf::empty()
   let rect = pdf_of_pages_rect()
   let page : @pdf.PdfObject = Dictionary([
     ("/Type", Name("/Page")),

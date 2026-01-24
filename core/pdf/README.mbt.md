@@ -73,14 +73,14 @@ pub(all) enum Stream {
 
 ```mbt nocheck
 ///|
-let pdf = @pdf.empty()
+let pdf = @pdf.Pdf::empty()
 // Creates PDF 2.0 with no objects
 ```
 
 ### Adding Objects
 
 ```mbt nocheck
-let pdf = @pdf.empty()
+let pdf = @pdf.Pdf::empty()
 
 // Add an object and get its number
 let objnum = @pdf.addobj(pdf, @pdf.PdfObject::Dictionary([
@@ -98,7 +98,7 @@ let objnum = @pdf.addobj(pdf, @pdf.PdfObject::Dictionary([
 ```mbt check
 ///|
 test "lookup_obj returns Null for missing objects" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   assert_true(@pdf.lookup_obj(pdf, 999) is Null)
 }
 ```
@@ -108,7 +108,7 @@ test "lookup_obj returns Null for missing objects" {
 ```mbt check
 ///|
 test "direct follows indirects" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let objnum = @pdf.addobj(pdf, @pdf.PdfObject::Integer(42))
   let indirect = @pdf.PdfObject::Indirect(objnum)
   guard @pdf.direct(pdf, indirect) is Integer(n) else {
@@ -123,7 +123,7 @@ test "direct follows indirects" {
 ```mbt check
 ///|
 test "lookup_direct finds keys" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict = @pdf.PdfObject::Dictionary([
     ("/Type", @pdf.PdfObject::Name("/Page")),
     ("/Count", @pdf.PdfObject::Integer(5)),
@@ -143,7 +143,7 @@ For deeply nested dictionaries, use `lookup_chain`:
 ```mbt check
 ///|
 test "lookup_chain navigates nested dicts" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let inner = @pdf.PdfObject::Dictionary([
     ("/Value", @pdf.PdfObject::Integer(100)),
   ])
@@ -274,7 +274,7 @@ match obj {
 ```mbt check
 ///|
 test "parse_rectangle" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let rect = @pdf.PdfObject::Array([
     @pdf.PdfObject::Real(0.0),
     @pdf.PdfObject::Real(0.0),

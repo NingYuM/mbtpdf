@@ -130,7 +130,7 @@ test "utf8 conversion helpers" {
 
 ///|
 test "encoding tables and extractors" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let encoding = ctx.read_encoding(win_ansi_font_dict())
   let table = @pdftext.table_of_encoding(encoding)
@@ -153,7 +153,7 @@ test "encoding tables and extractors" {
 
 ///|
 test "tounicode and cmap extraction" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let tounicode : Map[Int, String] = Map::new()
   tounicode.set(33, @pdfio.string_of_int_array([0x00, 0x42]))

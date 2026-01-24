@@ -1,6 +1,6 @@
 ///|
 test "process_xobjects updates form xobject stream" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let stream_dict : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Form")),
     ("/Filter", Name("/FlateDecode")),
@@ -58,7 +58,7 @@ test "process_xobjects updates form xobject stream" {
 
 ///|
 test "combine_pdf_resources merges known and keeps unknown" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let a : @pdf.PdfObject = Dictionary([
     ("/Font", Dictionary([("/F1", Null)])),
     ("/Foo", Integer(1)),

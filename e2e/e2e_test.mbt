@@ -1125,10 +1125,13 @@ async test "e2e merge preserves AcroForm entries" {
 ///|
 async test "e2e merge preserves /OCProperties" {
   let left_page = @pdfpage.Page::blank(@pdfpaper.a4)
-  let (left0, left_root) = @pdfpage.add_pagetree([left_page], @pdf.empty())
+  let (left0, left_root) = @pdfpage.add_pagetree([left_page], @pdf.Pdf::empty())
   let left = @pdfpage.add_root(left_root, [], left0)
   let right_page = @pdfpage.Page::blank(@pdfpaper.a4)
-  let (right0, right_root) = @pdfpage.add_pagetree([right_page], @pdf.empty())
+  let (right0, right_root) = @pdfpage.add_pagetree(
+    [right_page],
+    @pdf.Pdf::empty(),
+  )
   let right = @pdfpage.add_root(right_root, [], right0)
   add_ocg_properties(left, "LayerLeft")
   add_ocg_properties(right, "LayerRight")
@@ -1172,10 +1175,13 @@ async test "e2e merge preserves /OCProperties" {
 ///|
 async test "e2e merge preserves OCG configs" {
   let left_page = @pdfpage.Page::blank(@pdfpaper.a4)
-  let (left0, left_root) = @pdfpage.add_pagetree([left_page], @pdf.empty())
+  let (left0, left_root) = @pdfpage.add_pagetree([left_page], @pdf.Pdf::empty())
   let left = @pdfpage.add_root(left_root, [], left0)
   let right_page = @pdfpage.Page::blank(@pdfpaper.a4)
-  let (right0, right_root) = @pdfpage.add_pagetree([right_page], @pdf.empty())
+  let (right0, right_root) = @pdfpage.add_pagetree(
+    [right_page],
+    @pdf.Pdf::empty(),
+  )
   let right = @pdfpage.add_root(right_root, [], right0)
   add_ocg_properties_with_config(left, "LayerLeft", "ConfigLeft")
   add_ocg_properties_with_config(right, "LayerRight", "ConfigRight")
@@ -1227,13 +1233,16 @@ async test "e2e merge preserves OCG configs" {
 ///|
 async test "e2e merge preserves structure trees" {
   let left_page = @pdfpage.Page::blank(@pdfpaper.a4)
-  let (left0, left_root) = @pdfpage.add_pagetree([left_page], @pdf.empty())
+  let (left0, left_root) = @pdfpage.add_pagetree([left_page], @pdf.Pdf::empty())
   let left = @pdfpage.add_root(left_root, [], left0)
   let left_refs = @pdf.page_reference_numbers(left)
   assert_true(left_refs.length() > 0)
   add_struct_tree_root(left, left_refs[0], 0)
   let right_page = @pdfpage.Page::blank(@pdfpaper.a4)
-  let (right0, right_root) = @pdfpage.add_pagetree([right_page], @pdf.empty())
+  let (right0, right_root) = @pdfpage.add_pagetree(
+    [right_page],
+    @pdf.Pdf::empty(),
+  )
   let right = @pdfpage.add_root(right_root, [], right0)
   let right_refs = @pdf.page_reference_numbers(right)
   assert_true(right_refs.length() > 0)
@@ -2018,7 +2027,7 @@ async test "e2e page ops roundtrip" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf0, pageroot) = @pdfpage.add_pagetree([page], @pdf.empty())
+  let (pdf0, pageroot) = @pdfpage.add_pagetree([page], @pdf.Pdf::empty())
   let pdf = @pdfpage.add_root(pageroot, [], pdf0)
   let pages = @pdfpage.pages_of_pagetree(pdf)
   let updated = pages[0].postpend_operators(

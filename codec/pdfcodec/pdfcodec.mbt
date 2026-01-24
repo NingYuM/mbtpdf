@@ -47,7 +47,7 @@ async fn pdf_of_file_placeholder(
   _owner_password : String?,
   _filename : String,
 ) -> @pdf.Pdf {
-  @pdf.empty()
+  @pdf.Pdf::empty()
 }
 
 ///|
@@ -1269,7 +1269,7 @@ pub fn decode_from_bytes(
   bytes : @pdfio.MutableBytes,
   dict : @pdf.PdfObject,
 ) -> @pdfio.MutableBytes? {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let filter_opt = @pdf.lookup_direct_orelse(pdf, "/F", "/Filter", dict)
   let parms_opt = @pdf.lookup_direct_orelse(pdf, "/DP", "/DecodeParms", dict)
   fn parms_at(index : Int) -> @pdf.PdfObject? {

@@ -1,6 +1,6 @@
 ///|
 test "lookup_chain handles array keys" {
-  let pdf = empty()
+  let pdf = Pdf::empty()
   pdf.trailerdict = PdfObject::Dictionary([
     ("/A", PdfObject::Array([PdfObject::Integer(10), PdfObject::Integer(20)])),
   ])
@@ -13,7 +13,7 @@ test "lookup_chain handles array keys" {
 
 ///|
 test "replace_chain updates array elements" {
-  let pdf = empty()
+  let pdf = Pdf::empty()
   pdf.trailerdict = PdfObject::Dictionary([
     ("/A", PdfObject::Array([PdfObject::Integer(1), PdfObject::Integer(2)])),
   ])

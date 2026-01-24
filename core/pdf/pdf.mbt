@@ -173,7 +173,7 @@ pub fn pdfobjmap_bindings(
 
 ///|
 /// The empty document (PDF 2.0, no objects, no root, empty trailer dictionary).
-pub fn empty() -> Pdf {
+pub fn Pdf::empty() -> Pdf {
   {
     major: 2,
     minor: 0,

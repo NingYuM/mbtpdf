@@ -39,7 +39,7 @@ fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
   for i in 0..<count {
     pages.push(@pdfpage.Page::custom(rect))
   }
-  let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
+  let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.Pdf::empty())
   @pdfpage.add_root(pageroot, [], pdf0)
 }
 
@@ -193,7 +193,7 @@ test "write/read pagelabels roundtrip" {
     @pdfpage.Page::custom(rect),
     @pdfpage.Page::custom(rect),
   ]
-  let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
+  let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.Pdf::empty())
   let pdf = @pdfpage.add_root(pageroot, [], pdf0)
   let labels = [
     PageLabel::{

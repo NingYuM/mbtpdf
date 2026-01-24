@@ -33,7 +33,7 @@ fn assert_some_integer(obj : @pdf.PdfObject?, expected : Int) -> Unit raise {
 
 ///|
 fn make_basic_pdf() -> @pdf.Pdf {
-  let base = @pdf.empty()
+  let base = @pdf.Pdf::empty()
   let pages = @pdf.PdfObject::Dictionary([
     ("/Type", @pdf.PdfObject::Name("/Pages")),
     ("/Kids", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(2)])),

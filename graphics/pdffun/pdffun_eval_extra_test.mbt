@@ -19,7 +19,7 @@ fn assert_calc_err(ops : Array[Calculator]) -> Unit raise {
 
 ///|
 test "parse_function sampled order" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(0)),
     ("/Domain", Array([Real(0.0), Real(1.0)])),
@@ -40,7 +40,7 @@ test "parse_function sampled order" {
 
 ///|
 test "parse_function defaults c0 c1" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(2)),
     ("/Domain", Array([Real(0.0), Real(1.0)])),
@@ -60,7 +60,7 @@ test "parse_function defaults c0 c1" {
 
 ///|
 test "parse_function rejects bad bits per sample" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(0)),
     ("/Domain", Array([Real(0.0), Real(1.0)])),
@@ -280,7 +280,7 @@ test "pdfobject_of_function handles zero bps" {
     domain: [0.0, 1.0],
     range: Some([0.0, 1.0]),
   }
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let obj = fun.to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
     Stream(r) =>

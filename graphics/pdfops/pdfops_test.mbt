@@ -17,7 +17,9 @@ test "stream_of_ops builds a stream" {
     Stream(r) => {
       let (dict, contents) = r.val
       match
-        (@pdf.lookup_direct(@pdf.empty(), "/Length", dict) : @pdf.PdfObject?) {
+        (
+          @pdf.lookup_direct(@pdf.Pdf::empty(), "/Length", dict) :
+          @pdf.PdfObject?) {
         Some(Integer(length)) => assert_true(length > 0)
         _ => fail("expected /Length")
       }
@@ -36,7 +38,7 @@ test "stream_of_ops builds a stream" {
 
 ///|
 test "components resolves color spaces" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([
     ("/ColorSpace", Dictionary([("/MyCS", Name("/DeviceGray"))])),
   ])
@@ -89,7 +91,7 @@ test "components resolves color spaces" {
 
 ///|
 test "parse_single_stream reads basic ops" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_string("1 w q 0 0 m 10 0 l S Q")
   let ops = @pdfops.Op::parse_single_stream(pdf, resources, data)
@@ -106,7 +108,7 @@ test "parse_single_stream reads basic ops" {
 
 ///|
 test "parse_operators roundtrips stream_of_ops" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let ops_in : Array[@pdfops.Op] = [Opq, Opw(2.0), OpQ]
   let stream = @pdfops.Op::stream_of_ops(ops_in)
@@ -128,7 +130,7 @@ test "parse_operators roundtrips stream_of_ops" {
 
 ///|
 test "parse_stream concatenates multiple streams" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let ops = @pdfops.Op::parse_stream(pdf, resources, [
     @pdfio.bytes_of_string("q"),
@@ -147,7 +149,7 @@ test "parse_stream concatenates multiple streams" {
 
 ///|
 test "parse_operators handles diverse ops" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let ops : Array[@pdfops.Op] = [
     Opw(2.0),
@@ -266,7 +268,7 @@ test "string_of_ops renders inline image" {
 
 ///|
 test "parse_single_stream returns OpUnknown for bad ops" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_string("1 2 ZZ")
   let ops = @pdfops.Op::parse_single_stream(pdf, resources, data)

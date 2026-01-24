@@ -1,6 +1,6 @@
 ///|
 test "colspace uses image mask" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let image : @pdf.PdfObject = Dictionary([("/ImageMask", Boolean(true))])
   let space = @pdfimage.Image::colspace(pdf, image, resources)
@@ -12,7 +12,7 @@ test "colspace uses image mask" {
 
 ///|
 test "colspace resolves named resource" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([
     ("/ColorSpace", Dictionary([("/CS1", Name("/DeviceRGB"))])),
   ])
@@ -26,7 +26,7 @@ test "colspace resolves named resource" {
 
 ///|
 test "bpc returns component bits" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let image : @pdf.PdfObject = Dictionary([("/BPC", Integer(8))])
   match (@pdfimage.Image::bpc(pdf, image) : @pdf.PdfObject?) {
     Some(Integer(8)) => ()
@@ -36,7 +36,7 @@ test "bpc returns component bits" {
 
 ///|
 test "bpc defaults to image mask" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let image : @pdf.PdfObject = Dictionary([("/ImageMask", Boolean(true))])
   match (@pdfimage.Image::bpc(pdf, image) : @pdf.PdfObject?) {
     Some(Integer(1)) => ()
@@ -46,7 +46,7 @@ test "bpc defaults to image mask" {
 
 ///|
 test "bpc none when absent" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let image : @pdf.PdfObject = Dictionary([])
   match @pdfimage.Image::bpc(pdf, image) {
     None => ()
@@ -56,7 +56,7 @@ test "bpc none when absent" {
 
 ///|
 test "get_image_24bpp raw rgb" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_list([255, 0, 0, 0, 255, 0])
   let dict : @pdf.PdfObject = Dictionary([
@@ -85,7 +85,7 @@ test "get_image_24bpp raw rgb" {
 
 ///|
 test "get_image_24bpp applies decode for 1bpp" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_list([128])
   let dict : @pdf.PdfObject = Dictionary([
@@ -108,7 +108,7 @@ test "get_image_24bpp applies decode for 1bpp" {
 
 ///|
 test "get_image_24bpp applies decode for 8bpp" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_list([0, 255, 0])
   let dict : @pdf.PdfObject = Dictionary([
@@ -135,7 +135,7 @@ test "get_image_24bpp applies decode for 8bpp" {
 
 ///|
 test "get_image_24bpp returns jpeg for DCT filter" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_list([1, 2, 3, 4])
   let dict : @pdf.PdfObject = Dictionary([
@@ -161,7 +161,7 @@ test "get_image_24bpp returns jpeg for DCT filter" {
 
 ///|
 test "get_image_24bpp returns jpeg2000 for JPX filter" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_list([1, 2, 3])
   let dict : @pdf.PdfObject = Dictionary([
@@ -181,7 +181,7 @@ test "get_image_24bpp returns jpeg2000 for JPX filter" {
 
 ///|
 test "get_image_24bpp returns JBIG2 with globals" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let globals_obj : @pdf.PdfObject = Dictionary([])
   let globals = @pdf.addobj(pdf, globals_obj)
@@ -241,7 +241,7 @@ fn[T] assert_is_err(res : Result[T, Error]) -> Unit raise {
 
 ///|
 test "get_image_24bpp default decode for Lab" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let lab : @pdf.PdfObject = Array([
     Name("/Lab"),
@@ -273,7 +273,7 @@ test "get_image_24bpp default decode for Lab" {
 
 ///|
 test "get_image_24bpp default decode for ICCBased" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let icc_dict : @pdf.PdfObject = Dictionary([
     ("/N", Integer(3)),
@@ -304,7 +304,7 @@ test "get_image_24bpp default decode for ICCBased" {
 
 ///|
 test "get_image_24bpp default decode for DeviceN" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let tint = sample_tint_function().to_pdf_object(pdf)
   let colorspace : @pdf.PdfObject = Array([
@@ -331,7 +331,7 @@ test "get_image_24bpp default decode for DeviceN" {
 
 ///|
 test "get_image_24bpp decode ignored for indexed DCT" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let table = @pdfio.string_of_bytes(@pdfio.bytes_of_list([0, 0, 0]))
   let colorspace : @pdf.PdfObject = Array([
@@ -359,7 +359,7 @@ test "get_image_24bpp decode ignored for indexed DCT" {
 
 ///|
 test "get_image_24bpp default decode none for Pattern" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(1)),
@@ -379,7 +379,7 @@ test "get_image_24bpp default decode none for Pattern" {
 
 ///|
 test "get_image_24bpp converts gray to rgb" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_list([128])
   let dict : @pdf.PdfObject = Dictionary([
@@ -403,7 +403,7 @@ test "get_image_24bpp converts gray to rgb" {
 
 ///|
 test "get_image_24bpp converts cmyk to rgb" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_list([0, 0, 0, 0])
   let dict : @pdf.PdfObject = Dictionary([
@@ -427,7 +427,7 @@ test "get_image_24bpp converts cmyk to rgb" {
 
 ///|
 test "get_image_24bpp handles indexed RGB" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let table = @pdfio.string_of_bytes(@pdfio.bytes_of_list([0, 0, 0, 255, 0, 0]))
   let dict : @pdf.PdfObject = Dictionary([
@@ -455,7 +455,7 @@ test "get_image_24bpp handles indexed RGB" {
 
 ///|
 test "get_image_24bpp handles indexed CMYK" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let table = @pdfio.string_of_bytes(
     @pdfio.bytes_of_list([0, 0, 0, 255, 0, 0, 0, 0]),
@@ -485,7 +485,7 @@ test "get_image_24bpp handles indexed CMYK" {
 
 ///|
 test "get_image_24bpp handles indexed Lab" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let lab : @pdf.PdfObject = Array([
     Name("/Lab"),
@@ -512,7 +512,7 @@ test "get_image_24bpp handles indexed Lab" {
 
 ///|
 test "get_image_24bpp indexed rgb missing table entry" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let table = @pdfio.string_of_bytes(@pdfio.bytes_of_list([0, 0, 0]))
   let dict : @pdf.PdfObject = Dictionary([
@@ -534,7 +534,7 @@ test "get_image_24bpp indexed rgb missing table entry" {
 
 ///|
 test "get_image_24bpp handles 4bpp gray" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(2)),
@@ -557,7 +557,7 @@ test "get_image_24bpp handles 4bpp gray" {
 
 ///|
 test "get_image_24bpp rejects bad decode" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(1)),
@@ -576,7 +576,7 @@ test "get_image_24bpp rejects bad decode" {
 
 ///|
 test "get_image_24bpp handles ICCBased raw" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let icc_dict : @pdf.PdfObject = Dictionary([("/N", Integer(3))])
   let icc_stream : @pdf.PdfObject = Stream(
@@ -608,7 +608,7 @@ test "get_image_24bpp handles ICCBased raw" {
 
 ///|
 test "get_image_24bpp handles separation cmyk" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let tint = sample_cmyk_function().to_pdf_object(pdf)
   let colorspace : @pdf.PdfObject = Array([
@@ -634,7 +634,7 @@ test "get_image_24bpp handles separation cmyk" {
 
 ///|
 test "get_image_24bpp rejects bad separation function" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let tint = sample_tint_function().to_pdf_object(pdf)
   let colorspace : @pdf.PdfObject = Array([
@@ -656,7 +656,7 @@ test "get_image_24bpp rejects bad separation function" {
 
 ///|
 test "get_image_24bpp default decode for separation DCT" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let tint = sample_tint_function().to_pdf_object(pdf)
   let colorspace : @pdf.PdfObject = Array([
@@ -687,7 +687,7 @@ test "get_image_24bpp default decode for separation DCT" {
 
 ///|
 test "get_image_24bpp loads ToGet stream" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(1)),
@@ -711,7 +711,7 @@ test "get_image_24bpp loads ToGet stream" {
 
 ///|
 test "get_image_24bpp rejects missing width" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Height", Integer(1)),
@@ -735,7 +735,7 @@ fn make_indexed_colorspace(
 
 ///|
 test "get_image_24bpp raw with empty filter array" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_list([128])
   let dict : @pdf.PdfObject = Dictionary([
@@ -755,7 +755,7 @@ test "get_image_24bpp raw with empty filter array" {
 
 ///|
 test "get_image_24bpp accepts DCT filter array" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_list([4, 5, 6])
   let dict : @pdf.PdfObject = Dictionary([
@@ -775,7 +775,7 @@ test "get_image_24bpp accepts DCT filter array" {
 
 ///|
 test "get_image_24bpp rejects flate filter" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let raw = @pdfio.bytes_of_list([1, 2, 3])
   let encoded = @pdfcodec.encode_flate(raw)
@@ -794,7 +794,7 @@ test "get_image_24bpp rejects flate filter" {
 
 ///|
 test "get_image_24bpp indexed 8bpp rgb" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let colorspace = make_indexed_colorspace(Name("/DeviceRGB"), 1, [
     0, 0, 0, 255, 0, 0,
@@ -820,7 +820,7 @@ test "get_image_24bpp indexed 8bpp rgb" {
 
 ///|
 test "get_image_24bpp indexed 8bpp cmyk" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let colorspace = make_indexed_colorspace(Name("/DeviceCMYK"), 0, [0, 0, 0, 0])
   let dict : @pdf.PdfObject = Dictionary([
@@ -844,7 +844,7 @@ test "get_image_24bpp indexed 8bpp cmyk" {
 
 ///|
 test "get_image_24bpp indexed 4bpp rgb" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let colorspace = make_indexed_colorspace(Name("/DeviceRGB"), 1, [
     0, 0, 0, 255, 0, 0,
@@ -870,7 +870,7 @@ test "get_image_24bpp indexed 4bpp rgb" {
 
 ///|
 test "get_image_24bpp indexed 4bpp cmyk" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let colorspace = make_indexed_colorspace(Name("/DeviceCMYK"), 0, [0, 0, 0, 0])
   let dict : @pdf.PdfObject = Dictionary([
@@ -894,7 +894,7 @@ test "get_image_24bpp indexed 4bpp cmyk" {
 
 ///|
 test "get_image_24bpp indexed 4bpp rejects missing entry" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let colorspace = make_indexed_colorspace(Name("/DeviceRGB"), 1, [
     0, 0, 0, 255, 0, 0,
@@ -912,7 +912,7 @@ test "get_image_24bpp indexed 4bpp rejects missing entry" {
 
 ///|
 test "get_image_24bpp 4bpp gray decode no-op" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(2)),
@@ -936,7 +936,7 @@ test "get_image_24bpp 4bpp gray decode no-op" {
 
 ///|
 test "get_image_24bpp rejects odd decode length" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(1)),
@@ -952,7 +952,7 @@ test "get_image_24bpp rejects odd decode length" {
 
 ///|
 test "get_image_24bpp decode defaults to none without colorspace" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(1)),
@@ -971,7 +971,7 @@ test "get_image_24bpp decode defaults to none without colorspace" {
 
 ///|
 test "get_image_24bpp keeps decode when colorspace missing" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(1)),

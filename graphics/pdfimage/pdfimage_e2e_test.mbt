@@ -1,6 +1,6 @@
 ///|
 test "colspace and bpc handle image masks" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([("/ImageMask", Boolean(true))])
   let space = @pdfimage.Image::colspace(pdf, dict, Dictionary([]))
   match space {
@@ -15,7 +15,7 @@ test "colspace and bpc handle image masks" {
 
 ///|
 test "get_image_24bpp decodes raw rgb image" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Image")),
     ("/Width", Integer(1)),
@@ -39,7 +39,7 @@ test "get_image_24bpp decodes raw rgb image" {
 
 ///|
 test "get_image_24bpp applies decode for 1bpp" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Image")),
     ("/Width", Integer(1)),

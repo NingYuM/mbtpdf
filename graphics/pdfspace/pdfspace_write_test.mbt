@@ -6,7 +6,7 @@ fn assert_close(a : Double, b : Double) -> Unit raise {
 
 ///|
 test "write/read CalGray" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let space = @pdfspace.ColourSpace::CalGray(
     (1.0, 1.0, 1.0),
     (0.0, 0.0, 0.0),
@@ -27,7 +27,7 @@ test "write/read CalGray" {
 
 ///|
 test "write/read Indexed" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let table : Map[Int, Array[Int]] = Map::new()
   table.set(0, [0, 0, 0])
   table.set(1, [255, 255, 255])
@@ -58,7 +58,7 @@ test "write/read Indexed" {
 
 ///|
 test "write/read ICCBased" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_string("ICC")
   let stream_obj : @pdf.PdfObject = Stream(
@@ -102,7 +102,7 @@ fn sample_tint_function() -> @pdffun.PdfFunction {
 
 ///|
 test "write/read CalRGB" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let space = @pdfspace.ColourSpace::CalRGB(
     (1.0, 1.0, 1.0),
     (0.0, 0.0, 0.0),
@@ -123,7 +123,7 @@ test "write/read CalRGB" {
 
 ///|
 test "write/read Lab" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let space = @pdfspace.ColourSpace::Lab((1.0, 1.0, 1.0), (0.0, 0.0, 0.0), [
     -128.0, 127.0, -128.0, 127.0,
   ])
@@ -138,7 +138,7 @@ test "write/read Lab" {
 
 ///|
 test "write/read PatternWithBaseColourspace" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let space = @pdfspace.ColourSpace::PatternWithBaseColourspace(
     @pdfspace.ColourSpace::DeviceRGB,
   )
@@ -155,7 +155,7 @@ test "write/read PatternWithBaseColourspace" {
 
 ///|
 test "write/read Separation and name lookup" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let tint = sample_tint_function()
   let space = @pdfspace.ColourSpace::Separation(
     "Spot",
@@ -183,7 +183,7 @@ test "write/read Separation and name lookup" {
 
 ///|
 test "write/read DeviceN with attributes" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let tint = sample_tint_function()
   let attrs : @pdf.PdfObject = Dictionary([("/Subtype", Name("/NChannel"))])
   let space = @pdfspace.ColourSpace::DeviceN(

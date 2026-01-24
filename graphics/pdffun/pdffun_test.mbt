@@ -24,7 +24,7 @@ fn eval_calc(ops : Array[Calculator]) -> Array[Double] raise {
 
 ///|
 test "eval calculator function" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(4)),
     ("/Domain", Array([Real(0.0), Real(10.0)])),
@@ -64,7 +64,7 @@ test "serialize sampled function" {
     domain: [0.0, 1.0],
     range: Some([0.0, 1.0]),
   }
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let obj = fun.to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
     Stream(_) => ()
@@ -83,7 +83,7 @@ test "serialize calculator function" {
     domain: [0.0, 10.0],
     range: Some([0.0, 100.0]),
   }
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let obj = fun.to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
     Stream(_) => ()
@@ -97,7 +97,7 @@ test "serialize calculator function" {
 
 ///|
 test "parse sampled function stream" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(0)),
     ("/Domain", Array([Real(0.0), Real(1.0)])),
@@ -126,7 +126,7 @@ test "serialize interpolation function" {
     domain: [0.0, 1.0],
     range: Some([0.0, 2.0]),
   }
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let obj = fun.to_pdf_object(pdf)
   let parsed = PdfFunction::parse(pdf, obj)
   let output = PdfFunction::eval(parsed, [0.5])
@@ -155,7 +155,7 @@ test "serialize stitching function" {
     domain: [0.0, 1.0],
     range: Some([0.0, 2.0]),
   }
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let obj = fun.to_pdf_object(pdf)
   let parsed = PdfFunction::parse(pdf, obj)
   let out1 = PdfFunction::eval(parsed, [0.25])
@@ -202,7 +202,7 @@ test "serialize calculator covers opcode strings" {
     domain: [0.0, 1.0],
     range: None,
   }
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let obj = fun.to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
     Stream(r) =>
@@ -221,7 +221,7 @@ test "serialize calculator covers opcode strings" {
 
 ///|
 test "eval stitching function" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let f1 : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(2)),
     ("/Domain", Array([Real(0.0), Real(1.0)])),
@@ -340,7 +340,7 @@ test "parse calculator keywords from stream" {
   defer {
     @pdfe.logger.val = prev_logger
   }
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(4)),
     ("/Domain", Array([Real(0.0), Real(1.0)])),
@@ -393,7 +393,7 @@ test "parse calculator keywords from stream" {
 
 ///|
 test "parse calculator rejects multi-token group" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(4)),
     ("/Domain", Array([Real(0.0), Real(1.0)])),
@@ -645,7 +645,7 @@ test "calculator boolean and comparison ops" {
 
 ///|
 test "calculator if and ifelse parse" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict_if : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(4)),
     ("/Domain", Array([])),
@@ -725,7 +725,7 @@ test "parse function rejects bad inputs" {
   defer {
     @pdfe.logger.val = prev_logger
   }
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let bad_type : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(9)),
     ("/Domain", Array([])),
@@ -806,7 +806,7 @@ test "PdfFunction::print covers extra calculator strings" {
 
 ///|
 test "parse calculator keywords covers remaining ops" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(4)),
     ("/Domain", Array([])),
@@ -1034,7 +1034,7 @@ test "calculator comparisons across types" {
 
 ///|
 test "parse_function hits error branches" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let bad_domain : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(2)),
     ("/Domain", Integer(1)),

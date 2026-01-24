@@ -13,7 +13,7 @@ test "objmap basics" {
   let map0 = pdfobjmap_empty()
   assert_eq(pdfobjmap_bindings(map0).length(), 0)
   // Basic map operations are tested via the Pdf structure
-  let pdf = empty()
+  let pdf = Pdf::empty()
   addobj_given_num(pdf, (1, PdfObject::Null))
   addobj_given_num(pdf, (2, PdfObject::Integer(42)))
   assert_eq(objnumbers(pdf).length(), 2)
@@ -134,7 +134,7 @@ test "dictionary helpers" {
 
 ///|
 test "lookup and chains" {
-  let pdf = empty()
+  let pdf = Pdf::empty()
   addobj_given_num(pdf, (1, PdfObject::Integer(99)))
   addobj_given_num(
     pdf,
@@ -204,7 +204,7 @@ test "lookup and chains" {
     None => ()
     _ => fail("expected none")
   }
-  let pdf2 = empty()
+  let pdf2 = Pdf::empty()
   pdf2.trailerdict = PdfObject::Dictionary([
     ("/A", PdfObject::Array([PdfObject::Integer(1), PdfObject::Integer(2)])),
   ])
@@ -223,14 +223,14 @@ test "lookup and chains" {
   let dict_chain = ["/X", "/Y"]
   replace_chain(pdf2, dict_chain[:], PdfObject::Integer(7))
   assert_some_integer(lookup_chain(pdf2, pdf2.trailerdict, dict_chain[:]), 7)
-  let pdf_null = empty()
+  let pdf_null = Pdf::empty()
   pdf_null.trailerdict = PdfObject::Null
   replace_chain(pdf_null, ["/A", "/B"][:], PdfObject::Integer(1))
   assert_some_integer(
     lookup_chain(pdf_null, pdf_null.trailerdict, ["/A", "/B"][:]),
     1,
   )
-  let pdf_stream_replace = empty()
+  let pdf_stream_replace = Pdf::empty()
   pdf_stream_replace.trailerdict = make_stream(
     PdfObject::Dictionary([("/A", PdfObject::Integer(1))]),
     data,
@@ -261,7 +261,7 @@ test "lookup and chains" {
     lookup_direct_orelse(pdf, "/Missing", "/Alt", dict_alt),
     3,
   )
-  let pdf_parse = empty()
+  let pdf_parse = Pdf::empty()
   pdf_parse.objects.objects.set(10, (Ref::new(ObjectData::ToParse), 0))
   match lookup_obj(pdf_parse, 10) {
     PdfObject::Null => ()

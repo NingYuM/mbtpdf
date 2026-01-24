@@ -1,6 +1,6 @@
 ///|
 test "objects_referenced skips entries" {
-  let pdf = empty()
+  let pdf = Pdf::empty()
   let obj = PdfObject::Dictionary([
     ("/Skip", PdfObject::Indirect(1)),
     ("/Keep", PdfObject::Integer(2)),
@@ -11,7 +11,7 @@ test "objects_referenced skips entries" {
 
 ///|
 test "objects_referenced no_follow_contains non-name" {
-  let pdf = empty()
+  let pdf = Pdf::empty()
   let obj = PdfObject::Dictionary([
     ("/Other", PdfObject::Integer(3)),
     ("/Kid", PdfObject::Indirect(2)),
@@ -29,7 +29,7 @@ test "objects_referenced no_follow_contains non-name" {
 
 ///|
 test "objects_referenced no_follow_contains name match" {
-  let pdf = empty()
+  let pdf = Pdf::empty()
   let dict = PdfObject::Dictionary([
     ("/Other", PdfObject::Name("/Other")),
     ("/Type", PdfObject::Name("/Page")),
@@ -48,7 +48,7 @@ test "objects_referenced no_follow_contains name match" {
 
 ///|
 test "objects_referenced indirect and stream targets" {
-  let pdf = empty()
+  let pdf = Pdf::empty()
   addobj_given_num(pdf, (5, PdfObject::Integer(99)))
   let stream = make_stream(
     PdfObject::Dictionary([("/Ref", PdfObject::Indirect(5))]),

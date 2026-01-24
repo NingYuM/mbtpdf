@@ -70,7 +70,7 @@ test "textwidth handles missing widths and kerning" {
   let (_, widths, kerns, widths_by_name) = @pdfstandard14.afm_data(font)
   assert_true(widths.get(999) is None)
   assert_true(kerns.get((999, 998)) is None)
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let implicit_font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type1"))])
   let implicit_encoding = ctx.read_encoding(implicit_font)
@@ -97,7 +97,7 @@ test "textwidth handles missing widths and kerning" {
 ///|
 test "textwidth handles empty string and unicode fallback" {
   let font = @pdffont.StandardFont::Helvetica
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let winansi_font : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Type1")),
@@ -114,7 +114,7 @@ test "textwidth handles empty string and unicode fallback" {
 ///|
 test "textwidth applies kerning for standard fonts" {
   let font = @pdffont.StandardFont::TimesRoman
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let implicit_font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type1"))])
   let encoding = ctx.read_encoding(implicit_font)

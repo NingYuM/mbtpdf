@@ -162,7 +162,7 @@ test "merge_pdfs retain numbering toggles path" {
 
 ///|
 test "remove_duplicate_fonts merges identical streams" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(2))])
   let data1 : Array[Byte] = [0x01, 0x02]
   let data2 : Array[Byte] = [0x01, 0x02]
@@ -183,7 +183,7 @@ test "remove_duplicate_fonts merges identical streams" {
 
 ///|
 test "remove_duplicate_fonts keeps distinct streams" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(1))])
   let dict_alt : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(1)),

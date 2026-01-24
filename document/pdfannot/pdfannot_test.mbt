@@ -14,7 +14,7 @@ fn[T] assert_is_err(res : Result[T, Error]) -> Unit raise {
 
 ///|
 test "annotation border dash array" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let rect : @pdf.PdfObject = Array([
     Real(0.0),
     Real(0.0),
@@ -43,7 +43,7 @@ test "annotation border dash array" {
 
 ///|
 test "add_annotation and read back" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let rect : @pdf.PdfObject = Array([
     Real(0.0),
     Real(0.0),
@@ -84,7 +84,7 @@ test "add_annotation and read back" {
 
 ///|
 test "transform_annotations updates rect and quadpoints" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let annot_dict : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Link")),
     ("/Rect", Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)])),
@@ -141,7 +141,7 @@ test "transform_annotations updates rect and quadpoints" {
 
 ///|
 test "annotations_of_page skips popup parent" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let rect : @pdf.PdfObject = Array([
     Real(0.0),
     Real(0.0),
@@ -184,7 +184,7 @@ test "annotations_of_page skips popup parent" {
 
 ///|
 test "read_annotation uses /BS style" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let rect : @pdf.PdfObject = Array([
     Real(0.0),
     Real(0.0),
@@ -226,7 +226,7 @@ test "read_annotation uses /BS style" {
 
 ///|
 test "read_annotation parses styles and extras" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let rect : @pdf.PdfObject = Array([
     Real(0.0),
     Real(0.0),
@@ -315,7 +315,7 @@ test "read_annotation parses styles and extras" {
 
 ///|
 test "read_annotation handles unknown subtype and missing strings" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let rect : @pdf.PdfObject = Array([
     Real(0.0),
     Real(0.0),
@@ -371,7 +371,7 @@ test "annotations_of_page handles non-array and add_annotation rejects" {
     rotate: base.rotate,
     rest: Dictionary([("/Annots", Null)]),
   }
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let annots = @pdfannot.annotations_of_page(pdf, page)
   assert_eq(annots.length(), 0)
   let annot = @pdfannot.make(@pdfannot.Subtype::Text)
@@ -380,7 +380,7 @@ test "annotations_of_page handles non-array and add_annotation rejects" {
 
 ///|
 test "transform_annotations keeps malformed quadpoints" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let annot_dict : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Link")),
     ("/Rect", Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)])),
@@ -416,7 +416,7 @@ test "transform_annotations keeps malformed quadpoints" {
 
 ///|
 test "read_annotation handles more subtypes and popup fallback" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let rect : @pdf.PdfObject = Array([
     Real(0.0),
     Real(0.0),
@@ -477,7 +477,7 @@ test "read_annotation handles more subtypes and popup fallback" {
 
 ///|
 test "read_annotation covers border styles and dash array" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let rect : @pdf.PdfObject = Array([
     Real(0.0),
     Real(0.0),
@@ -533,7 +533,7 @@ test "read_annotation covers border styles and dash array" {
 
 ///|
 test "add_annotation merges existing annots and extras" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let rect : @pdf.PdfObject = Array([
     Real(0.0),
     Real(0.0),
@@ -598,13 +598,13 @@ test "annotations_of_page errors on non-dictionary annots" {
     rotate: base.rotate,
     rest: Dictionary([("/Annots", Array([Integer(1)]))]),
   }
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   assert_is_err(try? @pdfannot.annotations_of_page(pdf, page))
 }
 
 ///|
 test "transform_annotations leaves non-array quadpoints" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let annot_dict : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name("/Link")),
     ("/Rect", Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)])),

@@ -36,7 +36,7 @@ async test "extract text SFAA Japanese" {
 ///|
 fn build_unicode_pdf() -> @pdf.Pdf raise {
   let codepoints : Array[Int] = [0x4f60, 0x597d, 0x4e16, 0x754c, 0x263a]
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let text = utf16be_of_codepoints(codepoints)
   let font : @pdf.PdfObject = Dictionary([
     ("/Type", Name("/Font")),
@@ -124,7 +124,7 @@ test "extract text handles text ops and arrays" {
     OpET,
   ]
   let page = extract_test_page(ops, Dictionary([]))
-  let pdf = add_pages_to_pdf([page], @pdf.empty())
+  let pdf = add_pages_to_pdf([page], @pdf.Pdf::empty())
   let pages = @pdftext.PdfText::new(pdf).extract_text_by_page()
   assert_eq(pages.length(), 1)
   assert_eq(pages[0], "A\nB\nC\nD\nE\nF")
@@ -142,7 +142,7 @@ test "extract text handles invalid unicode and missing xobjects" {
     OpDo("/NoXObject"),
   ]
   let page = extract_test_page(ops, Dictionary([]))
-  let pdf = add_pages_to_pdf([page], @pdf.empty())
+  let pdf = add_pages_to_pdf([page], @pdf.Pdf::empty())
   let pages = @pdftext.PdfText::new(pdf).extract_text_by_page()
   assert_eq(pages.length(), 1)
   let bytes = @pdfio.int_array_of_bytes(@pdfio.bytes_of_string(pages[0]))
@@ -151,7 +151,7 @@ test "extract text handles invalid unicode and missing xobjects" {
 
 ///|
 test "extract text visits xobjects once" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let form_indirect = form_xobject_stream("X1")
   let form_indirect_id = @pdf.addobj(pdf, form_indirect)
   let form_direct = form_xobject_stream("X2")
@@ -202,7 +202,7 @@ test "extract text ignores missing or invalid fonts" {
   let page1 = extract_test_page(ops_missing_font, Dictionary([]))
   let page2 = extract_test_page(ops_bad_font, resources_bad)
   let page3 = extract_test_page(ops_unknown_font, resources_bad)
-  let pdf = add_pages_to_pdf([page1, page2, page3], @pdf.empty())
+  let pdf = add_pages_to_pdf([page1, page2, page3], @pdf.Pdf::empty())
   let pages = @pdftext.PdfText::new(pdf).extract_text_by_page()
   assert_eq(pages.length(), 3)
   assert_eq(pages[0], "A")
@@ -218,7 +218,7 @@ test "extract text falls back for odd identity-h text bytes" {
   ])
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F1", 12.0), OpTj("A"), OpET]
   let page = extract_test_page(ops, resources)
-  let pdf = add_pages_to_pdf([page], @pdf.empty())
+  let pdf = add_pages_to_pdf([page], @pdf.Pdf::empty())
   let pages = @pdftext.PdfText::new(pdf).extract_text_by_page()
   assert_eq(pages.length(), 1)
   assert_eq(pages[0], "A")

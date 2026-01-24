@@ -69,7 +69,7 @@ test "ccitt g4 roundtrip" {
 
 ///|
 test "encode_pdfstream ccitt g3 roundtrip" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let columns = 8
   let rows = 2
   let rows_bits = [[1, 1, 1, 1, 0, 0, 1, 0], [1, 0, 1, 0, 1, 0, 1, 0]]
@@ -106,7 +106,7 @@ test "encode_pdfstream ccitt g3 roundtrip" {
 
 ///|
 test "encode_pdfstream ccitt g4 roundtrip" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let columns = 8
   let rows = 2
   let rows_bits = [[1, 0, 1, 0, 1, 0, 1, 0], [1, 1, 0, 0, 1, 1, 0, 0]]

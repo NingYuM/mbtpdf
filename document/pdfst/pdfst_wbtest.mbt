@@ -4,7 +4,7 @@ fn build_two_page_pdf() -> @pdf.Pdf raise {
     @pdfpage.Page::blank(@pdfpaper.a4),
     @pdfpage.Page::blank(@pdfpaper.a4),
   ]
-  let (pdf, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
+  let (pdf, pageroot) = @pdfpage.add_pagetree(pages, @pdf.Pdf::empty())
   @pdfpage.add_root(pageroot, [], pdf)
 }
 
@@ -16,7 +16,7 @@ fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
     pages.push(@pdfpage.Page::blank(@pdfpaper.a4))
     i = i + 1
   }
-  let (pdf, pageroot) = @pdfpage.add_pagetree(pages, @pdf.empty())
+  let (pdf, pageroot) = @pdfpage.add_pagetree(pages, @pdf.Pdf::empty())
   @pdfpage.add_root(pageroot, [], pdf)
 }
 
@@ -229,7 +229,7 @@ test "renumber_parent_trees remaps struct parents" {
 
 ///|
 test "merge_structure_trees returns none" {
-  let pdf = @pdf.empty()
+  let pdf = @pdf.Pdf::empty()
   let input = build_two_page_pdf()
   match merge_structure_trees(pdf, [input]) {
     None => ()
@@ -239,7 +239,7 @@ test "merge_structure_trees returns none" {
 
 ///|
 test "merge_structure_trees returns single root" {
-  let pdf_out = @pdf.empty()
+  let pdf_out = @pdf.Pdf::empty()
   let pdf = build_two_page_pdf()
   let root_num = install_struct_root(pdf, Dictionary([]))
   match merge_structure_trees(pdf_out, [pdf]) {
@@ -250,7 +250,7 @@ test "merge_structure_trees returns single root" {
 
 ///|
 test "merge_structure_trees merges roots" {
-  let pdf_out = @pdf.empty()
+  let pdf_out = @pdf.Pdf::empty()
   let pdf1 = build_page_pdf(1)
   let pdf2 = build_page_pdf(1)
   let page_refs1 = @pdf.page_reference_numbers(pdf1)

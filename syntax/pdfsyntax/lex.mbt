@@ -479,7 +479,7 @@ pub fn lex_stream(
         }
       }
 
-      match @pdf.lookup_direct(@pdf.empty(), "/Length", parsed) {
+      match @pdf.lookup_direct(@pdf.Pdf::empty(), "/Length", parsed) {
         None => lex_malformed_stream_data(input)
         Some(v) =>
           match findlength(v) {
