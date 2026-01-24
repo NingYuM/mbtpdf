@@ -309,7 +309,7 @@ fn add_ocg_properties_with_config(
 
 ///|
 fn read_ocg_names(pdf : @pdf.Pdf) -> Array[String] raise {
-  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = pdf.catalog_of_pdf()
   let ocprops = match pdf.lookup_direct("/OCProperties", catalog) {
     Some(obj) => obj
     None => fail("missing /OCProperties")
@@ -336,7 +336,7 @@ fn read_ocg_names(pdf : @pdf.Pdf) -> Array[String] raise {
 
 ///|
 fn read_ocg_config_names(pdf : @pdf.Pdf) -> Array[String] raise {
-  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = pdf.catalog_of_pdf()
   let ocprops = match pdf.lookup_direct("/OCProperties", catalog) {
     Some(obj) => obj
     None => fail("missing /OCProperties")
@@ -359,7 +359,7 @@ fn read_ocg_config_names(pdf : @pdf.Pdf) -> Array[String] raise {
 
 ///|
 fn read_ocg_on_count(pdf : @pdf.Pdf) -> Int raise {
-  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = pdf.catalog_of_pdf()
   let ocprops = match pdf.lookup_direct("/OCProperties", catalog) {
     Some(obj) => obj
     None => fail("missing /OCProperties")
@@ -403,7 +403,7 @@ fn add_struct_tree_root(
 
 ///|
 fn read_parent_tree_keys(pdf : @pdf.Pdf) -> Array[String] raise {
-  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = pdf.catalog_of_pdf()
   let struct_root = match pdf.lookup_direct("/StructTreeRoot", catalog) {
     Some(obj) => obj
     None => fail("missing /StructTreeRoot")
@@ -461,7 +461,7 @@ fn read_name_tree_entries(
   pdf : @pdf.Pdf,
   key : String,
 ) -> Array[(String, @pdf.PdfObject)] raise {
-  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = pdf.catalog_of_pdf()
   let names = match pdf.lookup_direct("/Names", catalog) {
     Some(obj) => obj
     None => fail("missing /Names dictionary")
@@ -479,7 +479,7 @@ fn read_named_destination(
   pdf : @pdf.Pdf,
   name : String,
 ) -> @pdfdest.Destination raise {
-  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = pdf.catalog_of_pdf()
   let names = match pdf.lookup_direct("/Names", catalog) {
     Some(obj) => obj
     None => fail("missing /Names dictionary")
@@ -1074,7 +1074,7 @@ async test "e2e merge preserves AcroForm entries" {
     process_struct_trees=true,
     add_toplevel_document=false,
   )
-  let catalog = @pdf.catalog_of_pdf(merged)
+  let catalog = merged.catalog_of_pdf()
   let form = match merged.lookup_direct("/AcroForm", catalog) {
     Some(obj) => obj
     None => fail("missing /AcroForm")
@@ -1095,7 +1095,7 @@ async test "e2e merge preserves AcroForm entries" {
   let out_path = OUTPUT_DIR + "/merged_acroform.pdf"
   write_pdf(out_path, merged)
   let parsed = read_pdf(out_path)
-  let parsed_catalog = @pdf.catalog_of_pdf(parsed)
+  let parsed_catalog = parsed.catalog_of_pdf()
   let parsed_form = match parsed.lookup_direct("/AcroForm", parsed_catalog) {
     Some(obj) => obj
     None => fail("missing parsed /AcroForm")

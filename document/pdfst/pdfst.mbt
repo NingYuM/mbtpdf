@@ -117,20 +117,17 @@ pub fn PdfStructTree::trim_structure_tree(
   let remove_set = set_of_ints(page_objnums_to_remove)
   let del : Ref[Array[Int]] = { val: [] }
   let replaceobjs : Ref[Array[(Int, @pdf.PdfObject)]] = { val: [] }
-  @pdf.objiter(
-    (n, o) => match pdf.direct(o) {
-      @pdf.PdfObject::Dictionary(d) =>
-        match @pdf.PdfObject::Dictionary(d).lookup_immediate("/Pg") {
-          Some(@pdf.PdfObject::Indirect(i)) =>
-            if remove_set.get(i) is Some(_) {
-              del.val.push(n)
-            }
-          _ => ()
-        }
-      _ => ()
-    },
-    pdf,
-  )
+  pdf.objiter((n, o) => match pdf.direct(o) {
+    @pdf.PdfObject::Dictionary(d) =>
+      match @pdf.PdfObject::Dictionary(d).lookup_immediate("/Pg") {
+        Some(@pdf.PdfObject::Indirect(i)) =>
+          if remove_set.get(i) is Some(_) {
+            del.val.push(n)
+          }
+        _ => ()
+      }
+    _ => ()
+  })
   fn survives(obj : @pdf.PdfObject) -> Bool {
     match obj {
       @pdf.PdfObject::Indirect(i) => {
@@ -200,20 +197,17 @@ pub fn PdfStructTree::trim_structure_tree(
       pdf.addobj_given_num(pair)
     }
     replaceobjs.val = []
-    @pdf.objiter(
-      (n, o) => match pdf.direct(o) {
-        @pdf.PdfObject::Dictionary(d) =>
-          match @pdf.PdfObject::Dictionary(d).lookup_immediate("/K") {
-            Some(@pdf.PdfObject::Integer(_)) => ()
-            Some(@pdf.PdfObject::Indirect(i)) =>
-              process_indirect(d, [@pdf.PdfObject::Indirect(i)], n)
-            Some(@pdf.PdfObject::Array(objs)) => process_indirect(d, objs, n)
-            _ => ()
-          }
-        _ => ()
-      },
-      pdf,
-    )
+    pdf.objiter((n, o) => match pdf.direct(o) {
+      @pdf.PdfObject::Dictionary(d) =>
+        match @pdf.PdfObject::Dictionary(d).lookup_immediate("/K") {
+          Some(@pdf.PdfObject::Integer(_)) => ()
+          Some(@pdf.PdfObject::Indirect(i)) =>
+            process_indirect(d, [@pdf.PdfObject::Indirect(i)], n)
+          Some(@pdf.PdfObject::Array(objs)) => process_indirect(d, objs, n)
+          _ => ()
+        }
+      _ => ()
+    })
   }
 }
 
@@ -285,7 +279,7 @@ pub fn PdfStructTrees::renumber_parent_trees(
 
   for i, pdf in pdfs {
     let pdfn = i + 1
-    @pdf.objselfmap(obj => rewrite(pdfn, mapping, obj), pdf)
+    pdf.objselfmap(obj => rewrite(pdfn, mapping, obj))
   }
   let renumbered = Array::new(capacity=parent_trees.length())
   for i, tree in parent_trees {
@@ -425,7 +419,7 @@ pub fn PdfStructTree::merge_structure_trees(
   let struct_tree_roots = Array::new()
   let struct_tree_objnums = Array::new()
   for pdf_in in pdfs {
-    let catalog = @pdf.catalog_of_pdf(pdf_in)
+    let catalog = pdf_in.catalog_of_pdf()
     match pdf_in.lookup_direct("/StructTreeRoot", catalog) {
       None => ()
       Some(root) => {

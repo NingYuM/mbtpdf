@@ -9,13 +9,10 @@ fn[T] assert_is_err(res : Result[T, Error]) -> Unit raise {
 ///|
 fn count_streams(pdf : @pdf.Pdf) -> Int {
   let mut count = 0
-  @pdf.objiter(
-    (_, obj) => match (obj : @pdf.PdfObject) {
-      Stream(_) => count = count + 1
-      _ => ()
-    },
-    pdf,
-  )
+  pdf.objiter((_, obj) => match (obj : @pdf.PdfObject) {
+    Stream(_) => count = count + 1
+    _ => ()
+  })
   count
 }
 
@@ -25,7 +22,7 @@ fn set_catalog_entry(
   key : String,
   value : @pdf.PdfObject,
 ) -> Unit raise {
-  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = pdf.catalog_of_pdf()
   let updated = catalog.add_entry(key, value)
   pdf.addobj_given_num((pdf.root, updated))
 }
@@ -72,32 +69,29 @@ fn lookup_entry(
 ///|
 fn collect_dest_strings(pdf : @pdf.Pdf) -> Array[String] {
   let out = Array::new()
-  @pdf.objiter(
-    (_, obj) => match (obj : @pdf.PdfObject) {
-      Dictionary(entries) => {
-        match lookup_entry(entries, "/Dest") {
-          Some(String(s)) => out.push(s)
-          _ => ()
-        }
-        match lookup_entry(entries, "/S") {
-          Some(Name("/GoTo")) =>
-            match lookup_entry(entries, "/D") {
-              Some(String(s)) => out.push(s)
-              _ => ()
-            }
-          _ => ()
-        }
+  pdf.objiter((_, obj) => match (obj : @pdf.PdfObject) {
+    Dictionary(entries) => {
+      match lookup_entry(entries, "/Dest") {
+        Some(String(s)) => out.push(s)
+        _ => ()
       }
-      _ => ()
-    },
-    pdf,
-  )
+      match lookup_entry(entries, "/S") {
+        Some(Name("/GoTo")) =>
+          match lookup_entry(entries, "/D") {
+            Some(String(s)) => out.push(s)
+            _ => ()
+          }
+        _ => ()
+      }
+    }
+    _ => ()
+  })
   out
 }
 
 ///|
 fn read_dest_names(pdf : @pdf.Pdf) -> Array[String] raise {
-  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = pdf.catalog_of_pdf()
   let names_dict = match pdf.lookup_direct("/Names", catalog) {
     Some(obj) => obj
     None => fail("missing /Names")
@@ -310,7 +304,7 @@ test "merge_pdfs merges dests ocg and acroform" {
     process_struct_trees=false,
     add_toplevel_document=false,
   )
-  let catalog = @pdf.catalog_of_pdf(merged)
+  let catalog = merged.catalog_of_pdf()
   match merged.lookup_direct("/Dests", catalog) {
     Some(Dictionary(entries)) => {
       assert_true(lookup_entry(entries, "/A") is Some(_))

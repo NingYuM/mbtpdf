@@ -238,7 +238,7 @@ fn change_pages_process_annotations(
 
 ///|
 fn rewrite_openaction(pdf : @pdf.Pdf, action : @pdf.PdfObject) -> Unit raise {
-  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = pdf.catalog_of_pdf()
   let updated = catalog.add_entry("/OpenAction", action)
   pdf.addobj_given_num((pdf.root, updated))
 }
@@ -249,7 +249,7 @@ fn change_pages_process_openaction(
   refnumstable : Map[Int, Int],
   pdf : @pdf.Pdf,
 ) -> Unit raise {
-  match pdf.lookup_direct("/OpenAction", @pdf.catalog_of_pdf(pdf)) {
+  match pdf.lookup_direct("/OpenAction", pdf.catalog_of_pdf()) {
     Some(@pdf.PdfObject::Array(dest)) =>
       match
         rewrite_dest(pdf, mattable, refnumstable, @pdf.PdfObject::Array(dest)) {
@@ -303,7 +303,7 @@ pub fn PdfPageDoc::change_pages(
 ) -> @pdf.Pdf raise {
   let basepdf = self.pdf
   let pdf = @pdf.Pdf::empty()
-  @pdf.objiter((k, v) => pdf.addobj_given_num((k, v)), basepdf)
+  basepdf.objiter((k, v) => pdf.addobj_given_num((k, v)))
   copy_object_stream_ids(pdf, basepdf)
   let old_page_numbers = @pdf.page_reference_numbers(basepdf)
   let (pdf, pagetree_num) = PdfPageDoc::new(pdf).add_pagetree(pages)
@@ -347,10 +347,7 @@ pub fn PdfPageDoc::change_pages(
       }
     }
     let changes_map = map_of_pairs(changes)
-    @pdf.objselfmap(
-      obj => @pdf.renumber_object_parsed(pdf, changes_map, obj),
-      pdf,
-    )
+    pdf.objselfmap(obj => @pdf.renumber_object_parsed(pdf, changes_map, obj))
     match matrices {
       None => pdf
       Some(matpairs) => {

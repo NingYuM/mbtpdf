@@ -9,14 +9,11 @@ async fn main {
   let out_file = args[2]
   try {
     let pdf = @pdfread.PdfRead::new().pdf_of_file(None, None, in_file)
-    @pdf.objiter(
-      (_, obj) => match obj {
-        @pdf.PdfObject::Stream(_) =>
-          @pdfcodec.PdfCodec::new().decode_pdfstream_until_unknown(pdf, obj)
-        _ => ()
-      },
-      pdf,
-    )
+    pdf.objiter((_, obj) => match obj {
+      @pdf.PdfObject::Stream(_) =>
+        @pdfcodec.PdfCodec::new().decode_pdfstream_until_unknown(pdf, obj)
+      _ => ()
+    })
     @pdfwrite.PdfWrite::new().pdf_to_file(pdf, out_file)
   } catch {
     err => {

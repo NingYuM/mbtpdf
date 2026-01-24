@@ -232,13 +232,10 @@ fn stream_compare(pdf : @pdf.Pdf, x : Int, y : Int) -> Int {
 pub fn PdfMergeDoc::remove_duplicate_fonts(self : PdfMergeDoc) -> Unit {
   let pdf = self.pdf
   let streamobjs = Array::new()
-  @pdf.objiter(
-    (objnum, obj) => match obj {
-      @pdf.PdfObject::Stream(_) => streamobjs.push(objnum)
-      _ => ()
-    },
-    pdf,
-  )
+  pdf.objiter((objnum, obj) => match obj {
+    @pdf.PdfObject::Stream(_) => streamobjs.push(objnum)
+    _ => ()
+  })
   let sorted = streamobjs
   sorted.sort_by((a, b) => stream_compare(pdf, a, b))
   let groups = collate(sorted, (a, b) => stream_compare(pdf, a, b))
@@ -277,7 +274,7 @@ pub fn PdfMergeDoc::remove_duplicate_fonts(self : PdfMergeDoc) -> Unit {
 fn new_dests(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int? raise {
   let dests = Array::new()
   for src in pdfs {
-    let catalog = @pdf.catalog_of_pdf(src)
+    let catalog = src.catalog_of_pdf()
     match src.lookup_direct("/Dests", catalog) {
       Some(@pdf.PdfObject::Dictionary(d)) => dests.push(d)
       _ => ()
@@ -334,7 +331,7 @@ fn merge_namedicts(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int raise {
   for name in names {
     let trees_for_name = Array::new()
     for src in pdfs {
-      let catalog = @pdf.catalog_of_pdf(src)
+      let catalog = src.catalog_of_pdf()
       match src.lookup_direct("/Names", catalog) {
         Some(dict) =>
           match src.lookup_direct(name, dict) {
@@ -369,7 +366,7 @@ fn merge_bookmarks(
   try {
     let tree_ctx = @pdftree.PdfTree::new(pdf)
     let dest_nametree = {
-      let catalog = @pdf.catalog_of_pdf(pdf)
+      let catalog = pdf.catalog_of_pdf()
       let oldstyle = match pdf.lookup_direct("/Dests", catalog) {
         Some(d) => tree_ctx.read_name_tree(d)
         _ => []
@@ -628,7 +625,7 @@ fn apply_namechanges_to_destination_nametree(
     @pdf.PdfObject::Dictionary(updated)
   }
 
-  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = pdf.catalog_of_pdf()
   match pdf.lookup_direct("/Names", catalog) {
     Some(@pdf.PdfObject::Dictionary(d)) =>
       match lookup("/Dests", d) {
@@ -710,7 +707,7 @@ fn apply_namechanges_at_destination_callsites(
     }
   }
 
-  @pdf.objselfmap(f, pdf)
+  pdf.objselfmap(f)
   pdf.trailerdict = f(pdf.trailerdict)
 }
 
@@ -724,7 +721,7 @@ fn merge_pdfs_rename_name_trees(
   let groups = collate(pairs, (a, b) => String::compare(a.0, b.0))
   let unique_pdfs = groups.map(group => group[0].1)
   let pdfs_and_nametrees = unique_pdfs.map(pdf => {
-    let catalog = @pdf.catalog_of_pdf(pdf)
+    let catalog = pdf.catalog_of_pdf()
     match pdf.lookup_direct("/Names", catalog) {
       Some(d) =>
         match pdf.lookup_direct("/Dests", d) {
@@ -776,7 +773,7 @@ fn catalog_items_from_original_documents(
 ) -> Array[(String, @pdf.PdfObject)] raise {
   let out : Array[(String, @pdf.PdfObject)] = Array::new()
   for pdf in pdfs {
-    match @pdf.catalog_of_pdf(pdf) {
+    match pdf.catalog_of_pdf() {
       @pdf.PdfObject::Dictionary(entries) =>
         for entry in entries {
           let mut replaced = false
@@ -875,7 +872,7 @@ fn merge_optional_content_groups(
 ) -> Int? raise {
   let ocp_dicts = Array::new()
   for src in pdfs {
-    match src.lookup_direct("/OCProperties", @pdf.catalog_of_pdf(src)) {
+    match src.lookup_direct("/OCProperties", src.catalog_of_pdf()) {
       Some(obj) => ocp_dicts.push(obj)
       None => ()
     }
@@ -907,7 +904,7 @@ fn merge_optional_content_groups(
 fn merge_acroforms(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int? raise {
   let form_dicts = Array::new()
   for src in pdfs {
-    match src.lookup_direct("/AcroForm", @pdf.catalog_of_pdf(src)) {
+    match src.lookup_direct("/AcroForm", src.catalog_of_pdf()) {
       Some(obj) => form_dicts.push(obj)
       None => ()
     }
@@ -1007,7 +1004,7 @@ pub fn PdfMerger::merge_pdfs(
     pages.append(selected[:])
   }
   for src in pdfs {
-    @pdf.objiter((k, v) => pdf.addobj_given_num((k, v)), src)
+    src.objiter((k, v) => pdf.addobj_given_num((k, v)))
   }
   let (pdf, pagetree_num) = @pdfpage.PdfPageDoc::new(pdf).add_pagetree(pages)
   let page_labels = if retain_numbering {
@@ -1119,15 +1116,12 @@ pub fn PdfMerger::merge_pdfs(
   for pair in changes {
     changes_map.set(pair.0, pair.1)
   }
-  @pdf.objselfmap(
-    obj => @pdf.renumber_object_parsed(
-      pdf,
-      changes_map,
-      obj,
-      preserve_order=false,
-    ),
+  pdf.objselfmap(obj => @pdf.renumber_object_parsed(
     pdf,
-  )
+    changes_map,
+    obj,
+    preserve_order=false,
+  ))
   let pdf : @pdf.Pdf = {
     major,
     minor,

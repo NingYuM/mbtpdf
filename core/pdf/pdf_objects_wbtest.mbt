@@ -36,12 +36,12 @@ test "lookup helpers and catalog" {
   assert_eq(dict_non_indirect.find_indirect("/A"), None)
   assert_is_err(try? PdfObject::Integer(1).find_indirect("/A"))
   let catalog_pdf = make_basic_pdf()
-  match catalog_of_pdf(catalog_pdf) {
+  match catalog_pdf.catalog_of_pdf() {
     PdfObject::Dictionary(_) => ()
     _ => fail("expected catalog")
   }
   let missing = Pdf::empty()
-  assert_is_err(try? catalog_of_pdf(missing))
+  assert_is_err(try? missing.catalog_of_pdf())
 }
 
 ///|
@@ -61,38 +61,32 @@ test "recurse and iterators" {
     _ => fail("expected array")
   }
   let seen = Ref::new(([] : Array[Int]))
-  objiter((num, _obj) => seen.val.push(num), pdf)
+  pdf.objiter((num, _) => seen.val.push(num))
   assert_eq(seen.val, [1, 2])
   let seen_gen = Ref::new(([] : Array[(Int, Int)]))
-  objiter_gen((num, gen, _obj) => seen_gen.val.push((num, gen)), pdf)
+  pdf.objiter_gen((num, gen, _) => seen_gen.val.push((num, gen)))
   assert_eq(seen_gen.val, [(1, 0), (2, 0)])
   let seen_inorder = Ref::new(([] : Array[Int]))
-  objiter_inorder((num, _obj) => seen_inorder.val.push(num), pdf)
+  pdf.objiter_inorder((num, _) => seen_inorder.val.push(num))
   assert_eq(seen_inorder.val, [1, 2])
   pdf.objects.objects.set(
     3,
     ({ val: ObjectData::ParsedAlreadyDecrypted(PdfObject::Integer(5)) }, 0),
   )
-  objselfmap(
-    obj => match obj {
-      PdfObject::Integer(v) => PdfObject::Integer(v + 1)
-      _ => obj
-    },
-    pdf,
-  )
+  pdf.objselfmap(obj => match obj {
+    PdfObject::Integer(v) => PdfObject::Integer(v + 1)
+    _ => obj
+  })
   assert_integer(pdf.lookup_obj(3), 6)
   let stream = make_stream(
     PdfObject::Dictionary([]),
     @pdfio.bytes_of_string("x"),
   )
   pdf.addobj_given_num((4, stream))
-  let selected = objselect(
-    obj => match obj {
-      PdfObject::Integer(_) => true
-      _ => false
-    },
-    pdf,
-  )
+  let selected = pdf.objselect(obj => match obj {
+    PdfObject::Integer(_) => true
+    _ => false
+  })
   assert_true(selected.contains(1))
 }
 

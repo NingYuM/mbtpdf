@@ -207,8 +207,7 @@ test "remove_dict_entry" {
 ### Iterating All Objects
 
 ```mbt nocheck
-@pdf.objiter(
-  fn(objnum, obj) {
+obj.objiter(fn(objnum) {
     println("Object \{objnum}: \{obj}")
   },
   pdf,
@@ -221,9 +220,9 @@ test "remove_dict_entry" {
 // Find all page objects
 
 ///|
-let page_nums = @pdf.objselect(
+let page_nums = obj.objselect(
   fn(obj) {
-    match pdf.lookup_direct("/Type", obj) {
+    match pdf.lookup_direct("/Type") {
       Some(Name("/Page")) => true
       _ => false
     }
@@ -236,13 +235,11 @@ let page_nums = @pdf.objselect(
 
 ```mbt nocheck
 // Apply a transformation to every object
-@pdf.objselfmap(
-  fn(obj) {
+pdf,
+.objselfmap(fn(obj) {
     // Return transformed object
     obj
-  },
-  pdf,
-)
+  })
 ```
 
 ## Stream Operations

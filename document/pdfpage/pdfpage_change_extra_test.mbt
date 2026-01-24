@@ -23,7 +23,7 @@ fn set_catalog_entry(
   key : String,
   value : @pdf.PdfObject,
 ) -> Unit raise {
-  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = pdf.catalog_of_pdf()
   let updated = catalog.add_entry(key, value)
   pdf.addobj_given_num((pdf.root, updated))
 }
@@ -176,7 +176,7 @@ test "change_pages rewrites bookmarks annotations and openaction" {
     matrices~,
   )
   assert_eq(@pdfpage.PdfPageDoc::new(updated).pages_of_pagetree_quick(), 2)
-  let catalog = @pdf.catalog_of_pdf(updated)
+  let catalog = updated.catalog_of_pdf()
   match (updated.lookup_direct("/OpenAction", catalog) : @pdf.PdfObject?) {
     Some(Dictionary(entries)) =>
       match entries.search_by(pair => pair.0 == "/D") {
@@ -206,7 +206,7 @@ test "change_pages keeps array openaction for identity matrices" {
     pages,
     matrices~,
   )
-  let catalog = @pdf.catalog_of_pdf(updated)
+  let catalog = updated.catalog_of_pdf()
   match (updated.lookup_direct("/OpenAction", catalog) : @pdf.PdfObject?) {
     Some(Array(_)) => ()
     _ => fail("expected array /OpenAction")

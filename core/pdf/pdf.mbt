@@ -1059,8 +1059,9 @@ pub fn PdfObject::find_indirect(self : PdfObject, key : String) -> Int? raise {
 
 ///|
 /// Return the document catalog.
-pub fn catalog_of_pdf(pdf : Pdf) -> PdfObject raise {
-  let obj = pdf.lookup_obj(pdf.root)
+#as_free_fn(catalog_of_pdf, deprecated="Use Pdf::catalog_of_pdf instead")
+pub fn Pdf::catalog_of_pdf(self : Pdf) -> PdfObject raise {
+  let obj = self.lookup_obj(self.root)
   match obj {
     Null => raise PdfError::Msg("No catalog")
     _ => obj
@@ -1093,50 +1094,57 @@ fn recurse_dict(
 
 ///|
 /// Iterate over all objects in a document.
-pub fn objiter(f : (Int, PdfObject) -> Unit raise?, pdf : Pdf) -> Unit raise? {
-  let entries = pdf.objects.objects.to_array()
+#as_free_fn(objiter, deprecated="Use Pdf::objiter instead")
+pub fn Pdf::objiter(
+  self : Pdf,
+  f : (Int, PdfObject) -> Unit raise?,
+) -> Unit raise? {
+  let entries = self.objects.objects.to_array()
   entries.sort_by((a, b) => a.0 - b.0)
   for entry in entries {
     let key = entry.0
-    f(key, pdf.lookup_obj(key))
+    f(key, self.lookup_obj(key))
   }
 }
 
 ///|
 /// Iterate over all objects in a document, ordered by object number.
-pub fn objiter_inorder(
+#as_free_fn(objiter_inorder, deprecated="Use Pdf::objiter_inorder instead")
+pub fn Pdf::objiter_inorder(
+  self : Pdf,
   f : (Int, PdfObject) -> Unit raise?,
-  pdf : Pdf,
 ) -> Unit raise? {
-  objiter(f, pdf)
+  self.objiter(f)
 }
 
 ///|
 /// Iterate over all objects in a document with generation numbers.
-pub fn objiter_gen(
+#as_free_fn(objiter_gen, deprecated="Use Pdf::objiter_gen instead")
+pub fn Pdf::objiter_gen(
+  self : Pdf,
   f : (Int, Int, PdfObject) -> Unit raise?,
-  pdf : Pdf,
 ) -> Unit raise? {
-  let entries = pdf.objects.objects.to_array()
+  let entries = self.objects.objects.to_array()
   entries.sort_by((a, b) => a.0 - b.0)
   for entry in entries {
     let key = entry.0
     let (_obj_ref, gen) = entry.1
-    f(key, gen, pdf.lookup_obj(key))
+    f(key, gen, self.lookup_obj(key))
   }
 }
 
 ///|
 /// Map a function over all objects in a document.
-pub fn objselfmap(
+#as_free_fn(objselfmap, deprecated="Use Pdf::objselfmap instead")
+pub fn Pdf::objselfmap(
+  self : Pdf,
   f : (PdfObject) -> PdfObject raise?,
-  pdf : Pdf,
 ) -> Unit raise? {
-  let entries = pdf.objects.objects.to_array()
+  let entries = self.objects.objects.to_array()
   entries.sort_by((a, b) => a.0 - b.0)
   for entry in entries {
     let key = entry.0
-    let obj = pdf.lookup_obj(key)
+    let obj = self.lookup_obj(key)
     let updated = f(obj)
     let (obj_ref, _gen) = entry.1
     match obj_ref.val {
@@ -1148,12 +1156,13 @@ pub fn objselfmap(
 
 ///|
 /// Select objects matching a predicate and return their numbers.
-pub fn objselect(
+#as_free_fn(objselect, deprecated="Use Pdf::objselect instead")
+pub fn Pdf::objselect(
+  self : Pdf,
   f : (PdfObject) -> Bool raise?,
-  pdf : Pdf,
 ) -> Array[Int] raise? {
   let out = Array::new()
-  objiter((num, obj) => if f(obj) { out.push(num) }, pdf)
+  self.objiter((num, obj) => if f(obj) { out.push(num) })
   out
 }
 
@@ -1313,17 +1322,14 @@ fn nullify_deleted_page_references(pdf : Pdf) -> Unit raise {
   }
 
   let page_object_numbers = Array::new()
-  objiter(
-    (objnum, obj) => match obj {
-      Dictionary(_) =>
-        match pdf.lookup_direct("/Type", obj) {
-          Some(Name("/Page")) => page_object_numbers.push(objnum)
-          _ => ()
-        }
-      _ => ()
-    },
-    pdf,
-  )
+  pdf.objiter((objnum, obj) => match obj {
+    Dictionary(_) =>
+      match pdf.lookup_direct("/Type", obj) {
+        Some(Name("/Page")) => page_object_numbers.push(objnum)
+        _ => ()
+      }
+    _ => ()
+  })
   let refnums = page_reference_numbers(pdf)
   if refnums.length() != page_object_numbers.length() {
     let table = Map::new()
@@ -1333,7 +1339,7 @@ fn nullify_deleted_page_references(pdf : Pdf) -> Unit raise {
     for num in refnums {
       table.remove(num)
     }
-    objselfmap(obj => nullify(table, obj), pdf)
+    pdf.objselfmap(obj => nullify(table, obj))
   }
 }
 

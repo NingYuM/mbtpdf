@@ -36,7 +36,7 @@ fn assert_close(a : Double, b : Double) -> Unit raise {
 
 ///|
 fn outlines_root(pdf : @pdf.Pdf) -> @pdf.PdfObject raise {
-  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = pdf.catalog_of_pdf()
   match pdf.lookup_direct("/Outlines", catalog) {
     Some(obj) => obj
     None => fail("expected /Outlines")

@@ -190,7 +190,7 @@ pub fn PdfPageDoc::pdf_of_pages(
     prefix_rev + kept
   }
   let pdf = @pdf.Pdf::empty()
-  @pdf.objiter((k, v) => pdf.addobj_given_num((k, v)), basepdf)
+  basepdf.objiter((k, v) => pdf.addobj_given_num((k, v)))
   let page_numbers = @pdf.page_reference_numbers(basepdf)
   let pdf : @pdf.Pdf = {
     major: basepdf.major,
@@ -230,21 +230,18 @@ pub fn PdfPageDoc::pdf_of_pages(
     0,
   )
   let objnumbers_set = range_to_set(objnumbers)
-  @pdf.objiter(
-    (i, o) => match o {
-      @pdf.PdfObject::Dictionary(_) =>
-        match pdf.lookup_direct("/Type", o) {
-          Some(@pdf.PdfObject::Name("/Pages")) => pdf.removeobj(i)
-          Some(@pdf.PdfObject::Name("/Page")) =>
-            if objnumbers_set.get(i) is None {
-              pdf.removeobj(i)
-            }
-          _ => ()
-        }
-      _ => ()
-    },
-    pdf,
-  )
+  pdf.objiter((i, o) => match o {
+    @pdf.PdfObject::Dictionary(_) =>
+      match pdf.lookup_direct("/Type", o) {
+        Some(@pdf.PdfObject::Name("/Pages")) => pdf.removeobj(i)
+        Some(@pdf.PdfObject::Name("/Page")) =>
+          if objnumbers_set.get(i) is None {
+            pdf.removeobj(i)
+          }
+        _ => ()
+      }
+    _ => ()
+  })
   let new_pagetree = pdf_of_pages_build_pagetree(thetree, objnumbers, pdf)
   pdf.addobj_given_num((old_pagetree_root_num, new_pagetree))
   let pdf = PdfPageDoc::new(pdf).add_root(

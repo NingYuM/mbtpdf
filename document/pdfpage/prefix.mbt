@@ -44,33 +44,28 @@ fn names_used(pdf : @pdf.Pdf) -> Array[String] {
     }
   }
 
-  @pdf.objiter(
-    fn(_n : Int, obj : @pdf.PdfObject) -> Unit {
-      match obj {
-        @pdf.PdfObject::Dictionary(_) | @pdf.PdfObject::Stream(_) =>
-          match pdf.lookup_direct("/Type", obj) {
-            Some(@pdf.PdfObject::Name("/Page"))
-            | Some(@pdf.PdfObject::Name("/Pages")) =>
-              match pdf.lookup_direct("/Resources", obj) {
-                Some(resources) =>
-                  for key in resource_keys {
-                    match pdf.lookup_direct(key, resources) {
-                      Some(@pdf.PdfObject::Dictionary(d)) =>
-                        for entry in d {
-                          names.push(unslash(entry.0))
-                        }
-                      _ => ()
+  pdf.objiter((_, obj) => match obj {
+    @pdf.PdfObject::Dictionary(_) | @pdf.PdfObject::Stream(_) =>
+      match pdf.lookup_direct("/Type", obj) {
+        Some(@pdf.PdfObject::Name("/Page"))
+        | Some(@pdf.PdfObject::Name("/Pages")) =>
+          match pdf.lookup_direct("/Resources", obj) {
+            Some(resources) =>
+              for key in resource_keys {
+                match pdf.lookup_direct(key, resources) {
+                  Some(@pdf.PdfObject::Dictionary(d)) =>
+                    for entry in d {
+                      names.push(unslash(entry.0))
                     }
-                  }
-                _ => ()
+                  _ => ()
+                }
               }
             _ => ()
           }
         _ => ()
       }
-    },
-    pdf,
-  )
+    _ => ()
+  })
   names.sort()
   names.dedup()
   names
@@ -207,169 +202,158 @@ fn fix_stream(
 ///|
 fn add_prefix_impl(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
   let fixed_streams : Map[Int, Unit] = Map::new()
-  @pdf.objselfmap(
-    fn(obj : @pdf.PdfObject) -> @pdf.PdfObject raise {
-      match obj {
-        @pdf.PdfObject::Dictionary(dict) =>
-          match pdf.lookup_direct("/Type", obj) {
-            Some(@pdf.PdfObject::Name("/Page"))
-            | Some(@pdf.PdfObject::Name("/Pages")) => {
-              let (resources, resources_updated) = match
-                pdf.lookup_direct("/Resources", obj) {
-                Some(res) =>
-                  (Some(res), Some(change_resources(pdf, prefix, res)))
-                None => (None, None)
-              }
-              let resources_obj = match resources {
-                Some(res) => res
-                None => @pdf.PdfObject::Dictionary([])
-              }
-              match dict.search_by(pair => pair.0 == "/Contents") {
-                Some(index) =>
-                  match dict[index].1 {
-                    @pdf.PdfObject::Indirect(_) =>
-                      fix_stream(
-                        pdf,
-                        resources_obj,
-                        prefix,
-                        fixed_streams,
-                        dict[index].1,
-                      )
-                    @pdf.PdfObject::Array(a) => {
-                      if a.length() > 1 {
-                        try {
-                          for c in a {
-                            let direct = pdf.direct(c)
-                            @pdfcodec.PdfCodec::new().decode_pdfstream(
-                              pdf, direct,
-                            )
-                            direct.getstream()
-                            let bytes = match direct {
-                              @pdf.PdfObject::Stream(r) =>
-                                match r.val {
-                                  (_, @pdf.Stream::Got(data)) => data
-                                  _ =>
-                                    raise @pdf.PdfError::Msg(
-                                      "add_prefix: bad stream",
-                                    )
-                                }
-                              _ =>
-                                raise @pdf.PdfError::Msg(
-                                  "add_prefix: bad stream",
-                                )
-                            }
-                            ignore(
-                              @pdfops.Op::parse_single_stream(
-                                pdf, resources_obj, bytes,
-                              ),
-                            )
+  pdf.objselfmap(fn(obj : @pdf.PdfObject) -> @pdf.PdfObject raise {
+    match obj {
+      @pdf.PdfObject::Dictionary(dict) =>
+        match pdf.lookup_direct("/Type", obj) {
+          Some(@pdf.PdfObject::Name("/Page"))
+          | Some(@pdf.PdfObject::Name("/Pages")) => {
+            let (resources, resources_updated) = match
+              pdf.lookup_direct("/Resources", obj) {
+              Some(res) => (Some(res), Some(change_resources(pdf, prefix, res)))
+              None => (None, None)
+            }
+            let resources_obj = match resources {
+              Some(res) => res
+              None => @pdf.PdfObject::Dictionary([])
+            }
+            match dict.search_by(pair => pair.0 == "/Contents") {
+              Some(index) =>
+                match dict[index].1 {
+                  @pdf.PdfObject::Indirect(_) =>
+                    fix_stream(
+                      pdf,
+                      resources_obj,
+                      prefix,
+                      fixed_streams,
+                      dict[index].1,
+                    )
+                  @pdf.PdfObject::Array(a) => {
+                    if a.length() > 1 {
+                      try {
+                        for c in a {
+                          let direct = pdf.direct(c)
+                          @pdfcodec.PdfCodec::new().decode_pdfstream(
+                            pdf, direct,
+                          )
+                          direct.getstream()
+                          let bytes = match direct {
+                            @pdf.PdfObject::Stream(r) =>
+                              match r.val {
+                                (_, @pdf.Stream::Got(data)) => data
+                                _ =>
+                                  raise @pdf.PdfError::Msg(
+                                    "add_prefix: bad stream",
+                                  )
+                              }
+                            _ =>
+                              raise @pdf.PdfError::Msg("add_prefix: bad stream")
                           }
-                        } catch {
-                          _ => {
-                            @pdfe.Pdfe::new().log(
-                              "add_prefix: non-ISO PDF detected streams detected. Fixing...\n",
-                            )
-                            raise AddPrefixError::NonIso
-                          }
+                          ignore(
+                            @pdfops.Op::parse_single_stream(
+                              pdf, resources_obj, bytes,
+                            ),
+                          )
+                        }
+                      } catch {
+                        _ => {
+                          @pdfe.Pdfe::new().log(
+                            "add_prefix: non-ISO PDF detected streams detected. Fixing...\n",
+                          )
+                          raise AddPrefixError::NonIso
                         }
                       }
-                      for c in a {
-                        fix_stream(pdf, resources_obj, prefix, fixed_streams, c)
-                      }
                     }
-                    _ => ()
+                    for c in a {
+                      fix_stream(pdf, resources_obj, prefix, fixed_streams, c)
+                    }
                   }
-                None => ()
-              }
-              match resources_updated {
-                Some(updated) => obj.add_entry("/Resources", updated)
-                None => obj
-              }
+                  _ => ()
+                }
+              None => ()
             }
-            _ => obj
+            match resources_updated {
+              Some(updated) => obj.add_entry("/Resources", updated)
+              None => obj
+            }
           }
-        _ => obj
-      }
-    },
-    pdf,
-  )
+          _ => obj
+        }
+      _ => obj
+    }
+  })
 }
 
 ///|
 fn merge_content_streams(pdf : @pdf.Pdf) -> Unit raise {
-  @pdf.objselfmap(
-    fn(obj : @pdf.PdfObject) -> @pdf.PdfObject raise {
-      match obj {
-        @pdf.PdfObject::Dictionary(dict) =>
-          match pdf.lookup_direct("/Type", obj) {
-            Some(@pdf.PdfObject::Name("/Page"))
-            | Some(@pdf.PdfObject::Name("/Pages")) =>
-              match dict.search_by(pair => pair.0 == "/Contents") {
-                Some(index) =>
-                  match dict[index].1 {
-                    @pdf.PdfObject::Indirect(_) => obj
-                    @pdf.PdfObject::Array(a) =>
-                      if a.length() <= 1 {
-                        obj
-                      } else {
-                        let direct_streams = a.map(c => pdf.direct(c))
-                        for stream in direct_streams {
-                          @pdfcodec.PdfCodec::new().decode_pdfstream(
-                            pdf, stream,
-                          )
-                          stream.getstream()
-                        }
-                        let rawstreams : Array[@pdfio.MutableBytes] = Array::new()
-                        for stream in direct_streams {
-                          match stream {
-                            @pdf.PdfObject::Stream(r) =>
-                              match r.val {
-                                (_, @pdf.Stream::Got(data)) =>
-                                  rawstreams.push(data)
-                                _ =>
-                                  raise @pdf.PdfError::Msg(
-                                    "merge_content_streams: bad stream",
-                                  )
-                              }
-                            _ =>
-                              raise @pdf.PdfError::Msg(
-                                "merge_content_streams: bad stream",
-                              )
-                          }
-                        }
-                        let merged = @pdfops.Op::concat_bytess(rawstreams)
-                        let stream = @pdf.PdfObject::Stream(
-                          Ref::new(
-                            (
-                              @pdf.PdfObject::Dictionary([
-                                (
-                                  "/Length",
-                                  @pdf.PdfObject::Integer(
-                                    @pdfio.bytes_size(merged),
-                                  ),
-                                ),
-                              ]),
-                              @pdf.Stream::Got(merged),
-                            ),
-                          ),
-                        )
-                        let objnum = pdf.addobj(stream)
-                        obj.add_entry(
-                          "/Contents",
-                          @pdf.PdfObject::Indirect(objnum),
-                        )
+  pdf.objselfmap(fn(obj : @pdf.PdfObject) -> @pdf.PdfObject raise {
+    match obj {
+      @pdf.PdfObject::Dictionary(dict) =>
+        match pdf.lookup_direct("/Type", obj) {
+          Some(@pdf.PdfObject::Name("/Page"))
+          | Some(@pdf.PdfObject::Name("/Pages")) =>
+            match dict.search_by(pair => pair.0 == "/Contents") {
+              Some(index) =>
+                match dict[index].1 {
+                  @pdf.PdfObject::Indirect(_) => obj
+                  @pdf.PdfObject::Array(a) =>
+                    if a.length() <= 1 {
+                      obj
+                    } else {
+                      let direct_streams = a.map(c => pdf.direct(c))
+                      for stream in direct_streams {
+                        @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, stream)
+                        stream.getstream()
                       }
-                    _ => obj
-                  }
-                None => obj
-              }
-            _ => obj
-          }
-        _ => obj
-      }
-    },
-    pdf,
-  )
+                      let rawstreams : Array[@pdfio.MutableBytes] = Array::new()
+                      for stream in direct_streams {
+                        match stream {
+                          @pdf.PdfObject::Stream(r) =>
+                            match r.val {
+                              (_, @pdf.Stream::Got(data)) =>
+                                rawstreams.push(data)
+                              _ =>
+                                raise @pdf.PdfError::Msg(
+                                  "merge_content_streams: bad stream",
+                                )
+                            }
+                          _ =>
+                            raise @pdf.PdfError::Msg(
+                              "merge_content_streams: bad stream",
+                            )
+                        }
+                      }
+                      let merged = @pdfops.Op::concat_bytess(rawstreams)
+                      let stream = @pdf.PdfObject::Stream(
+                        Ref::new(
+                          (
+                            @pdf.PdfObject::Dictionary([
+                              (
+                                "/Length",
+                                @pdf.PdfObject::Integer(
+                                  @pdfio.bytes_size(merged),
+                                ),
+                              ),
+                            ]),
+                            @pdf.Stream::Got(merged),
+                          ),
+                        ),
+                      )
+                      let objnum = pdf.addobj(stream)
+                      obj.add_entry(
+                        "/Contents",
+                        @pdf.PdfObject::Indirect(objnum),
+                      )
+                    }
+                  _ => obj
+                }
+              None => obj
+            }
+          _ => obj
+        }
+      _ => obj
+    }
+  })
 }
 
 ///|

@@ -8,8 +8,6 @@ import {
 }
 
 // Values
-pub fn catalog_of_pdf(Pdf) -> PdfObject raise
-
 pub fn change_id(Pdf, String) -> Unit raise
 
 pub fn changes(Pdf) -> Map[Int, Int]
@@ -27,16 +25,6 @@ pub fn is_whitespace(Char) -> Bool
 pub fn make_matrix(@pdftransform.TransformMatrix) -> PdfObject
 
 pub fn objects_referenced(Array[String], Array[(String, PdfObject)], Pdf, PdfObject) -> Array[Int]
-
-pub fn objiter((Int, PdfObject) -> Unit raise?, Pdf) -> Unit raise?
-
-pub fn objiter_gen((Int, Int, PdfObject) -> Unit raise?, Pdf) -> Unit raise?
-
-pub fn objiter_inorder((Int, PdfObject) -> Unit raise?, Pdf) -> Unit raise?
-
-pub fn objselect((PdfObject) -> Bool raise?, Pdf) -> Array[Int] raise?
-
-pub fn objselfmap((PdfObject) -> PdfObject raise?, Pdf) -> Unit raise?
 
 pub fn page_reference_numbers(Pdf) -> Array[Int] raise
 
@@ -94,6 +82,8 @@ pub(all) struct Pdf {
 pub fn Pdf::addobj(Self, PdfObject) -> Int
 #as_free_fn(addobj_given_num, deprecated)
 pub fn Pdf::addobj_given_num(Self, (Int, PdfObject)) -> Unit
+#as_free_fn(catalog_of_pdf, deprecated)
+pub fn Pdf::catalog_of_pdf(Self) -> PdfObject raise
 #as_free_fn(contents_of_nametree, deprecated)
 pub fn Pdf::contents_of_nametree(Self, PdfObject) -> Array[(PdfObject, PdfObject)] raise
 #as_free_fn(direct, deprecated)
@@ -116,7 +106,17 @@ pub fn Pdf::lookup_obj(Self, Int) -> PdfObject
 #as_free_fn(nametree_lookup, deprecated)
 pub fn Pdf::nametree_lookup(Self, PdfObject, PdfObject) -> PdfObject? raise
 pub fn Pdf::objcard(Self) -> Int
+#as_free_fn(objiter, deprecated)
+pub fn Pdf::objiter(Self, (Int, PdfObject) -> Unit raise?) -> Unit raise?
+#as_free_fn(objiter_gen, deprecated)
+pub fn Pdf::objiter_gen(Self, (Int, Int, PdfObject) -> Unit raise?) -> Unit raise?
+#as_free_fn(objiter_inorder, deprecated)
+pub fn Pdf::objiter_inorder(Self, (Int, PdfObject) -> Unit raise?) -> Unit raise?
 pub fn Pdf::objnumbers(Self) -> Array[Int]
+#as_free_fn(objselect, deprecated)
+pub fn Pdf::objselect(Self, (PdfObject) -> Bool raise?) -> Array[Int] raise?
+#as_free_fn(objselfmap, deprecated)
+pub fn Pdf::objselfmap(Self, (PdfObject) -> PdfObject raise?) -> Unit raise?
 #as_free_fn(parse_matrix, deprecated)
 pub fn Pdf::parse_matrix(Self, String, PdfObject) -> @pdftransform.TransformMatrix raise
 #as_free_fn(parse_rectangle, deprecated)

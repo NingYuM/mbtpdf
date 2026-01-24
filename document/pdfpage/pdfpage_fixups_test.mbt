@@ -70,7 +70,7 @@ test "fixup_destinations removes nulled entries" {
   let tree_ctx = @pdftree.PdfTree::new(pdf)
   let tree = tree_ctx.build_name_tree(false, [("Dead", dead_dest)])
   let names : @pdf.PdfObject = Dictionary([("/Dests", tree)])
-  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = pdf.catalog_of_pdf()
   let updated_catalog = catalog.add_entry("/Names", names)
   pdf.addobj_given_num((pdf.root, updated_catalog))
   let trailerdict = pdf.trailerdict.add_entry("/Root", updated_catalog)

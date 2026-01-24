@@ -1,13 +1,10 @@
 ///|
 fn first_stream(pdf : @pdf.Pdf) -> (Int, Int, @pdf.PdfObject) raise {
   let mut found : (Int, Int, @pdf.PdfObject)? = None
-  @pdf.objiter_gen(
-    (objnum, gen, obj) => match (obj : @pdf.PdfObject) {
-      Stream(_) => if found is None { found = Some((objnum, gen, obj)) }
-      _ => ()
-    },
-    pdf,
-  )
+  pdf.objiter_gen((objnum, gen, obj) => match (obj : @pdf.PdfObject) {
+    Stream(_) => if found is None { found = Some((objnum, gen, obj)) }
+    _ => ()
+  })
   match found {
     Some(value) => value
     None => fail("expected stream object")

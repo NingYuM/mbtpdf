@@ -85,7 +85,7 @@ test "pdf_of_pages builds pagetree for many pages" {
   let subset = @pdfpage.PdfPageDoc::new(pdf).pdf_of_pages([
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
   ])
-  let root = @pdf.catalog_of_pdf(subset)
+  let root = subset.catalog_of_pdf()
   let pages = match subset.lookup_direct("/Pages", root) {
     Some(obj) => obj
     None => fail("expected /Pages")
@@ -138,14 +138,14 @@ test "pdf_of_pages trims structure tree" {
     ("/Type", Name("/StructTreeRoot")),
   ])
   let struct_num = pdf.addobj(struct_tree)
-  let root = @pdf.catalog_of_pdf(pdf)
+  let root = pdf.catalog_of_pdf()
   let updated_root = root.add_entry("/StructTreeRoot", Indirect(struct_num))
   pdf.addobj_given_num((pdf.root, updated_root))
   let subset = @pdfpage.PdfPageDoc::new(pdf).pdf_of_pages(
     [1],
     process_struct_tree=true,
   )
-  let root2 = @pdf.catalog_of_pdf(subset)
+  let root2 = subset.catalog_of_pdf()
   match subset.lookup_direct("/StructTreeRoot", root2) {
     Some(_) => ()
     None => fail("expected StructTreeRoot to remain")

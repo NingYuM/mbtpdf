@@ -129,7 +129,7 @@ test "merge_pdfs handles malformed names and optional catalog entries" {
     process_struct_trees=false,
     add_toplevel_document=false,
   )
-  let catalog = @pdf.catalog_of_pdf(merged)
+  let catalog = merged.catalog_of_pdf()
   match merged.lookup_direct("/OCProperties", catalog) {
     Some(ocp) =>
       match merged.lookup_direct("/OCGs", ocp) {

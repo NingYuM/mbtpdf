@@ -189,7 +189,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
     },
   ]
   let pdf = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(bookmarks)
-  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = pdf.catalog_of_pdf()
   let catalog = catalog.add_entry("/OpenAction", dest1)
   pdf.addobj_given_num((pdf.root, catalog))
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
@@ -450,14 +450,14 @@ test "change_pages rewrites annotation and openaction" {
   let annots : @pdf.PdfObject = Array([Indirect(annot1), Indirect(annot2)])
   let updated_page = page_obj.add_entry("/Annots", annots)
   pdf.addobj_given_num((refs[0], updated_page))
-  let catalog = @pdf.catalog_of_pdf(pdf)
+  let catalog = pdf.catalog_of_pdf()
   let updated_catalog = catalog.add_entry("/OpenAction", dest_array)
   pdf.addobj_given_num((pdf.root, updated_catalog))
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let translated = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices=[
     (1, @pdftransform.TransformMatrix::translate(5.0, -3.0)),
   ])
-  let catalog2 = @pdf.catalog_of_pdf(translated)
+  let catalog2 = translated.catalog_of_pdf()
   let openaction = match translated.lookup_direct("/OpenAction", catalog2) {
     Some(dest) => dest
     None => fail("expected OpenAction")
