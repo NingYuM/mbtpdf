@@ -222,9 +222,9 @@ test "remove_duplicate_fonts keeps distinct stream lengths" {
   )
   ignore(@pdf.addobj(pdf, stream1))
   ignore(@pdf.addobj(pdf, stream2))
-  let before = @pdf.objcard(pdf)
+  let before = pdf.objcard()
   remove_duplicate_fonts(pdf)
-  assert_eq(@pdf.objcard(pdf), before)
+  assert_eq(pdf.objcard(), before)
 }
 
 ///|

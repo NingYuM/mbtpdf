@@ -92,7 +92,7 @@ test "pdf_to_output encrypts and reads with user password" {
   let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let input = @pdfio.input_of_bytes(pdf_bytes, source="encrypt-roundtrip")
   let parsed = @pdfread.pdf_of_input(Some("user"), None, input)
-  assert_eq(@pdf.objcard(parsed), 5)
+  assert_eq(parsed.objcard(), 5)
   assert_eq(parsed.root, 4)
 }
 
@@ -126,7 +126,7 @@ test "pdf_to_output recrypt uses saved encryption" {
     Some(_) => ()
     None => fail("expected recryptable PDF")
   }
-  assert_eq(@pdf.objcard(parsed2), 6)
+  assert_eq(parsed2.objcard(), 6)
   assert_eq(parsed2.root, 4)
 }
 

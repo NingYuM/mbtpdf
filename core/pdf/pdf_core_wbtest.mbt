@@ -16,7 +16,7 @@ test "objmap basics" {
   let pdf = Pdf::empty()
   addobj_given_num(pdf, (1, PdfObject::Null))
   addobj_given_num(pdf, (2, PdfObject::Integer(42)))
-  assert_eq(objnumbers(pdf).length(), 2)
+  assert_eq(pdf.objnumbers().length(), 2)
 }
 
 ///|

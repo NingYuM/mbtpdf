@@ -72,7 +72,7 @@ test "trim_structure_tree removes entries" {
   endpage.val = p => @pdfpage.pages_of_pagetree_quick(p) catch { _ => 0 }
   trim_structure_tree(pdf, [1])
   endpage.val = previous
-  assert_true(!@pdf.objnumbers(pdf).contains(removed_num))
+  assert_true(!pdf.objnumbers().contains(removed_num))
   let root = @pdf.lookup_obj(pdf, root_num)
   match (@pdf.lookup_immediate("/K", root) : @pdf.PdfObject?) {
     Some(Array(items)) => assert_eq(items.length(), 1)
@@ -134,7 +134,7 @@ test "trim_structure_tree updates nested k arrays" {
   endpage.val = p => @pdfpage.pages_of_pagetree_quick(p) catch { _ => 0 }
   trim_structure_tree(pdf, [1])
   endpage.val = previous
-  assert_true(!@pdf.objnumbers(pdf).contains(parent_remove))
+  assert_true(!pdf.objnumbers().contains(parent_remove))
   let root = @pdf.lookup_obj(pdf, root_num)
   match (@pdf.lookup_immediate("/K", root) : @pdf.PdfObject?) {
     Some(Array(items)) => assert_eq(items.length(), 2)

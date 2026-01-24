@@ -60,8 +60,6 @@ pub fn make_matrix(@pdftransform.TransformMatrix) -> PdfObject
 
 pub fn nametree_lookup(Pdf, PdfObject, PdfObject) -> PdfObject? raise
 
-pub fn objcard(Pdf) -> Int
-
 pub fn objects_referenced(Array[String], Array[(String, PdfObject)], Pdf, PdfObject) -> Array[Int]
 
 pub fn objiter((Int, PdfObject) -> Unit raise?, Pdf) -> Unit raise?
@@ -69,8 +67,6 @@ pub fn objiter((Int, PdfObject) -> Unit raise?, Pdf) -> Unit raise?
 pub fn objiter_gen((Int, Int, PdfObject) -> Unit raise?, Pdf) -> Unit raise?
 
 pub fn objiter_inorder((Int, PdfObject) -> Unit raise?, Pdf) -> Unit raise?
-
-pub fn objnumbers(Pdf) -> Array[Int]
 
 pub fn objselect((PdfObject) -> Bool raise?, Pdf) -> Array[Int] raise?
 
@@ -145,6 +141,8 @@ pub(all) struct Pdf {
   mut saved_encryption : SavedEncryption?
 }
 pub fn Pdf::empty() -> Self
+pub fn Pdf::objcard(Self) -> Int
+pub fn Pdf::objnumbers(Self) -> Array[Int]
 
 pub(all) enum PdfObject {
   Null

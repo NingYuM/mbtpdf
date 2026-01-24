@@ -13,7 +13,7 @@ test "pdf_of_input removes xref and objstm objects after eager parse" {
   let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let input = @pdfio.input_of_bytes(bytes, source="objstm-cleanup")
   let parsed = @pdfread.pdf_of_input(None, None, input)
-  for objnum in @pdf.objnumbers(parsed) {
+  for objnum in parsed.objnumbers() {
     let obj = @pdf.lookup_obj(parsed, objnum)
     match (obj : @pdf.PdfObject) {
       Stream(r) => {

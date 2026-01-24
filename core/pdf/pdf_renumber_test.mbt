@@ -37,5 +37,5 @@ test "renumber keeps root when missing change" {
   let renumbered = renumber(change_table, pdf)
   assert_eq(renumbered.root, pdf.root)
   assert_eq(renumbered.objects.object_stream_ids.get(7), Some(1))
-  assert_true(objnumbers(renumbered).contains(7))
+  assert_true(renumbered.objnumbers().contains(7))
 }

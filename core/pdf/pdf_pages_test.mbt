@@ -81,7 +81,7 @@ test "remove_unreferenced nullifies page refs" {
   )
   addobj_given_num(pdf, (3, catalog_with_number))
   remove_unreferenced(pdf)
-  assert_true(!objnumbers(pdf).contains(4))
+  assert_true(!pdf.objnumbers().contains(4))
   match lookup_obj(pdf, 5) {
     PdfObject::Stream(r) =>
       match r.val {

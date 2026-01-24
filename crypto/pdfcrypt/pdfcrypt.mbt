@@ -1447,7 +1447,7 @@ pub fn recrypt_pdf(
     }
   }
   if renumber {
-    let nums = @pdf.objnumbers(pdf)
+    let nums = pdf.objnumbers()
     let changes : Map[Int, Int] = Map::new(capacity=nums.length())
     let mut i = 1
     for n in nums {

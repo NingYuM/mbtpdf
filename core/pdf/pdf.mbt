@@ -960,14 +960,14 @@ pub fn transform_quadpoints(
 
 ///|
 /// Return the size of the object map.
-pub fn objcard(pdf : Pdf) -> Int {
-  pdf.objects.objects.length()
+pub fn Pdf::objcard(self : Pdf) -> Int {
+  self.objects.objects.length()
 }
 
 ///|
 /// Return the object numbers in ascending order.
-pub fn objnumbers(pdf : Pdf) -> Array[Int] {
-  let entries = pdf.objects.objects.to_array()
+pub fn Pdf::objnumbers(self : Pdf) -> Array[Int] {
+  let entries = self.objects.objects.to_array()
   entries.sort_by((a, b) => a.0 - b.0)
   entries.map(pair => pair.0)
 }
@@ -1422,7 +1422,7 @@ fn check_object_contains_renumbering(
 ///|
 /// Calculate the change table required to renumber objects 1..n.
 pub fn changes(pdf : Pdf) -> Map[Int, Int] {
-  let keys = objnumbers(pdf)
+  let keys = pdf.objnumbers()
   let table : Map[Int, Int] = Map::new(capacity=keys.length())
   let mut num = 1
   for key in keys {
@@ -1501,7 +1501,7 @@ pub fn renumber_pdfs(pdfs : Array[Pdf]) -> Array[Pdf] {
   let out = Array::new(capacity=pdfs.length())
   let mut base = 1
   for pdf in pdfs {
-    let keys = objnumbers(pdf)
+    let keys = pdf.objnumbers()
     let changes : Map[Int, Int] = Map::new(capacity=keys.length())
     let mut i = 0
     for key in keys {

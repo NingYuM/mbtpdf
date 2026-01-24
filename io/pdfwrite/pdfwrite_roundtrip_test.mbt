@@ -67,8 +67,8 @@ test "pdf roundtrip read/write/read" {
   let pdf1 = build_minimal_pdf()
   let pdf2 = roundtrip(pdf1)
   let pdf3 = roundtrip(pdf2)
-  assert_eq(@pdf.objcard(pdf2), 4)
-  assert_eq(@pdf.objcard(pdf3), 4)
+  assert_eq(pdf2.objcard(), 4)
+  assert_eq(pdf3.objcard(), 4)
   assert_eq(pdf2.root, 4)
   assert_eq(pdf3.root, 4)
 }
@@ -83,7 +83,7 @@ test "pdf roundtrip with xref stream" {
   assert_true(pdf_text.contains("/Type /XRef"))
   let input = @pdfio.input_of_bytes(pdf_bytes, source="xref-stream")
   let parsed = @pdfread.pdf_of_input(None, None, input)
-  assert_eq(@pdf.objcard(parsed), 4)
+  assert_eq(parsed.objcard(), 4)
   assert_eq(parsed.root, 4)
 }
 

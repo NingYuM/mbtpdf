@@ -13,7 +13,7 @@ test "malformed pdf without xref uses fallback" {
     #|%%EOF
   let pdf = pdf_of_input(None, None, @pdfio.input_of_string(data))
   assert_eq(pdf.root, 1)
-  assert_eq(@pdf.objcard(pdf), 2)
+  assert_eq(pdf.objcard(), 2)
   match (@pdf.lookup_obj(pdf, 1) : @pdf.PdfObject) {
     Dictionary(_) => ()
     _ => fail("expected catalog dictionary")
@@ -80,7 +80,7 @@ test "malformed pdf skips bad objects and trailers" {
     #|<< /Root 1 0 R
   let pdf = pdf_of_input(None, None, @pdfio.input_of_string(data))
   assert_eq(pdf.root, 1)
-  assert_eq(@pdf.objcard(pdf), 2)
+  assert_eq(pdf.objcard(), 2)
 }
 
 ///|
