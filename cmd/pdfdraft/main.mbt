@@ -97,9 +97,9 @@ fn remove_images_page(
   let content = remove_images_stream(
     pdf,
     page.resources,
-    @pdfops.parse_operators(pdf, page.resources, page.content),
+    @pdfops.Op::parse_operators(pdf, page.resources, page.content),
   )
-  let stream = @pdfops.stream_of_ops(content)
+  let stream = @pdfops.Op::stream_of_ops(content)
   @pdfcodec.encode_pdfstream(pdf, @pdfcodec.Encoding::Flate, stream)
   {
     content: [stream],

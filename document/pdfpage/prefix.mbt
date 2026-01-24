@@ -189,14 +189,14 @@ fn fix_stream(
   match obj {
     @pdf.PdfObject::Indirect(i) =>
       if fixed_streams.get(i) is None {
-        let operators = @pdfops.parse_operators(pdf, resources, [obj])
+        let operators = @pdfops.Op::parse_operators(pdf, resources, [obj])
         let operators_updated = operators.map(op => prefix_operator(
           pdf, prefix, op,
         ))
         let stream_obj = @pdf.lookup_obj(pdf, i)
         match stream_obj {
           @pdf.PdfObject::Stream(r) =>
-            match @pdfops.stream_of_ops(operators_updated) {
+            match @pdfops.Op::stream_of_ops(operators_updated) {
               @pdf.PdfObject::Stream(updated) => {
                 r.val = updated.val
                 fixed_streams.set(i, ())
@@ -263,7 +263,7 @@ fn add_prefix_impl(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
                                 )
                             }
                             ignore(
-                              @pdfops.parse_single_stream(
+                              @pdfops.Op::parse_single_stream(
                                 pdf, resources_obj, bytes,
                               ),
                             )
@@ -339,7 +339,7 @@ fn merge_content_streams(pdf : @pdf.Pdf) -> Unit raise {
                               )
                           }
                         }
-                        let merged = @pdfops.concat_bytess(rawstreams)
+                        let merged = @pdfops.Op::concat_bytess(rawstreams)
                         let stream = @pdf.PdfObject::Stream(
                           Ref::new(
                             (

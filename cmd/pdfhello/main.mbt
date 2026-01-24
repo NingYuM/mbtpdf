@@ -17,7 +17,7 @@ async fn main {
       OpTj("Hello, World!"),
       OpET,
     ]
-    let stream = @pdfops.stream_of_ops(ops)
+    let stream = @pdfops.Op::stream_of_ops(ops)
     let page : @pdfpage.Page = {
       content: [stream],
       mediabox: @pdfpage.Page::blank(@pdfpaper.a4).mediabox,

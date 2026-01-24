@@ -65,8 +65,8 @@ test "add_prefix rewrites resources and operators" {
   let ops_secondary : Array[@pdfops.Op] = [Opq, OpQ]
   let page : @pdfpage.Page = {
     content: [
-      @pdfops.stream_of_ops(ops_primary),
-      @pdfops.stream_of_ops(ops_secondary),
+      @pdfops.Op::stream_of_ops(ops_primary),
+      @pdfops.Op::stream_of_ops(ops_secondary),
     ],
     mediabox: prefix_sample_rect(),
     resources,
@@ -88,7 +88,7 @@ test "add_prefix rewrites resources and operators" {
       assert_true(entries.any(pair => pair.0 == "/pCs1"))
     _ => fail("expected prefixed colorspace resources")
   }
-  let ops = @pdfops.parse_operators(pdf, page0.resources, page0.content)
+  let ops = @pdfops.Op::parse_operators(pdf, page0.resources, page0.content)
   let mut saw_tf = false
   let mut saw_gs = false
   let mut saw_cs_direct = false
@@ -178,7 +178,7 @@ test "add_prefix rewrites inline image colorspace names" {
     InlineImage((dict, None, @pdfio.bytes_of_string("RGB"))),
   ]
   let page : @pdfpage.Page = {
-    content: [@pdfops.stream_of_ops(ops)],
+    content: [@pdfops.Op::stream_of_ops(ops)],
     mediabox: prefix_sample_rect(),
     resources,
     rotate: @pdfpage.Rotation::Rotate0,
@@ -188,7 +188,7 @@ test "add_prefix rewrites inline image colorspace names" {
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
   @pdfpage.add_prefix(pdf, "p")
   let pages = @pdfpage.pages_of_pagetree(pdf)
-  let ops_out = @pdfops.parse_operators(
+  let ops_out = @pdfops.Op::parse_operators(
     pdf,
     pages[0].resources,
     pages[0].content,
@@ -227,7 +227,7 @@ test "add_prefix handles filtered inline images with trailing ops" {
   ])
   let ops : Array[@pdfops.Op] = [InlineImage((dict, None, encoded)), Opq, OpQ]
   let page : @pdfpage.Page = {
-    content: [@pdfops.stream_of_ops(ops)],
+    content: [@pdfops.Op::stream_of_ops(ops)],
     mediabox: prefix_sample_rect(),
     resources,
     rotate: @pdfpage.Rotation::Rotate0,
@@ -237,7 +237,7 @@ test "add_prefix handles filtered inline images with trailing ops" {
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
   @pdfpage.add_prefix(pdf, "p")
   let pages = @pdfpage.pages_of_pagetree(pdf)
-  let ops_out = @pdfops.parse_operators(
+  let ops_out = @pdfops.Op::parse_operators(
     pdf,
     pages[0].resources,
     pages[0].content,
@@ -288,7 +288,7 @@ test "add_prefix handles single indirect contents" {
   ])
   let ops : Array[@pdfops.Op] = [OpTf("/F1", 9.0)]
   let page : @pdfpage.Page = {
-    content: [@pdfops.stream_of_ops(ops)],
+    content: [@pdfops.Op::stream_of_ops(ops)],
     mediabox: prefix_sample_rect(),
     resources,
     rotate: @pdfpage.Rotation::Rotate0,
@@ -309,7 +309,7 @@ test "add_prefix handles single indirect contents" {
   @pdf.addobj_given_num(pdf, (page_num, updated))
   @pdfpage.add_prefix(pdf, "p")
   let pages = @pdfpage.pages_of_pagetree(pdf)
-  let ops_out = @pdfops.parse_operators(
+  let ops_out = @pdfops.Op::parse_operators(
     pdf,
     pages[0].resources,
     pages[0].content,
@@ -333,7 +333,7 @@ test "add_prefix keeps direct inline colorspace names" {
     InlineImage((dict, None, @pdfio.bytes_of_string("RGB"))),
   ]
   let page : @pdfpage.Page = {
-    content: [@pdfops.stream_of_ops(ops)],
+    content: [@pdfops.Op::stream_of_ops(ops)],
     mediabox: prefix_sample_rect(),
     resources: Dictionary([]),
     rotate: @pdfpage.Rotation::Rotate0,
@@ -343,7 +343,7 @@ test "add_prefix keeps direct inline colorspace names" {
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
   @pdfpage.add_prefix(pdf, "p")
   let pages = @pdfpage.pages_of_pagetree(pdf)
-  let ops_out = @pdfops.parse_operators(
+  let ops_out = @pdfops.Op::parse_operators(
     pdf,
     pages[0].resources,
     pages[0].content,
@@ -381,7 +381,7 @@ test "add_prefix preserves inline colorspace arrays" {
     InlineImage((dict, None, @pdfio.bytes_of_list([0x12]))),
   ]
   let page : @pdfpage.Page = {
-    content: [@pdfops.stream_of_ops(ops)],
+    content: [@pdfops.Op::stream_of_ops(ops)],
     mediabox: prefix_sample_rect(),
     resources: Dictionary([]),
     rotate: @pdfpage.Rotation::Rotate0,
@@ -391,7 +391,7 @@ test "add_prefix preserves inline colorspace arrays" {
   let pdf = @pdfpage.add_root(pageroot, [], pdf1)
   @pdfpage.add_prefix(pdf, "p")
   let pages = @pdfpage.pages_of_pagetree(pdf)
-  let ops_out = @pdfops.parse_operators(
+  let ops_out = @pdfops.Op::parse_operators(
     pdf,
     pages[0].resources,
     pages[0].content,
@@ -418,7 +418,7 @@ test "add_prefix merges non-iso content streams" {
     ("/BPC", Integer(8)),
     ("/CS", Name("/DeviceRGB")),
   ])
-  let rendered = @pdfops.string_of_ops([
+  let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_string("RGB"))),
   ])
   let bytes = @pdfio.bytes_of_string(rendered)

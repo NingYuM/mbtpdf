@@ -238,20 +238,20 @@ test "prepend/postpend operators update content" {
   let base_page = @pdfpage.Page::custom(rect)
   let base_ops : Array[@pdfops.Op] = [Opq, OpQ]
   let page = Page::{
-    content: [@pdfops.stream_of_ops(base_ops)],
+    content: [@pdfops.Op::stream_of_ops(base_ops)],
     mediabox: base_page.mediabox,
     resources: base_page.resources,
     rotate: base_page.rotate,
     rest: base_page.rest,
   }
   let pre = page.prepend_operators(pdf, [Opw(2.0)])
-  let ops_pre = @pdfops.parse_operators(pdf, pre.resources, pre.content)
+  let ops_pre = @pdfops.Op::parse_operators(pdf, pre.resources, pre.content)
   match (ops_pre[0] : @pdfops.Op) {
     Opw(2.0) => ()
     _ => fail("expected prepend to be first")
   }
   let post = pre.postpend_operators(pdf, [Opw(3.0)])
-  let ops_post = @pdfops.parse_operators(pdf, post.resources, post.content)
+  let ops_post = @pdfops.Op::parse_operators(pdf, post.resources, post.content)
   let last = ops_post[ops_post.length() - 1]
   match (last : @pdfops.Op) {
     Opw(3.0) => ()
@@ -336,7 +336,7 @@ test "renumber_pages updates resources and operators" {
   ])
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F1", 12.0), OpTj("Hi"), OpET]
   let page : @pdfpage.Page = {
-    content: [@pdfops.stream_of_ops(ops)],
+    content: [@pdfops.Op::stream_of_ops(ops)],
     mediabox: Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
     resources,
     rotate: @pdfpage.Rotation::Rotate0,
@@ -351,7 +351,7 @@ test "renumber_pages updates resources and operators" {
     }
     _ => fail("expected renamed font dictionary")
   }
-  let ops_updated = @pdfops.parse_operators(
+  let ops_updated = @pdfops.Op::parse_operators(
     pdf,
     renamed.resources,
     renamed.content,
@@ -370,7 +370,7 @@ test "add_prefix rewrites resources and content" {
   ])
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F1", 12.0), OpTj("Hi"), OpET]
   let page : @pdfpage.Page = {
-    content: [@pdfops.stream_of_ops(ops)],
+    content: [@pdfops.Op::stream_of_ops(ops)],
     mediabox: Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
     resources,
     rotate: @pdfpage.Rotation::Rotate0,
@@ -388,7 +388,11 @@ test "add_prefix rewrites resources and content" {
     }
     _ => fail("expected prefixed font dictionary")
   }
-  let ops_updated = @pdfops.parse_operators(pdf, page0.resources, page0.content)
+  let ops_updated = @pdfops.Op::parse_operators(
+    pdf,
+    page0.resources,
+    page0.content,
+  )
   match (ops_updated : Array[@pdfops.Op]) {
     [OpBT, OpTf(name, _), ..] => assert_eq(name, "/pF1")
     _ => fail("expected prefixed font operator")

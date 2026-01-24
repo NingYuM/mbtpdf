@@ -1,6 +1,6 @@
 ///|
 test "string_of_ops renders basic operators" {
-  let rendered = @pdfops.string_of_ops([
+  let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::Opw(2.0),
     @pdfops.Op::Opq,
     @pdfops.Op::OpQ,
@@ -12,7 +12,7 @@ test "string_of_ops renders basic operators" {
 
 ///|
 test "stream_of_ops builds a stream" {
-  let stream = @pdfops.stream_of_ops([@pdfops.Op::Opq, @pdfops.Op::OpQ])
+  let stream = @pdfops.Op::stream_of_ops([@pdfops.Op::Opq, @pdfops.Op::OpQ])
   match (stream : @pdf.PdfObject) {
     Stream(r) => {
       let (dict, contents) = r.val
@@ -40,10 +40,10 @@ test "components resolves color spaces" {
   let resources : @pdf.PdfObject = Dictionary([
     ("/ColorSpace", Dictionary([("/MyCS", Name("/DeviceGray"))])),
   ])
-  assert_eq(@pdfops.components(pdf, resources, Name("/DeviceRGB")), 3)
-  assert_eq(@pdfops.components(pdf, resources, Name("/MyCS")), 1)
+  assert_eq(@pdfops.Op::components(pdf, resources, Name("/DeviceRGB")), 3)
+  assert_eq(@pdfops.Op::components(pdf, resources, Name("/MyCS")), 1)
   assert_eq(
-    @pdfops.components(
+    @pdfops.Op::components(
       pdf,
       resources,
       Array([Name("/Pattern"), Name("/DeviceRGB")]),
@@ -51,7 +51,7 @@ test "components resolves color spaces" {
     3,
   )
   assert_eq(
-    @pdfops.components(
+    @pdfops.Op::components(
       pdf,
       resources,
       Array([Name("/ICCBased"), Dictionary([("/N", Integer(4))])]),
@@ -59,7 +59,7 @@ test "components resolves color spaces" {
     4,
   )
   assert_eq(
-    @pdfops.components(
+    @pdfops.Op::components(
       pdf,
       resources,
       Array([Name("/DeviceN"), Array([Name("/A"), Name("/B")])]),
@@ -67,7 +67,7 @@ test "components resolves color spaces" {
     2,
   )
   assert_eq(
-    @pdfops.components(
+    @pdfops.Op::components(
       pdf,
       resources,
       Array([
@@ -79,7 +79,7 @@ test "components resolves color spaces" {
     ),
     1,
   )
-  let pattern_err : Result[Int, Error] = try? @pdfops.components(
+  let pattern_err : Result[Int, Error] = try? @pdfops.Op::components(
     pdf,
     resources,
     Name("/Pattern"),
@@ -92,7 +92,7 @@ test "parse_single_stream reads basic ops" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_string("1 w q 0 0 m 10 0 l S Q")
-  let ops = @pdfops.parse_single_stream(pdf, resources, data)
+  let ops = @pdfops.Op::parse_single_stream(pdf, resources, data)
   match ops[0] {
     Opw(value) => assert_eq(value, 1.0)
     _ => fail("expected Opw")
@@ -109,8 +109,8 @@ test "parse_operators roundtrips stream_of_ops" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let ops_in : Array[@pdfops.Op] = [Opq, Opw(2.0), OpQ]
-  let stream = @pdfops.stream_of_ops(ops_in)
-  let ops = @pdfops.parse_operators(pdf, resources, [stream])
+  let stream = @pdfops.Op::stream_of_ops(ops_in)
+  let ops = @pdfops.Op::parse_operators(pdf, resources, [stream])
   assert_true(ops.length() >= 3)
   match ops[0] {
     Opq => ()
@@ -130,7 +130,7 @@ test "parse_operators roundtrips stream_of_ops" {
 test "parse_stream concatenates multiple streams" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
-  let ops = @pdfops.parse_stream(pdf, resources, [
+  let ops = @pdfops.Op::parse_stream(pdf, resources, [
     @pdfio.bytes_of_string("q"),
     @pdfio.bytes_of_string("Q"),
   ])
@@ -237,10 +237,10 @@ test "parse_operators handles diverse ops" {
     OpBX,
     OpEX,
   ]
-  let rendered = @pdfops.string_of_ops(ops)
+  let rendered = @pdfops.Op::string_of_ops(ops)
   assert_true(rendered.contains("TJ"))
-  let stream = @pdfops.stream_of_ops(ops)
-  let parsed = @pdfops.parse_operators(pdf, resources, [stream])
+  let stream = @pdfops.Op::stream_of_ops(ops)
+  let parsed = @pdfops.Op::parse_operators(pdf, resources, [stream])
   assert_true(parsed.exists(fn(op : @pdfops.Op) { op is OpTJ(_) }))
   assert_true(parsed.exists(fn(op : @pdfops.Op) { op is OpSCNName(_, _) }))
   assert_true(parsed.exists(fn(op : @pdfops.Op) { op is OpBDC(_, _) }))
@@ -256,7 +256,7 @@ test "string_of_ops renders inline image" {
     ("/CS", Name("/DeviceGray")),
   ])
   let inline_data = @pdfio.bytes_of_list([128])
-  let rendered = @pdfops.string_of_ops([
+  let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((inline_dict, None, inline_data)),
   ])
   assert_true(rendered.contains("BI"))
@@ -269,6 +269,6 @@ test "parse_single_stream returns OpUnknown for bad ops" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_string("1 2 ZZ")
-  let ops = @pdfops.parse_single_stream(pdf, resources, data)
+  let ops = @pdfops.Op::parse_single_stream(pdf, resources, data)
   assert_true(ops.exists(fn(op : @pdfops.Op) { op is OpUnknown(_) }))
 }

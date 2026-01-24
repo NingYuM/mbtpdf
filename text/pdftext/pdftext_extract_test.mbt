@@ -45,7 +45,7 @@ fn build_unicode_pdf() -> @pdf.Pdf raise {
     ("/Encoding", Name("/WinAnsiEncoding")),
   ])
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F0", 24.0), OpTj(text), OpET]
-  let stream = @pdfops.stream_of_ops(ops)
+  let stream = @pdfops.Op::stream_of_ops(ops)
   let mediabox : @pdf.PdfObject = Array([
     Real(0.0),
     Real(0.0),
@@ -80,7 +80,7 @@ fn extract_test_page(
   ops : Array[@pdfops.Op],
   resources : @pdf.PdfObject,
 ) -> @pdfpage.Page raise {
-  let stream = @pdfops.stream_of_ops(ops)
+  let stream = @pdfops.Op::stream_of_ops(ops)
   {
     content: [stream],
     mediabox: extract_test_mediabox(),
@@ -102,7 +102,7 @@ fn add_pages_to_pdf(
 ///|
 fn form_xobject_stream(text : String) -> @pdf.PdfObject raise {
   let ops : Array[@pdfops.Op] = [OpBT, OpTj(text), OpET]
-  let stream = @pdfops.stream_of_ops(ops)
+  let stream = @pdfops.Op::stream_of_ops(ops)
   let stream = @pdf.add_dict_entry(stream, "/Type", Name("/XObject"))
   @pdf.add_dict_entry(stream, "/Subtype", Name("/Form"))
 }

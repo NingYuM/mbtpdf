@@ -8,11 +8,11 @@ test "parse inline image flate data" {
     ("/BPC", Integer(8)),
     ("/CS", Name("/DeviceGray")),
   ])
-  let rendered = @pdfops.string_of_ops([
+  let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x7f]))),
   ])
   let stream = @pdfio.bytes_of_string(rendered)
-  let ops = @pdfops.parse_single_stream(pdf, resources, stream)
+  let ops = @pdfops.Op::parse_single_stream(pdf, resources, stream)
   let mut saw = false
   for op in ops {
     match (op : @pdfops.Op) {
@@ -42,11 +42,11 @@ test "parse inline image uses resources for colorspace" {
     ("/BPC", Integer(8)),
     ("/CS", Name("/Cs1")),
   ])
-  let rendered = @pdfops.string_of_ops([
+  let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_string("RGB"))),
   ])
   let stream = @pdfio.bytes_of_string(rendered)
-  let ops = @pdfops.parse_single_stream(pdf, resources, stream)
+  let ops = @pdfops.Op::parse_single_stream(pdf, resources, stream)
   let mut saw = false
   for op in ops {
     match (op : @pdfops.Op) {
@@ -71,11 +71,11 @@ test "parse inline image handles DCT data" {
     ("/CS", Name("/DeviceRGB")),
     ("/Filter", Name("/DCT")),
   ])
-  let rendered = @pdfops.string_of_ops([
+  let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0xFF, 0xD9]))),
   ])
   let stream = @pdfio.bytes_of_string(rendered)
-  let ops = @pdfops.parse_single_stream(pdf, resources, stream)
+  let ops = @pdfops.Op::parse_single_stream(pdf, resources, stream)
   let mut saw = false
   for op in ops {
     match (op : @pdfops.Op) {
@@ -92,7 +92,7 @@ test "parse inline image handles DCT data" {
 ///|
 test "string_of_ops ignores non-name inline filters" {
   let dict : @pdf.PdfObject = Dictionary([("/Filter", Integer(1))])
-  let rendered = @pdfops.string_of_ops([
+  let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x61]))),
   ])
   assert_true(rendered.contains("BI"))
@@ -112,10 +112,10 @@ test "parse inline image handles colorspace array" {
       Array([Name("/Indexed"), Name("/DeviceRGB"), Integer(1), String("")]),
     ),
   ])
-  let rendered = @pdfops.string_of_ops([
+  let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x12]))),
   ])
-  let ops = @pdfops.parse_single_stream(
+  let ops = @pdfops.Op::parse_single_stream(
     pdf,
     resources,
     @pdfio.bytes_of_string(rendered),
@@ -143,10 +143,10 @@ test "parse inline image uses ImageMask when colorspace missing" {
     ("/BPC", Integer(1)),
     ("/IM", Boolean(true)),
   ])
-  let rendered = @pdfops.string_of_ops([
+  let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x80]))),
   ])
-  let ops = @pdfops.parse_single_stream(
+  let ops = @pdfops.Op::parse_single_stream(
     pdf,
     resources,
     @pdfio.bytes_of_string(rendered),
@@ -177,10 +177,10 @@ test "parse inline image decodes flate filter" {
     ("/CS", Name("/DeviceGray")),
     ("/Filter", Name("/FlateDecode")),
   ])
-  let rendered = @pdfops.string_of_ops([
+  let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, encoded)),
   ])
-  let ops = @pdfops.parse_single_stream(
+  let ops = @pdfops.Op::parse_single_stream(
     pdf,
     resources,
     @pdfio.bytes_of_string(rendered),
@@ -210,7 +210,7 @@ test "parse inline image flate handles trailing operators" {
   )
   let footer = @pdfio.bytes_of_string(" EI q")
   let stream = concat_bytes([header, encoded, footer])
-  let ops = @pdfops.parse_single_stream(pdf, resources, stream)
+  let ops = @pdfops.Op::parse_single_stream(pdf, resources, stream)
   let mut saw_inline = false
   let mut saw_q = false
   for op in ops {
@@ -231,7 +231,7 @@ fn parse_inline_image_error(dict : @pdf.PdfObject) -> Unit raise {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let rendered = try
-    @pdfops.string_of_ops([
+    @pdfops.Op::string_of_ops([
       @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x00]))),
     ])
   catch {
@@ -239,7 +239,7 @@ fn parse_inline_image_error(dict : @pdf.PdfObject) -> Unit raise {
   } noraise {
     value => value
   }
-  let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
+  let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.Op::parse_single_stream(
     pdf,
     resources,
     @pdfio.bytes_of_string(rendered),
@@ -292,10 +292,10 @@ test "parse inline image cleans filter arrays" {
     ("/CS", Name("/DeviceGray")),
     ("/Filter", Array([Name("/FlateDecode")])),
   ])
-  let rendered = @pdfops.string_of_ops([
+  let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, encoded)),
   ])
-  let ops = @pdfops.parse_single_stream(
+  let ops = @pdfops.Op::parse_single_stream(
     pdf,
     resources,
     @pdfio.bytes_of_string(rendered),
@@ -325,10 +325,10 @@ test "parse inline image decode failures raise" {
     ("/CS", Name("/DeviceGray")),
     ("/Filter", Name("/FlateDecode")),
   ])
-  let rendered = @pdfops.string_of_ops([
+  let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x00]))),
   ])
-  let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
+  let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.Op::parse_single_stream(
     pdf,
     resources,
     @pdfio.bytes_of_string(rendered),
@@ -345,18 +345,18 @@ test "parse inline image errors on missing colorspace entry and type" {
     ("/BPC", Integer(8)),
     ("/CS", Name("/CS1")),
   ])
-  let rendered = @pdfops.string_of_ops([
+  let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x00]))),
   ])
   let resources1 : @pdf.PdfObject = Dictionary([("/ColorSpace", Dictionary([]))])
-  let missing_entry : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
+  let missing_entry : Result[Array[@pdfops.Op], Error] = try? @pdfops.Op::parse_single_stream(
     pdf,
     resources1,
     @pdfio.bytes_of_string(rendered),
   )
   assert_true(missing_entry is Err(_))
   let resources2 : @pdf.PdfObject = Dictionary([("/ColorSpace", Integer(1))])
-  let bad_type : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
+  let bad_type : Result[Array[@pdfops.Op], Error] = try? @pdfops.Op::parse_single_stream(
     pdf,
     resources2,
     @pdfio.bytes_of_string(rendered),
@@ -368,11 +368,11 @@ test "parse inline image errors on missing colorspace entry and type" {
     ("/BPC", Integer(8)),
     ("/CS", Integer(1)),
   ])
-  let bad_rendered = @pdfops.string_of_ops([
+  let bad_rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((bad_cs, None, @pdfio.bytes_of_list([0x00]))),
   ])
   let resources3 : @pdf.PdfObject = Dictionary([])
-  let bad_res : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
+  let bad_res : Result[Array[@pdfops.Op], Error] = try? @pdfops.Op::parse_single_stream(
     pdf,
     resources3,
     @pdfio.bytes_of_string(bad_rendered),
@@ -385,7 +385,7 @@ test "parse inline image errors on invalid ID marker" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let text = "BI << /W 1 /H 1 /BPC 8 /CS /DeviceGray >> XX 0 EI"
-  let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
+  let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.Op::parse_single_stream(
     pdf,
     resources,
     @pdfio.bytes_of_string(text),
@@ -404,10 +404,10 @@ test "parse inline image handles bad filters" {
     ("/CS", Name("/DeviceGray")),
     ("/Filter", Name("/BadFilter")),
   ])
-  let rendered = @pdfops.string_of_ops([
+  let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x00]))),
   ])
-  let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
+  let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.Op::parse_single_stream(
     pdf,
     resources,
     @pdfio.bytes_of_string(rendered),
@@ -420,10 +420,10 @@ test "parse inline image handles bad filters" {
     ("/CS", Name("/DeviceGray")),
     ("/Filter", Array([Integer(1)])),
   ])
-  let rendered_array = @pdfops.string_of_ops([
+  let rendered_array = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict_array, None, @pdfio.bytes_of_list([0x00]))),
   ])
-  let res_array : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
+  let res_array : Result[Array[@pdfops.Op], Error] = try? @pdfops.Op::parse_single_stream(
     pdf,
     resources,
     @pdfio.bytes_of_string(rendered_array),
@@ -436,10 +436,10 @@ test "parse inline image handles bad filters" {
     ("/CS", Name("/DeviceGray")),
     ("/Filter", Array([Name("/FlateDecode"), Name("/ASCIIHexDecode")])),
   ])
-  let rendered_multi = @pdfops.string_of_ops([
+  let rendered_multi = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict_multi, None, @pdfio.bytes_of_list([0x00]))),
   ])
-  let res_multi : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
+  let res_multi : Result[Array[@pdfops.Op], Error] = try? @pdfops.Op::parse_single_stream(
     pdf,
     resources,
     @pdfio.bytes_of_string(rendered_multi),
@@ -475,7 +475,7 @@ test "parse inline image reads raw bytes without filter" {
   let data = @pdfio.bytes_of_list([0x7f])
   let footer = @pdfio.bytes_of_string(" EI")
   let stream = concat_bytes([header, data, footer])
-  let ops = @pdfops.parse_single_stream(pdf, resources, stream)
+  let ops = @pdfops.Op::parse_single_stream(pdf, resources, stream)
   let mut saw = false
   for op in ops {
     match (op : @pdfops.Op) {
@@ -499,7 +499,7 @@ test "parse inline image DCT reads JPEG marker data" {
   let jpeg = @pdfio.bytes_of_list([0xFF, 0xD9])
   let footer = @pdfio.bytes_of_string(" EI")
   let stream = concat_bytes([header, jpeg, footer])
-  let ops = @pdfops.parse_single_stream(pdf, resources, stream)
+  let ops = @pdfops.Op::parse_single_stream(pdf, resources, stream)
   let mut saw = false
   for op in ops {
     match (op : @pdfops.Op) {
@@ -524,10 +524,10 @@ test "parse inline image errors on invalid filter array" {
     ("/CS", Name("/DeviceGray")),
     ("/Filter", Array([Integer(1)])),
   ])
-  let rendered = @pdfops.string_of_ops([
+  let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x00]))),
   ])
-  let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
+  let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.Op::parse_single_stream(
     pdf,
     resources,
     @pdfio.bytes_of_string(rendered),
@@ -540,8 +540,8 @@ test "components handles indexed shorthand and errors" {
   let pdf = @pdf.empty()
   let resources : @pdf.PdfObject = Dictionary([])
   let indexed : @pdf.PdfObject = Array([Name("/I"), Name("/DeviceRGB")])
-  assert_eq(@pdfops.components(pdf, resources, indexed), 1)
-  let bad_first : Result[Int, Error] = try? @pdfops.components(
+  assert_eq(@pdfops.Op::components(pdf, resources, indexed), 1)
+  let bad_first : Result[Int, Error] = try? @pdfops.Op::components(
     pdf,
     resources,
     Array([Integer(1), Name("/DeviceRGB")]),
@@ -555,7 +555,7 @@ test "parse_single_stream errors on ID keyword" {
   let resources : @pdf.PdfObject = Dictionary([])
   let old = @pdfe.read_debug.val
   @pdfe.read_debug.val = true
-  let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.parse_single_stream(
+  let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.Op::parse_single_stream(
     pdf,
     resources,
     @pdfio.bytes_of_string("ID"),

@@ -6,7 +6,7 @@ fn ops_sample_rect() -> @pdf.PdfObject {
 ///|
 fn ops_page_with_ops(ops : Array[@pdfops.Op]) -> @pdfpage.Page raise {
   {
-    content: [@pdfops.stream_of_ops(ops)],
+    content: [@pdfops.Op::stream_of_ops(ops)],
     mediabox: ops_sample_rect(),
     resources: Dictionary([]),
     rotate: @pdfpage.Rotation::Rotate0,
@@ -20,7 +20,7 @@ test "prepend_operators fast path inserts ops" {
   let base_ops : Array[@pdfops.Op] = [Opq, OpQ]
   let page = ops_page_with_ops(base_ops)
   let updated = page.prepend_operators(pdf, [Opw(2.0)], fast=true)
-  let ops = @pdfops.parse_operators(pdf, updated.resources, updated.content)
+  let ops = @pdfops.Op::parse_operators(pdf, updated.resources, updated.content)
   match (ops[0] : @pdfops.Op) {
     Opw(2.0) => ()
     _ => fail("expected prepended op")
@@ -33,7 +33,7 @@ test "postpend_operators fast path wraps ops" {
   let base_ops : Array[@pdfops.Op] = [OpBT, OpET]
   let page = ops_page_with_ops(base_ops)
   let updated = page.postpend_operators(pdf, [Opw(3.0)], fast=true)
-  let ops = @pdfops.parse_operators(pdf, updated.resources, updated.content)
+  let ops = @pdfops.Op::parse_operators(pdf, updated.resources, updated.content)
   let len = ops.length()
   match ((ops[len - 3], ops[len - 2], ops[len - 1]) : (@pdfops.Op, _, _)) {
     (Opq, Opw(3.0), OpQ) => ()
@@ -46,7 +46,7 @@ test "postpend_operators handles empty content" {
   let pdf = @pdf.empty()
   let page = @pdfpage.Page::custom(ops_sample_rect())
   let updated = page.postpend_operators(pdf, [Opw(1.0)])
-  let ops = @pdfops.parse_operators(pdf, updated.resources, updated.content)
+  let ops = @pdfops.Op::parse_operators(pdf, updated.resources, updated.content)
   match (ops : Array[@pdfops.Op]) {
     [Opw(1.0)] => ()
     _ => fail("expected single op")

@@ -631,19 +631,21 @@ fn string_of_lexemes(lexemes : Array[Lexeme]) -> String raise {
 
 ///|
 /// Make a string of several operators (debug only).
-pub fn string_of_ops(ops : Array[Op]) -> String raise {
+pub fn Op::string_of_ops(ops : Array[Op]) -> String raise {
   string_of_lexemes(lexemes_of_ops(ops))
 }
 
 ///|
 /// Make a string of a single operator (debug only).
-pub fn string_of_op(op : Op) -> String raise {
-  string_of_ops([op])
+pub fn Op::to_string(self : Op) -> String raise {
+  Op::string_of_ops([self])
 }
 
 ///|
 /// Concatenate byte streams with whitespace between them.
-pub fn concat_bytess(ss : Array[@pdfio.MutableBytes]) -> @pdfio.MutableBytes {
+pub fn Op::concat_bytess(
+  ss : Array[@pdfio.MutableBytes],
+) -> @pdfio.MutableBytes {
   let mut total = 0
   for bytes in ss {
     total = total + @pdfio.bytes_size(bytes)
@@ -707,7 +709,7 @@ fn stream_of_lexemes(
 
 ///|
 /// Flatten a list of operators to an uncompressed PDF stream.
-pub fn stream_of_ops(ops : Array[Op]) -> @pdf.PdfObject raise {
+pub fn Op::stream_of_ops(ops : Array[Op]) -> @pdf.PdfObject raise {
   let data = stream_of_lexemes(lexemelists_of_ops(ops))
   @pdf.PdfObject::Stream(
     Ref::new(
@@ -761,7 +763,7 @@ fn get_dictionary(input : @pdfio.Input) -> Lexeme raise {
 
 ///|
 /// Given a colourspace and bits per component, return bytes per pixel.
-pub fn components(
+pub fn Op::components(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,
   space : @pdf.PdfObject,
@@ -783,7 +785,7 @@ pub fn components(
       match @pdf.lookup_direct(pdf, "/ColorSpace", resources) {
         Some(csdict) =>
           match @pdf.lookup_direct(pdf, name, csdict) {
-            Some(space_next) => components(pdf, resources, space_next)
+            Some(space_next) => Op::components(pdf, resources, space_next)
             None => raise @pdf.PdfError::Msg("ColorSpace not found")
           }
         None => raise @pdf.PdfError::Msg("ColorSpace dict not found")
@@ -816,7 +818,11 @@ pub fn components(
               "/CalGray" => if items.length() == 2 { return 1 }
               "/Pattern" =>
                 if items.length() == 2 {
-                  return components(pdf, resources, @pdf.direct(pdf, items[1]))
+                  return Op::components(
+                    pdf,
+                    resources,
+                    @pdf.direct(pdf, items[1]),
+                  )
                 }
               _ => ()
             }
@@ -976,7 +982,7 @@ fn lex_inline_image(
         0
       }
     }
-    let bitwidth = components(pdf, resources, cspace) * bpc * width
+    let bitwidth = Op::components(pdf, resources, cspace) * bpc * width
     let bytewidth = if bitwidth % 8 == 0 {
       bitwidth / 8
     } else {
@@ -1955,7 +1961,7 @@ fn parse_lexemes(
 
 ///|
 /// Parse a single byte stream to an operator list.
-pub fn parse_single_stream(
+pub fn Op::parse_single_stream(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,
   stream : @pdfio.MutableBytes,
@@ -1967,7 +1973,7 @@ pub fn parse_single_stream(
 
 ///|
 /// Parse a list of byte streams to an operator list.
-pub fn parse_stream(
+pub fn Op::parse_stream(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,
   streams : Array[@pdfio.MutableBytes],
@@ -1975,14 +1981,14 @@ pub fn parse_stream(
   let stream = if streams.length() == 1 {
     streams[0]
   } else {
-    concat_bytess(streams)
+    Op::concat_bytess(streams)
   }
-  parse_single_stream(pdf, resources, stream)
+  Op::parse_single_stream(pdf, resources, stream)
 }
 
 ///|
 /// Parse the operators in content streams.
-pub fn parse_operators(
+pub fn Op::parse_operators(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,
   streams : Array[@pdf.PdfObject],
@@ -2001,5 +2007,5 @@ pub fn parse_operators(
       _ => raise @pdf.PdfError::Msg("Malformed stream")
     }
   }
-  parse_stream(pdf, resources, rawstreams)
+  Op::parse_stream(pdf, resources, rawstreams)
 }

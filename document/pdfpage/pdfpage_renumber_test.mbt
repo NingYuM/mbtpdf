@@ -29,7 +29,7 @@ fn renumber_page(rect : @pdf.PdfObject) -> @pdfpage.Page raise {
     OpBDC("/Span", Name("/PropMissing")),
   ]
   {
-    content: [@pdfops.stream_of_ops(ops)],
+    content: [@pdfops.Op::stream_of_ops(ops)],
     mediabox: rect,
     resources: renumber_resources(),
     rotate: @pdfpage.Rotation::Rotate0,
@@ -55,7 +55,7 @@ test "renumber_pages renames resource operators consistently" {
   ])
   let updated = @pdfpage.renumber_pages(pdf, [renumber_page(rect)])
   let renamed = updated[0]
-  let ops = @pdfops.parse_operators(pdf, renamed.resources, renamed.content)
+  let ops = @pdfops.Op::parse_operators(pdf, renamed.resources, renamed.content)
   assert_eq(ops.length(), 13)
   match (ops[0] : @pdfops.Op) {
     OpTf(name, _) => assert_true(name != "/F1")

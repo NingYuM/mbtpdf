@@ -2014,7 +2014,7 @@ async test "e2e page ops roundtrip" {
     Real(100.0),
   ])
   let page : @pdfpage.Page = {
-    content: [@pdfops.stream_of_ops([@pdfops.Op::Opq, @pdfops.Op::OpQ])],
+    content: [@pdfops.Op::stream_of_ops([@pdfops.Op::Opq, @pdfops.Op::OpQ])],
     mediabox: rect,
     resources: Dictionary([]),
     rotate: @pdfpage.Rotation::Rotate0,
@@ -2035,7 +2035,7 @@ async test "e2e page ops roundtrip" {
   write_pdf(out_path, updated_pdf)
   let parsed = read_pdf(out_path)
   let parsed_page = @pdfpage.pages_of_pagetree(parsed)[0]
-  let parsed_ops = @pdfops.parse_operators(
+  let parsed_ops = @pdfops.Op::parse_operators(
     parsed,
     parsed_page.resources,
     parsed_page.content,

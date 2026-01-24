@@ -130,7 +130,7 @@ The `Op` enum represents PDF graphics operators:
 
 ```mbt nocheck
 ///|
-let ops = @pdfops.parse_stream(pdf, resources, content_stream)
+let ops = @pdfops.Op::parse_stream(pdf, resources, content_stream)
 ```
 
 ## Serializing Operators
@@ -141,7 +141,7 @@ let ops = @pdfops.parse_stream(pdf, resources, content_stream)
 ///|
 test "string_of_op" {
   let op = @pdfops.Op::Opq
-  let s = @pdfops.string_of_op(op)
+  let s = op.to_string()
   inspect(s, content="q")
 }
 ```
@@ -150,7 +150,7 @@ test "string_of_op" {
 ///|
 test "string_of_ops" {
   let ops = [@pdfops.Op::Opq, @pdfops.Op::Opm(10.0, 20.0), @pdfops.Op::OpQ]
-  let s = @pdfops.string_of_ops(ops)
+  let s = @pdfops.Op::string_of_ops(ops)
   assert_true(s.contains("q"))
   assert_true(s.contains("Q"))
 }
@@ -160,7 +160,7 @@ test "string_of_ops" {
 
 ```mbt nocheck
 ///|
-let bytes = @pdfops.concat_bytess(byte_arrays)
+let bytes = @pdfops.Op::concat_bytess(byte_arrays)
 ```
 
 ## Common Patterns

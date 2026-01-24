@@ -1,7 +1,7 @@
 ///|
 fn rebuild_page(pdf : @pdf.Pdf, page : @pdfpage.Page) -> @pdfpage.Page raise {
-  let ops = @pdfops.parse_operators(pdf, page.resources, page.content)
-  let stream = @pdfops.stream_of_ops(ops)
+  let ops = @pdfops.Op::parse_operators(pdf, page.resources, page.content)
+  let stream = @pdfops.Op::stream_of_ops(ops)
   {
     content: [stream],
     mediabox: page.mediabox,

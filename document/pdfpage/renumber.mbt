@@ -127,11 +127,11 @@ pub fn renumber_pages(pdf : @pdf.Pdf, pages : Array[Page]) -> Array[Page] raise 
     resources : @pdf.PdfObject,
     content : Array[@pdf.PdfObject],
   ) -> Array[@pdf.PdfObject] raise {
-    let operators = @pdfops.parse_operators(pdf, resources, content)
+    let operators = @pdfops.Op::parse_operators(pdf, resources, content)
     let operators_updated = operators.map(op => change_operator(
       pdf, lookup, lookup_option, seqnum, op,
     ))
-    [@pdfops.stream_of_ops(operators_updated)]
+    [@pdfops.Op::stream_of_ops(operators_updated)]
   }
 
   fn change_resources(

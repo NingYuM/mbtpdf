@@ -34,7 +34,7 @@ fn PdfText::append_text_from_streams(
   streams : Array[@pdf.PdfObject],
   visited : Map[Int, Bool],
 ) -> Unit raise {
-  let ops = @pdfops.parse_operators(self.pdf, resources, streams)
+  let ops = @pdfops.Op::parse_operators(self.pdf, resources, streams)
   let mut in_text = false
   let mut current_extractor : TextExtractor? = None
   let mut last_newline = false
