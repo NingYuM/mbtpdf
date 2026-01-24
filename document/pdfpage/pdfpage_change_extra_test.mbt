@@ -35,14 +35,12 @@ fn dest_for_page(page_objnum : Int) -> @pdf.PdfObject {
 
 ///|
 fn xyz_dest_for_page(page_objnum : Int) -> @pdf.PdfObject {
-  @pdfdest.pdfobject_of_destination(
-    @pdfdest.Destination::XYZ(
-      @pdfdest.TargetPage::PageObject(page_objnum),
-      Some(0.0),
-      Some(0.0),
-      Some(1.0),
-    ),
-  )
+  @pdfdest.Destination::XYZ(
+    @pdfdest.TargetPage::PageObject(page_objnum),
+    Some(0.0),
+    Some(0.0),
+    Some(1.0),
+  ).to_pdf_object()
 }
 
 ///|

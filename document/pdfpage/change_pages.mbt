@@ -33,13 +33,13 @@ pub fn pagenumber_of_target(
                 Some(table) =>
                   pagenumber_of_target(
                     pdf,
-                    @pdfdest.read_destination(pdf, dest),
+                    @pdfdest.Destination::read(pdf, dest),
                     fastrefnums=table,
                   )
                 None =>
                   pagenumber_of_target(
                     pdf,
-                    @pdfdest.read_destination(pdf, dest),
+                    @pdfdest.Destination::read(pdf, dest),
                   )
               }
             None => 0
@@ -137,13 +137,13 @@ fn rewrite_dest(
   refnumstable : Map[Int, Int],
   dest : @pdf.PdfObject,
 ) -> Int? raise {
-  let parsed_dest = @pdfdest.read_destination(pdf, dest)
+  let parsed_dest = @pdfdest.Destination::read(pdf, dest)
   let tr = change_pages_find_matrix(parsed_dest, mattable, refnumstable)
   if matrix_is_identity(tr) {
     None
   } else {
-    let transformed = @pdfdest.transform_destination(pdf, tr, parsed_dest)
-    let new_dest = @pdfdest.pdfobject_of_destination(transformed)
+    let transformed = parsed_dest.transform(pdf, tr)
+    let new_dest = transformed.to_pdf_object()
     Some(@pdf.addobj(pdf, new_dest))
   }
 }

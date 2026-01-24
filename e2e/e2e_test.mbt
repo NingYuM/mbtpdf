@@ -97,9 +97,7 @@ fn add_named_destination(
   let dest = @pdfdest.Destination::Fit(
     @pdfdest.TargetPage::PageObject(page_obj),
   )
-  let tree = @pdftree.build_name_tree(false, pdf, [
-    (name, @pdfdest.pdfobject_of_destination(dest)),
-  ])
+  let tree = @pdftree.build_name_tree(false, pdf, [(name, dest.to_pdf_object())])
   let tree_num = @pdf.addobj(pdf, tree)
   let rootnum = pdf.root
   let root = @pdf.lookup_obj(pdf, rootnum)
@@ -245,7 +243,7 @@ fn make_bulk_named_dest_entries(
     let dest = @pdfdest.Destination::Fit(
       @pdfdest.TargetPage::PageObject(page_obj),
     )
-    entries.push((name, @pdfdest.pdfobject_of_destination(dest)))
+    entries.push((name, dest.to_pdf_object()))
   }
   entries
 }
@@ -509,7 +507,7 @@ fn read_named_destination(
   }
   let entries = @pdftree.read_name_tree(pdf, dests)
   match entries.search_by(pair => pair.0 == name) {
-    Some(idx) => @pdfdest.read_destination(pdf, entries[idx].1)
+    Some(idx) => @pdfdest.Destination::read(pdf, entries[idx].1)
     None => fail("missing destination: " + name)
   }
 }
@@ -1016,12 +1014,12 @@ async test "e2e merge preserves /Dests dictionary" {
     Some(objnum) => objnum
     None => fail("missing right page")
   }
-  let left_dest = @pdfdest.pdfobject_of_destination(
-    @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(left_page)),
-  )
-  let right_dest = @pdfdest.pdfobject_of_destination(
-    @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(right_page)),
-  )
+  let left_dest = @pdfdest.Destination::Fit(
+    @pdfdest.TargetPage::PageObject(left_page),
+  ).to_pdf_object()
+  let right_dest = @pdfdest.Destination::Fit(
+    @pdfdest.TargetPage::PageObject(right_page),
+  ).to_pdf_object()
   add_dests_dictionary(left, [("/LeftDest", left_dest)])
   add_dests_dictionary(right, [("/RightDest", right_dest)])
   let merged = @pdfmerge.merge_pdfs(
@@ -1036,8 +1034,8 @@ async test "e2e merge preserves /Dests dictionary" {
   let merged_pages = @pdf.page_reference_numbers(merged)
   let left_expected = merged_pages[0]
   let right_expected = merged_pages[left_count]
-  let left_read = @pdfdest.read_destination(merged, Name("/LeftDest"))
-  let right_read = @pdfdest.read_destination(merged, Name("/RightDest"))
+  let left_read = @pdfdest.Destination::read(merged, Name("/LeftDest"))
+  let right_read = @pdfdest.Destination::read(merged, Name("/RightDest"))
   assert_destination_page(left_read, left_expected)
   assert_destination_page(right_read, right_expected)
   ensure_dir(OUTPUT_DIR)
@@ -1047,8 +1045,8 @@ async test "e2e merge preserves /Dests dictionary" {
   let parsed_pages = @pdf.page_reference_numbers(parsed)
   let parsed_left = parsed_pages[0]
   let parsed_right = parsed_pages[left_count]
-  let parsed_left_read = @pdfdest.read_destination(parsed, Name("/LeftDest"))
-  let parsed_right_read = @pdfdest.read_destination(parsed, Name("/RightDest"))
+  let parsed_left_read = @pdfdest.Destination::read(parsed, Name("/LeftDest"))
+  let parsed_right_read = @pdfdest.Destination::read(parsed, Name("/RightDest"))
   assert_destination_page(parsed_left_read, parsed_left)
   assert_destination_page(parsed_right_read, parsed_right)
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)

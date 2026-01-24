@@ -12,7 +12,7 @@ pub(all) struct Bookmark {
 ///|
 /// Pretty-print a bookmark for debugging.
 pub fn string_of_bookmark(mark : Bookmark) -> String {
-  let dest = @pdfdest.pdfobject_of_destination(mark.target)
+  let dest = mark.target.to_pdf_object()
   let dest_string = @pdf.string_of_pdfobj(dest)
   "\{mark.level} \{mark.text} \{dest_string} \{mark.isopen}\n"
 }
@@ -325,7 +325,7 @@ fn node_of_line(
   let entries : Array[(String, @pdf.PdfObject)] = [
     ("/Title", @pdf.PdfObject::String(title)),
   ]
-  let dest = @pdfdest.pdfobject_of_destination(target)
+  let dest = target.to_pdf_object()
   match (dest : @pdf.PdfObject) {
     Null => ()
     _ =>
@@ -465,7 +465,8 @@ fn do_until_no_next_lb(
     @pdf.lookup_direct(pdf, "/Dest", outline) {
     Some(@pdf.PdfObject::String(stringdest)) if preserve_actions =>
       StringDestination(stringdest)
-    Some(dest) => @pdfdest.read_destination(pdf, dest, shallow=preserve_actions)
+    Some(dest) =>
+      @pdfdest.Destination::read(pdf, dest, shallow=preserve_actions)
     None =>
       match @pdf.lookup_direct(pdf, "/A", outline) {
         None => NullDestination
@@ -473,14 +474,14 @@ fn do_until_no_next_lb(
           if preserve_actions {
             match @pdf.lookup_direct(pdf, "/D", action) {
               Some(@pdf.PdfObject::Array(_) as dest) =>
-                @pdfdest.read_destination(pdf, dest, shallow=preserve_actions)
+                @pdfdest.Destination::read(pdf, dest, shallow=preserve_actions)
               _ => Action(@pdf.direct(pdf, action))
             }
           } else {
             match @pdf.lookup_direct(pdf, "/D", action) {
               None => Action(@pdf.direct(pdf, action))
               Some(dest) =>
-                @pdfdest.read_destination(pdf, dest, shallow=preserve_actions)
+                @pdfdest.Destination::read(pdf, dest, shallow=preserve_actions)
             }
           }
       }
@@ -557,7 +558,7 @@ pub fn transform_bookmark(
   {
     level: mark.level,
     text: mark.text,
-    target: @pdfdest.transform_destination(pdf, tr, mark.target),
+    target: mark.target.transform(pdf, tr),
     isopen: mark.isopen,
     colour: mark.colour,
     flags: mark.flags,

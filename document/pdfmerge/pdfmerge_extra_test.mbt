@@ -36,7 +36,7 @@ fn page_ref(pdf : @pdf.Pdf, index : Int) -> Int raise {
 fn dest_dict_for_page(pdf : @pdf.Pdf, index : Int) -> @pdf.PdfObject raise {
   let target = @pdfdest.TargetPage::PageObject(page_ref(pdf, index))
   let dest = @pdfdest.Destination::Fit(target)
-  Dictionary([("/D", @pdfdest.pdfobject_of_destination(dest))])
+  Dictionary([("/D", dest.to_pdf_object())])
 }
 
 ///|

@@ -8,11 +8,6 @@ import {
 }
 
 // Values
-pub fn pdfobject_of_destination(Destination) -> @pdf.PdfObject
-
-pub fn read_destination(@pdf.Pdf, @pdf.PdfObject, shallow? : Bool) -> Destination raise
-
-pub fn transform_destination(@pdf.Pdf, @pdftransform.TransformMatrix, Destination) -> Destination raise
 
 // Errors
 
@@ -31,6 +26,9 @@ pub(all) enum Destination {
   FitBH(TargetPage, Double?)
   FitBV(TargetPage, Double?)
 }
+pub fn Destination::read(@pdf.Pdf, @pdf.PdfObject, shallow? : Bool) -> Self raise
+pub fn Destination::to_pdf_object(Self) -> @pdf.PdfObject
+pub fn Destination::transform(Self, @pdf.Pdf, @pdftransform.TransformMatrix) -> Self raise
 
 pub(all) enum TargetPage {
   PageObject(Int)

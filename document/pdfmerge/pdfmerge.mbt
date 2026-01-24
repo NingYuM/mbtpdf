@@ -372,7 +372,7 @@ fn merge_bookmarks(
                 match @pdf.lookup_direct(pdf, "/D", dest) {
                   Some(dest_obj) => {
                     let r = pageobjectnumber_of_target(
-                      @pdfdest.read_destination(pdf, dest_obj),
+                      @pdfdest.Destination::read(pdf, dest_obj),
                     )
                     match lookup(r, changes_rev) {
                       Some(old) => old
@@ -393,7 +393,7 @@ fn merge_bookmarks(
                         match @pdf.lookup_direct(pdf, "/D", dest) {
                           Some(dest_obj) => {
                             let r = pageobjectnumber_of_target(
-                              @pdfdest.read_destination(pdf, dest_obj),
+                              @pdfdest.Destination::read(pdf, dest_obj),
                             )
                             match lookup(r, changes_rev) {
                               Some(old) => old

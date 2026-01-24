@@ -79,7 +79,7 @@ let dest = @pdfdest.Destination::Fit(
 
 ```mbt nocheck
 ///|
-let dest_obj = @pdfdest.pdfobject_of_destination(dest)
+let dest_obj = @pdfdest.Destination::to_pdf_object(dest)
 // Can be used in /Dest entries, bookmarks, etc.
 ```
 
@@ -89,7 +89,7 @@ When pages are transformed (rotated, scaled), update destinations:
 
 ```mbt nocheck
 ///|
-let transformed = @pdfdest.transform_destination(pdf, transform, destination)
+let transformed = destination.transform(pdf, transform)
 ```
 
 ## Common Usage
@@ -100,7 +100,7 @@ let transformed = @pdfdest.transform_destination(pdf, transform, destination)
 // Read bookmark destination
 
 ///|
-let bookmark_dest = @pdfdest.read_destination(pdf, bookmark_dict)
+let bookmark_dest = @pdfdest.Destination::read(pdf, bookmark_dict)
 
 // Get page number
 
@@ -114,5 +114,5 @@ let pagenum = @pdfpage.pagenumber_of_target(pdf, bookmark_dest)
 // Read link destination from annotation
 
 ///|
-let link_dest = @pdfdest.read_destination(pdf, annot_dict)
+let link_dest = @pdfdest.Destination::read(pdf, annot_dict)
 ```

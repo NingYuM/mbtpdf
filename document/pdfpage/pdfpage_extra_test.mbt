@@ -458,7 +458,7 @@ test "change_pages rewrites annotation and openaction" {
     Some(dest) => dest
     None => fail("expected OpenAction")
   }
-  match @pdfdest.read_destination(translated, openaction) {
+  match @pdfdest.Destination::read(translated, openaction) {
     @pdfdest.Destination::XYZ(_, Some(left), Some(top), _) => {
       assert_close(left, 15.0)
       assert_close(top, 17.0)
@@ -487,7 +487,7 @@ test "change_pages rewrites annotation and openaction" {
               _ => fail("expected action")
             }
         }
-        match @pdfdest.read_destination(translated, dest) {
+        match @pdfdest.Destination::read(translated, dest) {
           @pdfdest.Destination::XYZ(_, Some(left), Some(top), _) => {
             assert_close(left, 15.0)
             assert_close(top, 17.0)

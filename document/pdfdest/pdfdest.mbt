@@ -156,7 +156,7 @@ fn read_array_destination(
 
 ///|
 /// Read a destination given a PDF and destination object.
-pub fn read_destination(
+pub fn Destination::read(
   pdf : @pdf.Pdf,
   pdfobject : @pdf.PdfObject,
   shallow? : Bool = false,
@@ -165,7 +165,7 @@ pub fn read_destination(
   match resolved {
     @pdf.PdfObject::Dictionary(_) =>
       match @pdf.lookup_direct(pdf, "/D", resolved) {
-        Some(dest) => read_destination(pdf, dest, shallow~)
+        Some(dest) => Destination::read(pdf, dest, shallow~)
         None => Destination::NullDestination
       }
     @pdf.PdfObject::Array(arr) =>
@@ -187,7 +187,7 @@ pub fn read_destination(
             match @pdf.lookup_direct(pdf, "/Dests", catalog) {
               Some(dests) =>
                 match @pdf.lookup_direct(pdf, name, dests) {
-                  Some(dest) => read_destination(pdf, dest, shallow~)
+                  Some(dest) => Destination::read(pdf, dest, shallow~)
                   None => Destination::NamedDestination(name)
                 }
               None => Destination::NamedDestination(name)
@@ -211,7 +211,7 @@ pub fn read_destination(
                     destsdict,
                   ) {
                   None => Destination::StringDestination(s)
-                  Some(dest) => read_destination(pdf, dest, shallow~)
+                  Some(dest) => Destination::read(pdf, dest, shallow~)
                 }
               _ => Destination::StringDestination(s)
             }
@@ -245,8 +245,8 @@ fn pos_null(value : Double?) -> @pdf.PdfObject {
 
 ///|
 /// Write a destination to a PdfObject.
-pub fn pdfobject_of_destination(dest : Destination) -> @pdf.PdfObject {
-  match dest {
+pub fn Destination::to_pdf_object(self : Destination) -> @pdf.PdfObject {
+  match self {
     Destination::Action(a) => a
     Destination::NullDestination => @pdf.PdfObject::Null
     Destination::NamedDestination(s) => @pdf.PdfObject::Name(s)
@@ -319,12 +319,12 @@ fn clip_pair(pair : (Double, Double)) -> (Double, Double) {
 
 ///|
 /// Transform a destination by a matrix.
-pub fn transform_destination(
+pub fn Destination::transform(
+  self : Destination,
   pdf : @pdf.Pdf,
   t : @pdftransform.TransformMatrix,
-  dest : Destination,
 ) -> Destination raise {
-  match dest {
+  match self {
     Destination::FitH(TargetPage::PageObject(i), Some(top)) => {
       let (_, top) = clip_pair(t.apply((0.0, top)))
       Destination::FitH(TargetPage::PageObject(i), Some(top))
@@ -362,17 +362,15 @@ pub fn transform_destination(
       match
         (@pdf.lookup_direct(pdf, "/S", a), @pdf.lookup_direct(pdf, "/D", a)) {
         (Some(@pdf.PdfObject::Name("/GoTo")), Some(d)) => {
-          let transformed = transform_destination(
-            pdf,
-            t,
-            read_destination(pdf, d, shallow=true),
+          let transformed = Destination::read(pdf, d, shallow=true).transform(
+            pdf, t,
           )
           Destination::Action(
-            @pdf.add_dict_entry(a, "/D", pdfobject_of_destination(transformed)),
+            @pdf.add_dict_entry(a, "/D", transformed.to_pdf_object()),
           )
         }
         _ => Destination::Action(a)
       }
-    _ => dest
+    _ => self
   }
 }
