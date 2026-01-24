@@ -45,11 +45,11 @@ Log a message using the current logger.
 ///|
 test "log: captures messages with custom logger" {
   let messages : Array[String] = []
-  let prev = @pdfe.Pdfe::new().logger.val
-  @pdfe.Pdfe::new().logger.val = fn(msg) { messages.push(msg) }
+  let prev = @pdfe.logger.val
+  @pdfe.logger.val = fn(msg) { messages.push(msg) }
   @pdfe.Pdfe::new().log("hello")
   @pdfe.Pdfe::new().log("world")
-  @pdfe.Pdfe::new().logger.val = prev
+  @pdfe.logger.val = prev
   inspect(messages, content="[\"hello\", \"world\"]")
 }
 ```
@@ -69,13 +69,13 @@ pub fn default(String) -> Unit
 ```moonbit nocheck
 // Capture log messages
 let messages : Array[String] = []
-let prev = @pdfe.Pdfe::new().logger.val
-@pdfe.Pdfe::new().logger.val = fn(msg) { messages.push(msg) }
+let prev = @pdfe.logger.val
+@pdfe.logger.val = fn(msg) { messages.push(msg) }
 
 // ... code that calls @pdfe.Pdfe::new().log() ...
 
 // Restore original logger
-@pdfe.Pdfe::new().logger.val = prev
+@pdfe.logger.val = prev
 ```
 
 **Enable debug mode:**

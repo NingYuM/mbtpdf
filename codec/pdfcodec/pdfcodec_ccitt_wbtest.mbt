@@ -1,5 +1,5 @@
 ///|
-let ctx = PdfCodec::new()
+let ccitt_ctx : PdfCodec = PdfCodec::new()
 
 ///|
 fn bitmap_bytes(
@@ -88,7 +88,7 @@ test "encode_pdfstream ccitt g3 roundtrip" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(raw)))
   let stream_obj = @pdf.PdfObject::Stream(stream_ref)
-  ctx.encode_pdfstream(pdf, Encoding::CCITT(columns, rows), stream_obj)
+  ccitt_ctx.encode_pdfstream(pdf, Encoding::CCITT(columns, rows), stream_obj)
   let (encoded_dict, _encoded_stream) = stream_ref.val
   match @pdf.lookup_direct(pdf, "/Filter", encoded_dict) {
     Some(@pdf.PdfObject::Name(name))
@@ -98,7 +98,7 @@ test "encode_pdfstream ccitt g3 roundtrip" {
       }
     _ => fail("expected /Filter entry")
   }
-  ctx.decode_pdfstream_onestage(pdf, stream_obj)
+  ccitt_ctx.decode_pdfstream_onestage(pdf, stream_obj)
   let (_decoded_dict, decoded_stream) = stream_ref.val
   let decoded_bytes = match decoded_stream {
     @pdf.Stream::Got(bytes) => bytes
@@ -125,7 +125,7 @@ test "encode_pdfstream ccitt g4 roundtrip" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(raw)))
   let stream_obj = @pdf.PdfObject::Stream(stream_ref)
-  ctx.encode_pdfstream(pdf, Encoding::CCITTG4(columns, rows), stream_obj)
+  ccitt_ctx.encode_pdfstream(pdf, Encoding::CCITTG4(columns, rows), stream_obj)
   let (encoded_dict, _encoded_stream) = stream_ref.val
   match @pdf.lookup_direct(pdf, "/Filter", encoded_dict) {
     Some(@pdf.PdfObject::Name(name))
@@ -135,7 +135,7 @@ test "encode_pdfstream ccitt g4 roundtrip" {
       }
     _ => fail("expected /Filter entry")
   }
-  ctx.decode_pdfstream_onestage(pdf, stream_obj)
+  ccitt_ctx.decode_pdfstream_onestage(pdf, stream_obj)
   let (_decoded_dict, decoded_stream) = stream_ref.val
   let decoded_bytes = match decoded_stream {
     @pdf.Stream::Got(bytes) => bytes

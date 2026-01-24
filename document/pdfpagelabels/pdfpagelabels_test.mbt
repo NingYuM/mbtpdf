@@ -1,5 +1,5 @@
 ///|
-let ctx = PdfPageLabels::new()
+let ctx : @pdfpagelabels.PdfPageLabels = PdfPageLabels::new()
 
 ///|
 test "pagelabeltext roman" {

@@ -1,5 +1,5 @@
 ///|
-let ctx = PdfCodec::new()
+let ctx : @pdfcodec.PdfCodec = PdfCodec::new()
 
 ///|
 test "encode/decode flate stream" {

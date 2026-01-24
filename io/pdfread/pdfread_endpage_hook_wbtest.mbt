@@ -11,7 +11,7 @@ test "pdf_of_input triggers endpage hook without objstms" {
   @pdfwrite.PdfWrite::new().pdf_to_output(None, false, pdf, output)
   let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let input = @pdfio.input_of_bytes(bytes, source="endpage-hook")
-  let _ = pdf_of_input(None, None, input)
+  let _ = PdfRead::new().pdf_of_input(None, None, input)
   endpage.val = previous
   assert_eq(called.val, true)
 }

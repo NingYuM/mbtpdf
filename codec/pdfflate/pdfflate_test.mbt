@@ -1,4 +1,7 @@
 ///|
+let ctx : @pdfflate.PdfFlate = PdfFlate::new()
+
+///|
 fn run_uncompress(
   data : @pdfio.MutableBytes,
   header : Bool,
@@ -21,7 +24,7 @@ fn run_uncompress(
   let output = (buf : @pdfio.MutableBytes, length : Int) => for i in 0..<length {
     out.push(buf[i])
   }
-  uncompress(header~, input, output)
+  ctx.uncompress(header~, input, output)
   out
 }
 
@@ -48,7 +51,7 @@ fn run_compress(
   let output = (buf : @pdfio.MutableBytes, length : Int) => for i in 0..<length {
     out.push(buf[i])
   }
-  compress(header~, input, output)
+  ctx.compress(header~, input, output)
   out
 }
 

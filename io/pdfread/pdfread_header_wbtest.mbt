@@ -24,5 +24,5 @@ test "read_header errors on missing minor digits" {
 ///|
 test "is_linearized detects dictionary flag" {
   let input = @pdfio.input_of_string("%PDF-1.4\n<< /Linearized 1 >>")
-  assert_true(is_linearized(input))
+  assert_true(PdfRead::new().is_linearized(input))
 }
