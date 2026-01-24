@@ -29,16 +29,16 @@ fn pagetree_with_objnumbers(
 }
 
 ///|
-fn buildnode(kids : Array[Int], parent : Int, count : Int) -> @pdf.PdfObject {
-  let entries : Array[(String, @pdf.PdfObject)] = [
-    ("/Type", @pdf.PdfObject::Name("/Pages")),
-    ("/Kids", @pdf.PdfObject::Array(kids.map(i => @pdf.PdfObject::Indirect(i)))),
-    ("/Count", @pdf.PdfObject::Integer(count)),
+fn buildnode(kids : Array[Int], parent : Int, count : Int) -> PdfObject {
+  let entries : Array[(String, PdfObject)] = [
+    ("/Type", PdfObject::Name("/Pages")),
+    ("/Kids", PdfObject::Array(kids.map(i => PdfObject::Indirect(i)))),
+    ("/Count", PdfObject::Integer(count)),
   ]
   if parent != 0 {
-    entries.push(("/Parent", @pdf.PdfObject::Indirect(parent)))
+    entries.push(("/Parent", PdfObject::Indirect(parent)))
   }
-  @pdf.PdfObject::Dictionary(entries)
+  PdfObject::Dictionary(entries)
 }
 
 ///|
@@ -84,7 +84,7 @@ fn pdf_of_pages_build_pagetree(
   tree : PtreeObjnumbers,
   objnumbers : Array[Int],
   pdf : @pdf.Pdf,
-) -> @pdf.PdfObject {
+) -> PdfObject {
   match tree {
     PtreeObjnumbers::OLf(_, parent, _) =>
       buildnode(objnumbers, parent, countof(tree))
@@ -102,10 +102,13 @@ fn pdf_of_pages_build_pagetree(
 
 ///|
 fn select_page_ref(refs : Array[Int], index_1 : Int) -> Int raise {
-  if index_1 < 1 || index_1 > refs.length() {
+  if index_1 < 1 {
     raise @pdf.PdfError::Msg("pdf_of_pages")
   }
-  refs[index_1 - 1]
+  match refs.get(index_1 - 1) {
+    Some(value) => value
+    None => raise @pdf.PdfError::Msg("pdf_of_pages")
+  }
 }
 
 ///|
@@ -136,8 +139,10 @@ pub fn PdfPageDoc::pdf_of_pages(
   process_struct_tree? : Bool = false,
 ) -> @pdf.Pdf raise {
   let basepdf = self.pdf
-  if range.length() == 0 {
-    raise @pdf.PdfError::Msg("pdf_of_pages: cannot build PDF with no pages")
+  match range {
+    [] =>
+      raise @pdf.PdfError::Msg("pdf_of_pages: cannot build PDF with no pages")
+    _ => ()
   }
   let page_labels = if @pdfpagelabels.PageLabel::read_all(basepdf).length() == 0 {
     []
@@ -205,7 +210,7 @@ pub fn PdfPageDoc::pdf_of_pages(
     @pdfst.PdfStructTree::new(pdf).trim_structure_tree(range)
   }
   let existing_root_entries = match basepdf.lookup_obj(basepdf.root) {
-    @pdf.PdfObject::Dictionary(d) => d
+    Dictionary(d) => d
     _ => []
   }
   let objnumbers : Array[Int] = Array::new(capacity=range.length())
@@ -231,10 +236,10 @@ pub fn PdfPageDoc::pdf_of_pages(
   )
   let objnumbers_set = range_to_set(objnumbers)
   pdf.objiter((i, o) => match o {
-    @pdf.PdfObject::Dictionary(_) =>
+    Dictionary(_) =>
       match pdf.lookup_direct("/Type", o) {
-        Some(@pdf.PdfObject::Name("/Pages")) => pdf.removeobj(i)
-        Some(@pdf.PdfObject::Name("/Page")) =>
+        Some(Name("/Pages")) => pdf.removeobj(i)
+        Some(Name("/Page")) =>
           if objnumbers_set.get(i) is None {
             pdf.removeobj(i)
           }

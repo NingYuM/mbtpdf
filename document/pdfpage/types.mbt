@@ -1,4 +1,7 @@
 ///|
+type PdfObject = @pdf.PdfObject
+
+///|
 /// The type of the four rotations of pages.
 pub(all) enum Rotation {
   Rotate0
@@ -10,11 +13,11 @@ pub(all) enum Rotation {
 ///|
 /// A type representing a page.
 pub(all) struct Page {
-  content : Array[@pdf.PdfObject]
-  mediabox : @pdf.PdfObject
-  resources : @pdf.PdfObject
+  content : Array[PdfObject]
+  mediabox : PdfObject
+  resources : PdfObject
   rotate : Rotation
-  rest : @pdf.PdfObject
+  rest : PdfObject
 }
 
 ///|
@@ -29,13 +32,13 @@ pub fn PdfPageDoc::new(pdf : @pdf.Pdf) -> PdfPageDoc {
 
 ///|
 /// Create a page with empty content and no extra dictionary entries.
-pub fn Page::custom(rectangle : @pdf.PdfObject) -> Page {
+pub fn Page::custom(rectangle : PdfObject) -> Page {
   {
     content: [],
     mediabox: rectangle,
-    resources: @pdf.PdfObject::Dictionary([]),
-    rotate: Rotation::Rotate0,
-    rest: @pdf.PdfObject::Dictionary([]),
+    resources: PdfObject::Dictionary([]),
+    rotate: Rotate0,
+    rest: PdfObject::Dictionary([]),
   }
 }
 
@@ -49,10 +52,10 @@ pub fn Page::blank(paper : @pdfpaper.Paper) -> Page {
 /// Convert rotation to integers.
 pub fn Rotation::to_int(self : Rotation) -> Int {
   match self {
-    Rotation::Rotate0 => 0
-    Rotation::Rotate90 => 90
-    Rotation::Rotate180 => 180
-    Rotation::Rotate270 => 270
+    Rotate0 => 0
+    Rotate90 => 90
+    Rotate180 => 180
+    Rotate270 => 270
   }
 }
 
@@ -61,10 +64,10 @@ pub fn Rotation::to_int(self : Rotation) -> Int {
 pub fn Rotation::from_int(i : Int) -> Rotation raise {
   let r = i % 360
   match r {
-    0 => Rotation::Rotate0
-    90 | -270 => Rotation::Rotate90
-    180 | -180 => Rotation::Rotate180
-    270 | -90 => Rotation::Rotate270
+    0 => Rotate0
+    90 | -270 => Rotate90
+    180 | -180 => Rotate180
+    270 | -90 => Rotate270
     _ => raise @pdf.PdfError::Msg("Bad /Rotate")
   }
 }
