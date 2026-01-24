@@ -50,13 +50,12 @@ fn parse_signed_int(value : String) -> Int {
   }
   let mut sign = 1
   let mut i = 0
-  match chars[0] {
-    '-' => {
-      sign = -1
-      i = 1
-    }
-    '+' => i = 1
-    _ => ()
+  let first = chars[0]
+  if first is '-' {
+    sign = -1
+    i = 1
+  } else if first is '+' {
+    i = 1
   }
   let mut result = 0
   while i < chars.length() {
