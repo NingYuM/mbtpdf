@@ -157,6 +157,32 @@ fn read_xref(input : @pdfio.Input) -> Array[(Int, XRef)] raise {
 }
 
 ///|
+/// local methods
+fn[A] Array::get_slice(
+  self : Array[A],
+  start : Int,
+  finish : Int,
+) -> ArrayView[A]? {
+  if start < 0 || finish > self.length() || start > finish {
+    return None
+  }
+  Some(self[start:finish])
+}
+
+///|
+test "Array:get_slice" {
+  let data = [1, 2, 3, 4, 6]
+  debug_inspect(data.get_slice(0, 0), content="Some(<ArrayView: []>)")
+  debug_inspect(data.get_slice(0, 3), content="Some(<ArrayView: [1, 2, 3]>)")
+  debug_inspect(data.get_slice(1, 4), content="Some(<ArrayView: [2, 3, 4]>)")
+  debug_inspect(
+    data.get_slice(0, 5),
+    content="Some(<ArrayView: [1, 2, 3, 4, 6]>)",
+  )
+  debug_inspect(data.get_slice(-1, 3), content="None")
+}
+
+///|
 fn read_xref_line_stream(
   input : @pdfio.Input,
   w1 : Int,
@@ -299,17 +325,20 @@ fn read_xref_stream(
   let starts_and_lens = match
     @pdf.Pdf::empty().lookup_direct("/Index", stream_obj) {
     Some(Array(elts)) => {
+      // PDF spec: /Index is an array of (start, count) pairs, so it must be even-length.
       let pairs = Array::new()
-      let mut i = 0
-      while i < elts.length() {
-        match (elts.get(i), elts.get(i + 1)) {
-          (Some(Integer(s)), Some(Integer(l))) => pairs.push((s, l))
+      // TODO(upstream): `;` should be optional
+      for i = 0; i < elts.length(); {
+        match elts.get_slice(i, i + 2) {
+          Some([Integer(s), Integer(l)]) => {
+            pairs.push((s, l))
+            continue i + 2
+          }
           _ =>
             raise @pdf.PdfError::Msg(
               @pdf.input_pdferror(input, "Bad /Index entry"),
             )
         }
-        i = i + 2
       }
       pairs
     }
