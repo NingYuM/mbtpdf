@@ -93,14 +93,11 @@ test "merge_pdfs keeps named and action bookmarks while dropping out of range" {
     },
   ]
   let pdf = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(bookmarks)
-  let merged = merge_pdfs(
+  let merged = PdfMerger::new(["one"], [pdf], [[1]]).merge_pdfs(
     false,
     false,
     process_struct_trees=false,
     add_toplevel_document=false,
-    ["one"],
-    [pdf],
-    [[1]],
   )
   let marks = @pdfmarks.PdfMarks::new(merged).read_bookmarks(
     preserve_actions=true,
@@ -124,14 +121,11 @@ test "merge_pdfs handles malformed names and optional catalog entries" {
   )
   set_catalog_entry(pdf1, "/AcroForm", Null)
   set_catalog_entry(pdf2, "/AcroForm", Dictionary([("/Fields", Array([Null]))]))
-  let merged = merge_pdfs(
+  let merged = PdfMerger::new(["one", "two"], [pdf1, pdf2], [[1], [1]]).merge_pdfs(
     false,
     false,
     process_struct_trees=false,
     add_toplevel_document=false,
-    ["one", "two"],
-    [pdf1, pdf2],
-    [[1], [1]],
   )
   let catalog = @pdf.catalog_of_pdf(merged)
   match @pdf.lookup_direct(merged, "/OCProperties", catalog) {
@@ -156,14 +150,15 @@ test "merge_pdfs handles malformed names and optional catalog entries" {
 test "merge_pdfs warns on duplicate names with struct trees" {
   let pdf1 = @pdfpage.minimum_valid_pdf()
   let pdf2 = @pdfpage.minimum_valid_pdf()
-  let res : Result[@pdf.Pdf, Error] = try? merge_pdfs(
+  let res : Result[@pdf.Pdf, Error] = try? PdfMerger::new(
+    ["dup", "dup"],
+    [pdf1, pdf2],
+    [[1], [1]],
+  ).merge_pdfs(
     false,
     false,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["dup", "dup"],
-    [pdf1, pdf2],
-    [[1], [1]],
   )
   match res {
     Ok(merged) => assert_eq(@pdfpage.pages_of_pagetree_quick(merged), 2)
@@ -175,14 +170,15 @@ test "merge_pdfs warns on duplicate names with struct trees" {
 test "merge_pdfs uses highest version and removes duplicates" {
   let pdf1 = with_version(@pdfpage.minimum_valid_pdf(), 1, 4)
   let pdf2 = with_version(@pdfpage.minimum_valid_pdf(), 1, 6)
-  let res : Result[@pdf.Pdf, Error] = try? merge_pdfs(
+  let res : Result[@pdf.Pdf, Error] = try? PdfMerger::new(
+    ["one", "two"],
+    [pdf1, pdf2],
+    [[1], [1]],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=false,
     add_toplevel_document=false,
-    ["one", "two"],
-    [pdf1, pdf2],
-    [[1], [1]],
   )
   match res {
     Ok(merged) => {
@@ -208,7 +204,7 @@ test "remove_duplicate_fonts updates object_stream_ids" {
   let obj2 = @pdf.addobj(pdf, stream2)
   pdf.objects.object_stream_ids.set(obj1, 10)
   pdf.objects.object_stream_ids.set(obj2, 20)
-  remove_duplicate_fonts(pdf)
+  PdfMergeDoc::new(pdf).remove_duplicate_fonts()
   assert_eq(pdf.objects.object_stream_ids.length(), 1)
 }
 
@@ -225,20 +221,17 @@ test "remove_duplicate_fonts keeps distinct stream lengths" {
   ignore(@pdf.addobj(pdf, stream1))
   ignore(@pdf.addobj(pdf, stream2))
   let before = pdf.objcard()
-  remove_duplicate_fonts(pdf)
+  PdfMergeDoc::new(pdf).remove_duplicate_fonts()
   assert_eq(pdf.objcard(), before)
 }
 
 ///|
 test "merge_pdfs errors on empty inputs" {
-  let res : Result[@pdf.Pdf, Error] = try? merge_pdfs(
+  let res : Result[@pdf.Pdf, Error] = try? PdfMerger::new([], [], []).merge_pdfs(
     false,
     false,
     process_struct_trees=false,
     add_toplevel_document=false,
-    [],
-    [],
-    [],
   )
   assert_true(res is Err(_))
 }
@@ -246,14 +239,15 @@ test "merge_pdfs errors on empty inputs" {
 ///|
 test "merge_pdfs errors on mismatched names" {
   let pdf = make_pdf_pages(1)
-  let res : Result[@pdf.Pdf, Error] = try? merge_pdfs(
+  let res : Result[@pdf.Pdf, Error] = try? PdfMerger::new(
+    ["one", "two"],
+    [pdf],
+    [[1]],
+  ).merge_pdfs(
     false,
     false,
     process_struct_trees=false,
     add_toplevel_document=false,
-    ["one", "two"],
-    [pdf],
-    [[1]],
   )
   assert_true(res is Err(_))
 }
@@ -261,14 +255,11 @@ test "merge_pdfs errors on mismatched names" {
 ///|
 test "merge_pdfs errors on page out of range" {
   let pdf = make_pdf_pages(1)
-  let res : Result[@pdf.Pdf, Error] = try? merge_pdfs(
+  let res : Result[@pdf.Pdf, Error] = try? PdfMerger::new(["one"], [pdf], [[2]]).merge_pdfs(
     false,
     false,
     process_struct_trees=false,
     add_toplevel_document=false,
-    ["one"],
-    [pdf],
-    [[2]],
   )
   assert_true(res is Err(_))
 }

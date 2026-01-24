@@ -115,31 +115,25 @@ fn read_dest_names(pdf : @pdf.Pdf) -> Array[String] raise {
 test "merge_pdfs combines pages" {
   let pdf1 = @pdfpage.minimum_valid_pdf()
   let pdf2 = @pdfpage.minimum_valid_pdf()
-  let merged = merge_pdfs(
+  let merged = PdfMerger::new(["one", "two"], [pdf1, pdf2], [[1], [1]]).merge_pdfs(
     false,
     false,
     process_struct_trees=false,
     add_toplevel_document=false,
-    ["one", "two"],
-    [pdf1, pdf2],
-    [[1], [1]],
   )
   assert_eq(@pdfpage.pages_of_pagetree_quick(merged), 2)
-  remove_duplicate_fonts(merged)
+  PdfMergeDoc::new(merged).remove_duplicate_fonts()
 }
 
 ///|
 test "merge_pdfs rejects out of range" {
   let pdf = @pdfpage.minimum_valid_pdf()
   assert_is_err(
-    try? merge_pdfs(
+    try? PdfMerger::new(["one"], [pdf], [[2]]).merge_pdfs(
       false,
       false,
       process_struct_trees=false,
       add_toplevel_document=false,
-      ["one"],
-      [pdf],
-      [[2]],
     ),
   )
 }
@@ -148,14 +142,11 @@ test "merge_pdfs rejects out of range" {
 test "merge_pdfs retain numbering toggles path" {
   let pdf1 = @pdfpage.minimum_valid_pdf()
   let pdf2 = @pdfpage.minimum_valid_pdf()
-  let merged = merge_pdfs(
+  let merged = PdfMerger::new(["one", "two"], [pdf1, pdf2], [[1], [1]]).merge_pdfs(
     true,
     false,
     process_struct_trees=false,
     add_toplevel_document=false,
-    ["one", "two"],
-    [pdf1, pdf2],
-    [[1], [1]],
   )
   assert_eq(@pdfpage.pages_of_pagetree_quick(merged), 2)
 }
@@ -175,7 +166,7 @@ test "remove_duplicate_fonts merges identical streams" {
   ignore(@pdf.addobj(pdf, stream1))
   ignore(@pdf.addobj(pdf, stream2))
   let before = count_streams(pdf)
-  remove_duplicate_fonts(pdf)
+  PdfMergeDoc::new(pdf).remove_duplicate_fonts()
   let after = count_streams(pdf)
   assert_eq(before, 2)
   assert_eq(after, 1)
@@ -209,7 +200,7 @@ test "remove_duplicate_fonts keeps distinct streams" {
   ignore(@pdf.addobj(pdf, stream3))
   ignore(@pdf.addobj(pdf, stream4))
   ignore(@pdf.addobj(pdf, stream5))
-  remove_duplicate_fonts(pdf)
+  PdfMergeDoc::new(pdf).remove_duplicate_fonts()
   assert_eq(count_streams(pdf), 4)
 }
 
@@ -219,14 +210,11 @@ test "remove_duplicate_fonts keeps distinct streams" {
 test "merge_pdfs processes structure trees" {
   let pdf1 = @pdfpage.minimum_valid_pdf()
   let pdf2 = @pdfpage.minimum_valid_pdf()
-  let merged = merge_pdfs(
+  let merged = PdfMerger::new(["one", "two"], [pdf1, pdf2], [[1], [1]]).merge_pdfs(
     false,
     false,
     process_struct_trees=true,
     add_toplevel_document=true,
-    ["one", "two"],
-    [pdf1, pdf2],
-    [[1], [1]],
   )
   assert_eq(@pdfpage.pages_of_pagetree_quick(merged), 2)
 }
@@ -235,14 +223,15 @@ test "merge_pdfs processes structure trees" {
 test "merge_pdfs rejects length mismatch" {
   let pdf1 = @pdfpage.minimum_valid_pdf()
   let pdf2 = @pdfpage.minimum_valid_pdf()
-  let result : Result[@pdf.Pdf, Error] = try? merge_pdfs(
+  let result : Result[@pdf.Pdf, Error] = try? PdfMerger::new(
+    ["one"],
+    [pdf1, pdf2],
+    [[1], [1]],
+  ).merge_pdfs(
     false,
     false,
     process_struct_trees=false,
     add_toplevel_document=false,
-    ["one"],
-    [pdf1, pdf2],
-    [[1], [1]],
   )
   assert_true(result is Err(_))
 }
@@ -255,14 +244,11 @@ test "merge_pdfs renames destination names and callsites" {
   add_dest_name_tree(pdf2, "dest")
   add_dest_callsites(pdf1, "dest")
   add_dest_callsites(pdf2, "dest")
-  let merged = merge_pdfs(
+  let merged = PdfMerger::new(["one", "two"], [pdf1, pdf2], [[1], [1]]).merge_pdfs(
     false,
     false,
     process_struct_trees=false,
     add_toplevel_document=false,
-    ["one", "two"],
-    [pdf1, pdf2],
-    [[1], [1]],
   )
   let dest_names = read_dest_names(merged)
   assert_true(dest_names.contains("dest-f0"))
@@ -318,14 +304,11 @@ test "merge_pdfs merges dests ocg and acroform" {
     "/AcroForm",
     Dictionary([("/Fields", Array([Null])), ("/SigFlags", Integer(1))]),
   )
-  let merged = merge_pdfs(
+  let merged = PdfMerger::new(["one", "two"], [pdf1, pdf2], [[1], [1]]).merge_pdfs(
     false,
     false,
     process_struct_trees=false,
     add_toplevel_document=false,
-    ["one", "two"],
-    [pdf1, pdf2],
-    [[1], [1]],
   )
   let catalog = @pdf.catalog_of_pdf(merged)
   match @pdf.lookup_direct(merged, "/Dests", catalog) {

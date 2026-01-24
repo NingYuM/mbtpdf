@@ -23,6 +23,32 @@ fn compare_bytes(left : Array[Byte], right : Array[Byte]) -> Int {
 }
 
 ///|
+pub struct PdfMergeDoc {
+  pdf : @pdf.Pdf
+}
+
+///|
+pub fn PdfMergeDoc::new(pdf : @pdf.Pdf) -> PdfMergeDoc {
+  { pdf, }
+}
+
+///|
+pub struct PdfMerger {
+  names : Array[String]
+  pdfs : Array[@pdf.Pdf]
+  ranges : Array[Array[Int]]
+}
+
+///|
+pub fn PdfMerger::new(
+  names : Array[String],
+  pdfs : Array[@pdf.Pdf],
+  ranges : Array[Array[Int]],
+) -> PdfMerger {
+  { names, pdfs, ranges }
+}
+
+///|
 fn[T] flatten(lists : Array[Array[T]]) -> Array[T] {
   let out = Array::new()
   for list in lists {
@@ -202,7 +228,9 @@ fn stream_compare(pdf : @pdf.Pdf, x : Int, y : Int) -> Int {
 
 ///|
 /// Remove duplicate fonts from a PDF.
-pub fn remove_duplicate_fonts(pdf : @pdf.Pdf) -> Unit {
+#as_free_fn(remove_duplicate_fonts, deprecated="Use `PdfMergeDoc::remove_duplicate_fonts`")
+pub fn PdfMergeDoc::remove_duplicate_fonts(self : PdfMergeDoc) -> Unit {
+  let pdf = self.pdf
   let streamobjs = Array::new()
   @pdf.objiter(
     (objnum, obj) => match obj {
@@ -934,15 +962,17 @@ fn max_version_number(pdfs : Array[@pdf.Pdf]) -> (Int, Int) raise {
 
 ///|
 /// Merge PDF files.
-pub fn merge_pdfs(
+#as_free_fn(merge_pdfs, deprecated="Use `PdfMerger::merge_pdfs`")
+pub fn PdfMerger::merge_pdfs(
+  self : PdfMerger,
   retain_numbering : Bool,
   do_remove_duplicate_fonts : Bool,
   process_struct_trees? : Bool = true,
   add_toplevel_document? : Bool = false,
-  names : Array[String],
-  pdfs : Array[@pdf.Pdf],
-  ranges : Array[Array[Int]],
 ) -> @pdf.Pdf raise {
+  let names = self.names
+  let pdfs = self.pdfs
+  let ranges = self.ranges
   if process_struct_trees && setify_strings(names).length() < names.length() {
     @pdfe.log(
       "Warning: multiply-included files will not merge structure trees properly.\n",
@@ -1110,7 +1140,7 @@ pub fn merge_pdfs(
   let pdf = merge_bookmarks(changes, pdfs, ranges, pdf)
   @pdfpagelabels.PageLabel::write_all(page_labels, pdf)
   if do_remove_duplicate_fonts {
-    remove_duplicate_fonts(pdf)
+    PdfMergeDoc::new(pdf).remove_duplicate_fonts()
   }
   @pdf.change_id(pdf, "")
   pdf

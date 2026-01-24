@@ -17,12 +17,13 @@ The `pdfmerge` package provides functionality to:
 
 ```mbt nocheck
 ///|
-let merged = @pdfmerge.merge_pdfs(
-  false, // retain_numbering
-  false, // remove_duplicate_fonts
+let merged = @pdfmerge.PdfMerger::new(
   ["doc1.pdf", "doc2.pdf"], // source names
   [pdf1, pdf2], // PDF documents
   [ilist(1, pages1), ilist(1, pages2)], // page ranges
+).merge_pdfs(
+  false, // retain_numbering
+   false, // remove_duplicate_fonts
 )
 ```
 
@@ -30,14 +31,11 @@ let merged = @pdfmerge.merge_pdfs(
 
 ```mbt nocheck
 ///|
-let merged = @pdfmerge.merge_pdfs(
+let merged = @pdfmerge.PdfMerger::new(names~, pdfs~, ranges~).merge_pdfs(
   true, // retain_numbering - keep original page labels
   true, // remove_duplicate_fonts
   process_struct_trees=true, // process accessibility trees
   add_toplevel_document=false, // add document-level bookmarks
-  names~,
-  pdfs~,
-  ranges~,
 )
 ```
 
@@ -72,7 +70,7 @@ let selection = [1, 3, 5, 7, 9]
 Remove duplicate embedded fonts to reduce file size:
 
 ```mbt nocheck
-@pdfmerge.remove_duplicate_fonts(pdf)
+@pdfmerge.PdfMergeDoc::new(pdf).remove_duplicate_fonts()
 ```
 
 This compares font streams and removes duplicates, updating all references.
@@ -123,10 +121,10 @@ async fn merge_two_files(
   )
   let pages1 = @pdfpage.endpage_fast(pdf1)
   let pages2 = @pdfpage.endpage_fast(pdf2)
-  let merged = @pdfmerge.merge_pdfs(false, true, [file1, file2], [pdf1, pdf2], [
+  let merged = @pdfmerge.PdfMerger::new([file1, file2], [pdf1, pdf2], [
     ilist(1, pages1),
     ilist(1, pages2),
-  ])
+  ]).merge_pdfs(false, true)
   @pdfwrite.pdf_to_file(merged, output)
 }
 ```
@@ -137,13 +135,33 @@ async fn merge_two_files(
 // Merge odd pages from doc1, even pages from doc2
 
 ///|
-let merged = @pdfmerge.merge_pdfs(
-  false,
-  false,
+let merged = @pdfmerge.PdfMerger::new(
   ["odd.pdf", "even.pdf"],
   [odd_pdf, even_pdf],
   [[1, 3, 5, 7, 9], [2, 4, 6, 8, 10]],
-)
+).merge_pdfs(false, false)
+```
+
+## PdfMerger
+
+Construct a merge context from inputs.
+
+```mbt nocheck
+pub struct PdfMerger { ... }
+pub fn PdfMerger::new(
+  names : Array[String],
+  pdfs : Array[@pdf.Pdf],
+  ranges : Array[Array[Int]]
+) -> PdfMerger
+```
+
+## PdfMergeDoc
+
+Document-level utilities for merged PDFs.
+
+```mbt nocheck
+pub struct PdfMergeDoc { ... }
+pub fn PdfMergeDoc::new(pdf : @pdf.Pdf) -> PdfMergeDoc
 ```
 
 ## Parameters
@@ -161,10 +179,10 @@ When `true`, processes PDF/UA structure trees for accessibility. Set to `false` 
 When `true`, adds top-level bookmark entries for each source document.
 
 ### names
-Array of source document names (used for bookmark generation).
+Array of source document names (used for bookmark generation). Provided to `PdfMerger::new`.
 
 ### pdfs
-Array of `Pdf` documents to merge.
+Array of `Pdf` documents to merge. Provided to `PdfMerger::new`.
 
 ### ranges
-Array of page ranges, one per input document. Each range is an array of 1-indexed page numbers.
+Array of page ranges, one per input document. Each range is an array of 1-indexed page numbers. Provided to `PdfMerger::new`.

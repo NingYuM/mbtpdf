@@ -671,14 +671,15 @@ async test "e2e merge writes and reads back" {
   assert_true(left_count > 0)
   assert_true(right_count > 0)
   assert_true(third_count > 0)
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["merge_left", "merge_right", "merge_third"],
+    [left, right, third],
+    [full_range(left_count), full_range(right_count), full_range(third_count)],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["merge_left", "merge_right", "merge_third"],
-    [left, right, third],
-    [full_range(left_count), full_range(right_count), full_range(third_count)],
   )
   ensure_dir(OUTPUT_DIR)
   let out_path = OUTPUT_DIR + "/merged.pdf"
@@ -703,14 +704,11 @@ async test "e2e merge stress repeated" {
     pdfs.push(read_pdf(MERGE_LEFT_PATH))
     ranges.push(full_range(count))
   }
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(names, pdfs, ranges).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    names,
-    pdfs,
-    ranges,
   )
   assert_eq(page_count(merged), count * copies)
 }
@@ -723,14 +721,15 @@ async test "e2e merge preserves text extraction" {
   let right_count = page_count(right)
   assert_true(left_count > 0)
   assert_true(right_count > 0)
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["merge_text_left", "merge_text_right"],
+    [left, right],
+    [full_range(left_count), full_range(right_count)],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["merge_text_left", "merge_text_right"],
-    [left, right],
-    [full_range(left_count), full_range(right_count)],
   )
   ensure_dir(OUTPUT_DIR)
   let out_path = OUTPUT_DIR + "/merge_text.pdf"
@@ -839,14 +838,15 @@ async test "e2e merge preserves annotations" {
   let updated_left = @pdfpage.change_pages(true, left, left_pages)
   let left_count = page_count(updated_left)
   let right_count = page_count(right)
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["merge_annot_left", "merge_annot_right"],
+    [updated_left, right],
+    [full_range(left_count), full_range(right_count)],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["merge_annot_left", "merge_annot_right"],
-    [updated_left, right],
-    [full_range(left_count), full_range(right_count)],
   )
   ensure_dir(OUTPUT_DIR)
   let out_path = OUTPUT_DIR + "/merged_annot.pdf"
@@ -912,14 +912,15 @@ async test "e2e merge preserves page labels" {
     full_range(right_count),
   ])
   assert_merged_label_prefixes(merged_labels, left_count)
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["merge_labels_left", "merge_labels_right"],
+    [left, right],
+    [full_range(left_count), full_range(right_count)],
+  ).merge_pdfs(
     true,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["merge_labels_left", "merge_labels_right"],
-    [left, right],
-    [full_range(left_count), full_range(right_count)],
   )
   let in_memory_labels = @pdfpagelabels.PageLabel::read_all(merged)
   assert_merged_label_prefixes(in_memory_labels, left_count)
@@ -951,14 +952,15 @@ async test "e2e merge preserves named destinations" {
   }
   add_named_destination(left, "LeftDest", left_page)
   add_named_destination(right, "RightDest", right_page)
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["named_left", "named_right"],
+    [left, right],
+    [full_range(left_count), full_range(right_count)],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["named_left", "named_right"],
-    [left, right],
-    [full_range(left_count), full_range(right_count)],
   )
   let merged_pages = @pdf.page_reference_numbers(merged)
   let left_expected = merged_pages[0]
@@ -1006,14 +1008,15 @@ async test "e2e merge preserves /Dests dictionary" {
   ).to_pdf_object()
   add_dests_dictionary(left, [("/LeftDest", left_dest)])
   add_dests_dictionary(right, [("/RightDest", right_dest)])
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["dests_left", "dests_right"],
+    [left, right],
+    [full_range(left_count), full_range(right_count)],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["dests_left", "dests_right"],
-    [left, right],
-    [full_range(left_count), full_range(right_count)],
   )
   let merged_pages = @pdf.page_reference_numbers(merged)
   let left_expected = merged_pages[0]
@@ -1051,14 +1054,15 @@ async test "e2e merge preserves AcroForm entries" {
   ])
   set_catalog_entry(left, "/AcroForm", left_form)
   set_catalog_entry(right, "/AcroForm", right_form)
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["acro_left", "acro_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["acro_left", "acro_right"],
-    [left, right],
-    [full_range(page_count(left)), full_range(page_count(right))],
   )
   let catalog = @pdf.catalog_of_pdf(merged)
   let form = match @pdf.lookup_direct(merged, "/AcroForm", catalog) {
@@ -1121,14 +1125,15 @@ async test "e2e merge preserves /OCProperties" {
   let right = @pdfpage.add_root(right_root, [], right0)
   add_ocg_properties(left, "LayerLeft")
   add_ocg_properties(right, "LayerRight")
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["ocg_left", "ocg_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=false,
     add_toplevel_document=false,
-    ["ocg_left", "ocg_right"],
-    [left, right],
-    [full_range(page_count(left)), full_range(page_count(right))],
   )
   let merged_names = read_ocg_names(merged)
   match merged_names.search_by(name => name == "LayerLeft") {
@@ -1171,14 +1176,15 @@ async test "e2e merge preserves OCG configs" {
   let right = @pdfpage.add_root(right_root, [], right0)
   add_ocg_properties_with_config(left, "LayerLeft", "ConfigLeft")
   add_ocg_properties_with_config(right, "LayerRight", "ConfigRight")
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["ocg_left", "ocg_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=false,
     add_toplevel_document=false,
-    ["ocg_left", "ocg_right"],
-    [left, right],
-    [full_range(page_count(left)), full_range(page_count(right))],
   )
   match @pdfocg.OcgProperties::read(merged) {
     Some(_) => ()
@@ -1233,14 +1239,15 @@ async test "e2e merge preserves structure trees" {
   let right_refs = @pdf.page_reference_numbers(right)
   assert_true(right_refs.length() > 0)
   add_struct_tree_root(right, right_refs[0], 0)
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["struct_left", "struct_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["struct_left", "struct_right"],
-    [left, right],
-    [full_range(page_count(left)), full_range(page_count(right))],
   )
   let parent_keys = read_parent_tree_keys(merged)
   assert_eq(parent_keys.length(), 2)
@@ -1272,14 +1279,15 @@ async test "e2e merge preserves /Names JavaScript" {
   ])
   add_names_tree(left, "/JavaScript", [("LeftScript", left_action)])
   add_names_tree(right, "/JavaScript", [("RightScript", right_action)])
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["js_left", "js_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["js_left", "js_right"],
-    [left, right],
-    [full_range(page_count(left)), full_range(page_count(right))],
   )
   let entries = read_name_tree_entries(merged, "/JavaScript")
   assert_true(entries.search_by(pair => pair.0 == "LeftScript") is Some(_))
@@ -1305,14 +1313,15 @@ async test "e2e merge preserves /Names /EmbeddedFiles" {
   let right = @pdfpage.minimum_valid_pdf()
   add_embedded_file(left, "LeftFile", "left.txt", "left payload")
   add_embedded_file(right, "RightFile", "right.txt", "right payload")
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["embed_left", "embed_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["embed_left", "embed_right"],
-    [left, right],
-    [full_range(page_count(left)), full_range(page_count(right))],
   )
   let entries = read_name_tree_entries(merged, "/EmbeddedFiles")
   assert_embedded_file_entry(
@@ -1346,14 +1355,15 @@ async test "e2e merge preserves /Names /URLS" {
   add_names_tree(right, "/URLS", [
     ("RightURL", make_url_action("https://example.com/right")),
   ])
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["urls_left", "urls_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["urls_left", "urls_right"],
-    [left, right],
-    [full_range(page_count(left)), full_range(page_count(right))],
   )
   let entries = read_name_tree_entries(merged, "/URLS")
   assert_url_entry(merged, entries, "LeftURL", "https://example.com/left")
@@ -1383,14 +1393,15 @@ async test "e2e merge preserves /Names /AP" {
   let right_entries = read_name_tree_entries(right, "/AP")
   assert_ap_entry(left, left_entries, "LeftAP", "left ap")
   assert_ap_entry(right, right_entries, "RightAP", "right ap")
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["ap_left", "ap_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["ap_left", "ap_right"],
-    [left, right],
-    [full_range(page_count(left)), full_range(page_count(right))],
   )
   let entries = read_name_tree_entries(merged, "/AP")
   assert_ap_entry(merged, entries, "LeftAP", "left ap")
@@ -1416,14 +1427,15 @@ async test "e2e merge preserves /Names /Renditions" {
   add_names_tree(right, "/Renditions", [
     ("RightRendition", make_rendition_dict("RightRendition", "right")),
   ])
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["rend_left", "rend_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["rend_left", "rend_right"],
-    [left, right],
-    [full_range(page_count(left)), full_range(page_count(right))],
   )
   let entries = read_name_tree_entries(merged, "/Renditions")
   assert_rendition_entry(merged, entries, "LeftRendition", "left")
@@ -1449,14 +1461,15 @@ async test "e2e merge preserves /Names /AlternatePresentations" {
   add_names_tree(right, "/AlternatePresentations", [
     ("RightAlt", make_alt_presentation_dict("RightAlt", "right")),
   ])
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["alt_left", "alt_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["alt_left", "alt_right"],
-    [left, right],
-    [full_range(page_count(left)), full_range(page_count(right))],
   )
   let entries = read_name_tree_entries(merged, "/AlternatePresentations")
   assert_alt_presentation_entry(merged, entries, "LeftAlt", "left")
@@ -1485,14 +1498,15 @@ async test "e2e merge stress large name trees" {
   let right_urls = make_bulk_url_entries("R-URL-", count)
   add_names_tree(left, "/URLS", left_urls)
   add_names_tree(right, "/URLS", right_urls)
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["bulk_left", "bulk_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["bulk_left", "bulk_right"],
-    [left, right],
-    [full_range(page_count(left)), full_range(page_count(right))],
   )
   let merged_dests = read_name_tree_entries(merged, "/Dests")
   let merged_urls = read_name_tree_entries(merged, "/URLS")
@@ -1578,14 +1592,15 @@ async test "e2e merge mixed feature pipeline" {
   ])
   let right = @pdfpage.minimum_valid_pdf()
   add_embedded_file(right, "MixFile", "mixed.txt", "mix payload")
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["mixed_left", "mixed_right"],
+    [left, right],
+    [full_range(page_count(left)), full_range(page_count(right))],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["mixed_left", "mixed_right"],
-    [left, right],
-    [full_range(page_count(left)), full_range(page_count(right))],
   )
   let merged_pages = @pdfpage.pages_of_pagetree(merged)
   let merged_annots = @pdfannot.annotations_of_page(merged, merged_pages[0])
@@ -1679,14 +1694,11 @@ async test "e2e merge multi-copy mixed stress" {
     ranges.push(full_range(page_count(pdf)))
     i = i + 1
   }
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(names, pdfs, ranges).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    names,
-    pdfs,
-    ranges,
   )
   let merged_marks = @pdfmarks.PdfMarks::new(merged).read_bookmarks()
   assert_eq(merged_marks.length(), copies)
@@ -1741,14 +1753,11 @@ async test "e2e merge varied page counts stress" {
   add_names_tree(pdfs[2], "/URLS", [
     ("VariedURL-3", make_url_action("https://example.com/varied/3")),
   ])
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(names, pdfs, merge_ranges).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    names,
-    pdfs,
-    merge_ranges,
   )
   let merged_count = page_count(merged)
   assert_eq(merged_count, 1 + 2 + 1)
@@ -1804,14 +1813,15 @@ async test "e2e merge preserves bookmark targets" {
     },
   ]
   let left_with = @pdfmarks.PdfMarks::new(left).add_bookmarks(marks)
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["merge_marks_left", "merge_marks_right"],
+    [left_with, right],
+    [full_range(left_count), full_range(right_count)],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["merge_marks_left", "merge_marks_right"],
-    [left_with, right],
-    [full_range(left_count), full_range(right_count)],
   )
   ensure_dir(OUTPUT_DIR)
   let out_path = OUTPUT_DIR + "/merged_marks.pdf"
@@ -1933,14 +1943,15 @@ async test "e2e merge split merge pipeline" {
   let left_count = page_count(left)
   let right_count = page_count(right)
   let third_count = page_count(third)
-  let merged = @pdfmerge.merge_pdfs(
+  let merged = @pdfmerge.PdfMerger::new(
+    ["pipeline_left", "pipeline_right"],
+    [left, right],
+    [full_range(left_count), full_range(right_count)],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["pipeline_left", "pipeline_right"],
-    [left, right],
-    [full_range(left_count), full_range(right_count)],
   )
   let merged_count = page_count(merged)
   assert_true(merged_count > 1)
@@ -1950,14 +1961,15 @@ async test "e2e merge split merge pipeline" {
     [1, merged_count]
   }
   let subset_pdf = @pdfpage.pdf_of_pages(merged, subset)
-  let remerged = @pdfmerge.merge_pdfs(
+  let remerged = @pdfmerge.PdfMerger::new(
+    ["pipeline_subset", "pipeline_third"],
+    [subset_pdf, third],
+    [full_range(subset.length()), full_range(third_count)],
+  ).merge_pdfs(
     false,
     true,
     process_struct_trees=true,
     add_toplevel_document=false,
-    ["pipeline_subset", "pipeline_third"],
-    [subset_pdf, third],
-    [full_range(subset.length()), full_range(third_count)],
   )
   assert_eq(page_count(remerged), subset.length() + third_count)
 }
