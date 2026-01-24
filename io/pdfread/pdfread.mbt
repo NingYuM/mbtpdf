@@ -110,7 +110,7 @@ pub fn PdfRead::what_encryption(
   _self : PdfRead,
   pdf : @pdf.Pdf,
 ) -> @pdfcrypt.EncryptionMethod? {
-  if @pdfcrypt.is_encrypted(pdf) {
+  if @pdfcrypt.PdfCrypt::new().is_encrypted(pdf) {
     let values : Result[
       (
         @pdfcryptprimitives.Encryption,
@@ -122,7 +122,7 @@ pub fn PdfRead::what_encryption(
         String?,
       ),
       Error,
-    ] = try? @pdfcrypt.get_encryption_values(pdf)
+    ] = try? @pdfcrypt.PdfCrypt::new().get_encryption_values(pdf)
     match values {
       Ok((crypt, _, _, _, _, _, _)) => {
         let metadata = match
@@ -165,7 +165,7 @@ pub fn PdfRead::permissions(
   _self : PdfRead,
   pdf : @pdf.Pdf,
 ) -> Array[@pdfcrypt.Permission] {
-  if @pdfcrypt.is_encrypted(pdf) {
+  if @pdfcrypt.PdfCrypt::new().is_encrypted(pdf) {
     let values : Result[
       (
         @pdfcryptprimitives.Encryption,
@@ -177,9 +177,9 @@ pub fn PdfRead::permissions(
         String?,
       ),
       Error,
-    ] = try? @pdfcrypt.get_encryption_values(pdf)
+    ] = try? @pdfcrypt.PdfCrypt::new().get_encryption_values(pdf)
     match values {
-      Ok((_, _, _, p, _, _, _)) => @pdfcrypt.banlist_of_p(p)
+      Ok((_, _, _, p, _, _, _)) => @pdfcrypt.PdfCrypt::new().banlist_of_p(p)
       Err(_) => []
     }
   } else {

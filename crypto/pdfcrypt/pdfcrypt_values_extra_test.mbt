@@ -27,7 +27,9 @@ test "get_encryption_values handles V2 without length" {
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
-  let (crypt_type, _, _, _, _, _, _) = @pdfcrypt.get_encryption_values(pdf)
+  let (crypt_type, _, _, _, _, _, _) = @pdfcrypt.PdfCrypt::new().get_encryption_values(
+    pdf,
+  )
   match crypt_type {
     @pdfcryptprimitives.Encryption::ARC4(40, 3) => ()
     _ => fail("expected ARC4 40 r3")
@@ -48,7 +50,7 @@ test "get_encryption_values rejects invalid length" {
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
-  let result = try? @pdfcrypt.get_encryption_values(pdf)
+  let result = try? @pdfcrypt.PdfCrypt::new().get_encryption_values(pdf)
   assert_true(result is Err(_))
 }
 
@@ -67,7 +69,9 @@ test "get_encryption_values handles V4 CF V2 length" {
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
-  let (crypt_type, _, _, _, _, _, _) = @pdfcrypt.get_encryption_values(pdf)
+  let (crypt_type, _, _, _, _, _, _) = @pdfcrypt.PdfCrypt::new().get_encryption_values(
+    pdf,
+  )
   match crypt_type {
     @pdfcryptprimitives.Encryption::ARC4(64, 4) => ()
     _ => fail("expected ARC4 64 r4")
@@ -88,7 +92,7 @@ test "get_encryption_values rejects missing stdcf" {
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
-  let result = try? @pdfcrypt.get_encryption_values(pdf)
+  let result = try? @pdfcrypt.PdfCrypt::new().get_encryption_values(pdf)
   assert_true(result is Err(_))
 }
 
@@ -106,7 +110,7 @@ test "get_encryption_values rejects unknown cfm" {
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
-  let result = try? @pdfcrypt.get_encryption_values(pdf)
+  let result = try? @pdfcrypt.PdfCrypt::new().get_encryption_values(pdf)
   assert_true(result is Err(_))
 }
 
@@ -122,15 +126,24 @@ test "get_encryption_values rejects missing id entry" {
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
-  let result = try? @pdfcrypt.get_encryption_values(pdf)
+  let result = try? @pdfcrypt.PdfCrypt::new().get_encryption_values(pdf)
   assert_true(result is Err(_))
 }
 
 ///|
 test "encrypt AES V2 without metadata and AES256 with long passwords" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  let enc = @pdfcrypt.encrypt_pdf_AES(false, "user", "owner", [], pdf)
-  let (dec, _) = @pdfcrypt.decrypt_pdf("user", @pdf.deep_copy(enc))
+  let enc = @pdfcrypt.PdfCrypt::new().encrypt_pdf_AES(
+    false,
+    "user",
+    "owner",
+    [],
+    pdf,
+  )
+  let (dec, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf(
+    "user",
+    @pdf.deep_copy(enc),
+  )
   assert_true(dec is Some(_))
   let string_obj : @pdf.PdfObject = String("secret")
   @pdf.addobj_given_num(pdf, (10, string_obj))
@@ -146,7 +159,16 @@ test "encrypt AES V2 without metadata and AES256 with long passwords" {
   )
   @pdf.addobj_given_num(pdf, (12, toget_stream))
   let long_pw = "a".repeat(130)
-  let enc256 = @pdfcrypt.encrypt_pdf_AES256(true, long_pw, long_pw, [], pdf)
-  let (dec256, _) = @pdfcrypt.decrypt_pdf(long_pw, @pdf.deep_copy(enc256))
+  let enc256 = @pdfcrypt.PdfCrypt::new().encrypt_pdf_AES256(
+    true,
+    long_pw,
+    long_pw,
+    [],
+    pdf,
+  )
+  let (dec256, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf(
+    long_pw,
+    @pdf.deep_copy(enc256),
+  )
   assert_true(dec256 is Some(_))
 }

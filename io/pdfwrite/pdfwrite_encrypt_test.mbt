@@ -111,7 +111,7 @@ test "pdf_to_output recrypt uses saved encryption" {
   let bytes1 = @pdfio.extract_bytes_from_input_output(output1, buffer1)
   let input1 = @pdfio.input_of_bytes(bytes1, source="encrypt-recrypt")
   let parsed = @pdfread.PdfRead::new().pdf_of_input(Some("user"), None, input1)
-  let (decrypted_opt, _) = @pdfcrypt.decrypt_pdf("user", parsed)
+  let (decrypted_opt, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf("user", parsed)
   let decrypted = match decrypted_opt {
     Some(value) => value
     None => fail("expected decryptable PDF")
@@ -127,7 +127,9 @@ test "pdf_to_output recrypt uses saved encryption" {
   let bytes2 = @pdfio.extract_bytes_from_input_output(output2, buffer2)
   let input2 = @pdfio.input_of_bytes(bytes2, source="recrypt-roundtrip")
   let parsed2 = @pdfread.PdfRead::new().pdf_of_input(Some("user"), None, input2)
-  let (roundtrip_opt, _) = @pdfcrypt.decrypt_pdf("user", parsed2)
+  let (roundtrip_opt, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf(
+    "user", parsed2,
+  )
   match roundtrip_opt {
     Some(_) => ()
     None => fail("expected recryptable PDF")
@@ -293,7 +295,7 @@ test "pdf_to_output encrypts with AES256" {
   let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let input = @pdfio.input_of_bytes(bytes, source="aes256-encrypt")
   let parsed = @pdfread.PdfRead::new().pdf_of_input(Some("user"), None, input)
-  let (decrypted_opt, _) = @pdfcrypt.decrypt_pdf("user", parsed)
+  let (decrypted_opt, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf("user", parsed)
   assert_true(decrypted_opt is Some(_))
 }
 
@@ -312,6 +314,6 @@ test "pdf_to_output encrypts with AES256 ISO" {
   let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let input = @pdfio.input_of_bytes(bytes, source="aes256iso-encrypt")
   let parsed = @pdfread.PdfRead::new().pdf_of_input(Some("user"), None, input)
-  let (decrypted_opt, _) = @pdfcrypt.decrypt_pdf("user", parsed)
+  let (decrypted_opt, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf("user", parsed)
   assert_true(decrypted_opt is Some(_))
 }

@@ -12,6 +12,16 @@ fn already_decrypted(pdf : @pdf.Pdf, objnum : Int) -> Bool {
 }
 
 ///|
+pub struct PdfCrypt {
+  unit : Unit
+}
+
+///|
+pub fn PdfCrypt::new() -> PdfCrypt {
+  { unit: () }
+}
+
+///|
 fn is_identity(
   no_encrypt_metadata : Bool,
   pdf : @pdf.Pdf,
@@ -391,7 +401,9 @@ fn process_cryption(
 
 ///|
 /// Read encryption parameters from an encrypted PDF.
-pub fn get_encryption_values(
+#as_free_fn(get_encryption_values, deprecated="Use `PdfCrypt::get_encryption_values`")
+pub fn PdfCrypt::get_encryption_values(
+  _self : PdfCrypt,
   pdf : @pdf.Pdf,
 ) -> (
   @pdfcryptprimitives.Encryption,
@@ -517,7 +529,9 @@ pub fn get_encryption_values(
 
 ///|
 /// Decrypt a PDF document using the user password.
-pub fn decrypt_pdf(
+#as_free_fn(decrypt_pdf, deprecated="Use `PdfCrypt::decrypt_pdf`")
+pub fn PdfCrypt::decrypt_pdf(
+  self : PdfCrypt,
   user_pw : String,
   pdf : @pdf.Pdf,
   keyfromowner? : String,
@@ -525,7 +539,7 @@ pub fn decrypt_pdf(
   match @pdf.lookup_direct(pdf, "/Encrypt", pdf.trailerdict) {
     None => (Some(pdf), [])
     Some(encrypt_dict) => {
-      let (crypt_type, u, o, p, id, ue, oe) = get_encryption_values(pdf)
+      let (crypt_type, u, o, p, id, ue, oe) = self.get_encryption_values(pdf)
       let (r, keylength, file_encryption_key) = match
         (crypt_type : @pdfcryptprimitives.Encryption) {
         AESV2 => (4, 128, None)
@@ -605,7 +619,7 @@ pub fn decrypt_pdf(
           keylength,
           file_encryption_key,
         ),
-        banlist_of_p(p),
+        self.banlist_of_p(p),
       )
     }
   }
@@ -621,7 +635,9 @@ fn key_or_user_password_from_owner(
   let (crypt_type, u, o, oe) = match encryption_values {
     Some(values) => values
     None => {
-      let (crypt_type, u, o, _, _, _, oe) = get_encryption_values(pdf)
+      let (crypt_type, u, o, _, _, _, oe) = PdfCrypt::new().get_encryption_values(
+        pdf,
+      )
       (crypt_type, u, o, oe)
     }
   }
@@ -677,14 +693,19 @@ fn key_or_user_password_from_owner(
 
 ///|
 /// Decrypt a PDF document using the owner password.
-pub fn decrypt_pdf_owner(owner_pw : String, pdf : @pdf.Pdf) -> @pdf.Pdf? raise {
+#as_free_fn(decrypt_pdf_owner, deprecated="Use `PdfCrypt::decrypt_pdf_owner`")
+pub fn PdfCrypt::decrypt_pdf_owner(
+  self : PdfCrypt,
+  owner_pw : String,
+  pdf : @pdf.Pdf,
+) -> @pdf.Pdf? raise {
   match @pdf.lookup_direct(pdf, "/Encrypt", pdf.trailerdict) {
     None => Some(pdf)
     Some(_) =>
       match key_or_user_password_from_owner(owner_pw, pdf) {
         None => None
         Some((key, user_pw)) => {
-          let (pdf_opt, _) = decrypt_pdf(user_pw, pdf, keyfromowner=key)
+          let (pdf_opt, _) = self.decrypt_pdf(user_pw, pdf, keyfromowner=key)
           pdf_opt
         }
       }
@@ -693,7 +714,9 @@ pub fn decrypt_pdf_owner(owner_pw : String, pdf : @pdf.Pdf) -> @pdf.Pdf? raise {
 
 ///|
 /// Just decrypt a single stream, given the user password and pdf.
-pub fn decrypt_single_stream(
+#as_free_fn(decrypt_single_stream, deprecated="Use `PdfCrypt::decrypt_single_stream`")
+pub fn PdfCrypt::decrypt_single_stream(
+  self : PdfCrypt,
   user_pw : String?,
   owner_pw : String?,
   pdf : @pdf.Pdf,
@@ -704,7 +727,7 @@ pub fn decrypt_single_stream(
   match @pdf.lookup_direct(pdf, "/Encrypt", pdf.trailerdict) {
     None => stream
     Some(encrypt_dict) => {
-      let (crypt_type, u, o, p, id, ue, oe) = get_encryption_values(pdf)
+      let (crypt_type, u, o, p, id, ue, oe) = self.get_encryption_values(pdf)
       let (r, keylength) = match crypt_type {
         @pdfcryptprimitives.Encryption::AESV2 => (4, 128)
         @pdfcryptprimitives.Encryption::AESV3(iso) =>
@@ -900,7 +923,8 @@ pub fn decrypt_single_stream(
 
 ///|
 /// Is a PDF encrypted?
-pub fn is_encrypted(pdf : @pdf.Pdf) -> Bool {
+#as_free_fn(is_encrypted, deprecated="Use `PdfCrypt::is_encrypted`")
+pub fn PdfCrypt::is_encrypted(_self : PdfCrypt, pdf : @pdf.Pdf) -> Bool {
   @pdf.lookup_direct(pdf, "/Encrypt", pdf.trailerdict) is Some(_)
 }
 
@@ -967,7 +991,9 @@ fn encrypt_pdf_40bit_inner(
 
 ///|
 /// Encrypt a PDF document using 40-bit encryption.
-pub fn encrypt_pdf_40bit(
+#as_free_fn(encrypt_pdf_40bit, deprecated="Use `PdfCrypt::encrypt_pdf_40bit`")
+pub fn PdfCrypt::encrypt_pdf_40bit(
+  _self : PdfCrypt,
   user_pw : String,
   owner_pw : String,
   banlist : Array[Permission],
@@ -1089,7 +1115,9 @@ fn encrypt_pdf_128bit_inner_r4(
 
 ///|
 /// Encrypt a PDF document using 128-bit encryption.
-pub fn encrypt_pdf_128bit(
+#as_free_fn(encrypt_pdf_128bit, deprecated="Use `PdfCrypt::encrypt_pdf_128bit`")
+pub fn PdfCrypt::encrypt_pdf_128bit(
+  _self : PdfCrypt,
   user_pw : String,
   owner_pw : String,
   banlist : Array[Permission],
@@ -1166,7 +1194,9 @@ fn encrypt_pdf_AES_inner(
 
 ///|
 /// Encrypt a PDF document using AES V2.
-pub fn encrypt_pdf_AES(
+#as_free_fn(encrypt_pdf_AES, deprecated="Use `PdfCrypt::encrypt_pdf_AES`")
+pub fn PdfCrypt::encrypt_pdf_AES(
+  _self : PdfCrypt,
   encrypt_metadata : Bool,
   user_pw : String,
   owner_pw : String,
@@ -1300,7 +1330,9 @@ fn encrypt_pdf_AES256_call(
 
 ///|
 /// Encrypt a PDF document using AESV3 (non-ISO).
-pub fn encrypt_pdf_AES256(
+#as_free_fn(encrypt_pdf_AES256, deprecated="Use `PdfCrypt::encrypt_pdf_AES256`")
+pub fn PdfCrypt::encrypt_pdf_AES256(
+  _self : PdfCrypt,
   encrypt_metadata : Bool,
   user_pw : String,
   owner_pw : String,
@@ -1314,7 +1346,9 @@ pub fn encrypt_pdf_AES256(
 
 ///|
 /// Encrypt a PDF document using AESV3 (ISO).
-pub fn encrypt_pdf_AES256ISO(
+#as_free_fn(encrypt_pdf_AES256ISO, deprecated="Use `PdfCrypt::encrypt_pdf_AES256ISO`")
+pub fn PdfCrypt::encrypt_pdf_AES256ISO(
+  _self : PdfCrypt,
   encrypt_metadata : Bool,
   user_pw : String,
   owner_pw : String,
@@ -1328,7 +1362,9 @@ pub fn encrypt_pdf_AES256ISO(
 
 ///|
 fn load_saved_encryption_from_pdf(pdf : @pdf.Pdf) -> @pdf.SavedEncryption raise {
-  let (crypt_type, u, o, p, id, ue, oe) = get_encryption_values(pdf)
+  let (crypt_type, u, o, p, id, ue, oe) = PdfCrypt::new().get_encryption_values(
+    pdf,
+  )
   let encrypt_dict = match
     @pdf.lookup_direct(pdf, "/Encrypt", pdf.trailerdict) {
     Some(value) => value
@@ -1456,13 +1492,15 @@ fn recrypt_pdf_owner(pdf : @pdf.Pdf, owner_pw : String) -> @pdf.Pdf raise {
 
 ///|
 /// Re-encrypt a PDF document, using the saved encryption metadata.
-pub fn recrypt_pdf(
+#as_free_fn(recrypt_pdf, deprecated="Use `PdfCrypt::recrypt_pdf`")
+pub fn PdfCrypt::recrypt_pdf(
+  self : PdfCrypt,
   pdf : @pdf.Pdf,
   pw : String,
   renumber? : Bool = true,
 ) -> @pdf.Pdf raise {
   let mut pdf = pdf
-  if pdf.saved_encryption is None && is_encrypted(pdf) {
+  if pdf.saved_encryption is None && self.is_encrypted(pdf) {
     let saved_result : Result[@pdf.SavedEncryption, Error] = try? load_saved_encryption_from_pdf(
       pdf,
     )
@@ -1470,14 +1508,14 @@ pub fn recrypt_pdf(
       Ok(saved) => pdf.saved_encryption = Some(saved)
       Err(_) => ()
     }
-    let dec_result : Result[(@pdf.Pdf?, Array[Permission]), Error] = try? decrypt_pdf(
+    let dec_result : Result[(@pdf.Pdf?, Array[Permission]), Error] = try? self.decrypt_pdf(
       pw,
       @pdf.deep_copy(pdf),
     )
     match dec_result {
       Ok((Some(pdf_dec), _)) => pdf = pdf_dec
       _ => {
-        let owner_result : Result[@pdf.Pdf?, Error] = try? decrypt_pdf_owner(
+        let owner_result : Result[@pdf.Pdf?, Error] = try? self.decrypt_pdf_owner(
           pw,
           @pdf.deep_copy(pdf),
         )

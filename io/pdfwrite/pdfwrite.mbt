@@ -756,21 +756,21 @@ fn crypt_if_necessary(
     Some(enc) =>
       match enc.encryption_method {
         @pdfcrypt.EncryptionMethod::PDF40bit =>
-          @pdfcrypt.encrypt_pdf_40bit(
+          @pdfcrypt.PdfCrypt::new().encrypt_pdf_40bit(
             enc.user_password,
             enc.owner_password,
             enc.permissions,
             pdf,
           )
         @pdfcrypt.EncryptionMethod::PDF128bit =>
-          @pdfcrypt.encrypt_pdf_128bit(
+          @pdfcrypt.PdfCrypt::new().encrypt_pdf_128bit(
             enc.user_password,
             enc.owner_password,
             enc.permissions,
             pdf,
           )
         @pdfcrypt.EncryptionMethod::AES128bit(encrypt_metadata) =>
-          @pdfcrypt.encrypt_pdf_AES(
+          @pdfcrypt.PdfCrypt::new().encrypt_pdf_AES(
             encrypt_metadata,
             enc.user_password,
             enc.owner_password,
@@ -778,7 +778,7 @@ fn crypt_if_necessary(
             pdf,
           )
         @pdfcrypt.EncryptionMethod::AES256bit(encrypt_metadata) =>
-          @pdfcrypt.encrypt_pdf_AES256(
+          @pdfcrypt.PdfCrypt::new().encrypt_pdf_AES256(
             encrypt_metadata,
             enc.user_password,
             enc.owner_password,
@@ -786,7 +786,7 @@ fn crypt_if_necessary(
             pdf,
           )
         @pdfcrypt.EncryptionMethod::AES256bitISO(encrypt_metadata) =>
-          @pdfcrypt.encrypt_pdf_AES256ISO(
+          @pdfcrypt.PdfCrypt::new().encrypt_pdf_AES256ISO(
             encrypt_metadata,
             enc.user_password,
             enc.owner_password,
@@ -853,7 +853,7 @@ pub fn PdfWrite::pdf_to_output(
   }
   match recrypt {
     Some(password) =>
-      pdf = @pdfcrypt.recrypt_pdf(
+      pdf = @pdfcrypt.PdfCrypt::new().recrypt_pdf(
         pdf,
         password,
         renumber=!(preserve_objstm || generate_objstm),

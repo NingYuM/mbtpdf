@@ -405,7 +405,7 @@ fn parse_object_stream(
     Some(XRef::Plain(_, g)) => g
     _ => 0
   }
-  let stmobj = @pdfcrypt.decrypt_single_stream(
+  let stmobj = @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
     user_password, owner_password, partial_pdf, objstm, gen, stmobj,
   )
   match stmobj {

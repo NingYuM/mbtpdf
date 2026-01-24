@@ -9,7 +9,7 @@ async fn main {
   let out_file = if args.length() == 3 { Some(args[2]) } else { None }
   try {
     let pdf = @pdfread.PdfRead::new().pdf_of_file(None, None, in_file)
-    if @pdfcrypt.is_encrypted(pdf) {
+    if @pdfcrypt.PdfCrypt::new().is_encrypted(pdf) {
       fail("File is encrypted.")
     }
     let text = @pdftext.PdfText::new(pdf).extract_text()

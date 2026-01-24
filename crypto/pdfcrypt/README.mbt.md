@@ -59,7 +59,7 @@ for perm in perms {
 // Convert permission flags to/from integer
 
 ///|
-let banlist = @pdfcrypt.banlist_of_p(flags)
+let banlist = @pdfcrypt.PdfCrypt::new().banlist_of_p(flags)
 ```
 
 ## Encrypting Documents

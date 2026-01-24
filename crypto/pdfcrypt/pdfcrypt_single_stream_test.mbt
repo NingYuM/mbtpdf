@@ -45,7 +45,7 @@ fn pdf_with_stream() -> @pdf.Pdf raise {
 test "decrypt_single_stream passes through unencrypted stream" {
   let pdf = pdf_with_stream()
   let (objnum, gen, stream) = first_stream(pdf)
-  let decrypted = @pdfcrypt.decrypt_single_stream(
+  let decrypted = @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
     None,
     None,
     pdf,
@@ -72,9 +72,15 @@ test "decrypt_single_stream restores AES256 stream bytes" {
       }
     _ => fail("expected stream object")
   }
-  let enc = @pdfcrypt.encrypt_pdf_AES256(true, "user", "owner", [], pdf)
+  let enc = @pdfcrypt.PdfCrypt::new().encrypt_pdf_AES256(
+    true,
+    "user",
+    "owner",
+    [],
+    pdf,
+  )
   let (objnum, gen, stream) = first_stream(enc)
-  let decrypted = @pdfcrypt.decrypt_single_stream(
+  let decrypted = @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
     Some("user"),
     None,
     enc,

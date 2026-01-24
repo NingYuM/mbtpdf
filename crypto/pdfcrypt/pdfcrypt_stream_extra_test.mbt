@@ -24,14 +24,20 @@ fn update_perms(pdf : @pdf.Pdf, perms : String) -> Unit raise {
 ///|
 test "decrypt_single_stream skips metadata when EncryptMetadata is false" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  let enc = @pdfcrypt.encrypt_pdf_AES(false, "user", "owner", [], pdf)
+  let enc = @pdfcrypt.PdfCrypt::new().encrypt_pdf_AES(
+    false,
+    "user",
+    "owner",
+    [],
+    pdf,
+  )
   let dict : @pdf.PdfObject = Dictionary([
     ("/Type", Name("/Metadata")),
     ("/Length", Integer(4)),
   ])
   let data = @pdfio.bytes_of_string("meta")
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let out = @pdfcrypt.decrypt_single_stream(
+  let out = @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
     Some("user"),
     None,
     enc,
@@ -52,7 +58,13 @@ test "decrypt_single_stream skips metadata when EncryptMetadata is false" {
 ///|
 test "decrypt_single_stream skips identity crypt filters" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  let enc = @pdfcrypt.encrypt_pdf_AES(true, "user", "owner", [], pdf)
+  let enc = @pdfcrypt.PdfCrypt::new().encrypt_pdf_AES(
+    true,
+    "user",
+    "owner",
+    [],
+    pdf,
+  )
   let dict : @pdf.PdfObject = Dictionary([
     ("/Filter", Name("/Crypt")),
     ("/DecodeParms", Dictionary([("/Name", Name("/Identity"))])),
@@ -60,7 +72,7 @@ test "decrypt_single_stream skips identity crypt filters" {
   ])
   let data = @pdfio.bytes_of_string("abc")
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let out = @pdfcrypt.decrypt_single_stream(
+  let out = @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
     Some("user"),
     None,
     enc,
@@ -84,7 +96,7 @@ test "decrypt_single_stream skips identity crypt filters" {
   let stream_array : @pdf.PdfObject = Stream(
     Ref::new((dict_array, @pdf.Stream::Got(@pdfio.bytes_of_string("abc")))),
   )
-  let out_array = @pdfcrypt.decrypt_single_stream(
+  let out_array = @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
     Some("user"),
     None,
     enc,
@@ -105,12 +117,18 @@ test "decrypt_single_stream skips identity crypt filters" {
 ///|
 test "decrypt_single_stream handles AES256 streams" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  let enc = @pdfcrypt.encrypt_pdf_AES256(true, "user", "owner", [], pdf)
+  let enc = @pdfcrypt.PdfCrypt::new().encrypt_pdf_AES256(
+    true,
+    "user",
+    "owner",
+    [],
+    pdf,
+  )
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(4))])
   let got_stream : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::Got(@pdfio.bytes_of_string("data")))),
   )
-  let got_out = @pdfcrypt.decrypt_single_stream(
+  let got_out = @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
     Some("user"),
     None,
     enc,
@@ -131,7 +149,7 @@ test "decrypt_single_stream handles AES256 streams" {
   let toget_stream : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::ToGet(toget))),
   )
-  let toget_out = @pdfcrypt.decrypt_single_stream(
+  let toget_out = @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
     Some("user"),
     None,
     enc,
@@ -152,18 +170,30 @@ test "decrypt_single_stream handles AES256 streams" {
 ///|
 test "decrypt_pdf fails with short perms" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  let enc = @pdfcrypt.encrypt_pdf_AES256(true, "user", "owner", [], pdf)
+  let enc = @pdfcrypt.PdfCrypt::new().encrypt_pdf_AES256(
+    true,
+    "user",
+    "owner",
+    [],
+    pdf,
+  )
   update_perms(enc, "short")
-  let result = try? @pdfcrypt.decrypt_pdf("user", enc)
+  let result = try? @pdfcrypt.PdfCrypt::new().decrypt_pdf("user", enc)
   assert_true(result is Err(_))
 }
 
 ///|
 test "decrypt_pdf fails with corrupted perms marker" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  let enc = @pdfcrypt.encrypt_pdf_AES256(true, "user", "owner", [], pdf)
+  let enc = @pdfcrypt.PdfCrypt::new().encrypt_pdf_AES256(
+    true,
+    "user",
+    "owner",
+    [],
+    pdf,
+  )
   let bad_perms = @pdfio.string_of_int_array(Array::make(16, 0))
   update_perms(enc, bad_perms)
-  let result = try? @pdfcrypt.decrypt_pdf("user", enc)
+  let result = try? @pdfcrypt.PdfCrypt::new().decrypt_pdf("user", enc)
   assert_true(result is Err(_))
 }
