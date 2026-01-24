@@ -11,8 +11,20 @@ let error_on_malformed : Ref[Bool] = { val: false }
 let debug_always_treat_malformed : Ref[Bool] = { val: false }
 
 ///|
+pub struct PdfRead {
+  unit : Unit
+}
+
+///|
+pub fn PdfRead::new() -> PdfRead {
+  { unit: () }
+}
+
+///|
 /// Read a PDF from an input.
-pub fn pdf_of_input(
+#as_free_fn(pdf_of_input, deprecated="Use `PdfRead::pdf_of_input`")
+pub fn PdfRead::pdf_of_input(
+  _self : PdfRead,
   revision? : Int,
   user_password : String?,
   owner_password : String?,
@@ -23,7 +35,9 @@ pub fn pdf_of_input(
 
 ///|
 /// Read a PDF from an input, lazily.
-pub fn pdf_of_input_lazy(
+#as_free_fn(pdf_of_input_lazy, deprecated="Use `PdfRead::pdf_of_input_lazy`")
+pub fn PdfRead::pdf_of_input_lazy(
+  _self : PdfRead,
   revision? : Int,
   user_password : String?,
   owner_password : String?,
@@ -34,7 +48,9 @@ pub fn pdf_of_input_lazy(
 
 ///|
 /// Read a PDF from a channel.
-pub async fn pdf_of_channel(
+#as_free_fn(pdf_of_channel, deprecated="Use `PdfRead::pdf_of_channel`")
+pub async fn PdfRead::pdf_of_channel(
+  _self : PdfRead,
   revision? : Int,
   source? : String = "channel",
   user_password : String?,
@@ -47,7 +63,9 @@ pub async fn pdf_of_channel(
 
 ///|
 /// Read a PDF from a channel lazily.
-pub async fn pdf_of_channel_lazy(
+#as_free_fn(pdf_of_channel_lazy, deprecated="Use `PdfRead::pdf_of_channel_lazy`")
+pub async fn PdfRead::pdf_of_channel_lazy(
+  _self : PdfRead,
   revision? : Int,
   source? : String = "channel",
   user_password : String?,
@@ -60,7 +78,9 @@ pub async fn pdf_of_channel_lazy(
 
 ///|
 /// Read a PDF from a file.
-pub async fn pdf_of_file(
+#as_free_fn(pdf_of_file, deprecated="Use `PdfRead::pdf_of_file`")
+pub async fn PdfRead::pdf_of_file(
+  _self : PdfRead,
   revision? : Int,
   user_password : String?,
   owner_password : String?,
@@ -72,7 +92,8 @@ pub async fn pdf_of_file(
 
 ///|
 /// Return number of revisions.
-pub fn revisions(input : @pdfio.Input) -> Int raise {
+#as_free_fn(revisions, deprecated="Use `PdfRead::revisions`")
+pub fn PdfRead::revisions(_self : PdfRead, input : @pdfio.Input) -> Int raise {
   try {
     let _ = read_pdf_internal(Some(-1), None, None, input, false)
     0
@@ -84,7 +105,11 @@ pub fn revisions(input : @pdfio.Input) -> Int raise {
 
 ///|
 /// Return encryption method in use.
-pub fn what_encryption(pdf : @pdf.Pdf) -> @pdfcrypt.EncryptionMethod? {
+#as_free_fn(what_encryption, deprecated="Use `PdfRead::what_encryption`")
+pub fn PdfRead::what_encryption(
+  _self : PdfRead,
+  pdf : @pdf.Pdf,
+) -> @pdfcrypt.EncryptionMethod? {
   if @pdfcrypt.is_encrypted(pdf) {
     let values : Result[
       (
@@ -135,7 +160,11 @@ pub fn what_encryption(pdf : @pdf.Pdf) -> @pdfcrypt.EncryptionMethod? {
 
 ///|
 /// Return list of permissions.
-pub fn permissions(pdf : @pdf.Pdf) -> Array[@pdfcrypt.Permission] {
+#as_free_fn(permissions, deprecated="Use `PdfRead::permissions`")
+pub fn PdfRead::permissions(
+  _self : PdfRead,
+  pdf : @pdf.Pdf,
+) -> Array[@pdfcrypt.Permission] {
   if @pdfcrypt.is_encrypted(pdf) {
     let values : Result[
       (
@@ -160,7 +189,8 @@ pub fn permissions(pdf : @pdf.Pdf) -> Array[@pdfcrypt.Permission] {
 
 ///|
 /// Check if input is linearized.
-pub fn is_linearized(input : @pdfio.Input) -> Bool {
+#as_free_fn(is_linearized, deprecated="Use `PdfRead::is_linearized`")
+pub fn PdfRead::is_linearized(_self : PdfRead, input : @pdfio.Input) -> Bool {
   try {
     let _ = read_header(input)
     let lexemes = @pdfsyntax.lex_dictionary(false, input)

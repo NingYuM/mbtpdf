@@ -10,9 +10,11 @@ async fn pdf_of_file_unlabeled(
   owner_password : String?,
   filename : String,
 ) -> @pdf.Pdf {
+  let reader = PdfRead::new()
   match revision {
-    Some(r) => pdf_of_file(revision=r, user_password, owner_password, filename)
-    None => pdf_of_file(user_password, owner_password, filename)
+    Some(r) =>
+      reader.pdf_of_file(revision=r, user_password, owner_password, filename)
+    None => reader.pdf_of_file(user_password, owner_password, filename)
   }
 }
 

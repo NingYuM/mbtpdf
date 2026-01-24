@@ -1,6 +1,10 @@
 ///|
 async test "extract text pandoc basic fixture" {
-  let pdf = @pdfread.pdf_of_file(None, None, "testdata/pandoc/pandoc_basic.pdf")
+  let pdf = @pdfread.PdfRead::new().pdf_of_file(
+    None,
+    None,
+    "testdata/pandoc/pandoc_basic.pdf",
+  )
   let pages = @pdftext.PdfText::new(pdf).extract_text_by_page()
   debug_inspect(
     pages,
@@ -15,7 +19,7 @@ async test "extract text pandoc basic fixture" {
 
 ///|
 async test "extract text pandoc unicode fixture" {
-  let pdf = @pdfread.pdf_of_file(
+  let pdf = @pdfread.PdfRead::new().pdf_of_file(
     None,
     None,
     "testdata/pandoc/pandoc_unicode.pdf",

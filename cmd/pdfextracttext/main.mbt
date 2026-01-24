@@ -8,7 +8,7 @@ async fn main {
   let in_file = args[1]
   let out_file = if args.length() == 3 { Some(args[2]) } else { None }
   try {
-    let pdf = @pdfread.pdf_of_file(None, None, in_file)
+    let pdf = @pdfread.PdfRead::new().pdf_of_file(None, None, in_file)
     if @pdfcrypt.is_encrypted(pdf) {
       fail("File is encrypted.")
     }

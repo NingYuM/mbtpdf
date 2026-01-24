@@ -137,7 +137,7 @@ async fn main {
   let in_file = args[1]
   let out_file = args[2]
   try {
-    let pdf = @pdfread.pdf_of_file(None, None, in_file)
+    let pdf = @pdfread.PdfRead::new().pdf_of_file(None, None, in_file)
     @pdfwrite.pdf_to_file(remove_images(pdf), out_file)
   } catch {
     err => {

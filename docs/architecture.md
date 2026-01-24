@@ -106,8 +106,8 @@ Base utilities used across most packages:
   - Example:
     ```mbt
     async fn load() -> @pdf.Pdf {
-      let pdf = @pdfread.pdf_of_file(None, None, "input.pdf")
-      let _ = @pdfread.what_encryption(pdf)
+      let pdf = @pdfread.PdfRead::new().pdf_of_file(None, None, "input.pdf")
+      let _ = @pdfread.PdfRead::new().what_encryption(pdf)
       pdf
     }
     ```

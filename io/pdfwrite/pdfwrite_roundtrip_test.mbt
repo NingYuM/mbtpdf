@@ -59,7 +59,7 @@ fn roundtrip(pdf : @pdf.Pdf) -> @pdf.Pdf raise {
   @pdfwrite.pdf_to_output(None, false, pdf, output)
   let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let input = @pdfio.input_of_bytes(pdf_bytes, source="roundtrip")
-  @pdfread.pdf_of_input(None, None, input)
+  @pdfread.PdfRead::new().pdf_of_input(None, None, input)
 }
 
 ///|
@@ -82,7 +82,7 @@ test "pdf roundtrip with xref stream" {
   let pdf_text = @pdfio.string_of_bytes(pdf_bytes)
   assert_true(pdf_text.contains("/Type /XRef"))
   let input = @pdfio.input_of_bytes(pdf_bytes, source="xref-stream")
-  let parsed = @pdfread.pdf_of_input(None, None, input)
+  let parsed = @pdfread.PdfRead::new().pdf_of_input(None, None, input)
   assert_eq(parsed.objcard(), 4)
   assert_eq(parsed.root, 4)
 }
@@ -104,7 +104,7 @@ test "pdf roundtrip with generated object streams" {
   let pdf_text = @pdfio.string_of_bytes(pdf_bytes)
   assert_true(pdf_text.contains("/ObjStm"))
   let input = @pdfio.input_of_bytes(pdf_bytes, source="objstm")
-  let parsed = @pdfread.pdf_of_input(None, None, input)
+  let parsed = @pdfread.PdfRead::new().pdf_of_input(None, None, input)
   assert_true(parsed.objects.object_stream_ids.length() > 0)
 }
 
@@ -123,7 +123,7 @@ test "pdf roundtrip with preserved object streams" {
   )
   let bytes1 = @pdfio.extract_bytes_from_input_output(output1, buffer1)
   let input1 = @pdfio.input_of_bytes(bytes1, source="objstm-preserve")
-  let parsed = @pdfread.pdf_of_input(None, None, input1)
+  let parsed = @pdfread.PdfRead::new().pdf_of_input(None, None, input1)
   let (output2, buffer2) = @pdfio.input_output_of_bytes(512)
   @pdfwrite.pdf_to_output(
     preserve_objstm=true,

@@ -50,7 +50,7 @@ async fn main {
   try {
     let pdfs = Array::new()
     for name in in_names {
-      pdfs.push(@pdfread.pdf_of_file(None, None, name))
+      pdfs.push(@pdfread.PdfRead::new().pdf_of_file(None, None, name))
     }
     let merged = merge_pdfs(pdfs)
     @pdfwrite.pdf_to_file(merged, out_name)

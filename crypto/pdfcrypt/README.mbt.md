@@ -43,7 +43,7 @@ pub(all) enum Permission {
 ### Getting Permissions
 
 ```mbt nocheck
-let perms = @pdfread.permissions(pdf)
+let perms = @pdfread.PdfRead::new().permissions(pdf)
 for perm in perms {
   match perm {
     @pdfcrypt.Permission::Print => println("Print allowed")
@@ -93,7 +93,7 @@ When reading encrypted PDFs:
 // With user password
 
 ///|
-let pdf = @pdfread.pdf_of_file(
+let pdf = @pdfread.PdfRead::new().pdf_of_file(
   user_password=Some("user123"),
   owner_password=None,
   filename="encrypted.pdf",
@@ -102,7 +102,7 @@ let pdf = @pdfread.pdf_of_file(
 // With owner password (full access)
 
 ///|
-let pdf = @pdfread.pdf_of_file(
+let pdf = @pdfread.PdfRead::new().pdf_of_file(
   user_password=None,
   owner_password=Some("owner456"),
   filename="encrypted.pdf",
@@ -112,7 +112,7 @@ let pdf = @pdfread.pdf_of_file(
 ## Checking Encryption
 
 ```mbt nocheck
-let method = @pdfread.what_encryption(pdf)
+let method = @pdfread.PdfRead::new().what_encryption(pdf)
 match method {
   None => println("Not encrypted")
   Some(@pdfcrypt.EncryptionMethod::AES256) => println("AES 256-bit")

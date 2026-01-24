@@ -12,6 +12,17 @@ The `pdfread` package provides functions to:
 - Support lazy loading for large files
 - Query document revisions and encryption
 
+## Types
+
+### PdfRead
+
+PDF reading context.
+
+```mbt nocheck
+pub struct PdfRead { ... }
+pub fn PdfRead::new() -> PdfRead
+```
+
 ## Reading PDFs
 
 ### From Input Stream
@@ -20,7 +31,11 @@ The `pdfread` package provides functions to:
 // Read with all stream data loaded
 
 ///|
-let pdf = @pdfread.pdf_of_input(user_password=None, owner_password=None, input)
+let pdf = @pdfread.PdfRead::new().pdf_of_input(
+  user_password=None,
+  owner_password=None,
+  input,
+)
 ```
 
 ### Lazy Loading
@@ -31,7 +46,7 @@ For large files, use lazy loading to defer stream data:
 // Streams loaded on-demand
 
 ///|
-let pdf = @pdfread.pdf_of_input_lazy(
+let pdf = @pdfread.PdfRead::new().pdf_of_input_lazy(
   user_password=None,
   owner_password=None,
   input,
@@ -42,7 +57,7 @@ let pdf = @pdfread.pdf_of_input_lazy(
 
 ```mbt nocheck
 ///|
-let pdf = @pdfread.pdf_of_file(
+let pdf = @pdfread.PdfRead::new().pdf_of_file(
   user_password=None,
   owner_password=None,
   filename="/path/to/document.pdf",
@@ -53,7 +68,7 @@ let pdf = @pdfread.pdf_of_file(
 
 ```mbt nocheck
 ///|
-let pdf = @pdfread.pdf_of_channel(
+let pdf = @pdfread.PdfRead::new().pdf_of_channel(
   user_password=None,
   owner_password=None,
   channel,
@@ -68,7 +83,7 @@ For encrypted PDFs:
 // With user password
 
 ///|
-let pdf = @pdfread.pdf_of_input(
+let pdf = @pdfread.PdfRead::new().pdf_of_input(
   user_password=Some("secret"),
   owner_password=None,
   input,
@@ -77,7 +92,7 @@ let pdf = @pdfread.pdf_of_input(
 // With owner password
 
 ///|
-let pdf = @pdfread.pdf_of_input(
+let pdf = @pdfread.PdfRead::new().pdf_of_input(
   user_password=None,
   owner_password=Some("admin123"),
   input,
@@ -92,12 +107,12 @@ PDF files can have multiple revisions (incremental saves):
 // Count revisions
 
 ///|
-let num_revisions = @pdfread.revisions(input)
+let num_revisions = @pdfread.PdfRead::new().revisions(input)
 
 // Read specific revision
 
 ///|
-let pdf = @pdfread.pdf_of_input(
+let pdf = @pdfread.PdfRead::new().pdf_of_input(
   revision=2,
   user_password=None,
   owner_password=None, // Read second revision
@@ -110,7 +125,7 @@ let pdf = @pdfread.pdf_of_input(
 ### Query Encryption Method
 
 ```mbt nocheck
-let method = @pdfread.what_encryption(pdf)
+let method = @pdfread.PdfRead::new().what_encryption(pdf)
 match method {
   None => println("Not encrypted")
   Some(AES128) => println("AES 128-bit")
@@ -124,7 +139,7 @@ match method {
 ### Query Permissions
 
 ```mbt nocheck
-let perms = @pdfread.permissions(pdf)
+let perms = @pdfread.PdfRead::new().permissions(pdf)
 for perm in perms {
   match perm {
     Print => println("Printing allowed")
@@ -154,7 +169,7 @@ Reading raises `@pdf.PdfError` on parse failures:
 
 ```mbt nocheck
 try {
-  let pdf = @pdfread.pdf_of_input!(
+  let pdf = @pdfread.PdfRead::new().pdf_of_input!(
     user_password=None,
     owner_password=None,
     input,

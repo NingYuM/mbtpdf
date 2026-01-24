@@ -91,7 +91,7 @@ test "pdf_to_output encrypts and reads with user password" {
   @pdfwrite.pdf_to_output(Some(enc), false, pdf, output)
   let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let input = @pdfio.input_of_bytes(pdf_bytes, source="encrypt-roundtrip")
-  let parsed = @pdfread.pdf_of_input(Some("user"), None, input)
+  let parsed = @pdfread.PdfRead::new().pdf_of_input(Some("user"), None, input)
   assert_eq(parsed.objcard(), 5)
   assert_eq(parsed.root, 4)
 }
@@ -110,7 +110,7 @@ test "pdf_to_output recrypt uses saved encryption" {
   @pdfwrite.pdf_to_output(Some(enc), false, pdf, output1)
   let bytes1 = @pdfio.extract_bytes_from_input_output(output1, buffer1)
   let input1 = @pdfio.input_of_bytes(bytes1, source="encrypt-recrypt")
-  let parsed = @pdfread.pdf_of_input(Some("user"), None, input1)
+  let parsed = @pdfread.PdfRead::new().pdf_of_input(Some("user"), None, input1)
   let (decrypted_opt, _) = @pdfcrypt.decrypt_pdf("user", parsed)
   let decrypted = match decrypted_opt {
     Some(value) => value
@@ -120,7 +120,7 @@ test "pdf_to_output recrypt uses saved encryption" {
   @pdfwrite.pdf_to_output(recrypt="user", None, false, decrypted, output2)
   let bytes2 = @pdfio.extract_bytes_from_input_output(output2, buffer2)
   let input2 = @pdfio.input_of_bytes(bytes2, source="recrypt-roundtrip")
-  let parsed2 = @pdfread.pdf_of_input(Some("user"), None, input2)
+  let parsed2 = @pdfread.PdfRead::new().pdf_of_input(Some("user"), None, input2)
   let (roundtrip_opt, _) = @pdfcrypt.decrypt_pdf("user", parsed2)
   match roundtrip_opt {
     Some(_) => ()
@@ -151,7 +151,7 @@ test "pdf_to_output encrypts object streams and reads with user password" {
   )
   let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let input = @pdfio.input_of_bytes(pdf_bytes, source="encrypt-objstm")
-  let parsed = @pdfread.pdf_of_input(Some("user"), None, input)
+  let parsed = @pdfread.PdfRead::new().pdf_of_input(Some("user"), None, input)
   assert_eq(parsed.root, 4)
 }
 
@@ -176,7 +176,11 @@ test "pdfread lazy decrypts object streams for encrypted PDFs" {
   )
   let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let input = @pdfio.input_of_bytes(pdf_bytes, source="encrypt-objstm-lazy")
-  let parsed = @pdfread.pdf_of_input_lazy(Some("user"), None, input)
+  let parsed = @pdfread.PdfRead::new().pdf_of_input_lazy(
+    Some("user"),
+    None,
+    input,
+  )
   let objstm_entries = parsed.objects.object_stream_ids.to_array()
   if objstm_entries.length() == 0 {
     fail("expected object stream entries")
@@ -210,14 +214,14 @@ test "pdfread returns pdf for encrypted objstm without password" {
   )
   let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let input = @pdfio.input_of_bytes(pdf_bytes, source="encrypt-objstm-nopw")
-  let res : Result[@pdf.Pdf, Error] = try? @pdfread.pdf_of_input(
+  let res : Result[@pdf.Pdf, Error] = try? @pdfread.PdfRead::new().pdf_of_input(
     None,
     None,
     input,
   )
   match res {
     Ok(parsed) =>
-      if @pdfread.what_encryption(parsed) is None {
+      if @pdfread.PdfRead::new().what_encryption(parsed) is None {
         fail("expected encryption info")
       }
     Err(_) => fail("expected read to succeed without password")
@@ -257,7 +261,7 @@ test "pdfread skips malformed object stream" {
   let n_value_index = n_pos + n_marker.length()
   pdf_bytes[n_value_index] = '/'.to_int().to_byte()
   let input = @pdfio.input_of_bytes(pdf_bytes, source="malformed-objstm")
-  let res : Result[@pdf.Pdf, Error] = try? @pdfread.pdf_of_input(
+  let res : Result[@pdf.Pdf, Error] = try? @pdfread.PdfRead::new().pdf_of_input(
     Some("user"),
     None,
     input,
@@ -282,7 +286,7 @@ test "pdf_to_output encrypts with AES256" {
   @pdfwrite.pdf_to_output(Some(enc), false, pdf, output)
   let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let input = @pdfio.input_of_bytes(bytes, source="aes256-encrypt")
-  let parsed = @pdfread.pdf_of_input(Some("user"), None, input)
+  let parsed = @pdfread.PdfRead::new().pdf_of_input(Some("user"), None, input)
   let (decrypted_opt, _) = @pdfcrypt.decrypt_pdf("user", parsed)
   assert_true(decrypted_opt is Some(_))
 }
@@ -301,7 +305,7 @@ test "pdf_to_output encrypts with AES256 ISO" {
   @pdfwrite.pdf_to_output(Some(enc), false, pdf, output)
   let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let input = @pdfio.input_of_bytes(bytes, source="aes256iso-encrypt")
-  let parsed = @pdfread.pdf_of_input(Some("user"), None, input)
+  let parsed = @pdfread.PdfRead::new().pdf_of_input(Some("user"), None, input)
   let (decrypted_opt, _) = @pdfcrypt.decrypt_pdf("user", parsed)
   assert_true(decrypted_opt is Some(_))
 }

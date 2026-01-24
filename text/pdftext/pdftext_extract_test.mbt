@@ -1,6 +1,6 @@
 ///|
 async test "extract text intro pdf" {
-  let pdf = @pdfread.pdf_of_file(
+  let pdf = @pdfread.PdfRead::new().pdf_of_file(
     None,
     None,
     "camlpdf/introduction_to_camlpdf.pdf",
@@ -15,7 +15,7 @@ async test "extract text intro pdf" {
 
 ///|
 async test "extract text pdf.js identity sample" {
-  let pdf = @pdfread.pdf_of_file(
+  let pdf = @pdfread.PdfRead::new().pdf_of_file(
     None,
     None,
     "testdata/pdfjs_identity_tounicode.pdf",
@@ -26,7 +26,11 @@ async test "extract text pdf.js identity sample" {
 
 ///|
 async test "extract text SFAA Japanese" {
-  let pdf = @pdfread.pdf_of_file(None, None, "testdata/SFAA_Japanese.pdf")
+  let pdf = @pdfread.PdfRead::new().pdf_of_file(
+    None,
+    None,
+    "testdata/SFAA_Japanese.pdf",
+  )
   let extracted = @pdftext.PdfText::new(pdf).extract_text()
   assert_true(
     extracted.contains("すべてのアメリカ人のための科学"),

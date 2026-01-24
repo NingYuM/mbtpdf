@@ -113,7 +113,7 @@ fn read_pdf_internal(
     )
   }
   try {
-    let was_linearized = is_linearized(input)
+    let was_linearized = PdfRead::new().is_linearized(input)
     (input.seek_in)(0)
     let (major_header, minor_header) = read_header(input)
     let mut revisions_count = 1

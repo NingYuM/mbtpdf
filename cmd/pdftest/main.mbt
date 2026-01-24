@@ -27,7 +27,7 @@ async fn main {
     file.close()
     let bytes = data.to_array()
     let input = @pdfio.input_of_bytes(bytes, source=in_name)
-    let pdf = @pdfread.pdf_of_input(None, None, input)
+    let pdf = @pdfread.PdfRead::new().pdf_of_input(None, None, input)
     if @pdfcrypt.is_encrypted(pdf) {
       fail("File is encrypted.")
     }

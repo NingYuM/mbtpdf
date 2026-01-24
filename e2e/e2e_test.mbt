@@ -33,7 +33,7 @@ async fn ensure_dir(path : String) -> Unit {
 ///|
 async fn read_pdf(path : String) -> @pdf.Pdf {
   assert_fixture(path)
-  @pdfread.pdf_of_file(None, None, path)
+  @pdfread.PdfRead::new().pdf_of_file(None, None, path)
 }
 
 ///|
@@ -1946,19 +1946,23 @@ async test "e2e encrypt pdf and require password" {
   let file = @fs.open(out_path, mode=WriteOnly, create=0o644, truncate=true)
   defer file.close()
   @pdfwrite.pdf_to_channel(Some(enc), true, pdf, file)
-  let res : Result[@pdf.Pdf, Error] = try? @pdfread.pdf_of_file(
+  let res : Result[@pdf.Pdf, Error] = try? @pdfread.PdfRead::new().pdf_of_file(
     None,
     None,
     out_path,
   )
   match res {
     Ok(parsed) =>
-      if @pdfread.what_encryption(parsed) is None {
+      if @pdfread.PdfRead::new().what_encryption(parsed) is None {
         fail("expected encryption info")
       }
     Err(_) => fail("expected read to succeed without password")
   }
-  let parsed_pw = @pdfread.pdf_of_file(Some("user-pass"), None, out_path)
+  let parsed_pw = @pdfread.PdfRead::new().pdf_of_file(
+    Some("user-pass"),
+    None,
+    out_path,
+  )
   assert_eq(page_count(parsed_pw), page_count(pdf))
   let _ : Result[Unit, Error] = try? @fs.remove(out_path)
 

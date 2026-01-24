@@ -20,7 +20,7 @@ async test "bookmark string roundtrip through file output" {
   let file = @fs.open(filename, mode=WriteOnly, create=0o644, truncate=true)
   defer file.close()
   @pdfwrite.pdf_to_channel(None, true, pdf_with, file)
-  let parsed = @pdfread.pdf_of_file(None, None, filename)
+  let parsed = @pdfread.PdfRead::new().pdf_of_file(None, None, filename)
   let parsed_marks = @pdfmarks.PdfMarks::new(parsed).read_bookmarks()
   assert_eq(parsed_marks.length(), 1)
   assert_eq(parsed_marks[0].text, "Café")
