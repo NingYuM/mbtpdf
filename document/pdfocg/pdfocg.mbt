@@ -5,6 +5,16 @@ pub(all) enum OcgUsage {
 } derive(Debug)
 
 ///|
+pub struct PdfOcg {
+  pdf : @pdf.Pdf
+}
+
+///|
+pub fn PdfOcg::new(pdf : @pdf.Pdf) -> PdfOcg {
+  { pdf, }
+}
+
+///|
 /// Optional content group.
 pub(all) struct Ocg {
   ocg_name : String
@@ -238,6 +248,16 @@ pub fn OcgProperties::write(self : OcgProperties, pdf : @pdf.Pdf) -> Unit {
 }
 
 ///|
+pub fn PdfOcg::read(self : PdfOcg) -> OcgProperties? raise {
+  OcgProperties::read(self.pdf)
+}
+
+///|
+pub fn PdfOcg::write(self : PdfOcg, ocg : OcgProperties) -> Unit {
+  ocg.write(self.pdf)
+}
+
+///|
 fn print_ocg(pair : (Int, Ocg)) -> Unit {
   let num = pair.0
   let ocg = pair.1
@@ -263,8 +283,9 @@ fn print_ocg_config(config : OcgConfig) -> Unit {
 ///|
 /// Print information about the document's Optional Content Groups.
 /// Debug only.
-pub fn print_document_ocg(pdf : @pdf.Pdf) -> Unit raise {
-  match OcgProperties::read(pdf) {
+#as_free_fn(print_document_ocg, deprecated="Use `PdfOcg::print_document`")
+pub fn PdfOcg::print_document(self : PdfOcg) -> Unit raise {
+  match OcgProperties::read(self.pdf) {
     None =>
       @pdfutil.PdfUtil::new().flprint(
         "There are no optional content groups in this document\n",

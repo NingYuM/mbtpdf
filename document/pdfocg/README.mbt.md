@@ -8,6 +8,15 @@ This package handles Optional Content Groups (OCGs), which allow PDF content to 
 
 ## Types
 
+### PdfOcg
+
+Optional content group context.
+
+```moonbit nocheck
+pub struct PdfOcg { ... }
+pub fn PdfOcg::new(pdf : @pdf.Pdf) -> PdfOcg
+```
+
 ### Ocg
 
 An Optional Content Group definition.
@@ -70,7 +79,7 @@ pub(all) struct OcgProperties {
 }
 ```
 
-## Functions
+## Methods
 
 ### read_ocg
 
@@ -88,10 +97,10 @@ Write optional content data to a document (placeholder).
 pub fn OcgProperties::write(self : OcgProperties, pdf : @pdf.Pdf) -> Unit
 ```
 
-### print_document_ocg
+### PdfOcg::print_document
 
 Print OCG information for debugging.
 
 ```moonbit nocheck
-pub fn print_document_ocg(pdf : @pdf.Pdf) -> Unit raise
+pub fn PdfOcg::print_document(self : PdfOcg) -> Unit raise
 ```

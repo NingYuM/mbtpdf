@@ -184,7 +184,7 @@ test "read_ocg parses ocg intent name" {
 ///|
 test "print_document_ocg handles missing ocg" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  print_document_ocg(pdf)
+  PdfOcg::new(pdf).print_document()
 }
 
 ///|

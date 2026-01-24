@@ -7,7 +7,6 @@ import {
 }
 
 // Values
-pub fn print_document_ocg(@pdf.Pdf) -> Unit raise
 
 // Errors
 
@@ -73,6 +72,15 @@ pub(all) enum OcgUsage {
   Placeholder
 }
 pub impl @debug.Debug for OcgUsage
+
+pub struct PdfOcg {
+  pdf : @pdf.Pdf
+}
+pub fn PdfOcg::new(@pdf.Pdf) -> Self
+#as_free_fn(print_document_ocg, deprecated)
+pub fn PdfOcg::print_document(Self) -> Unit raise
+pub fn PdfOcg::read(Self) -> OcgProperties? raise
+pub fn PdfOcg::write(Self, OcgProperties) -> Unit
 
 // Type aliases
 
