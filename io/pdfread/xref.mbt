@@ -619,7 +619,7 @@ fn build_pdf_objects(
     }
   } else {
     let themap : Map[Int, Array[Int]] = Map::new()
-    for group in stream_groups.to_array() {
+    for group in stream_groups {
       let entries = group.1
       for entry in entries {
         let objnum = entry.0
@@ -664,7 +664,7 @@ fn build_pdf_objects(
       }
     }
 
-    for group in stream_groups.to_array() {
+    for group in stream_groups {
       let stream_id = group.0
       let entries = group.1
       for entry in entries {
