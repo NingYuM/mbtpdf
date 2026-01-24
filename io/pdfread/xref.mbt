@@ -17,7 +17,7 @@ priv enum XRefLine {
 }
 
 ///|
-fn parse_digits(chars : Array[Char], start : Int, len : Int) -> Int? {
+fn parse_digits(chars : StringView, start : Int, len : Int) -> Int? {
   if start < 0 || len < 0 || start + len > chars.length() {
     return None
   }
@@ -33,7 +33,7 @@ fn parse_digits(chars : Array[Char], start : Int, len : Int) -> Int? {
 }
 
 ///|
-fn count_leading_spaces(chars : Array[Char]) -> Int {
+fn count_leading_spaces(chars : StringView) -> Int {
   let mut i = 0
   for ch in chars {
     if ch == ' ' {
@@ -80,8 +80,7 @@ fn read_xref_line(input : @pdfio.Input) -> XRefLine raise {
   if line == "xref" || line == "xref " {
     return read_xref_line(input)
   }
-  let chars = line.to_array()
-  // TODO(upstream): add array.get_slice(0,18) that returns Option<Array[Char]>
+  let chars = line[:]
   let offset_opt = if chars.length() >= 18 {
     parse_digits(chars, 0, 10)
   } else {
@@ -94,17 +93,25 @@ fn read_xref_line(input : @pdfio.Input) -> XRefLine raise {
   }
   match (offset_opt, gen_opt) {
     (Some(offset), Some(gen)) =>
-      match chars.get(17) {
-        Some('n') => return Valid(offset, gen)
-        Some('f') => return Free(offset, gen)
-        Some(_) => return Invalid
-        None => return Invalid
+      if chars.length() > 17 {
+        let mark = chars[17]
+        if mark is 'n' {
+          return Valid(offset, gen)
+        } else if mark is 'f' {
+          return Free(offset, gen)
+        } else {
+          return Invalid
+        }
+      } else {
+        return Invalid
       }
     _ => ()
   }
-  match chars.get(17) {
-    Some('n') => if parse_digits(chars, 0, 10) is Some(0) { return Free(0, 0) }
-    _ => ()
+  if chars.length() > 17 {
+    let mark = chars[17]
+    if mark is 'n' && parse_digits(chars, 0, 10) is Some(0) {
+      return Free(0, 0)
+    }
   }
   if line.has_prefix("trailer") {
     let leading_spaces = count_leading_spaces(chars)
