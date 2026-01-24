@@ -7,7 +7,7 @@ priv suberror AddPrefixError {
 fn next_string(s : String) -> String {
   if s == "" {
     "a"
-  } else if s.get_char(0) == Some('z') {
+  } else if s.get_char(0) is Some('z') {
     "a" + s
   } else {
     let sb = StringBuilder::new()
@@ -16,9 +16,10 @@ fn next_string(s : String) -> String {
       if first {
         first = false
         let next = c.to_int() + 1
-        match next.to_char() {
-          Some(ch) => sb.write_char(ch)
-          None => sb.write_char(c)
+        if next.to_char() is Some(ch) {
+          sb.write_char(ch)
+        } else {
+          sb.write_char(c)
         }
       } else {
         sb.write_char(c)
