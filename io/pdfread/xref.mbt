@@ -210,7 +210,7 @@ fn read_xref_stream(
       true,
       _ => [],
     ) {
-    @pdfgenlex.Token::LexInt(i) => i
+    LexInt(i) => i
     _ => {
       @pdfe.Pdfe::new().log("couldn't lex object number\n")
       raise err
@@ -241,7 +241,7 @@ fn read_xref_stream(
         _ => [],
       )
       match t {
-        @pdfgenlex.Token::StopLexing | @pdfgenlex.Token::LexNone => done = true
+        StopLexing | LexNone => done = true
         _ => lexemes.push(t)
       }
     }
@@ -253,7 +253,7 @@ fn read_xref_stream(
     raise err
   }
   let (objnum, gen) = match dictlex {
-    [@pdfgenlex.Token::LexInt(o), @pdfgenlex.Token::LexInt(g), ..] => (o, g)
+    [LexInt(o), LexInt(g), ..] => (o, g)
     _ => raise err
   }
   let stream_token = @pdfsyntax.PdfSyntax::new().lex_stream(
@@ -267,8 +267,8 @@ fn read_xref_stream(
     tokens.push(t)
   }
   tokens.push(stream_token)
-  tokens.push(@pdfgenlex.Token::LexEndStream)
-  tokens.push(@pdfgenlex.Token::LexEndObj)
+  tokens.push(LexEndStream)
+  tokens.push(LexEndObj)
   let (_, parsed) = @pdfsyntax.PdfSyntax::new().parse(tokens)
   let stream_obj = match parsed {
     @pdf.PdfObject::Stream(_) => parsed
@@ -364,7 +364,7 @@ fn read_xref_stream(
 fn read_int_from_stream(input : @pdfio.Input) -> Int raise {
   @pdfsyntax.PdfSyntax::new().dropwhite(input)
   match @pdfsyntax.PdfSyntax::new().lex_number(input) {
-    @pdfgenlex.Token::LexInt(i) => i
+    LexInt(i) => i
     _ => {
       let message = @pdf.input_pdferror(input, "objstm offset problem")
       raise @pdf.PdfError::Msg(message)

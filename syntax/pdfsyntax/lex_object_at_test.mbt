@@ -1,11 +1,5 @@
 ///|
-type Token = @pdfgenlex.Token
-
-///|
-fn lex_from_string(
-  oneonly : Bool,
-  source : String,
-) -> Array[Token] raise {
+fn lex_from_string(oneonly : Bool, source : String) -> Array[Token] raise {
   let input = @pdfio.Input::of_string(source)
   @pdfsyntax.PdfSyntax::new().lex_object_at(oneonly, input, true, _ => [])
 }

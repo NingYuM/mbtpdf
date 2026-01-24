@@ -3,7 +3,7 @@ async test "extract text intro pdf" {
   let pdf = @pdfread.PdfRead::new().pdf_of_file(
     None,
     None,
-    "camlpdf/introduction_to_camlpdf.pdf",
+    "testdata/introduction_to_camlpdf.pdf",
   )
   let ctx = @pdftext.PdfText::new(pdf)
   let pages = ctx.extract_text_by_page()
