@@ -179,16 +179,19 @@ fn lookup_text_extractor(
   if cache.get(font_name) is Some(extractor) {
     return Some(extractor)
   }
-  if @pdf.lookup_direct(pdf, "/Font", resources) is Some(fonts) &&
-    @pdf.lookup_direct(pdf, font_name, fonts) is Some(obj) {
-    try {
-      let extractor = text_extractor_of_font(pdf, obj)
-      cache.set(font_name, extractor)
-      Some(extractor)
-    } catch {
-      _ => None
-    }
-  } else {
-    None
+  match @pdf.lookup_direct(pdf, "/Font", resources) {
+    Some(fonts) =>
+      match @pdf.lookup_direct(pdf, font_name, fonts) {
+        Some(obj) =>
+          try {
+            let extractor = text_extractor_of_font(pdf, obj)
+            cache.set(font_name, extractor)
+            Some(extractor)
+          } catch {
+            _ => None
+          }
+        None => None
+      }
+    None => None
   }
 }

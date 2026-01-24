@@ -18,18 +18,15 @@ fn parse_matrix(
 ) -> @pdftransform.TransformMatrix raise {
   let obj = @pdf.lookup_fail("No matrix", pdf, key, dict)
   match obj {
-    @pdf.PdfObject::Array(vals) =>
-      if vals.length() != 6 {
-        raise @pdf.PdfError::Msg("Bad matrix")
-      } else {
-        let a = @pdf.getnum(pdf, vals[0])
-        let b = @pdf.getnum(pdf, vals[1])
-        let c = @pdf.getnum(pdf, vals[2])
-        let d = @pdf.getnum(pdf, vals[3])
-        let e = @pdf.getnum(pdf, vals[4])
-        let f = @pdf.getnum(pdf, vals[5])
-        { a, b, c, d, e, f }
-      }
+    @pdf.PdfObject::Array(vals) if vals.length() == 6 => {
+      let a = @pdf.getnum(pdf, vals[0])
+      let b = @pdf.getnum(pdf, vals[1])
+      let c = @pdf.getnum(pdf, vals[2])
+      let d = @pdf.getnum(pdf, vals[3])
+      let e = @pdf.getnum(pdf, vals[4])
+      let f = @pdf.getnum(pdf, vals[5])
+      { a, b, c, d, e, f }
+    }
     _ => raise @pdf.PdfError::Msg("Bad matrix")
   }
 }
@@ -111,36 +108,33 @@ pub fn read_fontdescriptor(
   match @pdf.lookup_direct(pdf, "/FontDescriptor", font) {
     None => None
     Some(fontdescriptor) => {
-      let ascent = match @pdf.lookup_direct(pdf, "/Ascent", fontdescriptor) {
-        Some(x) => @pdf.getnum(pdf, x)
-        None => 0.0
+      fn num_or_zero(key : String) -> Double raise {
+        match @pdf.lookup_direct(pdf, key, fontdescriptor) {
+          Some(x) => @pdf.getnum(pdf, x)
+          None => 0.0
+        }
       }
-      let descent = match @pdf.lookup_direct(pdf, "/Descent", fontdescriptor) {
-        Some(x) => @pdf.getnum(pdf, x)
-        None => 0.0
+
+      fn find_fontfile() -> @pdffont.FontFile? {
+        match find_indirect(pdf, "/FontFile", fontdescriptor) {
+          Some(i) => Some(@pdffont.FontFile::FontFile(i))
+          None =>
+            match find_indirect(pdf, "/FontFile2", fontdescriptor) {
+              Some(i) => Some(@pdffont.FontFile::FontFile2(i))
+              None =>
+                match find_indirect(pdf, "/FontFile3", fontdescriptor) {
+                  Some(i) => Some(@pdffont.FontFile::FontFile3(i))
+                  None => None
+                }
+            }
+        }
       }
-      let avgwidth = match
-        @pdf.lookup_direct(pdf, "/AvgWidth", fontdescriptor) {
-        Some(x) => @pdf.getnum(pdf, x)
-        None => 0.0
-      }
-      let maxwidth = match
-        @pdf.lookup_direct(pdf, "/MaxWidth", fontdescriptor) {
-        Some(x) => @pdf.getnum(pdf, x)
-        None => 0.0
-      }
-      let fontfile = match find_indirect(pdf, "/FontFile", fontdescriptor) {
-        Some(i) => Some(@pdffont.FontFile::FontFile(i))
-        None =>
-          match find_indirect(pdf, "/FontFile2", fontdescriptor) {
-            Some(i) => Some(@pdffont.FontFile::FontFile2(i))
-            None =>
-              match find_indirect(pdf, "/FontFile3", fontdescriptor) {
-                Some(i) => Some(@pdffont.FontFile::FontFile3(i))
-                None => None
-              }
-          }
-      }
+
+      let ascent = num_or_zero("/Ascent")
+      let descent = num_or_zero("/Descent")
+      let avgwidth = num_or_zero("/AvgWidth")
+      let maxwidth = num_or_zero("/MaxWidth")
+      let fontfile = find_fontfile()
       let charset = match @pdf.lookup_direct(pdf, "/CharSet", fontdescriptor) {
         Some(@pdf.PdfObject::String(s)) => Some(parse_charset(s))
         _ => None
@@ -179,6 +173,22 @@ pub fn read_metrics(
   pdf : @pdf.Pdf,
   font : @pdf.PdfObject,
 ) -> @pdffont.FontMetrics? raise {
+  fn read_char(
+    key : String,
+    missing_msg : String,
+    bad_msg : String,
+  ) -> Int raise {
+    match @pdf.lookup_direct(pdf, key, font) {
+      Some(@pdf.PdfObject::Integer(i)) =>
+        if i <= 255 && i >= 0 {
+          i
+        } else {
+          raise @pdf.PdfError::Msg(bad_msg)
+        }
+      _ => raise @pdf.PdfError::Msg(missing_msg)
+    }
+  }
+
   let fontdescriptor = match @pdf.lookup_direct(pdf, "/Subtype", font) {
     Some(@pdf.PdfObject::Name("/Type3")) => Some(font)
     _ => @pdf.lookup_direct(pdf, "/FontDescriptor", font)
@@ -186,24 +196,8 @@ pub fn read_metrics(
   match fontdescriptor {
     None => None
     Some(descriptor) => {
-      let firstchar = match @pdf.lookup_direct(pdf, "/FirstChar", font) {
-        Some(@pdf.PdfObject::Integer(i)) =>
-          if i <= 255 && i >= 0 {
-            i
-          } else {
-            raise @pdf.PdfError::Msg("Bad /Firstchar")
-          }
-        _ => raise @pdf.PdfError::Msg("No /FirstChar")
-      }
-      let lastchar = match @pdf.lookup_direct(pdf, "/LastChar", font) {
-        Some(@pdf.PdfObject::Integer(i)) =>
-          if i <= 255 && i >= 0 {
-            i
-          } else {
-            raise @pdf.PdfError::Msg("Bad /Lastchar")
-          }
-        _ => raise @pdf.PdfError::Msg("No /LastChar")
-      }
+      let firstchar = read_char("/FirstChar", "No /FirstChar", "Bad /Firstchar")
+      let lastchar = read_char("/LastChar", "No /LastChar", "Bad /Lastchar")
       let missingwidth = match
         @pdf.lookup_direct(pdf, "/MissingWidth", descriptor) {
         Some(@pdf.PdfObject::Integer(w)) => Double::from_int(w)
@@ -308,13 +302,10 @@ pub fn is_standard14font(pdf : @pdf.Pdf, font : @pdf.PdfObject) -> Bool {
     Some(@pdf.PdfObject::Name("/Type1")) =>
       match @pdf.lookup_direct(pdf, "/BaseFont", font) {
         Some(@pdf.PdfObject::Name(name)) =>
-          match standard_font_of_name(name) {
-            None => false
-            Some(_) =>
-              match @pdf.lookup_direct(pdf, "/Widths", font) {
-                None => true
-                Some(_) => false
-              }
+          if standard_font_of_name(name) is Some(_) {
+            @pdf.lookup_direct(pdf, "/Widths", font) is None
+          } else {
+            false
           }
         _ => false
       }
@@ -327,16 +318,13 @@ pub fn is_embedded(pdf : @pdf.Pdf, font : @pdf.PdfObject) -> Bool {
   match @pdf.lookup_direct(pdf, "/FontDescriptor", font) {
     None => false
     Some(fontdescriptor) =>
-      match
-        @pdf.lookup_direct_orelse(
+      if @pdf.lookup_direct_orelse(
           pdf, "/FontFile", "/FontFile2", fontdescriptor,
-        ) {
-        Some(_) => true
-        None =>
-          match @pdf.lookup_direct(pdf, "/FontFile3", fontdescriptor) {
-            Some(_) => true
-            None => false
-          }
+        )
+        is Some(_) {
+        true
+      } else {
+        @pdf.lookup_direct(pdf, "/FontFile3", fontdescriptor) is Some(_)
       }
   }
 }

@@ -26,9 +26,8 @@ fn flatten_int_arrays(arrays : Array[Array[Int]]) -> Array[Int] {
 ///|
 fn tounicode_length_list(map : Map[String, String]) -> Array[Int] {
   let lengths = Array::new()
-  let pairs = @pdfutil.list_of_hashtbl(map)
-  for pair in pairs {
-    let len = @pdfio.bytes_of_string(pair.0).length()
+  for key, _ in map {
+    let len = @pdfio.bytes_of_string(key).length()
     if !lengths.contains(len) {
       lengths.push(len)
     }
@@ -44,8 +43,8 @@ fn bytes_slice_to_string(
   length : Int,
 ) -> String {
   let out = Array::new(capacity=length)
-  for i in 0..<length {
-    out.push(bytes[start + i])
+  for i in start..<(start + length) {
+    out.push(bytes[i])
   }
   @pdfio.string_of_int_array(out)
 }
@@ -90,30 +89,33 @@ pub fn utf16be_of_codepoints(codepoints : Array[Int]) -> String raise {
 ///|
 fn codepoints_of_utf16be_inner(bytes : Array[Int]) -> Array[Int] raise {
   let out = Array::new()
+  let len = bytes.length()
   let mut i = 0
-  while i < bytes.length() {
-    if i + 1 >= bytes.length() {
+  while i < len {
+    if i + 1 >= len {
       raise Failure::Failure("codepoints_of_utf16be")
     }
     let w1 = (bytes[i] << 8) | bytes[i + 1]
-    if w1 < 0xd800 || w1 > 0xdfff {
-      out.push(w1)
-      i = i + 2
-    } else if w1 >= 0xd800 && w1 <= 0xdbff {
-      if i + 3 >= bytes.length() {
-        raise Failure::Failure("codepoints_of_utf16be")
+    match w1 {
+      0xd800..=0xdbff => {
+        if i + 3 >= len {
+          raise Failure::Failure("codepoints_of_utf16be")
+        }
+        let w2 = (bytes[i + 2] << 8) | bytes[i + 3]
+        if w2 >= 0xdc00 && w2 <= 0xdfff {
+          let ho = w1 & 0x3ff
+          let lo = w2 >> 6
+          out.push(((ho << 10) | lo) + 0x10000)
+          i = i + 4
+        } else {
+          raise Failure::Failure("codepoints_of_utf16be")
+        }
       }
-      let w2 = (bytes[i + 2] << 8) | bytes[i + 3]
-      if w2 >= 0xdc00 && w2 <= 0xdfff {
-        let ho = w1 & 0x3ff
-        let lo = w2 >> 6
-        out.push(((ho << 10) | lo) + 0x10000)
-        i = i + 4
-      } else {
-        raise Failure::Failure("codepoints_of_utf16be")
+      0xdc00..=0xdfff => raise Failure::Failure("codepoints_of_utf16be")
+      _ => {
+        out.push(w1)
+        i = i + 2
       }
-    } else {
-      raise Failure::Failure("codepoints_of_utf16be")
     }
   }
   out
@@ -218,18 +220,18 @@ fn codepoints_of_predefined_cmap(
 }
 
 ///|
-pub fn glyphnames_and_codepoints_of_text(
-  extractor : TextExtractor,
+fn TextExtractor::glyphnames_and_codepoints_of_text(
+  self : TextExtractor,
   text : String,
 ) -> Array[(String, Array[Int])] raise {
-  match extractor.tounicode {
+  match self.tounicode {
     Some(map) => {
       let bytes = @pdfio.int_array_of_bytes(@pdfio.bytes_of_string(text))
       let out = Array::new()
       let mut i = 0
       while i < bytes.length() {
         let mut matched = false
-        for length in extractor.tounicode_lengths {
+        for length in self.tounicode_lengths {
           if i + length <= bytes.length() {
             let key = bytes_slice_to_string(bytes, i, length)
             match map.get(key) {
@@ -251,10 +253,10 @@ pub fn glyphnames_and_codepoints_of_text(
       out
     }
     None =>
-      match codepoints_of_predefined_cmap(extractor.font, text) {
+      match codepoints_of_predefined_cmap(self.font, text) {
         Some(codepoints) => codepoints.map(cp => (".notdef", [cp]))
         None =>
-          if is_identity_h(extractor.font) {
+          if is_identity_h(self.font) {
             let bytes = @pdfio.int_array_of_bytes(@pdfio.bytes_of_string(text))
             if odd(bytes.length()) {
               raise @pdf.PdfError::Msg("Bad Text")
@@ -263,23 +265,23 @@ pub fn glyphnames_and_codepoints_of_text(
             let mut i = 0
             while i < bytes.length() {
               let code = (bytes[i] << 8) | bytes[i + 1]
-              out.push((extractor.convert)(code))
+              out.push((self.convert)(code))
               i = i + 2
             }
             out
           } else {
-            text.to_array().map(c => (extractor.convert)(c.to_int()))
+            text.to_array().map(c => (self.convert)(c.to_int()))
           }
       }
   }
 }
 
 ///|
-pub fn codepoints_of_text(
-  extractor : TextExtractor,
+fn TextExtractor::codepoints_of_text(
+  self : TextExtractor,
   text : String,
 ) -> Array[Int] raise {
-  let pairs = glyphnames_and_codepoints_of_text(extractor, text)
+  let pairs = self.glyphnames_and_codepoints_of_text(text)
   let out = Array::new()
   for pair in pairs {
     out.append(pair.1)
@@ -288,11 +290,35 @@ pub fn codepoints_of_text(
 }
 
 ///|
+fn TextExtractor::glyphnames_of_text(
+  self : TextExtractor,
+  text : String,
+) -> Array[String] raise {
+  self.glyphnames_and_codepoints_of_text(text).map(pair => pair.0)
+}
+
+///|
+pub fn glyphnames_and_codepoints_of_text(
+  extractor : TextExtractor,
+  text : String,
+) -> Array[(String, Array[Int])] raise {
+  extractor.glyphnames_and_codepoints_of_text(text)
+}
+
+///|
+pub fn codepoints_of_text(
+  extractor : TextExtractor,
+  text : String,
+) -> Array[Int] raise {
+  extractor.codepoints_of_text(text)
+}
+
+///|
 pub fn glyphnames_of_text(
   extractor : TextExtractor,
   text : String,
 ) -> Array[String] raise {
-  glyphnames_and_codepoints_of_text(extractor, text).map(pair => pair.0)
+  extractor.glyphnames_of_text(text)
 }
 
 ///|

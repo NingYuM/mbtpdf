@@ -101,19 +101,26 @@ let tounicode_postamble : String =
   #|
 
 ///|
-fn hex_byte_upper(value : Int) -> String {
-  let digits = "0123456789ABCDEF".to_array()
+let hex_digits_upper : Array[Char] = "0123456789ABCDEF".to_array()
+
+///|
+let hex_digits_lower : Array[Char] = "0123456789abcdef".to_array()
+
+///|
+fn hex_byte(digits : Array[Char], value : Int) -> String {
   let hi = value / 16
   let lo = value % 16
   String::from_array([digits[hi], digits[lo]])
 }
 
 ///|
+fn hex_byte_upper(value : Int) -> String {
+  hex_byte(hex_digits_upper, value)
+}
+
+///|
 fn hex_byte_lower(value : Int) -> String {
-  let digits = "0123456789abcdef".to_array()
-  let hi = value / 16
-  let lo = value % 16
-  String::from_array([digits[hi], digits[lo]])
+  hex_byte(hex_digits_lower, value)
 }
 
 ///|
@@ -133,8 +140,9 @@ pub fn tounicode_map(
 ) -> @pdfio.MutableBytes {
   let sb = StringBuilder::new()
   let mut code = start_code
-  sb.write_string(tounicode_preamble)
-  sb.write_string("\{us.length()} beginbfrange\n")
+  sb
+  ..write_string(tounicode_preamble)
+  ..write_string("\{us.length()} beginbfrange\n")
   for u in us {
     sb.write_string(
       "<\{hex_byte_lower(code)}><\{hex_byte_lower(code)}><\{hex(u)}>\n",
