@@ -41,12 +41,21 @@ pub(all) enum Rotation {
 }
 ```
 
+## PdfPageDoc
+
+Construct a page context bound to a specific `Pdf`.
+
+```mbt nocheck
+pub struct PdfPageDoc { ... }
+pub fn PdfPageDoc::new(pdf : @pdf.Pdf) -> PdfPageDoc
+```
+
 ## Reading Pages
 
 ### Extract All Pages
 
 ```mbt nocheck
-let pages = @pdfpage.pages_of_pagetree!(pdf)
+let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
 for i, page in pages {
   println("Page \{i + 1}: \{page.mediabox}")
 }
@@ -58,18 +67,18 @@ for i, page in pages {
 // Fast count without parsing all pages
 
 ///|
-let count = @pdfpage.pages_of_pagetree_quick(pdf)
+let count = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree_quick()
 ```
 
 ### Last Page Number
 
 ```mbt nocheck
 ///|
-let lastpage = @pdfpage.endpage(pdf)
+let lastpage = @pdfpage.PdfPageDoc::new(pdf).endpage()
 // Or the faster variant
 
 ///|
-let lastpage = @pdfpage.endpage_fast(pdf)
+let lastpage = @pdfpage.PdfPageDoc::new(pdf).endpage_fast()
 ```
 
 ## Creating Pages
@@ -106,7 +115,7 @@ let page = @pdfpage.Page::custom(rect)
 // Create minimal valid PDF document
 
 ///|
-let pdf = @pdfpage.minimum_valid_pdf()
+let pdf = @pdfpage.PdfPageDoc::minimum_valid()
 ```
 
 ## Building Page Trees
@@ -114,8 +123,8 @@ let pdf = @pdfpage.minimum_valid_pdf()
 ### Add Pages to PDF
 
 ```mbt nocheck
-let (pdf, pageroot) = @pdfpage.add_pagetree!(pages, pdf)
-let pdf = @pdfpage.add_root!(pageroot, [], pdf)
+let (pdf, pageroot) = @pdfpage.PdfPageDoc::new(pdf).add_pagetree(pages)
+let pdf = @pdfpage.PdfPageDoc::new(pdf).add_root(pageroot, [])
 ```
 
 ### Extract Pages by Range
@@ -127,13 +136,12 @@ let pdf = @pdfpage.add_root!(pageroot, [], pdf)
 let range = [1, 2, 3, 4, 5]
 
 ///|
-let new_pdf = @pdfpage.pdf_of_pages(basepdf, range)
+let new_pdf = @pdfpage.PdfPageDoc::new(basepdf).pdf_of_pages(range)
 
 // With structure tree processing
 
 ///|
-let new_pdf = @pdfpage.pdf_of_pages(
-  basepdf,
+let new_pdf = @pdfpage.PdfPageDoc::new(basepdf).pdf_of_pages(
   range,
   retain_numbering=true,
   process_struct_tree=true,
@@ -178,9 +186,9 @@ Replace pages in a document:
 
 ```mbt nocheck
 ///|
-let new_pdf = @pdfpage.change_pages(
+let new_pdf = @pdfpage.PdfPageDoc::new(basepdf).change_pages(
   true, // Change references
-   basepdf, new_pages,
+   new_pages,
 )
 ```
 
@@ -190,7 +198,7 @@ Avoid name collisions when combining pages:
 
 ```mbt nocheck
 ///|
-let renumbered = @pdfpage.renumber_pages(pdf, pages)
+let renumbered = @pdfpage.PdfPageDoc::new(pdf).renumber_pages(pages)
 ```
 
 ## Resource Handling
@@ -200,7 +208,7 @@ let renumbered = @pdfpage.renumber_pages(pdf, pages)
 Add prefix to all resource names to avoid collisions:
 
 ```mbt nocheck
-@pdfpage.add_prefix!(pdf, "P1_")
+@pdfpage.PdfPageDoc::new(pdf).add_prefix("P1_")
 ```
 
 ### Shortest Unused Prefix
@@ -209,14 +217,16 @@ Find shortest available prefix:
 
 ```mbt nocheck
 ///|
-let prefix = @pdfpage.shortest_unused_prefix(pdf)
+let prefix = @pdfpage.PdfPageDoc::new(pdf).shortest_unused_prefix()
 ```
 
 ### Combine Resources
 
 ```mbt nocheck
 ///|
-let combined = @pdfpage.combine_pdf_resources(pdf, resources_a, resources_b)
+let combined = @pdfpage.PdfPageDoc::new(pdf).combine_pdf_resources(
+  resources_a, resources_b,
+)
 ```
 
 ## XObject Processing
@@ -237,25 +247,25 @@ page.process_xobjects!(pdf, fn(pdf, resources, ops) {
 ### Fix Duplicate Pages
 
 ```mbt nocheck
-@pdfpage.fixup_duplicate_pages!(pdf)
+@pdfpage.PdfPageDoc::new(pdf).fixup_duplicate_pages()
 ```
 
 ### Fix Parent References
 
 ```mbt nocheck
-@pdfpage.fixup_parents!(pdf)
+@pdfpage.PdfPageDoc::new(pdf).fixup_parents()
 ```
 
 ### Fix Duplicate Annotations
 
 ```mbt nocheck
-@pdfpage.fixup_duplicate_annots!(pdf)
+@pdfpage.PdfPageDoc::new(pdf).fixup_duplicate_annots()
 ```
 
 ### Fix Destinations
 
 ```mbt nocheck
-@pdfpage.fixup_destinations!(pdf)
+@pdfpage.PdfPageDoc::new(pdf).fixup_destinations()
 ```
 
 ## Navigation
@@ -264,21 +274,21 @@ page.process_xobjects!(pdf, fn(pdf, resources, ops) {
 
 ```mbt nocheck
 ///|
-let pagenum = @pdfpage.pagenumber_of_target(pdf, destination)
+let pagenum = @pdfpage.PdfPageDoc::new(pdf).pagenumber_of_target(destination)
 ```
 
 ### Destination from Page Number
 
 ```mbt nocheck
 ///|
-let dest = @pdfpage.target_of_pagenumber(pdf, 1)
+let dest = @pdfpage.PdfPageDoc::new(pdf).target_of_pagenumber(1)
 ```
 
 ### Page Object Number
 
 ```mbt nocheck
 ///|
-let objnum = @pdfpage.page_object_number(pdf, 1)
+let objnum = @pdfpage.PdfPageDoc::new(pdf).page_object_number(1)
 ```
 
 ## Rotation Utilities

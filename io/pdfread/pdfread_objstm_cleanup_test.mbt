@@ -1,6 +1,6 @@
 ///|
 test "pdf_of_input removes xref and objstm objects after eager parse" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let (output, buffer) = @pdfio.input_output_of_bytes(2048)
   @pdfwrite.pdf_to_output(
     generate_objstm=true,

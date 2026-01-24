@@ -39,8 +39,10 @@ fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
   for i in 0..<count {
     pages.push(@pdfpage.Page::custom(rect))
   }
-  let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.Pdf::empty())
-  @pdfpage.add_root(pageroot, [], pdf0)
+  let (pdf0, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree(
+    pages,
+  )
+  @pdfpage.PdfPageDoc::new(pdf0).add_root(pageroot, [])
 }
 
 ///|
@@ -193,8 +195,10 @@ test "write/read pagelabels roundtrip" {
     @pdfpage.Page::custom(rect),
     @pdfpage.Page::custom(rect),
   ]
-  let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.Pdf::empty())
-  let pdf = @pdfpage.add_root(pageroot, [], pdf0)
+  let (pdf0, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree(
+    pages,
+  )
+  let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(pageroot, [])
   let labels = [
     PageLabel::{
       labelstyle: LabelStyle::DecimalArabic,
@@ -243,7 +247,7 @@ fn set_page_labels(pdf : @pdf.Pdf, nums : Array[@pdf.PdfObject]) -> Unit raise {
 
 ///|
 test "read handles label styles and bad startpage" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let nums : Array[@pdf.PdfObject] = [
     Name("/Bad"),
     Dictionary([("/S", Name("/R"))]),

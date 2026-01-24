@@ -6,7 +6,7 @@ test "pdf_of_input triggers endpage hook without objstms" {
     called.val = true
     0
   }
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let (output, buffer) = @pdfio.input_output_of_bytes(2048)
   @pdfwrite.pdf_to_output(None, false, pdf, output)
   let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)

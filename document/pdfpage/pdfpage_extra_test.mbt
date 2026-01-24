@@ -6,10 +6,10 @@ fn assert_close(a : Double, b : Double) -> Unit raise {
 
 ///|
 test "minimum_valid_pdf has one page" {
-  let pdf = @pdfpage.minimum_valid_pdf()
-  assert_eq(@pdfpage.endpage(pdf), 1)
-  assert_eq(@pdfpage.endpage_fast(pdf), 1)
-  assert_eq(@pdfpage.pages_of_pagetree(pdf).length(), 1)
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
+  assert_eq(@pdfpage.PdfPageDoc::new(pdf).endpage(), 1)
+  assert_eq(@pdfpage.PdfPageDoc::new(pdf).endpage_fast(), 1)
+  assert_eq(@pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree().length(), 1)
 }
 
 ///|
@@ -21,10 +21,12 @@ test "add_pagetree builds page objects" {
     Real(100.0),
   ])
   let pages = [@pdfpage.Page::custom(rect), @pdfpage.Page::custom(rect)]
-  let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.Pdf::empty())
-  let pdf = @pdfpage.add_root(pageroot, [], pdf0)
-  assert_eq(@pdfpage.pages_of_pagetree(pdf).length(), 2)
-  match @pdfpage.page_object_number(pdf, 1) {
+  let (pdf0, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree(
+    pages,
+  )
+  let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(pageroot, [])
+  assert_eq(@pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree().length(), 2)
+  match @pdfpage.PdfPageDoc::new(pdf).page_object_number(1) {
     Some(n) => assert_true(n > 0)
     _ => fail("expected page object number")
   }
@@ -45,13 +47,15 @@ test "pages_of_pagetree handles missing mediabox and non-stream contents" {
     Real(220.0),
   ])
   let pages = [@pdfpage.Page::custom(rect1), @pdfpage.Page::custom(rect2)]
-  let (pdf1, pageroot) = @pdfpage.add_pagetree(pages, @pdf.Pdf::empty())
-  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
-  let page1_num = match @pdfpage.page_object_number(pdf, 1) {
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree(
+    pages,
+  )
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
+  let page1_num = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(1) {
     Some(n) => n
     None => fail("expected page object number")
   }
-  let page2_num = match @pdfpage.page_object_number(pdf, 2) {
+  let page2_num = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(2) {
     Some(n) => n
     None => fail("expected page object number")
   }
@@ -64,7 +68,7 @@ test "pages_of_pagetree handles missing mediabox and non-stream contents" {
     .remove_entry("/Resources")
     .add_entry("/Contents", Integer(2))
   @pdf.addobj_given_num(pdf, (page2_num, page2_updated))
-  let out_pages = @pdfpage.pages_of_pagetree(pdf)
+  let out_pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   assert_eq(out_pages.length(), 2)
   assert_eq(out_pages[0].content.length(), 0)
   assert_eq(out_pages[1].content.length(), 0)
@@ -95,8 +99,8 @@ test "change_pages rewrites bookmarks and mixed annotations" {
     Real(100.0),
   ])
   let pages_in = [@pdfpage.Page::custom(rect), @pdfpage.Page::custom(rect)]
-  let (pdf1, pageroot) = @pdfpage.add_pagetree(pages_in, pdf0)
-  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree(pages_in)
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   let refs = @pdf.page_reference_numbers(pdf)
   let dest1 : @pdf.PdfObject = Array([Indirect(refs[0]), Name("/Fit")])
   let dest2 : @pdf.PdfObject = Array([Indirect(refs[1]), Name("/Fit")])
@@ -188,10 +192,12 @@ test "change_pages rewrites bookmarks and mixed annotations" {
   let catalog = @pdf.catalog_of_pdf(pdf)
   let catalog = catalog.add_entry("/OpenAction", dest1)
   @pdf.addobj_given_num(pdf, (pdf.root, catalog))
-  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let matrix = @pdftransform.TransformMatrix::translate(10.0, 0.0)
-  let updated = @pdfpage.change_pages(true, pdf, pages, matrices=[(1, matrix)])
-  assert_eq(@pdfpage.endpage(updated), 2)
+  let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices=[
+    (1, matrix),
+  ])
+  assert_eq(@pdfpage.PdfPageDoc::new(updated).endpage(), 2)
 }
 
 ///|
@@ -207,15 +213,16 @@ test "pdf_of_pages extracts subset" {
     @pdfpage.Page::custom(rect),
     @pdfpage.Page::custom(rect),
   ]
-  let (pdf0, pageroot) = @pdfpage.add_pagetree(pages, @pdf.Pdf::empty())
-  let pdf = @pdfpage.add_root(pageroot, [], pdf0)
-  let subset = @pdfpage.pdf_of_pages(
-    pdf,
+  let (pdf0, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree(
+    pages,
+  )
+  let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(pageroot, [])
+  let subset = @pdfpage.PdfPageDoc::new(pdf).pdf_of_pages(
     [2],
     retain_numbering=false,
     process_struct_tree=false,
   )
-  assert_eq(@pdfpage.endpage(subset), 1)
+  assert_eq(@pdfpage.PdfPageDoc::new(subset).endpage(), 1)
 }
 
 ///|
@@ -283,8 +290,8 @@ test "fixup_duplicate_pages creates unique refs" {
   ])
   @pdf.addobj_given_num(pdf0, (1, page))
   @pdf.addobj_given_num(pdf0, (2, pages))
-  let pdf = @pdfpage.add_root(2, [], pdf0)
-  @pdfpage.fixup_duplicate_pages(pdf)
+  let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(2, [])
+  @pdfpage.PdfPageDoc::new(pdf).fixup_duplicate_pages()
   let refs = @pdf.page_reference_numbers(pdf)
   assert_eq(refs.length(), 2)
   assert_true(refs[0] != refs[1])
@@ -311,8 +318,8 @@ test "replace_inherit fills mediabox" {
   ])
   @pdf.addobj_given_num(pdf0, (1, page))
   @pdf.addobj_given_num(pdf0, (2, pages))
-  let pdf = @pdfpage.add_root(2, [], pdf0)
-  @pdfpage.replace_inherit(pdf, [1])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(2, [])
+  @pdfpage.PdfPageDoc::new(pdf).replace_inherit([1])
   let updated = @pdf.lookup_obj(pdf, 1)
   match @pdf.lookup_direct(pdf, "/MediaBox", updated) {
     Some(_) => ()
@@ -334,7 +341,7 @@ test "renumber_pages updates resources and operators" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let updated = @pdfpage.renumber_pages(pdf, [page])
+  let updated = @pdfpage.PdfPageDoc::new(pdf).renumber_pages([page])
   let renamed = updated[0]
   match @pdf.lookup_direct(pdf, "/Font", renamed.resources) {
     Some(Dictionary(entries)) => {
@@ -368,10 +375,10 @@ test "add_prefix rewrites resources and content" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
-  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
-  @pdfpage.add_prefix(pdf, "p")
-  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
+  @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let page0 = pages[0]
   match @pdf.lookup_direct(pdf, "/Font", page0.resources) {
     Some(Dictionary(entries)) => {
@@ -404,9 +411,9 @@ test "shortest_unused_prefix skips used names" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
-  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
-  assert_eq(@pdfpage.shortest_unused_prefix(pdf), "b")
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
+  assert_eq(@pdfpage.PdfPageDoc::new(pdf).shortest_unused_prefix(), "b")
 }
 
 ///|
@@ -419,8 +426,8 @@ test "change_pages rewrites annotation and openaction" {
     Real(100.0),
   ])
   let page = @pdfpage.Page::custom(rect)
-  let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
-  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   let refs = @pdf.page_reference_numbers(pdf)
   let dest_array : @pdf.PdfObject = Array([
     Indirect(refs[0]),
@@ -446,8 +453,8 @@ test "change_pages rewrites annotation and openaction" {
   let catalog = @pdf.catalog_of_pdf(pdf)
   let updated_catalog = catalog.add_entry("/OpenAction", dest_array)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_catalog))
-  let pages = @pdfpage.pages_of_pagetree(pdf)
-  let translated = @pdfpage.change_pages(true, pdf, pages, matrices=[
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
+  let translated = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices=[
     (1, @pdftransform.TransformMatrix::translate(5.0, -3.0)),
   ])
   let catalog2 = @pdf.catalog_of_pdf(translated)

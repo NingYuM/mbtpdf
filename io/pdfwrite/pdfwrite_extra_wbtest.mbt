@@ -100,7 +100,7 @@ test "make_hex_pdf_string covers hex digits" {
 
 ///|
 test "pdf_to_output generates object streams with indirect lengths" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let length_obj = @pdf.addobj(pdf, Integer(3))
   let data = @pdfio.bytes_of_string("abc")
   let dict : @pdf.PdfObject = Dictionary([("/Length", Indirect(length_obj))])
@@ -171,7 +171,7 @@ test "pdf_to_output generates object streams with indirect lengths" {
 
 ///|
 test "pdf_to_output skips indirect length objects for objstm hints" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let length_obj = @pdf.addobj(pdf, Integer(4))
   let data = @pdfio.bytes_of_string("data")
   let dict : @pdf.PdfObject = Dictionary([("/Length", Indirect(length_obj))])
@@ -200,7 +200,7 @@ test "pdf_to_output skips indirect length objects for objstm hints" {
 
 ///|
 test "pdf_to_output drops invalid object stream ids and writes toget" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let data = @pdfio.bytes_of_string("a")
   let input = @pdfio.input_of_bytes(data, source="toget-output")
   let deferred : @pdf.DeferredEncryption = {
@@ -243,7 +243,7 @@ test "pdf_to_output drops invalid object stream ids and writes toget" {
 
 ///|
 async test "pdf_to_file writes output" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let path = "pdfwrite_async_test.pdf"
   pdf_to_file(pdf, path)
   let file = @fs.open(path, mode=ReadOnly)
@@ -255,7 +255,7 @@ async test "pdf_to_file writes output" {
 
 ///|
 async test "pdf_to_file_options supports recrypt" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let path = "pdfwrite_async_recrypt.pdf"
   let res : Result[Unit, Error] = try? pdf_to_file_options(
     preserve_objstm=false,

@@ -113,21 +113,21 @@ fn read_dest_names(pdf : @pdf.Pdf) -> Array[String] raise {
 
 ///|
 test "merge_pdfs combines pages" {
-  let pdf1 = @pdfpage.minimum_valid_pdf()
-  let pdf2 = @pdfpage.minimum_valid_pdf()
+  let pdf1 = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf2 = @pdfpage.PdfPageDoc::minimum_valid()
   let merged = PdfMerger::new(["one", "two"], [pdf1, pdf2], [[1], [1]]).merge_pdfs(
     false,
     false,
     process_struct_trees=false,
     add_toplevel_document=false,
   )
-  assert_eq(@pdfpage.pages_of_pagetree_quick(merged), 2)
+  assert_eq(@pdfpage.PdfPageDoc::new(merged).pages_of_pagetree_quick(), 2)
   PdfMergeDoc::new(merged).remove_duplicate_fonts()
 }
 
 ///|
 test "merge_pdfs rejects out of range" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   assert_is_err(
     try? PdfMerger::new(["one"], [pdf], [[2]]).merge_pdfs(
       false,
@@ -140,15 +140,15 @@ test "merge_pdfs rejects out of range" {
 
 ///|
 test "merge_pdfs retain numbering toggles path" {
-  let pdf1 = @pdfpage.minimum_valid_pdf()
-  let pdf2 = @pdfpage.minimum_valid_pdf()
+  let pdf1 = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf2 = @pdfpage.PdfPageDoc::minimum_valid()
   let merged = PdfMerger::new(["one", "two"], [pdf1, pdf2], [[1], [1]]).merge_pdfs(
     true,
     false,
     process_struct_trees=false,
     add_toplevel_document=false,
   )
-  assert_eq(@pdfpage.pages_of_pagetree_quick(merged), 2)
+  assert_eq(@pdfpage.PdfPageDoc::new(merged).pages_of_pagetree_quick(), 2)
 }
 
 ///|
@@ -208,21 +208,21 @@ test "remove_duplicate_fonts keeps distinct streams" {
 
 ///|
 test "merge_pdfs processes structure trees" {
-  let pdf1 = @pdfpage.minimum_valid_pdf()
-  let pdf2 = @pdfpage.minimum_valid_pdf()
+  let pdf1 = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf2 = @pdfpage.PdfPageDoc::minimum_valid()
   let merged = PdfMerger::new(["one", "two"], [pdf1, pdf2], [[1], [1]]).merge_pdfs(
     false,
     false,
     process_struct_trees=true,
     add_toplevel_document=true,
   )
-  assert_eq(@pdfpage.pages_of_pagetree_quick(merged), 2)
+  assert_eq(@pdfpage.PdfPageDoc::new(merged).pages_of_pagetree_quick(), 2)
 }
 
 ///|
 test "merge_pdfs rejects length mismatch" {
-  let pdf1 = @pdfpage.minimum_valid_pdf()
-  let pdf2 = @pdfpage.minimum_valid_pdf()
+  let pdf1 = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf2 = @pdfpage.PdfPageDoc::minimum_valid()
   let result : Result[@pdf.Pdf, Error] = try? PdfMerger::new(
     ["one"],
     [pdf1, pdf2],
@@ -238,8 +238,8 @@ test "merge_pdfs rejects length mismatch" {
 
 ///|
 test "merge_pdfs renames destination names and callsites" {
-  let pdf1 = @pdfpage.minimum_valid_pdf()
-  let pdf2 = @pdfpage.minimum_valid_pdf()
+  let pdf1 = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf2 = @pdfpage.PdfPageDoc::minimum_valid()
   add_dest_name_tree(pdf1, "dest")
   add_dest_name_tree(pdf2, "dest")
   add_dest_callsites(pdf1, "dest")
@@ -261,8 +261,8 @@ test "merge_pdfs renames destination names and callsites" {
 
 ///|
 test "merge_pdfs merges dests ocg and acroform" {
-  let pdf1 = @pdfpage.minimum_valid_pdf()
-  let pdf2 = @pdfpage.minimum_valid_pdf()
+  let pdf1 = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf2 = @pdfpage.PdfPageDoc::minimum_valid()
   set_catalog_entry(pdf1, "/Dests", Dictionary([("/A", Null)]))
   set_catalog_entry(pdf2, "/Dests", Dictionary([("/B", Null)]))
   set_catalog_entry(

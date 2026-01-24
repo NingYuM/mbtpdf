@@ -987,7 +987,7 @@ pub fn PdfMerger::merge_pdfs(
   let pdfs = merge_pdfs_renumber(names, pdfs)
   merge_pdfs_rename_name_trees(names, pdfs)
   let (major, minor) = max_version_number(pdfs)
-  let pagelists = pdfs.map(pdf => @pdfpage.pages_of_pagetree(pdf))
+  let pagelists = pdfs.map(pdf => @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree())
   let pdf = @pdf.Pdf::empty()
   fn select_pages(
     range : Array[Int],
@@ -1011,7 +1011,7 @@ pub fn PdfMerger::merge_pdfs(
   for src in pdfs {
     @pdf.objiter((k, v) => @pdf.addobj_given_num(pdf, (k, v)), src)
   }
-  let (pdf, pagetree_num) = @pdfpage.add_pagetree(pages, pdf)
+  let (pdf, pagetree_num) = @pdfpage.PdfPageDoc::new(pdf).add_pagetree(pages)
   let page_labels = if retain_numbering {
     @pdfpagelabels.merge_pagelabels(pdfs, ranges)
   } else {
@@ -1098,7 +1098,9 @@ pub fn PdfMerger::merge_pdfs(
         ("/Info", @pdf.PdfObject::Indirect(@pdf.addobj(pdf, info))),
       ])
   }
-  let pdf = @pdfpage.add_root(pagetree_num, extra_catalog_entries, pdf)
+  let pdf = @pdfpage.PdfPageDoc::new(pdf).add_root(
+    pagetree_num, extra_catalog_entries,
+  )
   let old_page_numbers = {
     let page_nums = pdfs.map(p => @pdf.page_reference_numbers(p))
     let out = Array::new()

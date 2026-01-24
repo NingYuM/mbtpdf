@@ -31,12 +31,12 @@ async fn main {
     if @pdfcrypt.is_encrypted(pdf) {
       fail("File is encrypted.")
     }
-    let pages = @pdfpage.pages_of_pagetree(pdf)
+    let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
     let rebuilt = Array::new()
     for page in pages {
       rebuilt.push(rebuild_page(pdf, page))
     }
-    let pdf = @pdfpage.change_pages(true, pdf, rebuilt)
+    let pdf = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, rebuilt)
     @pdf.remove_unreferenced(pdf)
     let (output, buffer) = @pdfio.input_output_of_bytes(1024)
     @pdfwrite.pdf_to_output(None, true, pdf, output)

@@ -10,8 +10,10 @@ fn make_pdf_pages(count : Int) -> @pdf.Pdf raise {
   for _ in 0..<count {
     pages.push(@pdfpage.Page::custom(rect))
   }
-  let (pdf, pageroot) = @pdfpage.add_pagetree(pages, @pdf.Pdf::empty())
-  @pdfpage.add_root(pageroot, [], pdf)
+  let (pdf, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree(
+    pages,
+  )
+  @pdfpage.PdfPageDoc::new(pdf).add_root(pageroot, [])
 }
 
 ///|
@@ -148,8 +150,8 @@ test "merge_pdfs handles malformed names and optional catalog entries" {
 
 ///|
 test "merge_pdfs warns on duplicate names with struct trees" {
-  let pdf1 = @pdfpage.minimum_valid_pdf()
-  let pdf2 = @pdfpage.minimum_valid_pdf()
+  let pdf1 = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf2 = @pdfpage.PdfPageDoc::minimum_valid()
   let res : Result[@pdf.Pdf, Error] = try? PdfMerger::new(
     ["dup", "dup"],
     [pdf1, pdf2],
@@ -161,15 +163,16 @@ test "merge_pdfs warns on duplicate names with struct trees" {
     add_toplevel_document=false,
   )
   match res {
-    Ok(merged) => assert_eq(@pdfpage.pages_of_pagetree_quick(merged), 2)
+    Ok(merged) =>
+      assert_eq(@pdfpage.PdfPageDoc::new(merged).pages_of_pagetree_quick(), 2)
     Err(err) => fail("merge_pdfs failed: \{err}")
   }
 }
 
 ///|
 test "merge_pdfs uses highest version and removes duplicates" {
-  let pdf1 = with_version(@pdfpage.minimum_valid_pdf(), 1, 4)
-  let pdf2 = with_version(@pdfpage.minimum_valid_pdf(), 1, 6)
+  let pdf1 = with_version(@pdfpage.PdfPageDoc::minimum_valid(), 1, 4)
+  let pdf2 = with_version(@pdfpage.PdfPageDoc::minimum_valid(), 1, 6)
   let res : Result[@pdf.Pdf, Error] = try? PdfMerger::new(
     ["one", "two"],
     [pdf1, pdf2],

@@ -23,7 +23,7 @@ fn update_perms(pdf : @pdf.Pdf, perms : String) -> Unit raise {
 
 ///|
 test "decrypt_single_stream skips metadata when EncryptMetadata is false" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let enc = @pdfcrypt.encrypt_pdf_AES(false, "user", "owner", [], pdf)
   let dict : @pdf.PdfObject = Dictionary([
     ("/Type", Name("/Metadata")),
@@ -51,7 +51,7 @@ test "decrypt_single_stream skips metadata when EncryptMetadata is false" {
 
 ///|
 test "decrypt_single_stream skips identity crypt filters" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let enc = @pdfcrypt.encrypt_pdf_AES(true, "user", "owner", [], pdf)
   let dict : @pdf.PdfObject = Dictionary([
     ("/Filter", Name("/Crypt")),
@@ -104,7 +104,7 @@ test "decrypt_single_stream skips identity crypt filters" {
 
 ///|
 test "decrypt_single_stream handles AES256 streams" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let enc = @pdfcrypt.encrypt_pdf_AES256(true, "user", "owner", [], pdf)
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(4))])
   let got_stream : @pdf.PdfObject = Stream(
@@ -151,7 +151,7 @@ test "decrypt_single_stream handles AES256 streams" {
 
 ///|
 test "decrypt_pdf fails with short perms" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let enc = @pdfcrypt.encrypt_pdf_AES256(true, "user", "owner", [], pdf)
   update_perms(enc, "short")
   let result = try? @pdfcrypt.decrypt_pdf("user", enc)
@@ -160,7 +160,7 @@ test "decrypt_pdf fails with short perms" {
 
 ///|
 test "decrypt_pdf fails with corrupted perms marker" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let enc = @pdfcrypt.encrypt_pdf_AES256(true, "user", "owner", [], pdf)
   let bad_perms = @pdfio.string_of_int_array(Array::make(16, 0))
   update_perms(enc, bad_perms)

@@ -34,8 +34,11 @@ fn pdf_with_stream() -> @pdf.Pdf raise {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf0, pageroot) = @pdfpage.add_pagetree([page], @pdf.Pdf::empty())
-  @pdfpage.add_root(pageroot, [], pdf0)
+  let (pdf0, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([
+      page,
+    ],
+  )
+  @pdfpage.PdfPageDoc::new(pdf0).add_root(pageroot, [])
 }
 
 ///|

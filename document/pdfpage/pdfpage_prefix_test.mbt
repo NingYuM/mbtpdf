@@ -38,10 +38,10 @@ test "shortest_unused_prefix handles dense prefixes" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
-  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   ignore(@pdf.addobj(pdf, Integer(1)))
-  assert_eq(@pdfpage.shortest_unused_prefix(pdf), "bz")
+  assert_eq(@pdfpage.PdfPageDoc::new(pdf).shortest_unused_prefix(), "bz")
 }
 
 ///|
@@ -73,10 +73,10 @@ test "add_prefix rewrites resources and operators" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
-  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
-  @pdfpage.add_prefix(pdf, "p")
-  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
+  @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let page0 = pages[0]
   match @pdf.lookup_direct(pdf, "/Font", page0.resources) {
     Some(Dictionary(entries)) =>
@@ -184,10 +184,10 @@ test "add_prefix rewrites inline image colorspace names" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
-  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
-  @pdfpage.add_prefix(pdf, "p")
-  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
+  @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let ops_out = @pdfops.Op::parse_operators(
     pdf,
     pages[0].resources,
@@ -233,10 +233,10 @@ test "add_prefix handles filtered inline images with trailing ops" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
-  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
-  @pdfpage.add_prefix(pdf, "p")
-  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
+  @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let ops_out = @pdfops.Op::parse_operators(
     pdf,
     pages[0].resources,
@@ -274,9 +274,11 @@ test "add_prefix rejects blank resource names" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
-  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
-  let result : Result[Unit, Error] = try? @pdfpage.add_prefix(pdf, "p")
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
+  let result : Result[Unit, Error] = try? @pdfpage.PdfPageDoc::new(pdf).add_prefix(
+    "p",
+  )
   assert_true(result is Err(_))
 }
 
@@ -294,9 +296,9 @@ test "add_prefix handles single indirect contents" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
-  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
-  let page_num = match @pdfpage.page_object_number(pdf, 1) {
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
+  let page_num = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(1) {
     Some(n) => n
     None => fail("expected page object number")
   }
@@ -307,8 +309,8 @@ test "add_prefix handles single indirect contents" {
   }
   let updated = page_obj.add_entry("/Contents", first_content)
   @pdf.addobj_given_num(pdf, (page_num, updated))
-  @pdfpage.add_prefix(pdf, "p")
-  let pages = @pdfpage.pages_of_pagetree(pdf)
+  @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let ops_out = @pdfops.Op::parse_operators(
     pdf,
     pages[0].resources,
@@ -339,10 +341,10 @@ test "add_prefix keeps direct inline colorspace names" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
-  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
-  @pdfpage.add_prefix(pdf, "p")
-  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
+  @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let ops_out = @pdfops.Op::parse_operators(
     pdf,
     pages[0].resources,
@@ -387,10 +389,10 @@ test "add_prefix preserves inline colorspace arrays" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf1, pageroot) = @pdfpage.add_pagetree([page], pdf0)
-  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
-  @pdfpage.add_prefix(pdf, "p")
-  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
+  @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let ops_out = @pdfops.Op::parse_operators(
     pdf,
     pages[0].resources,
@@ -448,9 +450,12 @@ test "add_prefix merges non-iso content streams" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf1, pageroot) = @pdfpage.add_pagetree([page], @pdf.Pdf::empty())
-  let pdf = @pdfpage.add_root(pageroot, [], pdf1)
-  @pdfpage.add_prefix(pdf, "p")
-  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([
+      page,
+    ],
+  )
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
+  @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   assert_eq(pages[0].content.length(), 1)
 }

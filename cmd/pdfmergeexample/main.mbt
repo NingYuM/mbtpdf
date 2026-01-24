@@ -9,15 +9,15 @@ fn merge_pdfs(pdfs : Array[@pdf.Pdf]) -> @pdf.Pdf raise {
   }
   let pages = Array::new()
   for pdf in renumbered {
-    let pagelist = @pdfpage.pages_of_pagetree(pdf)
+    let pagelist = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
     pages.append(pagelist[:])
   }
   let pdf = @pdf.Pdf::empty()
   for src in renumbered {
     @pdf.objiter((k, v) => @pdf.addobj_given_num(pdf, (k, v)), src)
   }
-  let (pdf, pagetree_num) = @pdfpage.add_pagetree(pages, pdf)
-  let pdf = @pdfpage.add_root(pagetree_num, [], pdf)
+  let (pdf, pagetree_num) = @pdfpage.PdfPageDoc::new(pdf).add_pagetree(pages)
+  let pdf = @pdfpage.PdfPageDoc::new(pdf).add_root(pagetree_num, [])
   @pdf.remove_unreferenced(pdf)
   let pdf : @pdf.Pdf = {
     major: 1,

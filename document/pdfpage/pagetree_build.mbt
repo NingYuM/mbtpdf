@@ -188,10 +188,12 @@ fn objects_of_ptree(
 
 ///|
 /// Build a page tree and add it to the PDF.
-pub fn add_pagetree(
+#as_free_fn(add_pagetree, deprecated="Use `PdfPageDoc::add_pagetree`")
+pub fn PdfPageDoc::add_pagetree(
+  self : PdfPageDoc,
   pages : Array[Page],
-  pdf : @pdf.Pdf,
 ) -> (@pdf.Pdf, Int) raise {
+  let pdf = self.pdf
   let extras : Ref[Array[(Int, @pdf.PdfObject)]] = { val: [] }
   let getobjnum = source(pdf.objects.max_obj_num)
   let ptree = pagetree(getobjnum, pages, 0)
@@ -210,11 +212,13 @@ pub fn add_pagetree(
 
 ///|
 /// Replace the root catalog with a new /Pages entry.
-pub fn add_root(
+#as_free_fn(add_root, deprecated="Use `PdfPageDoc::add_root`")
+pub fn PdfPageDoc::add_root(
+  self : PdfPageDoc,
   pageroot : Int,
   extras : Array[(String, @pdf.PdfObject)],
-  pdf : @pdf.Pdf,
 ) -> @pdf.Pdf raise {
+  let pdf = self.pdf
   let existing_entries = match @pdf.lookup_obj(pdf, pdf.root) {
     @pdf.PdfObject::Dictionary(d) => d
     _ => []

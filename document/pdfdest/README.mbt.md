@@ -105,7 +105,7 @@ let bookmark_dest = @pdfdest.Destination::read(pdf, bookmark_dict)
 // Get page number
 
 ///|
-let pagenum = @pdfpage.pagenumber_of_target(pdf, bookmark_dest)
+let pagenum = @pdfpage.PdfPageDoc::new(pdf).pagenumber_of_target(bookmark_dest)
 ```
 
 ### Link Annotations

@@ -67,7 +67,7 @@ test "combine_pdf_resources merges known and keeps unknown" {
     ("/Font", Dictionary([("/F2", Null)])),
     ("/Bar", Name("/Baz")),
   ])
-  let combined = @pdfpage.combine_pdf_resources(pdf, a, b)
+  let combined = @pdfpage.PdfPageDoc::new(pdf).combine_pdf_resources(a, b)
   match (@pdf.lookup_direct(pdf, "/Font", combined) : @pdf.PdfObject?) {
     Some(Dictionary(entries)) => assert_eq(entries.length(), 2)
     _ => fail("expected merged fonts")

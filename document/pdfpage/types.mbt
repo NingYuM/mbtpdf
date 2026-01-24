@@ -18,6 +18,16 @@ pub(all) struct Page {
 }
 
 ///|
+pub struct PdfPageDoc {
+  pdf : @pdf.Pdf
+}
+
+///|
+pub fn PdfPageDoc::new(pdf : @pdf.Pdf) -> PdfPageDoc {
+  { pdf, }
+}
+
+///|
 /// Create a page with empty content and no extra dictionary entries.
 pub fn Page::custom(rectangle : @pdf.PdfObject) -> Page {
   {

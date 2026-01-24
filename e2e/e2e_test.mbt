@@ -45,7 +45,7 @@ async fn write_pdf(path : String, pdf : @pdf.Pdf) -> Unit {
 
 ///|
 fn page_count(pdf : @pdf.Pdf) -> Int raise {
-  @pdfpage.pages_of_pagetree_quick(pdf)
+  @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree_quick()
 }
 
 ///|
@@ -220,7 +220,7 @@ fn make_bulk_named_dest_entries(
   prefix : String,
   count : Int,
 ) -> Array[(String, @pdf.PdfObject)] raise {
-  let page_obj = match @pdfpage.page_object_number(pdf, 1) {
+  let page_obj = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(1) {
     Some(objnum) => objnum
     None => fail("missing page 1")
   }
@@ -747,7 +747,7 @@ async test "e2e split subset of large pdf" {
   let count = page_count(pdf)
   assert_true(count > 10)
   let subset = [1, 2, count]
-  let split = @pdfpage.pdf_of_pages(pdf, subset)
+  let split = @pdfpage.PdfPageDoc::new(pdf).pdf_of_pages(subset)
   ensure_dir(OUTPUT_DIR)
   let out_path = OUTPUT_DIR + "/split.pdf"
   write_pdf(out_path, split)
@@ -763,8 +763,8 @@ async test "e2e split then bookmark" {
   let count = page_count(pdf)
   assert_true(count >= 2)
   let subset = [1, 2]
-  let split = @pdfpage.pdf_of_pages(pdf, subset)
-  let page1 = match @pdfpage.page_object_number(split, 1) {
+  let split = @pdfpage.PdfPageDoc::new(pdf).pdf_of_pages(subset)
+  let page1 = match @pdfpage.PdfPageDoc::new(split).page_object_number(1) {
     Some(objnum) => objnum
     None => fail("missing split page 1")
   }
@@ -785,8 +785,7 @@ async test "e2e split then bookmark" {
   let parsed = read_pdf(out_path)
   let parsed_marks = @pdfmarks.PdfMarks::new(parsed).read_bookmarks()
   assert_eq(parsed_marks.length(), 1)
-  let target_page = @pdfpage.pagenumber_of_target(
-    parsed,
+  let target_page = @pdfpage.PdfPageDoc::new(parsed).pagenumber_of_target(
     parsed_marks[0].target,
   )
   assert_eq(target_page, 1)
@@ -797,7 +796,7 @@ async test "e2e split then bookmark" {
 ///|
 async test "e2e annotation roundtrip" {
   let pdf = read_pdf(MERGE_LEFT_PATH)
-  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   assert_true(pages.length() > 0)
   let annot = @pdfannot.Annotation::new(
     @pdfannot.Subtype::Text,
@@ -806,12 +805,12 @@ async test "e2e annotation roundtrip" {
   )
   let updated_page = @pdfannot.add_annotation(pdf, pages[0], annot)
   pages[0] = updated_page
-  let updated_pdf = @pdfpage.change_pages(true, pdf, pages)
+  let updated_pdf = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages)
   ensure_dir(OUTPUT_DIR)
   let out_path = OUTPUT_DIR + "/annotated.pdf"
   write_pdf(out_path, updated_pdf)
   let parsed = read_pdf(out_path)
-  let parsed_pages = @pdfpage.pages_of_pagetree(parsed)
+  let parsed_pages = @pdfpage.PdfPageDoc::new(parsed).pages_of_pagetree()
   let annots = @pdfannot.annotations_of_page(parsed, parsed_pages[0])
   assert_eq(annots.length(), 1)
   match annots[0].annot_contents {
@@ -826,7 +825,7 @@ async test "e2e annotation roundtrip" {
 async test "e2e merge preserves annotations" {
   let left = read_pdf(MERGE_LEFT_PATH)
   let right = read_pdf(MERGE_RIGHT_PATH)
-  let left_pages = @pdfpage.pages_of_pagetree(left)
+  let left_pages = @pdfpage.PdfPageDoc::new(left).pages_of_pagetree()
   assert_true(left_pages.length() > 0)
   let annot = @pdfannot.Annotation::new(
     @pdfannot.Subtype::Text,
@@ -835,7 +834,9 @@ async test "e2e merge preserves annotations" {
   )
   let updated_page = @pdfannot.add_annotation(left, left_pages[0], annot)
   left_pages[0] = updated_page
-  let updated_left = @pdfpage.change_pages(true, left, left_pages)
+  let updated_left = @pdfpage.PdfPageDoc::new(left).change_pages(
+    true, left_pages,
+  )
   let left_count = page_count(updated_left)
   let right_count = page_count(right)
   let merged = @pdfmerge.PdfMerger::new(
@@ -852,7 +853,7 @@ async test "e2e merge preserves annotations" {
   let out_path = OUTPUT_DIR + "/merged_annot.pdf"
   write_pdf(out_path, merged)
   let parsed = read_pdf(out_path)
-  let parsed_pages = @pdfpage.pages_of_pagetree(parsed)
+  let parsed_pages = @pdfpage.PdfPageDoc::new(parsed).pages_of_pagetree()
   let annots = @pdfannot.annotations_of_page(parsed, parsed_pages[0])
   assert_eq(annots.length(), 1)
   match annots[0].annot_contents {
@@ -936,17 +937,17 @@ async test "e2e merge preserves page labels" {
 
 ///|
 async test "e2e merge preserves named destinations" {
-  let left = @pdfpage.minimum_valid_pdf()
-  let right = @pdfpage.minimum_valid_pdf()
+  let left = @pdfpage.PdfPageDoc::minimum_valid()
+  let right = @pdfpage.PdfPageDoc::minimum_valid()
   let left_count = page_count(left)
   let right_count = page_count(right)
   assert_eq(left_count, 1)
   assert_eq(right_count, 1)
-  let left_page = match @pdfpage.page_object_number(left, 1) {
+  let left_page = match @pdfpage.PdfPageDoc::new(left).page_object_number(1) {
     Some(objnum) => objnum
     None => fail("missing left page")
   }
-  let right_page = match @pdfpage.page_object_number(right, 1) {
+  let right_page = match @pdfpage.PdfPageDoc::new(right).page_object_number(1) {
     Some(objnum) => objnum
     None => fail("missing right page")
   }
@@ -986,17 +987,17 @@ async test "e2e merge preserves named destinations" {
 
 ///|
 async test "e2e merge preserves /Dests dictionary" {
-  let left = @pdfpage.minimum_valid_pdf()
-  let right = @pdfpage.minimum_valid_pdf()
+  let left = @pdfpage.PdfPageDoc::minimum_valid()
+  let right = @pdfpage.PdfPageDoc::minimum_valid()
   let left_count = page_count(left)
   let right_count = page_count(right)
   assert_eq(left_count, 1)
   assert_eq(right_count, 1)
-  let left_page = match @pdfpage.page_object_number(left, 1) {
+  let left_page = match @pdfpage.PdfPageDoc::new(left).page_object_number(1) {
     Some(objnum) => objnum
     None => fail("missing left page")
   }
-  let right_page = match @pdfpage.page_object_number(right, 1) {
+  let right_page = match @pdfpage.PdfPageDoc::new(right).page_object_number(1) {
     Some(objnum) => objnum
     None => fail("missing right page")
   }
@@ -1042,8 +1043,8 @@ async test "e2e merge preserves /Dests dictionary" {
 
 ///|
 async test "e2e merge preserves AcroForm entries" {
-  let left = @pdfpage.minimum_valid_pdf()
-  let right = @pdfpage.minimum_valid_pdf()
+  let left = @pdfpage.PdfPageDoc::minimum_valid()
+  let right = @pdfpage.PdfPageDoc::minimum_valid()
   let left_form : @pdf.PdfObject = Dictionary([
     ("/Fields", Array([Null])),
     ("/NeedAppearances", Boolean(true)),
@@ -1115,14 +1116,17 @@ async test "e2e merge preserves AcroForm entries" {
 ///|
 async test "e2e merge preserves /OCProperties" {
   let left_page = @pdfpage.Page::blank(@pdfpaper.a4)
-  let (left0, left_root) = @pdfpage.add_pagetree([left_page], @pdf.Pdf::empty())
-  let left = @pdfpage.add_root(left_root, [], left0)
-  let right_page = @pdfpage.Page::blank(@pdfpaper.a4)
-  let (right0, right_root) = @pdfpage.add_pagetree(
-    [right_page],
-    @pdf.Pdf::empty(),
+  let (left0, left_root) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([
+      left_page,
+    ],
   )
-  let right = @pdfpage.add_root(right_root, [], right0)
+  let left = @pdfpage.PdfPageDoc::new(left0).add_root(left_root, [])
+  let right_page = @pdfpage.Page::blank(@pdfpaper.a4)
+  let (right0, right_root) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([
+      right_page,
+    ],
+  )
+  let right = @pdfpage.PdfPageDoc::new(right0).add_root(right_root, [])
   add_ocg_properties(left, "LayerLeft")
   add_ocg_properties(right, "LayerRight")
   let merged = @pdfmerge.PdfMerger::new(
@@ -1166,14 +1170,17 @@ async test "e2e merge preserves /OCProperties" {
 ///|
 async test "e2e merge preserves OCG configs" {
   let left_page = @pdfpage.Page::blank(@pdfpaper.a4)
-  let (left0, left_root) = @pdfpage.add_pagetree([left_page], @pdf.Pdf::empty())
-  let left = @pdfpage.add_root(left_root, [], left0)
-  let right_page = @pdfpage.Page::blank(@pdfpaper.a4)
-  let (right0, right_root) = @pdfpage.add_pagetree(
-    [right_page],
-    @pdf.Pdf::empty(),
+  let (left0, left_root) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([
+      left_page,
+    ],
   )
-  let right = @pdfpage.add_root(right_root, [], right0)
+  let left = @pdfpage.PdfPageDoc::new(left0).add_root(left_root, [])
+  let right_page = @pdfpage.Page::blank(@pdfpaper.a4)
+  let (right0, right_root) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([
+      right_page,
+    ],
+  )
+  let right = @pdfpage.PdfPageDoc::new(right0).add_root(right_root, [])
   add_ocg_properties_with_config(left, "LayerLeft", "ConfigLeft")
   add_ocg_properties_with_config(right, "LayerRight", "ConfigRight")
   let merged = @pdfmerge.PdfMerger::new(
@@ -1225,17 +1232,20 @@ async test "e2e merge preserves OCG configs" {
 ///|
 async test "e2e merge preserves structure trees" {
   let left_page = @pdfpage.Page::blank(@pdfpaper.a4)
-  let (left0, left_root) = @pdfpage.add_pagetree([left_page], @pdf.Pdf::empty())
-  let left = @pdfpage.add_root(left_root, [], left0)
+  let (left0, left_root) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([
+      left_page,
+    ],
+  )
+  let left = @pdfpage.PdfPageDoc::new(left0).add_root(left_root, [])
   let left_refs = @pdf.page_reference_numbers(left)
   assert_true(left_refs.length() > 0)
   add_struct_tree_root(left, left_refs[0], 0)
   let right_page = @pdfpage.Page::blank(@pdfpaper.a4)
-  let (right0, right_root) = @pdfpage.add_pagetree(
-    [right_page],
-    @pdf.Pdf::empty(),
+  let (right0, right_root) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([
+      right_page,
+    ],
   )
-  let right = @pdfpage.add_root(right_root, [], right0)
+  let right = @pdfpage.PdfPageDoc::new(right0).add_root(right_root, [])
   let right_refs = @pdf.page_reference_numbers(right)
   assert_true(right_refs.length() > 0)
   add_struct_tree_root(right, right_refs[0], 0)
@@ -1267,8 +1277,8 @@ async test "e2e merge preserves structure trees" {
 
 ///|
 async test "e2e merge preserves /Names JavaScript" {
-  let left = @pdfpage.minimum_valid_pdf()
-  let right = @pdfpage.minimum_valid_pdf()
+  let left = @pdfpage.PdfPageDoc::minimum_valid()
+  let right = @pdfpage.PdfPageDoc::minimum_valid()
   let left_action : @pdf.PdfObject = Dictionary([
     ("/S", Name("/JavaScript")),
     ("/JS", String("app.alert('left')")),
@@ -1309,8 +1319,8 @@ async test "e2e merge preserves /Names JavaScript" {
 
 ///|
 async test "e2e merge preserves /Names /EmbeddedFiles" {
-  let left = @pdfpage.minimum_valid_pdf()
-  let right = @pdfpage.minimum_valid_pdf()
+  let left = @pdfpage.PdfPageDoc::minimum_valid()
+  let right = @pdfpage.PdfPageDoc::minimum_valid()
   add_embedded_file(left, "LeftFile", "left.txt", "left payload")
   add_embedded_file(right, "RightFile", "right.txt", "right payload")
   let merged = @pdfmerge.PdfMerger::new(
@@ -1347,8 +1357,8 @@ async test "e2e merge preserves /Names /EmbeddedFiles" {
 
 ///|
 async test "e2e merge preserves /Names /URLS" {
-  let left = @pdfpage.minimum_valid_pdf()
-  let right = @pdfpage.minimum_valid_pdf()
+  let left = @pdfpage.PdfPageDoc::minimum_valid()
+  let right = @pdfpage.PdfPageDoc::minimum_valid()
   add_names_tree(left, "/URLS", [
     ("LeftURL", make_url_action("https://example.com/left")),
   ])
@@ -1385,8 +1395,8 @@ async test "e2e merge preserves /Names /URLS" {
 
 ///|
 async test "e2e merge preserves /Names /AP" {
-  let left = @pdfpage.minimum_valid_pdf()
-  let right = @pdfpage.minimum_valid_pdf()
+  let left = @pdfpage.PdfPageDoc::minimum_valid()
+  let right = @pdfpage.PdfPageDoc::minimum_valid()
   add_names_tree(left, "/AP", [make_ap_entry(left, "LeftAP", "left ap")])
   add_names_tree(right, "/AP", [make_ap_entry(right, "RightAP", "right ap")])
   let left_entries = read_name_tree_entries(left, "/AP")
@@ -1419,8 +1429,8 @@ async test "e2e merge preserves /Names /AP" {
 
 ///|
 async test "e2e merge preserves /Names /Renditions" {
-  let left = @pdfpage.minimum_valid_pdf()
-  let right = @pdfpage.minimum_valid_pdf()
+  let left = @pdfpage.PdfPageDoc::minimum_valid()
+  let right = @pdfpage.PdfPageDoc::minimum_valid()
   add_names_tree(left, "/Renditions", [
     ("LeftRendition", make_rendition_dict("LeftRendition", "left")),
   ])
@@ -1453,8 +1463,8 @@ async test "e2e merge preserves /Names /Renditions" {
 
 ///|
 async test "e2e merge preserves /Names /AlternatePresentations" {
-  let left = @pdfpage.minimum_valid_pdf()
-  let right = @pdfpage.minimum_valid_pdf()
+  let left = @pdfpage.PdfPageDoc::minimum_valid()
+  let right = @pdfpage.PdfPageDoc::minimum_valid()
   add_names_tree(left, "/AlternatePresentations", [
     ("LeftAlt", make_alt_presentation_dict("LeftAlt", "left")),
   ])
@@ -1487,8 +1497,8 @@ async test "e2e merge preserves /Names /AlternatePresentations" {
 
 ///|
 async test "e2e merge stress large name trees" {
-  let left = @pdfpage.minimum_valid_pdf()
-  let right = @pdfpage.minimum_valid_pdf()
+  let left = @pdfpage.PdfPageDoc::minimum_valid()
+  let right = @pdfpage.PdfPageDoc::minimum_valid()
   let count = 40
   let left_dests = make_bulk_named_dest_entries(left, "L-Dest-", count)
   let right_dests = make_bulk_named_dest_entries(right, "R-Dest-", count)
@@ -1562,8 +1572,8 @@ async test "e2e merge stress large name trees" {
 
 ///|
 async test "e2e merge mixed feature pipeline" {
-  let left0 = @pdfpage.minimum_valid_pdf()
-  let pages = @pdfpage.pages_of_pagetree(left0)
+  let left0 = @pdfpage.PdfPageDoc::minimum_valid()
+  let pages = @pdfpage.PdfPageDoc::new(left0).pages_of_pagetree()
   let annot = @pdfannot.Annotation::new(
     @pdfannot.Subtype::Text,
     content="Mixed note",
@@ -1571,8 +1581,8 @@ async test "e2e merge mixed feature pipeline" {
   )
   let updated_page = @pdfannot.add_annotation(left0, pages[0], annot)
   pages[0] = updated_page
-  let left1 = @pdfpage.change_pages(true, left0, pages)
-  let page1 = match @pdfpage.page_object_number(left1, 1) {
+  let left1 = @pdfpage.PdfPageDoc::new(left0).change_pages(true, pages)
+  let page1 = match @pdfpage.PdfPageDoc::new(left1).page_object_number(1) {
     Some(objnum) => objnum
     None => fail("missing left page")
   }
@@ -1590,7 +1600,7 @@ async test "e2e merge mixed feature pipeline" {
   add_names_tree(left, "/URLS", [
     ("MixURL", make_url_action("https://example.com/mixed")),
   ])
-  let right = @pdfpage.minimum_valid_pdf()
+  let right = @pdfpage.PdfPageDoc::minimum_valid()
   add_embedded_file(right, "MixFile", "mixed.txt", "mix payload")
   let merged = @pdfmerge.PdfMerger::new(
     ["mixed_left", "mixed_right"],
@@ -1602,7 +1612,7 @@ async test "e2e merge mixed feature pipeline" {
     process_struct_trees=true,
     add_toplevel_document=false,
   )
-  let merged_pages = @pdfpage.pages_of_pagetree(merged)
+  let merged_pages = @pdfpage.PdfPageDoc::new(merged).pages_of_pagetree()
   let merged_annots = @pdfannot.annotations_of_page(merged, merged_pages[0])
   match merged_annots {
     [first, ..] =>
@@ -1626,7 +1636,7 @@ async test "e2e merge mixed feature pipeline" {
   let out_path = OUTPUT_DIR + "/merged_mixed.pdf"
   write_pdf(out_path, merged)
   let parsed = read_pdf(out_path)
-  let parsed_pages = @pdfpage.pages_of_pagetree(parsed)
+  let parsed_pages = @pdfpage.PdfPageDoc::new(parsed).pages_of_pagetree()
   let parsed_annots = @pdfannot.annotations_of_page(parsed, parsed_pages[0])
   match parsed_annots {
     [first, ..] =>
@@ -1658,8 +1668,8 @@ async test "e2e merge multi-copy mixed stress" {
   let ranges = Array::new(capacity=copies)
   let mut i = 0
   while i < copies {
-    let base = @pdfpage.minimum_valid_pdf()
-    let pages = @pdfpage.pages_of_pagetree(base)
+    let base = @pdfpage.PdfPageDoc::minimum_valid()
+    let pages = @pdfpage.PdfPageDoc::new(base).pages_of_pagetree()
     let annot = @pdfannot.Annotation::new(
       @pdfannot.Subtype::Text,
       content="Stress note " + i.to_string(),
@@ -1667,8 +1677,8 @@ async test "e2e merge multi-copy mixed stress" {
     )
     let updated_page = @pdfannot.add_annotation(base, pages[0], annot)
     pages[0] = updated_page
-    let pdf = @pdfpage.change_pages(true, base, pages)
-    let page1 = match @pdfpage.page_object_number(pdf, 1) {
+    let pdf = @pdfpage.PdfPageDoc::new(base).change_pages(true, pages)
+    let page1 = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(1) {
       Some(objnum) => objnum
       None => fail("missing page in stress copy")
     }
@@ -1737,7 +1747,7 @@ async test "e2e merge varied page counts stress" {
   let names = ["varied_one", "varied_two", "varied_three"]
   let pdfs = Array::new(capacity=ranges.length())
   for i in 0..<ranges.length() {
-    let subset = @pdfpage.pdf_of_pages(base, ranges[i])
+    let subset = @pdfpage.PdfPageDoc::new(base).pdf_of_pages(ranges[i])
     pdfs.push(subset)
   }
   let merge_ranges = Array::new(capacity=pdfs.length())
@@ -1798,7 +1808,7 @@ async test "e2e merge preserves bookmark targets" {
   let right_count = page_count(right)
   assert_true(left_count > 0)
   assert_true(right_count > 0)
-  let page1 = match @pdfpage.page_object_number(left, 1) {
+  let page1 = match @pdfpage.PdfPageDoc::new(left).page_object_number(1) {
     Some(objnum) => objnum
     None => fail("missing page 1")
   }
@@ -1829,8 +1839,7 @@ async test "e2e merge preserves bookmark targets" {
   let parsed = read_pdf(out_path)
   let parsed_marks = @pdfmarks.PdfMarks::new(parsed).read_bookmarks()
   assert_eq(parsed_marks.length(), 1)
-  let target_page = @pdfpage.pagenumber_of_target(
-    parsed,
+  let target_page = @pdfpage.PdfPageDoc::new(parsed).pagenumber_of_target(
     parsed_marks[0].target,
   )
   assert_eq(target_page, 1)
@@ -1843,11 +1852,11 @@ async test "e2e bookmarks roundtrip" {
   let pdf = read_pdf(BOOKMARK_PATH)
   let count = page_count(pdf)
   assert_true(count >= 2)
-  let page1 = match @pdfpage.page_object_number(pdf, 1) {
+  let page1 = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(1) {
     Some(objnum) => objnum
     None => fail("missing page 1")
   }
-  let page2 = match @pdfpage.page_object_number(pdf, 2) {
+  let page2 = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(2) {
     Some(objnum) => objnum
     None => fail("missing page 2")
   }
@@ -1960,7 +1969,7 @@ async test "e2e merge split merge pipeline" {
   } else {
     [1, merged_count]
   }
-  let subset_pdf = @pdfpage.pdf_of_pages(merged, subset)
+  let subset_pdf = @pdfpage.PdfPageDoc::new(merged).pdf_of_pages(subset)
   let remerged = @pdfmerge.PdfMerger::new(
     ["pipeline_subset", "pipeline_third"],
     [subset_pdf, third],
@@ -2025,21 +2034,24 @@ async test "e2e page ops roundtrip" {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf0, pageroot) = @pdfpage.add_pagetree([page], @pdf.Pdf::empty())
-  let pdf = @pdfpage.add_root(pageroot, [], pdf0)
-  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let (pdf0, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([
+      page,
+    ],
+  )
+  let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(pageroot, [])
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let updated = pages[0].postpend_operators(
     pdf,
     [@pdfops.Op::Opw(5.0)],
     fast=true,
   )
   pages[0] = updated
-  let updated_pdf = @pdfpage.change_pages(true, pdf, pages)
+  let updated_pdf = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages)
   ensure_dir(OUTPUT_DIR)
   let out_path = OUTPUT_DIR + "/page_ops.pdf"
   write_pdf(out_path, updated_pdf)
   let parsed = read_pdf(out_path)
-  let parsed_page = @pdfpage.pages_of_pagetree(parsed)[0]
+  let parsed_page = @pdfpage.PdfPageDoc::new(parsed).pages_of_pagetree()[0]
   let parsed_ops = @pdfops.Op::parse_operators(
     parsed,
     parsed_page.resources,

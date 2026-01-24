@@ -1,13 +1,13 @@
 ///|
 test "what_encryption returns None for unencrypted" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   assert_true(@pdfread.what_encryption(pdf) is None)
   assert_eq(@pdfread.permissions(pdf).length(), 0)
 }
 
 ///|
 test "what_encryption detects ARC4 and AES methods" {
-  let base = @pdfpage.minimum_valid_pdf()
+  let base = @pdfpage.PdfPageDoc::minimum_valid()
   let arc4 = @pdfcrypt.encrypt_pdf_40bit(
     "user",
     "owner",
@@ -33,7 +33,7 @@ test "what_encryption detects ARC4 and AES methods" {
 
 ///|
 test "what_encryption detects AES256 variants" {
-  let base = @pdfpage.minimum_valid_pdf()
+  let base = @pdfpage.PdfPageDoc::minimum_valid()
   let aes256 = @pdfcrypt.encrypt_pdf_AES256(
     true,
     "user",

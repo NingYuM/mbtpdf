@@ -16,7 +16,7 @@ fn attach_encrypt(pdf : @pdf.Pdf, encrypt_dict : @pdf.PdfObject) -> Unit raise {
 
 ///|
 test "get_encryption_values handles V2 without length" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   add_id(pdf)
   let encrypt_dict : @pdf.PdfObject = Dictionary([
     ("/Filter", Name("/Standard")),
@@ -36,7 +36,7 @@ test "get_encryption_values handles V2 without length" {
 
 ///|
 test "get_encryption_values rejects invalid length" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   add_id(pdf)
   let encrypt_dict : @pdf.PdfObject = Dictionary([
     ("/Filter", Name("/Standard")),
@@ -54,7 +54,7 @@ test "get_encryption_values rejects invalid length" {
 
 ///|
 test "get_encryption_values handles V4 CF V2 length" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   add_id(pdf)
   let encrypt_dict : @pdf.PdfObject = Dictionary([
     ("/Filter", Name("/Standard")),
@@ -76,7 +76,7 @@ test "get_encryption_values handles V4 CF V2 length" {
 
 ///|
 test "get_encryption_values rejects missing stdcf" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   add_id(pdf)
   let encrypt_dict : @pdf.PdfObject = Dictionary([
     ("/Filter", Name("/Standard")),
@@ -94,7 +94,7 @@ test "get_encryption_values rejects missing stdcf" {
 
 ///|
 test "get_encryption_values rejects unknown cfm" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   add_id(pdf)
   let encrypt_dict : @pdf.PdfObject = Dictionary([
     ("/Filter", Name("/Standard")),
@@ -112,7 +112,7 @@ test "get_encryption_values rejects unknown cfm" {
 
 ///|
 test "get_encryption_values rejects missing id entry" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let encrypt_dict : @pdf.PdfObject = Dictionary([
     ("/Filter", Name("/Standard")),
     ("/V", Integer(2)),
@@ -128,7 +128,7 @@ test "get_encryption_values rejects missing id entry" {
 
 ///|
 test "encrypt AES V2 without metadata and AES256 with long passwords" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let enc = @pdfcrypt.encrypt_pdf_AES(false, "user", "owner", [], pdf)
   let (dec, _) = @pdfcrypt.decrypt_pdf("user", @pdf.deep_copy(enc))
   assert_true(dec is Some(_))

@@ -12,12 +12,14 @@ fn merge_dict_entries(
 
 ///|
 /// Process a single XObject stream with a transformation function.
-pub fn process_xobject(
+#as_free_fn(process_xobject, deprecated="Use `PdfPageDoc::process_xobject`")
+pub fn PdfPageDoc::process_xobject(
+  self : PdfPageDoc,
   f : (@pdf.Pdf, @pdf.PdfObject, Array[@pdf.PdfObject]) -> Array[@pdf.PdfObject],
-  pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,
   objnum : Int,
 ) -> Unit raise {
+  let pdf = self.pdf
   let xobj = @pdf.lookup_obj(pdf, objnum)
   match @pdf.lookup_direct(pdf, "/Subtype", xobj) {
     None => raise @pdf.PdfError::Msg("No /Subtype in Xobject")
@@ -62,7 +64,7 @@ pub fn Page::process_xobjects(
       for entry in elts {
         match entry.1 {
           @pdf.PdfObject::Indirect(i) =>
-            process_xobject(f, pdf, self.resources, i)
+            PdfPageDoc::new(pdf).process_xobject(f, self.resources, i)
           _ => raise @pdf.PdfError::Msg("process_xobject")
         }
       }
@@ -72,11 +74,13 @@ pub fn Page::process_xobjects(
 
 ///|
 /// Union two resource dictionaries from the same PDF.
-pub fn combine_pdf_resources(
-  pdf : @pdf.Pdf,
+#as_free_fn(combine_pdf_resources, deprecated="Use `PdfPageDoc::combine_pdf_resources`")
+pub fn PdfPageDoc::combine_pdf_resources(
+  self : PdfPageDoc,
   a : @pdf.PdfObject,
   b : @pdf.PdfObject,
 ) -> @pdf.PdfObject raise {
+  let pdf = self.pdf
   let a_entries = match a {
     @pdf.PdfObject::Dictionary(entries) => entries
     _ => []

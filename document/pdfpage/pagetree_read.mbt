@@ -152,7 +152,9 @@ fn find_pages(
 
 ///|
 /// Given a pdf, return a list of page objects.
-pub fn pages_of_pagetree(pdf : @pdf.Pdf) -> Array[Page] raise {
+#as_free_fn(pages_of_pagetree, deprecated="Use `PdfPageDoc::pages_of_pagetree`")
+pub fn PdfPageDoc::pages_of_pagetree(self : PdfPageDoc) -> Array[Page] raise {
+  let pdf = self.pdf
   let document_catalog = @pdf.lookup_obj(pdf, pdf.root)
   match document_catalog {
     @pdf.PdfObject::Null => raise @pdf.PdfError::Msg("/Root entry is incorrect")
@@ -226,7 +228,9 @@ fn find_pages_quick(
 
 ///|
 /// Count pages in the page tree quickly.
-pub fn pages_of_pagetree_quick(pdf : @pdf.Pdf) -> Int raise {
+#as_free_fn(pages_of_pagetree_quick, deprecated="Use `PdfPageDoc::pages_of_pagetree_quick`")
+pub fn PdfPageDoc::pages_of_pagetree_quick(self : PdfPageDoc) -> Int raise {
+  let pdf = self.pdf
   let document_catalog = @pdf.lookup_obj(pdf, pdf.root)
   match document_catalog {
     @pdf.PdfObject::Null => raise @pdf.PdfError::Msg("/Root entry is incorrect")
@@ -242,20 +246,23 @@ pub fn pages_of_pagetree_quick(pdf : @pdf.Pdf) -> Int raise {
 
 ///|
 /// The last page number.
-pub fn endpage(pdf : @pdf.Pdf) -> Int raise {
-  pages_of_pagetree_quick(pdf)
+#as_free_fn(endpage, deprecated="Use `PdfPageDoc::endpage`")
+pub fn PdfPageDoc::endpage(self : PdfPageDoc) -> Int raise {
+  self.pages_of_pagetree_quick()
 }
 
 ///|
 fn endpage_safe(pdf : @pdf.Pdf) -> Int {
-  endpage(pdf) catch {
+  PdfPageDoc::new(pdf).endpage() catch {
     _ => 0
   }
 }
 
 ///|
 /// Fast page count from the top /Count.
-pub fn endpage_fast(pdf : @pdf.Pdf) -> Int raise {
+#as_free_fn(endpage_fast, deprecated="Use `PdfPageDoc::endpage_fast`")
+pub fn PdfPageDoc::endpage_fast(self : PdfPageDoc) -> Int raise {
+  let pdf = self.pdf
   let document_catalog = @pdf.lookup_obj(pdf, pdf.root)
   match document_catalog {
     @pdf.PdfObject::Null => raise @pdf.PdfError::Msg("/Root entry is incorrect")

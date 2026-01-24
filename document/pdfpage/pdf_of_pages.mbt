@@ -130,12 +130,14 @@ fn build_fastrefnums(refnums : Array[Int]) -> Map[Int, Int] {
 
 ///|
 /// Build a PDF containing a subset of pages.
-pub fn pdf_of_pages(
-  basepdf : @pdf.Pdf,
+#as_free_fn(pdf_of_pages, deprecated="Use `PdfPageDoc::pdf_of_pages`")
+pub fn PdfPageDoc::pdf_of_pages(
+  self : PdfPageDoc,
   range : Array[Int],
   retain_numbering? : Bool = false,
   process_struct_tree? : Bool = false,
 ) -> @pdf.Pdf raise {
+  let basepdf = self.pdf
   if range.length() == 0 {
     raise @pdf.PdfError::Msg("pdf_of_pages: cannot build PDF with no pages")
   }
@@ -159,7 +161,10 @@ pub fn pdf_of_pages(
     let kept : Array[@pdfmarks.Bookmark] = Array::new(capacity=marks.length())
     for mark in marks {
       index = index + 1
-      let page_num = pagenumber_of_target(basepdf, mark.target, fastrefnums~)
+      let page_num = PdfPageDoc::new(basepdf).pagenumber_of_target(
+        mark.target,
+        fastrefnums~,
+      )
       if range_set.get(page_num) is Some(_) {
         if first_index == -1 {
           first_index = index
@@ -218,7 +223,7 @@ pub fn pdf_of_pages(
       }
     None => raise @pdf.PdfError::Msg("pdf_of_pages")
   }
-  replace_inherit(pdf, objnumbers)
+  PdfPageDoc::new(pdf).replace_inherit(objnumbers)
   let thetree = pagetree_with_objnumbers(
     true,
     old_pagetree_root_num,
@@ -244,13 +249,15 @@ pub fn pdf_of_pages(
   )
   let new_pagetree = pdf_of_pages_build_pagetree(thetree, objnumbers, pdf)
   @pdf.addobj_given_num(pdf, (old_pagetree_root_num, new_pagetree))
-  let pdf = add_root(old_pagetree_root_num, existing_root_entries, pdf)
+  let pdf = PdfPageDoc::new(pdf).add_root(
+    old_pagetree_root_num, existing_root_entries,
+  )
   @pdfpagelabels.PageLabel::write_all(page_labels, pdf)
   let pdf = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(marks)
-  fixup_duplicate_pages(pdf)
-  fixup_parents(pdf)
-  fixup_destinations(pdf)
-  try fixup_duplicate_annots(pdf) catch {
+  PdfPageDoc::new(pdf).fixup_duplicate_pages()
+  PdfPageDoc::new(pdf).fixup_parents()
+  PdfPageDoc::new(pdf).fixup_destinations()
+  try PdfPageDoc::new(pdf).fixup_duplicate_annots() catch {
     _ => @pdfe.log("warning: fixup_duplicate_annots\n")
   } noraise {
     _ => ()

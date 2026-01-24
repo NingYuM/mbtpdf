@@ -138,7 +138,7 @@ Base utilities used across most packages:
 - `document/pdfmerge`: merges documents and reconciles cross-document structures.
   - Example:
     ```mbt
-    let pages = @pdfpage.pages_of_pagetree(pdf)
+    let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
     let text = @pdftext.PdfText::new(pdf).extract_text()
     let _ = pages.length()
     ```

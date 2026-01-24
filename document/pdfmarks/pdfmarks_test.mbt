@@ -1,6 +1,6 @@
 ///|
 async test "bookmark string roundtrip through file output" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let marks : Array[@pdfmarks.Bookmark] = [
     {
       level: 0,
@@ -60,7 +60,7 @@ test "string_of_bookmark includes text" {
 
 ///|
 test "remove_bookmarks clears outlines" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let marks : Array[@pdfmarks.Bookmark] = [
     {
       level: 0,
@@ -107,7 +107,7 @@ test "transform_bookmark translates destination" {
 
 ///|
 test "add_bookmarks links siblings and counts" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let marks : Array[@pdfmarks.Bookmark] = [
     {
       level: 0,
@@ -214,7 +214,7 @@ test "add_bookmarks links siblings and counts" {
 
 ///|
 test "read_bookmarks toggles action preservation" {
-  let pdf = @pdfpage.minimum_valid_pdf()
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let action : @pdf.PdfObject = Dictionary([
     ("/S", Name("/GoTo")),
     ("/D", String("dest")),

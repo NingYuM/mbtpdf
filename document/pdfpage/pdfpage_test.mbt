@@ -1,9 +1,9 @@
 ///|
 test "pagenumber_of_target on page object" {
-  let pdf = minimum_valid_pdf()
+  let pdf = PdfPageDoc::minimum_valid()
   let refs = @pdf.page_reference_numbers(pdf)
   let dest = @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(refs[0]))
-  assert_eq(pagenumber_of_target(pdf, dest), 1)
+  assert_eq(PdfPageDoc::new(pdf).pagenumber_of_target(dest), 1)
 }
 
 ///|
@@ -25,8 +25,8 @@ test "pages_of_pagetree_quick detects cycle" {
     ("/Kids", Array([Indirect(1)])),
   ])
   @pdf.addobj_given_num(pdf0, (1, pages))
-  let pdf = add_root(1, [], pdf0)
-  let res : Result[Int, Error] = try? pages_of_pagetree_quick(pdf)
+  let pdf = PdfPageDoc::new(pdf0).add_root(1, [])
+  let res : Result[Int, Error] = try? PdfPageDoc::new(pdf).pages_of_pagetree_quick()
   match res {
     Err(_) => ()
     _ => fail("expected cycle detection")

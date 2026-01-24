@@ -112,13 +112,15 @@ fn remove_images_page(
 
 ///|
 fn remove_images(pdf : @pdf.Pdf) -> @pdf.Pdf raise {
-  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let pages_out = Array::new(capacity=pages.length())
   for page in pages {
     pages_out.push(remove_images_page(pdf, page))
   }
-  let (pdf, pagetree_num) = @pdfpage.add_pagetree(pages_out, pdf)
-  @pdfpage.add_root(pagetree_num, [], pdf)
+  let (pdf, pagetree_num) = @pdfpage.PdfPageDoc::new(pdf).add_pagetree(
+    pages_out,
+  )
+  @pdfpage.PdfPageDoc::new(pdf).add_root(pagetree_num, [])
 }
 
 ///|

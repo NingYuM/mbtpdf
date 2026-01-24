@@ -203,7 +203,9 @@ fn fixup_duplicate_pages_inner(
 
 ///|
 /// Ensure page tree does not contain duplicate page objects.
-pub fn fixup_duplicate_pages(pdf : @pdf.Pdf) -> Unit raise {
+#as_free_fn(fixup_duplicate_pages, deprecated="Use `PdfPageDoc::fixup_duplicate_pages`")
+pub fn PdfPageDoc::fixup_duplicate_pages(self : PdfPageDoc) -> Unit raise {
+  let pdf = self.pdf
   let nodes = page_tree_nodes_not_pages(pdf)
   fixup_duplicate_pages_inner(nodes, pdf)
 }
@@ -239,7 +241,9 @@ fn fixup_parents_inner(
 
 ///|
 /// Rewrite /Parent links for page tree nodes.
-pub fn fixup_parents(pdf : @pdf.Pdf) -> Unit raise {
+#as_free_fn(fixup_parents, deprecated="Use `PdfPageDoc::fixup_parents`")
+pub fn PdfPageDoc::fixup_parents(self : PdfPageDoc) -> Unit raise {
+  let pdf = self.pdf
   let root = @pdf.lookup_obj(pdf, pdf.root)
   match @pdf.indirect_number(pdf, "/Pages", root) {
     Some(pagetreeroot) => fixup_parents_inner(pdf, 0, pagetreeroot)
@@ -265,9 +269,11 @@ fn fixup_link(
 
 ///|
 /// Duplicate shared annotations across pages.
-pub fn fixup_duplicate_annots(pdf : @pdf.Pdf) -> Unit raise {
+#as_free_fn(fixup_duplicate_annots, deprecated="Use `PdfPageDoc::fixup_duplicate_annots`")
+pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
+  let pdf = self.pdf
   let src = Ref::new(pdf.objects.max_obj_num)
-  let pages = pages_of_pagetree(pdf)
+  let pages = PdfPageDoc::new(pdf).pages_of_pagetree()
   let existing_annots = pages.map(page => match
     @pdf.lookup_direct(pdf, "/Annots", page.rest) {
     Some(@pdf.PdfObject::Array(a)) =>
@@ -357,7 +363,9 @@ fn was_nulled(pdf : @pdf.Pdf, pair : (String, @pdf.PdfObject)) -> Bool {
 
 ///|
 /// Rewrite /Dests tree entries pointing at removed pages.
-pub fn fixup_destinations(pdf : @pdf.Pdf) -> Unit raise {
+#as_free_fn(fixup_destinations, deprecated="Use `PdfPageDoc::fixup_destinations`")
+pub fn PdfPageDoc::fixup_destinations(self : PdfPageDoc) -> Unit raise {
+  let pdf = self.pdf
   match @pdf.lookup_chain(pdf, pdf.trailerdict, ["/Root", "/Names", "/Dests"]) {
     Some(t) => {
       let tree_ctx = @pdftree.PdfTree::new(pdf)
@@ -405,7 +413,12 @@ fn replace_inherit_entry(
 
 ///|
 /// For all pages in objnumbers, ensure inheritable attributes are present.
-pub fn replace_inherit(pdf : @pdf.Pdf, objnumbers : Array[Int]) -> Unit raise {
+#as_free_fn(replace_inherit, deprecated="Use `PdfPageDoc::replace_inherit`")
+pub fn PdfPageDoc::replace_inherit(
+  self : PdfPageDoc,
+  objnumbers : Array[Int],
+) -> Unit raise {
+  let pdf = self.pdf
   for objnum in objnumbers {
     replace_inherit_entry(pdf, objnum, "/MediaBox")
     replace_inherit_entry(pdf, objnum, "/CropBox")
@@ -416,7 +429,12 @@ pub fn replace_inherit(pdf : @pdf.Pdf, objnumbers : Array[Int]) -> Unit raise {
 
 ///|
 /// Get page object number for a 1-based page index.
-pub fn page_object_number(pdf : @pdf.Pdf, destpage : Int) -> Int? raise {
+#as_free_fn(page_object_number, deprecated="Use `PdfPageDoc::page_object_number`")
+pub fn PdfPageDoc::page_object_number(
+  self : PdfPageDoc,
+  destpage : Int,
+) -> Int? raise {
+  let pdf = self.pdf
   let refs = @pdf.page_reference_numbers(pdf)
   if destpage < 1 || destpage > refs.length() {
     None
@@ -427,11 +445,12 @@ pub fn page_object_number(pdf : @pdf.Pdf, destpage : Int) -> Int? raise {
 
 ///|
 /// Build a Fit destination for a page number.
-pub fn target_of_pagenumber(
-  pdf : @pdf.Pdf,
+#as_free_fn(target_of_pagenumber, deprecated="Use `PdfPageDoc::target_of_pagenumber`")
+pub fn PdfPageDoc::target_of_pagenumber(
+  self : PdfPageDoc,
   index : Int,
 ) -> @pdfdest.Destination raise {
-  match page_object_number(pdf, index) {
+  match self.page_object_number(index) {
     None => NullDestination
     Some(p) => Fit(PageObject(p))
   }

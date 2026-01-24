@@ -119,8 +119,8 @@ async fn merge_two_files(
     owner_password=None,
     filename=file2,
   )
-  let pages1 = @pdfpage.endpage_fast(pdf1)
-  let pages2 = @pdfpage.endpage_fast(pdf2)
+  let pages1 = @pdfpage.PdfPageDoc::new(pdf1).endpage_fast()
+  let pages2 = @pdfpage.PdfPageDoc::new(pdf2).endpage_fast()
   let merged = @pdfmerge.PdfMerger::new([file1, file2], [pdf1, pdf2], [
     ilist(1, pages1),
     ilist(1, pages2),

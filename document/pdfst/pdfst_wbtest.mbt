@@ -4,8 +4,10 @@ fn build_two_page_pdf() -> @pdf.Pdf raise {
     @pdfpage.Page::blank(@pdfpaper.a4),
     @pdfpage.Page::blank(@pdfpaper.a4),
   ]
-  let (pdf, pageroot) = @pdfpage.add_pagetree(pages, @pdf.Pdf::empty())
-  @pdfpage.add_root(pageroot, [], pdf)
+  let (pdf, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree(
+    pages,
+  )
+  @pdfpage.PdfPageDoc::new(pdf).add_root(pageroot, [])
 }
 
 ///|
@@ -16,8 +18,10 @@ fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
     pages.push(@pdfpage.Page::blank(@pdfpaper.a4))
     i = i + 1
   }
-  let (pdf, pageroot) = @pdfpage.add_pagetree(pages, @pdf.Pdf::empty())
-  @pdfpage.add_root(pageroot, [], pdf)
+  let (pdf, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree(
+    pages,
+  )
+  @pdfpage.PdfPageDoc::new(pdf).add_root(pageroot, [])
 }
 
 ///|
@@ -61,7 +65,9 @@ test "trim_structure_tree removes entries" {
   let pdf = build_two_page_pdf()
   let (root_num, removed_num) = add_struct_tree(pdf)
   let previous = endpage.val
-  endpage.val = p => @pdfpage.pages_of_pagetree_quick(p) catch { _ => 0 }
+  endpage.val = p => @pdfpage.PdfPageDoc::new(p).pages_of_pagetree_quick() catch {
+    _ => 0
+  }
   PdfStructTree::new(pdf).trim_structure_tree([1])
   endpage.val = previous
   assert_true(!pdf.objnumbers().contains(removed_num))
@@ -123,7 +129,9 @@ test "trim_structure_tree updates nested k arrays" {
   )
   ignore(@pdf.addobj(pdf, stream_obj))
   let previous = endpage.val
-  endpage.val = p => @pdfpage.pages_of_pagetree_quick(p) catch { _ => 0 }
+  endpage.val = p => @pdfpage.PdfPageDoc::new(p).pages_of_pagetree_quick() catch {
+    _ => 0
+  }
   PdfStructTree::new(pdf).trim_structure_tree([1])
   endpage.val = previous
   assert_true(!pdf.objnumbers().contains(parent_remove))

@@ -17,11 +17,13 @@ fn matrix_is_identity(m : @pdftransform.TransformMatrix) -> Bool {
 }
 
 ///|
-pub fn pagenumber_of_target(
-  pdf : @pdf.Pdf,
+#as_free_fn(pagenumber_of_target, deprecated="Use `PdfPageDoc::pagenumber_of_target`")
+pub fn PdfPageDoc::pagenumber_of_target(
+  self : PdfPageDoc,
   target : @pdfdest.Destination,
   fastrefnums? : Map[Int, Int],
 ) -> Int raise {
+  let pdf = self.pdf
   match target {
     NullDestination | NamedDestination(_) | StringDestination(_) => 0
     Action(a) =>
@@ -31,14 +33,12 @@ pub fn pagenumber_of_target(
             Some(dest) =>
               match fastrefnums {
                 Some(table) =>
-                  pagenumber_of_target(
-                    pdf,
+                  self.pagenumber_of_target(
                     @pdfdest.Destination::read(pdf, dest),
                     fastrefnums=table,
                   )
                 None =>
-                  pagenumber_of_target(
-                    pdf,
+                  self.pagenumber_of_target(
                     @pdfdest.Destination::read(pdf, dest),
                   )
               }
@@ -178,7 +178,7 @@ fn change_pages_process_annotations(
   refnumstable : Map[Int, Int],
   pdf : @pdf.Pdf,
 ) -> Unit raise {
-  let pages = pages_of_pagetree(pdf)
+  let pages = PdfPageDoc::new(pdf).pages_of_pagetree()
   let mut pnum = 0
   for page in pages {
     pnum = pnum + 1
@@ -288,18 +288,20 @@ fn select_page_ref_change(refs : Array[Int], index_1 : Int) -> Int raise {
 
 ///|
 /// Replace the page tree with new pages, optionally rewriting references.
-pub fn change_pages(
+#as_free_fn(change_pages, deprecated="Use `PdfPageDoc::change_pages`")
+pub fn PdfPageDoc::change_pages(
+  self : PdfPageDoc,
   change_references : Bool,
-  basepdf : @pdf.Pdf,
   pages : Array[Page],
   matrices? : Array[(Int, @pdftransform.TransformMatrix)],
   changes? : Array[(Int, Int)],
 ) -> @pdf.Pdf raise {
+  let basepdf = self.pdf
   let pdf = @pdf.Pdf::empty()
   @pdf.objiter((k, v) => @pdf.addobj_given_num(pdf, (k, v)), basepdf)
   copy_object_stream_ids(pdf, basepdf)
   let old_page_numbers = @pdf.page_reference_numbers(basepdf)
-  let (pdf, pagetree_num) = add_pagetree(pages, pdf)
+  let (pdf, pagetree_num) = PdfPageDoc::new(pdf).add_pagetree(pages)
   let pdf : @pdf.Pdf = {
     major: basepdf.major,
     minor: basepdf.minor,
@@ -313,7 +315,7 @@ pub fn change_pages(
     @pdf.PdfObject::Dictionary(d) => d
     _ => []
   }
-  let pdf = add_root(pagetree_num, existing_root_entries, pdf)
+  let pdf = PdfPageDoc::new(pdf).add_root(pagetree_num, existing_root_entries)
   let new_page_numbers = @pdf.page_reference_numbers(pdf)
   if !change_references {
     pdf

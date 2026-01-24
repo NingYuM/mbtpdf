@@ -87,8 +87,9 @@ fn shortest(names : Array[String]) -> String {
 
 ///|
 /// Find a prefix which is not used by any resource names in the document.
-pub fn shortest_unused_prefix(pdf : @pdf.Pdf) -> String {
-  shortest(names_used(pdf))
+#as_free_fn(shortest_unused_prefix, deprecated="Use `PdfPageDoc::shortest_unused_prefix`")
+pub fn PdfPageDoc::shortest_unused_prefix(self : PdfPageDoc) -> String {
+  shortest(names_used(self.pdf))
 }
 
 ///|
@@ -369,7 +370,9 @@ fn merge_content_streams(pdf : @pdf.Pdf) -> Unit raise {
 
 ///|
 /// Prefix resource names and content streams to avoid clashes.
-pub fn add_prefix(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
+#as_free_fn(add_prefix, deprecated="Use `PdfPageDoc::add_prefix`")
+pub fn PdfPageDoc::add_prefix(self : PdfPageDoc, prefix : String) -> Unit raise {
+  let pdf = self.pdf
   add_prefix_impl(pdf, prefix) catch {
     AddPrefixError::NonIso => {
       merge_content_streams(pdf)

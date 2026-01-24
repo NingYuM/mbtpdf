@@ -1,6 +1,6 @@
 ///|
 fn page_objnum(pdf : @pdf.Pdf, index : Int) -> Int raise {
-  match @pdfpage.page_object_number(pdf, index) {
+  match @pdfpage.PdfPageDoc::new(pdf).page_object_number(index) {
     Some(objnum) => objnum
     None => raise @pdf.PdfError::Msg("missing page")
   }
@@ -13,8 +13,8 @@ fn build_two_page_pdf() -> @pdf.Pdf raise {
     @pdfpage.Page::blank(@pdfpaper.a4),
     @pdfpage.Page::blank(@pdfpaper.a4),
   ]
-  let (pdf, pagetree) = @pdfpage.add_pagetree(pages, pdf)
-  @pdfpage.add_root(pagetree, [], pdf)
+  let (pdf, pagetree) = @pdfpage.PdfPageDoc::new(pdf).add_pagetree(pages)
+  @pdfpage.PdfPageDoc::new(pdf).add_root(pagetree, [])
 }
 
 ///|
@@ -103,23 +103,23 @@ test "pagenumber_of_target resolves action destinations" {
   let dest = dest_for_page(page1)
   let action = action_for_dest(dest)
   let target = @pdfdest.Destination::Action(action)
-  assert_eq(@pdfpage.pagenumber_of_target(pdf, target), 1)
+  assert_eq(@pdfpage.PdfPageDoc::new(pdf).pagenumber_of_target(target), 1)
 }
 
 ///|
 test "change_pages returns pdf when references are unchanged" {
   let pdf = build_two_page_pdf()
-  let pages = @pdfpage.pages_of_pagetree(pdf)
-  let updated = @pdfpage.change_pages(false, pdf, pages)
-  assert_eq(@pdfpage.pages_of_pagetree_quick(updated), 2)
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
+  let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(false, pages)
+  assert_eq(@pdfpage.PdfPageDoc::new(updated).pages_of_pagetree_quick(), 2)
 }
 
 ///|
 test "change_pages with references and no matrices" {
   let pdf = build_two_page_pdf()
-  let pages = @pdfpage.pages_of_pagetree(pdf)
-  let updated = @pdfpage.change_pages(true, pdf, pages)
-  assert_eq(@pdfpage.pages_of_pagetree_quick(updated), 2)
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
+  let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages)
+  assert_eq(@pdfpage.PdfPageDoc::new(updated).pages_of_pagetree_quick(), 2)
 }
 
 ///|
@@ -169,9 +169,13 @@ test "change_pages rewrites bookmarks annotations and openaction" {
     f: 0.0,
   }
   let matrices = [(1, scale), (2, @pdftransform.TransformMatrix::identity())]
-  let pages = @pdfpage.pages_of_pagetree(pdf)
-  let updated = @pdfpage.change_pages(true, pdf, pages, matrices~)
-  assert_eq(@pdfpage.pages_of_pagetree_quick(updated), 2)
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
+  let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(
+    true,
+    pages,
+    matrices~,
+  )
+  assert_eq(@pdfpage.PdfPageDoc::new(updated).pages_of_pagetree_quick(), 2)
   let catalog = @pdf.catalog_of_pdf(updated)
   match
     (@pdf.lookup_direct(updated, "/OpenAction", catalog) : @pdf.PdfObject?) {
@@ -193,12 +197,16 @@ test "change_pages keeps array openaction for identity matrices" {
   let pdf = build_two_page_pdf()
   let page1 = page_objnum(pdf, 1)
   set_catalog_entry(pdf, "/OpenAction", dest_for_page(page1))
-  let pages = @pdfpage.pages_of_pagetree(pdf)
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let matrices = [
     (1, @pdftransform.TransformMatrix::identity()),
     (2, @pdftransform.TransformMatrix::identity()),
   ]
-  let updated = @pdfpage.change_pages(true, pdf, pages, matrices~)
+  let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(
+    true,
+    pages,
+    matrices~,
+  )
   let catalog = @pdf.catalog_of_pdf(updated)
   match
     (@pdf.lookup_direct(updated, "/OpenAction", catalog) : @pdf.PdfObject?) {
@@ -212,17 +220,20 @@ test "change_pages logs when lengths differ with matrices" {
   let pdf = build_two_page_pdf()
   let pages = [@pdfpage.Page::blank(@pdfpaper.a4)]
   let matrices = [(1, @pdftransform.TransformMatrix::identity())]
-  let updated = @pdfpage.change_pages(true, pdf, pages, matrices~)
-  assert_eq(@pdfpage.pages_of_pagetree_quick(updated), 1)
+  let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(
+    true,
+    pages,
+    matrices~,
+  )
+  assert_eq(@pdfpage.PdfPageDoc::new(updated).pages_of_pagetree_quick(), 1)
 }
 
 ///|
 test "change_pages rejects invalid change indices" {
   let pdf = build_two_page_pdf()
-  let pages = @pdfpage.pages_of_pagetree(pdf)
-  let res : Result[@pdf.Pdf, Error] = try? @pdfpage.change_pages(
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
+  let res : Result[@pdf.Pdf, Error] = try? @pdfpage.PdfPageDoc::new(pdf).change_pages(
     true,
-    pdf,
     pages,
     changes=[(0, 1)],
   )
@@ -232,7 +243,7 @@ test "change_pages rejects invalid change indices" {
 ///|
 test "target_of_pagenumber returns fit destination" {
   let pdf = build_two_page_pdf()
-  let dest = @pdfpage.target_of_pagenumber(pdf, 1)
+  let dest = @pdfpage.PdfPageDoc::new(pdf).target_of_pagenumber(1)
   match dest {
     @pdfdest.Destination::Fit(_) => ()
     _ => fail("expected Fit destination")

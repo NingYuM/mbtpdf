@@ -59,8 +59,8 @@ fn build_unicode_pdf() -> @pdf.Pdf raise {
     rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
-  let (pdf, pageroot) = @pdfpage.add_pagetree([page], pdf)
-  @pdfpage.add_root(pageroot, [], pdf)
+  let (pdf, pageroot) = @pdfpage.PdfPageDoc::new(pdf).add_pagetree([page])
+  @pdfpage.PdfPageDoc::new(pdf).add_root(pageroot, [])
 }
 
 ///|
@@ -95,8 +95,8 @@ fn add_pages_to_pdf(
   pages : Array[@pdfpage.Page],
   pdf : @pdf.Pdf,
 ) -> @pdf.Pdf raise {
-  let (pdf, pageroot) = @pdfpage.add_pagetree(pages, pdf)
-  @pdfpage.add_root(pageroot, [], pdf)
+  let (pdf, pageroot) = @pdfpage.PdfPageDoc::new(pdf).add_pagetree(pages)
+  @pdfpage.PdfPageDoc::new(pdf).add_root(pageroot, [])
 }
 
 ///|
