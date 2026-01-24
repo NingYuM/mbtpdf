@@ -34,7 +34,7 @@ test "deep_copy copies streams and object data" {
     pdf.objects.max_obj_num = 8
   }
   let copied = deep_copy(pdf)
-  match lookup_obj(pdf, 4) {
+  match pdf.lookup_obj(4) {
     PdfObject::Stream(r) =>
       match r.val {
         (_, Stream::Got(original_bytes)) => original_bytes[0] = (88).to_byte()
@@ -42,7 +42,7 @@ test "deep_copy copies streams and object data" {
       }
     _ => fail("expected stream")
   }
-  match lookup_obj(copied, 4) {
+  match copied.lookup_obj(4) {
     PdfObject::Stream(r) =>
       match r.val {
         (_, Stream::Got(copied_bytes)) =>

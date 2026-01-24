@@ -39,16 +39,16 @@ test "process_xobjects updates form xobject stream" {
     [Stream(Ref::new((dict_updated, @pdf.Stream::Got(updated_data))))]
   }
   page.process_xobjects(pdf, update)
-  let updated = @pdf.lookup_obj(pdf, xobj_num)
-  match (@pdf.lookup_direct(pdf, "/Subtype", updated) : @pdf.PdfObject?) {
+  let updated = pdf.lookup_obj(xobj_num)
+  match (pdf.lookup_direct("/Subtype", updated) : @pdf.PdfObject?) {
     Some(Name("/Form")) => ()
     _ => fail("expected /Form subtype")
   }
-  match (@pdf.lookup_direct(pdf, "/BBox", updated) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/BBox", updated) : @pdf.PdfObject?) {
     Some(Array(_)) => ()
     _ => fail("expected bbox")
   }
-  match @pdf.lookup_direct(pdf, "/Filter", updated) {
+  match pdf.lookup_direct("/Filter", updated) {
     None => ()
     _ => fail("expected filter removal")
   }
@@ -68,15 +68,15 @@ test "combine_pdf_resources merges known and keeps unknown" {
     ("/Bar", Name("/Baz")),
   ])
   let combined = @pdfpage.PdfPageDoc::new(pdf).combine_pdf_resources(a, b)
-  match (@pdf.lookup_direct(pdf, "/Font", combined) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/Font", combined) : @pdf.PdfObject?) {
     Some(Dictionary(entries)) => assert_eq(entries.length(), 2)
     _ => fail("expected merged fonts")
   }
-  match (@pdf.lookup_direct(pdf, "/Foo", combined) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/Foo", combined) : @pdf.PdfObject?) {
     Some(Integer(1)) => ()
     _ => fail("expected /Foo")
   }
-  match (@pdf.lookup_direct(pdf, "/Bar", combined) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/Bar", combined) : @pdf.PdfObject?) {
     Some(Name("/Baz")) => ()
     _ => fail("expected /Bar")
   }

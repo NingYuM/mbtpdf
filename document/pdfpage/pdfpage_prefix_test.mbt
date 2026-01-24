@@ -78,12 +78,12 @@ test "add_prefix rewrites resources and operators" {
   @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let page0 = pages[0]
-  match @pdf.lookup_direct(pdf, "/Font", page0.resources) {
+  match pdf.lookup_direct("/Font", page0.resources) {
     Some(Dictionary(entries)) =>
       assert_true(entries.any(pair => pair.0 == "/pF1"))
     _ => fail("expected prefixed font resources")
   }
-  match @pdf.lookup_direct(pdf, "/ColorSpace", page0.resources) {
+  match pdf.lookup_direct("/ColorSpace", page0.resources) {
     Some(Dictionary(entries)) =>
       assert_true(entries.any(pair => pair.0 == "/pCs1"))
     _ => fail("expected prefixed colorspace resources")
@@ -197,7 +197,7 @@ test "add_prefix rewrites inline image colorspace names" {
   for op in ops_out {
     match (op : @pdfops.Op) {
       InlineImage((inline_dict, _, _)) =>
-        match @pdf.lookup_direct(pdf, "/CS", inline_dict) {
+        match pdf.lookup_direct("/CS", inline_dict) {
           Some(Name(name)) => {
             assert_eq(name, "/pCS1")
             saw = true
@@ -247,7 +247,7 @@ test "add_prefix handles filtered inline images with trailing ops" {
   for op in ops_out {
     match (op : @pdfops.Op) {
       InlineImage((inline_dict, _, _)) =>
-        match @pdf.lookup_direct(pdf, "/CS", inline_dict) {
+        match pdf.lookup_direct("/CS", inline_dict) {
           Some(Name(name)) => {
             assert_eq(name, "/pCS1")
             saw_inline = true
@@ -302,8 +302,8 @@ test "add_prefix handles single indirect contents" {
     Some(n) => n
     None => fail("expected page object number")
   }
-  let page_obj = @pdf.lookup_obj(pdf, page_num)
-  let first_content = match @pdf.lookup_direct(pdf, "/Contents", page_obj) {
+  let page_obj = pdf.lookup_obj(page_num)
+  let first_content = match pdf.lookup_direct("/Contents", page_obj) {
     Some(Array(contents)) => contents[0]
     _ => fail("expected contents array")
   }
@@ -354,7 +354,7 @@ test "add_prefix keeps direct inline colorspace names" {
   for op in ops_out {
     match (op : @pdfops.Op) {
       InlineImage((inline_dict, _, _)) =>
-        match @pdf.lookup_direct(pdf, "/CS", inline_dict) {
+        match pdf.lookup_direct("/CS", inline_dict) {
           Some(Name(name)) => {
             assert_eq(name, "/DeviceRGB")
             saw = true
@@ -402,7 +402,7 @@ test "add_prefix preserves inline colorspace arrays" {
   for op in ops_out {
     match (op : @pdfops.Op) {
       InlineImage((inline_dict, _, _)) =>
-        match @pdf.lookup_direct(pdf, "/CS", inline_dict) {
+        match pdf.lookup_direct("/CS", inline_dict) {
           Some(Array(_)) => saw = true
           _ => fail("expected inline colorspace array")
         }

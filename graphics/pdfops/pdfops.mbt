@@ -568,7 +568,7 @@ fn string_of_lexeme(lexeme : Lexeme) -> String raise {
     Lexeme::PdfObj(obj) => obj.to_string()
     Lexeme::LexInlineImage((dict, dp, data)) => {
       let dict_data = match
-        @pdf.lookup_direct_orelse(@pdf.Pdf::empty(), "/F", "/Filter", dict) {
+        @pdf.Pdf::empty().lookup_direct_orelse("/F", "/Filter", dict) {
         None | Some(@pdf.PdfObject::Array([])) => {
           let _ = dp
           let dict = dict.add_entry("/F", @pdf.PdfObject::Name("/Fl"))
@@ -586,7 +586,7 @@ fn string_of_lexeme(lexeme : Lexeme) -> String raise {
       let dict_string = dict.to_string()
       let dict_body = strip_dict_markers(dict_string)
       let filters = match
-        @pdf.lookup_direct_orelse(@pdf.Pdf::empty(), "/F", "/Filter", dict) {
+        @pdf.Pdf::empty().lookup_direct_orelse("/F", "/Filter", dict) {
         Some(@pdf.PdfObject::Array(items)) => items
         Some(@pdf.PdfObject::Name(name)) => [@pdf.PdfObject::Name(name)]
         _ => []
@@ -782,9 +782,9 @@ pub fn Op::components(
       if name == "/Pattern" {
         raise @pdf.PdfError::Msg("Can't use /Pattern here")
       }
-      match @pdf.lookup_direct(pdf, "/ColorSpace", resources) {
+      match pdf.lookup_direct("/ColorSpace", resources) {
         Some(csdict) =>
-          match @pdf.lookup_direct(pdf, name, csdict) {
+          match pdf.lookup_direct(name, csdict) {
             Some(space_next) => Op::components(pdf, resources, space_next)
             None => raise @pdf.PdfError::Msg("ColorSpace not found")
           }
@@ -800,7 +800,7 @@ pub fn Op::components(
               "/ICCBased" =>
                 if items.length() == 2 {
                   let iccstream = items[1]
-                  match @pdf.lookup_direct(pdf, "/N", iccstream) {
+                  match pdf.lookup_direct("/N", iccstream) {
                     Some(@pdf.PdfObject::Integer(n)) => return n
                     _ => raise @pdf.PdfError::Msg("Bad iccstream")
                   }
@@ -818,11 +818,7 @@ pub fn Op::components(
               "/CalGray" => if items.length() == 2 { return 1 }
               "/Pattern" =>
                 if items.length() == 2 {
-                  return Op::components(
-                    pdf,
-                    resources,
-                    @pdf.direct(pdf, items[1]),
-                  )
+                  return Op::components(pdf, resources, pdf.direct(items[1]))
                 }
               _ => ()
             }
@@ -897,7 +893,7 @@ fn lex_inline_image(
       @pdfe.Pdfe::new().log("Did not recognise beginning of inline image ID\n")
       nocontent(input)
     }
-    let filters = match @pdf.lookup_direct_orelse(pdf, "/F", "/Filter", dict) {
+    let filters = match pdf.lookup_direct_orelse("/F", "/Filter", dict) {
       Some(@pdf.PdfObject::Array(items)) => items
       Some(@pdf.PdfObject::Name(name)) => [@pdf.PdfObject::Name(name)]
       _ => []
@@ -910,7 +906,7 @@ fn lex_inline_image(
       @pdfe.Pdfe::new().log("**got ID header, skipped possible byte\n")
     }
     let bpc = match
-      @pdf.lookup_direct_orelse(pdf, "/BPC", "/BitsPerComponent", dict) {
+      pdf.lookup_direct_orelse("/BPC", "/BitsPerComponent", dict) {
       Some(@pdf.PdfObject::Integer(value)) => value
       _ => {
         @pdfe.Pdfe::new().log("no BPC\n")
@@ -918,8 +914,7 @@ fn lex_inline_image(
         0
       }
     }
-    let cspace = match
-      @pdf.lookup_direct_orelse(pdf, "/CS", "/ColorSpace", dict) {
+    let cspace = match pdf.lookup_direct_orelse("/CS", "/ColorSpace", dict) {
       Some(@pdf.PdfObject::Name(name)) =>
         if name == "/DeviceGray" ||
           name == "/DeviceRGB" ||
@@ -932,9 +927,9 @@ fn lex_inline_image(
           if debug.val {
             @pdfe.Pdfe::new().log("resources is \{resources.to_string()}\n")
           }
-          match @pdf.lookup_direct(pdf, "/ColorSpace", resources) {
+          match pdf.lookup_direct("/ColorSpace", resources) {
             Some(@pdf.PdfObject::Dictionary(_) as d) =>
-              match @pdf.lookup_direct(pdf, name, d) {
+              match pdf.lookup_direct(name, d) {
                 Some(space) => space
                 None => {
                   @pdfe.Pdfe::new().log("no colourspace A\n")
@@ -951,7 +946,7 @@ fn lex_inline_image(
         }
       Some(@pdf.PdfObject::Array(_) as n) => n
       None =>
-        match @pdf.lookup_direct_orelse(pdf, "/IM", "/ImageMask", dict) {
+        match pdf.lookup_direct_orelse("/IM", "/ImageMask", dict) {
           Some(@pdf.PdfObject::Boolean(true)) =>
             @pdf.PdfObject::Name("/DeviceGray")
           _ => {
@@ -966,7 +961,7 @@ fn lex_inline_image(
         @pdf.PdfObject::Null
       }
     }
-    let width = match @pdf.lookup_direct_orelse(pdf, "/W", "/Width", dict) {
+    let width = match pdf.lookup_direct_orelse("/W", "/Width", dict) {
       Some(@pdf.PdfObject::Integer(value)) => value
       _ => {
         @pdfe.Pdfe::new().log("no or malformed /W")
@@ -974,7 +969,7 @@ fn lex_inline_image(
         0
       }
     }
-    let height = match @pdf.lookup_direct_orelse(pdf, "/H", "/Height", dict) {
+    let height = match pdf.lookup_direct_orelse("/H", "/Height", dict) {
       Some(@pdf.PdfObject::Integer(value)) => value
       _ => {
         @pdfe.Pdfe::new().log("no or malformed /H")
@@ -989,11 +984,8 @@ fn lex_inline_image(
       bitwidth / 8 + 1
     }
     let bytes = bytewidth * height
-    let filter_opt = @pdf.lookup_direct_orelse(
-      @pdf.Pdf::empty(),
-      "/F",
-      "/Filter",
-      dict,
+    let filter_opt = @pdf.Pdf::empty().lookup_direct_orelse(
+      "/F", "/Filter", dict,
     )
     let data = match filter_opt {
       None | Some(@pdf.PdfObject::Array([])) => {
@@ -1129,12 +1121,7 @@ fn lex_inline_image(
         cleaned
       }
     }
-    let dp = @pdf.lookup_direct_orelse(
-      @pdf.Pdf::empty(),
-      "/DP",
-      "/DecodeParms",
-      dict,
-    )
+    let dp = @pdf.Pdf::empty().lookup_direct_orelse("/DP", "/DecodeParms", dict)
     (dict_clean, dp, data)
   } catch {
     err => {
@@ -1999,7 +1986,7 @@ pub fn Op::parse_operators(
 ) -> Array[Op] raise {
   let rawstreams : Array[@pdfio.MutableBytes] = Array::new()
   for stream in streams {
-    let direct = @pdf.direct(pdf, stream)
+    let direct = pdf.direct(stream)
     @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, direct)
     @pdf.getstream(direct)
     match direct {

@@ -515,7 +515,7 @@ pub fn PdfSyntax::lex_stream(
         }
       }
 
-      match @pdf.lookup_direct(@pdf.Pdf::empty(), "/Length", parsed) {
+      match @pdf.Pdf::empty().lookup_direct("/Length", parsed) {
         None => lex_malformed_stream_data(input)
         Some(v) =>
           match findlength(v) {

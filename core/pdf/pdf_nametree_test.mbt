@@ -8,8 +8,8 @@ test "nametree lookup" {
     PdfObject::Integer(2),
   ])
   let tree = PdfObject::Dictionary([("/Names", names)])
-  assert_some_integer(nametree_lookup(pdf, PdfObject::String("A"), tree), 1)
-  match nametree_lookup(pdf, PdfObject::String("C"), tree) {
+  assert_some_integer(pdf.nametree_lookup(PdfObject::String("A"), tree), 1)
+  match pdf.nametree_lookup(PdfObject::String("C"), tree) {
     None => ()
     _ => fail("expected none")
   }
@@ -23,7 +23,7 @@ test "nametree lookup" {
       PdfObject::Array([PdfObject::String("B"), PdfObject::Integer(2)]),
     ),
   ])
-  match nametree_lookup(pdf, PdfObject::String("A"), tree_limits_low) {
+  match pdf.nametree_lookup(PdfObject::String("A"), tree_limits_low) {
     None => ()
     _ => fail("expected none")
   }
@@ -37,7 +37,7 @@ test "nametree lookup" {
       PdfObject::Array([PdfObject::String("A"), PdfObject::Integer(1)]),
     ),
   ])
-  match nametree_lookup(pdf, PdfObject::String("Z"), tree_limits_high) {
+  match pdf.nametree_lookup(PdfObject::String("Z"), tree_limits_high) {
     None => ()
     _ => fail("expected none")
   }
@@ -52,7 +52,7 @@ test "nametree lookup" {
     ),
   ])
   assert_some_integer(
-    nametree_lookup(pdf, PdfObject::String("M"), tree_limits_ok),
+    pdf.nametree_lookup(PdfObject::String("M"), tree_limits_ok),
     3,
   )
   let kid_missing = PdfObject::Dictionary([
@@ -70,25 +70,25 @@ test "nametree lookup" {
   let parent = PdfObject::Dictionary([
     ("/Kids", PdfObject::Array([kid_missing, kid])),
   ])
-  assert_some_integer(nametree_lookup(pdf, PdfObject::String("K"), parent), 9)
+  assert_some_integer(pdf.nametree_lookup(PdfObject::String("K"), parent), 9)
   let bad_parent = PdfObject::Dictionary([("/Kids", PdfObject::Integer(1))])
-  assert_is_err(try? nametree_lookup(pdf, PdfObject::String("A"), bad_parent))
+  assert_is_err(try? pdf.nametree_lookup(PdfObject::String("A"), bad_parent))
   let int_tree = PdfObject::Dictionary([
     (
       "/Names",
       PdfObject::Array([PdfObject::Integer(1), PdfObject::String("one")]),
     ),
   ])
-  match nametree_lookup(pdf, PdfObject::Integer(1), int_tree) {
+  match pdf.nametree_lookup(PdfObject::Integer(1), int_tree) {
     Some(PdfObject::String("one")) => ()
     _ => fail("expected integer key match")
   }
   let missing = PdfObject::Dictionary([])
-  assert_is_err(try? nametree_lookup(pdf, PdfObject::String("A"), missing))
+  assert_is_err(try? pdf.nametree_lookup(PdfObject::String("A"), missing))
   let malformed = PdfObject::Dictionary([("/Limits", PdfObject::Integer(1))])
-  assert_is_err(try? nametree_lookup(pdf, PdfObject::String("A"), malformed))
+  assert_is_err(try? pdf.nametree_lookup(PdfObject::String("A"), malformed))
   let bad_names = PdfObject::Dictionary([("/Names", PdfObject::Integer(1))])
-  assert_is_err(try? nametree_lookup(pdf, PdfObject::String("A"), bad_names))
+  assert_is_err(try? pdf.nametree_lookup(PdfObject::String("A"), bad_names))
   let kids_pdf = Pdf::empty()
   let kid1 = PdfObject::Dictionary([
     (
@@ -115,10 +115,10 @@ test "nametree lookup" {
     ),
   ])
   assert_some_integer(
-    nametree_lookup(kids_pdf, PdfObject::String("M"), parent_with_kids),
+    kids_pdf.nametree_lookup(PdfObject::String("M"), parent_with_kids),
     2,
   )
-  match nametree_lookup(kids_pdf, PdfObject::Name("/M"), parent_with_kids) {
+  match kids_pdf.nametree_lookup(PdfObject::Name("/M"), parent_with_kids) {
     None => ()
     _ => fail("expected none for name key")
   }
@@ -129,7 +129,7 @@ test "nametree lookup" {
     ),
   ])
   assert_is_err(
-    try? nametree_lookup(kids_pdf, PdfObject::String("A"), malformed_entry),
+    try? kids_pdf.nametree_lookup(PdfObject::String("A"), malformed_entry),
   )
 }
 
@@ -146,7 +146,7 @@ test "contents_of_nametree" {
       ]),
     ),
   ])
-  let contents = contents_of_nametree(pdf, tree)
+  let contents = pdf.contents_of_nametree(tree)
   assert_eq(contents.length(), 1)
   match contents[0] {
     (PdfObject::String("A"), PdfObject::Integer(1)) => ()
@@ -165,8 +165,8 @@ test "contents_of_nametree" {
     ),
   ])
   let parent = PdfObject::Dictionary([("/Kids", PdfObject::Array([kid1, kid2]))])
-  let flattened = contents_of_nametree(pdf, parent)
+  let flattened = pdf.contents_of_nametree(parent)
   assert_eq(flattened.length(), 2)
   let bad = PdfObject::Dictionary([("/Type", PdfObject::Name("/Other"))])
-  assert_is_err(try? contents_of_nametree(pdf, bad))
+  assert_is_err(try? pdf.contents_of_nametree(bad))
 }

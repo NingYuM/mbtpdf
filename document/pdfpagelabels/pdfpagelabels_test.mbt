@@ -241,7 +241,7 @@ test "string_of_labelstyle covers all styles" {
 ///|
 fn set_page_labels(pdf : @pdf.Pdf, nums : Array[@pdf.PdfObject]) -> Unit raise {
   let rootnum = pdf.root
-  let root = @pdf.lookup_obj(pdf, rootnum)
+  let root = pdf.lookup_obj(rootnum)
   let labels : @pdf.PdfObject = Dictionary([("/Nums", Array(nums))])
   let updated = root.add_entry("/PageLabels", labels)
   @pdf.addobj_given_num(pdf, (rootnum, updated))

@@ -1,34 +1,49 @@
 ///|
 test "string_of_lexeme renders tokens" {
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexNull), "null")
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexBool(true)), "true")
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexBool(false)), "false")
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexInt(12)), "12")
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexName("/Name")), "/Name")
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexLeftSquare), "[")
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexRightSquare), "]")
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexLeftDict), "<<")
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexRightDict), ">>")
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexEndStream), "EndStream")
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexObj), "obj")
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexEndObj), "endobj")
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexR), "R")
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::StopLexing), "StopLexing")
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexNone), "LexNone")
+  let syntax = @pdfsyntax.PdfSyntax::new()
+  assert_eq(syntax.string_of_lexeme(@pdfgenlex.Token::LexNull), "null")
+  assert_eq(syntax.string_of_lexeme(@pdfgenlex.Token::LexBool(true)), "true")
+  assert_eq(syntax.string_of_lexeme(@pdfgenlex.Token::LexBool(false)), "false")
+  assert_eq(syntax.string_of_lexeme(@pdfgenlex.Token::LexInt(12)), "12")
+  assert_eq(
+    syntax.string_of_lexeme(@pdfgenlex.Token::LexName("/Name")),
+    "/Name",
+  )
+  assert_eq(syntax.string_of_lexeme(@pdfgenlex.Token::LexLeftSquare), "[")
+  assert_eq(syntax.string_of_lexeme(@pdfgenlex.Token::LexRightSquare), "]")
+  assert_eq(syntax.string_of_lexeme(@pdfgenlex.Token::LexLeftDict), "<<")
+  assert_eq(syntax.string_of_lexeme(@pdfgenlex.Token::LexRightDict), ">>")
+  assert_eq(
+    syntax.string_of_lexeme(@pdfgenlex.Token::LexEndStream),
+    "EndStream",
+  )
+  assert_eq(syntax.string_of_lexeme(@pdfgenlex.Token::LexObj), "obj")
+  assert_eq(syntax.string_of_lexeme(@pdfgenlex.Token::LexEndObj), "endobj")
+  assert_eq(syntax.string_of_lexeme(@pdfgenlex.Token::LexR), "R")
+  assert_eq(syntax.string_of_lexeme(@pdfgenlex.Token::StopLexing), "StopLexing")
+  assert_eq(syntax.string_of_lexeme(@pdfgenlex.Token::LexNone), "LexNone")
 }
 
 ///|
 test "string_of_lexeme escapes string data" {
   let value = "a(b)\\\n"
   let token = @pdfgenlex.Token::LexString(value)
-  assert_eq(string_of_lexeme(token), "(a\\(b\\)\\\\\\n)")
+  let syntax = @pdfsyntax.PdfSyntax::new()
+  assert_eq(syntax.string_of_lexeme(token), "(a\\(b\\)\\\\\\n)")
 }
 
 ///|
 test "string_of_lexeme prints comments and streams" {
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexComment("note")), "\n%note\n")
+  let syntax = @pdfsyntax.PdfSyntax::new()
+  assert_eq(
+    syntax.string_of_lexeme(@pdfgenlex.Token::LexComment("note")),
+    "\n%note\n",
+  )
   let stream = @pdf.Stream::Got(@pdfio.bytes_of_string("data"))
-  assert_eq(string_of_lexeme(@pdfgenlex.Token::LexStream(stream)), "LexStream")
+  assert_eq(
+    syntax.string_of_lexeme(@pdfgenlex.Token::LexStream(stream)),
+    "LexStream",
+  )
 }
 
 ///|
@@ -45,6 +60,7 @@ test "string_of_lexeme formats scientific real" {
     Some(v) => v
     None => fail("expected scientific notation in Double::to_string")
   }
-  let formatted = string_of_lexeme(@pdfgenlex.Token::LexReal(value))
+  let syntax = @pdfsyntax.PdfSyntax::new()
+  let formatted = syntax.string_of_lexeme(@pdfgenlex.Token::LexReal(value))
   assert_true(!formatted.contains("e") && !formatted.contains("E"))
 }

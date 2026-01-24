@@ -37,12 +37,12 @@ test "build_name_tree handles empty input" {
   let pdf = @pdf.Pdf::empty()
   let tree_ctx = @pdftree.PdfTree::new(pdf)
   let name_tree = tree_ctx.build_name_tree(false, [])
-  match @pdf.lookup_direct(pdf, "/Names", name_tree) {
+  match pdf.lookup_direct("/Names", name_tree) {
     Some(Array(items)) => assert_eq(items.length(), 0)
     _ => fail("expected empty /Names")
   }
   let num_tree = tree_ctx.build_name_tree(true, [])
-  match @pdf.lookup_direct(pdf, "/Nums", num_tree) {
+  match pdf.lookup_direct("/Nums", num_tree) {
     Some(Array(items)) => assert_eq(items.length(), 0)
     _ => fail("expected empty /Nums")
   }
@@ -57,7 +57,7 @@ test "build_name_tree uses kids for large inputs" {
     Integer(i),
   ))
   let tree = tree_ctx.build_name_tree(false, entries)
-  match @pdf.lookup_direct(pdf, "/Kids", tree) {
+  match pdf.lookup_direct("/Kids", tree) {
     Some(Array(kids)) => assert_true(kids.length() > 0)
     _ => fail("expected /Kids on large tree")
   }

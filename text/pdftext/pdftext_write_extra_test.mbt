@@ -6,7 +6,7 @@ test "write_encoding covers mac and custom encodings" {
     font_with_encoding_name("/MacRomanEncoding"),
   )
   let macroman = ctx.write_encoding(macroman_encoding)
-  match (@pdf.lookup_obj(pdf, macroman) : @pdf.PdfObject) {
+  match (pdf.lookup_obj(macroman) : @pdf.PdfObject) {
     Name("/MacRomanEncoding") => ()
     _ => fail("expected /MacRomanEncoding")
   }
@@ -14,22 +14,22 @@ test "write_encoding covers mac and custom encodings" {
     font_with_encoding_name("/MacExpertEncoding"),
   )
   let macexpert = ctx.write_encoding(macexpert_encoding)
-  match (@pdf.lookup_obj(pdf, macexpert) : @pdf.PdfObject) {
+  match (pdf.lookup_obj(macexpert) : @pdf.PdfObject) {
     Name("/MacExpertEncoding") => ()
     _ => fail("expected /MacExpertEncoding")
   }
   let filled_encoding = ctx.read_encoding(truetype_font_with_encoding_dict())
   let filled = ctx.write_encoding(filled_encoding)
-  match (@pdf.lookup_obj(pdf, filled) : @pdf.PdfObject) {
+  match (pdf.lookup_obj(filled) : @pdf.PdfObject) {
     Name("/MacRomanEncoding") => ()
     _ => fail("expected filled encoding to reuse inner")
   }
   let custom_encoding = ctx.read_encoding(embedded_font_with_custom_encoding())
   let custom = ctx.write_encoding(custom_encoding)
-  match (@pdf.lookup_obj(pdf, custom) : @pdf.PdfObject) {
+  match (pdf.lookup_obj(custom) : @pdf.PdfObject) {
     Dictionary(_) as dict => {
-      assert_true(@pdf.lookup_direct(pdf, "/BaseEncoding", dict) is None)
-      match (@pdf.lookup_direct(pdf, "/Differences", dict) : @pdf.PdfObject?) {
+      assert_true(pdf.lookup_direct("/BaseEncoding", dict) is None)
+      match (pdf.lookup_direct("/Differences", dict) : @pdf.PdfObject?) {
         Some(Array(values)) => assert_true(values.length() > 0)
         _ => fail("expected differences array")
       }
@@ -153,9 +153,9 @@ test "write_font writes type3 font with encoding" {
   let font_dict = type3_font_dict_extra(Some(fd))
   let font = ctx.read_font(font_dict)
   let objnum = ctx.write_font(font)
-  match (@pdf.lookup_obj(pdf, objnum) : @pdf.PdfObject) {
+  match (pdf.lookup_obj(objnum) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
-      match (@pdf.lookup_direct(pdf, "/Subtype", dict) : @pdf.PdfObject?) {
+      match (pdf.lookup_direct("/Subtype", dict) : @pdf.PdfObject?) {
         Some(Name("/Type3")) => ()
         _ => fail("expected Type3 subtype")
       }
@@ -178,9 +178,9 @@ test "write_font writes truetype with tounicode" {
   let font = ctx.read_font(font_dict)
   let objnum = ctx.write_font(objnum=50, font)
   assert_eq(objnum, 50)
-  match (@pdf.lookup_obj(pdf, objnum) : @pdf.PdfObject) {
+  match (pdf.lookup_obj(objnum) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
-      assert_true(@pdf.lookup_direct(pdf, "/ToUnicode", dict) is Some(_))
+      assert_true(pdf.lookup_direct("/ToUnicode", dict) is Some(_))
     _ => fail("expected truetype dictionary")
   }
 }
@@ -194,9 +194,9 @@ test "write_font writes truetype with encoding entry" {
   let font_dict = truetype_font_dict(Some(fd), "/MacRomanEncoding", None)
   let font = ctx.read_font(font_dict)
   let objnum = ctx.write_font(font)
-  match (@pdf.lookup_obj(pdf, objnum) : @pdf.PdfObject) {
+  match (pdf.lookup_obj(objnum) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
-      assert_true(@pdf.lookup_direct(pdf, "/Encoding", dict) is Some(_))
+      assert_true(pdf.lookup_direct("/Encoding", dict) is Some(_))
     _ => fail("expected truetype dictionary")
   }
 }

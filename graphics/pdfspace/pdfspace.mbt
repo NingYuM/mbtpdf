@@ -64,7 +64,7 @@ fn read_point(
   dict : @pdf.PdfObject,
   key : String,
 ) -> Point raise {
-  match (@pdf.lookup_direct(pdf, key, dict) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct(key, dict) : @pdf.PdfObject?) {
     Some(Array([a, b, c])) =>
       (@pdf.getnum(pdf, a), @pdf.getnum(pdf, b), @pdf.getnum(pdf, c))
     _ => (0.0, 0.0, 0.0)
@@ -114,7 +114,7 @@ pub fn ColourSpace::read(
   space : @pdf.PdfObject,
 ) -> ColourSpace raise {
   let direct = match (space : @pdf.PdfObject) {
-    Indirect(_) => @pdf.direct(pdf, space)
+    Indirect(_) => pdf.direct(space)
     _ => space
   }
   match (direct : @pdf.PdfObject) {
@@ -128,9 +128,9 @@ pub fn ColourSpace::read(
       )
     Array([one]) => ColourSpace::read(pdf, resources, one)
     Name(name) =>
-      match @pdf.lookup_direct(pdf, "/ColorSpace", resources) {
+      match pdf.lookup_direct("/ColorSpace", resources) {
         Some(csdict) =>
-          match @pdf.lookup_direct(pdf, name, csdict) {
+          match pdf.lookup_direct(name, csdict) {
             Some(space_obj) => ColourSpace::read(pdf, resources, space_obj)
             None => fail("Not_found")
           }
@@ -139,7 +139,7 @@ pub fn ColourSpace::read(
     Array([Name("/CalGray"), dict]) => {
       let whitepoint = read_point(pdf, dict, "/WhitePoint")
       let blackpoint = read_point(pdf, dict, "/BlackPoint")
-      let gamma = match @pdf.lookup_direct(pdf, "/Gamma", dict) {
+      let gamma = match pdf.lookup_direct("/Gamma", dict) {
         Some(n) => @pdf.getnum(pdf, n)
         None => 1.0
       }
@@ -148,14 +148,13 @@ pub fn ColourSpace::read(
     Array([Name("/CalRGB"), dict]) => {
       let whitepoint = read_point(pdf, dict, "/WhitePoint")
       let blackpoint = read_point(pdf, dict, "/BlackPoint")
-      let gamma = match
-        (@pdf.lookup_direct(pdf, "/Gamma", dict) : @pdf.PdfObject?) {
+      let gamma = match (pdf.lookup_direct("/Gamma", dict) : @pdf.PdfObject?) {
         Some(Array([a, b, c])) =>
           [@pdf.getnum(pdf, a), @pdf.getnum(pdf, b), @pdf.getnum(pdf, c)]
         _ => [1.0, 1.0, 1.0]
       }
       let matrix = match
-        (@pdf.lookup_direct(pdf, "/Matrix", dict) : @pdf.PdfObject?) {
+        (pdf.lookup_direct("/Matrix", dict) : @pdf.PdfObject?) {
         Some(Array([a, b, c, d, e, f, g, h, i])) =>
           [
             @pdf.getnum(pdf, a),
@@ -175,8 +174,7 @@ pub fn ColourSpace::read(
     Array([Name("/Lab"), dict]) => {
       let whitepoint = read_point(pdf, dict, "/WhitePoint")
       let blackpoint = read_point(pdf, dict, "/BlackPoint")
-      let range = match
-        (@pdf.lookup_direct(pdf, "/Range", dict) : @pdf.PdfObject?) {
+      let range = match (pdf.lookup_direct("/Range", dict) : @pdf.PdfObject?) {
         Some(Array([a, b, c, d])) =>
           [
             @pdf.getnum(pdf, a),
@@ -189,11 +187,10 @@ pub fn ColourSpace::read(
       ColourSpace::Lab(whitepoint, blackpoint, range)
     }
     Array([Name("/ICCBased"), stream]) =>
-      match (@pdf.direct(pdf, stream) : @pdf.PdfObject) {
+      match (pdf.direct(stream) : @pdf.PdfObject) {
         Stream(r) => {
           let (dict, _) = r.val
-          let n = match
-            (@pdf.lookup_direct(pdf, "/N", dict) : @pdf.PdfObject?) {
+          let n = match (pdf.lookup_direct("/N", dict) : @pdf.PdfObject?) {
             Some(Integer(value)) =>
               if value == 1 || value == 3 || value == 4 {
                 value
@@ -202,7 +199,7 @@ pub fn ColourSpace::read(
               }
             _ => raise @pdf.PdfError::Msg("Bad /N in ICCBased")
           }
-          let alternate = match @pdf.lookup_direct(pdf, "/Alternate", dict) {
+          let alternate = match pdf.lookup_direct("/Alternate", dict) {
             Some(cs) => ColourSpace::read(pdf, resources, cs)
             _ =>
               match n {
@@ -213,12 +210,12 @@ pub fn ColourSpace::read(
               }
           }
           let range = match
-            (@pdf.lookup_direct(pdf, "/Range", dict) : @pdf.PdfObject?) {
+            (pdf.lookup_direct("/Range", dict) : @pdf.PdfObject?) {
             Some(Array(values)) if values.length() == 2 * n =>
               values.map(v => @pdf.getnum(pdf, v))
             _ => interleave_defaults(n)
           }
-          let metadata = @pdf.lookup_direct(pdf, "/Metadata", dict)
+          let metadata = pdf.lookup_direct("/Metadata", dict)
           ColourSpace::ICCBased({
             icc_n: n,
             icc_alternate: alternate,
@@ -235,7 +232,7 @@ pub fn ColourSpace::read(
         _ => raise @pdf.PdfError::Msg("Bad /Hival")
       }
       let base_space = ColourSpace::read(pdf, resources, base)
-      let table = match (@pdf.direct(pdf, lookup_data) : @pdf.PdfObject) {
+      let table = match (pdf.direct(lookup_data) : @pdf.PdfObject) {
         Stream(_) as stream => {
           @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, stream)
           match (stream : @pdf.PdfObject) {

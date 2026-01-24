@@ -3,7 +3,7 @@ fn replace_encrypt_entry(
   pdf : @pdf.Pdf,
   updated : @pdf.PdfObject,
 ) -> Unit raise {
-  match @pdf.lookup_immediate("/Encrypt", pdf.trailerdict) {
+  match pdf.trailerdict.lookup_immediate("/Encrypt") {
     Some(Indirect(n)) => @pdf.addobj_given_num(pdf, (n, updated))
     _ => fail("expected /Encrypt indirect reference")
   }
@@ -11,9 +11,9 @@ fn replace_encrypt_entry(
 
 ///|
 fn update_perms(pdf : @pdf.Pdf, perms : String) -> Unit raise {
-  match @pdf.lookup_immediate("/Encrypt", pdf.trailerdict) {
+  match pdf.trailerdict.lookup_immediate("/Encrypt") {
     Some(Indirect(n)) => {
-      let dict = @pdf.lookup_obj(pdf, n)
+      let dict = pdf.lookup_obj(n)
       let updated = dict.add_entry("/Perms", String(perms))
       replace_encrypt_entry(pdf, updated)
     }

@@ -342,11 +342,11 @@ fn generate_object_stream_hints(
   let entries = @pdf.pdfobjmap_bindings(pdf.objects.objects)
   for pair in entries {
     let objnum = pair.0
-    let obj = @pdf.lookup_obj(pdf, objnum)
+    let obj = pdf.lookup_obj(objnum)
     match obj {
       @pdf.PdfObject::Stream(r) => {
         let (dict, _) = r.val
-        match @pdf.lookup_direct(pdf, "/Length", dict) {
+        match pdf.lookup_direct("/Length", dict) {
           Some(@pdf.PdfObject::Indirect(i)) => indirect_lengths.set(i, true)
           _ => ()
         }
@@ -366,7 +366,7 @@ fn generate_object_stream_hints(
     if encrypting && objnum == pdf.root {
       continue
     }
-    let obj = @pdf.lookup_obj(pdf, objnum)
+    let obj = pdf.lookup_obj(objnum)
     match obj {
       @pdf.PdfObject::Stream(_) => ()
       _ => candidates.push(objnum)
@@ -394,7 +394,7 @@ fn build_object_stream_groups(pdf : @pdf.Pdf) -> Array[(Int, Array[Int])] {
       pdf.objects.object_stream_ids.remove(objnum)
       continue
     }
-    let obj = @pdf.lookup_obj(pdf, objnum)
+    let obj = pdf.lookup_obj(objnum)
     match obj {
       @pdf.PdfObject::Stream(_) => {
         pdf.objects.object_stream_ids.remove(objnum)
@@ -438,7 +438,7 @@ fn bake_object_streams(
     let mut offset = 0
     let mut index = 0
     for objnum in objs {
-      let obj = @pdf.lookup_obj(pdf, objnum)
+      let obj = pdf.lookup_obj(objnum)
       let s = PdfWrite::new().string_of_pdf(obj) + " "
       object_strings.push(s)
       offsets.push(offset)
@@ -884,7 +884,7 @@ pub fn PdfWrite::pdf_to_output(
         gens[objnum] = gen
         used[objnum] = true
         (output.output_string)("\{objnum} \{gen} obj\n")
-        let obj = @pdf.lookup_obj(pdf, objnum)
+        let obj = pdf.lookup_obj(objnum)
         write_pdf_object_to_output(obj, output, true, false)
         (output.output_string)("\nendobj\n")
       }

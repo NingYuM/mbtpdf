@@ -20,8 +20,8 @@ pub fn PdfPageDoc::process_xobject(
   objnum : Int,
 ) -> Unit raise {
   let pdf = self.pdf
-  let xobj = @pdf.lookup_obj(pdf, objnum)
-  match @pdf.lookup_direct(pdf, "/Subtype", xobj) {
+  let xobj = pdf.lookup_obj(objnum)
+  match pdf.lookup_direct("/Subtype", xobj) {
     None => raise @pdf.PdfError::Msg("No /Subtype in Xobject")
     Some(@pdf.PdfObject::Name("/Form")) => {
       @pdf.getstream(xobj)
@@ -59,7 +59,7 @@ pub fn Page::process_xobjects(
   pdf : @pdf.Pdf,
   f : (@pdf.Pdf, @pdf.PdfObject, Array[@pdf.PdfObject]) -> Array[@pdf.PdfObject],
 ) -> Unit raise {
-  match @pdf.lookup_direct(pdf, "/XObject", self.resources) {
+  match pdf.lookup_direct("/XObject", self.resources) {
     Some(@pdf.PdfObject::Dictionary(elts)) =>
       for entry in elts {
         match entry.1 {
@@ -90,11 +90,11 @@ pub fn PdfPageDoc::combine_pdf_resources(
     _ => []
   }
   fn combine_entries(key : String) -> (String, @pdf.PdfObject)? {
-    let a_entries = match @pdf.lookup_direct(pdf, key, a) {
+    let a_entries = match pdf.lookup_direct(key, a) {
       Some(@pdf.PdfObject::Dictionary(d)) => d
       _ => []
     }
-    let b_entries = match @pdf.lookup_direct(pdf, key, b) {
+    let b_entries = match pdf.lookup_direct(key, b) {
       Some(@pdf.PdfObject::Dictionary(d)) => d
       _ => []
     }

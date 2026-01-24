@@ -108,13 +108,13 @@ fn int_array_of_numbers(
 
 ///|
 fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
-  let subtype : Subtype = match @pdf.lookup_direct(pdf, "/Subtype", annot) {
+  let subtype : Subtype = match pdf.lookup_direct("/Subtype", annot) {
     Some(Name("/Text")) => Text
     Some(Name("/FreeText")) => FreeText
     Some(Name("/Popup")) =>
-      match @pdf.direct(pdf, annot) {
+      match pdf.direct(annot) {
         Dictionary(d) =>
-          match @pdf.lookup_immediate("/Parent", Dictionary(d)) {
+          match @pdf.PdfObject::Dictionary(d).lookup_immediate("/Parent") {
             Some(Indirect(i)) => Popup(read_annotation(pdf, Indirect(i)))
             _ => Unknown("")
           }
@@ -145,11 +145,11 @@ fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
     Some(Name(name)) => Unknown(name)
     _ => Unknown("")
   }
-  let contents = match @pdf.lookup_direct(pdf, "/Contents", annot) {
+  let contents = match pdf.lookup_direct("/Contents", annot) {
     Some(String(s)) => Some(s)
     _ => None
   }
-  let subject = match @pdf.lookup_direct(pdf, "/Subj", annot) {
+  let subject = match pdf.lookup_direct("/Subj", annot) {
     Some(String(s)) => Some(s)
     _ => None
   }
@@ -157,13 +157,13 @@ fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
     pdf,
     @pdf.lookup_fail("No /rect in annot", pdf, "/Rect", annot),
   )
-  let border = match @pdf.lookup_direct(pdf, "/BS", annot) {
+  let border = match pdf.lookup_direct("/BS", annot) {
     Some(bsdict) => {
-      let width = match @pdf.lookup_direct(pdf, "/W", bsdict) {
+      let width = match pdf.lookup_direct("/W", bsdict) {
         Some(x) => @pdf.getnum(pdf, x)
         _ => 1.0
       }
-      let style : Style = match @pdf.lookup_direct(pdf, "/S", bsdict) {
+      let style : Style = match pdf.lookup_direct("/S", bsdict) {
         Some(Name("/S")) => Solid
         Some(Name("/D")) => Dashed
         Some(Name("/B")) => Beveled
@@ -171,14 +171,14 @@ fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
         Some(Name("/U")) => UnderlineStyle
         _ => NoStyle
       }
-      let dasharray = match @pdf.lookup_direct(pdf, "/D", bsdict) {
+      let dasharray = match pdf.lookup_direct("/D", bsdict) {
         Some(Array(dash)) => int_array_of_numbers(pdf, dash)
         _ => []
       }
       { width, vradius: 0.0, hradius: 0.0, style, dasharray }
     }
     None =>
-      match @pdf.lookup_direct(pdf, "/Border", annot) {
+      match pdf.lookup_direct("/Border", annot) {
         Some(Array([h, v, w])) =>
           {
             width: @pdf.getnum(pdf, w),
@@ -205,7 +205,7 @@ fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
           }
       }
   }
-  let colour = match @pdf.lookup_direct(pdf, "/C", annot) {
+  let colour = match pdf.lookup_direct("/C", annot) {
     Some(Array([r, g, b])) =>
       Some(
         (
@@ -216,7 +216,7 @@ fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
       )
     _ => None
   }
-  let annotrest : @pdf.PdfObject = match @pdf.direct(pdf, annot) {
+  let annotrest : @pdf.PdfObject = match pdf.direct(annot) {
     Dictionary(entries) => {
       let filtered = entries.filter(pair => match pair.0 {
         "/Subtype"
@@ -245,9 +245,9 @@ fn read_annotation(pdf : @pdf.Pdf, annot : @pdf.PdfObject) -> Annotation raise {
 
 ///|
 fn get_popup_parent(pdf : @pdf.Pdf, annotation : @pdf.PdfObject) -> Int? raise {
-  match @pdf.direct(pdf, annotation) {
+  match pdf.direct(annotation) {
     Dictionary(d) =>
-      match @pdf.lookup_immediate("/Parent", Dictionary(d)) {
+      match @pdf.PdfObject::Dictionary(d).lookup_immediate("/Parent") {
         Some(Indirect(i)) => Some(i)
         _ => None
       }
@@ -262,7 +262,7 @@ pub fn PdfAnnot::annotations_of_page(
   self : PdfAnnot,
   page : @pdfpage.Page,
 ) -> Array[Annotation] raise {
-  match @pdf.lookup_direct(self.pdf, "/Annots", page.rest) {
+  match self.pdf.lookup_direct("/Annots", page.rest) {
     Some(Array(annotations)) => {
       let popup_parents : Map[Int, Unit] = Map::new()
       for annot in annotations {
@@ -440,7 +440,7 @@ pub fn PdfAnnot::add_annotation(
   anno : Annotation,
 ) -> @pdfpage.Page raise {
   let obj = anno.to_pdf_object()
-  let new_rest = match @pdf.lookup_direct(self.pdf, "/Annots", page.rest) {
+  let new_rest = match self.pdf.lookup_direct("/Annots", page.rest) {
     Some(Array(annotations)) =>
       page.rest.add_entry("/Annots", @pdf.PdfObject::Array([obj] + annotations))
     Some(_) => raise @pdf.PdfError::Msg("Bad annotation dictionary")
@@ -560,24 +560,23 @@ pub fn PdfAnnot::transform_annotations(
   transform : @pdftransform.TransformMatrix,
   rest : @pdf.PdfObject,
 ) -> Unit raise {
-  match @pdf.lookup_direct(self.pdf, "/Annots", rest) {
+  match self.pdf.lookup_direct("/Annots", rest) {
     Some(Array(annots)) =>
       for annot in annots {
         match (annot : @pdf.PdfObject) {
           Indirect(i) => {
-            let annot_obj = @pdf.lookup_obj(self.pdf, i)
+            let annot_obj = self.pdf.lookup_obj(i)
             let rect_updated = match
-              @pdf.lookup_direct(self.pdf, "/Rect", annot_obj) {
+              self.pdf.lookup_direct("/Rect", annot_obj) {
               Some(rect) => Some(transform_rect(self.pdf, transform, rect))
               None => None
             }
             let quadpoints_updated = match
-              @pdf.lookup_direct(self.pdf, "/QuadPoints", annot_obj) {
+              self.pdf.lookup_direct("/QuadPoints", annot_obj) {
               Some(qp) => Some(transform_quadpoints(self.pdf, transform, qp))
               None => None
             }
-            let line_updated = match
-              @pdf.lookup_direct(self.pdf, "/L", annot_obj) {
+            let line_updated = match self.pdf.lookup_direct("/L", annot_obj) {
               Some(line) => Some(transform_rect(self.pdf, transform, line))
               _ => None
             }

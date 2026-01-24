@@ -16,7 +16,7 @@ test "renumber_object_parsed handles indirect and stream" {
     PdfObject::Stream(r) =>
       match r.val {
         (dict_obj, _) =>
-          match lookup_immediate("/Ref", dict_obj) {
+          match dict_obj.lookup_immediate("/Ref") {
             Some(PdfObject::Indirect(10)) => ()
             _ => fail("expected renumbered ref")
           }

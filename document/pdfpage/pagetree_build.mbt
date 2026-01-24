@@ -219,7 +219,7 @@ pub fn PdfPageDoc::add_root(
   extras : Array[(String, @pdf.PdfObject)],
 ) -> @pdf.Pdf raise {
   let pdf = self.pdf
-  let existing_entries = match @pdf.lookup_obj(pdf, pdf.root) {
+  let existing_entries = match pdf.lookup_obj(pdf.root) {
     @pdf.PdfObject::Dictionary(d) => d
     _ => []
   }

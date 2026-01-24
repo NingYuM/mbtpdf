@@ -29,15 +29,15 @@ test "write_encoding handles builtins and custom diffs" {
   let ctx = @pdftext.PdfText::new(pdf)
   let standard_encoding = ctx.read_encoding(standard_font_dict())
   let standard = ctx.write_encoding(standard_encoding)
-  match (@pdf.lookup_obj(pdf, standard) : @pdf.PdfObject) {
+  match (pdf.lookup_obj(standard) : @pdf.PdfObject) {
     Name("/StandardEncoding") => ()
     _ => fail("expected StandardEncoding name")
   }
   let custom_encoding = ctx.read_encoding(custom_encoding_font_dict())
   let custom = ctx.write_encoding(custom_encoding)
-  match (@pdf.lookup_obj(pdf, custom) : @pdf.PdfObject) {
+  match (pdf.lookup_obj(custom) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
-      match (@pdf.lookup_direct(pdf, "/Differences", dict) : @pdf.PdfObject?) {
+      match (pdf.lookup_direct("/Differences", dict) : @pdf.PdfObject?) {
         Some(Array(values)) => assert_true(values.length() >= 2)
         _ => fail("expected /Differences")
       }
@@ -65,9 +65,9 @@ test "write_font handles standard and type3 fonts" {
   let ctx = @pdftext.PdfText::new(pdf)
   let standard_font = ctx.read_font(win_ansi_font_dict())
   let standard = ctx.write_font(standard_font)
-  match (@pdf.lookup_obj(pdf, standard) : @pdf.PdfObject) {
+  match (pdf.lookup_obj(standard) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
-      match (@pdf.lookup_direct(pdf, "/BaseFont", dict) : @pdf.PdfObject?) {
+      match (pdf.lookup_direct("/BaseFont", dict) : @pdf.PdfObject?) {
         Some(Name("/Helvetica")) => ()
         _ => fail("expected /BaseFont /Helvetica")
       }
@@ -75,9 +75,9 @@ test "write_font handles standard and type3 fonts" {
   }
   let type3_font = ctx.read_font(type3_font_dict())
   let type3_num = ctx.write_font(type3_font)
-  match (@pdf.lookup_obj(pdf, type3_num) : @pdf.PdfObject) {
+  match (pdf.lookup_obj(type3_num) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
-      match (@pdf.lookup_direct(pdf, "/Subtype", dict) : @pdf.PdfObject?) {
+      match (pdf.lookup_direct("/Subtype", dict) : @pdf.PdfObject?) {
         Some(Name("/Type3")) => ()
         _ => fail("expected /Subtype /Type3")
       }

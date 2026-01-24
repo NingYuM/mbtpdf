@@ -398,11 +398,11 @@ test "write_colourspace ICCBased preserves length and skips bad range" {
   let obj = ColourSpace::ICCBased(icc).to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
     Array([Name("/ICCBased"), Indirect(n)]) =>
-      match (@pdf.lookup_obj(pdf, n) : @pdf.PdfObject) {
+      match (pdf.lookup_obj(n) : @pdf.PdfObject) {
         Stream(r) => {
           let (dict_obj, _) = r.val
-          assert_true(@pdf.lookup_direct(pdf, "/Length", dict_obj) is Some(_))
-          assert_true(@pdf.lookup_direct(pdf, "/Range", dict_obj) is None)
+          assert_true(pdf.lookup_direct("/Length", dict_obj) is Some(_))
+          assert_true(pdf.lookup_direct("/Range", dict_obj) is None)
         }
         _ => fail("expected ICCBased stream")
       }
@@ -615,7 +615,7 @@ test "read_colourspace DeviceN attributes and name validation" {
     DeviceN(names, _, _, attr_dict) => {
       assert_eq(names.length(), 1)
       assert_eq(names[0], "/Cyan")
-      match @pdf.lookup_direct(pdf, "/Subtype", attr_dict) {
+      match pdf.lookup_direct("/Subtype", attr_dict) {
         Some(Name("/DeviceN")) => ()
         _ => fail("expected DeviceN subtype")
       }
@@ -654,11 +654,11 @@ test "write_colourspace writes ICCBased metadata and range" {
   let obj = ColourSpace::ICCBased(icc).to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
     Array([Name("/ICCBased"), Indirect(n)]) =>
-      match (@pdf.lookup_obj(pdf, n) : @pdf.PdfObject) {
+      match (pdf.lookup_obj(n) : @pdf.PdfObject) {
         Stream(r) => {
           let (dict, _) = r.val
-          assert_true(@pdf.lookup_direct(pdf, "/Metadata", dict) is Some(_))
-          match @pdf.lookup_direct(pdf, "/Range", dict) {
+          assert_true(pdf.lookup_direct("/Metadata", dict) is Some(_))
+          match pdf.lookup_direct("/Range", dict) {
             Some(Array(values)) => assert_eq(values.length(), 6)
             _ => fail("expected /Range entry")
           }

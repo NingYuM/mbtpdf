@@ -92,7 +92,7 @@ Base utilities used across most packages:
     ```mbt
     let pdf = @pdf.empty()
     let objnum = @pdf.addobj(pdf, @pdf.PdfObject::Integer(42))
-    let _ = @pdf.lookup_obj(pdf, objnum)
+    let _ = pdf.lookup_obj(objnum)
     ```
 
 ## Parsing and Reading

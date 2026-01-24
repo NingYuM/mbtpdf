@@ -86,16 +86,15 @@ test "pdf_of_pages builds pagetree for many pages" {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
   ])
   let root = @pdf.catalog_of_pdf(subset)
-  let pages = match @pdf.lookup_direct(subset, "/Pages", root) {
+  let pages = match subset.lookup_direct("/Pages", root) {
     Some(obj) => obj
     None => fail("expected /Pages")
   }
-  match (@pdf.lookup_direct(subset, "/Type", pages) : @pdf.PdfObject?) {
+  match (subset.lookup_direct("/Type", pages) : @pdf.PdfObject?) {
     Some(Name("/Pages")) => ()
     _ => fail("expected /Type /Pages")
   }
-  let count = match
-    (@pdf.lookup_direct(subset, "/Count", pages) : @pdf.PdfObject?) {
+  let count = match (subset.lookup_direct("/Count", pages) : @pdf.PdfObject?) {
     Some(Integer(n)) => n
     _ => fail("expected /Count")
   }
@@ -147,7 +146,7 @@ test "pdf_of_pages trims structure tree" {
     process_struct_tree=true,
   )
   let root2 = @pdf.catalog_of_pdf(subset)
-  match @pdf.lookup_direct(subset, "/StructTreeRoot", root2) {
+  match subset.lookup_direct("/StructTreeRoot", root2) {
     Some(_) => ()
     None => fail("expected StructTreeRoot to remain")
   }

@@ -281,8 +281,7 @@ fn read_xref_stream(
   }
   @pdfcodec.PdfCodec::new().decode_pdfstream(@pdf.Pdf::empty(), stream_obj)
   @pdf.getstream(stream_obj)
-  let (w1, w2, w3) = match
-    @pdf.lookup_direct(@pdf.Pdf::empty(), "/W", stream_obj) {
+  let (w1, w2, w3) = match @pdf.Pdf::empty().lookup_direct("/W", stream_obj) {
     Some(@pdf.PdfObject::Array(elts)) => {
       if elts.length() != 3 {
         raise err
@@ -315,7 +314,7 @@ fn read_xref_stream(
     _ => ()
   }
   let starts_and_lens = match
-    @pdf.lookup_direct(@pdf.Pdf::empty(), "/Index", stream_obj) {
+    @pdf.Pdf::empty().lookup_direct("/Index", stream_obj) {
     Some(@pdf.PdfObject::Array(elts)) => {
       if elts.length() % 2 != 0 {
         raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Bad /Index"))
@@ -338,8 +337,7 @@ fn read_xref_stream(
     Some(_) =>
       raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Unknown /Index"))
     None => {
-      let size = match
-        @pdf.lookup_direct(@pdf.Pdf::empty(), "/Size", stream_obj) {
+      let size = match @pdf.Pdf::empty().lookup_direct("/Size", stream_obj) {
         Some(@pdf.PdfObject::Integer(s)) => s
         _ =>
           raise @pdf.PdfError::Msg(
@@ -428,11 +426,11 @@ fn parse_object_stream(
     @pdf.PdfObject::Stream(r) => r.val
     _ => raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Bad objstm"))
   }
-  let n = match @pdf.lookup_direct(@pdf.Pdf::empty(), "/N", dict) {
+  let n = match @pdf.Pdf::empty().lookup_direct("/N", dict) {
     Some(@pdf.PdfObject::Integer(v)) => v
     _ => raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "malformed /N"))
   }
-  let first = match @pdf.lookup_direct(@pdf.Pdf::empty(), "/First", dict) {
+  let first = match @pdf.Pdf::empty().lookup_direct("/First", dict) {
     Some(@pdf.PdfObject::Integer(v)) => v
     _ =>
       raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "malformed /First"))

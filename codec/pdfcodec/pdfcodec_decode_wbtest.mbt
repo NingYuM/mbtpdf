@@ -196,8 +196,8 @@ test "decode_pdfstream_onestage handles /F and /DP keys" {
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
   decode_ctx.decode_pdfstream_onestage(pdf, stream_obj)
   let (updated_dict, _) = stream_ref.val
-  assert_true(@pdf.lookup_direct(pdf, "/F", updated_dict) is None)
-  match (@pdf.lookup_direct(pdf, "/DP", updated_dict) : @pdf.PdfObject?) {
+  assert_true(pdf.lookup_direct("/F", updated_dict) is None)
+  match (pdf.lookup_direct("/DP", updated_dict) : @pdf.PdfObject?) {
     Some(Array(values)) => assert_eq(values.length(), 1)
     _ => fail("expected trimmed /DP array")
   }
@@ -216,12 +216,11 @@ test "decode_pdfstream_onestage trims filter and decode parms arrays" {
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
   decode_ctx.decode_pdfstream_onestage(pdf, stream_obj)
   let (updated_dict, _) = stream_ref.val
-  match (@pdf.lookup_direct(pdf, "/Filter", updated_dict) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/Filter", updated_dict) : @pdf.PdfObject?) {
     Some(Array(filters)) => assert_eq(filters.length(), 1)
     _ => fail("expected updated filter array")
   }
-  match
-    (@pdf.lookup_direct(pdf, "/DecodeParms", updated_dict) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/DecodeParms", updated_dict) : @pdf.PdfObject?) {
     Some(Array(parms)) => assert_eq(parms.length(), 1)
     _ => fail("expected updated decode parms array")
   }
@@ -239,7 +238,7 @@ test "decode_pdfstream_onestage handles Crypt filter" {
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
   decode_ctx.decode_pdfstream_onestage(pdf, stream_obj)
   let (updated_dict, stream_data) = stream_ref.val
-  assert_true(@pdf.lookup_direct(pdf, "/Filter", updated_dict) is None)
+  assert_true(pdf.lookup_direct("/Filter", updated_dict) is None)
   match stream_data {
     @pdf.Stream::Got(bytes) => assert_eq(@pdfio.string_of_bytes(bytes), "plain")
     _ => fail("expected got bytes")

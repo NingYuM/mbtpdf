@@ -19,7 +19,7 @@ fn make_changes(
     pageseq : Int,
     page : Page,
   ) -> Array[(String, Int, String, String)] {
-    let entries = match @pdf.lookup_direct(pdf, entry, page.resources) {
+    let entries = match pdf.lookup_direct(entry, page.resources) {
       Some(@pdf.PdfObject::Dictionary(es)) => es
       _ => []
     }
@@ -78,7 +78,7 @@ fn change_operator(
       }
     InlineImage((dict, dp, bytes)) => {
       let dict_updated = match
-        @pdf.lookup_direct_orelse(pdf, "/CS", "/ColorSpace", dict) {
+        pdf.lookup_direct_orelse("/CS", "/ColorSpace", dict) {
         Some(@pdf.PdfObject::Name("/DeviceGray"))
         | Some(@pdf.PdfObject::Name("/DeviceRGB"))
         | Some(@pdf.PdfObject::Name("/DeviceCMYK"))
@@ -140,7 +140,7 @@ pub fn PdfPageDoc::renumber_pages(
     resources : @pdf.PdfObject,
   ) -> @pdf.PdfObject raise {
     fn newdict(name : String) -> @pdf.PdfObject raise {
-      match @pdf.lookup_direct(pdf, name, resources) {
+      match pdf.lookup_direct(name, resources) {
         Some(@pdf.PdfObject::Dictionary(entries)) =>
           @pdf.PdfObject::Dictionary(
             entries.map(pair => (lookup(name, seqnum, pair.0), pair.1)),

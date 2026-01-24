@@ -1,7 +1,6 @@
 ///|
 fn isimage(pdf : @pdf.Pdf, xobj : @pdf.PdfObject) -> Bool {
-  @pdf.lookup_direct(pdf, "/Subtype", xobj)
-  is Some(@pdf.PdfObject::Name("/Image"))
+  pdf.lookup_direct("/Subtype", xobj) is Some(@pdf.PdfObject::Name("/Image"))
 }
 
 ///|
@@ -12,7 +11,7 @@ fn xobject_isimage(
 ) -> Bool raise {
   match resources {
     Dictionary(_) =>
-      match @pdf.lookup_direct(pdf, "/XObject", resources) {
+      match pdf.lookup_direct("/XObject", resources) {
         Some(xobjects) => {
           let xobj = @pdf.lookup_fail("xobject not there", pdf, name, xobjects)
           isimage(pdf, xobj)
@@ -30,7 +29,7 @@ fn remove_image_xobjects(
 ) -> @pdf.PdfObject raise {
   match resources {
     Dictionary(_) =>
-      match @pdf.lookup_direct(pdf, "/XObject", resources) {
+      match pdf.lookup_direct("/XObject", resources) {
         Some(Dictionary(xobjects)) => {
           let out = Array::new(capacity=xobjects.length())
           for entry in xobjects {

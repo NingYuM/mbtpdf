@@ -206,7 +206,7 @@ pub fn PdfPageDoc::pdf_of_pages(
   if process_struct_tree {
     @pdfst.PdfStructTree::new(pdf).trim_structure_tree(range)
   }
-  let existing_root_entries = match @pdf.lookup_obj(basepdf, basepdf.root) {
+  let existing_root_entries = match basepdf.lookup_obj(basepdf.root) {
     @pdf.PdfObject::Dictionary(d) => d
     _ => []
   }
@@ -215,9 +215,9 @@ pub fn PdfPageDoc::pdf_of_pages(
     objnumbers.push(select_page_ref(page_numbers, page))
   }
   let old_pagetree_root_num = match
-    @pdf.lookup_direct(basepdf, "/Root", pdf.trailerdict) {
+    basepdf.lookup_direct("/Root", pdf.trailerdict) {
     Some(root) =>
-      match @pdf.indirect_number(basepdf, "/Pages", root) {
+      match basepdf.indirect_number("/Pages", root) {
         Some(i) => i
         None => raise @pdf.PdfError::Msg("pdf_of_pages")
       }
@@ -235,7 +235,7 @@ pub fn PdfPageDoc::pdf_of_pages(
   @pdf.objiter(
     (i, o) => match o {
       @pdf.PdfObject::Dictionary(_) =>
-        match @pdf.lookup_direct(pdf, "/Type", o) {
+        match pdf.lookup_direct("/Type", o) {
           Some(@pdf.PdfObject::Name("/Pages")) => @pdf.removeobj(pdf, i)
           Some(@pdf.PdfObject::Name("/Page")) =>
             if objnumbers_set.get(i) is None {

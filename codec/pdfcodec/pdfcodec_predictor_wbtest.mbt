@@ -26,7 +26,7 @@ fn assert_decode_parms(
   colors : Int,
   bpc : Int,
 ) -> Unit raise {
-  match @pdf.lookup_direct(pdf, "/DecodeParms", dict) {
+  match pdf.lookup_direct("/DecodeParms", dict) {
     Some(@pdf.PdfObject::Dictionary(entries)) => {
       let got_pred = lookup_int_entry(entries, "/Predictor")
       let got_cols = lookup_int_entry(entries, "/Columns")

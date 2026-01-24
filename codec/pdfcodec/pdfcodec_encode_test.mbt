@@ -16,14 +16,14 @@ test "encode/decode flate stream" {
     Got(bytes) => bytes
     _ => fail("expected encoded stream bytes")
   }
-  match (@pdf.lookup_direct(pdf, "/Filter", encoded_dict) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/Filter", encoded_dict) : @pdf.PdfObject?) {
     Some(Name(name)) | Some(Array([Name(name), ..])) =>
       if name != "/FlateDecode" {
         fail("expected /FlateDecode filter")
       }
     _ => fail("expected /Filter entry")
   }
-  match (@pdf.lookup_direct(pdf, "/Length", encoded_dict) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/Length", encoded_dict) : @pdf.PdfObject?) {
     Some(Integer(len)) => assert_eq(len, @pdfio.bytes_size(encoded_bytes))
     _ => fail("expected /Length entry")
   }
@@ -37,11 +37,11 @@ test "encode/decode flate stream" {
     @pdfio.string_of_bytes(decoded_bytes),
     @pdfio.string_of_bytes(original),
   )
-  match @pdf.lookup_immediate("/Filter", decoded_dict) {
+  match decoded_dict.lookup_immediate("/Filter") {
     None => ()
     _ => fail("expected /Filter removed after decode")
   }
-  match (@pdf.lookup_direct(pdf, "/Length", decoded_dict) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/Length", decoded_dict) : @pdf.PdfObject?) {
     Some(Integer(len)) => assert_eq(len, @pdfio.bytes_size(original))
     _ => fail("expected /Length entry")
   }
@@ -105,8 +105,7 @@ test "encode_pdfstream prepends filter when name already set" {
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
   ctx.encode_pdfstream(pdf, Encoding::Flate, stream_obj)
-  match
-    (@pdf.lookup_direct(pdf, "/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
     Some(Array(filters)) => {
       assert_true(filters.length() >= 2)
       match (filters[0] : @pdf.PdfObject) {
@@ -129,8 +128,7 @@ test "encode_pdfstream prepends filter when array already set" {
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
   ctx.encode_pdfstream(pdf, Encoding::Flate, stream_obj)
-  match
-    (@pdf.lookup_direct(pdf, "/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
     Some(Array(filters)) =>
       match (filters[0] : @pdf.PdfObject) {
         Name("/FlateDecode") => ()
@@ -150,7 +148,7 @@ test "encode_pdfstream keeps data when only_if_smaller" {
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
   ctx.encode_pdfstream(pdf, Encoding::Flate, stream_obj, only_if_smaller=true)
-  match @pdf.lookup_direct(pdf, "/Filter", stream_ref.val.0) {
+  match pdf.lookup_direct("/Filter", stream_ref.val.0) {
     None => ()
     _ => fail("expected no /Filter when not smaller")
   }
@@ -161,7 +159,7 @@ test "decode_pdfstream handles filter arrays" {
   let pdf = @pdf.Pdf::empty()
   let old = @pdfcodec.string_of_pdf.val
   @pdfcodec.string_of_pdf.val = obj => match
-    (@pdf.lookup_direct(@pdf.Pdf::empty(), "/Filter", obj) : @pdf.PdfObject?) {
+    (@pdf.Pdf::empty().lookup_direct("/Filter", obj) : @pdf.PdfObject?) {
     Some(Array(filters)) => "\{filters.length()}"
     Some(Name(name)) => name
     None => ""
@@ -192,7 +190,7 @@ test "decode_pdfstream handles filter arrays" {
   match (stream_ref.val : (@pdf.PdfObject, @pdf.Stream)) {
     (decoded_dict, Got(bytes)) => {
       assert_eq(@pdfio.string_of_bytes(bytes), "decode chain")
-      match @pdf.lookup_immediate("/Filter", decoded_dict) {
+      match decoded_dict.lookup_immediate("/Filter") {
         None => ()
         _ => fail("expected /Filter removed")
       }

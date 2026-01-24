@@ -952,8 +952,7 @@ pub fn PdfCodec::encode_pdfstream(
     Encoding::CCITT(_, _) | Encoding::CCITTG4(_, _) => "/CCITTFaxDecode"
   }
   fn update_filter(dict : @pdf.PdfObject) -> @pdf.PdfObject raise CodecError {
-    let filter_obj : @pdf.PdfObject = match
-      @pdf.lookup_direct(pdf, "/Filter", dict) {
+    let filter_obj : @pdf.PdfObject = match pdf.lookup_direct("/Filter", dict) {
       None => Name(encoding_name)
       Some(Name(name)) =>
         Array([@pdf.PdfObject::Name(encoding_name), @pdf.PdfObject::Name(name)])
@@ -1044,7 +1043,7 @@ pub fn PdfCodec::encode_pdfstream(
       self.encode_pdfstream(
         pdf,
         encoding,
-        @pdf.direct(pdf, Indirect(i)),
+        pdf.direct(Indirect(i)),
         im?,
         only_if_smaller~,
         predictor?,
@@ -1070,7 +1069,7 @@ pub fn PdfCodec::decode_pdfstream(
     match (obj : @pdf.PdfObject) {
       Stream(r) => {
         let (dict, _stream) = r.val
-        let filter_opt = @pdf.lookup_direct_orelse(pdf, "/Filter", "/F", dict)
+        let filter_opt = pdf.lookup_direct_orelse("/Filter", "/F", dict)
         match filter_opt {
           None => ()
           Some(Name(_)) | Some(Array(_)) => {
@@ -1085,7 +1084,7 @@ pub fn PdfCodec::decode_pdfstream(
           Some(_) => raise CodecError::CouldntDecodeStream("malformed /Filter")
         }
       }
-      Indirect(i) => decode_one_stage(pdf, @pdf.direct(pdf, Indirect(i)))
+      Indirect(i) => decode_one_stage(pdf, pdf.direct(Indirect(i)))
       _ => raise CodecError::CouldntDecodeStream("malformed stream")
     }
   }
@@ -1105,22 +1104,19 @@ pub fn PdfCodec::decode_pdfstream_onestage(
   match (obj : @pdf.PdfObject) {
     Stream(r) => {
       let (dict, _stream) = r.val
-      let (filter_key, filter_opt) = match
-        @pdf.lookup_immediate("/Filter", dict) {
-        Some(_) => ("/Filter", @pdf.lookup_direct(pdf, "/Filter", dict))
+      let (filter_key, filter_opt) = match dict.lookup_immediate("/Filter") {
+        Some(_) => ("/Filter", pdf.lookup_direct("/Filter", dict))
         None =>
-          match @pdf.lookup_immediate("/F", dict) {
-            Some(_) => ("/F", @pdf.lookup_direct(pdf, "/F", dict))
+          match dict.lookup_immediate("/F") {
+            Some(_) => ("/F", pdf.lookup_direct("/F", dict))
             None => ("/Filter", None)
           }
       }
-      let (parms_key, parms) = match
-        @pdf.lookup_immediate("/DecodeParms", dict) {
-        Some(_) =>
-          ("/DecodeParms", @pdf.lookup_direct(pdf, "/DecodeParms", dict))
+      let (parms_key, parms) = match dict.lookup_immediate("/DecodeParms") {
+        Some(_) => ("/DecodeParms", pdf.lookup_direct("/DecodeParms", dict))
         None =>
-          match @pdf.lookup_immediate("/DP", dict) {
-            Some(_) => ("/DP", @pdf.lookup_direct(pdf, "/DP", dict))
+          match dict.lookup_immediate("/DP") {
+            Some(_) => ("/DP", pdf.lookup_direct("/DP", dict))
             None => ("/DecodeParms", None)
           }
       }
@@ -1297,8 +1293,8 @@ pub fn PdfCodec::decode_from_bytes(
   dict : @pdf.PdfObject,
 ) -> @pdfio.MutableBytes? {
   let pdf = @pdf.Pdf::empty()
-  let filter_opt = @pdf.lookup_direct_orelse(pdf, "/F", "/Filter", dict)
-  let parms_opt = @pdf.lookup_direct_orelse(pdf, "/DP", "/DecodeParms", dict)
+  let filter_opt = pdf.lookup_direct_orelse("/F", "/Filter", dict)
+  let parms_opt = pdf.lookup_direct_orelse("/DP", "/DecodeParms", dict)
   fn parms_at(index : Int) -> @pdf.PdfObject? {
     match parms_opt {
       Some(Array(arr)) =>
@@ -1623,7 +1619,7 @@ fn set_dict_entry(
   key : String,
   value : @pdf.PdfObject,
 ) -> @pdf.PdfObject raise CodecError {
-  match @pdf.lookup_immediate(key, dict) {
+  match dict.lookup_immediate(key) {
     Some(_) =>
       map_pdf_error("replace dict entry", fn() raise {
         dict.replace_entry(key, value)
@@ -1642,7 +1638,7 @@ fn get_int_param(
 ) -> Int {
   match parms {
     Some(obj) =>
-      match @pdf.lookup_direct(pdf, key, obj) {
+      match pdf.lookup_direct(key, obj) {
         Some(Integer(i)) => i
         Some(Real(r)) => r.to_int()
         _ => default_value
@@ -1660,7 +1656,7 @@ fn get_bool_param(
 ) -> Bool {
   match parms {
     Some(obj) =>
-      match @pdf.lookup_direct(pdf, key, obj) {
+      match pdf.lookup_direct(key, obj) {
         Some(Boolean(b)) => b
         _ => default_value
       }

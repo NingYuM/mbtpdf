@@ -90,7 +90,7 @@ test "encode_pdfstream ccitt g3 roundtrip" {
   let stream_obj = @pdf.PdfObject::Stream(stream_ref)
   ccitt_ctx.encode_pdfstream(pdf, Encoding::CCITT(columns, rows), stream_obj)
   let (encoded_dict, _encoded_stream) = stream_ref.val
-  match @pdf.lookup_direct(pdf, "/Filter", encoded_dict) {
+  match pdf.lookup_direct("/Filter", encoded_dict) {
     Some(@pdf.PdfObject::Name(name))
     | Some(@pdf.PdfObject::Array([@pdf.PdfObject::Name(name), ..])) =>
       if name != "/CCITTFaxDecode" {
@@ -127,7 +127,7 @@ test "encode_pdfstream ccitt g4 roundtrip" {
   let stream_obj = @pdf.PdfObject::Stream(stream_ref)
   ccitt_ctx.encode_pdfstream(pdf, Encoding::CCITTG4(columns, rows), stream_obj)
   let (encoded_dict, _encoded_stream) = stream_ref.val
-  match @pdf.lookup_direct(pdf, "/Filter", encoded_dict) {
+  match pdf.lookup_direct("/Filter", encoded_dict) {
     Some(@pdf.PdfObject::Name(name))
     | Some(@pdf.PdfObject::Array([@pdf.PdfObject::Name(name), ..])) =>
       if name != "/CCITTFaxDecode" {

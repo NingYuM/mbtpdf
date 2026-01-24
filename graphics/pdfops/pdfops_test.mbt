@@ -17,9 +17,7 @@ test "stream_of_ops builds a stream" {
     Stream(r) => {
       let (dict, contents) = r.val
       match
-        (
-          @pdf.lookup_direct(@pdf.Pdf::empty(), "/Length", dict) :
-          @pdf.PdfObject?) {
+        (@pdf.Pdf::empty().lookup_direct("/Length", dict) : @pdf.PdfObject?) {
         Some(Integer(length)) => assert_true(length > 0)
         _ => fail("expected /Length")
       }

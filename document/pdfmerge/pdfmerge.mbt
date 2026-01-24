@@ -197,8 +197,8 @@ fn add_entry(
 ///|
 fn stream_compare(pdf : @pdf.Pdf, x : Int, y : Int) -> Int {
   try {
-    let xobj = @pdf.lookup_obj(pdf, x)
-    let yobj = @pdf.lookup_obj(pdf, y)
+    let xobj = pdf.lookup_obj(x)
+    let yobj = pdf.lookup_obj(y)
     @pdf.getstream(xobj)
     @pdf.getstream(yobj)
     match (xobj, yobj) {
@@ -278,7 +278,7 @@ fn new_dests(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int? raise {
   let dests = Array::new()
   for src in pdfs {
     let catalog = @pdf.catalog_of_pdf(src)
-    match @pdf.lookup_direct(src, "/Dests", catalog) {
+    match src.lookup_direct("/Dests", catalog) {
       Some(@pdf.PdfObject::Dictionary(d)) => dests.push(d)
       _ => ()
     }
@@ -335,9 +335,9 @@ fn merge_namedicts(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int raise {
     let trees_for_name = Array::new()
     for src in pdfs {
       let catalog = @pdf.catalog_of_pdf(src)
-      match @pdf.lookup_direct(src, "/Names", catalog) {
+      match src.lookup_direct("/Names", catalog) {
         Some(dict) =>
-          match @pdf.lookup_direct(src, name, dict) {
+          match src.lookup_direct(name, dict) {
             Some(tree) => trees_for_name.push(tree)
             None => ()
           }
@@ -370,13 +370,13 @@ fn merge_bookmarks(
     let tree_ctx = @pdftree.PdfTree::new(pdf)
     let dest_nametree = {
       let catalog = @pdf.catalog_of_pdf(pdf)
-      let oldstyle = match @pdf.lookup_direct(pdf, "/Dests", catalog) {
+      let oldstyle = match pdf.lookup_direct("/Dests", catalog) {
         Some(d) => tree_ctx.read_name_tree(d)
         _ => []
       }
-      let newstyle = match @pdf.lookup_direct(pdf, "/Names", catalog) {
+      let newstyle = match pdf.lookup_direct("/Names", catalog) {
         Some(d) =>
-          match @pdf.lookup_direct(pdf, "/Dests", d) {
+          match pdf.lookup_direct("/Dests", d) {
             Some(d2) => tree_ctx.read_name_tree(d2)
             _ => []
           }
@@ -399,7 +399,7 @@ fn merge_bookmarks(
           NamedDestination(s) | StringDestination(s) =>
             match lookup(s, dest_nametree) {
               Some(dest) =>
-                match @pdf.lookup_direct(pdf, "/D", dest) {
+                match pdf.lookup_direct("/D", dest) {
                   Some(dest_obj) => {
                     let r = pageobjectnumber_of_target(
                       @pdfdest.Destination::read(pdf, dest_obj),
@@ -414,13 +414,13 @@ fn merge_bookmarks(
               None => 0
             }
           Action(a) =>
-            match @pdf.lookup_direct(pdf, "/S", a) {
+            match pdf.lookup_direct("/S", a) {
               Some(@pdf.PdfObject::Name("/GoTo")) =>
-                match @pdf.lookup_direct(pdf, "/D", a) {
+                match pdf.lookup_direct("/D", a) {
                   Some(@pdf.PdfObject::String(s)) =>
                     match lookup(s, dest_nametree) {
                       Some(dest) =>
-                        match @pdf.lookup_direct(pdf, "/D", dest) {
+                        match pdf.lookup_direct("/D", dest) {
                           Some(dest_obj) => {
                             let r = pageobjectnumber_of_target(
                               @pdfdest.Destination::read(pdf, dest_obj),
@@ -619,7 +619,7 @@ fn apply_namechanges_to_destination_nametree(
             @pdf.PdfObject::Indirect(i) =>
               @pdf.addobj_given_num(
                 pdf,
-                (i, rewrite(@pdf.direct(pdf, @pdf.PdfObject::Indirect(i)))),
+                (i, rewrite(pdf.direct(@pdf.PdfObject::Indirect(i)))),
               )
             _ => ()
           }
@@ -630,7 +630,7 @@ fn apply_namechanges_to_destination_nametree(
   }
 
   let catalog = @pdf.catalog_of_pdf(pdf)
-  match @pdf.lookup_direct(pdf, "/Names", catalog) {
+  match pdf.lookup_direct("/Names", catalog) {
     Some(@pdf.PdfObject::Dictionary(d)) =>
       match lookup("/Dests", d) {
         Some(@pdf.PdfObject::Dictionary(dest_dict)) => {
@@ -641,7 +641,7 @@ fn apply_namechanges_to_destination_nametree(
         Some(@pdf.PdfObject::Indirect(i)) =>
           @pdf.addobj_given_num(
             pdf,
-            (i, rewrite(@pdf.direct(pdf, @pdf.PdfObject::Indirect(i)))),
+            (i, rewrite(pdf.direct(@pdf.PdfObject::Indirect(i)))),
           )
         _ => ()
       }
@@ -727,9 +727,9 @@ fn merge_pdfs_rename_name_trees(
   let unique_pdfs = groups.map(group => group[0].1)
   let pdfs_and_nametrees = unique_pdfs.map(pdf => {
     let catalog = @pdf.catalog_of_pdf(pdf)
-    match @pdf.lookup_direct(pdf, "/Names", catalog) {
+    match pdf.lookup_direct("/Names", catalog) {
       Some(d) =>
-        match @pdf.lookup_direct(pdf, "/Dests", d) {
+        match pdf.lookup_direct("/Dests", d) {
           Some(@pdf.PdfObject::Dictionary(dict)) =>
             (pdf, Some(@pdf.PdfObject::Dictionary(dict)))
           _ => (pdf, None)
@@ -809,7 +809,7 @@ fn merge_entries(
 ) -> Array[@pdf.PdfObject] {
   let out = Array::new()
   for dict in dicts {
-    match @pdf.lookup_direct(pdf, name, dict) {
+    match pdf.lookup_direct(name, dict) {
       Some(@pdf.PdfObject::Array(arr)) => out.append(arr[:])
       _ => ()
     }
@@ -825,7 +825,7 @@ fn merge_default_dictionaries(
   fn merge_empty_is_none(name : String) -> Array[(String, @pdf.PdfObject)] {
     let arrays = Array::new()
     for dict in dicts {
-      match @pdf.lookup_direct(pdf, name, dict) {
+      match pdf.lookup_direct(name, dict) {
         Some(@pdf.PdfObject::Array(arr)) => arrays.push(arr)
         _ => ()
       }
@@ -848,7 +848,7 @@ fn merge_default_dictionaries(
   for key in keys {
     let mut found = None
     for dict in dicts {
-      match @pdf.lookup_direct(pdf, key, dict) {
+      match pdf.lookup_direct(key, dict) {
         Some(obj) => {
           found = Some(obj)
           break
@@ -877,7 +877,7 @@ fn merge_optional_content_groups(
 ) -> Int? raise {
   let ocp_dicts = Array::new()
   for src in pdfs {
-    match @pdf.lookup_direct(src, "/OCProperties", @pdf.catalog_of_pdf(src)) {
+    match src.lookup_direct("/OCProperties", @pdf.catalog_of_pdf(src)) {
       Some(obj) => ocp_dicts.push(obj)
       None => ()
     }
@@ -889,7 +889,7 @@ fn merge_optional_content_groups(
   let merged_config_arrays = merge_entries(pdf, "/Configs", ocp_dicts)
   let default_dicts = Array::new()
   for dict in ocp_dicts {
-    match @pdf.lookup_direct(pdf, "/D", dict) {
+    match pdf.lookup_direct("/D", dict) {
       Some(obj) => default_dicts.push(obj)
       None => ()
     }
@@ -909,7 +909,7 @@ fn merge_optional_content_groups(
 fn merge_acroforms(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int? raise {
   let form_dicts = Array::new()
   for src in pdfs {
-    match @pdf.lookup_direct(src, "/AcroForm", @pdf.catalog_of_pdf(src)) {
+    match src.lookup_direct("/AcroForm", @pdf.catalog_of_pdf(src)) {
       Some(obj) => form_dicts.push(obj)
       None => ()
     }
@@ -919,7 +919,7 @@ fn merge_acroforms(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int? raise {
   }
   let merged_field_arrays = Array::new()
   for dict in form_dicts {
-    match @pdf.lookup_direct(pdf, "/Fields", dict) {
+    match pdf.lookup_direct("/Fields", dict) {
       Some(@pdf.PdfObject::Array(arr)) => merged_field_arrays.append(arr[:])
       _ => ()
     }
@@ -1091,7 +1091,7 @@ pub fn PdfMerger::merge_pdfs(
     }
   }
   let extra_catalog_entries = remove_entry(extra_catalog_entries, "/OpenAction")
-  match @pdf.lookup_direct(pdfs[0], "/Info", pdfs[0].trailerdict) {
+  match pdfs[0].lookup_direct("/Info", pdfs[0].trailerdict) {
     None => ()
     Some(info) =>
       pdf.trailerdict = @pdf.PdfObject::Dictionary([

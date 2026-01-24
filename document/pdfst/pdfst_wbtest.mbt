@@ -28,11 +28,11 @@ fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
 fn install_struct_root(pdf : @pdf.Pdf, root : @pdf.PdfObject) -> Int raise {
   let root_num = @pdf.addobj(pdf, root)
   let catalog_num = match
-    (@pdf.lookup_immediate("/Root", pdf.trailerdict) : @pdf.PdfObject?) {
+    (pdf.trailerdict.lookup_immediate("/Root") : @pdf.PdfObject?) {
     Some(Indirect(i)) => i
     _ => raise @pdf.PdfError::Msg("missing root")
   }
-  let catalog = @pdf.lookup_obj(pdf, catalog_num)
+  let catalog = pdf.lookup_obj(catalog_num)
   let updated = catalog.add_entry("/StructTreeRoot", Indirect(root_num))
   @pdf.addobj_given_num(pdf, (catalog_num, updated))
   root_num
@@ -50,11 +50,11 @@ fn add_struct_tree(pdf : @pdf.Pdf) -> (Int, Int) raise {
   ])
   let root_num = @pdf.addobj(pdf, root)
   let catalog_num = match
-    (@pdf.lookup_immediate("/Root", pdf.trailerdict) : @pdf.PdfObject?) {
+    (pdf.trailerdict.lookup_immediate("/Root") : @pdf.PdfObject?) {
     Some(Indirect(i)) => i
     _ => raise @pdf.PdfError::Msg("missing root")
   }
-  let catalog = @pdf.lookup_obj(pdf, catalog_num)
+  let catalog = pdf.lookup_obj(catalog_num)
   let updated = catalog.add_entry("/StructTreeRoot", Indirect(root_num))
   @pdf.addobj_given_num(pdf, (catalog_num, updated))
   (root_num, struct2_num)
@@ -71,8 +71,8 @@ test "trim_structure_tree removes entries" {
   PdfStructTree::new(pdf).trim_structure_tree([1])
   endpage.val = previous
   assert_true(!pdf.objnumbers().contains(removed_num))
-  let root = @pdf.lookup_obj(pdf, root_num)
-  match (@pdf.lookup_immediate("/K", root) : @pdf.PdfObject?) {
+  let root = pdf.lookup_obj(root_num)
+  match (root.lookup_immediate("/K") : @pdf.PdfObject?) {
     Some(Array(items)) => assert_eq(items.length(), 1)
     Some(Indirect(_)) => ()
     _ => fail("expected updated /K")
@@ -135,13 +135,13 @@ test "trim_structure_tree updates nested k arrays" {
   PdfStructTree::new(pdf).trim_structure_tree([1])
   endpage.val = previous
   assert_true(!pdf.objnumbers().contains(parent_remove))
-  let root = @pdf.lookup_obj(pdf, root_num)
-  match (@pdf.lookup_immediate("/K", root) : @pdf.PdfObject?) {
+  let root = pdf.lookup_obj(root_num)
+  match (root.lookup_immediate("/K") : @pdf.PdfObject?) {
     Some(Array(items)) => assert_eq(items.length(), 2)
     _ => fail("expected root /K array")
   }
-  let parent = @pdf.lookup_obj(pdf, parent_keep)
-  match (@pdf.lookup_immediate("/K", parent) : @pdf.PdfObject?) {
+  let parent = pdf.lookup_obj(parent_keep)
+  match (parent.lookup_immediate("/K") : @pdf.PdfObject?) {
     Some(Array(items)) => assert_eq(items.length(), 2)
     _ => fail("expected updated parent /K array")
   }
@@ -195,30 +195,27 @@ test "renumber_parent_trees remaps struct parents" {
   PdfStructTrees::new([pdf1, pdf2]).renumber_parent_trees()
   match
     (
-      @pdf.lookup_direct(pdf1, "/StructParent", @pdf.lookup_obj(pdf1, obj1)) :
+      pdf1.lookup_direct("/StructParent", pdf1.lookup_obj(obj1)) :
       @pdf.PdfObject?) {
     Some(Integer(0)) => ()
     _ => fail("expected pdf1 StructParent unchanged")
   }
   match
     (
-      @pdf.lookup_direct(pdf2, "/StructParent", @pdf.lookup_obj(pdf2, obj2)) :
+      pdf2.lookup_direct("/StructParent", pdf2.lookup_obj(obj2)) :
       @pdf.PdfObject?) {
     Some(Integer(1)) => ()
     _ => fail("expected pdf2 StructParent remapped")
   }
   match
     (
-      @pdf.lookup_direct(
-        pdf2,
-        "/StructParent",
-        @pdf.lookup_obj(pdf2, stream_num),
-      ) : @pdf.PdfObject?) {
+      pdf2.lookup_direct("/StructParent", pdf2.lookup_obj(stream_num)) :
+      @pdf.PdfObject?) {
     Some(Integer(1)) => ()
     _ => fail("expected stream StructParent remapped")
   }
   match
-    @pdf.lookup_chain(pdf2, pdf2.trailerdict, [
+    pdf2.lookup_chain(pdf2.trailerdict, [
       "/Root", "/StructTreeRoot", "/ParentTree",
     ]) {
     Some(tree) =>
@@ -294,9 +291,9 @@ test "merge_structure_trees merges roots" {
   )
   match merged {
     Some(root_num) =>
-      match (@pdf.lookup_obj(pdf_out, root_num) : @pdf.PdfObject) {
+      match (pdf_out.lookup_obj(root_num) : @pdf.PdfObject) {
         Dictionary(_) as dict =>
-          match (@pdf.lookup_direct(pdf_out, "/Type", dict) : @pdf.PdfObject?) {
+          match (pdf_out.lookup_direct("/Type", dict) : @pdf.PdfObject?) {
             Some(Name("/StructTreeRoot")) => ()
             _ => fail("expected StructTreeRoot type")
           }

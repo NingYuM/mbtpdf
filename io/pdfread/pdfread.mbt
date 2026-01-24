@@ -125,10 +125,9 @@ pub fn PdfRead::what_encryption(
     ] = try? @pdfcrypt.PdfCrypt::new().get_encryption_values(pdf)
     match values {
       Ok((crypt, _, _, _, _, _, _)) => {
-        let metadata = match
-          @pdf.lookup_direct(pdf, "/Encrypt", pdf.trailerdict) {
+        let metadata = match pdf.lookup_direct("/Encrypt", pdf.trailerdict) {
           Some(encrypt_dict) =>
-            match @pdf.lookup_direct(pdf, "/EncryptMetadata", encrypt_dict) {
+            match pdf.lookup_direct("/EncryptMetadata", encrypt_dict) {
               Some(@pdf.PdfObject::Boolean(false)) => false
               _ => true
             }
@@ -198,7 +197,7 @@ pub fn PdfRead::is_linearized(_self : PdfRead, input : @pdfio.Input) -> Bool {
       lexemes,
       failure_is_ok=true,
     )
-    match @pdf.lookup_direct(@pdf.Pdf::empty(), "/Linearized", parsed) {
+    match @pdf.Pdf::empty().lookup_direct("/Linearized", parsed) {
       Some(@pdf.PdfObject::Integer(_)) | Some(@pdf.PdfObject::Real(_)) => true
       _ => false
     }

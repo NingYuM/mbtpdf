@@ -194,7 +194,7 @@ test "pdfread lazy decrypts object streams for encrypted PDFs" {
     fail("expected object stream entries")
   }
   let objnum = objstm_entries[0].0
-  let obj = @pdf.lookup_obj(parsed, objnum)
+  let obj = parsed.lookup_obj(objnum)
   match (obj : @pdf.PdfObject) {
     Null => fail("expected parsed object from objstm")
     _ => ()

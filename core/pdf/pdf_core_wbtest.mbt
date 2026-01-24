@@ -144,20 +144,18 @@ test "lookup and chains" {
       ]),
     ),
   )
-  assert_integer(lookup_obj(pdf, 1), 99)
-  assert_integer(direct(pdf, PdfObject::Indirect(1)), 99)
+  assert_integer(pdf.lookup_obj(1), 99)
+  assert_integer(pdf.direct(PdfObject::Indirect(1)), 99)
   assert_some_integer(
-    lookup_direct(
-      pdf,
+    pdf.lookup_direct(
       "/A",
       PdfObject::Dictionary([("/A", PdfObject::Indirect(1))]),
     ),
     99,
   )
   match
-    lookup_immediate(
+    PdfObject::Dictionary([("/A", PdfObject::Indirect(1))]).lookup_immediate(
       "/A",
-      PdfObject::Dictionary([("/A", PdfObject::Indirect(1))]),
     ) {
     Some(PdfObject::Indirect(1)) => ()
     _ => fail("expected indirect")
@@ -167,38 +165,38 @@ test "lookup and chains" {
     PdfObject::Dictionary([("/A", PdfObject::Integer(7))]),
     data,
   )
-  assert_some_integer(lookup_direct(pdf, "/A", stream_obj), 7)
-  assert_some_integer(lookup_immediate("/A", stream_obj), 7)
-  match lookup_immediate("/Missing", stream_obj) {
+  assert_some_integer(pdf.lookup_direct("/A", stream_obj), 7)
+  assert_some_integer(stream_obj.lookup_immediate("/A"), 7)
+  match stream_obj.lookup_immediate("/Missing") {
     None => ()
     _ => fail("expected none")
   }
-  match lookup_direct(pdf, "/A", PdfObject::Integer(1)) {
+  match pdf.lookup_direct("/A", PdfObject::Integer(1)) {
     None => ()
     _ => fail("expected none")
   }
   let bad_stream = make_stream(PdfObject::Integer(1), data)
-  match lookup_direct(pdf, "/A", bad_stream) {
+  match pdf.lookup_direct("/A", bad_stream) {
     None => ()
     _ => fail("expected none")
   }
-  match lookup_immediate("/A", bad_stream) {
+  match bad_stream.lookup_immediate("/A") {
     None => ()
     _ => fail("expected none")
   }
-  match lookup_immediate("/A", PdfObject::Integer(1)) {
+  match PdfObject::Integer(1).lookup_immediate("/A") {
     None => ()
     _ => fail("expected none")
   }
   let arr_dict = PdfObject::Dictionary([
     ("/Arr", PdfObject::Array([PdfObject::Integer(1), PdfObject::Integer(2)])),
   ])
-  assert_some_integer(lookup_chain(pdf, arr_dict, ["/Arr", "/[1]"][:]), 2)
-  match lookup_chain(pdf, arr_dict, ["/[x]"][:]) {
+  assert_some_integer(pdf.lookup_chain(arr_dict, ["/Arr", "/[1]"][:]), 2)
+  match pdf.lookup_chain(arr_dict, ["/[x]"][:]) {
     None => ()
     _ => fail("expected none")
   }
-  match lookup_chain(pdf, PdfObject::Integer(1), ["/[0]"][:]) {
+  match pdf.lookup_chain(PdfObject::Integer(1), ["/[0]"][:]) {
     None => ()
     _ => fail("expected none")
   }
@@ -206,26 +204,23 @@ test "lookup and chains" {
   pdf2.trailerdict = PdfObject::Dictionary([
     ("/A", PdfObject::Array([PdfObject::Integer(1), PdfObject::Integer(2)])),
   ])
-  replace_chain(pdf2, ["/A", "/[1]"][:], PdfObject::Integer(9))
-  assert_some_integer(
-    lookup_chain(pdf2, pdf2.trailerdict, ["/A", "/[1]"][:]),
-    9,
+  pdf2.replace_chain(["/A", "/[1]"][:], PdfObject::Integer(9))
+  assert_some_integer(pdf2.lookup_chain(pdf2.trailerdict, ["/A", "/[1]"][:]), 9)
+  assert_is_err(
+    try? pdf2.replace_chain(["/A", "/[5]"][:], PdfObject::Integer(3)),
   )
   assert_is_err(
-    try? replace_chain(pdf2, ["/A", "/[5]"][:], PdfObject::Integer(3)),
+    try? pdf2.replace_chain(["/A", "/[0]", "/B"][:], PdfObject::Integer(3)),
   )
-  assert_is_err(
-    try? replace_chain(pdf2, ["/A", "/[0]", "/B"][:], PdfObject::Integer(3)),
-  )
-  assert_is_err(try? replace_chain(pdf2, ["/[0]"][:], PdfObject::Integer(1)))
+  assert_is_err(try? pdf2.replace_chain(["/[0]"][:], PdfObject::Integer(1)))
   let dict_chain = ["/X", "/Y"]
-  replace_chain(pdf2, dict_chain[:], PdfObject::Integer(7))
-  assert_some_integer(lookup_chain(pdf2, pdf2.trailerdict, dict_chain[:]), 7)
+  pdf2.replace_chain(dict_chain[:], PdfObject::Integer(7))
+  assert_some_integer(pdf2.lookup_chain(pdf2.trailerdict, dict_chain[:]), 7)
   let pdf_null = Pdf::empty()
   pdf_null.trailerdict = PdfObject::Null
-  replace_chain(pdf_null, ["/A", "/B"][:], PdfObject::Integer(1))
+  pdf_null.replace_chain(["/A", "/B"][:], PdfObject::Integer(1))
   assert_some_integer(
-    lookup_chain(pdf_null, pdf_null.trailerdict, ["/A", "/B"][:]),
+    pdf_null.lookup_chain(pdf_null.trailerdict, ["/A", "/B"][:]),
     1,
   )
   let pdf_stream_replace = Pdf::empty()
@@ -233,7 +228,7 @@ test "lookup and chains" {
     PdfObject::Dictionary([("/A", PdfObject::Integer(1))]),
     data,
   )
-  replace_chain(pdf_stream_replace, ["/A"][:], PdfObject::Integer(2))
+  pdf_stream_replace.replace_chain(["/A"][:], PdfObject::Integer(2))
   match pdf_stream_replace.trailerdict {
     PdfObject::Stream(r) =>
       match r.val {
@@ -247,21 +242,18 @@ test "lookup and chains" {
     _ => fail("expected stream")
   }
   let dict_indirect = PdfObject::Dictionary([("/A", PdfObject::Indirect(1))])
-  assert_eq(indirect_number(pdf, "/A", dict_indirect), Some(1))
-  assert_eq(indirect_number(pdf, "/B", dict_indirect), None)
+  assert_eq(pdf.indirect_number("/A", dict_indirect), Some(1))
+  assert_eq(pdf.indirect_number("/B", dict_indirect), None)
   let dict_direct = PdfObject::Dictionary([("/A", PdfObject::Integer(2))])
-  assert_eq(indirect_number(pdf, "/A", dict_direct), None)
+  assert_eq(pdf.indirect_number("/A", dict_direct), None)
   let stream_indirect = make_stream(dict_indirect, data)
-  assert_eq(indirect_number(pdf, "/A", stream_indirect), Some(1))
-  assert_eq(indirect_number(pdf, "/A", PdfObject::Integer(1)), None)
+  assert_eq(pdf.indirect_number("/A", stream_indirect), Some(1))
+  assert_eq(pdf.indirect_number("/A", PdfObject::Integer(1)), None)
   let dict_alt = PdfObject::Dictionary([("/Alt", PdfObject::Integer(3))])
-  assert_some_integer(
-    lookup_direct_orelse(pdf, "/Missing", "/Alt", dict_alt),
-    3,
-  )
+  assert_some_integer(pdf.lookup_direct_orelse("/Missing", "/Alt", dict_alt), 3)
   let pdf_parse = Pdf::empty()
   pdf_parse.objects.objects.set(10, (Ref::new(ObjectData::ToParse), 0))
-  match lookup_obj(pdf_parse, 10) {
+  match pdf_parse.lookup_obj(10) {
     PdfObject::Null => ()
     _ => fail("expected null")
   }
@@ -270,7 +262,7 @@ test "lookup and chains" {
     ObjectData::ToParseFromObjectStream(map_none, 5, 0, (_stream, _idx) => []),
   )
   pdf_parse.objects.objects.set(11, (ref_none, 0))
-  match lookup_obj(pdf_parse, 11) {
+  match pdf_parse.lookup_obj(11) {
     PdfObject::Null => ()
     _ => fail("expected null")
   }
@@ -282,7 +274,7 @@ test "lookup and chains" {
     ]),
   )
   pdf_parse.objects.objects.set(12, (ref_missing, 0))
-  match lookup_obj(pdf_parse, 12) {
+  match pdf_parse.lookup_obj(12) {
     PdfObject::Null => ()
     _ => fail("expected null")
   }
@@ -294,5 +286,5 @@ test "lookup and chains" {
     ]),
   )
   pdf_parse.objects.objects.set(14, (ref_found, 0))
-  assert_integer(lookup_obj(pdf_parse, 14), 8)
+  assert_integer(pdf_parse.lookup_obj(14), 8)
 }

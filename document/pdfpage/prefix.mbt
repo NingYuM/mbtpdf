@@ -48,13 +48,13 @@ fn names_used(pdf : @pdf.Pdf) -> Array[String] {
     fn(_n : Int, obj : @pdf.PdfObject) -> Unit {
       match obj {
         @pdf.PdfObject::Dictionary(_) | @pdf.PdfObject::Stream(_) =>
-          match @pdf.lookup_direct(pdf, "/Type", obj) {
+          match pdf.lookup_direct("/Type", obj) {
             Some(@pdf.PdfObject::Name("/Page"))
             | Some(@pdf.PdfObject::Name("/Pages")) =>
-              match @pdf.lookup_direct(pdf, "/Resources", obj) {
+              match pdf.lookup_direct("/Resources", obj) {
                 Some(resources) =>
                   for key in resource_keys {
-                    match @pdf.lookup_direct(pdf, key, resources) {
+                    match pdf.lookup_direct(key, resources) {
                       Some(@pdf.PdfObject::Dictionary(d)) =>
                         for entry in d {
                           names.push(unslash(entry.0))
@@ -133,7 +133,7 @@ fn prefix_operator(
       OpBDC(n, @pdf.PdfObject::Name(addp(prefix, x)))
     InlineImage((dict, dp, bytes)) => {
       let dict_updated = match
-        @pdf.lookup_direct_orelse(pdf, "/CS", "/ColorSpace", dict) {
+        pdf.lookup_direct_orelse("/CS", "/ColorSpace", dict) {
         Some(@pdf.PdfObject::Name(n)) if direct_cs_names_inline.contains(n) =>
           dict
         Some(@pdf.PdfObject::Name(n)) => {
@@ -155,7 +155,7 @@ fn change_resources(
   resources : @pdf.PdfObject,
 ) -> @pdf.PdfObject raise {
   fn newdict(name : String) -> @pdf.PdfObject raise {
-    match @pdf.lookup_direct(pdf, name, resources) {
+    match pdf.lookup_direct(name, resources) {
       Some(@pdf.PdfObject::Dictionary(dict)) =>
         @pdf.PdfObject::Dictionary(
           dict.map(pair => (addp(prefix, pair.0), pair.1)),
@@ -187,7 +187,7 @@ fn fix_stream(
         let operators_updated = operators.map(op => prefix_operator(
           pdf, prefix, op,
         ))
-        let stream_obj = @pdf.lookup_obj(pdf, i)
+        let stream_obj = pdf.lookup_obj(i)
         match stream_obj {
           @pdf.PdfObject::Stream(r) =>
             match @pdfops.Op::stream_of_ops(operators_updated) {
@@ -211,11 +211,11 @@ fn add_prefix_impl(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
     fn(obj : @pdf.PdfObject) -> @pdf.PdfObject raise {
       match obj {
         @pdf.PdfObject::Dictionary(dict) =>
-          match @pdf.lookup_direct(pdf, "/Type", obj) {
+          match pdf.lookup_direct("/Type", obj) {
             Some(@pdf.PdfObject::Name("/Page"))
             | Some(@pdf.PdfObject::Name("/Pages")) => {
               let (resources, resources_updated) = match
-                @pdf.lookup_direct(pdf, "/Resources", obj) {
+                pdf.lookup_direct("/Resources", obj) {
                 Some(res) =>
                   (Some(res), Some(change_resources(pdf, prefix, res)))
                 None => (None, None)
@@ -239,7 +239,7 @@ fn add_prefix_impl(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
                       if a.length() > 1 {
                         try {
                           for c in a {
-                            let direct = @pdf.direct(pdf, c)
+                            let direct = pdf.direct(c)
                             @pdfcodec.PdfCodec::new().decode_pdfstream(
                               pdf, direct,
                             )
@@ -301,7 +301,7 @@ fn merge_content_streams(pdf : @pdf.Pdf) -> Unit raise {
     fn(obj : @pdf.PdfObject) -> @pdf.PdfObject raise {
       match obj {
         @pdf.PdfObject::Dictionary(dict) =>
-          match @pdf.lookup_direct(pdf, "/Type", obj) {
+          match pdf.lookup_direct("/Type", obj) {
             Some(@pdf.PdfObject::Name("/Page"))
             | Some(@pdf.PdfObject::Name("/Pages")) =>
               match dict.search_by(pair => pair.0 == "/Contents") {
@@ -312,7 +312,7 @@ fn merge_content_streams(pdf : @pdf.Pdf) -> Unit raise {
                       if a.length() <= 1 {
                         obj
                       } else {
-                        let direct_streams = a.map(c => @pdf.direct(pdf, c))
+                        let direct_streams = a.map(c => pdf.direct(c))
                         for stream in direct_streams {
                           @pdfcodec.PdfCodec::new().decode_pdfstream(
                             pdf, stream,

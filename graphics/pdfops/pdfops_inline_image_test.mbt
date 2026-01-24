@@ -17,7 +17,7 @@ test "parse inline image flate data" {
   for op in ops {
     match (op : @pdfops.Op) {
       InlineImage((dict, _, data)) => {
-        match @pdf.lookup_direct(pdf, "/W", dict) {
+        match pdf.lookup_direct("/W", dict) {
           Some(Integer(1)) => ()
           _ => fail("expected width entry")
         }
@@ -304,8 +304,8 @@ test "parse inline image cleans filter arrays" {
   for op in ops {
     match (op : @pdfops.Op) {
       InlineImage((dict, _, _)) => {
-        assert_true(@pdf.lookup_direct(pdf, "/Filter", dict) is None)
-        assert_true(@pdf.lookup_direct(pdf, "/F", dict) is None)
+        assert_true(pdf.lookup_direct("/Filter", dict) is None)
+        assert_true(pdf.lookup_direct("/F", dict) is None)
         saw = true
       }
       _ => ()

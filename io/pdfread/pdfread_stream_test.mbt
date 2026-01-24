@@ -43,8 +43,7 @@ test "lex_dictionary parses nested dictionary" {
   let input = @pdfio.input_of_string("<< /A 1 /B << /C 2 >> >>")
   let tokens = @pdfsyntax.PdfSyntax::new().lex_dictionary(false, input)
   let (_, parsed) = @pdfsyntax.PdfSyntax::new().parse(tokens)
-  match
-    (@pdf.lookup_direct(@pdf.Pdf::empty(), "/B", parsed) : @pdf.PdfObject?) {
+  match (@pdf.Pdf::empty().lookup_direct("/B", parsed) : @pdf.PdfObject?) {
     Some(Dictionary(_)) => ()
     _ => fail("expected nested dictionary")
   }
@@ -62,8 +61,7 @@ test "lex_dictionary minus_one accepts preconsumed marker" {
     full.push(t)
   }
   let (_, parsed) = @pdfsyntax.PdfSyntax::new().parse(full)
-  match
-    (@pdf.lookup_direct(@pdf.Pdf::empty(), "/A", parsed) : @pdf.PdfObject?) {
+  match (@pdf.Pdf::empty().lookup_direct("/A", parsed) : @pdf.PdfObject?) {
     Some(Integer(1)) => ()
     _ => fail("expected /A entry")
   }

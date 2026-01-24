@@ -288,14 +288,15 @@ pub fn PdfObject::add_entry(
 
 ///|
 /// Lookup an object in a document, parsing it if required.
-pub fn lookup_obj(pdf : Pdf, objnum : Int) -> PdfObject {
-  match pdf.objects.objects.get(objnum) {
+#as_free_fn(lookup_obj, deprecated="Use Pdf::lookup_obj instead")
+pub fn Pdf::lookup_obj(self : Pdf, objnum : Int) -> PdfObject {
+  match self.objects.objects.get(objnum) {
     None => Null
     Some((obj_ref, _gen)) =>
       match obj_ref.val {
         Parsed(obj) | ParsedAlreadyDecrypted(obj) => obj
         ToParse =>
-          match pdf.objects.parse {
+          match self.objects.parse {
             None => Null
             Some(parser) => {
               let obj = parser(objnum)
@@ -304,19 +305,19 @@ pub fn lookup_obj(pdf : Pdf, objnum : Int) -> PdfObject {
             }
           }
         ToParseFromObjectStream(themap, streamobjnum, _index, objstreamparser) =>
-          parse_delayed_object_stream(
-            themap, objnum, streamobjnum, pdf, objstreamparser,
+          self.parse_delayed_object_stream(
+            themap, objnum, streamobjnum, objstreamparser,
           )
       }
   }
 }
 
 ///|
-fn parse_delayed_object_stream(
+fn Pdf::parse_delayed_object_stream(
+  self : Pdf,
   themap : Map[Int, Array[Int]],
   objnum : Int,
   streamobjnum : Int,
-  pdf : Pdf,
   parser : (Int, Array[Int]) -> Array[(Int, (Ref[ObjectData], Int))],
 ) -> PdfObject {
   let indexes = match themap.get(objnum) {
@@ -329,11 +330,11 @@ fn parse_delayed_object_stream(
     if pair.0 == objnum {
       found = true
     }
-    pdf.objects.objects.set(pair.0, pair.1)
+    self.objects.objects.set(pair.0, pair.1)
   }
-  removeobj(pdf, streamobjnum)
+  removeobj(self, streamobjnum)
   if found {
-    lookup_obj(pdf, objnum)
+    self.lookup_obj(objnum)
   } else {
     Null
   }
@@ -341,17 +342,23 @@ fn parse_delayed_object_stream(
 
 ///|
 /// Make a PDF object direct -- that is, follow any indirect links.
-pub fn direct(pdf : Pdf, obj : PdfObject) -> PdfObject {
+#as_free_fn(direct, deprecated="Use Pdf::direct instead")
+pub fn Pdf::direct(self : Pdf, obj : PdfObject) -> PdfObject {
   match obj {
-    Indirect(i) => direct(pdf, lookup_obj(pdf, i))
+    Indirect(i) => self.direct(self.lookup_obj(i))
     _ => obj
   }
 }
 
 ///|
 /// Lookup the key, resolving indirections at source and destination.
-pub fn lookup_direct(pdf : Pdf, key : String, dict : PdfObject) -> PdfObject? {
-  let dict_obj = direct(pdf, dict)
+#as_free_fn(lookup_direct, deprecated="Use Pdf::lookup_direct instead")
+pub fn Pdf::lookup_direct(
+  self : Pdf,
+  key : String,
+  dict : PdfObject,
+) -> PdfObject? {
+  let dict_obj = self.direct(dict)
   let entry = match dict_obj {
     Dictionary(entries) =>
       match entries.search_by(pair => pair.0 == key) {
@@ -373,14 +380,18 @@ pub fn lookup_direct(pdf : Pdf, key : String, dict : PdfObject) -> PdfObject? {
   }
   match entry {
     None => None
-    Some(value) => Some(direct(pdf, value))
+    Some(value) => Some(self.direct(value))
   }
 }
 
 ///|
 /// Lookup the key without following indirects at either source or destination.
-pub fn lookup_immediate(key : String, dict : PdfObject) -> PdfObject? {
-  match dict {
+#as_free_fn(lookup_immediate, deprecated="Use PdfObject::lookup_immediate instead")
+pub fn PdfObject::lookup_immediate(
+  self : PdfObject,
+  key : String,
+) -> PdfObject? {
+  match self {
     Dictionary(entries) =>
       match entries.search_by(pair => pair.0 == key) {
         None => None
@@ -431,31 +442,32 @@ fn array_index_from_key(key : String) -> Int? {
 
 ///|
 /// Lookup a key, allowing array index chains.
-fn lookup_direct_or_array(
-  pdf : Pdf,
+fn Pdf::lookup_direct_or_array(
+  self : Pdf,
   key : String,
   obj : PdfObject,
 ) -> PdfObject? {
   match array_index_from_key(key) {
     Some(index) =>
       match obj {
-        Array(items) => Some(direct(pdf, items[index]))
+        Array(items) => Some(self.direct(items[index]))
         _ => None
       }
-    None => lookup_direct(pdf, key, obj)
+    None => self.lookup_direct(key, obj)
   }
 }
 
 ///|
 /// Lookup a key in a nested dictionary chain.
-pub fn lookup_chain(
-  pdf : Pdf,
+#as_free_fn(lookup_chain, deprecated="Use Pdf::lookup_chain instead")
+pub fn Pdf::lookup_chain(
+  self : Pdf,
   start : PdfObject,
   keys : ArrayView[String],
 ) -> PdfObject? {
   let mut current = start
   for key in keys {
-    match lookup_direct_or_array(pdf, key, current) {
+    match self.lookup_direct_or_array(key, current) {
       None => return None
       Some(next) => current = next
     }
@@ -465,8 +477,9 @@ pub fn lookup_chain(
 
 ///|
 /// Replace or insert a chain from the trailer dictionary.
-pub fn replace_chain(
-  pdf : Pdf,
+#as_free_fn(replace_chain, deprecated="Use Pdf::replace_chain instead")
+pub fn Pdf::replace_chain(
+  self : Pdf,
   chain : ArrayView[String],
   obj : PdfObject,
 ) -> Unit raise {
@@ -535,13 +548,14 @@ pub fn replace_chain(
     }
   }
 
-  pdf.trailerdict = replace_in_obj(pdf, pdf.trailerdict, chain, obj)
+  self.trailerdict = replace_in_obj(self, self.trailerdict, chain, obj)
 }
 
 ///|
 /// Return the object number of an indirect dictionary object, if it is indirect.
-pub fn indirect_number(pdf : Pdf, key : String, dict : PdfObject) -> Int? {
-  match direct(pdf, dict) {
+#as_free_fn(indirect_number, deprecated="Use Pdf::indirect_number instead")
+pub fn Pdf::indirect_number(self : Pdf, key : String, dict : PdfObject) -> Int? {
+  match self.direct(dict) {
     Dictionary(entries) =>
       match entries.search_by(pair => pair.0 == key) {
         None => None
@@ -553,7 +567,7 @@ pub fn indirect_number(pdf : Pdf, key : String, dict : PdfObject) -> Int? {
       }
     Stream(r) => {
       let (inner, _) = r.val
-      indirect_number(pdf, key, inner)
+      self.indirect_number(key, inner)
     }
     _ => None
   }
@@ -561,15 +575,16 @@ pub fn indirect_number(pdf : Pdf, key : String, dict : PdfObject) -> Int? {
 
 ///|
 /// Same as lookup_direct, but allow a second alternative key.
-pub fn lookup_direct_orelse(
-  pdf : Pdf,
+#as_free_fn(lookup_direct_orelse, deprecated="Use Pdf::lookup_direct_orelse instead")
+pub fn Pdf::lookup_direct_orelse(
+  self : Pdf,
   key : String,
   alt : String,
   dict : PdfObject,
 ) -> PdfObject? {
-  match lookup_direct(pdf, key, dict) {
+  match self.lookup_direct(key, dict) {
     Some(obj) => Some(obj)
-    None => lookup_direct(pdf, alt, dict)
+    None => self.lookup_direct(alt, dict)
   }
 }
 
@@ -624,15 +639,15 @@ fn array_lookup(key : PdfObject, array : PdfObject) -> PdfObject? raise {
 }
 
 ///|
-fn nametree_lookup_kids(
-  pdf : Pdf,
+fn Pdf::nametree_lookup_kids(
+  self : Pdf,
   key : PdfObject,
   kids : PdfObject,
 ) -> PdfObject? raise {
   match kids {
     Array(values) => {
       for kid in values {
-        match nametree_lookup(pdf, key, kid) {
+        match self.nametree_lookup(key, kid) {
           Some(result) => return Some(result)
           None => ()
         }
@@ -645,12 +660,13 @@ fn nametree_lookup_kids(
 
 ///|
 /// Look something up in a name tree.
-pub fn nametree_lookup(
-  pdf : Pdf,
+#as_free_fn(nametree_lookup, deprecated="Use Pdf::nametree_lookup instead")
+pub fn Pdf::nametree_lookup(
+  self : Pdf,
   key : PdfObject,
   dict : PdfObject,
 ) -> PdfObject? raise {
-  match lookup_direct(pdf, "/Limits", dict) {
+  match self.lookup_direct("/Limits", dict) {
     Some(Array([l, r])) => {
       match key_compare(key, l) {
         Some(cmp) if cmp < 0 => return None
@@ -660,20 +676,20 @@ pub fn nametree_lookup(
         Some(cmp) if cmp > 0 => return None
         _ => ()
       }
-      match lookup_direct(pdf, "/Kids", dict) {
-        Some(kids) => nametree_lookup_kids(pdf, key, kids)
+      match self.lookup_direct("/Kids", dict) {
+        Some(kids) => self.nametree_lookup_kids(key, kids)
         None =>
-          match lookup_direct_orelse(pdf, "/Names", "/Nums", dict) {
+          match self.lookup_direct_orelse("/Names", "/Nums", dict) {
             Some(names) => array_lookup(key, names)
             None => raise PdfError::Msg("Malformed name tree entry")
           }
       }
     }
     None =>
-      match lookup_direct(pdf, "/Kids", dict) {
-        Some(kids) => nametree_lookup_kids(pdf, key, kids)
+      match self.lookup_direct("/Kids", dict) {
+        Some(kids) => self.nametree_lookup_kids(key, kids)
         None =>
-          match lookup_direct_orelse(pdf, "/Names", "/Nums", dict) {
+          match self.lookup_direct_orelse("/Names", "/Nums", dict) {
             Some(names) => array_lookup(key, names)
             None => raise PdfError::Msg("Missing name tree entry")
           }
@@ -695,11 +711,12 @@ fn[T] flatten(lists : Array[Array[T]]) -> Array[T] {
 
 ///|
 /// Return an ordered list of all (k, v) pairs in a name tree.
-pub fn contents_of_nametree(
-  pdf : Pdf,
+#as_free_fn(contents_of_nametree, deprecated="Use Pdf::contents_of_nametree instead")
+pub fn Pdf::contents_of_nametree(
+  self : Pdf,
   tree : PdfObject,
 ) -> Array[(PdfObject, PdfObject)] raise {
-  match lookup_direct_orelse(pdf, "/Names", "/Nums", tree) {
+  match self.lookup_direct_orelse("/Names", "/Nums", tree) {
     Some(Array(names)) => {
       let out = Array::new()
       for i = 0; i + 1 < names.length(); i = i + 2 {
@@ -713,9 +730,9 @@ pub fn contents_of_nametree(
       out
     }
     _ =>
-      match lookup_direct(pdf, "/Kids", tree) {
+      match self.lookup_direct("/Kids", tree) {
         Some(Array(kids)) =>
-          flatten(kids.map(kid => contents_of_nametree(pdf, kid)))
+          flatten(kids.map(kid => self.contents_of_nametree(kid)))
         _ => raise PdfError::Msg("contents_of_nametree: neither names nor kids")
       }
   }
@@ -790,7 +807,7 @@ pub fn getnum(pdf : Pdf, obj : PdfObject) -> Double raise {
   match obj {
     Real(a) => a
     Integer(a) => Double::from_int(a)
-    Indirect(i) => getnum(pdf, lookup_obj(pdf, i))
+    Indirect(i) => getnum(pdf, pdf.lookup_obj(i))
     _ => raise PdfError::Msg("getnum: not a number")
   }
 }
@@ -827,7 +844,7 @@ pub fn parse_matrix(
   key : String,
   dict : PdfObject,
 ) -> @pdftransform.TransformMatrix raise {
-  match lookup_direct(pdf, key, dict) {
+  match pdf.lookup_direct(key, dict) {
     None | Some(Null) => @pdftransform.TransformMatrix::identity()
     Some(Array(vals)) =>
       if vals.length() != 6 {
@@ -1007,7 +1024,7 @@ pub fn lookup_fail(
   key : String,
   dict : PdfObject,
 ) -> PdfObject raise {
-  match lookup_direct(pdf, key, dict) {
+  match pdf.lookup_direct(key, dict) {
     Some(obj) => obj
     None => raise PdfError::Msg(errtext)
   }
@@ -1018,7 +1035,7 @@ pub fn lookup_fail(
 pub fn find_indirect(key : String, dict : PdfObject) -> Int? raise {
   match dict {
     Dictionary(_) =>
-      match lookup_immediate(key, dict) {
+      match dict.lookup_immediate(key) {
         Some(Indirect(i)) => Some(i)
         _ => None
       }
@@ -1029,7 +1046,7 @@ pub fn find_indirect(key : String, dict : PdfObject) -> Int? raise {
 ///|
 /// Return the document catalog.
 pub fn catalog_of_pdf(pdf : Pdf) -> PdfObject raise {
-  let obj = lookup_obj(pdf, pdf.root)
+  let obj = pdf.lookup_obj(pdf.root)
   match obj {
     Null => raise PdfError::Msg("No catalog")
     _ => obj
@@ -1067,7 +1084,7 @@ pub fn objiter(f : (Int, PdfObject) -> Unit raise?, pdf : Pdf) -> Unit raise? {
   entries.sort_by((a, b) => a.0 - b.0)
   for entry in entries {
     let key = entry.0
-    f(key, lookup_obj(pdf, key))
+    f(key, pdf.lookup_obj(key))
   }
 }
 
@@ -1091,7 +1108,7 @@ pub fn objiter_gen(
   for entry in entries {
     let key = entry.0
     let (_obj_ref, gen) = entry.1
-    f(key, gen, lookup_obj(pdf, key))
+    f(key, gen, pdf.lookup_obj(key))
   }
 }
 
@@ -1105,7 +1122,7 @@ pub fn objselfmap(
   entries.sort_by((a, b) => a.0 - b.0)
   for entry in entries {
     let key = entry.0
-    let obj = lookup_obj(pdf, key)
+    let obj = pdf.lookup_obj(key)
     let updated = f(obj)
     let (obj_ref, _gen) = entry.1
     match obj_ref.val {
@@ -1209,7 +1226,7 @@ fn referenced_pdfobj(
   match obj {
     Indirect(j) =>
       if !refset_mem(j, found) {
-        let target = lookup_obj(pdf, j)
+        let target = pdf.lookup_obj(j)
         match target {
           Dictionary(d) =>
             if tocontinue(no_follow_entries, no_follow_contains, d) {
@@ -1285,7 +1302,7 @@ fn nullify_deleted_page_references(pdf : Pdf) -> Unit raise {
   objiter(
     (objnum, obj) => match obj {
       Dictionary(_) =>
-        match lookup_direct(pdf, "/Type", obj) {
+        match pdf.lookup_direct("/Type", obj) {
           Some(Name("/Page")) => page_object_numbers.push(objnum)
           _ => ()
         }
@@ -1311,11 +1328,11 @@ fn nullify_deleted_page_references(pdf : Pdf) -> Unit raise {
 pub fn remove_unreferenced(pdf : Pdf) -> Unit raise {
   nullify_deleted_page_references(pdf)
   let found = refset_empty()
-  referenced_pdfobj([], [], pdf, found, lookup_obj(pdf, pdf.root))
+  referenced_pdfobj([], [], pdf, found, pdf.lookup_obj(pdf.root))
   referenced_pdfobj([], [], pdf, found, pdf.trailerdict)
   refset_add(pdf.root, found)
   let eltnumbers = refset_elts(found)
-  let elements = eltnumbers.map(num => lookup_obj(pdf, num))
+  let elements = eltnumbers.map(num => pdf.lookup_obj(num))
   pdf.objects.max_obj_num = 0
   pdf.objects.objects.clear()
   pdf.objects.object_stream_ids.clear()
@@ -1330,17 +1347,17 @@ fn page_reference_numbers_inner(
   pages_node : PdfObject,
   node_number : Int,
 ) -> Array[Int] {
-  match lookup_direct(pdf, "/Type", pages_node) {
+  match pdf.lookup_direct("/Type", pages_node) {
     Some(Name("/Page")) => [node_number]
     _ =>
-      match lookup_direct(pdf, "/Kids", pages_node) {
+      match pdf.lookup_direct("/Kids", pages_node) {
         Some(Array(elts)) => {
           let out = Array::new()
           for elt in elts {
             match elt {
               Indirect(i) =>
                 out.append(
-                  page_reference_numbers_inner(pdf, direct(pdf, Indirect(i)), i)[:],
+                  page_reference_numbers_inner(pdf, pdf.direct(Indirect(i)), i)[:],
                 )
               _ => ()
             }
@@ -1355,8 +1372,8 @@ fn page_reference_numbers_inner(
 ///|
 /// Return the page reference numbers in order.
 pub fn page_reference_numbers(pdf : Pdf) -> Array[Int] raise {
-  let root = lookup_obj(pdf, pdf.root)
-  let pages_node = match lookup_direct(pdf, "/Pages", root) {
+  let root = pdf.lookup_obj(pdf.root)
+  let pages_node = match pdf.lookup_direct("/Pages", root) {
     Some(p) => p
     None => raise PdfError::Msg("No /Pages found in /Root")
   }
@@ -1464,7 +1481,7 @@ pub fn renumber(
       Some(value) => value
       None => old_num
     }
-    let obj = lookup_obj(pdf, old_num)
+    let obj = pdf.lookup_obj(old_num)
     let updated = if check_object_contains_renumbering(change_table, obj) {
       renumber_object_parsed(pdf, change_table, obj, preserve_order~)
     } else {

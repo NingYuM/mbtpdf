@@ -44,7 +44,7 @@ fn rewrite_first_indirect(
   old_num : Int,
   new_num : Int,
 ) -> Bool raise {
-  match @pdf.lookup_direct(pdf, "/Kids", obj) {
+  match pdf.lookup_direct("/Kids", obj) {
     Some(@pdf.PdfObject::Array(kids)) => {
       let mut found = false
       for kid in kids {
@@ -75,10 +75,10 @@ fn page_tree_nodes_not_pages_inner(
   pages_node : @pdf.PdfObject,
   node_number : Int,
 ) -> Array[Int] {
-  match @pdf.lookup_direct(pdf, "/Type", pages_node) {
+  match pdf.lookup_direct("/Type", pages_node) {
     Some(@pdf.PdfObject::Name("/Page")) => []
     _ =>
-      match @pdf.lookup_direct(pdf, "/Kids", pages_node) {
+      match pdf.lookup_direct("/Kids", pages_node) {
         Some(@pdf.PdfObject::Array(elts)) => {
           let out = Array::new()
           out.push(node_number)
@@ -86,7 +86,7 @@ fn page_tree_nodes_not_pages_inner(
             match elt {
               @pdf.PdfObject::Indirect(i) =>
                 out.append(
-                  page_tree_nodes_not_pages_inner(pdf, @pdf.direct(pdf, elt), i)[:],
+                  page_tree_nodes_not_pages_inner(pdf, pdf.direct(elt), i)[:],
                 )
               _ => ()
             }
@@ -100,7 +100,7 @@ fn page_tree_nodes_not_pages_inner(
 
 ///|
 fn page_tree_nodes_not_pages(pdf : @pdf.Pdf) -> Array[Int] raise {
-  let root = @pdf.lookup_obj(pdf, pdf.root)
+  let root = pdf.lookup_obj(pdf.root)
   let page_root_num = match root {
     @pdf.PdfObject::Dictionary(d) =>
       match d.search_by(pair => pair.0 == "/Pages") {
@@ -113,7 +113,7 @@ fn page_tree_nodes_not_pages(pdf : @pdf.Pdf) -> Array[Int] raise {
       }
     _ => raise @pdf.PdfError::Msg("No /Pages found in /Root")
   }
-  let pages_node = match @pdf.lookup_direct(pdf, "/Pages", root) {
+  let pages_node = match pdf.lookup_direct("/Pages", root) {
     Some(p) => p
     None => raise @pdf.PdfError::Msg("No /Pages found in /Root")
   }
@@ -126,14 +126,14 @@ fn rewrite_page_tree_first(
   pdf : @pdf.Pdf,
   old_num : Int,
 ) -> Unit raise {
-  let new_num = @pdf.addobj(pdf, @pdf.lookup_obj(pdf, old_num))
+  let new_num = @pdf.addobj(pdf, pdf.lookup_obj(old_num))
   let mut rewritten = false
   for node in nodes {
     if !rewritten {
       rewritten = rewrite_first_indirect(
         pdf,
         node,
-        @pdf.lookup_obj(pdf, node),
+        pdf.lookup_obj(node),
         old_num,
         new_num,
       )
@@ -151,17 +151,17 @@ fn page_reference_numbers_unordered_inner(
   node_number : Int,
   acc : Ref[Array[Int]],
 ) -> Unit {
-  match @pdf.lookup_direct(pdf, "/Type", pages_node) {
+  match pdf.lookup_direct("/Type", pages_node) {
     Some(@pdf.PdfObject::Name("/Page")) => acc.val.push(node_number)
     _ =>
-      match @pdf.lookup_direct(pdf, "/Kids", pages_node) {
+      match pdf.lookup_direct("/Kids", pages_node) {
         Some(@pdf.PdfObject::Array(elts)) =>
           for elt in elts {
             match elt {
               @pdf.PdfObject::Indirect(i) =>
                 page_reference_numbers_unordered_inner(
                   pdf,
-                  @pdf.direct(pdf, elt),
+                  pdf.direct(elt),
                   i,
                   acc,
                 )
@@ -176,8 +176,8 @@ fn page_reference_numbers_unordered_inner(
 ///|
 fn page_reference_numbers_unordered(pdf : @pdf.Pdf) -> Array[Int] raise {
   let acc : Ref[Array[Int]] = { val: [] }
-  let root = @pdf.lookup_obj(pdf, pdf.root)
-  let pages_node = match @pdf.lookup_direct(pdf, "/Pages", root) {
+  let root = pdf.lookup_obj(pdf.root)
+  let pages_node = match pdf.lookup_direct("/Pages", root) {
     Some(p) => p
     None => raise @pdf.PdfError::Msg("No /Pages found in /Root")
   }
@@ -216,8 +216,8 @@ fn fixup_parents_inner(
   parent_objnum : Int,
   objnum : Int,
 ) -> Unit raise {
-  let obj = @pdf.lookup_obj(pdf, objnum)
-  match @pdf.indirect_number(pdf, "/Parent", obj) {
+  let obj = pdf.lookup_obj(objnum)
+  match pdf.indirect_number("/Parent", obj) {
     Some(_) => {
       let updated = obj.add_entry(
         "/Parent",
@@ -227,7 +227,7 @@ fn fixup_parents_inner(
     }
     None => ()
   }
-  match @pdf.lookup_direct(pdf, "/Kids", obj) {
+  match pdf.lookup_direct("/Kids", obj) {
     Some(@pdf.PdfObject::Array(kids)) =>
       for kid in kids {
         match kid {
@@ -244,8 +244,8 @@ fn fixup_parents_inner(
 #as_free_fn(fixup_parents, deprecated="Use `PdfPageDoc::fixup_parents`")
 pub fn PdfPageDoc::fixup_parents(self : PdfPageDoc) -> Unit raise {
   let pdf = self.pdf
-  let root = @pdf.lookup_obj(pdf, pdf.root)
-  match @pdf.indirect_number(pdf, "/Pages", root) {
+  let root = pdf.lookup_obj(pdf.root)
+  match pdf.indirect_number("/Pages", root) {
     Some(pagetreeroot) => fixup_parents_inner(pdf, 0, pagetreeroot)
     None => raise @pdf.PdfError::Msg("fixup_parents: no page tree root")
   }
@@ -257,7 +257,7 @@ fn fixup_link(
   obj : @pdf.PdfObject,
   assoc : Map[Int, Int],
 ) -> @pdf.PdfObject raise {
-  match @pdf.lookup_immediate(key, obj) {
+  match obj.lookup_immediate(key) {
     Some(@pdf.PdfObject::Indirect(i)) =>
       match assoc.get(i) {
         Some(t) => obj.add_entry(key, @pdf.PdfObject::Indirect(t))
@@ -275,7 +275,7 @@ pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
   let src = Ref::new(pdf.objects.max_obj_num)
   let pages = PdfPageDoc::new(pdf).pages_of_pagetree()
   let existing_annots = pages.map(page => match
-    @pdf.lookup_direct(pdf, "/Annots", page.rest) {
+    pdf.lookup_direct("/Annots", page.rest) {
     Some(@pdf.PdfObject::Array(a)) =>
       a.filter_map(obj => match obj {
         @pdf.PdfObject::Indirect(i) => Some(i)
@@ -303,7 +303,7 @@ pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
   })
   for pair in to_copy {
     let (from, to) = pair
-    @pdf.addobj_given_num(pdf, (to, @pdf.lookup_obj(pdf, from)))
+    @pdf.addobj_given_num(pdf, (to, pdf.lookup_obj(from)))
   }
   for i in 0..<existing_annots.length() {
     let old_annots = existing_annots[i]
@@ -313,7 +313,7 @@ pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
       assoc.set(old_annots[j], updated_annots[j])
     }
     for annot_num in updated_annots {
-      let obj = @pdf.lookup_obj(pdf, annot_num)
+      let obj = pdf.lookup_obj(annot_num)
       let obj = fixup_link("/Popup", obj, assoc)
       let obj = fixup_link("/Parent", obj, assoc)
       @pdf.addobj_given_num(pdf, (annot_num, obj))
@@ -324,7 +324,7 @@ pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
     let annots = new_annots[i]
     let pagerefnum = pagerefnums[i]
     if annots.length() > 0 {
-      let page_obj = @pdf.lookup_obj(pdf, pagerefnum)
+      let page_obj = pdf.lookup_obj(pagerefnum)
       match page_obj {
         @pdf.PdfObject::Dictionary(_) => {
           let indirects = annots.map(n => @pdf.PdfObject::Indirect(n))
@@ -343,12 +343,12 @@ pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
 ///|
 fn was_nulled(pdf : @pdf.Pdf, pair : (String, @pdf.PdfObject)) -> Bool {
   let (_, dest) = pair
-  match @pdf.direct(pdf, dest) {
+  match pdf.direct(dest) {
     @pdf.PdfObject::Array(values) =>
       if values.length() > 0 {
         match values[0] {
           @pdf.PdfObject::Indirect(i) =>
-            match @pdf.lookup_obj(pdf, i) {
+            match pdf.lookup_obj(i) {
               @pdf.PdfObject::Null => true
               _ => false
             }
@@ -366,13 +366,13 @@ fn was_nulled(pdf : @pdf.Pdf, pair : (String, @pdf.PdfObject)) -> Bool {
 #as_free_fn(fixup_destinations, deprecated="Use `PdfPageDoc::fixup_destinations`")
 pub fn PdfPageDoc::fixup_destinations(self : PdfPageDoc) -> Unit raise {
   let pdf = self.pdf
-  match @pdf.lookup_chain(pdf, pdf.trailerdict, ["/Root", "/Names", "/Dests"]) {
+  match pdf.lookup_chain(pdf.trailerdict, ["/Root", "/Names", "/Dests"]) {
     Some(t) => {
       let tree_ctx = @pdftree.PdfTree::new(pdf)
       let tree = tree_ctx.read_name_tree(t)
       let tree_updated = tree.filter(pair => !was_nulled(pdf, pair))
       let tree_obj = tree_ctx.build_name_tree(false, tree_updated)
-      @pdf.replace_chain(pdf, ["/Root", "/Names", "/Dests"], tree_obj)
+      pdf.replace_chain(["/Root", "/Names", "/Dests"], tree_obj)
     }
     None => ()
   }
@@ -384,15 +384,14 @@ fn replace_inherit_entry(
   objnum : Int,
   entry : String,
 ) -> Unit raise {
-  let obj = @pdf.lookup_obj(pdf, objnum)
+  let obj = pdf.lookup_obj(objnum)
   fn find_attribute(current : @pdf.PdfObject) -> @pdf.PdfObject? {
-    match @pdf.lookup_direct(pdf, entry, current) {
+    match pdf.lookup_direct(entry, current) {
       Some(_) => None
       None =>
-        match @pdf.lookup_direct(pdf, "/Parent", current) {
+        match pdf.lookup_direct("/Parent", current) {
           Some(@pdf.PdfObject::Dictionary(parent)) =>
-            match
-              @pdf.lookup_immediate(entry, @pdf.PdfObject::Dictionary(parent)) {
+            match @pdf.PdfObject::Dictionary(parent).lookup_immediate(entry) {
               Some(value) => Some(value)
               None => find_attribute(@pdf.PdfObject::Dictionary(parent))
             }

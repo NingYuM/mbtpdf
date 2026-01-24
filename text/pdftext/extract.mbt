@@ -111,7 +111,7 @@ fn PdfText::append_text_from_streams(
   }
 
   fn append_text_from_xobject(name : String) -> Unit raise {
-    match @pdf.lookup_direct(self.pdf, "/XObject", resources) {
+    match self.pdf.lookup_direct("/XObject", resources) {
       Some(Dictionary(entries)) =>
         if entries.search_by(pair => pair.0 == name) is Some(idx) {
           let obj_ref = entries[idx].1
@@ -121,12 +121,11 @@ fn PdfText::append_text_from_streams(
             None
           }
           if mark_visited(obj_num) {
-            let xobj = @pdf.direct(self.pdf, obj_ref)
-            if @pdf.lookup_direct(self.pdf, "/Subtype", xobj)
-              is Some(Name("/Form")) {
-              let xresources = @pdf.lookup_direct(self.pdf, "/Resources", xobj).unwrap_or(
-                resources,
-              )
+            let xobj = self.pdf.direct(obj_ref)
+            if self.pdf.lookup_direct("/Subtype", xobj) is Some(Name("/Form")) {
+              let xresources = self.pdf
+                .lookup_direct("/Resources", xobj)
+                .unwrap_or(resources)
               self.append_text_from_streams(
                 builder,
                 xresources,
@@ -182,9 +181,9 @@ fn PdfText::lookup_text_extractor(
   if cache.get(font_name) is Some(extractor) {
     return Some(extractor)
   }
-  match @pdf.lookup_direct(self.pdf, "/Font", resources) {
+  match self.pdf.lookup_direct("/Font", resources) {
     Some(fonts) =>
-      match @pdf.lookup_direct(self.pdf, font_name, fonts) {
+      match self.pdf.lookup_direct(font_name, fonts) {
         Some(obj) =>
           try {
             let extractor = self.text_extractor_of_font(obj)

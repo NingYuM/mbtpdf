@@ -162,10 +162,10 @@ pub fn Destination::read(
   pdfobject : @pdf.PdfObject,
   shallow? : Bool = false,
 ) -> Destination raise {
-  let resolved = @pdf.direct(pdf, pdfobject)
+  let resolved = pdf.direct(pdfobject)
   match resolved {
     @pdf.PdfObject::Dictionary(_) =>
-      match @pdf.lookup_direct(pdf, "/D", resolved) {
+      match pdf.lookup_direct("/D", resolved) {
         Some(dest) => Destination::read(pdf, dest, shallow~)
         None => Destination::NullDestination
       }
@@ -183,11 +183,11 @@ pub fn Destination::read(
       if shallow {
         Destination::NamedDestination(name)
       } else {
-        match @pdf.lookup_direct(pdf, "/Root", pdf.trailerdict) {
+        match pdf.lookup_direct("/Root", pdf.trailerdict) {
           Some(catalog) =>
-            match @pdf.lookup_direct(pdf, "/Dests", catalog) {
+            match pdf.lookup_direct("/Dests", catalog) {
               Some(dests) =>
-                match @pdf.lookup_direct(pdf, name, dests) {
+                match pdf.lookup_direct(name, dests) {
                   Some(dest) => Destination::read(pdf, dest, shallow~)
                   None => Destination::NamedDestination(name)
                 }
@@ -200,17 +200,13 @@ pub fn Destination::read(
       if shallow {
         Destination::StringDestination(s)
       } else {
-        let rootdict = @pdf.lookup_obj(pdf, pdf.root)
-        match @pdf.lookup_direct(pdf, "/Names", rootdict) {
+        let rootdict = pdf.lookup_obj(pdf.root)
+        match pdf.lookup_direct("/Names", rootdict) {
           Some(namedict) =>
-            match @pdf.lookup_direct(pdf, "/Dests", namedict) {
+            match pdf.lookup_direct("/Dests", namedict) {
               Some(destsdict) =>
                 match
-                  @pdf.nametree_lookup(
-                    pdf,
-                    @pdf.PdfObject::String(s),
-                    destsdict,
-                  ) {
+                  pdf.nametree_lookup(@pdf.PdfObject::String(s), destsdict) {
                   None => Destination::StringDestination(s)
                   Some(dest) => Destination::read(pdf, dest, shallow~)
                 }
@@ -358,8 +354,7 @@ pub fn Destination::transform(
       Destination::FitR(TargetPage::PageObject(i), left, bottom, right, top)
     }
     Destination::Action(a) =>
-      match
-        (@pdf.lookup_direct(pdf, "/S", a), @pdf.lookup_direct(pdf, "/D", a)) {
+      match (pdf.lookup_direct("/S", a), pdf.lookup_direct("/D", a)) {
         (Some(@pdf.PdfObject::Name("/GoTo")), Some(d)) => {
           let transformed = Destination::read(pdf, d, shallow=true).transform(
             pdf, t,

@@ -35,7 +35,7 @@ test "read_ocg parses ocproperties" {
     ("/D", default_config),
     ("/Configs", Array([alt_config])),
   ])
-  let root = @pdf.lookup_obj(pdf, pdf.root)
+  let root = pdf.lookup_obj(pdf.root)
   let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
   let props = match OcgProperties::read(pdf) {
@@ -113,7 +113,7 @@ test "read_ocg raises when ocg is missing name" {
     ("/OCGs", Array([Indirect(ocg_ref)])),
     ("/D", Dictionary([])),
   ])
-  let root = @pdf.lookup_obj(pdf, pdf.root)
+  let root = pdf.lookup_obj(pdf.root)
   let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
   let res : Result[@pdfocg.OcgProperties?, Error] = try? OcgProperties::read(
@@ -138,7 +138,7 @@ test "read_ocg uses config defaults" {
     ("/OCGs", Array([Indirect(ocg_ref)])),
     ("/D", default_config),
   ])
-  let root = @pdf.lookup_obj(pdf, pdf.root)
+  let root = pdf.lookup_obj(pdf.root)
   let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
   let props = match OcgProperties::read(pdf) {
@@ -168,7 +168,7 @@ test "read_ocg parses ocg intent name" {
     ("/OCGs", Array([Indirect(ocg_ref)])),
     ("/D", Dictionary([])),
   ])
-  let root = @pdf.lookup_obj(pdf, pdf.root)
+  let root = pdf.lookup_obj(pdf.root)
   let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
   let props = match OcgProperties::read(pdf) {
@@ -203,7 +203,7 @@ test "read_ocg handles direct ocgs and usage defaults" {
     ("/OCGs", Array([ocg_obj])),
     ("/D", default_config),
   ])
-  let root = @pdf.lookup_obj(pdf, pdf.root)
+  let root = pdf.lookup_obj(pdf.root)
   let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
   let props = match OcgProperties::read(pdf) {
@@ -235,7 +235,7 @@ test "read_ocg handles direct ocgs and usage defaults" {
 test "read_ocg raises without default config" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let ocprops : @pdf.PdfObject = Dictionary([("/OCGs", Name("/NotArray"))])
-  let root = @pdf.lookup_obj(pdf, pdf.root)
+  let root = pdf.lookup_obj(pdf.root)
   let updated_root = root.add_entry("/OCProperties", ocprops)
   @pdf.addobj_given_num(pdf, (pdf.root, updated_root))
   let res : Result[@pdfocg.OcgProperties?, Error] = try? OcgProperties::read(

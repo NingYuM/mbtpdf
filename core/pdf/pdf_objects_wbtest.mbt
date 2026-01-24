@@ -80,7 +80,7 @@ test "recurse and iterators" {
     },
     pdf,
   )
-  assert_integer(lookup_obj(pdf, 3), 6)
+  assert_integer(pdf.lookup_obj(3), 6)
   let stream = make_stream(
     PdfObject::Dictionary([]),
     @pdfio.bytes_of_string("x"),
@@ -139,7 +139,7 @@ test "references and renumbering" {
     _ => fail("expected id array")
   }
   change_id(pdf, "path-")
-  match lookup_immediate("/ID", pdf.trailerdict) {
+  match pdf.trailerdict.lookup_immediate("/ID") {
     Some(PdfObject::Array(values)) => assert_eq(values.length(), 2)
     _ => fail("expected id entry")
   }

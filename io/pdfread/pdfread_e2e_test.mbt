@@ -10,7 +10,7 @@ fn roundtrip_pdf(pdf : @pdf.Pdf) -> @pdf.Pdf raise {
 ///|
 fn has_stream(pdf : @pdf.Pdf) -> Bool {
   for objnum in pdf.objnumbers() {
-    let obj = @pdf.lookup_obj(pdf, objnum)
+    let obj = pdf.lookup_obj(objnum)
     match (obj : @pdf.PdfObject) {
       Stream(_) => return true
       _ => ()

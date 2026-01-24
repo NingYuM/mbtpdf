@@ -57,6 +57,6 @@ test "objects_referenced indirect and stream targets" {
   addobj_given_num(pdf, (6, stream))
   let indirect_refs = objects_referenced([], [], pdf, PdfObject::Indirect(5))
   assert_true(indirect_refs.contains(5))
-  let stream_refs = objects_referenced([], [], pdf, lookup_obj(pdf, 6))
+  let stream_refs = objects_referenced([], [], pdf, pdf.lookup_obj(6))
   assert_true(stream_refs.contains(5))
 }

@@ -54,7 +54,7 @@ fn update_page_annots(
   page_objnum : Int,
   annots : Array[@pdf.PdfObject],
 ) -> Unit raise {
-  let page_obj = @pdf.lookup_obj(pdf, page_objnum)
+  let page_obj = pdf.lookup_obj(page_objnum)
   match (page_obj : @pdf.PdfObject) {
     Dictionary(_) => {
       let updated = page_obj.add_entry("/Annots", Array(annots))
@@ -177,8 +177,7 @@ test "change_pages rewrites bookmarks annotations and openaction" {
   )
   assert_eq(@pdfpage.PdfPageDoc::new(updated).pages_of_pagetree_quick(), 2)
   let catalog = @pdf.catalog_of_pdf(updated)
-  match
-    (@pdf.lookup_direct(updated, "/OpenAction", catalog) : @pdf.PdfObject?) {
+  match (updated.lookup_direct("/OpenAction", catalog) : @pdf.PdfObject?) {
     Some(Dictionary(entries)) =>
       match entries.search_by(pair => pair.0 == "/D") {
         Some(idx) =>
@@ -208,8 +207,7 @@ test "change_pages keeps array openaction for identity matrices" {
     matrices~,
   )
   let catalog = @pdf.catalog_of_pdf(updated)
-  match
-    (@pdf.lookup_direct(updated, "/OpenAction", catalog) : @pdf.PdfObject?) {
+  match (updated.lookup_direct("/OpenAction", catalog) : @pdf.PdfObject?) {
     Some(Array(_)) => ()
     _ => fail("expected array /OpenAction")
   }

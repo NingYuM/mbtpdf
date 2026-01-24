@@ -25,9 +25,9 @@ test "annotation border dash array" {
   let border = @pdfannot.Border::new(1.0, dasharray=[2, 3])
   let annot = @pdfannot.Annotation::new(@pdfannot.Subtype::Text, border~)
   let updated = @pdfannot.PdfAnnot::new(pdf).add_annotation(page, annot)
-  match (@pdf.lookup_direct(pdf, "/Annots", updated.rest) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/Annots", updated.rest) : @pdf.PdfObject?) {
     Some(Array([annot_obj, ..])) =>
-      match (@pdf.lookup_direct(pdf, "/Border", annot_obj) : @pdf.PdfObject?) {
+      match (pdf.lookup_direct("/Border", annot_obj) : @pdf.PdfObject?) {
         Some(Array([_, _, _, Array(dash)])) => {
           assert_eq(dash.length(), 2)
           match (dash[0] : @pdf.PdfObject) {
@@ -109,8 +109,8 @@ test "transform_annotations updates rect and quadpoints" {
   ])
   let tr = @pdftransform.TransformMatrix::translate(10.0, 20.0)
   @pdfannot.PdfAnnot::new(pdf).transform_annotations(tr, rest)
-  let updated = @pdf.lookup_obj(pdf, objnum)
-  match @pdf.lookup_direct(pdf, "/Rect", updated) {
+  let updated = pdf.lookup_obj(objnum)
+  match pdf.lookup_direct("/Rect", updated) {
     Some(rect) => {
       let (x0, y0, x1, y1) = @pdf.parse_rectangle(pdf, rect)
       assert_close(x0, 10.0)
@@ -120,14 +120,14 @@ test "transform_annotations updates rect and quadpoints" {
     }
     _ => fail("expected updated rect")
   }
-  match (@pdf.lookup_direct(pdf, "/QuadPoints", updated) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/QuadPoints", updated) : @pdf.PdfObject?) {
     Some(Array(values)) => {
       assert_close(@pdf.getnum(pdf, values[0]), 10.0)
       assert_close(@pdf.getnum(pdf, values[1]), 20.0)
     }
     _ => fail("expected quadpoints")
   }
-  match @pdf.lookup_direct(pdf, "/L", updated) {
+  match pdf.lookup_direct("/L", updated) {
     Some(line) => {
       let (x0, y0, x1, y1) = @pdf.parse_rectangle(pdf, line)
       assert_close(x0, 10.0)
@@ -306,8 +306,7 @@ test "read_annotation parses styles and extras" {
     Some((1, 2, 3)) => ()
     _ => fail("expected colour")
   }
-  match
-    (@pdf.lookup_direct(pdf, "/Foo", annots[3].annotrest) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/Foo", annots[3].annotrest) : @pdf.PdfObject?) {
     Some(Integer(7)) => ()
     _ => fail("expected extra field")
   }
@@ -392,8 +391,8 @@ test "transform_annotations keeps malformed quadpoints" {
   ])
   let tr = @pdftransform.TransformMatrix::translate(5.0, 5.0)
   @pdfannot.PdfAnnot::new(pdf).transform_annotations(tr, rest)
-  let updated = @pdf.lookup_obj(pdf, objnum)
-  match @pdf.lookup_direct(pdf, "/Rect", updated) {
+  let updated = pdf.lookup_obj(objnum)
+  match pdf.lookup_direct("/Rect", updated) {
     Some(rect) => {
       let (x0, y0, x1, y1) = @pdf.parse_rectangle(pdf, rect)
       assert_close(x0, 5.0)
@@ -403,7 +402,7 @@ test "transform_annotations keeps malformed quadpoints" {
     }
     _ => fail("expected rect update")
   }
-  match (@pdf.lookup_direct(pdf, "/QuadPoints", updated) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/QuadPoints", updated) : @pdf.PdfObject?) {
     Some(Array(values)) => {
       assert_close(@pdf.getnum(pdf, values[0]), 0.0)
       assert_close(@pdf.getnum(pdf, values[1]), 0.0)
@@ -563,17 +562,17 @@ test "add_annotation merges existing annots and extras" {
     annotrest: Dictionary([("/Foo", Integer(9))]),
   }
   let updated = @pdfannot.PdfAnnot::new(pdf).add_annotation(page, annot)
-  match (@pdf.lookup_direct(pdf, "/Annots", updated.rest) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/Annots", updated.rest) : @pdf.PdfObject?) {
     Some(Array([first, second])) => {
-      match (@pdf.lookup_direct(pdf, "/Subtype", first) : @pdf.PdfObject?) {
+      match (pdf.lookup_direct("/Subtype", first) : @pdf.PdfObject?) {
         Some(Name("/FreeText")) => ()
         _ => fail("expected freetext subtype")
       }
-      match (@pdf.lookup_direct(pdf, "/Foo", first) : @pdf.PdfObject?) {
+      match (pdf.lookup_direct("/Foo", first) : @pdf.PdfObject?) {
         Some(Integer(9)) => ()
         _ => fail("expected extra field")
       }
-      match (@pdf.lookup_direct(pdf, "/Subtype", second) : @pdf.PdfObject?) {
+      match (pdf.lookup_direct("/Subtype", second) : @pdf.PdfObject?) {
         Some(Name("/Text")) => ()
         _ => fail("expected existing annotation")
       }
@@ -616,8 +615,8 @@ test "transform_annotations leaves non-array quadpoints" {
   ])
   let tr = @pdftransform.TransformMatrix::translate(5.0, 5.0)
   @pdfannot.PdfAnnot::new(pdf).transform_annotations(tr, rest)
-  let updated = @pdf.lookup_obj(pdf, objnum)
-  match (@pdf.lookup_direct(pdf, "/QuadPoints", updated) : @pdf.PdfObject?) {
+  let updated = pdf.lookup_obj(objnum)
+  match (pdf.lookup_direct("/QuadPoints", updated) : @pdf.PdfObject?) {
     Some(Name("/Bad")) => ()
     _ => fail("expected non-array quadpoints")
   }

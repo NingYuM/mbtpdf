@@ -182,7 +182,7 @@ fn find_catalog_object(objects : @pdf.PdfObjMap) -> Int? {
     match obj_ref.val {
       @pdf.ObjectData::Parsed(obj)
       | @pdf.ObjectData::ParsedAlreadyDecrypted(obj) =>
-        match @pdf.lookup_immediate("/Type", obj) {
+        match obj.lookup_immediate("/Type") {
           Some(@pdf.PdfObject::Name("/Catalog")) => return Some(objnum)
           _ => ()
         }
@@ -212,7 +212,7 @@ fn read_malformed_pdf(
   } else {
     @pdf.PdfObject::Dictionary([])
   }
-  let root = match @pdf.lookup_immediate("/Root", trailerdict) {
+  let root = match trailerdict.lookup_immediate("/Root") {
     Some(@pdf.PdfObject::Indirect(i)) => i
     Some(_) => {
       let from_catalog = find_catalog_object(objects)
@@ -229,7 +229,7 @@ fn read_malformed_pdf(
       }
     }
   }
-  if @pdf.lookup_immediate("/Root", trailerdict) is None {
+  if trailerdict.lookup_immediate("/Root") is None {
     trailerdict = trailerdict.add_entry("/Root", @pdf.PdfObject::Indirect(root))
   }
   let sanitized_trailer = sanitize_trailerdict(objects.length(), trailerdict)

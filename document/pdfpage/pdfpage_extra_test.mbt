@@ -59,10 +59,10 @@ test "pages_of_pagetree handles missing mediabox and non-stream contents" {
     Some(n) => n
     None => fail("expected page object number")
   }
-  let page1_obj = @pdf.lookup_obj(pdf, page1_num)
+  let page1_obj = pdf.lookup_obj(page1_num)
   let page1_updated = page1_obj.add_entry("/Contents", Array([Integer(1)]))
   @pdf.addobj_given_num(pdf, (page1_num, page1_updated))
-  let page2_obj = @pdf.lookup_obj(pdf, page2_num)
+  let page2_obj = pdf.lookup_obj(page2_num)
   let page2_updated = page2_obj
     .remove_entry("/MediaBox")
     .remove_entry("/Resources")
@@ -137,7 +137,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
     @pdf.addobj(pdf, annot_action_none),
   ]
   let annots : @pdf.PdfObject = Array(annot_nums.map(fn(n) { Indirect(n) }))
-  let page1_obj = @pdf.lookup_obj(pdf, refs[0])
+  let page1_obj = pdf.lookup_obj(refs[0])
   let page1_updated = page1_obj.add_entry("/Annots", annots)
   @pdf.addobj_given_num(pdf, (refs[0], page1_updated))
   let bookmarks : Array[@pdfmarks.Bookmark] = [
@@ -320,8 +320,8 @@ test "replace_inherit fills mediabox" {
   @pdf.addobj_given_num(pdf0, (2, pages))
   let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(2, [])
   @pdfpage.PdfPageDoc::new(pdf).replace_inherit([1])
-  let updated = @pdf.lookup_obj(pdf, 1)
-  match @pdf.lookup_direct(pdf, "/MediaBox", updated) {
+  let updated = pdf.lookup_obj(1)
+  match pdf.lookup_direct("/MediaBox", updated) {
     Some(_) => ()
     _ => fail("expected MediaBox to be inherited")
   }
@@ -343,7 +343,7 @@ test "renumber_pages updates resources and operators" {
   }
   let updated = @pdfpage.PdfPageDoc::new(pdf).renumber_pages([page])
   let renamed = updated[0]
-  match @pdf.lookup_direct(pdf, "/Font", renamed.resources) {
+  match pdf.lookup_direct("/Font", renamed.resources) {
     Some(Dictionary(entries)) => {
       assert_eq(entries.length(), 1)
       assert_true(entries[0].0 != "/F1")
@@ -380,7 +380,7 @@ test "add_prefix rewrites resources and content" {
   @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let page0 = pages[0]
-  match @pdf.lookup_direct(pdf, "/Font", page0.resources) {
+  match pdf.lookup_direct("/Font", page0.resources) {
     Some(Dictionary(entries)) => {
       assert_eq(entries.length(), 1)
       assert_eq(entries[0].0, "/pF1")
@@ -446,7 +446,7 @@ test "change_pages rewrites annotation and openaction" {
   ])
   let annot1 = @pdf.addobj(pdf, annot_dest)
   let annot2 = @pdf.addobj(pdf, annot_action)
-  let page_obj = @pdf.lookup_obj(pdf, refs[0])
+  let page_obj = pdf.lookup_obj(refs[0])
   let annots : @pdf.PdfObject = Array([Indirect(annot1), Indirect(annot2)])
   let updated_page = page_obj.add_entry("/Annots", annots)
   @pdf.addobj_given_num(pdf, (refs[0], updated_page))
@@ -458,8 +458,7 @@ test "change_pages rewrites annotation and openaction" {
     (1, @pdftransform.TransformMatrix::translate(5.0, -3.0)),
   ])
   let catalog2 = @pdf.catalog_of_pdf(translated)
-  let openaction = match
-    @pdf.lookup_direct(translated, "/OpenAction", catalog2) {
+  let openaction = match translated.lookup_direct("/OpenAction", catalog2) {
     Some(dest) => dest
     None => fail("expected OpenAction")
   }
@@ -471,21 +470,21 @@ test "change_pages rewrites annotation and openaction" {
     _ => fail("expected updated openaction destination")
   }
   let refs2 = @pdf.page_reference_numbers(translated)
-  let page2 = @pdf.lookup_obj(translated, refs2[0])
-  let annots = match @pdf.lookup_direct(translated, "/Annots", page2) {
+  let page2 = translated.lookup_obj(refs2[0])
+  let annots = match translated.lookup_direct("/Annots", page2) {
     Some(Array(arr)) => arr
     _ => fail("expected annots")
   }
   for annot in annots {
     match (annot : @pdf.PdfObject) {
       Indirect(i) => {
-        let obj = @pdf.lookup_obj(translated, i)
-        let dest = match @pdf.lookup_direct(translated, "/Dest", obj) {
+        let obj = translated.lookup_obj(i)
+        let dest = match translated.lookup_direct("/Dest", obj) {
           Some(d) => d
           None =>
-            match @pdf.lookup_direct(translated, "/A", obj) {
+            match translated.lookup_direct("/A", obj) {
               Some(Dictionary(_) as act) =>
-                match @pdf.lookup_direct(translated, "/D", act) {
+                match translated.lookup_direct("/D", act) {
                   Some(d) => d
                   _ => fail("expected action dest")
                 }

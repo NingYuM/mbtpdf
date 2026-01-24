@@ -86,8 +86,7 @@ fn PdfTree::read_tree_raw(
   self : PdfTree,
   tree : @pdf.PdfObject,
 ) -> Array[(@pdf.PdfObject, @pdf.PdfObject)] {
-  let names = match
-    @pdf.lookup_direct_orelse(self.pdf, "/Names", "/Nums", tree) {
+  let names = match self.pdf.lookup_direct_orelse("/Names", "/Nums", tree) {
     Some(@pdf.PdfObject::Array(elts)) =>
       if elts.length() % 2 == 1 {
         @pdfe.Pdfe::new().log(
@@ -99,7 +98,7 @@ fn PdfTree::read_tree_raw(
       }
     _ => []
   }
-  match @pdf.lookup_direct(self.pdf, "/Kids", tree) {
+  match self.pdf.lookup_direct("/Kids", tree) {
     Some(@pdf.PdfObject::Array(kids)) =>
       concat_arrays(names, flatten(kids.map(kid => self.read_tree_raw(kid))))
     _ => names

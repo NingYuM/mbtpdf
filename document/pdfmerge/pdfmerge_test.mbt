@@ -98,11 +98,11 @@ fn collect_dest_strings(pdf : @pdf.Pdf) -> Array[String] {
 ///|
 fn read_dest_names(pdf : @pdf.Pdf) -> Array[String] raise {
   let catalog = @pdf.catalog_of_pdf(pdf)
-  let names_dict = match @pdf.lookup_direct(pdf, "/Names", catalog) {
+  let names_dict = match pdf.lookup_direct("/Names", catalog) {
     Some(obj) => obj
     None => fail("missing /Names")
   }
-  let dest_tree = match @pdf.lookup_direct(pdf, "/Dests", names_dict) {
+  let dest_tree = match pdf.lookup_direct("/Dests", names_dict) {
     Some(obj) => obj
     None => fail("missing /Dests tree")
   }
@@ -311,24 +311,24 @@ test "merge_pdfs merges dests ocg and acroform" {
     add_toplevel_document=false,
   )
   let catalog = @pdf.catalog_of_pdf(merged)
-  match @pdf.lookup_direct(merged, "/Dests", catalog) {
+  match merged.lookup_direct("/Dests", catalog) {
     Some(Dictionary(entries)) => {
       assert_true(lookup_entry(entries, "/A") is Some(_))
       assert_true(lookup_entry(entries, "/B") is Some(_))
     }
     _ => fail("expected /Dests dictionary")
   }
-  match @pdf.lookup_direct(merged, "/OCProperties", catalog) {
+  match merged.lookup_direct("/OCProperties", catalog) {
     Some(ocp) =>
-      match @pdf.lookup_direct(merged, "/OCGs", ocp) {
+      match merged.lookup_direct("/OCGs", ocp) {
         Some(Array(arr)) => assert_eq(arr.length(), 2)
         _ => fail("expected /OCGs array")
       }
     _ => fail("expected /OCProperties")
   }
-  match @pdf.lookup_direct(merged, "/AcroForm", catalog) {
+  match merged.lookup_direct("/AcroForm", catalog) {
     Some(form) =>
-      match @pdf.lookup_direct(merged, "/Fields", form) {
+      match merged.lookup_direct("/Fields", form) {
         Some(Array(arr)) => assert_eq(arr.length(), 2)
         _ => fail("expected /Fields array")
       }

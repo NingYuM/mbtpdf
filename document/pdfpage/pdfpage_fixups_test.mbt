@@ -5,7 +5,7 @@ fn fixups_sample_rect() -> @pdf.PdfObject {
 
 ///|
 fn annot_numbers(pdf : @pdf.Pdf, page_obj : @pdf.PdfObject) -> Array[Int] {
-  match (@pdf.lookup_direct(pdf, "/Annots", page_obj) : @pdf.PdfObject?) {
+  match (pdf.lookup_direct("/Annots", page_obj) : @pdf.PdfObject?) {
     Some(Array(arr)) =>
       arr.filter_map(fn(obj) {
         match (obj : @pdf.PdfObject) {
@@ -44,19 +44,19 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
   @pdf.addobj_given_num(pdf, (annot_num, annot_with_popup))
   let refs = @pdf.page_reference_numbers(pdf)
   for refnum in refs {
-    let page_obj = @pdf.lookup_obj(pdf, refnum)
+    let page_obj = pdf.lookup_obj(refnum)
     let annots : @pdf.PdfObject = Array([Indirect(annot_num)])
     let updated = page_obj.add_entry("/Annots", annots)
     @pdf.addobj_given_num(pdf, (refnum, updated))
   }
   @pdfpage.PdfPageDoc::new(pdf).fixup_duplicate_annots()
   let refs2 = @pdf.page_reference_numbers(pdf)
-  let annots1 = annot_numbers(pdf, @pdf.lookup_obj(pdf, refs2[0]))
-  let annots2 = annot_numbers(pdf, @pdf.lookup_obj(pdf, refs2[1]))
+  let annots1 = annot_numbers(pdf, pdf.lookup_obj(refs2[0]))
+  let annots2 = annot_numbers(pdf, pdf.lookup_obj(refs2[1]))
   assert_eq(annots1.length(), 1)
   assert_eq(annots2.length(), 1)
   assert_true(annots1[0] != annots2[0])
-  match (@pdf.lookup_obj(pdf, annots2[0]) : @pdf.PdfObject) {
+  match (pdf.lookup_obj(annots2[0]) : @pdf.PdfObject) {
     Null => fail("expected copied annotation")
     _ => ()
   }
@@ -85,7 +85,7 @@ test "fixup_destinations removes nulled entries" {
   }
   @pdfpage.PdfPageDoc::new(pdf_direct).fixup_destinations()
   let updated_tree = match
-    @pdf.lookup_chain(pdf_direct, pdf_direct.trailerdict, [
+    pdf_direct.lookup_chain(pdf_direct.trailerdict, [
       "/Root", "/Names", "/Dests",
     ]) {
     Some(t) => t

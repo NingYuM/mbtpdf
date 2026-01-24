@@ -535,13 +535,13 @@ pub fn PdfFunction::parse(
   pdf : @pdf.Pdf,
   obj : @pdf.PdfObject,
 ) -> PdfFunction raise {
-  let f = @pdf.direct(pdf, obj)
+  let f = pdf.direct(obj)
   let getnum_direct = (value : @pdf.PdfObject) => @pdf.getnum(pdf, value)
   let domain = match @pdf.lookup_fail("No /Domain", pdf, "/Domain", f) {
     @pdf.PdfObject::Array(values) => values.map(getnum_direct)
     _ => raise @pdf.PdfError::Msg("Bad /Domain")
   }
-  let range = match @pdf.lookup_direct(pdf, "/Range", f) {
+  let range = match pdf.lookup_direct("/Range", f) {
     Some(@pdf.PdfObject::Array(values)) => Some(values.map(getnum_direct))
     _ => None
   }
@@ -557,11 +557,11 @@ pub fn PdfFunction::parse(
           })
         _ => raise @pdf.PdfError::Msg("Bad /Size (sampled fun)")
       }
-      let order = match @pdf.lookup_direct(pdf, "/Order", f) {
+      let order = match pdf.lookup_direct("/Order", f) {
         Some(@pdf.PdfObject::Integer(n)) => n
         _ => 1
       }
-      let encode = match @pdf.lookup_direct(pdf, "/Encode", f) {
+      let encode = match pdf.lookup_direct("/Encode", f) {
         Some(@pdf.PdfObject::Array(values)) if values.length() ==
           2 * size.length() => values.map(getnum_direct)
         _ =>
@@ -570,7 +570,7 @@ pub fn PdfFunction::parse(
             size.map(x => (x - 1).to_double()),
           )
       }
-      let decode = match @pdf.lookup_direct(pdf, "/Decode", f) {
+      let decode = match pdf.lookup_direct("/Decode", f) {
         Some(@pdf.PdfObject::Array(values)) => values.map(getnum_direct)
         _ =>
           match range {
@@ -604,11 +604,11 @@ pub fn PdfFunction::parse(
       })
     }
     @pdf.PdfObject::Integer(2) => {
-      let c0 = match @pdf.lookup_direct(pdf, "/C0", f) {
+      let c0 = match pdf.lookup_direct("/C0", f) {
         Some(@pdf.PdfObject::Array(values)) => values.map(getnum_direct)
         _ => [0.0]
       }
-      let c1 = match @pdf.lookup_direct(pdf, "/C1", f) {
+      let c1 = match pdf.lookup_direct("/C1", f) {
         Some(@pdf.PdfObject::Array(values)) => values.map(getnum_direct)
         _ => [1.0]
       }

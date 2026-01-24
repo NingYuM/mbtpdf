@@ -118,7 +118,7 @@ fn decode_defaults(
 ) -> @pdf.PdfObject? raise {
   match entry {
     None =>
-      match @pdf.lookup_direct(pdf, "/ColorSpace", image) {
+      match pdf.lookup_direct("/ColorSpace", image) {
         None => None
         Some(cspace) =>
           match @pdfspace.ColourSpace::read(pdf, resources, cspace) {
@@ -179,7 +179,7 @@ fn decode_defaults(
           }
       }
     Some(_) =>
-      match @pdf.lookup_direct(pdf, "/ColorSpace", image) {
+      match pdf.lookup_direct("/ColorSpace", image) {
         None => entry
         Some(cspace) =>
           match @pdfspace.ColourSpace::read(pdf, resources, cspace) {
@@ -195,7 +195,7 @@ fn decode_to_image(pdf : @pdf.Pdf, stream : @pdf.PdfObject) -> Unit raise {
   match (stream : @pdf.PdfObject) {
     Stream(r) => {
       let (dict, _) = r.val
-      match @pdf.lookup_direct(pdf, "/Filter", dict) {
+      match pdf.lookup_direct("/Filter", dict) {
         None => ()
         Some(Array([])) => ()
         Some(Name("/DCTDecode" | "/DCT" | "/JBIG2Decode" | "/JPXDecode")) => ()
@@ -759,15 +759,15 @@ pub fn Image::colspace(
   dict : @pdf.PdfObject,
   resources : @pdf.PdfObject,
 ) -> @pdfspace.ColourSpace raise {
-  match @pdf.lookup_direct_orelse(pdf, "/ImageMask", "/IM", dict) {
+  match pdf.lookup_direct_orelse("/ImageMask", "/IM", dict) {
     Some(Boolean(true)) => @pdfspace.ColourSpace::DeviceGray
     _ => {
-      let colspace = @pdf.lookup_direct_orelse(pdf, "/ColorSpace", "/CS", dict)
-      let space = match @pdf.lookup_direct(pdf, "/ColorSpace", resources) {
+      let colspace = pdf.lookup_direct_orelse("/ColorSpace", "/CS", dict)
+      let space = match pdf.lookup_direct("/ColorSpace", resources) {
         Some(Dictionary(_) as dict_obj) =>
           match colspace {
             Some(Name(name)) =>
-              match @pdf.lookup_direct(pdf, name, dict_obj) {
+              match pdf.lookup_direct(name, dict_obj) {
                 Some(found) => found
                 None => @pdf.PdfObject::Name(name)
               }
@@ -787,10 +787,10 @@ pub fn Image::colspace(
 
 ///|
 pub fn Image::bpc(pdf : @pdf.Pdf, dict : @pdf.PdfObject) -> @pdf.PdfObject? {
-  match @pdf.lookup_direct_orelse(pdf, "/BitsPerComponent", "/BPC", dict) {
+  match pdf.lookup_direct_orelse("/BitsPerComponent", "/BPC", dict) {
     Some(bpc) => Some(bpc)
     None =>
-      match @pdf.lookup_direct(pdf, "/ImageMask", dict) {
+      match pdf.lookup_direct("/ImageMask", dict) {
         Some(Boolean(true)) => Some(@pdf.PdfObject::Integer(1))
         _ => None
       }
@@ -821,7 +821,7 @@ pub fn Image::get_image_24bpp(
   resources : @pdf.PdfObject,
   stream : @pdf.PdfObject,
 ) -> Image raise {
-  let stream = @pdf.direct(pdf, stream)
+  let stream = pdf.direct(stream)
   @pdf.getstream(stream)
   let (streamdict, data) = match (stream : @pdf.PdfObject) {
     Stream(r) => {
@@ -833,39 +833,34 @@ pub fn Image::get_image_24bpp(
     }
     _ => raise @pdf.PdfError::Msg("get_image_24bpp: bad stream")
   }
-  let width = match @pdf.lookup_direct_orelse(pdf, "/Width", "/W", streamdict) {
+  let width = match pdf.lookup_direct_orelse("/Width", "/W", streamdict) {
     Some(Integer(x)) => x
     _ => raise @pdf.PdfError::Msg("Malformed /Image width")
   }
-  let height = match
-    @pdf.lookup_direct_orelse(pdf, "/Height", "/H", streamdict) {
+  let height = match pdf.lookup_direct_orelse("/Height", "/H", streamdict) {
     Some(Integer(x)) => x
     _ => raise @pdf.PdfError::Msg("Malformed /Image height")
   }
   let bpc_val = match
-    @pdf.lookup_direct_orelse(pdf, "/BitsPerComponent", "/BPC", streamdict) {
+    pdf.lookup_direct_orelse("/BitsPerComponent", "/BPC", streamdict) {
     Some(Integer(n)) => n
     _ => 0
   }
   decode_to_image(pdf, stream)
   let get_decode = () => {
-    let decode_entry = @pdf.lookup_direct_orelse(
-      pdf, "/Decode", "/D", streamdict,
-    )
+    let decode_entry = pdf.lookup_direct_orelse("/Decode", "/D", streamdict)
     let decode_entry = decode_defaults(pdf, resources, decode_entry, streamdict)
     match decode_entry {
       Some(Array(nums)) => Some(nums.map(n => @pdf.getnum(pdf, n)))
       _ => None
     }
   }
-  match @pdf.lookup_direct_orelse(pdf, "/Filter", "/F", streamdict) {
+  match pdf.lookup_direct_orelse("/Filter", "/F", streamdict) {
     None | Some(Array([])) => {
       let raw = Image::from_stream_data(
         pdf, resources, width, height, streamdict, data,
       )
-      let decode_entry = @pdf.lookup_direct_orelse(
-        pdf, "/Decode", "/D", streamdict,
-      )
+      let decode_entry = pdf.lookup_direct_orelse("/Decode", "/D", streamdict)
       let decode_entry = decode_defaults(
         pdf, resources, decode_entry, streamdict,
       )
@@ -887,9 +882,9 @@ pub fn Image::get_image_24bpp(
     | Some(Array([Name("/DCTDecode" | "/DCT")])) =>
       Image::JPEG(data, get_decode())
     Some(Name("/JBIG2Decode")) | Some(Array([Name("/JBIG2Decode")])) => {
-      let globals = match @pdf.lookup_direct(pdf, "/DecodeParms", streamdict) {
+      let globals = match pdf.lookup_direct("/DecodeParms", streamdict) {
         Some(Dictionary(parms)) =>
-          match @pdf.lookup_direct(pdf, "/JBIG2Globals", Dictionary(parms)) {
+          match pdf.lookup_direct("/JBIG2Globals", Dictionary(parms)) {
             Some(Indirect(i)) => Some(i)
             _ => None
           }

@@ -68,7 +68,7 @@ test "remove_unreferenced nullifies page refs" {
   )
   addobj_given_num(pdf, (5, stream))
   addobj_given_num(pdf, (6, PdfObject::Integer(7)))
-  let catalog = lookup_obj(pdf, 3)
+  let catalog = pdf.lookup_obj(3)
   let catalog_with_stream = catalog.add_entry("/Stream", PdfObject::Indirect(5))
   let catalog_with_number = catalog_with_stream.add_entry(
     "/Number",
@@ -77,11 +77,11 @@ test "remove_unreferenced nullifies page refs" {
   addobj_given_num(pdf, (3, catalog_with_number))
   remove_unreferenced(pdf)
   assert_true(!pdf.objnumbers().contains(4))
-  match lookup_obj(pdf, 5) {
+  match pdf.lookup_obj(5) {
     PdfObject::Stream(r) =>
       match r.val {
         (dict_obj, _) =>
-          match lookup_immediate("/Ref", dict_obj) {
+          match dict_obj.lookup_immediate("/Ref") {
             Some(PdfObject::Null) => ()
             _ => fail("expected nullified ref")
           }

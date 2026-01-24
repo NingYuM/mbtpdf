@@ -18,7 +18,7 @@ test "malformed pdf without xref uses fallback" {
   )
   assert_eq(pdf.root, 1)
   assert_eq(pdf.objcard(), 2)
-  match (@pdf.lookup_obj(pdf, 1) : @pdf.PdfObject) {
+  match (pdf.lookup_obj(1) : @pdf.PdfObject) {
     Dictionary(_) => ()
     _ => fail("expected catalog dictionary")
   }
@@ -41,7 +41,7 @@ test "malformed pdf without trailer infers root" {
     @pdfio.input_of_string(data),
   )
   assert_eq(pdf.root, 1)
-  match (@pdf.lookup_immediate("/Root", pdf.trailerdict) : @pdf.PdfObject?) {
+  match (pdf.trailerdict.lookup_immediate("/Root") : @pdf.PdfObject?) {
     Some(Indirect(1)) => ()
     _ => fail("expected /Root in trailer")
   }

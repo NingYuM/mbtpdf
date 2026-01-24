@@ -130,7 +130,7 @@ test "pdf_to_output generates object streams with indirect lengths" {
   let offsets = Array::new()
   let mut offset = 0
   for objnum in objs_in_stream {
-    let obj = @pdf.lookup_obj(pdf, objnum)
+    let obj = pdf.lookup_obj(objnum)
     let s = write_ctx.string_of_pdf(obj) + " "
     object_strings.push(s)
     offsets.push(offset)

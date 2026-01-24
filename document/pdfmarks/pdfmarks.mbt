@@ -32,7 +32,7 @@ pub fn Bookmark::to_string(self : Bookmark) -> String {
 #as_free_fn(remove_bookmarks, deprecated="Use `PdfMarks::remove_bookmarks`")
 pub fn PdfMarks::remove_bookmarks(self : PdfMarks) -> @pdf.Pdf raise {
   let pdf = self.pdf
-  match @pdf.lookup_direct(pdf, "/Root", pdf.trailerdict) {
+  match pdf.lookup_direct("/Root", pdf.trailerdict) {
     None => raise @pdf.PdfError::Msg("remove_bookmarks: Bad PDF: no root")
     Some(catalog) => {
       let catalog_updated = catalog.remove_entry("/Outlines")
@@ -399,7 +399,7 @@ pub fn PdfMarks::add_bookmarks(
     for pair in pairs {
       @pdf.addobj_given_num(pdf, pair)
     }
-    match @pdf.lookup_direct(pdf, "/Root", pdf.trailerdict) {
+    match pdf.lookup_direct("/Root", pdf.trailerdict) {
       None => raise @pdf.PdfError::Msg("Bad PDF: no root")
       Some(catalog) => {
         let catalog_updated = catalog.add_entry(
@@ -433,7 +433,7 @@ fn traverse_outlines_lb(
   preserve_actions : Bool,
   out : Ref[Array[Bookmark]],
 ) -> Unit raise {
-  match @pdf.lookup_direct(pdf, "/First", outlines) {
+  match pdf.lookup_direct("/First", outlines) {
     None => ()
     Some(first) =>
       do_until_no_next_lb(pdf, first, indent, preserve_actions, out)
@@ -448,7 +448,7 @@ fn do_until_no_next_lb(
   preserve_actions : Bool,
   out : Ref[Array[Bookmark]],
 ) -> Unit raise {
-  let title = match @pdf.lookup_direct(pdf, "/Title", outline) {
+  let title = match pdf.lookup_direct("/Title", outline) {
     Some(@pdf.PdfObject::String(s)) => s
     _ => {
       @pdfe.Pdfe::new().log(
@@ -457,37 +457,36 @@ fn do_until_no_next_lb(
       ""
     }
   }
-  let page : @pdfdest.Destination = match
-    @pdf.lookup_direct(pdf, "/Dest", outline) {
+  let page : @pdfdest.Destination = match pdf.lookup_direct("/Dest", outline) {
     Some(@pdf.PdfObject::String(stringdest)) if preserve_actions =>
       StringDestination(stringdest)
     Some(dest) =>
       @pdfdest.Destination::read(pdf, dest, shallow=preserve_actions)
     None =>
-      match @pdf.lookup_direct(pdf, "/A", outline) {
+      match pdf.lookup_direct("/A", outline) {
         None => NullDestination
         Some(action) =>
           if preserve_actions {
-            match @pdf.lookup_direct(pdf, "/D", action) {
+            match pdf.lookup_direct("/D", action) {
               Some(@pdf.PdfObject::Array(_) as dest) =>
                 @pdfdest.Destination::read(pdf, dest, shallow=preserve_actions)
-              _ => Action(@pdf.direct(pdf, action))
+              _ => Action(pdf.direct(action))
             }
           } else {
-            match @pdf.lookup_direct(pdf, "/D", action) {
-              None => Action(@pdf.direct(pdf, action))
+            match pdf.lookup_direct("/D", action) {
+              None => Action(pdf.direct(action))
               Some(dest) =>
                 @pdfdest.Destination::read(pdf, dest, shallow=preserve_actions)
             }
           }
       }
   }
-  let opn = match @pdf.lookup_direct(pdf, "/Count", outline) {
+  let opn = match pdf.lookup_direct("/Count", outline) {
     Some(@pdf.PdfObject::Integer(i)) if i > 0 => true
     _ => false
   }
   let colour = try {
-    match @pdf.lookup_direct(pdf, "/C", outline) {
+    match pdf.lookup_direct("/C", outline) {
       Some(@pdf.PdfObject::Array([a, b, c])) =>
         (@pdf.getnum(pdf, a), @pdf.getnum(pdf, b), @pdf.getnum(pdf, c))
       _ => (0.0, 0.0, 0.0)
@@ -495,7 +494,7 @@ fn do_until_no_next_lb(
   } catch {
     _ => (0.0, 0.0, 0.0)
   }
-  let flags = match @pdf.lookup_direct(pdf, "/F", outline) {
+  let flags = match pdf.lookup_direct("/F", outline) {
     Some(@pdf.PdfObject::Integer(i)) => i
     _ => 0
   }
@@ -512,7 +511,7 @@ fn do_until_no_next_lb(
   if indent.val > 0 {
     indent.val = indent.val - 1
   }
-  match @pdf.lookup_direct(pdf, "/Next", outline) {
+  match pdf.lookup_direct("/Next", outline) {
     None => ()
     Some(next) => do_until_no_next_lb(pdf, next, indent, preserve_actions, out)
   }
@@ -526,10 +525,10 @@ pub fn PdfMarks::read_bookmarks(
   preserve_actions? : Bool = false,
 ) -> Array[Bookmark] raise {
   let pdf = self.pdf
-  match @pdf.lookup_direct(pdf, "/Root", pdf.trailerdict) {
+  match pdf.lookup_direct("/Root", pdf.trailerdict) {
     None => raise @pdf.PdfError::Msg("read_bookmarks - Bad PDF: no root")
     Some(catalog) =>
-      match @pdf.lookup_direct(pdf, "/Outlines", catalog) {
+      match pdf.lookup_direct("/Outlines", catalog) {
         None => []
         Some(outlines) => {
           let out = Ref::new(Array::new())

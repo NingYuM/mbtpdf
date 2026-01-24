@@ -72,7 +72,7 @@ fn sanitize_trailerdict(
     "/W", "/Type", "/Index", "/Prev", "/XRefStm", "/Filter", "/DecodeParms",
   ]
   for key in keys {
-    if @pdf.lookup_immediate(key, cleaned) is Some(_) {
+    if cleaned.lookup_immediate(key) is Some(_) {
       cleaned = cleaned.remove_entry(key)
     }
   }
@@ -81,7 +81,7 @@ fn sanitize_trailerdict(
 
 ///|
 fn version_from_catalog(pdf : @pdf.Pdf) -> (Int, Int)? {
-  match @pdf.lookup_direct(pdf, "/Version", @pdf.lookup_obj(pdf, pdf.root)) {
+  match pdf.lookup_direct("/Version", pdf.lookup_obj(pdf.root)) {
     Some(@pdf.PdfObject::Name(s)) => {
       if s.length() < 2 {
         return None
@@ -174,7 +174,7 @@ fn read_pdf_internal(
         trailerdict = trailerdict_current
         first_trailer = false
       }
-      match @pdf.lookup_immediate("/XRefStm", trailerdict_current) {
+      match trailerdict_current.lookup_immediate("/XRefStm") {
         Some(@pdf.PdfObject::Integer(n)) => {
           (input.seek_in)(n)
           @pdfsyntax.PdfSyntax::new().dropwhite(input)
@@ -191,7 +191,7 @@ fn read_pdf_internal(
           )
         None => ()
       }
-      match @pdf.lookup_immediate("/Prev", trailerdict_current) {
+      match trailerdict_current.lookup_immediate("/Prev") {
         None => got_all_xref_sections = true
         Some(@pdf.PdfObject::Integer(n)) => {
           revisions_count = revisions_count + 1
@@ -219,7 +219,7 @@ fn read_pdf_internal(
         }
       }
     }
-    let root = match @pdf.lookup_immediate("/Root", trailerdict) {
+    let root = match trailerdict.lookup_immediate("/Root") {
       Some(@pdf.PdfObject::Indirect(i)) => i
       None => {
         let message = @pdf.input_pdferror(input, "No /Root entry")
@@ -265,10 +265,10 @@ fn read_pdf_internal(
       saved_encryption: None,
     }
     fn remove_postdelete(pdf : @pdf.Pdf, objnum : Int) -> Unit {
-      match @pdf.lookup_obj(pdf, objnum) {
+      match pdf.lookup_obj(objnum) {
         @pdf.PdfObject::Stream(r) => {
           let (dict, _) = r.val
-          match @pdf.lookup_direct(pdf, "/Type", dict) {
+          match pdf.lookup_direct("/Type", dict) {
             Some(@pdf.PdfObject::Name("/XRef"))
             | Some(@pdf.PdfObject::Name("/ObjStm")) =>
               @pdf.removeobj(pdf, objnum)

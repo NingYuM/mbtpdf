@@ -75,7 +75,7 @@ fn label_of_range(
       1
     }
   }
-  let labelstyle = match @pdf.lookup_direct(pdf, "/S", thing) {
+  let labelstyle = match pdf.lookup_direct("/S", thing) {
     Some(@pdf.PdfObject::Name("/D")) => LabelStyle::DecimalArabic
     Some(@pdf.PdfObject::Name("/R")) => LabelStyle::UppercaseRoman
     Some(@pdf.PdfObject::Name("/r")) => LabelStyle::LowercaseRoman
@@ -83,11 +83,11 @@ fn label_of_range(
     Some(@pdf.PdfObject::Name("/a")) => LabelStyle::LowercaseLetters
     _ => LabelStyle::NoLabelPrefixOnly
   }
-  let labelprefix = match @pdf.lookup_direct(pdf, "/P", thing) {
+  let labelprefix = match pdf.lookup_direct("/P", thing) {
     Some(@pdf.PdfObject::String(s)) => Some(s)
     _ => None
   }
-  let startvalue = match @pdf.lookup_direct(pdf, "/St", thing) {
+  let startvalue = match pdf.lookup_direct("/St", thing) {
     Some(@pdf.PdfObject::Integer(i)) => i
     _ => 1
   }
@@ -98,10 +98,10 @@ fn label_of_range(
 /// Read page labels from a document.
 #as_free_fn(read, deprecated="Use `PageLabel::read_all` instead")
 pub fn PageLabel::read_all(pdf : @pdf.Pdf) -> Array[PageLabel] raise {
-  match @pdf.lookup_direct(pdf, "/PageLabels", @pdf.lookup_obj(pdf, pdf.root)) {
+  match pdf.lookup_direct("/PageLabels", pdf.lookup_obj(pdf.root)) {
     None => []
     Some(labeltree) => {
-      let labelranges = @pdf.contents_of_nametree(pdf, labeltree)
+      let labelranges = pdf.contents_of_nametree(labeltree)
       let out = Array::new(capacity=labelranges.length())
       for range in labelranges {
         out.push(label_of_range(pdf, range))
@@ -408,7 +408,7 @@ pub fn PageLabel::write_all(
       arr.push(@pdf.PdfObject::Dictionary(entries))
     }
     let rootnum = pdf.root
-    let root = @pdf.lookup_obj(pdf, rootnum)
+    let root = pdf.lookup_obj(rootnum)
     let updated_root = root.add_entry(
       "/PageLabels",
       @pdf.PdfObject::Dictionary([("/Nums", @pdf.PdfObject::Array(arr))]),
@@ -426,7 +426,7 @@ pub fn PageLabel::write_all(
 #as_free_fn(remove, deprecated="Use `PageLabel::remove_all` instead")
 pub fn PageLabel::remove_all(pdf : @pdf.Pdf) -> Unit raise {
   let rootnum = pdf.root
-  let root = @pdf.lookup_obj(pdf, rootnum)
+  let root = pdf.lookup_obj(rootnum)
   let updated_root = root.remove_entry("/PageLabels")
   @pdf.addobj_given_num(pdf, (rootnum, updated_root))
   pdf.trailerdict = pdf.trailerdict.add_entry(

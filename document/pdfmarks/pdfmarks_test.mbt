@@ -37,7 +37,7 @@ fn assert_close(a : Double, b : Double) -> Unit raise {
 ///|
 fn outlines_root(pdf : @pdf.Pdf) -> @pdf.PdfObject raise {
   let catalog = @pdf.catalog_of_pdf(pdf)
-  match @pdf.lookup_direct(pdf, "/Outlines", catalog) {
+  match pdf.lookup_direct("/Outlines", catalog) {
     Some(obj) => obj
     None => fail("expected /Outlines")
   }
@@ -152,22 +152,22 @@ test "add_bookmarks links siblings and counts" {
   ]
   let pdf_with = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(marks)
   let outlines = outlines_root(pdf_with)
-  match @pdf.lookup_direct(pdf_with, "/Count", outlines) {
+  match pdf_with.lookup_direct("/Count", outlines) {
     Some(Integer(i)) => assert_eq(i, 4)
     _ => fail("expected /Count on outlines")
   }
-  let first = match @pdf.lookup_direct(pdf_with, "/First", outlines) {
+  let first = match pdf_with.lookup_direct("/First", outlines) {
     Some(obj) => obj
     None => fail("expected /First")
   }
-  let last = match @pdf.lookup_direct(pdf_with, "/Last", outlines) {
+  let last = match pdf_with.lookup_direct("/Last", outlines) {
     Some(obj) => obj
     None => fail("expected /Last")
   }
   match
     (
-      @pdf.lookup_direct(pdf_with, "/Title", first),
-      @pdf.lookup_direct(pdf_with, "/Title", last),
+      pdf_with.lookup_direct("/Title", first),
+      pdf_with.lookup_direct("/Title", last),
     ) {
     (Some(String(a)), Some(String(b))) => {
       assert_eq(a, "A")
@@ -175,27 +175,27 @@ test "add_bookmarks links siblings and counts" {
     }
     _ => fail("expected titles")
   }
-  match @pdf.lookup_direct(pdf_with, "/Next", first) {
+  match pdf_with.lookup_direct("/Next", first) {
     Some(next) =>
-      match @pdf.lookup_direct(pdf_with, "/Title", next) {
+      match pdf_with.lookup_direct("/Title", next) {
         Some(String(s)) => assert_eq(s, "B")
         _ => fail("expected /Next title")
       }
     None => fail("expected /Next")
   }
-  match @pdf.lookup_direct(pdf_with, "/Prev", last) {
+  match pdf_with.lookup_direct("/Prev", last) {
     Some(prev) =>
-      match @pdf.lookup_direct(pdf_with, "/Title", prev) {
+      match pdf_with.lookup_direct("/Title", prev) {
         Some(String(s)) => assert_eq(s, "A")
         _ => fail("expected /Prev title")
       }
     None => fail("expected /Prev")
   }
-  match @pdf.lookup_direct(pdf_with, "/Count", first) {
+  match pdf_with.lookup_direct("/Count", first) {
     Some(Integer(i)) => assert_eq(i, -1)
     _ => fail("expected negative /Count for closed node")
   }
-  match @pdf.lookup_direct(pdf_with, "/Count", last) {
+  match pdf_with.lookup_direct("/Count", last) {
     Some(Integer(i)) => assert_eq(i, 2)
     _ => fail("expected positive /Count for open node")
   }

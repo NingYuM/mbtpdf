@@ -99,7 +99,7 @@ let objnum = @pdf.addobj(pdf, @pdf.PdfObject::Dictionary([
 ///|
 test "lookup_obj returns Null for missing objects" {
   let pdf = @pdf.Pdf::empty()
-  assert_true(@pdf.lookup_obj(pdf, 999) is Null)
+  assert_true(pdf.lookup_obj(999) is Null)
 }
 ```
 
@@ -111,9 +111,7 @@ test "direct follows indirects" {
   let pdf = @pdf.Pdf::empty()
   let objnum = @pdf.addobj(pdf, @pdf.PdfObject::Integer(42))
   let indirect = @pdf.PdfObject::Indirect(objnum)
-  guard @pdf.direct(pdf, indirect) is Integer(n) else {
-    fail("expected Integer")
-  }
+  guard pdf.direct(indirect) is Integer(n) else { fail("expected Integer") }
   inspect(n, content="42")
 }
 ```
@@ -128,11 +126,11 @@ test "lookup_direct finds keys" {
     ("/Type", @pdf.PdfObject::Name("/Page")),
     ("/Count", @pdf.PdfObject::Integer(5)),
   ])
-  guard @pdf.lookup_direct(pdf, "/Type", dict) is Some(Name(name)) else {
+  guard pdf.lookup_direct("/Type", dict) is Some(Name(name)) else {
     fail("expected Name")
   }
   inspect(name, content="/Page")
-  assert_true(@pdf.lookup_direct(pdf, "/Missing", dict) is None)
+  assert_true(pdf.lookup_direct("/Missing", dict) is None)
 }
 ```
 
@@ -148,8 +146,7 @@ test "lookup_chain navigates nested dicts" {
     ("/Value", @pdf.PdfObject::Integer(100)),
   ])
   let outer = @pdf.PdfObject::Dictionary([("/Inner", inner)])
-  guard @pdf.lookup_chain(pdf, outer, ["/Inner", "/Value"][:])
-    is Some(Integer(n)) else {
+  guard pdf.lookup_chain(outer, ["/Inner", "/Value"][:]) is Some(Integer(n)) else {
     fail("expected Integer")
   }
   inspect(n, content="100")
@@ -181,7 +178,7 @@ test "add_dict_entry" {
 test "replace_dict_entry" {
   let dict = @pdf.PdfObject::Dictionary([("/Count", @pdf.PdfObject::Integer(1))])
   let updated = dict.replace_entry("/Count", @pdf.PdfObject::Integer(5))
-  guard @pdf.lookup_immediate("/Count", updated) is Some(Integer(n)) else {
+  guard updated.lookup_immediate("/Count") is Some(Integer(n)) else {
     fail("expected Integer")
   }
   inspect(n, content="5")
@@ -226,7 +223,7 @@ test "remove_dict_entry" {
 ///|
 let page_nums = @pdf.objselect(
   fn(obj) {
-    match @pdf.lookup_direct(pdf, "/Type", obj) {
+    match pdf.lookup_direct("/Type", obj) {
       Some(Name("/Page")) => true
       _ => false
     }
@@ -356,12 +353,12 @@ PDF name trees are hierarchical structures for mapping names to values:
 // Lookup in a name tree
 
 ///|
-let value = @pdf.nametree_lookup(pdf, @pdf.PdfObject::String("key"), tree)
+let value = pdf.nametree_lookup(@pdf.PdfObject::String("key"), tree)
 
 // Get all entries
 
 ///|
-let entries = @pdf.contents_of_nametree(pdf, tree)
+let entries = pdf.contents_of_nametree(tree)
 ```
 
 ## Character Classification
