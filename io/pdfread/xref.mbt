@@ -35,8 +35,12 @@ fn parse_digits(chars : Array[Char], start : Int, len : Int) -> Int? {
 ///|
 fn count_leading_spaces(chars : Array[Char]) -> Int {
   let mut i = 0
-  while i < chars.length() && chars[i] == ' ' {
-    i = i + 1
+  for ch in chars {
+    if ch == ' ' {
+      i = i + 1
+    } else {
+      break
+    }
   }
   i
 }
@@ -89,17 +93,20 @@ fn read_xref_line(input : @pdfio.Input) -> XRefLine raise {
   }
   match (offset_opt, gen_opt) {
     (Some(offset), Some(gen)) =>
-      match chars[17] {
-        'n' => return XRefLine::Valid(offset, gen)
-        'f' => return XRefLine::Free(offset, gen)
-        _ => return XRefLine::Invalid
+      match chars.get(17) {
+        Some('n') => return XRefLine::Valid(offset, gen)
+        Some('f') => return XRefLine::Free(offset, gen)
+        Some(_) => return XRefLine::Invalid
+        None => return XRefLine::Invalid
       }
     _ => ()
   }
-  if chars.length() >= 18 &&
-    parse_digits(chars, 0, 10) is Some(0) &&
-    chars[17] == 'n' {
-    return XRefLine::Free(0, 0)
+  match chars.get(17) {
+    Some('n') =>
+      if parse_digits(chars, 0, 10) is Some(0) {
+        return XRefLine::Free(0, 0)
+      }
+    _ => ()
   }
   if line.has_prefix("trailer") {
     let leading_spaces = count_leading_spaces(chars)
@@ -108,18 +115,16 @@ fn read_xref_line(input : @pdfio.Input) -> XRefLine raise {
   }
   let parts = split_fields(line)
   let mut start_index = 0
-  if parts.length() >= 3 && parts[0] == "xref" {
+  if parts.length() >= 3 && parts.get(0) is Some("xref") {
     start_index = 1
   }
-  if parts.length() - start_index >= 2 {
-    match
-      (
-        parse_uint_string(parts[start_index]),
-        parse_uint_string(parts[start_index + 1]),
-      ) {
-      (Some(s), Some(l)) => return XRefLine::Section(s, l)
-      _ => ()
-    }
+  match parts.sub(start=start_index) {
+    [first, second, ..] =>
+      match (parse_uint_string(first), parse_uint_string(second)) {
+        (Some(s), Some(l)) => return XRefLine::Section(s, l)
+        _ => ()
+      }
+    _ => ()
   }
   XRefLine::Invalid
 }
@@ -253,12 +258,8 @@ fn read_xref_stream(
   if dictlex.length() < 2 {
     raise err
   }
-  let objnum = match dictlex[0] {
-    @pdfgenlex.Token::LexInt(i) => i
-    _ => raise err
-  }
-  let gen = match dictlex[1] {
-    @pdfgenlex.Token::LexInt(i) => i
+  let (objnum, gen) = match dictlex {
+    [@pdfgenlex.Token::LexInt(o), @pdfgenlex.Token::LexInt(g), ..] => (o, g)
     _ => raise err
   }
   let stream_token = @pdfsyntax.PdfSyntax::new().lex_stream(
@@ -282,19 +283,15 @@ fn read_xref_stream(
   @pdfcodec.PdfCodec::new().decode_pdfstream(@pdf.Pdf::empty(), stream_obj)
   stream_obj.getstream()
   let (w1, w2, w3) = match @pdf.Pdf::empty().lookup_direct("/W", stream_obj) {
-    Some(@pdf.PdfObject::Array(elts)) => {
-      if elts.length() != 3 {
-        raise err
-      }
-      match (elts[0], elts[1], elts[2]) {
-        (
+    Some(
+      @pdf.PdfObject::Array(
+        [
           @pdf.PdfObject::Integer(a),
           @pdf.PdfObject::Integer(b),
           @pdf.PdfObject::Integer(c),
-        ) => (a, b, c)
-        _ => raise err
-      }
-    }
+        ]
+      )
+    ) => (a, b, c)
     _ => raise err
   }
   let raw_input = match stream_obj {
@@ -316,14 +313,11 @@ fn read_xref_stream(
   let starts_and_lens = match
     @pdf.Pdf::empty().lookup_direct("/Index", stream_obj) {
     Some(@pdf.PdfObject::Array(elts)) => {
-      if elts.length() % 2 != 0 {
-        raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Bad /Index"))
-      }
       let pairs = Array::new()
       let mut i = 0
       while i < elts.length() {
-        match (elts[i], elts[i + 1]) {
-          (@pdf.PdfObject::Integer(s), @pdf.PdfObject::Integer(l)) =>
+        match (elts.get(i), elts.get(i + 1)) {
+          (Some(@pdf.PdfObject::Integer(s)), Some(@pdf.PdfObject::Integer(l))) =>
             pairs.push((s, l))
           _ =>
             raise @pdf.PdfError::Msg(
@@ -354,19 +348,20 @@ fn read_xref_stream(
     let mut objnumber = start
     let mut i = 0
     while i < len {
-      if raw_pos >= xrefs_raw.length() {
-        raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Bad xref stream"))
-      }
-      match xrefs_raw[raw_pos] {
-        XRefLine::Valid(offset, gen) =>
+      match xrefs_raw.get(raw_pos) {
+        None =>
+          raise @pdf.PdfError::Msg(
+            @pdf.input_pdferror(input, "Bad xref stream"),
+          )
+        Some(XRefLine::Valid(offset, gen)) =>
           xrefs.push((objnumber, XRef::Plain(offset, gen)))
-        XRefLine::InObjectStream(stream, index) =>
+        Some(XRefLine::InObjectStream(stream, index)) =>
           xrefs.push((objnumber, XRef::Stream(stream, index)))
-        XRefLine::StreamFree(offset, gen) => {
+        Some(XRefLine::StreamFree(offset, gen)) => {
           ignore(offset)
           ignore(gen)
         }
-        XRefLine::XRefNull => ()
+        Some(XRefLine::XRefNull) => ()
         _ => ()
       }
       objnumber = objnumber + 1
@@ -465,10 +460,19 @@ fn parse_object_stream(
     if use_indexes && wanted_pos >= sorted_indexes.length() {
       break
     }
-    let objnum = rawnums[idx]
-    let offset = rawnums[idx + 1]
+    let objnum = match rawnums.get(idx) {
+      Some(value) => value
+      None => raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Bad objstm"))
+    }
+    let offset = match rawnums.get(idx + 1) {
+      Some(value) => value
+      None => raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Bad objstm"))
+    }
     let should_parse = if use_indexes {
-      let want = sorted_indexes[wanted_pos]
+      let want = match sorted_indexes.get(wanted_pos) {
+        Some(value) => value
+        None => break
+      }
       if current_index == want {
         wanted_pos = wanted_pos + 1
         true
