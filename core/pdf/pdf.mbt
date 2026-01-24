@@ -1608,24 +1608,25 @@ fn deep_copy_pdfobjects(from : Pdf) -> PdfObjMap {
 
 ///|
 /// Create a deep copy of a PDF document.
-pub fn deep_copy(from : Pdf) -> Pdf {
+#as_free_fn(deep_copy, deprecated="Use Pdf::deep_copy instead")
+pub fn Pdf::deep_copy(self : Pdf) -> Pdf {
   let object_stream_ids = Map::new()
-  for key, value in from.objects.object_stream_ids {
+  for key, value in self.objects.object_stream_ids {
     object_stream_ids.set(key, value)
   }
   {
-    major: from.major,
-    minor: from.minor,
-    root: from.root,
+    major: self.major,
+    minor: self.minor,
+    root: self.root,
     objects: {
-      max_obj_num: from.objects.max_obj_num,
-      parse: from.objects.parse,
-      objects: deep_copy_pdfobjects(from),
+      max_obj_num: self.objects.max_obj_num,
+      parse: self.objects.parse,
+      objects: deep_copy_pdfobjects(self),
       object_stream_ids,
     },
-    trailerdict: deep_copy_pdfobject(from.trailerdict),
-    was_linearized: from.was_linearized,
-    saved_encryption: from.saved_encryption,
+    trailerdict: deep_copy_pdfobject(self.trailerdict),
+    was_linearized: self.was_linearized,
+    saved_encryption: self.saved_encryption,
   }
 }
 
@@ -1633,12 +1634,13 @@ pub fn deep_copy(from : Pdf) -> Pdf {
 
 ///|
 /// Generate an /ID entry for a document.
-pub fn generate_id(
-  pdf : Pdf,
+#as_free_fn(generate_id, deprecated="Use Pdf::generate_id instead")
+pub fn Pdf::generate_id(
+  self : Pdf,
   path : String,
   gettime : () -> Double,
 ) -> PdfObject {
-  let _ = pdf
+  let _ = self
   let stamp = gettime().to_string()
   let id = path + stamp
   PdfObject::Array([PdfObject::String(id), PdfObject::String(id)])
@@ -1646,12 +1648,13 @@ pub fn generate_id(
 
 ///|
 /// Replace the /ID entry in the trailer dictionary.
-pub fn change_id(pdf : Pdf, path : String) -> Unit raise {
-  match pdf.trailerdict {
+#as_free_fn(change_id, deprecated="Use Pdf::change_id instead")
+pub fn Pdf::change_id(self : Pdf, path : String) -> Unit raise {
+  match self.trailerdict {
     Dictionary(_) =>
-      pdf.trailerdict = pdf.trailerdict.add_entry(
+      self.trailerdict = self.trailerdict.add_entry(
         "/ID",
-        generate_id(pdf, path, () => @env.now().to_double()),
+        self.generate_id(path, () => @env.now().to_double()),
       )
     _ => raise PdfError::Msg("Bad trailer dictionary")
   }

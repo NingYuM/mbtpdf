@@ -39,7 +39,7 @@ test "encrypt/decrypt 128bit roundtrip" {
   assert_true(@pdfcrypt.PdfCrypt::new().is_encrypted(enc))
   let (dec, perms) = @pdfcrypt.PdfCrypt::new().decrypt_pdf(
     "user",
-    @pdf.deep_copy(enc),
+    enc.deep_copy(),
   )
   match dec {
     Some(pdf_dec) =>
@@ -50,10 +50,7 @@ test "encrypt/decrypt 128bit roundtrip" {
     _ => fail("expected decrypted pdf")
   }
   assert_eq(perms.length(), 0)
-  let (bad, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf(
-    "wrong",
-    @pdf.deep_copy(enc),
-  )
+  let (bad, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf("wrong", enc.deep_copy())
   match bad {
     None => ()
     _ => fail("expected wrong password to fail")
@@ -80,7 +77,7 @@ test "encrypt/decrypt AES V2 roundtrip" {
   assert_true(@pdfcrypt.PdfCrypt::new().is_encrypted(enc))
   let (dec, perms) = @pdfcrypt.PdfCrypt::new().decrypt_pdf(
     "user",
-    @pdf.deep_copy(enc),
+    enc.deep_copy(),
   )
   match dec {
     Some(pdf_dec) =>
@@ -91,10 +88,7 @@ test "encrypt/decrypt AES V2 roundtrip" {
     _ => fail("expected decrypted pdf")
   }
   assert_eq(perms.length(), 0)
-  let (bad, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf(
-    "wrong",
-    @pdf.deep_copy(enc),
-  )
+  let (bad, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf("wrong", enc.deep_copy())
   match bad {
     None => ()
     _ => fail("expected wrong password to fail")
@@ -143,21 +137,21 @@ test "recrypt_pdf requires correct password" {
     pdf,
   )
   let reenc_user : Result[@pdf.Pdf, Error] = try? @pdfcrypt.PdfCrypt::new().recrypt_pdf(
-    @pdf.deep_copy(enc),
+    enc.deep_copy(),
     "user",
     renumber=false,
   )
   match reenc_user {
     Ok(pdf_reenc) =>
       match
-        @pdfcrypt.PdfCrypt::new().decrypt_pdf("user", @pdf.deep_copy(pdf_reenc)) {
+        @pdfcrypt.PdfCrypt::new().decrypt_pdf("user", pdf_reenc.deep_copy()) {
         (Some(_), _) => ()
         _ => fail("expected user decrypt after recrypt")
       }
     Err(_) => fail("expected user recrypt to succeed")
   }
   let reenc_owner : Result[@pdf.Pdf, Error] = try? @pdfcrypt.PdfCrypt::new().recrypt_pdf(
-    @pdf.deep_copy(enc),
+    enc.deep_copy(),
     "owner",
     renumber=false,
   )
@@ -166,7 +160,7 @@ test "recrypt_pdf requires correct password" {
       match
         @pdfcrypt.PdfCrypt::new().decrypt_pdf_owner(
           "owner",
-          @pdf.deep_copy(pdf_reenc),
+          pdf_reenc.deep_copy(),
         ) {
         Some(_) => ()
         None => fail("expected owner decrypt after recrypt")
@@ -174,7 +168,7 @@ test "recrypt_pdf requires correct password" {
     Err(_) => fail("expected owner recrypt to succeed")
   }
   let bad : Result[@pdf.Pdf, Error] = try? @pdfcrypt.PdfCrypt::new().recrypt_pdf(
-    @pdf.deep_copy(enc),
+    enc.deep_copy(),
     "wrong",
     renumber=false,
   )

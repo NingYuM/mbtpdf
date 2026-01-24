@@ -1499,14 +1499,14 @@ pub fn PdfCrypt::recrypt_pdf(
     }
     let dec_result : Result[(@pdf.Pdf?, Array[Permission]), Error] = try? self.decrypt_pdf(
       pw,
-      @pdf.deep_copy(pdf),
+      pdf.deep_copy(),
     )
     match dec_result {
       Ok((Some(pdf_dec), _)) => pdf = pdf_dec
       _ => {
         let owner_result : Result[@pdf.Pdf?, Error] = try? self.decrypt_pdf_owner(
           pw,
-          @pdf.deep_copy(pdf),
+          pdf.deep_copy(),
         )
         match owner_result {
           Ok(Some(pdf_dec)) => pdf = pdf_dec

@@ -33,7 +33,7 @@ test "deep_copy copies streams and object data" {
   if pdf.objects.max_obj_num < 8 {
     pdf.objects.max_obj_num = 8
   }
-  let copied = deep_copy(pdf)
+  let copied = pdf.deep_copy()
   match pdf.lookup_obj(4) {
     PdfObject::Stream(r) =>
       match r.val {

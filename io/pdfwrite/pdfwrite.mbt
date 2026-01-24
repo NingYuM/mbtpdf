@@ -814,7 +814,7 @@ pub fn PdfWrite::pdf_to_output(
 ) -> Unit raise {
   let mut pdf = pdf
   if build_new_id {
-    @pdf.change_id(pdf, "")
+    pdf.change_id("")
   }
   let recrypting = match recrypt {
     Some(_) => true

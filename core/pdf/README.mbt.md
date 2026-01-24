@@ -330,7 +330,7 @@ let renumbered = pdf.renumber(change_table)
 // Create an independent copy
 
 ///|
-let copy = @pdf.deep_copy(pdf)
+let copy = pdf.deep_copy()
 ```
 
 ### Renumbering Multiple PDFs

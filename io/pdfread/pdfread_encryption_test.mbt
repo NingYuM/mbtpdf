@@ -12,7 +12,7 @@ test "what_encryption detects ARC4 and AES methods" {
     "user",
     "owner",
     [],
-    @pdf.deep_copy(base),
+    base.deep_copy(),
   )
   match @pdfread.PdfRead::new().what_encryption(arc4) {
     Some(@pdfcrypt.EncryptionMethod::PDF40bit) => ()
@@ -23,7 +23,7 @@ test "what_encryption detects ARC4 and AES methods" {
     "user",
     "owner",
     [],
-    @pdf.deep_copy(base),
+    base.deep_copy(),
   )
   match @pdfread.PdfRead::new().what_encryption(aes128) {
     Some(@pdfcrypt.EncryptionMethod::AES128bit(_)) => ()
@@ -39,7 +39,7 @@ test "what_encryption detects AES256 variants" {
     "user",
     "owner",
     [],
-    @pdf.deep_copy(base),
+    base.deep_copy(),
   )
   match @pdfread.PdfRead::new().what_encryption(aes256) {
     Some(@pdfcrypt.EncryptionMethod::AES256bit(_)) => ()
@@ -50,7 +50,7 @@ test "what_encryption detects AES256 variants" {
     "user",
     "owner",
     [],
-    @pdf.deep_copy(base),
+    base.deep_copy(),
   )
   match @pdfread.PdfRead::new().what_encryption(aes256iso) {
     Some(@pdfcrypt.EncryptionMethod::AES256bitISO(_)) => ()

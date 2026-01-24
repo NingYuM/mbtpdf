@@ -8,13 +8,7 @@ import {
 }
 
 // Values
-pub fn change_id(Pdf, String) -> Unit raise
-
-pub fn deep_copy(Pdf) -> Pdf
-
 pub let endpage : Ref[(Pdf) -> Int]
-
-pub fn generate_id(Pdf, String, () -> Double) -> PdfObject
 
 pub fn input_pdferror(@pdfio.Input, String) -> String
 
@@ -72,13 +66,19 @@ pub fn Pdf::addobj(Self, PdfObject) -> Int
 pub fn Pdf::addobj_given_num(Self, (Int, PdfObject)) -> Unit
 #as_free_fn(catalog_of_pdf, deprecated)
 pub fn Pdf::catalog_of_pdf(Self) -> PdfObject raise
+#as_free_fn(change_id, deprecated)
+pub fn Pdf::change_id(Self, String) -> Unit raise
 #as_free_fn(changes, deprecated)
 pub fn Pdf::changes(Self) -> Map[Int, Int]
 #as_free_fn(contents_of_nametree, deprecated)
 pub fn Pdf::contents_of_nametree(Self, PdfObject) -> Array[(PdfObject, PdfObject)] raise
+#as_free_fn(deep_copy, deprecated)
+pub fn Pdf::deep_copy(Self) -> Self
 #as_free_fn(direct, deprecated)
 pub fn Pdf::direct(Self, PdfObject) -> PdfObject
 pub fn Pdf::empty() -> Self
+#as_free_fn(generate_id, deprecated)
+pub fn Pdf::generate_id(Self, String, () -> Double) -> PdfObject
 #as_free_fn(getnum, deprecated)
 pub fn Pdf::getnum(Self, PdfObject) -> Double raise
 #as_free_fn(indirect_number, deprecated)

@@ -140,10 +140,7 @@ test "encrypt AES V2 without metadata and AES256 with long passwords" {
     [],
     pdf,
   )
-  let (dec, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf(
-    "user",
-    @pdf.deep_copy(enc),
-  )
+  let (dec, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf("user", enc.deep_copy())
   assert_true(dec is Some(_))
   let string_obj : @pdf.PdfObject = String("secret")
   pdf.addobj_given_num((10, string_obj))
@@ -168,7 +165,7 @@ test "encrypt AES V2 without metadata and AES256 with long passwords" {
   )
   let (dec256, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf(
     long_pw,
-    @pdf.deep_copy(enc256),
+    enc256.deep_copy(),
   )
   assert_true(dec256 is Some(_))
 }

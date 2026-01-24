@@ -16,24 +16,21 @@ test "encrypt/decrypt AES256 roundtrip" {
   assert_true(@pdfcrypt.PdfCrypt::new().is_encrypted(enc))
   let (dec, perms) = @pdfcrypt.PdfCrypt::new().decrypt_pdf(
     "user",
-    @pdf.deep_copy(enc),
+    enc.deep_copy(),
   )
   match dec {
     Some(pdf_dec) => assert_eq(page_count(pdf_dec), 1)
     _ => fail("expected decrypted pdf")
   }
   assert_eq(perms.length(), 0)
-  let (bad, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf(
-    "wrong",
-    @pdf.deep_copy(enc),
-  )
+  let (bad, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf("wrong", enc.deep_copy())
   match bad {
     None => ()
     _ => fail("expected wrong password to fail")
   }
   let owner = @pdfcrypt.PdfCrypt::new().decrypt_pdf_owner(
     "owner",
-    @pdf.deep_copy(enc),
+    enc.deep_copy(),
   )
   match owner {
     Some(_) => ()
@@ -52,10 +49,7 @@ test "encrypt/decrypt AES256 ISO roundtrip" {
     pdf,
   )
   assert_true(@pdfcrypt.PdfCrypt::new().is_encrypted(enc))
-  let (dec, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf(
-    "user",
-    @pdf.deep_copy(enc),
-  )
+  let (dec, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf("user", enc.deep_copy())
   match dec {
     Some(pdf_dec) => assert_eq(page_count(pdf_dec), 1)
     _ => fail("expected decrypted pdf")

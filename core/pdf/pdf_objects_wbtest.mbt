@@ -116,13 +116,13 @@ test "references and renumbering" {
   assert_true(first_nums.length() > 0)
   assert_true(second_nums.length() > 0)
   assert_true(first_nums.last().unwrap() < second_nums[0])
-  let copied = deep_copy(pdf)
+  let copied = pdf.deep_copy()
   pdf.trailerdict = PdfObject::Dictionary([])
   match copied.trailerdict {
     PdfObject::Dictionary(entries) => assert_true(entries.length() > 0)
     _ => fail("expected dictionary")
   }
-  match generate_id(pdf, "path", () => 1.0) {
+  match pdf.generate_id("path", () => 1.0) {
     PdfObject::Array(values) => {
       assert_eq(values.length(), 2)
       match (values[0], values[1]) {
@@ -132,12 +132,12 @@ test "references and renumbering" {
     }
     _ => fail("expected id array")
   }
-  change_id(pdf, "path-")
+  pdf.change_id("path-")
   match pdf.trailerdict.lookup_immediate("/ID") {
     Some(PdfObject::Array(values)) => assert_eq(values.length(), 2)
     _ => fail("expected id entry")
   }
   let bad = Pdf::empty()
   bad.trailerdict = PdfObject::Integer(1)
-  assert_is_err(try? change_id(bad, "path-"))
+  assert_is_err(try? bad.change_id("path-"))
 }

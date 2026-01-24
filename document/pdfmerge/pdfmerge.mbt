@@ -1135,6 +1135,6 @@ pub fn PdfMerger::merge_pdfs(
   if do_remove_duplicate_fonts {
     PdfMergeDoc::new(pdf).remove_duplicate_fonts()
   }
-  @pdf.change_id(pdf, "")
+  pdf.change_id("")
   pdf
 }
