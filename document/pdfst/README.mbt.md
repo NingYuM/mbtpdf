@@ -6,31 +6,52 @@ PDF structure tree operations for tagged PDFs.
 
 This package handles the structure tree in tagged PDF documents. Tagged PDFs contain semantic structure information that maps content to logical document elements (paragraphs, headings, tables, etc.), enabling accessibility features and content reflow.
 
-## Functions
+## PdfStructTree
 
-### trim_structure_tree
+Construct a structure-tree context bound to a specific `Pdf`.
+
+```moonbit nocheck
+pub struct PdfStructTree { ... }
+pub fn PdfStructTree::new(pdf : @pdf.Pdf) -> PdfStructTree
+```
+
+## PdfStructTrees
+
+Batch context for operations across multiple PDFs.
+
+```moonbit nocheck
+pub struct PdfStructTrees { ... }
+pub fn PdfStructTrees::new(pdfs : Array[@pdf.Pdf]) -> PdfStructTrees
+```
+
+## Methods
+
+### PdfStructTree::trim_structure_tree
 
 Remove structure tree entries for pages not in the specified range.
 
 ```moonbit nocheck
-pub fn trim_structure_tree(pdf : @pdf.Pdf, range : Array[Int]) -> Unit raise
+pub fn PdfStructTree::trim_structure_tree(
+  self : PdfStructTree,
+  range : Array[Int]
+) -> Unit raise
 ```
 
-### renumber_parent_trees
+### PdfStructTrees::renumber_parent_trees
 
 Renumber /ParentTree entries when merging multiple PDFs. Updates /StructParent and /StructParents references to maintain consistency.
 
 ```moonbit nocheck
-pub fn renumber_parent_trees(pdfs : Array[@pdf.Pdf]) -> Unit raise
+pub fn PdfStructTrees::renumber_parent_trees(self : PdfStructTrees) -> Unit raise
 ```
 
-### merge_structure_trees
+### PdfStructTree::merge_structure_trees
 
 Merge structure trees from multiple PDFs into a single document.
 
 ```moonbit nocheck
-pub fn merge_structure_trees(
-  pdf : @pdf.Pdf,
+pub fn PdfStructTree::merge_structure_trees(
+  self : PdfStructTree,
   pdfs : Array[@pdf.Pdf],
   add_toplevel_document? : Bool
 ) -> Int? raise

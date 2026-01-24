@@ -62,7 +62,7 @@ test "trim_structure_tree removes entries" {
   let (root_num, removed_num) = add_struct_tree(pdf)
   let previous = endpage.val
   endpage.val = p => @pdfpage.pages_of_pagetree_quick(p) catch { _ => 0 }
-  trim_structure_tree(pdf, [1])
+  PdfStructTree::new(pdf).trim_structure_tree([1])
   endpage.val = previous
   assert_true(!pdf.objnumbers().contains(removed_num))
   let root = @pdf.lookup_obj(pdf, root_num)
@@ -124,7 +124,7 @@ test "trim_structure_tree updates nested k arrays" {
   ignore(@pdf.addobj(pdf, stream_obj))
   let previous = endpage.val
   endpage.val = p => @pdfpage.pages_of_pagetree_quick(p) catch { _ => 0 }
-  trim_structure_tree(pdf, [1])
+  PdfStructTree::new(pdf).trim_structure_tree([1])
   endpage.val = previous
   assert_true(!pdf.objnumbers().contains(parent_remove))
   let root = @pdf.lookup_obj(pdf, root_num)
@@ -143,13 +143,16 @@ test "trim_structure_tree updates nested k arrays" {
 test "renumber_parent_trees with empty parents" {
   let pdf1 = build_two_page_pdf()
   let pdf2 = build_two_page_pdf()
-  inspect(try? renumber_parent_trees([pdf1, pdf2]), content="Ok(())")
+  inspect(
+    try? PdfStructTrees::new([pdf1, pdf2]).renumber_parent_trees(),
+    content="Ok(())",
+  )
 }
 
 ///|
 test "renumber_parent_trees handles single pdf" {
   let pdf = build_two_page_pdf()
-  renumber_parent_trees([pdf])
+  PdfStructTrees::new([pdf]).renumber_parent_trees()
 }
 
 ///|
@@ -181,7 +184,7 @@ test "renumber_parent_trees remaps struct parents" {
   ignore(install_struct_root(pdf1, root1))
   let root2 : @pdf.PdfObject = Dictionary([("/ParentTree", Indirect(tree2_num))])
   ignore(install_struct_root(pdf2, root2))
-  renumber_parent_trees([pdf1, pdf2])
+  PdfStructTrees::new([pdf1, pdf2]).renumber_parent_trees()
   match
     (
       @pdf.lookup_direct(pdf1, "/StructParent", @pdf.lookup_obj(pdf1, obj1)) :
@@ -223,7 +226,7 @@ test "renumber_parent_trees remaps struct parents" {
 test "merge_structure_trees returns none" {
   let pdf = @pdf.Pdf::empty()
   let input = build_two_page_pdf()
-  match merge_structure_trees(pdf, [input]) {
+  match PdfStructTree::new(pdf).merge_structure_trees([input]) {
     None => ()
     _ => fail("expected none")
   }
@@ -234,7 +237,7 @@ test "merge_structure_trees returns single root" {
   let pdf_out = @pdf.Pdf::empty()
   let pdf = build_two_page_pdf()
   let root_num = install_struct_root(pdf, Dictionary([]))
-  match merge_structure_trees(pdf_out, [pdf]) {
+  match PdfStructTree::new(pdf_out).merge_structure_trees([pdf]) {
     Some(id) => assert_eq(id, root_num)
     _ => fail("expected root objnum")
   }
@@ -277,8 +280,7 @@ test "merge_structure_trees merges roots" {
     ("/AF", Array([Name("/File")])),
   ])
   ignore(install_struct_root(pdf2, root2))
-  let merged = merge_structure_trees(
-    pdf_out,
+  let merged = PdfStructTree::new(pdf_out).merge_structure_trees(
     [pdf1, pdf2],
     add_toplevel_document=true,
   )
@@ -294,6 +296,8 @@ test "merge_structure_trees merges roots" {
       }
     _ => fail("expected merged struct tree")
   }
-  let merged_no_top = merge_structure_trees(pdf_out, [pdf1, pdf2])
+  let merged_no_top = PdfStructTree::new(pdf_out).merge_structure_trees([
+    pdf1, pdf2,
+  ])
   assert_true(merged_no_top is Some(_))
 }

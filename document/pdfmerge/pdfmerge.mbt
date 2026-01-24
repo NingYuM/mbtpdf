@@ -950,9 +950,9 @@ pub fn merge_pdfs(
   }
   if process_struct_trees {
     for i, pdf in pdfs {
-      @pdfst.trim_structure_tree(pdf, ranges[i])
+      @pdfst.PdfStructTree::new(pdf).trim_structure_tree(ranges[i])
     }
-    @pdfst.renumber_parent_trees(pdfs)
+    @pdfst.PdfStructTrees::new(pdfs).renumber_parent_trees()
   }
   let pdfs = merge_pdfs_renumber(names, pdfs)
   merge_pdfs_rename_name_trees(names, pdfs)
@@ -1040,7 +1040,11 @@ pub fn merge_pdfs(
     extra_catalog_entries
   } else {
     try {
-      match @pdfst.merge_structure_trees(pdf, pdfs, add_toplevel_document~) {
+      match
+        @pdfst.PdfStructTree::new(pdf).merge_structure_trees(
+          pdfs,
+          add_toplevel_document~,
+        ) {
         None => extra_catalog_entries
         Some(structnum) =>
           add_entry(

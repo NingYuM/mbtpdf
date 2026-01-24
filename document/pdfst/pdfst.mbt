@@ -3,6 +3,26 @@
 let endpage : Ref[(@pdf.Pdf) -> Int] = @pdf.endpage
 
 ///|
+pub struct PdfStructTree {
+  pdf : @pdf.Pdf
+}
+
+///|
+pub fn PdfStructTree::new(pdf : @pdf.Pdf) -> PdfStructTree {
+  { pdf, }
+}
+
+///|
+pub struct PdfStructTrees {
+  pdfs : Array[@pdf.Pdf]
+}
+
+///|
+pub fn PdfStructTrees::new(pdfs : Array[@pdf.Pdf]) -> PdfStructTrees {
+  { pdfs, }
+}
+
+///|
 fn ilist(start : Int, finish : Int) -> Array[Int] {
   if finish < start {
     return []
@@ -76,7 +96,12 @@ fn[T] flatten(lists : Array[Array[T]]) -> Array[T] {
 
 ///|
 /// Trim the structure tree to match a subset of pages.
-pub fn trim_structure_tree(pdf : @pdf.Pdf, range : Array[Int]) -> Unit raise {
+#as_free_fn(trim_structure_tree, deprecated="Use `PdfStructTree::trim_structure_tree`")
+pub fn PdfStructTree::trim_structure_tree(
+  self : PdfStructTree,
+  range : Array[Int],
+) -> Unit raise {
+  let pdf = self.pdf
   let objnums = @pdf.page_reference_numbers(pdf)
   let total_pages = (endpage.val)(pdf)
   let pages_to_remove = setminus(ilist(1, total_pages), range)
@@ -195,7 +220,11 @@ pub fn trim_structure_tree(pdf : @pdf.Pdf, range : Array[Int]) -> Unit raise {
 
 ///|
 /// Renumber /ParentTree entries and update /StructParent(s) references.
-pub fn renumber_parent_trees(pdfs : Array[@pdf.Pdf]) -> Unit raise {
+#as_free_fn(renumber_parent_trees, deprecated="Use `PdfStructTrees::renumber_parent_trees`")
+pub fn PdfStructTrees::renumber_parent_trees(
+  self : PdfStructTrees,
+) -> Unit raise {
+  let pdfs = self.pdfs
   if pdfs.length() <= 1 {
     return
   }
@@ -341,11 +370,13 @@ pub fn renumber_parent_trees(pdfs : Array[@pdf.Pdf]) -> Unit raise {
 
 ///|
 /// Merge structure tree roots, returning the merged root object number.
-pub fn merge_structure_trees(
-  pdf : @pdf.Pdf,
+#as_free_fn(merge_structure_trees, deprecated="Use `PdfStructTree::merge_structure_trees`")
+pub fn PdfStructTree::merge_structure_trees(
+  self : PdfStructTree,
   pdfs : Array[@pdf.Pdf],
   add_toplevel_document? : Bool = false,
 ) -> Int? raise {
+  let pdf = self.pdf
   fn get_all(
     struct_roots : Array[@pdf.PdfObject],
     name : String,

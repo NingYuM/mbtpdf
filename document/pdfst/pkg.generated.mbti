@@ -6,15 +6,25 @@ import {
 }
 
 // Values
-pub fn merge_structure_trees(@pdf.Pdf, Array[@pdf.Pdf], add_toplevel_document? : Bool) -> Int? raise
-
-pub fn renumber_parent_trees(Array[@pdf.Pdf]) -> Unit raise
-
-pub fn trim_structure_tree(@pdf.Pdf, Array[Int]) -> Unit raise
 
 // Errors
 
 // Types and methods
+pub struct PdfStructTree {
+  pdf : @pdf.Pdf
+}
+#as_free_fn(merge_structure_trees, deprecated)
+pub fn PdfStructTree::merge_structure_trees(Self, Array[@pdf.Pdf], add_toplevel_document? : Bool) -> Int? raise
+pub fn PdfStructTree::new(@pdf.Pdf) -> Self
+#as_free_fn(trim_structure_tree, deprecated)
+pub fn PdfStructTree::trim_structure_tree(Self, Array[Int]) -> Unit raise
+
+pub struct PdfStructTrees {
+  pdfs : Array[@pdf.Pdf]
+}
+pub fn PdfStructTrees::new(Array[@pdf.Pdf]) -> Self
+#as_free_fn(renumber_parent_trees, deprecated)
+pub fn PdfStructTrees::renumber_parent_trees(Self) -> Unit raise
 
 // Type aliases
 

@@ -199,7 +199,7 @@ pub fn pdf_of_pages(
     saved_encryption: basepdf.saved_encryption,
   }
   if process_struct_tree {
-    @pdfst.trim_structure_tree(pdf, range)
+    @pdfst.PdfStructTree::new(pdf).trim_structure_tree(range)
   }
   let existing_root_entries = match @pdf.lookup_obj(basepdf, basepdf.root) {
     @pdf.PdfObject::Dictionary(d) => d
