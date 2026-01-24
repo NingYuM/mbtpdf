@@ -12,18 +12,29 @@ The `pdfwrite` package provides functions to:
 - Generate object streams for compression
 - Convert PDF objects to string representation
 
+## Types
+
+### PdfWrite
+
+PDF writing context.
+
+```mbt nocheck
+pub struct PdfWrite { ... }
+pub fn PdfWrite::new() -> PdfWrite
+```
+
 ## Writing PDFs
 
 ### To File (Simple)
 
 ```mbt nocheck
-@pdfwrite.pdf_to_file(pdf, "/path/to/output.pdf")
+@pdfwrite.PdfWrite::new().pdf_to_file(pdf, "/path/to/output.pdf")
 ```
 
 ### To File (With Options)
 
 ```mbt nocheck
-@pdfwrite.pdf_to_file_options(
+@pdfwrite.PdfWrite::new().pdf_to_file_options(
   preserve_objstm=false,    // Keep existing object streams
   generate_objstm=true,     // Create new object streams
   compress_objstm=true,     // Compress object streams
@@ -37,7 +48,7 @@ The `pdfwrite` package provides functions to:
 ### To Channel (async)
 
 ```mbt nocheck
-@pdfwrite.pdf_to_channel(
+@pdfwrite.PdfWrite::new().pdf_to_channel(
   encryption=None,
   build_new_id=true,
   pdf~,
@@ -49,7 +60,7 @@ The `pdfwrite` package provides functions to:
 
 ```mbt nocheck
 let (output, data) = @pdfio.input_output_of_bytes(65536)
-@pdfwrite.pdf_to_output!(
+@pdfwrite.PdfWrite::new().pdf_to_output!(
   encryption=None,
   build_new_id=true,
   pdf~,
@@ -64,7 +75,7 @@ let bytes = @pdfio.extract_bytes_from_input_output(output, data)
 
 ```mbt nocheck
 ///|
-let encryption = @pdfwrite.make_encryption(
+let encryption = @pdfwrite.Encryption::new(
   @pdfcrypt.EncryptionMethod::AES256,
   user_password="user",
   owner_password="owner",
@@ -75,7 +86,7 @@ let encryption = @pdfwrite.make_encryption(
 ### Writing Encrypted PDF
 
 ```mbt nocheck
-@pdfwrite.pdf_to_file_options(
+@pdfwrite.PdfWrite::new().pdf_to_file_options(
   encryption=Some(encryption),
   build_new_id=true,
   pdf~,
@@ -88,7 +99,7 @@ let encryption = @pdfwrite.make_encryption(
 To preserve encryption from the original file:
 
 ```mbt nocheck
-@pdfwrite.pdf_to_file_options(
+@pdfwrite.PdfWrite::new().pdf_to_file_options(
   recrypt="/path/to/original.pdf",  // Path for ID preservation
   encryption=None,                   // Uses saved encryption
   build_new_id=false,
@@ -103,7 +114,7 @@ PDF 1.5+ supports object streams for compression:
 
 ```mbt nocheck
 // Generate compressed object streams
-@pdfwrite.pdf_to_file_options(
+@pdfwrite.PdfWrite::new().pdf_to_file_options(
   generate_objstm=true,   // Create object streams
   compress_objstm=true,   // Compress with deflate
   encryption=None,
@@ -113,7 +124,7 @@ PDF 1.5+ supports object streams for compression:
 )
 
 // Preserve existing object streams
-@pdfwrite.pdf_to_file_options(
+@pdfwrite.PdfWrite::new().pdf_to_file_options(
   preserve_objstm=true,
   encryption=None,
   build_new_id=true,
@@ -132,7 +143,7 @@ test "string_of_pdf serializes objects" {
   let obj = @pdf.PdfObject::Dictionary([
     ("/Type", @pdf.PdfObject::Name("/Page")),
   ])
-  let s = @pdfwrite.string_of_pdf(obj)
+  let s = @pdfwrite.PdfWrite::new().string_of_pdf(obj)
   assert_true(s.contains("/Type"))
   assert_true(s.contains("/Page"))
 }
@@ -144,7 +155,7 @@ test "string_of_pdf serializes objects" {
 // Includes stream content in output
 
 ///|
-let s = @pdfwrite.string_of_pdf_including_data(stream_obj)
+let s = @pdfwrite.PdfWrite::new().string_of_pdf_including_data(stream_obj)
 ```
 
 ### Hex String Encoding

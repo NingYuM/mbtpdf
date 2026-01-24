@@ -12,7 +12,7 @@ async fn main {
     let pdf = @pdfread.PdfRead::new().pdf_of_file(None, None, in_file)
     let banlist = [@pdfcrypt.Permission::NoEdit, @pdfcrypt.Permission::NoPrint]
     let encrypted = @pdfcrypt.encrypt_pdf_AES(false, "", owner_pw, banlist, pdf)
-    @pdfwrite.pdf_to_file(encrypted, out_file)
+    @pdfwrite.PdfWrite::new().pdf_to_file(encrypted, out_file)
   } catch {
     err => {
       println("Failed to produce output.")

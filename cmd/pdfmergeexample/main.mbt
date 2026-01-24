@@ -53,7 +53,7 @@ async fn main {
       pdfs.push(@pdfread.PdfRead::new().pdf_of_file(None, None, name))
     }
     let merged = merge_pdfs(pdfs)
-    @pdfwrite.pdf_to_file(merged, out_name)
+    @pdfwrite.PdfWrite::new().pdf_to_file(merged, out_name)
   } catch {
     err => {
       println("Failed to merge files.")

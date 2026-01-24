@@ -67,7 +67,7 @@ let banlist = @pdfcrypt.banlist_of_p(flags)
 When writing PDFs, use `@pdfwrite` with encryption:
 
 ```mbt nocheck
-let encryption = @pdfwrite.make_encryption(
+let encryption = @pdfwrite.Encryption::new(
   @pdfcrypt.EncryptionMethod::AES256,
   user_password="user123",
   owner_password="owner456",
@@ -77,7 +77,7 @@ let encryption = @pdfwrite.make_encryption(
   ],
 )
 
-@pdfwrite.pdf_to_file_options(
+@pdfwrite.PdfWrite::new().pdf_to_file_options(
   encryption=Some(encryption),
   build_new_id=true,
   pdf~,

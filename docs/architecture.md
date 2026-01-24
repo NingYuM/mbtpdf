@@ -121,7 +121,7 @@ Base utilities used across most packages:
   - Example:
     ```mbt
     async fn save(pdf : @pdf.Pdf) -> Unit {
-      @pdfwrite.pdf_to_file(pdf, "output.pdf")
+      @pdfwrite.PdfWrite::new().pdf_to_file(pdf, "output.pdf")
     }
     ```
 

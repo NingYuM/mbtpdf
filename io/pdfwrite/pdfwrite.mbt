@@ -1,4 +1,14 @@
 ///|
+pub struct PdfWrite {
+  unit : Unit
+}
+
+///|
+pub fn PdfWrite::new() -> PdfWrite {
+  { unit: () }
+}
+
+///|
 fn trim_trailing_zeros(value : String) -> String {
   let dot = value.find(".")
   match dot {
@@ -429,7 +439,7 @@ fn bake_object_streams(
     let mut index = 0
     for objnum in objs {
       let obj = @pdf.lookup_obj(pdf, objnum)
-      let s = string_of_pdf(obj) + " "
+      let s = PdfWrite::new().string_of_pdf(obj) + " "
       object_strings.push(s)
       offsets.push(offset)
       entries.set(objnum, (stream_id, index))
@@ -716,7 +726,8 @@ pub struct Encryption {
 }
 
 ///|
-pub fn make_encryption(
+#as_free_fn(make_encryption, deprecated="Use `Encryption::new`")
+pub fn Encryption::new(
   encryption_method : @pdfcrypt.EncryptionMethod,
   owner_password : String,
   user_password : String,
@@ -787,7 +798,9 @@ fn crypt_if_necessary(
 
 ///|
 /// Write a PDF to an output.
-pub fn pdf_to_output(
+#as_free_fn(pdf_to_output, deprecated="Use `PdfWrite::pdf_to_output`")
+pub fn PdfWrite::pdf_to_output(
+  _self : PdfWrite,
   preserve_objstm? : Bool = false,
   generate_objstm? : Bool = false,
   compress_objstm? : Bool = false,
@@ -911,7 +924,9 @@ pub fn pdf_to_output(
 
 ///|
 /// Write a PDF to a channel.
-pub async fn pdf_to_channel(
+#as_free_fn(pdf_to_channel, deprecated="Use `PdfWrite::pdf_to_channel`")
+pub async fn PdfWrite::pdf_to_channel(
+  self : PdfWrite,
   preserve_objstm? : Bool = false,
   generate_objstm? : Bool = false,
   compress_objstm? : Bool = false,
@@ -924,7 +939,7 @@ pub async fn pdf_to_channel(
   let output = @pdfio.output_of_channel(channel)
   match recrypt {
     Some(value) =>
-      pdf_to_output(
+      self.pdf_to_output(
         preserve_objstm~,
         generate_objstm~,
         compress_objstm~,
@@ -935,7 +950,7 @@ pub async fn pdf_to_channel(
         output,
       )
     None =>
-      pdf_to_output(
+      self.pdf_to_output(
         preserve_objstm~,
         generate_objstm~,
         compress_objstm~,
@@ -950,7 +965,9 @@ pub async fn pdf_to_channel(
 
 ///|
 /// Write a PDF to a file.
-pub async fn pdf_to_file_options(
+#as_free_fn(pdf_to_file_options, deprecated="Use `PdfWrite::pdf_to_file_options`")
+pub async fn PdfWrite::pdf_to_file_options(
+  self : PdfWrite,
   preserve_objstm? : Bool = false,
   generate_objstm? : Bool = false,
   compress_objstm? : Bool = false,
@@ -964,7 +981,7 @@ pub async fn pdf_to_file_options(
   defer file.close()
   match recrypt {
     Some(value) =>
-      pdf_to_channel(
+      self.pdf_to_channel(
         preserve_objstm~,
         generate_objstm~,
         compress_objstm~,
@@ -975,7 +992,7 @@ pub async fn pdf_to_file_options(
         file,
       )
     None =>
-      pdf_to_channel(
+      self.pdf_to_channel(
         preserve_objstm~,
         generate_objstm~,
         compress_objstm~,
@@ -989,8 +1006,12 @@ pub async fn pdf_to_file_options(
 
 ///|
 /// Simple write to file.
-pub async fn pdf_to_file(pdf : @pdf.Pdf, filename : String) -> Unit {
-  pdf_to_file_options(
+pub async fn PdfWrite::pdf_to_file(
+  self : PdfWrite,
+  pdf : @pdf.Pdf,
+  filename : String,
+) -> Unit {
+  self.pdf_to_file_options(
     preserve_objstm=true,
     generate_objstm=false,
     compress_objstm=true,
@@ -1003,7 +1024,11 @@ pub async fn pdf_to_file(pdf : @pdf.Pdf, filename : String) -> Unit {
 
 ///|
 /// String of a PDF object.
-pub fn string_of_pdf(obj : @pdf.PdfObject) -> String {
+#as_free_fn(string_of_pdf, deprecated="Use `PdfWrite::string_of_pdf`")
+pub fn PdfWrite::string_of_pdf(
+  _self : PdfWrite,
+  obj : @pdf.PdfObject,
+) -> String {
   let sb = StringBuilder::new()
   write_pdf_object(obj, false, false, sb)
   sb.to_string()
@@ -1024,6 +1049,6 @@ fn make_hex_pdf_string(value : String) -> String {
 
 ///|
 fn init {
-  @pdfcodec.string_of_pdf.val = string_of_pdf
-  @pdf.string_of_pdf.val = string_of_pdf
+  @pdfcodec.string_of_pdf.val = obj => PdfWrite::new().string_of_pdf(obj)
+  @pdf.string_of_pdf.val = obj => PdfWrite::new().string_of_pdf(obj)
 }

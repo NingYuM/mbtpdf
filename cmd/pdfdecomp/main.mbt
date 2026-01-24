@@ -17,7 +17,7 @@ async fn main {
       },
       pdf,
     )
-    @pdfwrite.pdf_to_file(pdf, out_file)
+    @pdfwrite.PdfWrite::new().pdf_to_file(pdf, out_file)
   } catch {
     err => {
       println("Failed to decompress file.")

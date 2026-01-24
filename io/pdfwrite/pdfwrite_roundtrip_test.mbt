@@ -56,7 +56,7 @@ fn build_minimal_pdf() -> @pdf.Pdf {
 ///|
 fn roundtrip(pdf : @pdf.Pdf) -> @pdf.Pdf raise {
   let (output, buffer) = @pdfio.input_output_of_bytes(512)
-  @pdfwrite.pdf_to_output(None, false, pdf, output)
+  @pdfwrite.PdfWrite::new().pdf_to_output(None, false, pdf, output)
   let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let input = @pdfio.input_of_bytes(pdf_bytes, source="roundtrip")
   @pdfread.PdfRead::new().pdf_of_input(None, None, input)
@@ -77,7 +77,13 @@ test "pdf roundtrip read/write/read" {
 test "pdf roundtrip with xref stream" {
   let pdf1 = build_minimal_pdf()
   let (output, buffer) = @pdfio.input_output_of_bytes(512)
-  @pdfwrite.pdf_to_output(preserve_objstm=true, None, false, pdf1, output)
+  @pdfwrite.PdfWrite::new().pdf_to_output(
+    preserve_objstm=true,
+    None,
+    false,
+    pdf1,
+    output,
+  )
   let pdf_bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let pdf_text = @pdfio.string_of_bytes(pdf_bytes)
   assert_true(pdf_text.contains("/Type /XRef"))
@@ -91,7 +97,7 @@ test "pdf roundtrip with xref stream" {
 test "pdf roundtrip with generated object streams" {
   let pdf1 = build_minimal_pdf()
   let (output, buffer) = @pdfio.input_output_of_bytes(512)
-  @pdfwrite.pdf_to_output(
+  @pdfwrite.PdfWrite::new().pdf_to_output(
     generate_objstm=true,
     preserve_objstm=false,
     compress_objstm=true,
@@ -112,7 +118,7 @@ test "pdf roundtrip with generated object streams" {
 test "pdf roundtrip with preserved object streams" {
   let pdf1 = build_minimal_pdf()
   let (output1, buffer1) = @pdfio.input_output_of_bytes(512)
-  @pdfwrite.pdf_to_output(
+  @pdfwrite.PdfWrite::new().pdf_to_output(
     generate_objstm=true,
     preserve_objstm=false,
     compress_objstm=true,
@@ -125,7 +131,7 @@ test "pdf roundtrip with preserved object streams" {
   let input1 = @pdfio.input_of_bytes(bytes1, source="objstm-preserve")
   let parsed = @pdfread.PdfRead::new().pdf_of_input(None, None, input1)
   let (output2, buffer2) = @pdfio.input_output_of_bytes(512)
-  @pdfwrite.pdf_to_output(
+  @pdfwrite.PdfWrite::new().pdf_to_output(
     preserve_objstm=true,
     generate_objstm=false,
     compress_objstm=true,

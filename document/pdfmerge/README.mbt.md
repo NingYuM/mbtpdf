@@ -125,7 +125,7 @@ async fn merge_two_files(
     ilist(1, pages1),
     ilist(1, pages2),
   ]).merge_pdfs(false, true)
-  @pdfwrite.pdf_to_file(merged, output)
+  @pdfwrite.PdfWrite::new().pdf_to_file(merged, output)
 }
 ```
 

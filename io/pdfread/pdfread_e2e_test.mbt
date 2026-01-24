@@ -1,7 +1,7 @@
 ///|
 fn roundtrip_pdf(pdf : @pdf.Pdf) -> @pdf.Pdf raise {
   let (output, buffer) = @pdfio.input_output_of_bytes(512)
-  @pdfwrite.pdf_to_output(None, false, pdf, output)
+  @pdfwrite.PdfWrite::new().pdf_to_output(None, false, pdf, output)
   let bytes = @pdfio.extract_bytes_from_input_output(output, buffer)
   let input = @pdfio.input_of_bytes(bytes, source="e2e-roundtrip")
   @pdfread.PdfRead::new().pdf_of_input(None, None, input)

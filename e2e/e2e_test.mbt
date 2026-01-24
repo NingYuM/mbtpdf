@@ -40,7 +40,7 @@ async fn read_pdf(path : String) -> @pdf.Pdf {
 async fn write_pdf(path : String, pdf : @pdf.Pdf) -> Unit {
   let file = @fs.open(path, mode=WriteOnly, create=0o644, truncate=true)
   defer file.close()
-  @pdfwrite.pdf_to_channel(None, true, pdf, file)
+  @pdfwrite.PdfWrite::new().pdf_to_channel(None, true, pdf, file)
 }
 
 ///|
@@ -1918,7 +1918,7 @@ async test "e2e write object streams and read back" {
   let out_path = OUTPUT_DIR + "/objstm.pdf"
   let file = @fs.open(out_path, mode=WriteOnly, create=0o644, truncate=true)
   defer file.close()
-  @pdfwrite.pdf_to_channel(
+  @pdfwrite.PdfWrite::new().pdf_to_channel(
     generate_objstm=true,
     compress_objstm=true,
     None,
@@ -1935,7 +1935,7 @@ async test "e2e write object streams and read back" {
 ///|
 async test "e2e encrypt pdf and require password" {
   let pdf = read_pdf(MERGE_LEFT_PATH)
-  let enc = @pdfwrite.make_encryption(
+  let enc = @pdfwrite.Encryption::new(
     @pdfwrite.EncryptionMethod::AES256bit(true),
     "owner-pass",
     "user-pass",
@@ -1945,7 +1945,7 @@ async test "e2e encrypt pdf and require password" {
   let out_path = OUTPUT_DIR + "/encrypted.pdf"
   let file = @fs.open(out_path, mode=WriteOnly, create=0o644, truncate=true)
   defer file.close()
-  @pdfwrite.pdf_to_channel(Some(enc), true, pdf, file)
+  @pdfwrite.PdfWrite::new().pdf_to_channel(Some(enc), true, pdf, file)
   let res : Result[@pdf.Pdf, Error] = try? @pdfread.PdfRead::new().pdf_of_file(
     None,
     None,

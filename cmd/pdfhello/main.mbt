@@ -32,7 +32,7 @@ async fn main {
       ],
     )
     let pdf = @pdfpage.PdfPageDoc::new(pdf).add_root(pageroot, [])
-    @pdfwrite.pdf_to_file(pdf, "hello.pdf")
+    @pdfwrite.PdfWrite::new().pdf_to_file(pdf, "hello.pdf")
   } catch {
     err => {
       println("Failed to produce output.")

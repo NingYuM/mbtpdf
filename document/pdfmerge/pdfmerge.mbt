@@ -207,8 +207,8 @@ fn stream_compare(pdf : @pdf.Pdf, x : Int, y : Int) -> Int {
         let (dict2, stream_y) = ry.val
         match (stream_x, stream_y) {
           (@pdf.Stream::Got(bytes), @pdf.Stream::Got(bytes2)) => {
-            let dict_s = @pdfwrite.string_of_pdf(dict)
-            let dict_s2 = @pdfwrite.string_of_pdf(dict2)
+            let dict_s = @pdfwrite.PdfWrite::new().string_of_pdf(dict)
+            let dict_s2 = @pdfwrite.PdfWrite::new().string_of_pdf(dict2)
             let cmp = String::compare(dict_s, dict_s2)
             if cmp != 0 {
               cmp
