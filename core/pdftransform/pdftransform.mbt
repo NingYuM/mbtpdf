@@ -109,10 +109,8 @@ fn string_of_op(op : TransformOp) -> String {
 /// Make a string of a transform for debug purposes.
 pub fn Transform::to_string(self : Transform) -> String {
   let sb = StringBuilder::new()
-  let mut i = self.ops.length() - 1
-  while i >= 0 {
-    sb.write_string(string_of_op(self.ops[i]))
-    i = i - 1
+  for op in self.ops[:].rev_iter() {
+    sb.write_string(string_of_op(op))
   }
   sb.to_string()
 }
