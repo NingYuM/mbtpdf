@@ -53,11 +53,11 @@ fn needs_processing_name(bytes : @pdfio.MutableBytes) -> Bool {
 }
 
 ///|
-fn make_pdf_name(name : String) -> String {
+fn make_pdf_name(ctx : PdfWrite, name : String) -> String {
   let normalized = match name.get_char(0) {
     Some('/') => name
     _ => {
-      @pdfe.Pdfe::new().log("warning: bad name |\{name}|\n")
+      (ctx.logger)("warning: bad name |\{name}|\n")
       "/" + name
     }
   }

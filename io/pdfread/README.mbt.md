@@ -154,6 +154,7 @@ for perm in perms {
 
 ```mbt nocheck
 // Enable debug output
+
 ///|
 let reader = @pdfread.PdfRead::new(read_debug=true)
 

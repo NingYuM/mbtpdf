@@ -125,7 +125,7 @@ fn build_xref_stream(
 ///|
 /// Write a PDF to an output.
 pub fn PdfWrite::pdf_to_output(
-  _self : PdfWrite,
+  self : PdfWrite,
   preserve_objstm? : Bool = false,
   generate_objstm? : Bool = false,
   compress_objstm? : Bool = false,
@@ -208,7 +208,7 @@ pub fn PdfWrite::pdf_to_output(
         used[objnum] = true
         (output.output_string)("\{objnum} \{gen} obj\n")
         let obj = pdf.lookup_obj(objnum)
-        write_pdf_object_to_output(obj, output, true, false)
+        write_pdf_object_to_output(self, obj, output, true, false)
         (output.output_string)("\nendobj\n")
       }
     }
@@ -222,7 +222,7 @@ pub fn PdfWrite::pdf_to_output(
       pdf, size, offsets, gens, used, object_stream_entries,
     )
     (output.output_string)("\{xref_objnum} 0 obj\n")
-    write_pdf_object_to_output(xref_stream, output, true, true)
+    write_pdf_object_to_output(self, xref_stream, output, true, true)
     (output.output_string)("\nendobj\n")
     (output.output_string)("startxref\n")
     (output.output_string)("\{xref_start}\n%%EOF\n")
@@ -241,7 +241,7 @@ pub fn PdfWrite::pdf_to_output(
     let trailerdict = pdf.trailerdict
       .add_entry("/Size", PdfObject::Integer(size))
       .add_entry("/Root", PdfObject::Indirect(pdf.root))
-    write_pdf_object_to_output(trailerdict, output, false, true)
+    write_pdf_object_to_output(self, trailerdict, output, false, true)
     (output.output_string)("\nstartxref\n")
     (output.output_string)("\{xref_start}\n%%EOF\n")
   }

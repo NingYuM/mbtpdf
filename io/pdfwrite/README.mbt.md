@@ -20,7 +20,7 @@ PDF writing context.
 
 ```mbt nocheck
 pub struct PdfWrite { ... }
-pub fn PdfWrite::new() -> PdfWrite
+pub fn PdfWrite::new(logger? : (String) -> Unit = @pdfe.logger.val) -> PdfWrite
 ```
 
 ## Writing PDFs
@@ -60,7 +60,7 @@ pub fn PdfWrite::new() -> PdfWrite
 
 ```mbt nocheck
 let (output, data) = @pdfio.Output::of_bytes(65536)
-@pdfwrite.PdfWrite::new().pdf_to_output!(
+@pdfwrite.PdfWrite::new().pdf_to_output(
   encryption=None,
   build_new_id=true,
   pdf~,
@@ -147,37 +147,12 @@ test "string_of_pdf serializes objects" {
 }
 ```
 
-### Including Stream Data
+## Logging
 
 ```mbt nocheck
-// Includes stream content in output
-
-///|
-let s = @pdfwrite.PdfWrite::new().string_of_pdf_including_data(stream_obj)
-```
-
-### Hex String Encoding
-
-```mbt nocheck
-///|
-test "make_hex_pdf_string" {
-  let hex = @pdfwrite.make_hex_pdf_string("Hi")
-  inspect(hex, content="<4869>")
-}
-```
-
-## Debug Options
-
-```mbt nocheck
-// Enable debug output during writing
-@pdfwrite.write_debug.val = true
-```
-
-### Debug Whole Document
-
-```mbt nocheck
-// Print all objects to debug log
-@pdfwrite.debug_whole_pdf(pdf)
+// Redirect warnings/debug output during writing.
+let write_ctx = @pdfwrite.PdfWrite::new(logger=_ => ())
+ignore(write_ctx)
 ```
 
 ## Encryption Methods

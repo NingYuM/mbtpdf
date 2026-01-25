@@ -1,5 +1,6 @@
 ///|
 fn write_pdf_object_to_output(
+  ctx : PdfWrite,
   obj : @pdf.PdfObject,
   output : @pdfio.Output,
   include_stream_data : Bool,
@@ -22,7 +23,7 @@ fn write_pdf_object_to_output(
           make_pdf_string(s)
         },
       )
-    PdfObject::Name(n) => write_str(make_pdf_name(n))
+    PdfObject::Name(n) => write_str(make_pdf_name(ctx, n))
     PdfObject::Array(values) => {
       write_str("[")
       for i in 0..<values.length() {
@@ -30,6 +31,7 @@ fn write_pdf_object_to_output(
           write_str(" ")
         }
         write_pdf_object_to_output(
+          ctx,
           values[i],
           output,
           include_stream_data,
@@ -45,11 +47,11 @@ fn write_pdf_object_to_output(
         if i > 0 {
           write_str(" ")
         }
-        write_str(make_pdf_name(key))
+        write_str(make_pdf_name(ctx, key))
         write_str(" ")
         let value_hex = hex_strings && key == "/ID"
         write_pdf_object_to_output(
-          value, output, include_stream_data, value_hex,
+          ctx, value, output, include_stream_data, value_hex,
         )
       }
       write_str(">>")
@@ -60,7 +62,9 @@ fn write_pdf_object_to_output(
 
       }
       let (dict, stream_data) = r.val
-      write_pdf_object_to_output(dict, output, include_stream_data, hex_strings)
+      write_pdf_object_to_output(
+        ctx, dict, output, include_stream_data, hex_strings,
+      )
       write_str("\nstream\n")
       if include_stream_data {
         match stream_data {
@@ -77,6 +81,7 @@ fn write_pdf_object_to_output(
 
 ///|
 fn write_pdf_object(
+  ctx : PdfWrite,
   obj : @pdf.PdfObject,
   include_stream_data : Bool,
   warn_on_toget : Bool,
@@ -88,14 +93,14 @@ fn write_pdf_object(
     PdfObject::Integer(i) => sb.write_string(i.to_string())
     PdfObject::Real(r) => sb.write_string(format_real(r))
     PdfObject::String(s) => sb.write_string(make_pdf_string(s))
-    PdfObject::Name(n) => sb.write_string(make_pdf_name(n))
+    PdfObject::Name(n) => sb.write_string(make_pdf_name(ctx, n))
     PdfObject::Array(values) => {
       sb.write_char('[')
       for i in 0..<values.length() {
         if i > 0 {
           sb.write_char(' ')
         }
-        write_pdf_object(values[i], include_stream_data, warn_on_toget, sb)
+        write_pdf_object(ctx, values[i], include_stream_data, warn_on_toget, sb)
       }
       sb.write_char(']')
     }
@@ -106,15 +111,15 @@ fn write_pdf_object(
         if i > 0 {
           sb.write_char(' ')
         }
-        sb.write_string(make_pdf_name(key))
+        sb.write_string(make_pdf_name(ctx, key))
         sb.write_char(' ')
-        write_pdf_object(value, include_stream_data, warn_on_toget, sb)
+        write_pdf_object(ctx, value, include_stream_data, warn_on_toget, sb)
       }
       sb.write_string(">>")
     }
     PdfObject::Stream(r) => {
       let (dict, _) = r.val
-      write_pdf_object(dict, include_stream_data, warn_on_toget, sb)
+      write_pdf_object(ctx, dict, include_stream_data, warn_on_toget, sb)
       sb.write_string("\nstream\n")
       if include_stream_data {
         let _ = obj.getstream() catch { _ => () }
@@ -123,7 +128,7 @@ fn write_pdf_object(
             sb.write_string(@pdfio.string_of_bytes(bytes))
           _ =>
             if warn_on_toget {
-              @pdfe.Pdfe::new().log(
+              (ctx.logger)(
                 "WARNING: toget in string_of_pdfobj_including_data\n",
               )
             }
@@ -137,11 +142,8 @@ fn write_pdf_object(
 
 ///|
 /// String of a PDF object.
-pub fn PdfWrite::string_of_pdf(
-  _self : PdfWrite,
-  obj : @pdf.PdfObject,
-) -> String {
+pub fn PdfWrite::string_of_pdf(self : PdfWrite, obj : @pdf.PdfObject) -> String {
   let sb = StringBuilder::new()
-  write_pdf_object(obj, false, false, sb)
+  write_pdf_object(self, obj, false, false, sb)
   sb.to_string()
 }
