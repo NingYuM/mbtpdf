@@ -229,9 +229,7 @@ pub fn Output::of_write_at(
       if pos > buffer.val.length() - 1 {
         let new_len = if pos * 2 > 0 { pos * 2 } else { 1 }
         let new_bytes = mkbytes(new_len)
-        for i in 0..<buffer.val.length() {
-          bset_unsafe(new_bytes, i, bget_unsafe(buffer.val, i))
-        }
+        buffer.val[:].blit_to(new_bytes)
         buffer.val = new_bytes
       }
       bset_unsafe(buffer.val, pos, b.to_int())
@@ -246,9 +244,7 @@ pub fn Output::of_write_at(
   }
   async fn flush_output() -> Unit {
     let out = mkbytes(pos)
-    for i in 0..<pos {
-      bset_unsafe(out, i, bget_unsafe(buffer.val, i))
-    }
+    buffer.val[:pos].blit_to(out)
     let bytes = Bytes::from_array(out)
     write_at(bytes[:], 0)
   }
@@ -583,9 +579,7 @@ fn output_of_bytes(data : Ref[MutableBytes]) -> Output {
   let output_int = (value : Int) => if pos > data.val.length() - 1 {
     let new_len = if pos * 2 > 0 { pos * 2 } else { 1 }
     let new_bytes = mkbytes(new_len)
-    for i in 0..<data.val.length() {
-      bset_unsafe(new_bytes, i, bget_unsafe(data.val, i))
-    }
+    data.val[:].blit_to(new_bytes)
     bset_unsafe(new_bytes, pos, value)
     highest_written = if highest_written > pos { highest_written } else { pos }
     pos = pos + 1
