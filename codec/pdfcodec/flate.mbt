@@ -19,9 +19,9 @@ pub fn PdfCodec::decode_flate(
     }
   }
   let out : @pdfio.MutableBytes = Array::new()
-  let output = (buf : @pdfio.MutableBytes, length : Int) => for i in 0..<length {
-    out.push(buf[i])
-  }
+  let output = (buf : @pdfio.MutableBytes, length : Int) => out.append(
+    buf[:length],
+  )
   try {
     @pdfflate.PdfFlate::new().uncompress(header=true, input, output)
     out
