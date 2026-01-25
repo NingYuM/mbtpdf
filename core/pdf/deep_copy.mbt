@@ -39,7 +39,9 @@ fn deep_copy_objdata(objdata : ObjectData) -> ObjectData {
 ///|
 /// Create a deep copy of a PDF document.
 pub fn Pdf::deep_copy(self : Pdf) -> Pdf {
-  let object_stream_ids = Map::new()
+  let object_stream_ids = Map::new(
+    capacity=self.objects.object_stream_ids.length(),
+  )
   for key, value in self.objects.object_stream_ids {
     object_stream_ids.set(key, value)
   }

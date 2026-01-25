@@ -134,7 +134,7 @@ pub fn Pdf::catalog_of_pdf(self : Pdf) -> PdfObject raise {
 
 ///|
 fn deep_copy_pdfobjects(from : Pdf) -> PdfObjMap {
-  let out = pdfobjmap_empty()
+  let out : PdfObjMap = Map::new(capacity=from.objects.objects.length())
   for objnum, entry in from.objects.objects {
     let (obj_ref, gen) = entry
     out.set(objnum, (Ref::new(deep_copy_objdata(obj_ref.val)), gen))
