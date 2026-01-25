@@ -90,8 +90,8 @@ Base utilities used across most packages:
 - `core/pdfe`: logging hook for error/debug output, debug flags.
   - Example:
     ```mbt
-    let pdf = @pdf.empty()
-    let objnum = @pdf.addobj(pdf, @pdf.PdfObject::Integer(42))
+    let pdf = @pdf.Pdf::empty()
+    let objnum = pdf.addobj(@pdf.PdfObject::Integer(42))
     let _ = pdf.lookup_obj(objnum)
     ```
 
