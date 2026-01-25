@@ -1,16 +1,38 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "bobzhang/mbtpdf"
 
-// Values
-pub fn fib(Int) -> Int64
+import {
+  "bobzhang/mbtpdf/core/pdf",
+  "bobzhang/mbtpdf/crypto/pdfcrypt",
+  "bobzhang/mbtpdf/io/pdfread",
+  "bobzhang/mbtpdf/io/pdfwrite",
+}
 
-pub fn sum(data~ : Array[Int], start? : Int, length? : Int) -> Int
+// Values
+pub async fn read_file(String, revision? : Int, user_password? : String, owner_password? : String) -> @pdf.Pdf
+
+pub async fn write_file(@pdf.Pdf, String) -> Unit
 
 // Errors
 
 // Types and methods
 
 // Type aliases
+pub using @pdfwrite {type Encryption}
+
+pub using @pdfcrypt {type EncryptionMethod}
+
+pub using @pdf {type Pdf}
+
+pub using @pdf {type PdfObject}
+
+pub using @pdfread {type PdfRead}
+
+pub using @pdfwrite {type PdfWrite}
+
+pub using @pdfcrypt {type Permission}
+
+pub using @pdf {type Stream}
 
 // Traits
 

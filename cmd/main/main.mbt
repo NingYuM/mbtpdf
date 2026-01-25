@@ -1,4 +1,6 @@
 ///|
 fn main {
-  println(@lib.fib(10))
+  println(
+    "mbtpdf: see cmd/pdfhello, cmd/pdfmergeexample, cmd/pdfextracttext, etc.",
+  )
 }

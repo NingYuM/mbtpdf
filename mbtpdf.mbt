@@ -1,20 +1,38 @@
 ///|
-pub fn fib(n : Int) -> Int64 {
-  loop (n, 0L, 1L) {
-    (0, _, b) => b
-    (i, a, b) => continue (i - 1, b, a + b)
-  }
+/// Root facade for the mbtpdf module.
+///
+/// Most functionality lives in subpackages (e.g. `@pdfread`, `@pdfwrite`,
+/// `@pdfpage`, `@pdftext`). This package re-exports a small set of common
+/// entry points and provides a couple of convenience helpers.
+pub using @pdf {type Pdf, type PdfObject, type Stream}
+
+///|
+pub using @pdfread {type PdfRead}
+
+///|
+pub using @pdfwrite {type PdfWrite, type Encryption}
+
+///|
+pub using @pdfcrypt {type EncryptionMethod, type Permission}
+
+///|
+/// Read a PDF from a file (convenience wrapper around `PdfRead::pdf_of_file`).
+pub async fn read_file(
+  filename : String,
+  revision? : Int,
+  user_password? : String,
+  owner_password? : String,
+) -> @pdf.Pdf {
+  @pdfread.PdfRead::new().pdf_of_file(
+    revision?,
+    user_password,
+    owner_password,
+    filename,
+  )
 }
 
 ///|
-/// data is a labelled argument without default value having type Array[Int]
-/// start is an optional labelled argument with default value 0 having type Int
-/// length is an optional labelled argument without default value having type Option[Int]
-pub fn sum(data~ : Array[Int], start? : Int = 0, length? : Int) -> Int {
-  let end = if length is Some(length) { start + length } else { data.length() }
-  for i = start, sum = 0; i < end; i = i + 1, sum = sum + data[i] {
-
-  } else {
-    sum
-  }
+/// Write a PDF to a file (convenience wrapper around `PdfWrite::pdf_to_file`).
+pub async fn write_file(pdf : @pdf.Pdf, filename : String) -> Unit {
+  @pdfwrite.PdfWrite::new().pdf_to_file(pdf, filename)
 }
