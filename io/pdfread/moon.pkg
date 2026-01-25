@@ -10,14 +10,14 @@ import {
   "moonbitlang/async/fs",
 }
 
-import "test" {
+import {
   "bobzhang/mbtpdf/document/pdfpage",
   "bobzhang/mbtpdf/io/pdfwrite",
   "moonbitlang/async",
-}
+} for "test"
 
-import "wbtest" {
+import {
   "bobzhang/mbtpdf/document/pdfpage",
   "bobzhang/mbtpdf/io/pdfwrite",
   "moonbitlang/async",
-}
+} for "wbtest"

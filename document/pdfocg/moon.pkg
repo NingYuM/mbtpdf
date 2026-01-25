@@ -3,6 +3,6 @@ import {
   "bobzhang/mbtpdf/core/pdfutil",
 }
 
-import "test" {
+import {
   "bobzhang/mbtpdf/document/pdfpage",
-}
+} for "test"

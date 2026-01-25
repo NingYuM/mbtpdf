@@ -5,11 +5,11 @@ import {
   "bobzhang/mbtpdf/core/pdfe",
 }
 
-import "test" {
+import {
   "bobzhang/mbtpdf/document/pdfdest",
   "bobzhang/mbtpdf/document/pdfpage",
   "bobzhang/mbtpdf/io/pdfread",
   "bobzhang/mbtpdf/io/pdfwrite",
   "moonbitlang/async",
   "moonbitlang/async/fs",
-}
+} for "test"

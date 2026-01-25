@@ -15,8 +15,8 @@ import {
   "moonbitlang/core/builtin",
 }
 
-import "test" {
+import {
   "bobzhang/mbtpdf/font/pdffont",
   "bobzhang/mbtpdf/io/pdfread",
   "moonbitlang/async",
-}
+} for "test"

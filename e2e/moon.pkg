@@ -1,4 +1,4 @@
-import "test" {
+import {
   "bobzhang/mbtpdf/core/pdf",
   "bobzhang/mbtpdf/document/pdfannot",
   "bobzhang/mbtpdf/document/pdfdest",
@@ -16,4 +16,4 @@ import "test" {
   "bobzhang/mbtpdf/io/pdfwrite",
   "moonbitlang/async",
   "moonbitlang/async/fs",
-}
+} for "test"

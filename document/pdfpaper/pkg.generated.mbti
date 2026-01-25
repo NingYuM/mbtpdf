@@ -41,10 +41,9 @@ pub struct Paper {
   unit : @pdfunits.LengthUnit
   width : Double
   height : Double
-}
+  pub fn new(unit~ : @pdfunits.LengthUnit, width~ : Double, height~ : Double) -> Paper}
 pub fn Paper::height(Self) -> Double
 pub fn Paper::landscape(Self) -> Self
-pub fn Paper::new(@pdfunits.LengthUnit, Double, Double) -> Self
 pub fn Paper::rectangle(Self) -> @pdf.PdfObject
 pub fn Paper::unit(Self) -> @pdfunits.LengthUnit
 pub fn Paper::width(Self) -> Double

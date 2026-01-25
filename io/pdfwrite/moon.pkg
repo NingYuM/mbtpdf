@@ -7,16 +7,16 @@ import {
   "moonbitlang/async/fs",
 }
 
-import "test" {
+import {
   "bobzhang/mbtpdf/core/pdfcryptprimitives",
   "bobzhang/mbtpdf/io/pdfread",
   "bobzhang/mbtpdf/document/pdfpage",
   "moonbitlang/async",
-}
+} for "test"
 
-import "wbtest" {
+import {
   "bobzhang/mbtpdf/core/pdfcryptprimitives",
   "bobzhang/mbtpdf/io/pdfread",
   "bobzhang/mbtpdf/document/pdfpage",
   "moonbitlang/async",
-}
+} for "wbtest"

@@ -1,6 +1,6 @@
 ///|
 test "landscape swaps width and height" {
-  let paper = @pdfpaper.Paper::new(@pdfunits.LengthUnit::Inch, 8.5, 11.0)
+  let paper : @pdfpaper.Paper = Paper(unit=Inch, width=8.5, height=11.0)
   let swapped = paper.landscape()
   assert_eq(swapped.width(), 11.0)
   assert_eq(swapped.height(), 8.5)
@@ -8,9 +8,9 @@ test "landscape swaps width and height" {
 
 ///|
 test "paper accessors return values" {
-  let paper = @pdfpaper.Paper::new(@pdfunits.LengthUnit::Centimetre, 10.0, 20.0)
+  let paper : @pdfpaper.Paper = Paper(unit=Centimetre, width=10.0, height=20.0)
   match paper.unit() {
-    @pdfunits.LengthUnit::Centimetre => ()
+    Centimetre => ()
     _ => fail("expected centimetre unit")
   }
   assert_eq(paper.width(), 10.0)
@@ -20,19 +20,19 @@ test "paper accessors return values" {
 ///|
 test "paper constants match expected sizes" {
   match @pdfpaper.a4.unit() {
-    @pdfunits.LengthUnit::Millimetre => ()
+    Millimetre => ()
     _ => fail("expected millimetre unit")
   }
   assert_eq(@pdfpaper.a4.width(), 210.0)
   assert_eq(@pdfpaper.a4.height(), 297.0)
   match @pdfpaper.usletter.unit() {
-    @pdfunits.LengthUnit::Inch => ()
+    Inch => ()
     _ => fail("expected inch unit")
   }
   assert_eq(@pdfpaper.usletter.width(), 8.5)
   assert_eq(@pdfpaper.usletter.height(), 11.0)
   match @pdfpaper.uslegal.unit() {
-    @pdfunits.LengthUnit::Inch => ()
+    Inch => ()
     _ => fail("expected inch unit")
   }
   assert_eq(@pdfpaper.uslegal.width(), 8.5)

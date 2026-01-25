@@ -2,9 +2,9 @@
 async fn main {
   try {
     let font = @pdf.PdfObject::Dictionary([
-      ("/Type", @pdf.PdfObject::Name("/Font")),
-      ("/Subtype", @pdf.PdfObject::Name("/Type1")),
-      ("/BaseFont", @pdf.PdfObject::Name("/Times-Italic")),
+      ("/Type", Name("/Font")),
+      ("/Subtype", Name("/Type1")),
+      ("/BaseFont", Name("/Times-Italic")),
     ])
     let ops : Array[@pdfops.Op] = [
       Opcm(
@@ -21,11 +21,9 @@ async fn main {
     let page : @pdfpage.Page = {
       content: [stream],
       mediabox: @pdfpage.Page::blank(@pdfpaper.a4).mediabox,
-      resources: @pdf.PdfObject::Dictionary([
-        ("/Font", @pdf.PdfObject::Dictionary([("/F0", font)])),
-      ]),
+      resources: Dictionary([("/Font", Dictionary([("/F0", font)]))]),
       rotate: @pdfpage.Rotation::Rotate0,
-      rest: @pdf.PdfObject::Dictionary([]),
+      rest: Dictionary([]),
     }
     let (pdf, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([
         page,

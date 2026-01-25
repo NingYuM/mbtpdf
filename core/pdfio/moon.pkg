@@ -4,14 +4,14 @@ import {
   "moonbitlang/async/io",
 }
 
-import "test" {
+import {
   "moonbitlang/async",
   "moonbitlang/async/fs",
   "moonbitlang/async/io",
-}
+} for "test"
 
-import "wbtest" {
+import {
   "moonbitlang/async",
   "moonbitlang/async/fs",
   "moonbitlang/async/io",
-}
+} for "wbtest"

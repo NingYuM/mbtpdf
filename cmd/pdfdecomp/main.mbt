@@ -10,7 +10,7 @@ async fn main {
   try {
     let pdf = @pdfread.PdfRead::new().pdf_of_file(None, None, in_file)
     pdf.objiter((_, obj) => match obj {
-      @pdf.PdfObject::Stream(_) =>
+      Stream(_) =>
         @pdfcodec.PdfCodec::new().decode_pdfstream_until_unknown(pdf, obj)
       _ => ()
     })

@@ -8,6 +8,6 @@ import {
   "moonbitlang/core/builtin",
 }
 
-import "test" {
+import {
   "bobzhang/mbtpdf/document/pdfpage",
-}
+} for "test"

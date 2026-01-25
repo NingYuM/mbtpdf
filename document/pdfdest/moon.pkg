@@ -4,6 +4,6 @@ import {
   "bobzhang/mbtpdf/core/pdftransform",
 }
 
-import "test" {
+import {
   "bobzhang/mbtpdf/document/pdfpage",
-}
+} for "test"
