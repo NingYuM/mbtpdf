@@ -91,9 +91,9 @@ pub fn PdfCodec::encode_flate(
     }
   }
   let out : @pdfio.MutableBytes = Array::new()
-  let output = (buf : @pdfio.MutableBytes, length : Int) => for i in 0..<length {
-    out.push(buf[i])
-  }
+  let output = (buf : @pdfio.MutableBytes, length : Int) => out.append(
+    buf[:length],
+  )
   @pdfflate.PdfFlate::new().compress(
     level=self.flate_level,
     header=true,
