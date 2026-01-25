@@ -19,7 +19,9 @@ fn ascii85_byte(value : Int64, shift : Int) -> Byte {
 fn encode_ascii85(stream : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
   let pow85 = ascii85_pow85()
   let size = @pdfio.bytes_size(stream)
-  let output = Array::new()
+  let groups = (size + 3) / 4
+  // Each group expands to <= 5 bytes, plus "~>" terminator.
+  let output = Array::new(capacity=groups * 5 + 2)
   let mut index = 0
   while index < size {
     let remaining = size - index
