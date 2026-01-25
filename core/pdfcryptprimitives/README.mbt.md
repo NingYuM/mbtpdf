@@ -15,11 +15,21 @@ Represents the encryption algorithm types supported by PDF:
 ```moonbit nocheck
 ///|
 pub(all) enum Encryption {
-  ARC4(Int, Int) // ARC4 with key length parameters
+  ARC4(Int, Int) // (bits, /R revision)
   AESV2 // AES-128 CBC (PDF 1.5+)
-  AESV3(Bool) // AES-256 (PDF 2.0), Bool indicates enhanced key derivation
+  AESV3(Bool) // AES-256, Bool indicates ISO mode (revision 6) vs revision 5
 }
 ```
+
+Convenience helper:
+
+```moonbit nocheck
+///|
+pub fn Encryption::r_and_keylength(self : Encryption) -> (Int, Int)
+```
+
+This returns the PDF security handler revision (`/R`) and the key length in
+bits implied by the variant, so callers don't have to repeat the same `match`.
 
 ### PdfCryptPrimitives
 
