@@ -325,9 +325,8 @@ pub fn Transform::apply(
 ) -> (Double, Double) {
   let mut x = point.0
   let mut y = point.1
-  let mut idx = self.ops.length() - 1
-  while idx >= 0 {
-    match self.ops[idx] {
+  for op in self.ops[:].rev_iter() {
+    match op {
       TransformOp::Scale((cx, cy), sx, sy) => {
         let dx = x - cx
         let dy = y - cy
@@ -361,7 +360,6 @@ pub fn Transform::apply(
         y = dx * factor + dy + cy
       }
     }
-    idx = idx - 1
   }
   (x, y)
 }
