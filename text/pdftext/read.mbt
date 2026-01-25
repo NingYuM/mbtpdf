@@ -489,7 +489,7 @@ pub fn PdfTextUtil::read_cid_widths(
   _self : PdfTextUtil,
   elts : Array[@pdf.PdfObject],
 ) -> Array[(Int, Double)] raise {
-  let out = Array::new()
+  let out = Array::new(capacity=elts.length())
   let mut i = 0
   while i < elts.length() {
     match elts[i] {
