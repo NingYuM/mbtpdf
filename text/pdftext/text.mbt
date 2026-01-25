@@ -299,7 +299,11 @@ pub fn TextExtractor::glyphnames_and_codepoints_of_text(
             }
             out
           } else {
-            text.to_array().map(c => (self.convert)(c.to_int()))
+            let out = Array::new(capacity=text.length())
+            for c in text {
+              out.push((self.convert)(c.to_int()))
+            }
+            out
           }
       }
   }
