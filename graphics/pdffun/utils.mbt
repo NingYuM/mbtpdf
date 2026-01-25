@@ -116,9 +116,7 @@ fn[T] flatten(lists : Array[Array[T]]) -> Array[T] {
   }
   let out = Array::new(capacity=total)
   for list in lists {
-    for item in list {
-      out.push(item)
-    }
+    out.append(list[:])
   }
   out
 }
