@@ -293,10 +293,18 @@ fn split_into(
   items : Array[(String, @pdf.PdfObject)],
   group_size : Int,
 ) -> Array[Array[(String, @pdf.PdfObject)]] {
-  let groups = Array::new()
+  if group_size <= 0 {
+    // Avoid an infinite loop on invalid input; callers always pass a positive size.
+    return [items]
+  }
+  let groups = Array::new(
+    capacity=(items.length() + group_size - 1) / group_size,
+  )
   let mut index = 0
   while index < items.length() {
-    let group = Array::new()
+    let remaining = items.length() - index
+    let cap = if group_size < remaining { group_size } else { remaining }
+    let group = Array::new(capacity=cap)
     let mut i = 0
     while i < group_size && index < items.length() {
       group.push(items[index])
