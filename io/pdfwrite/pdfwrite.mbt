@@ -1049,5 +1049,4 @@ fn make_hex_pdf_string(value : String) -> String {
 ///|
 fn init {
   @pdfcodec.string_of_pdf.val = obj => PdfWrite::new().string_of_pdf(obj)
-  @pdf.string_of_pdf.val = obj => PdfWrite::new().string_of_pdf(obj)
 }

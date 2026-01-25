@@ -24,8 +24,6 @@ pub fn recurse_array((PdfObject) -> PdfObject, Array[PdfObject]) -> PdfObject
 
 pub fn renumber_pdfs(Array[Pdf]) -> Array[Pdf]
 
-pub let string_of_pdf : Ref[(PdfObject) -> String]
-
 // Errors
 pub(all) suberror PdfError {
   Msg(String)
