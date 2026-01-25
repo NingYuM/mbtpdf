@@ -257,7 +257,7 @@ pub fn PdfPageLabels::add_label(
   range_end : Int,
 ) -> Array[PageLabel] {
   let (before_or_equal, after) = partition(labels, x => x.startpage <= range_end)
-  let before_or_during = filter(before_or_equal, x => x.startpage !=
+  let before_or_during = before_or_equal.filter(x => x.startpage !=
     label.startpage)
   let replica = if range_end == endpage {
     []
@@ -280,7 +280,7 @@ pub fn PdfPageLabels::add_label(
         }
     }
   }
-  let before = filter(before_or_during, x => !(x.startpage > label.startpage &&
+  let before = before_or_during.filter(x => !(x.startpage > label.startpage &&
     x.startpage <= range_end))
   concat_arrays(concat_arrays(concat_arrays(before, [label]), replica), after)
 }
@@ -426,17 +426,6 @@ fn[T] concat_arrays(a : Array[T], b : Array[T]) -> Array[T] {
   let out = Array::new(capacity=a.length() + b.length())
   out.append(a[:])
   out.append(b[:])
-  out
-}
-
-///|
-fn[T] filter(items : Array[T], pred : (T) -> Bool) -> Array[T] {
-  let out = Array::new()
-  for item in items {
-    if pred(item) {
-      out.push(item)
-    }
-  }
   out
 }
 
