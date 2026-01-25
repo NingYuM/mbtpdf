@@ -499,13 +499,13 @@ pub fn PdfTextUtil::read_cid_widths(
         } else {
           match elts[i + 1] {
             Array(ws) => {
-              let nums = ws.map(w => match w {
-                Integer(n) => Double::from_int(n)
-                Real(r) => r
-                _ => raise @pdf.PdfError::Msg("Bad /W array")
-              })
-              for j in 0..<nums.length() {
-                out.push((c + j, nums[j]))
+              for j, wobj in ws {
+                let w = match wobj {
+                  Integer(n) => Double::from_int(n)
+                  Real(r) => r
+                  _ => raise @pdf.PdfError::Msg("Bad /W array")
+                }
+                out.push((c + j, w))
               }
               i = i + 2
             }
