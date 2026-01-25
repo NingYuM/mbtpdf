@@ -32,9 +32,13 @@ fn odd(n : Int) -> Bool {
 
 ///|
 fn flatten_int_arrays(arrays : Array[Array[Int]]) -> Array[Int] {
-  let out = Array::new()
+  let mut total = 0
   for arr in arrays {
-    out.append(arr)
+    total = total + arr.length()
+  }
+  let out = Array::new(capacity=total)
+  for arr in arrays {
+    out.append(arr[:])
   }
   out
 }
@@ -58,11 +62,9 @@ fn bytes_slice_to_string(
   start : Int,
   length : Int,
 ) -> String {
-  let out = Array::new(capacity=length)
-  for i in start..<(start + length) {
-    out.push(bytes[i])
-  }
-  @pdfio.string_of_int_array(out)
+  @pdfio.string_of_int_array(
+    bytes[:].sub(start~, end=start + length).to_array(),
+  )
 }
 
 ///|
