@@ -3689,12 +3689,7 @@ pub fn PdfGlyphList::glyphmap(
 
 ///|
 fn contains_digit(s : String) -> Bool {
-  for c in s {
-    if c.is_ascii_digit() {
-      return true
-    }
-  }
-  false
+  s[:].find_by(c => c.is_ascii_digit()) is Some(_)
 }
 
 ///|

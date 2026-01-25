@@ -13,12 +13,7 @@ pub(all) enum Permission {
 
 ///|
 fn contains_perm(perms : Array[Permission], perm : Permission) -> Bool {
-  for p in perms {
-    if p == perm {
-      return true
-    }
-  }
-  false
+  perms[:].contains(perm)
 }
 
 ///|
