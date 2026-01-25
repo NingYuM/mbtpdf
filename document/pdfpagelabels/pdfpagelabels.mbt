@@ -316,7 +316,7 @@ pub fn PdfPageLabels::coalesce(
   if labels.length() <= 1 {
     return labels
   }
-  let out = Array::new()
+  let out = Array::new(capacity=labels.length())
   out.push(labels[0])
   for i in 1..<labels.length() {
     let current = labels[i]

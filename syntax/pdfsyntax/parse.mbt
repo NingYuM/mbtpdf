@@ -12,7 +12,7 @@ type Token = @pdfgenlex.Token
 
 ///|
 fn parse_R(tokens : Array[Token]) -> Array[ParseItem] {
-  let out = Array::new()
+  let out = Array::new(capacity=tokens.length())
   let mut i = 0
   while i < tokens.length() {
     if i + 2 < tokens.length() {
@@ -98,7 +98,7 @@ fn parse_value(items : Array[ParseItem], start : Int) -> (ParseItem, Int) raise 
 
 ///|
 fn parse_to_tree(items : Array[ParseItem]) -> Array[ParseItem] raise {
-  let out = Array::new()
+  let out = Array::new(capacity=items.length())
   let mut i = 0
   while i < items.length() {
     match items[i] {
