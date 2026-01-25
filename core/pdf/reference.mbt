@@ -15,7 +15,7 @@ fn refset_mem(n : Int, rs : Map[Int, Bool]) -> Bool {
 
 ///|
 fn refset_elts(rs : Map[Int, Bool]) -> Array[Int] {
-  let out = Array::new()
+  let out = Array::new(capacity=rs.length())
   for key in rs.keys() {
     out.push(key)
   }

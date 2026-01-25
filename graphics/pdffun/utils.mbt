@@ -110,7 +110,11 @@ fn[A, B, C, D, E, F] map5(
 
 ///|
 fn[T] flatten(lists : Array[Array[T]]) -> Array[T] {
-  let out = Array::new()
+  let mut total = 0
+  for list in lists {
+    total = total + list.length()
+  }
+  let out = Array::new(capacity=total)
   for list in lists {
     for item in list {
       out.push(item)
