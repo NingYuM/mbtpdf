@@ -154,6 +154,39 @@ pub fn PdfObject::lookup_immediate(
 }
 
 ///|
+/// Lookup all values for a key without following indirects.
+///
+/// This is useful for handling malformed PDFs where dictionaries may contain
+/// duplicate keys.
+pub fn PdfObject::lookup_immediate_all(
+  self : PdfObject,
+  key : String,
+) -> Array[PdfObject] {
+  fn collect(entries : Array[(String, PdfObject)]) -> Array[PdfObject] {
+    let out = Array::new()
+    for entry in entries {
+      let (k, v) = entry
+      if k == key {
+        out.push(v)
+      }
+    }
+    out
+  }
+
+  match self {
+    Dictionary(entries) => collect(entries)
+    Stream(r) => {
+      let (inner, _) = r.val
+      match inner {
+        Dictionary(entries) => collect(entries)
+        _ => []
+      }
+    }
+    _ => []
+  }
+}
+
+///|
 /// Find the indirect reference given by the value associated with a key.
 pub fn PdfObject::find_indirect(self : PdfObject, key : String) -> Int? raise {
   match self {

@@ -110,6 +110,7 @@ pub fn PdfObject::bigarray_of_stream(Self) -> Array[Byte] raise
 pub fn PdfObject::find_indirect(Self, String) -> Int? raise
 pub fn PdfObject::getstream(Self) -> Unit raise
 pub fn PdfObject::lookup_immediate(Self, String) -> Self?
+pub fn PdfObject::lookup_immediate_all(Self, String) -> Array[Self]
 pub fn PdfObject::remove_entry(Self, String) -> Self raise
 pub fn PdfObject::replace_entry(Self, String, Self) -> Self raise
 pub fn PdfObject::to_string(Self) -> String

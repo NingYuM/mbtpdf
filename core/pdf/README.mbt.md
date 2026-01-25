@@ -34,7 +34,7 @@ pub(all) enum PdfObject {
 - **String**: Literal or hexadecimal strings
 - **Name**: PDF names like `/Type`, `/Page`
 - **Array**: Ordered collection of objects
-- **Dictionary**: Key-value pairs (keys are names)
+- **Dictionary**: Key-value pairs (keys are names). Stored as an `Array[(String, PdfObject)]` so malformed PDFs with duplicate keys can be represented; use `lookup_immediate` (first match) or `lookup_immediate_all` (all matches).
 - **Stream**: Dictionary plus binary data
 - **Indirect**: Reference to another object by number
 

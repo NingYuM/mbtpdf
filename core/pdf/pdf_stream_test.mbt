@@ -192,3 +192,22 @@ test "getstream error cases" {
     _ => fail("expected stream data")
   }
 }
+
+///|
+test "lookup_immediate_all preserves duplicate dictionary keys" {
+  let dict = PdfObject::Dictionary([
+    ("/A", PdfObject::Integer(1)),
+    ("/A", PdfObject::Integer(2)),
+    ("/B", PdfObject::Integer(3)),
+  ])
+  let values = dict.lookup_immediate_all("/A")
+  assert_eq(values.length(), 2)
+  match values[0] {
+    PdfObject::Integer(1) => ()
+    _ => fail("expected first /A value")
+  }
+  match values[1] {
+    PdfObject::Integer(2) => ()
+    _ => fail("expected second /A value")
+  }
+}
