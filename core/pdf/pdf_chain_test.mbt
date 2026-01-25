@@ -1,12 +1,10 @@
 ///|
 test "lookup_chain handles array keys" {
   let pdf = Pdf::empty()
-  pdf.trailerdict = PdfObject::Dictionary([
-    ("/A", PdfObject::Array([PdfObject::Integer(10), PdfObject::Integer(20)])),
-  ])
+  pdf.trailerdict = Dictionary([("/A", Array([Integer(10), Integer(20)]))])
   let keys = ["/A", "/[1]"]
   match pdf.lookup_chain(pdf.trailerdict, keys[:]) {
-    Some(PdfObject::Integer(value)) => assert_eq(value, 20)
+    Some(Integer(value)) => assert_eq(value, 20)
     _ => fail("expected array element")
   }
 }
@@ -14,13 +12,11 @@ test "lookup_chain handles array keys" {
 ///|
 test "replace_chain updates array elements" {
   let pdf = Pdf::empty()
-  pdf.trailerdict = PdfObject::Dictionary([
-    ("/A", PdfObject::Array([PdfObject::Integer(1), PdfObject::Integer(2)])),
-  ])
+  pdf.trailerdict = Dictionary([("/A", Array([Integer(1), Integer(2)]))])
   let chain = ["/A", "/[0]"]
-  pdf.replace_chain(chain[:], PdfObject::Integer(99))
+  pdf.replace_chain(chain, Integer(99))
   match pdf.lookup_chain(pdf.trailerdict, chain[:]) {
-    Some(PdfObject::Integer(value)) => assert_eq(value, 99)
+    Some(Integer(value)) => assert_eq(value, 99)
     _ => fail("expected replaced array element")
   }
 }
