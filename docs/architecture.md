@@ -84,6 +84,10 @@ Base utilities used across most packages:
 - `core/pdf`: central data model (`Pdf`, `PdfObject`, streams, object map).
   - Supports lazy streams via `Stream::ToGet`, materialized via `Stream::Got`.
   - Provides `string_of_pdfobj` for object serialization.
+  - Trait helpers:
+    - `@pdf.ToPdfNumber`: converts `Int`/`Double` to `PdfObject` numeric nodes
+      (`Integer`/`Real`). This avoids ad-hoc helpers like `mkint`/`mkreal` across
+      packages, while keeping conversion intentionally narrow (numbers only).
 - `core/pdfio`: byte-level Input/Output abstractions used across the stack.
 - `core/pdfutil`: shared helpers (hash tables, memoization, logging helpers).
 - `core/pdfe`: logging hook for error/debug output, debug flags.
@@ -173,6 +177,44 @@ Base utilities used across most packages:
     ```
 
 ## Entry Points and Tests
+
+## Traits Used For Refactoring
+
+MoonBit traits are used as "typeclass-style" abstractions to remove duplicated
+glue code without introducing runtime plugin systems.
+
+### Numeric `PdfObject` Conversion (`@pdf.ToPdfNumber`)
+
+Many packages need to build PDF dictionaries and arrays containing numeric
+objects. Instead of sprinkling local helpers (`mkint`/`mkreal`) everywhere,
+use:
+
+```mbt
+let n0 : @pdf.PdfObject = @pdf.ToPdfNumber::to_pdf_number(42)
+let n1 : @pdf.PdfObject = @pdf.ToPdfNumber::to_pdf_number(3.14)
+```
+
+This intentionally does *not* try to convert `String` because PDF has multiple
+string-like node types (`String` vs `Name`) and implicit conversion would be
+ambiguous.
+
+### Filter Name Decoding (`@pdfcodec.PdfFilterNameDecode`)
+
+PDF stream decoding chooses filters dynamically by name (`/Filter` entries like
+`/FlateDecode`, `/LZW`, `/CCITTFaxDecode`, ...). To keep the supported filter
+set and parameter handling in one place, `codec/pdfcodec` defines:
+
+- `@pdfcodec.PdfFilterNameDecode` (implemented for `String`), which decodes a
+  *single* filter stage given the filter name, the associated `/DecodeParms`
+  entry (if any), and the input bytes.
+
+This is reused by both:
+- `PdfCodec::decode_pdfstream_onestage` (mutating a `Stream` object), and
+- `PdfCodec::decode_from_bytes` (pure bytes-to-bytes decoding).
+
+Unsupported filters (notably `/JBIG2Decode` in the sync path) raise
+`CodecError::DecodeNotSupported` so callers can decide whether to stop or
+continue.
 
 ### CLI Tools (`cmd/`)
 
