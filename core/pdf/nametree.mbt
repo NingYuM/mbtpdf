@@ -1,19 +1,7 @@
 ///|
 /// Name tree helpers.
 fn compare_string(a : String, b : String) -> Int {
-  let ac = a[:]
-  let bc = b[:]
-  let min_len = if ac.length() < bc.length() {
-    ac.length()
-  } else {
-    bc.length()
-  }
-  for i in 0..<min_len {
-    if ac[i] != bc[i] {
-      return ac[i].to_int() - bc[i].to_int()
-    }
-  }
-  ac.length() - bc.length()
+  a[:].compare(b[:])
 }
 
 ///|
