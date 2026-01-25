@@ -244,7 +244,7 @@ async test "pdf_to_file writes output" {
   let path = "pdfwrite_async_test.pdf"
   write_ctx.pdf_to_file(pdf, path)
   let file = @fs.open(path, mode=ReadOnly)
-  let bytes = @pdfio.bytes_of_input_channel(file)
+  let bytes = @pdfiofs.bytes_of_input_channel(file)
   assert_true(bytes.length() > 0)
   file.close()
   @fs.remove(path)

@@ -11,7 +11,7 @@ pub async fn PdfWrite::pdf_to_channel(
   pdf : @pdf.Pdf,
   channel : @fs.File,
 ) -> Unit {
-  let output = @pdfio.Output::of_channel(channel)
+  let output = @pdfiofs.output_of_channel(channel)
   match recrypt {
     Some(value) =>
       self.pdf_to_output(
