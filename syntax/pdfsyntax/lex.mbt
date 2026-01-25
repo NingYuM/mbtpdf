@@ -440,43 +440,22 @@ pub fn PdfSyntax::lex_stream_data(
 ///|
 fn reverse_tokens(tokens : Array[Token]) -> Array[Token] {
   let out = Array::new(capacity=tokens.length())
-  match tokens {
-    [] => out
-    _ => {
-      let mut i = tokens.length() - 1
-      while true {
-        out.push(tokens[i])
-        if i == 0 {
-          break
-        }
-        i = i - 1
-      }
-      out
-    }
+  for t in tokens[:].rev_iter() {
+    out.push(t)
   }
+  out
 }
 
 ///|
 fn take_dict_lexemes(previous_lexemes : Array[Token]) -> Array[Token] {
   let collected = Array::new()
-  match previous_lexemes {
-    [] => collected
-    _ => {
-      let mut i = previous_lexemes.length() - 1
-      while true {
-        let t = previous_lexemes[i]
-        if t is LexObj {
-          break
-        }
-        collected.push(t)
-        if i == 0 {
-          break
-        }
-        i = i - 1
-      }
-      reverse_tokens(collected)
+  for t in previous_lexemes[:].rev_iter() {
+    if t is LexObj {
+      break
     }
+    collected.push(t)
   }
+  reverse_tokens(collected)
 }
 
 ///|
