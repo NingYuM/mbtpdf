@@ -45,7 +45,7 @@ fn flatten_int_arrays(arrays : Array[Array[Int]]) -> Array[Int] {
 
 ///|
 fn tounicode_length_list(map : Map[String, String]) -> Array[Int] {
-  let lengths = Array::new()
+  let lengths = Array::new(capacity=map.length())
   for key, _ in map {
     let len = @pdfio.bytes_of_string(key).length()
     if !lengths.contains(len) {
@@ -101,7 +101,8 @@ pub fn PdfTextUtil::utf16be_of_codepoints(
   self : PdfTextUtil,
   codepoints : Array[Int],
 ) -> String raise {
-  let bytes = Array::new()
+  // Each codepoint expands to <= 4 bytes, plus BOM.
+  let bytes = Array::new(capacity=2 + codepoints.length() * 4)
   bytes.push(0xfe)
   bytes.push(0xff)
   for cp in codepoints {
@@ -112,7 +113,7 @@ pub fn PdfTextUtil::utf16be_of_codepoints(
 
 ///|
 fn codepoints_of_utf16be_inner(bytes : Array[Int]) -> Array[Int] raise {
-  let out = Array::new()
+  let out = Array::new(capacity=bytes.length() / 2)
   let len = bytes.length()
   let mut i = 0
   while i < len {
