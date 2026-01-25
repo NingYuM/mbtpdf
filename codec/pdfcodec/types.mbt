@@ -41,6 +41,36 @@ pub suberror CodecError {
 }
 
 ///|
+/// Decode a *single* stream filter stage by its `/Filter` name.
+///
+/// Why a trait?
+/// - In PDF, filters are chosen dynamically by name (`/FlateDecode`, `/LZW`, ...).
+/// - We want one well-documented place that defines what "decode one stage"
+///   means, and reuse it from both:
+///   - `PdfCodec::decode_pdfstream_onestage` (in-place stream decoding), and
+///   - `PdfCodec::decode_from_bytes` (pure bytes -> bytes decoding).
+/// - Implementing the trait for `String` keeps call sites readable:
+///   `PdfFilterNameDecode::decode_stage(filter_name, codec, pdf, parms, bytes, ...)`.
+///
+/// Semantics:
+/// - "One stage" means applying exactly the first filter in `/Filter` and the
+///   corresponding entry in `/DecodeParms` (if any).
+/// - `/Crypt` is treated as identity here (it returns the input bytes
+///   unchanged). Real encryption/decryption is handled elsewhere.
+/// - Some filters are intentionally unsupported in the synchronous path
+///   (notably `/JBIG2Decode`), and must raise `CodecError::DecodeNotSupported`.
+pub trait PdfFilterNameDecode {
+  decode_stage(
+    Self,
+    ctx : PdfCodec,
+    pdf : @pdf.Pdf,
+    parms : @pdf.PdfObject?,
+    data : @pdfio.MutableBytes,
+    jbig2dec : String?,
+  ) -> @pdfio.MutableBytes raise CodecError
+}
+
+///|
 /// Setting this changes globally the FlateDecode compression level. Default 6.
 let flate_level : Ref[Int] = { val: 6 }
 
