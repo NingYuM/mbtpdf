@@ -1,6 +1,6 @@
 ///|
 fn position_1(value : Int, values : Array[Int]) -> Int? {
-  match values.search_by(v => v == value) {
+  match values[:].search(value) {
     Some(i) => Some(i + 1)
     None => None
   }
