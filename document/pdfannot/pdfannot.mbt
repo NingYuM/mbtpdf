@@ -241,14 +241,16 @@ pub fn PdfAnnot::annotations_of_page(
 ) -> Array[Annotation] raise {
   match self.pdf.lookup_direct("/Annots", page.rest) {
     Some(Array(annotations)) => {
-      let popup_parents : Map[Int, Unit] = Map::new()
+      let popup_parents : Map[Int, Unit] = Map::new(
+        capacity=annotations.length(),
+      )
       for annot in annotations {
         match get_popup_parent(self.pdf, annot) {
           Some(i) => popup_parents.set(i, ())
           None => ()
         }
       }
-      let out = Array::new()
+      let out = Array::new(capacity=annotations.length())
       for annot in annotations {
         match (annot : PdfObject) {
           Indirect(i) =>
