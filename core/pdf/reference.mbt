@@ -156,7 +156,7 @@ fn Pdf::page_reference_numbers_inner(
   } else {
     match self.lookup_direct("/Kids", pages_node) {
       Some(Array(elts)) => {
-        let out = Array::new()
+        let out = Array::new(capacity=elts.length())
         for elt in elts {
           match elt {
             Indirect(i) =>

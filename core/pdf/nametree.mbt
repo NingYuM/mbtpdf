@@ -116,7 +116,7 @@ pub fn Pdf::contents_of_nametree(
 ) -> Array[(PdfObject, PdfObject)] raise {
   match self.lookup_direct_orelse("/Names", "/Nums", tree) {
     Some(Array(names)) => {
-      let out = Array::new()
+      let out = Array::new(capacity=names.length() / 2)
       for i = 0; i + 1 < names.length(); i = i + 2 {
         out.push((names[i], names[i + 1]))
       }

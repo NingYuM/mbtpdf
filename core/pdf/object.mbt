@@ -162,7 +162,7 @@ pub fn PdfObject::lookup_immediate_all(
   key : String,
 ) -> Array[PdfObject] {
   fn collect(entries : Array[(String, PdfObject)]) -> Array[PdfObject] {
-    let out = Array::new()
+    let out = Array::new(capacity=entries.length())
     for entry in entries {
       let (k, v) = entry
       if k == key {
