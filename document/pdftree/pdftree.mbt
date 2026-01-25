@@ -314,7 +314,7 @@ fn PdfTree::name_tree_of_nt(
 ) -> @pdf.PdfObject {
   match node {
     Nt::Leaf(llimit, items, rlimit) => {
-      let array_items = Array::new()
+      let array_items = Array::new(capacity=items.length() * 2)
       for pair in items {
         let key_obj = if isnum {
           PdfObject::Integer(parse_int(pair.0))
@@ -334,7 +334,7 @@ fn PdfTree::name_tree_of_nt(
       } else {
         PdfObject::Array([PdfObject::String(llimit), PdfObject::String(rlimit)])
       }
-      let dict_entries = Array::new()
+      let dict_entries = Array::new(capacity=2)
       dict_entries.push(entry)
       if !isroot {
         dict_entries.push(("/Limits", limits))
@@ -342,7 +342,7 @@ fn PdfTree::name_tree_of_nt(
       PdfObject::Dictionary(dict_entries)
     }
     Nt::Branch(llimit, kids, rlimit) => {
-      let kid_refs = Array::new()
+      let kid_refs = Array::new(capacity=kids.length())
       for child in kids {
         let child_obj = self.name_tree_of_nt(isnum, false, child)
         match child_obj {
