@@ -7,5 +7,4 @@ import {
   "bobzhang/mbtpdf/document/pdfpagelabels",
   "bobzhang/mbtpdf/document/pdftree",
   "bobzhang/mbtpdf/document/pdfst",
-  "bobzhang/mbtpdf/io/pdfwrite",
 }
