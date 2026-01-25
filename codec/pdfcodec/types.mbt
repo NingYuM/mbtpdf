@@ -12,12 +12,13 @@ pub(all) enum Encoding {
 
 ///|
 pub struct PdfCodec {
-  unit : Unit
+  // Keep configuration on the codec instance instead of global `Ref` state.
+  flate_level : Int
 }
 
 ///|
-pub fn PdfCodec::new() -> PdfCodec {
-  { unit: () }
+pub fn PdfCodec::new(flate_level? : Int = 6) -> PdfCodec {
+  { flate_level, }
 }
 
 ///|
@@ -71,13 +72,9 @@ pub trait PdfFilterNameDecode {
 }
 
 ///|
-/// Setting this changes globally the FlateDecode compression level. Default 6.
-let flate_level : Ref[Int] = { val: 6 }
-
-///|
 /// Encode data in FlateDecode.
 pub fn PdfCodec::encode_flate(
-  _self : PdfCodec,
+  self : PdfCodec,
   data : @pdfio.MutableBytes,
 ) -> @pdfio.MutableBytes {
   let mut pos = 0
@@ -99,7 +96,7 @@ pub fn PdfCodec::encode_flate(
     out.push(buf[i])
   }
   @pdfflate.PdfFlate::new().compress(
-    level=flate_level.val,
+    level=self.flate_level,
     header=true,
     input,
     output,
