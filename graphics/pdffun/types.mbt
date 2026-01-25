@@ -101,3 +101,19 @@ type PdfObject = @pdf.PdfObject
 
 ///|
 type Token = @pdfgenlex.Token
+
+///|
+/// Convert primitive numeric types used by this package into PDF objects.
+priv trait ToPdfNumber {
+  to_pdf_number(Self) -> PdfObject
+}
+
+///|
+impl ToPdfNumber for Double with to_pdf_number(self : Double) -> PdfObject {
+  PdfObject::Real(self)
+}
+
+///|
+impl ToPdfNumber for Int with to_pdf_number(self : Int) -> PdfObject {
+  PdfObject::Integer(self)
+}

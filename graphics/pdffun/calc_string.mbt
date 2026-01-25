@@ -66,10 +66,18 @@ pub fn PdfFunction::to_pdf_object(
   self : PdfFunction,
   pdf : @pdf.Pdf,
 ) -> PdfObject {
-  let domain = PdfObject::Array(self.domain.map(mkreal))
+  let domain = PdfObject::Array(
+    self.domain.map(x => ToPdfNumber::to_pdf_number(x)),
+  )
   let range_entry = match self.range {
     None => []
-    Some(values) => [("/Range", PdfObject::Array(values.map(mkreal)))]
+    Some(values) =>
+      [
+        (
+          "/Range",
+          PdfObject::Array(values.map(x => ToPdfNumber::to_pdf_number(x))),
+        ),
+      ]
   }
   let base = [
     ("/FunctionType", PdfObject::Integer(funtype_of_function(self))),
@@ -94,13 +102,24 @@ pub fn PdfFunction::to_pdf_object(
         s.decode
       }
       let sampled_entries = [
-        ("/Size", PdfObject::Array(s.size.map(mkint))),
+        (
+          "/Size",
+          PdfObject::Array(s.size.map(x => ToPdfNumber::to_pdf_number(x))),
+        ),
         ("/BitsPerSample", PdfObject::Integer(s.bps)),
-        ("/Encode", PdfObject::Array(encode_vals.map(mkreal))),
+        (
+          "/Encode",
+          PdfObject::Array(encode_vals.map(x => ToPdfNumber::to_pdf_number(x))),
+        ),
       ]
       let sampled_entries = if decode_vals.length() > 0 {
         concat_arrays(sampled_entries, [
-          ("/Decode", PdfObject::Array(decode_vals.map(mkreal))),
+          (
+            "/Decode",
+            PdfObject::Array(
+              decode_vals.map(x => ToPdfNumber::to_pdf_number(x)),
+            ),
+          ),
         ])
       } else {
         sampled_entries

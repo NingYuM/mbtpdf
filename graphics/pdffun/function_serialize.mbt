@@ -9,16 +9,6 @@ fn funtype_of_function(fun : PdfFunction) -> Int {
 }
 
 ///|
-fn mkreal(x : Double) -> PdfObject {
-  PdfObject::Real(x)
-}
-
-///|
-fn mkint(x : Int) -> PdfObject {
-  PdfObject::Integer(x)
-}
-
-///|
 fn max_value_for_bits(bits : Int) -> Int {
   let mut value = 0
   for _ in 0..<bits {
@@ -80,9 +70,9 @@ fn sampled_bytes(samples : Array[Int], bits : Int) -> @pdfio.MutableBytes {
 ///|
 fn entries_of_interpolation(i : Interpolation) -> Array[(String, PdfObject)] {
   [
-    ("/C0", PdfObject::Array(i.c0.map(mkreal))),
-    ("/C1", PdfObject::Array(i.c1.map(mkreal))),
-    ("/N", PdfObject::Real(i.n)),
+    ("/C0", PdfObject::Array(i.c0.map(x => ToPdfNumber::to_pdf_number(x)))),
+    ("/C1", PdfObject::Array(i.c1.map(x => ToPdfNumber::to_pdf_number(x)))),
+    ("/N", ToPdfNumber::to_pdf_number(i.n)),
   ]
 }
 
@@ -96,8 +86,14 @@ fn entries_of_stitching(
   ))
   [
     ("/Functions", PdfObject::Array(numbers)),
-    ("/Bounds", PdfObject::Array(s.bounds.map(mkreal))),
-    ("/Encode", PdfObject::Array(s.stitch_encode.map(mkreal))),
+    (
+      "/Bounds",
+      PdfObject::Array(s.bounds.map(x => ToPdfNumber::to_pdf_number(x))),
+    ),
+    (
+      "/Encode",
+      PdfObject::Array(s.stitch_encode.map(x => ToPdfNumber::to_pdf_number(x))),
+    ),
   ]
 }
 
