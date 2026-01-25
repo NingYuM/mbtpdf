@@ -211,11 +211,7 @@ fn eval_function_sampled(
 ///|
 fn[T] concat_arrays(a : Array[T], b : Array[T]) -> Array[T] {
   let out = Array::new(capacity=a.length() + b.length())
-  for item in a {
-    out.push(item)
-  }
-  for item in b {
-    out.push(item)
-  }
+  out.append(a[:])
+  out.append(b[:])
   out
 }
