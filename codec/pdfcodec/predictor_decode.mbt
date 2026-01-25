@@ -63,7 +63,8 @@ fn decode_png_predictor(
   let bytes_per_pixel = (bpc * colors + 7) / 8
   let mut pos = 0
   let prev_decoded = Array::make(scanline_width, 0)
-  let output : @pdfio.MutableBytes = Array::new()
+  // Output is always <= input length (predictor bytes are dropped).
+  let output : @pdfio.MutableBytes = Array::new(capacity=stream.length())
   while pos < stream.length() {
     let predictor = stream[pos].to_int()
     pos = pos + 1
