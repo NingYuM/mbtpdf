@@ -39,9 +39,8 @@ fn mod3_bytes(bytes : @pdfio.MutableBytes) -> Int {
 
 ///|
 fn shamix(password : String, udata : String?, s : String) -> String raise {
-  let mut k = @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-    @pdfio.Input::of_string(s),
-  )
+  let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
+  let mut k = prims.sha256(@pdfio.Input::of_string(s))
   let mut k_bytes = @pdfio.bytes_of_string(k)
   let mut fin = false
   let mut round = 0
@@ -64,12 +63,7 @@ fn shamix(password : String, udata : String?, s : String) -> String raise {
     let k1_64 = bytes_concat(Array::make(64, k1))
     let key = @pdfio.int_array_of_bytes(bytes_prefix(k_bytes, 16))
     let firstblock = @pdfio.int_array_of_bytes(bytes_slice(k_bytes, 16, 16))
-    let raw = @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data(
-      4,
-      key,
-      k1_64,
-      firstblock~,
-    )
+    let raw = prims.aes_encrypt_data(4, key, k1_64, firstblock~)
     let raw_len = raw.length()
     let e = if raw_len > 32 {
       bytes_slice(raw, 16, raw_len - 32)
@@ -82,18 +76,9 @@ fn shamix(password : String, udata : String?, s : String) -> String raise {
       last_e = 0
     }
     let next_k = match mod3_bytes(e) {
-      0 =>
-        @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-          @pdfio.Input::of_bytes(e),
-        )
-      1 =>
-        @pdfcryptprimitives.PdfCryptPrimitives::new().sha384(
-          @pdfio.Input::of_bytes(e),
-        )
-      _ =>
-        @pdfcryptprimitives.PdfCryptPrimitives::new().sha512(
-          @pdfio.Input::of_bytes(e),
-        )
+      0 => prims.sha256(@pdfio.Input::of_bytes(e))
+      1 => prims.sha384(@pdfio.Input::of_bytes(e))
+      _ => prims.sha512(@pdfio.Input::of_bytes(e))
     }
     k = next_k
     k_bytes = @pdfio.bytes_of_string(k)
@@ -111,6 +96,7 @@ fn file_encryption_key_aesv3(
   u : String,
   digest? : Array[Int],
 ) -> @pdfio.MutableBytes raise {
+  let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   if o.length() < 48 || u.length() < 48 {
     raise @pdf.PdfError::Msg(
       "/O too short in make_intermediate_owner_key_aesv3",
@@ -129,9 +115,7 @@ fn file_encryption_key_aesv3(
       let digest_str = if iso {
         shamix(utf8pw, Some(u), @pdfio.string_of_bytes(concat))
       } else {
-        @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-          @pdfio.Input::of_bytes(concat),
-        )
+        prims.sha256(@pdfio.Input::of_bytes(concat))
       }
       @pdfio.int_array_of_string(digest_str)
     }
@@ -140,12 +124,7 @@ fn file_encryption_key_aesv3(
     @pdfio.bytes_of_string(zero_iv),
     @pdfio.bytes_of_string(oe),
   ])
-  @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data(
-    8,
-    d,
-    data,
-    remove_padding=false,
-  )
+  prims.aes_decrypt_data(8, d, data, remove_padding=false)
 }
 
 ///|
@@ -155,6 +134,7 @@ fn file_encryption_key_aesv3_user(
   u : String,
   ue : String,
 ) -> @pdfio.MutableBytes raise {
+  let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   if u.length() < 48 {
     raise @pdf.PdfError::Msg("/U too short in file_encryption_key_aesv3_user")
   }
@@ -166,21 +146,14 @@ fn file_encryption_key_aesv3_user(
   let digest_str = if iso {
     shamix(utf8pw, None, @pdfio.string_of_bytes(concat))
   } else {
-    @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-      @pdfio.Input::of_bytes(concat),
-    )
+    prims.sha256(@pdfio.Input::of_bytes(concat))
   }
   let key = @pdfio.int_array_of_string(digest_str)
   let data = bytes_concat([
     @pdfio.bytes_of_string(zero_iv),
     @pdfio.bytes_of_string(ue),
   ])
-  @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data(
-    8,
-    key,
-    data,
-    remove_padding=false,
-  )
+  prims.aes_decrypt_data(8, key, data, remove_padding=false)
 }
 
 ///|
@@ -190,6 +163,7 @@ fn authenticate_owner_password_aesv3(
   u : String,
   o : String,
 ) -> Bool raise {
+  let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   if o.length() < 48 || u.length() < 48 {
     raise @pdf.PdfError::Msg("/O too short in authenticate_owner_password")
   }
@@ -203,9 +177,7 @@ fn authenticate_owner_password_aesv3(
   let digest_str = if iso {
     shamix(utf8pw, Some(u), @pdfio.string_of_bytes(concat))
   } else {
-    @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-      @pdfio.Input::of_bytes(concat),
-    )
+    prims.sha256(@pdfio.Input::of_bytes(concat))
   }
   let digest = @pdfio.bytes_of_string(digest_str)
   bytes_equal(bytes_slice(o_bytes, 0, 32), bytes_prefix(digest, 32))
@@ -217,6 +189,7 @@ fn authenticate_user_password_aesv3(
   utf8pw : String,
   u : String,
 ) -> Bool raise {
+  let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   if u.length() < 48 {
     raise @pdf.PdfError::Msg("/U too short in authenticate_owner_password")
   }
@@ -228,9 +201,7 @@ fn authenticate_user_password_aesv3(
   let digest_str = if iso {
     shamix(utf8pw, None, @pdfio.string_of_bytes(concat))
   } else {
-    @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-      @pdfio.Input::of_bytes(concat),
-    )
+    prims.sha256(@pdfio.Input::of_bytes(concat))
   }
   let digest = @pdfio.bytes_of_string(digest_str)
   bytes_equal(bytes_slice(u_bytes, 0, 32), bytes_prefix(digest, 32))
@@ -238,10 +209,11 @@ fn authenticate_user_password_aesv3(
 
 ///|
 fn p_of_perms(key : @pdfio.MutableBytes, perms : String) -> Int? raise {
+  let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   if perms.length() < 16 {
     raise @pdf.PdfError::Msg("Wrong length in /Perms")
   }
-  let ps = @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data_ecb(
+  let ps = prims.aes_decrypt_data_ecb(
     8,
     @pdfio.int_array_of_bytes(key),
     @pdfio.bytes_of_string(perms),
@@ -272,6 +244,7 @@ fn perms_of_p(
   u : String,
   digest : Array[Int],
 ) -> @pdfio.MutableBytes raise {
+  let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   let extendedp = UInt64::lor(
     0xffff_ffff_0000_0000,
     UInt64::extend_uint(p.reinterpret_as_uint()),
@@ -288,11 +261,7 @@ fn perms_of_p(
   let key = @pdfio.int_array_of_bytes(
     file_encryption_key_aesv3(iso, utf8pw, o, oe, u, digest~),
   )
-  @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data_ecb(
-    8,
-    key,
-    @pdfio.bytes_of_int_array(b),
-  )
+  prims.aes_encrypt_data_ecb(8, key, @pdfio.bytes_of_int_array(b))
 }
 
 ///|
@@ -303,19 +272,18 @@ fn make_ue(
   user_validation_salt : String,
   user_key_salt : String,
 ) -> (String, String) raise {
+  let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   let hash = fn(s : String) -> String raise {
     if iso {
       shamix(user_pw, None, s)
     } else {
-      @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-        @pdfio.Input::of_string(s),
-      )
+      prims.sha256(@pdfio.Input::of_string(s))
     }
   }
   let u = hash(user_pw + user_validation_salt) +
     user_validation_salt +
     user_key_salt
-  let ue = @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data(
+  let ue = prims.aes_encrypt_data(
     8,
     @pdfio.int_array_of_string(hash(user_pw + user_key_salt)),
     file_encryption_key,
@@ -334,20 +302,19 @@ fn make_oe(
   owner_key_salt : String,
   u : String,
 ) -> (String, String, Array[Int]) raise {
+  let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   let hash = fn(s : String) -> String raise {
     if iso {
       shamix(owner_pw, Some(u), s)
     } else {
-      @pdfcryptprimitives.PdfCryptPrimitives::new().sha256(
-        @pdfio.Input::of_string(s),
-      )
+      prims.sha256(@pdfio.Input::of_string(s))
     }
   }
   let o = hash(owner_pw + owner_validation_salt + u) +
     owner_validation_salt +
     owner_key_salt
   let digest = @pdfio.int_array_of_string(hash(owner_pw + owner_key_salt + u))
-  let oe = @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data(
+  let oe = prims.aes_encrypt_data(
     8,
     digest,
     file_encryption_key,
