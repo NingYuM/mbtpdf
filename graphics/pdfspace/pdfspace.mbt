@@ -90,7 +90,7 @@ fn build_table(
   if @pdfio.bytes_size(data) < total {
     raise @pdf.PdfError::Msg("Pdfspace: bad table")
   }
-  let table : Map[Int, Array[Int]] = Map::new()
+  let table : Map[Int, Array[Int]] = Map::new(capacity=hival + 1)
   let mut offset = 0
   for x in 0..<=hival {
     let row = Array::new(capacity=components)
