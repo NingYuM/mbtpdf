@@ -46,7 +46,8 @@ fn p_of_banlist(toban : Array[Permission]) -> Int {
 ///|
 /// Parse a /P value, giving the permissions.
 pub fn PdfCrypt::banlist_of_p(_self : PdfCrypt, p : Int) -> Array[Permission] {
-  let out = Array::new()
+  // Maximum of 8 permission flags.
+  let out = Array::new(capacity=8)
   let bitset = fn(n : Int) -> Bool { Int::land(p >> (n - 1), 1) == 0 }
   if bitset(3) {
     out.push(Permission::NoPrint)
