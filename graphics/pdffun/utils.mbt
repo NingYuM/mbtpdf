@@ -5,7 +5,7 @@ fn pairs_of_list_eval(
   if values.length() % 2 == 1 {
     raise BadFunctionEvaluation::Msg("Bad list length")
   }
-  let out = Array::new()
+  let out = Array::new(capacity=values.length() / 2)
   for i = 0; i + 1 < values.length(); i = i + 2 {
     out.push((values[i], values[i + 1]))
   }
@@ -27,11 +27,7 @@ fn split_pairs(
 
 ///|
 fn many(value : Double, count : Int) -> Array[Double] {
-  let out = Array::new(capacity=count)
-  for _ in 0..<count {
-    out.push(value)
-  }
-  out
+  Array::make(count, value)
 }
 
 ///|
@@ -122,16 +118,6 @@ fn[T] flatten(lists : Array[Array[T]]) -> Array[T] {
 }
 
 ///|
-fn[T] take(items : Array[T], count : Int) -> Array[T] {
-  let len = min(count, items.length())
-  let out = Array::new(capacity=len)
-  for i in 0..<len {
-    out.push(items[i])
-  }
-  out
-}
-
-///|
 fn[T] select(index : Int, items : Array[T]) -> T raise BadFunctionEvaluation {
   if index <= 0 || index > items.length() {
     raise BadFunctionEvaluation::Msg("select")
@@ -171,8 +157,10 @@ fn eval_function_sampled(
     }
     let multipliers = Array::new(capacity=inputs.length())
     multipliers.push(1)
+    let mut multiplier = 1
     for idx in 1..<inputs.length() {
-      multipliers.push(product(take(s.size, idx)))
+      multiplier = multiplier * s.size[idx - 1]
+      multipliers.push(multiplier)
     }
     let mut pos = 0
     for i in 0..<inputs.length() {
