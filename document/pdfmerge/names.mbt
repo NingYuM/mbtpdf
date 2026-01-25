@@ -25,7 +25,7 @@ fn apply_namechanges_to_destination_nametree(
     if values.length() % 2 == 1 {
       return None
     }
-    let out = Array::new()
+    let out = Array::new(capacity=values.length() / 2)
     for i = 0; i + 1 < values.length(); i = i + 2 {
       out.push((values[i], values[i + 1]))
     }

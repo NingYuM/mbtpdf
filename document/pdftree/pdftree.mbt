@@ -183,7 +183,7 @@ fn remove_duplicates(
   match items {
     [] => []
     [first, .. rest] => {
-      let out = Array::new()
+      let out = Array::new(capacity=items.length())
       let mut prev = first
       for current in rest {
         let same = if isnum {
@@ -208,21 +208,10 @@ fn remove_duplicates(
 fn pairs_of_array(
   arr : Array[@pdf.PdfObject],
 ) -> Array[(@pdf.PdfObject, @pdf.PdfObject)] {
-  let out = Array::new()
-  fn collect(
-    view : ArrayView[@pdf.PdfObject],
-    out : Array[(@pdf.PdfObject, @pdf.PdfObject)],
-  ) -> Unit {
-    match view {
-      [first, second, .. rest] => {
-        out.push((first, second))
-        collect(rest, out)
-      }
-      _ => ()
-    }
+  let out = Array::new(capacity=arr.length() / 2)
+  for i = 0; i + 1 < arr.length(); i = i + 2 {
+    out.push((arr[i], arr[i + 1]))
   }
-
-  collect(arr, out)
   out
 }
 
