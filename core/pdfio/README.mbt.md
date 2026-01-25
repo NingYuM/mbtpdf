@@ -195,6 +195,14 @@ test "input_output_of_bytes" {
 }
 ```
 
+## Native File/Channel IO
+
+`core/pdfio` is intentionally focused on in-memory `Input`/`Output` and byte
+utilities.
+
+For native `@fs.File` helpers (read whole file/channel into memory, or create an
+`Output` backed by a channel), use `io/pdfiofs`.
+
 ## Bitstreams
 
 For reading data at the bit level (MSB-first order).

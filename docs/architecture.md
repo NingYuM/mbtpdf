@@ -12,6 +12,7 @@ Package paths below are shown relative to the module root (for example,
 
 ```
 Input bytes (core/pdfio)
+  <- io/pdfiofs (native file/channel adapters)
   -> io/pdfread (xref + object streams + encryption)
     -> syntax/pdfsyntax + syntax/pdfgenlex (lex/parse)
       -> Pdf object graph (core/pdf)
@@ -29,7 +30,8 @@ Layer 0: Base utilities
   core/pdfutil, core/pdfe
 
 Layer 1: IO primitives
-  core/pdfio
+  core/pdfio (in-memory Input/Output + byte utilities)
+  io/pdfiofs (native-only file/channel adapters)
 
 Layer 2: Core model + geometry
   core/pdf, core/pdftransform, core/pdfunits, document/pdfpaper, core/pdfdate
@@ -89,6 +91,8 @@ Base utilities used across most packages:
       (`Integer`/`Real`). This avoids ad-hoc helpers like `mkint`/`mkreal` across
       packages, while keeping conversion intentionally narrow (numbers only).
 - `core/pdfio`: byte-level Input/Output abstractions used across the stack.
+- `io/pdfiofs`: filesystem/channel adapters that build `@pdfio.Input`/`@pdfio.Output`
+  from native `@fs.File` handles (kept out of `core/` to preserve a mostly-pure core).
 - `core/pdfutil`: shared helpers (hash tables, memoization, logging helpers).
 - `core/pdfe`: logging hook for error/debug output, debug flags.
   - Example:
