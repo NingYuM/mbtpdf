@@ -24,7 +24,7 @@ fn refset_elts(rs : Map[Int, Bool]) -> Array[Int] {
 
 ///|
 fn contains_string(xs : Array[String], key : String) -> Bool {
-  xs.search_by(v => v == key) is Some(_)
+  xs[:].contains(key)
 }
 
 ///|

@@ -49,7 +49,7 @@ fn ilist(start : Int, finish : Int) -> Array[Int] {
 
 ///|
 fn contains_int(values : Array[Int], value : Int) -> Bool {
-  values.search_by(v => v == value) is Some(_)
+  values[:].contains(value)
 }
 
 ///|
@@ -57,11 +57,7 @@ fn[T] slice(values : Array[T], start : Int, count : Int) -> Array[T] raise {
   if start < 0 || count < 0 || start + count > values.length() {
     raise @pdf.PdfError::Msg("slice: out of bounds")
   }
-  let out = Array::new(capacity=count)
-  for i in 0..<count {
-    out.push(values[start + i])
-  }
-  out
+  values[:].sub(start~, end=start + count).to_array()
 }
 
 ///|
