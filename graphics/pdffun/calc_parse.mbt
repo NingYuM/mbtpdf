@@ -98,7 +98,7 @@ fn is_single_name(tokens : Array[Token], name : String) -> Bool {
 
 ///|
 fn parse_groups(groups : Array[Array[Token]]) -> Array[Calculator] raise {
-  let out = Array::new()
+  let out = Array::new(capacity=groups.length())
   let mut i = 0
   while i < groups.length() {
     if i + 2 < groups.length() && is_single_name(groups[i + 2], "ifelse") {
