@@ -1,8 +1,6 @@
 ///|
 fn clear_object_stream_ids(ids : Map[Int, Int]) -> Unit {
-  for pair in ids.to_array() {
-    ids.remove(pair.0)
-  }
+  ids.clear()
 }
 
 ///|
@@ -31,7 +29,9 @@ fn generate_object_stream_hints(
   if !preserve_existing {
     clear_object_stream_ids(pdf.objects.object_stream_ids)
   }
-  let indirect_lengths : Map[Int, Bool] = Map::new()
+  let indirect_lengths : Map[Int, Bool] = Map::new(
+    capacity=pdf.objects.objects.length(),
+  )
   let entries = @pdf.pdfobjmap_bindings(pdf.objects.objects)
   for pair in entries {
     let objnum = pair.0
@@ -79,7 +79,9 @@ fn generate_object_stream_hints(
 
 ///|
 fn build_object_stream_groups(pdf : @pdf.Pdf) -> Array[(Int, Array[Int])] {
-  let groups : Map[Int, Array[Int]] = Map::new()
+  let groups : Map[Int, Array[Int]] = Map::new(
+    capacity=pdf.objects.object_stream_ids.length(),
+  )
   for pair in pdf.objects.object_stream_ids.to_array() {
     let objnum = pair.0
     let stream_id = pair.1
@@ -119,7 +121,9 @@ fn bake_object_streams(
   compress : Bool,
   groups : Array[(Int, Array[Int])],
 ) -> Map[Int, (Int, Int)] raise {
-  let entries : Map[Int, (Int, Int)] = Map::new()
+  let entries : Map[Int, (Int, Int)] = Map::new(
+    capacity=pdf.objects.object_stream_ids.length(),
+  )
   for group in groups {
     let stream_id = group.0
     let objs = group.1
