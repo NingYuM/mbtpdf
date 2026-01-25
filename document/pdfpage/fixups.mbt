@@ -276,7 +276,7 @@ pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
   let seen : Map[Int, Unit] = Map::new()
   let to_copy : Array[(Int, Int)] = Array::new()
   let new_annots = existing_annots.map(annots => {
-    let out = Array::new()
+    let out = Array::new(capacity=annots.length())
     for i in annots {
       if seen.get(i) is None {
         out.push(i)
@@ -298,7 +298,7 @@ pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
   for i in 0..<existing_annots.length() {
     let old_annots = existing_annots[i]
     let updated_annots = new_annots[i]
-    let assoc : Map[Int, Int] = Map::new()
+    let assoc : Map[Int, Int] = Map::new(capacity=old_annots.length())
     for j in 0..<old_annots.length() {
       assoc.set(old_annots[j], updated_annots[j])
     }
