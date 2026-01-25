@@ -33,7 +33,9 @@ fn make_changes(
       entries.append(entries_of_page(name, pagenums[i], page)[:])
     }
   }
-  let table : Map[(String, Int, String), String] = Map::new()
+  let table : Map[(String, Int, String), String] = Map::new(
+    capacity=entries.length(),
+  )
   for entry in entries {
     let (dictname, pageseq, key, name) = entry
     table.set((dictname, pageseq, key), name)
