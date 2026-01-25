@@ -45,12 +45,7 @@ fn ilist(start : Int, finish : Int) -> Array[Int] {
 
 ///|
 fn contains_int(values : Array[Int], value : Int) -> Bool {
-  for item in values {
-    if item == value {
-      return true
-    }
-  }
-  false
+  values.search_by(v => v == value) is Some(_)
 }
 
 ///|
@@ -67,12 +62,10 @@ fn[T] slice(values : Array[T], start : Int, count : Int) -> Array[T] raise {
 
 ///|
 fn[K : Eq, V] lookup(key : K, pairs : Array[(K, V)]) -> V? {
-  for pair in pairs {
-    if pair.0 == key {
-      return Some(pair.1)
-    }
+  match pairs.search_by(pair => pair.0 == key) {
+    Some(i) => Some(pairs[i].1)
+    None => None
   }
-  None
 }
 
 ///|
@@ -135,13 +128,7 @@ fn remove_entry(
   entries : Array[(String, PdfObject)],
   key : String,
 ) -> Array[(String, PdfObject)] {
-  let out = Array::new()
-  for entry in entries {
-    if entry.0 != key {
-      out.push(entry)
-    }
-  }
-  out
+  entries.filter(entry => entry.0 != key)
 }
 
 ///|
@@ -150,18 +137,13 @@ fn add_entry(
   key : String,
   value : PdfObject,
 ) -> Array[(String, PdfObject)] {
-  let out = Array::new()
-  let mut replaced = false
-  for entry in entries {
-    if entry.0 == key {
+  match entries.search_by(entry => entry.0 == key) {
+    None => {
+      let out = entries[:].to_array()
       out.push((key, value))
-      replaced = true
-    } else {
-      out.push(entry)
+      out
     }
+    Some(_) =>
+      entries.map(entry => if entry.0 == key { (key, value) } else { entry })
   }
-  if !replaced {
-    out.push((key, value))
-  }
-  out
 }
