@@ -1,6 +1,6 @@
 ///|
 fn log_line(message : String) -> Unit {
-  @pdfe.Pdfe::new().log(message + "\n")
+  @pdfe.log(message + "\n")
 }
 
 ///|

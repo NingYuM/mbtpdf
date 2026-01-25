@@ -1015,13 +1015,13 @@ fn parse_operator(
         "TJ" => return (parse_tj_op(section), next_index)
         _ => ()
       }
-      @pdfe.Pdfe::new().log(
+      @pdfe.log(
         "Empty or malformed graphics operation \{string_of_lexemes(section)}.\n",
       )
       (Op::OpUnknown(string_of_lexemes(section)), next_index)
     }
     _ => {
-      @pdfe.Pdfe::new().log(
+      @pdfe.log(
         "Empty or malformed graphics operation \{string_of_lexemes(section)}.\n",
       )
       (Op::OpUnknown(string_of_lexemes(section)), next_index)

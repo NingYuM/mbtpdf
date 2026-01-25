@@ -62,11 +62,11 @@ pub fn Op::components(
           _ => ()
         }
       }
-      @pdfe.Pdfe::new().log("\{space.to_string()}\n")
+      @pdfe.log("\{space.to_string()}\n")
       raise @pdf.PdfError::Msg("Unknown colourspace")
     }
     other => {
-      @pdfe.Pdfe::new().log("\{other.to_string()}\n")
+      @pdfe.log("\{other.to_string()}\n")
       raise @pdf.PdfError::Msg("Unknown colourspace")
     }
   }

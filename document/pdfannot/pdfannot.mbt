@@ -466,7 +466,7 @@ pub fn PdfAnnot::transform_annotations(
             }
             self.pdf.addobj_given_num((i, annot_obj))
           }
-          _ => @pdfe.Pdfe::new().log("transform_annotations: not indirect\n")
+          _ => @pdfe.log("transform_annotations: not indirect\n")
         }
       }
     _ => ()

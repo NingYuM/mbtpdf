@@ -40,7 +40,7 @@ pub fn Page::protect_ops(ops : Array[@pdfops.Op]) -> Array[@pdfops.Op] {
   }
   let deficit = if qs > bigqs { qs - bigqs } else { 0 }
   if deficit != 0 {
-    @pdfe.Pdfe::new().log("Q Deficit was nonzero. Fixing. \{deficit}\n")
+    @pdfe.log("Q Deficit was nonzero. Fixing. \{deficit}\n")
   }
   let result : Array[@pdfops.Op] = if deficit == 0 {
     []

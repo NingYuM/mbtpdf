@@ -385,7 +385,7 @@ pub fn PdfStructTree::merge_structure_trees(
           for entry in entries {
             merged = merged.add_entry(entry.0, entry.1)
           }
-        _ => @pdfe.Pdfe::new().log("merge_dicts: not a dict\n")
+        _ => @pdfe.log("merge_dicts: not a dict\n")
       }
     }
     merged
@@ -396,7 +396,7 @@ pub fn PdfStructTree::merge_structure_trees(
     for arr in arrays {
       match arr {
         @pdf.PdfObject::Array(items) => out.append(items[:])
-        _ => @pdfe.Pdfe::new().log("merge_array: not an array\n")
+        _ => @pdfe.log("merge_array: not an array\n")
       }
     }
     @pdf.PdfObject::Array(out)

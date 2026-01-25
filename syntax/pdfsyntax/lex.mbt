@@ -616,7 +616,7 @@ pub fn PdfSyntax::lex_next(
     }
   } catch {
     err => {
-      @pdfe.Pdfe::new().log("Recovering from lex error: \{err}\n")
+      @pdfe.log("Recovering from lex error: \{err}\n")
       StopLexing
     }
   }

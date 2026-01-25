@@ -109,9 +109,7 @@ fn Pdf::transform_quadpoint_single(
   qp : Array[PdfObject],
 ) -> Array[PdfObject] raise {
   if qp.length() != 8 {
-    @pdfe.Pdfe::new().log(
-      "Malformed /QuadPoints format: must be a multiple of 8 entries\n",
-    )
+    @pdfe.log("Malformed /QuadPoints format: must be a multiple of 8 entries\n")
     return qp
   }
   let x1 = self.getnum(qp[0])
@@ -169,7 +167,7 @@ pub fn Pdf::transform_quadpoints(
       Array(out)
     }
     _ => {
-      @pdfe.Pdfe::new().log("Unknown or malformed /QuadPoints format\n")
+      @pdfe.log("Unknown or malformed /QuadPoints format\n")
       qp
     }
   }

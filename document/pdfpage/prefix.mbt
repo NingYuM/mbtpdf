@@ -257,7 +257,7 @@ fn add_prefix_impl(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
                         }
                       } catch {
                         _ => {
-                          @pdfe.Pdfe::new().log(
+                          @pdfe.log(
                             "add_prefix: non-ISO PDF detected streams detected. Fixing...\n",
                           )
                           raise AddPrefixError::NonIso

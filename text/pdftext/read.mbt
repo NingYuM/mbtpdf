@@ -630,7 +630,7 @@ pub fn PdfText::add_tounicode(
         (Some(int_map), Some(bytes_map))
       } catch {
         err => {
-          @pdfe.Pdfe::new().log("bad tounicode\n")
+          @pdfe.log("bad tounicode\n")
           let _ = err
           (None, None)
         }

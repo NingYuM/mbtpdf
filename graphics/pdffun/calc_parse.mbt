@@ -121,7 +121,7 @@ fn parse_groups(groups : Array[Array[Token]]) -> Array[Calculator] raise {
           match keyword_of_string(name) {
             Some(op) => out.push(op)
             None => {
-              @pdfe.Pdfe::new().log("Bad keyword \{name}\n")
+              @pdfe.log("Bad keyword \{name}\n")
               raise @pdf.PdfError::Msg("Cannot parse Type 4 function")
             }
           }

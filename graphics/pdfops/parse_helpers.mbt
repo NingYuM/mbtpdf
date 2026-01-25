@@ -68,7 +68,7 @@ fn reals_of_lexemes(
     match lexeme_real(lexeme) {
       Some(value) => out.push(value)
       None => {
-        @pdfe.Pdfe::new().log(errtext + "\n")
+        @pdfe.log(errtext + "\n")
         return [0.0, 0.0, 0.0]
       }
     }
@@ -141,8 +141,7 @@ fn parse_tj_op(section : Array[Lexeme]) -> Op raise {
           Obj(LexInt(value)) =>
             elements.push(PdfObject::Real(Double::from_int(value)))
           Obj(LexString(text)) => elements.push(PdfObject::String(text))
-          _ =>
-            @pdfe.Pdfe::new().log("Warning: malformed TJ element; skipping\n")
+          _ => @pdfe.log("Warning: malformed TJ element; skipping\n")
         }
       }
       return Op::OpTJ(PdfObject::Array(elements))

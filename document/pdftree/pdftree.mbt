@@ -87,9 +87,7 @@ fn PdfTree::read_tree_raw(
   let names = match self.pdf.lookup_direct_orelse("/Names", "/Nums", tree) {
     Some(PdfObject::Array(elts)) =>
       if elts.length() % 2 == 1 {
-        @pdfe.Pdfe::new().log(
-          "Bad /Names array. Name tree will be read as empty\n",
-        )
+        @pdfe.log("Bad /Names array. Name tree will be read as empty\n")
         []
       } else {
         pairs_of_array(elts)
@@ -130,7 +128,7 @@ fn PdfTree::read_tree_strings(
         } else {
           "Pdftree.read_name_tree: skipping malformed name tree\n"
         }
-        @pdfe.Pdfe::new().log(msg)
+        @pdfe.log(msg)
         return []
       }
     }

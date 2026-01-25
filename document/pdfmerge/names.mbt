@@ -11,7 +11,7 @@ fn apply_namechanges_to_destination_nametree(
     match changes_map.get(s) {
       Some(r) => r
       None => {
-        @pdfe.Pdfe::new().log(
+        @pdfe.log(
           "apply_namechanges_to_destination_nametree: destination not found: \{s}\n",
         )
         s
@@ -54,7 +54,7 @@ fn apply_namechanges_to_destination_nametree(
             }
             updated = add_entry(updated, "/Names", PdfObject::Array(rebuilt))
           }
-          None => @pdfe.Pdfe::new().log("Warning: malformed /Names")
+          None => @pdfe.log("Warning: malformed /Names")
         }
       _ => ()
     }

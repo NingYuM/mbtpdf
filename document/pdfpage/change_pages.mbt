@@ -221,16 +221,11 @@ fn change_pages_process_annotations(
               }
             }
             _ =>
-              @pdfe.Pdfe::new().log(
-                "change_pages_process_annotations: annotation direct\n",
-              )
+              @pdfe.log("change_pages_process_annotations: annotation direct\n")
           }
         }
       None => ()
-      _ =>
-        @pdfe.Pdfe::new().log(
-          "change_pages_process_annotations: /Annots not an array\n",
-        )
+      _ => @pdfe.log("change_pages_process_annotations: /Annots not an array\n")
     }
   }
 }
@@ -328,9 +323,7 @@ pub fn PdfPageDoc::change_pages(
         if old_page_numbers.length() == new_page_numbers.length() {
           Array::zip(old_page_numbers, new_page_numbers)
         } else {
-          @pdfe.Pdfe::new().log(
-            "change_pages: No change supplied, and lengths differ\n",
-          )
+          @pdfe.log("change_pages: No change supplied, and lengths differ\n")
           []
         }
       Some(cs) => {
@@ -358,7 +351,7 @@ pub fn PdfPageDoc::change_pages(
         let pdf = if old_page_numbers.length() == new_page_numbers.length() {
           change_pages_process_bookmarks(mattable, refnumstable, pdf)
         } else {
-          @pdfe.Pdfe::new().log(
+          @pdfe.log(
             "Pdfpage.change_pages: non-null matrices when lengths differ\n",
           )
           pdf
@@ -366,18 +359,12 @@ pub fn PdfPageDoc::change_pages(
         try
           change_pages_process_annotations(mattable, refnumstable, pdf)
         catch {
-          _ =>
-            @pdfe.Pdfe::new().log(
-              "failure in change_pages_process_annotations\n",
-            )
+          _ => @pdfe.log("failure in change_pages_process_annotations\n")
         } noraise {
           _ => ()
         }
         try change_pages_process_openaction(mattable, refnumstable, pdf) catch {
-          _ =>
-            @pdfe.Pdfe::new().log(
-              "failure in change_pages_process_openaction\n",
-            )
+          _ => @pdfe.log("failure in change_pages_process_openaction\n")
         } noraise {
           _ => ()
         }

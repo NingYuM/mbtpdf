@@ -11,7 +11,7 @@ pub fn PdfMerger::merge_pdfs(
   let pdfs = self.pdfs
   let ranges = self.ranges
   if process_struct_trees && setify_strings(names).length() < names.length() {
-    @pdfe.Pdfe::new().log(
+    @pdfe.log(
       "Warning: multiply-included files will not merge structure trees properly.\n",
     )
   }
@@ -86,7 +86,7 @@ pub fn PdfMerger::merge_pdfs(
     }
   } catch {
     _ => {
-      @pdfe.Pdfe::new().log("Warning: failed to merge OCGs\n")
+      @pdfe.log("Warning: failed to merge OCGs\n")
       extra_catalog_entries
     }
   }
@@ -102,7 +102,7 @@ pub fn PdfMerger::merge_pdfs(
     }
   } catch {
     _ => {
-      @pdfe.Pdfe::new().log("Warning: failed to merge Acroforms\n")
+      @pdfe.log("Warning: failed to merge Acroforms\n")
       extra_catalog_entries
     }
   }
@@ -125,7 +125,7 @@ pub fn PdfMerger::merge_pdfs(
       }
     } catch {
       _ => {
-        @pdfe.Pdfe::new().log("Warning: failed to merge structure tree roots\n")
+        @pdfe.log("Warning: failed to merge structure tree roots\n")
         extra_catalog_entries
       }
     }

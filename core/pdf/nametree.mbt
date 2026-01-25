@@ -131,9 +131,7 @@ pub fn Pdf::contents_of_nametree(
         out.push((names[i], names[i + 1]))
       }
       if names.length() % 2 == 1 {
-        @pdfe.Pdfe::new().log(
-          "warning: contents_of_nametree: odd number of /Names\n",
-        )
+        @pdfe.log("warning: contents_of_nametree: odd number of /Names\n")
       }
       out
     }

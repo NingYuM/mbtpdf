@@ -165,7 +165,7 @@ fn merge_bookmarks(
     @pdfmarks.PdfMarks::new(pdf).add_bookmarks(bookmarks)
   } catch {
     _ => {
-      @pdfe.Pdfe::new().log("failure in merge_bookmarks\n")
+      @pdfe.log("failure in merge_bookmarks\n")
       pdf
     }
   }

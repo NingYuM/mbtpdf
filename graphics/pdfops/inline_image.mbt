@@ -105,7 +105,7 @@ fn lex_inline_image(
   input : @pdfio.Input,
 ) -> (@pdf.PdfObject, @pdf.PdfObject?, @pdfio.MutableBytes) raise {
   if debug.val {
-    @pdfe.Pdfe::new().log("lex_inline_image at \{(input.pos_in)()}\n")
+    @pdfe.log("lex_inline_image at \{(input.pos_in)()}\n")
   }
   try {
     let lexemes = PdfSyntax::new().lex_dictionary(true, input)
@@ -120,13 +120,13 @@ fn lex_inline_image(
     tokens.push(Token::LexRightDict)
     let dict = PdfSyntax::new().parse(tokens).1
     if debug.val {
-      @pdfe.Pdfe::new().log("dict was \{dict.to_string()}\n")
+      @pdfe.log("dict was \{dict.to_string()}\n")
     }
     PdfSyntax::new().dropwhite(input)
     let c = (input.input_byte)()
     let c2 = (input.input_byte)()
     if c != 'I'.to_int() || c2 != 'D'.to_int() {
-      @pdfe.Pdfe::new().log("Did not recognise beginning of inline image ID\n")
+      @pdfe.log("Did not recognise beginning of inline image ID\n")
       nocontent(input)
     }
     let filters = match pdf.lookup_direct_orelse("/F", "/Filter", dict) {
@@ -139,13 +139,13 @@ fn lex_inline_image(
       ignore((input.input_byte)())
     }
     if debug.val {
-      @pdfe.Pdfe::new().log("**got ID header, skipped possible byte\n")
+      @pdfe.log("**got ID header, skipped possible byte\n")
     }
     let bpc = match
       pdf.lookup_direct_orelse("/BPC", "/BitsPerComponent", dict) {
       Some(Integer(value)) => value
       _ => {
-        @pdfe.Pdfe::new().log("no BPC\n")
+        @pdfe.log("no BPC\n")
         nocontent(input)
         0
       }
@@ -161,20 +161,20 @@ fn lex_inline_image(
           PdfObject::Name(name)
         } else {
           if debug.val {
-            @pdfe.Pdfe::new().log("resources is \{resources.to_string()}\n")
+            @pdfe.log("resources is \{resources.to_string()}\n")
           }
           match pdf.lookup_direct("/ColorSpace", resources) {
             Some(Dictionary(_) as d) =>
               match pdf.lookup_direct(name, d) {
                 Some(space) => space
                 None => {
-                  @pdfe.Pdfe::new().log("no colourspace A\n")
+                  @pdfe.log("no colourspace A\n")
                   nocontent(input)
                   PdfObject::Null
                 }
               }
             _ => {
-              @pdfe.Pdfe::new().log("no colourspace B\n")
+              @pdfe.log("no colourspace B\n")
               nocontent(input)
               PdfObject::Null
             }
@@ -185,13 +185,13 @@ fn lex_inline_image(
         match pdf.lookup_direct_orelse("/IM", "/ImageMask", dict) {
           Some(Boolean(true)) => PdfObject::Name("/DeviceGray")
           _ => {
-            @pdfe.Pdfe::new().log("no colourspace C\n")
+            @pdfe.log("no colourspace C\n")
             nocontent(input)
             PdfObject::Null
           }
         }
       _ => {
-        @pdfe.Pdfe::new().log("no colourspace D\n")
+        @pdfe.log("no colourspace D\n")
         nocontent(input)
         PdfObject::Null
       }
@@ -199,7 +199,7 @@ fn lex_inline_image(
     let width = match pdf.lookup_direct_orelse("/W", "/Width", dict) {
       Some(Integer(value)) => value
       _ => {
-        @pdfe.Pdfe::new().log("no or malformed /W")
+        @pdfe.log("no or malformed /W")
         nocontent(input)
         0
       }
@@ -207,7 +207,7 @@ fn lex_inline_image(
     let height = match pdf.lookup_direct_orelse("/H", "/Height", dict) {
       Some(Integer(value)) => value
       _ => {
-        @pdfe.Pdfe::new().log("no or malformed /H")
+        @pdfe.log("no or malformed /H")
         nocontent(input)
         0
       }
@@ -238,7 +238,7 @@ fn lex_inline_image(
           match @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) {
             Some(decoded) => decoded
             None => {
-              @pdfe.Pdfe::new().log("decode_from_bytes failed\n")
+              @pdfe.log("decode_from_bytes failed\n")
               nocontent(input)
               @pdfio.mkbytes(0)
             }
@@ -256,7 +256,7 @@ fn lex_inline_image(
                   @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) {
                   Some(decoded) => decoded
                   None => {
-                    @pdfe.Pdfe::new().log("decode_from_bytes failed\n")
+                    @pdfe.log("decode_from_bytes failed\n")
                     nocontent(input)
                     @pdfio.mkbytes(0)
                   }
@@ -267,7 +267,7 @@ fn lex_inline_image(
               match @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) {
                 Some(decoded) => decoded
                 None => {
-                  @pdfe.Pdfe::new().log("decode_from_bytes failed\n")
+                  @pdfe.log("decode_from_bytes failed\n")
                   nocontent(input)
                   @pdfio.mkbytes(0)
                 }
@@ -279,7 +279,7 @@ fn lex_inline_image(
           match @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) {
             Some(decoded) => decoded
             None => {
-              @pdfe.Pdfe::new().log("decode_from_bytes failed\n")
+              @pdfe.log("decode_from_bytes failed\n")
               nocontent(input)
               @pdfio.mkbytes(0)
             }
@@ -290,7 +290,7 @@ fn lex_inline_image(
         match @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) {
           Some(decoded) => decoded
           None => {
-            @pdfe.Pdfe::new().log("decode_from_bytes failed\n")
+            @pdfe.log("decode_from_bytes failed\n")
             nocontent(input)
             @pdfio.mkbytes(0)
           }
@@ -301,9 +301,7 @@ fn lex_inline_image(
     let end1 = (input.input_byte)()
     let end2 = (input.input_byte)()
     if end1 != 'E'.to_int() || end2 != 'I'.to_int() {
-      @pdfe.Pdfe::new().log(
-        "warning: bad end to inline image \{end1}, \{end2}\n",
-      )
+      @pdfe.log("warning: bad end to inline image \{end1}, \{end2}\n")
       PdfSyntax::new().ignoreuntil(true, chr => chr == 'E', input)
       PdfSyntax::new().ignoreuntil(true, chr => chr == 'I', input)
       input.nudge()
@@ -360,7 +358,7 @@ fn lex_inline_image(
     (dict_clean, dp, data)
   } catch {
     err => {
-      @pdfe.Pdfe::new().log("inline image reading failed: \{err}\n")
+      @pdfe.log("inline image reading failed: \{err}\n")
       nocontent(input)
       (PdfObject::Null, None, @pdfio.mkbytes(0))
     }

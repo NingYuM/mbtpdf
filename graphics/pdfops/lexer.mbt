@@ -46,7 +46,7 @@ fn lex_name(input : @pdfio.Input) -> Lexeme raise {
 
 ///|
 fn nocontent(input : @pdfio.Input) -> Unit raise {
-  @pdfe.Pdfe::new().log("Failed to understand content on page\n")
+  @pdfe.log("Failed to understand content on page\n")
   if @pdfe.read_debug.val {
     @pdfio.debug_next_n_chars(20, input)
   }
