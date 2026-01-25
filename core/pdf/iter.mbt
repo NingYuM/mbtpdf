@@ -83,7 +83,8 @@ pub fn Pdf::objselect(
   self : Pdf,
   f : (PdfObject) -> Bool raise?,
 ) -> Array[Int] raise? {
-  let out = Array::new()
+  // Upper bound: all objects could match.
+  let out = Array::new(capacity=self.objects.objects.length())
   self.objiter((num, obj) => if f(obj) { out.push(num) })
   out
 }
@@ -104,7 +105,8 @@ fn Pdf::nullify_deleted_page_references(self : Pdf) -> Unit raise {
     }
   }
 
-  let page_object_numbers = Array::new()
+  // Upper bound: all objects could be /Page dictionaries.
+  let page_object_numbers = Array::new(capacity=self.objects.objects.length())
   self.objiter((objnum, obj) => match obj {
     Dictionary(_) =>
       match self.lookup_direct("/Type", obj) {
@@ -115,7 +117,7 @@ fn Pdf::nullify_deleted_page_references(self : Pdf) -> Unit raise {
   })
   let refnums = self.page_reference_numbers()
   if refnums.length() != page_object_numbers.length() {
-    let table = Map::new()
+    let table = Map::new(capacity=page_object_numbers.length())
     for num in page_object_numbers {
       table.set(num, true)
     }
