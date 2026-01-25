@@ -28,56 +28,33 @@ pub fn Page::custom(@pdf.PdfObject) -> Self
 pub fn Page::postpend_operators(Self, @pdf.Pdf, Array[@pdfops.Op], fast? : Bool) -> Self raise
 pub fn Page::prepend_operators(Self, @pdf.Pdf, Array[@pdfops.Op], fast? : Bool) -> Self raise
 pub fn Page::process_xobjects(Self, @pdf.Pdf, (@pdf.Pdf, @pdf.PdfObject, Array[@pdf.PdfObject]) -> Array[@pdf.PdfObject]) -> Unit raise
-#as_free_fn(protect, deprecated)
 pub fn Page::protect_ops(Array[@pdfops.Op]) -> Array[@pdfops.Op]
 
 pub struct PdfPageDoc {
   pdf : @pdf.Pdf
 }
-#as_free_fn(add_pagetree, deprecated)
 pub fn PdfPageDoc::add_pagetree(Self, Array[Page]) -> (@pdf.Pdf, Int) raise
-#as_free_fn(add_prefix, deprecated)
 pub fn PdfPageDoc::add_prefix(Self, String) -> Unit raise
-#as_free_fn(add_root, deprecated)
 pub fn PdfPageDoc::add_root(Self, Int, Array[(String, @pdf.PdfObject)]) -> @pdf.Pdf raise
-#as_free_fn(change_pages, deprecated)
 pub fn PdfPageDoc::change_pages(Self, Bool, Array[Page], matrices? : Array[(Int, @pdftransform.TransformMatrix)], changes? : Array[(Int, Int)]) -> @pdf.Pdf raise
-#as_free_fn(combine_pdf_resources, deprecated)
 pub fn PdfPageDoc::combine_pdf_resources(Self, @pdf.PdfObject, @pdf.PdfObject) -> @pdf.PdfObject raise
-#as_free_fn(endpage, deprecated)
 pub fn PdfPageDoc::endpage(Self) -> Int raise
-#as_free_fn(endpage_fast, deprecated)
 pub fn PdfPageDoc::endpage_fast(Self) -> Int raise
-#as_free_fn(fixup_destinations, deprecated)
 pub fn PdfPageDoc::fixup_destinations(Self) -> Unit raise
-#as_free_fn(fixup_duplicate_annots, deprecated)
 pub fn PdfPageDoc::fixup_duplicate_annots(Self) -> Unit raise
-#as_free_fn(fixup_duplicate_pages, deprecated)
 pub fn PdfPageDoc::fixup_duplicate_pages(Self) -> Unit raise
-#as_free_fn(fixup_parents, deprecated)
 pub fn PdfPageDoc::fixup_parents(Self) -> Unit raise
-#as_free_fn(minimum_valid_pdf, deprecated)
 pub fn PdfPageDoc::minimum_valid() -> @pdf.Pdf raise
 pub fn PdfPageDoc::new(@pdf.Pdf) -> Self
-#as_free_fn(page_object_number, deprecated)
 pub fn PdfPageDoc::page_object_number(Self, Int) -> Int? raise
-#as_free_fn(pagenumber_of_target, deprecated)
 pub fn PdfPageDoc::pagenumber_of_target(Self, @pdfdest.Destination, fastrefnums? : Map[Int, Int]) -> Int raise
-#as_free_fn(pages_of_pagetree, deprecated)
 pub fn PdfPageDoc::pages_of_pagetree(Self) -> Array[Page] raise
-#as_free_fn(pages_of_pagetree_quick, deprecated)
 pub fn PdfPageDoc::pages_of_pagetree_quick(Self) -> Int raise
-#as_free_fn(pdf_of_pages, deprecated)
 pub fn PdfPageDoc::pdf_of_pages(Self, Array[Int], retain_numbering? : Bool, process_struct_tree? : Bool) -> @pdf.Pdf raise
-#as_free_fn(process_xobject, deprecated)
 pub fn PdfPageDoc::process_xobject(Self, (@pdf.Pdf, @pdf.PdfObject, Array[@pdf.PdfObject]) -> Array[@pdf.PdfObject], @pdf.PdfObject, Int) -> Unit raise
-#as_free_fn(renumber_pages, deprecated)
 pub fn PdfPageDoc::renumber_pages(Self, Array[Page]) -> Array[Page] raise
-#as_free_fn(replace_inherit, deprecated)
 pub fn PdfPageDoc::replace_inherit(Self, Array[Int]) -> Unit raise
-#as_free_fn(shortest_unused_prefix, deprecated)
 pub fn PdfPageDoc::shortest_unused_prefix(Self) -> String
-#as_free_fn(target_of_pagenumber, deprecated)
 pub fn PdfPageDoc::target_of_pagenumber(Self, Int) -> @pdfdest.Destination raise
 
 pub(all) enum Rotation {

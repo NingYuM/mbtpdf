@@ -96,7 +96,6 @@ fn[T] flatten(lists : Array[Array[T]]) -> Array[T] {
 
 ///|
 /// Trim the structure tree to match a subset of pages.
-#as_free_fn(trim_structure_tree, deprecated="Use `PdfStructTree::trim_structure_tree`")
 pub fn PdfStructTree::trim_structure_tree(
   self : PdfStructTree,
   range : Array[Int],
@@ -213,7 +212,6 @@ pub fn PdfStructTree::trim_structure_tree(
 
 ///|
 /// Renumber /ParentTree entries and update /StructParent(s) references.
-#as_free_fn(renumber_parent_trees, deprecated="Use `PdfStructTrees::renumber_parent_trees`")
 pub fn PdfStructTrees::renumber_parent_trees(
   self : PdfStructTrees,
 ) -> Unit raise {
@@ -363,7 +361,6 @@ pub fn PdfStructTrees::renumber_parent_trees(
 
 ///|
 /// Merge structure tree roots, returning the merged root object number.
-#as_free_fn(merge_structure_trees, deprecated="Use `PdfStructTree::merge_structure_trees`")
 pub fn PdfStructTree::merge_structure_trees(
   self : PdfStructTree,
   pdfs : Array[@pdf.Pdf],

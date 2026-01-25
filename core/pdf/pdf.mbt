@@ -292,7 +292,6 @@ pub fn PdfObject::add_entry(
 
 ///|
 /// Lookup an object in a document, parsing it if required.
-#as_free_fn(lookup_obj, deprecated="Use Pdf::lookup_obj instead")
 pub fn Pdf::lookup_obj(self : Pdf, objnum : Int) -> PdfObject {
   match self.objects.objects.get(objnum) {
     None => Null
@@ -346,7 +345,6 @@ fn Pdf::parse_delayed_object_stream(
 
 ///|
 /// Make a PDF object direct -- that is, follow any indirect links.
-#as_free_fn(direct, deprecated="Use Pdf::direct instead")
 pub fn Pdf::direct(self : Pdf, obj : PdfObject) -> PdfObject {
   match obj {
     Indirect(i) => self.direct(self.lookup_obj(i))
@@ -356,7 +354,6 @@ pub fn Pdf::direct(self : Pdf, obj : PdfObject) -> PdfObject {
 
 ///|
 /// Lookup the key, resolving indirections at source and destination.
-#as_free_fn(lookup_direct, deprecated="Use Pdf::lookup_direct instead")
 pub fn Pdf::lookup_direct(
   self : Pdf,
   key : String,
@@ -390,7 +387,6 @@ pub fn Pdf::lookup_direct(
 
 ///|
 /// Lookup the key without following indirects at either source or destination.
-#as_free_fn(lookup_immediate, deprecated="Use PdfObject::lookup_immediate instead")
 pub fn PdfObject::lookup_immediate(
   self : PdfObject,
   key : String,
@@ -463,7 +459,6 @@ fn Pdf::lookup_direct_or_array(
 
 ///|
 /// Lookup a key in a nested dictionary chain.
-#as_free_fn(lookup_chain, deprecated="Use Pdf::lookup_chain instead")
 pub fn Pdf::lookup_chain(
   self : Pdf,
   start : PdfObject,
@@ -481,7 +476,6 @@ pub fn Pdf::lookup_chain(
 
 ///|
 /// Replace or insert a chain from the trailer dictionary.
-#as_free_fn(replace_chain, deprecated="Use Pdf::replace_chain instead")
 pub fn Pdf::replace_chain(
   self : Pdf,
   chain : ArrayView[String],
@@ -557,7 +551,6 @@ pub fn Pdf::replace_chain(
 
 ///|
 /// Return the object number of an indirect dictionary object, if it is indirect.
-#as_free_fn(indirect_number, deprecated="Use Pdf::indirect_number instead")
 pub fn Pdf::indirect_number(self : Pdf, key : String, dict : PdfObject) -> Int? {
   match self.direct(dict) {
     Dictionary(entries) =>
@@ -579,7 +572,6 @@ pub fn Pdf::indirect_number(self : Pdf, key : String, dict : PdfObject) -> Int? 
 
 ///|
 /// Same as lookup_direct, but allow a second alternative key.
-#as_free_fn(lookup_direct_orelse, deprecated="Use Pdf::lookup_direct_orelse instead")
 pub fn Pdf::lookup_direct_orelse(
   self : Pdf,
   key : String,
@@ -664,7 +656,6 @@ fn Pdf::nametree_lookup_kids(
 
 ///|
 /// Look something up in a name tree.
-#as_free_fn(nametree_lookup, deprecated="Use Pdf::nametree_lookup instead")
 pub fn Pdf::nametree_lookup(
   self : Pdf,
   key : PdfObject,
@@ -715,7 +706,6 @@ fn[T] flatten(lists : Array[Array[T]]) -> Array[T] {
 
 ///|
 /// Return an ordered list of all (k, v) pairs in a name tree.
-#as_free_fn(contents_of_nametree, deprecated="Use Pdf::contents_of_nametree instead")
 pub fn Pdf::contents_of_nametree(
   self : Pdf,
   tree : PdfObject,
@@ -767,7 +757,6 @@ fn process_deferred_cryption(
 
 ///|
 /// Get a stream from disk if it hasn't already been got.
-#as_free_fn(getstream, deprecated="Use PdfObject::getstream instead")
 pub fn PdfObject::getstream(self : PdfObject) -> Unit raise {
   match self {
     Stream(r) =>
@@ -794,7 +783,6 @@ pub fn PdfObject::getstream(self : PdfObject) -> Unit raise {
 
 ///|
 /// Find the contents of a stream as bytes.
-#as_free_fn(bigarray_of_stream, deprecated="Use PdfObject::bigarray_of_stream instead")
 pub fn PdfObject::bigarray_of_stream(
   self : PdfObject,
 ) -> @pdfio.MutableBytes raise {
@@ -811,7 +799,6 @@ pub fn PdfObject::bigarray_of_stream(
 
 ///|
 /// Return a float from a PDF number.
-#as_free_fn(getnum, deprecated="Use Pdf::getnum instead")
 pub fn Pdf::getnum(self : Pdf, obj : PdfObject) -> Double raise {
   match obj {
     Real(a) => a
@@ -823,7 +810,6 @@ pub fn Pdf::getnum(self : Pdf, obj : PdfObject) -> Double raise {
 
 ///|
 /// Parse a PDF rectangle structure into min x, min y, max x, max y.
-#as_free_fn(parse_rectangle, deprecated="Use Pdf::parse_rectangle instead")
 pub fn Pdf::parse_rectangle(
   self : Pdf,
   obj : PdfObject,
@@ -849,7 +835,6 @@ pub fn Pdf::parse_rectangle(
 
 ///|
 /// Parse a transform matrix, or return the identity if missing.
-#as_free_fn(parse_matrix, deprecated="Use Pdf::parse_matrix instead")
 pub fn Pdf::parse_matrix(
   self : Pdf,
   key : String,
@@ -899,7 +884,6 @@ fn fmax(a : Double, b : Double) -> Double {
 
 ///|
 /// Transform a rectangle by a matrix, returning the bounding rectangle.
-#as_free_fn(transform_rect, deprecated="Use Pdf::transform_rect instead")
 pub fn Pdf::transform_rect(
   self : Pdf,
   transform : @pdftransform.TransformMatrix,
@@ -970,7 +954,6 @@ fn[T] split_into(values : Array[T], size : Int) -> Array[Array[T]] {
 
 ///|
 /// Transform quadpoints by a matrix.
-#as_free_fn(transform_quadpoints, deprecated="Use Pdf::transform_quadpoints instead")
 pub fn Pdf::transform_quadpoints(
   self : Pdf,
   transform : @pdftransform.TransformMatrix,
@@ -1007,14 +990,12 @@ pub fn Pdf::objnumbers(self : Pdf) -> Array[Int] {
 
 ///|
 /// Remove the given object.
-#as_free_fn(removeobj, deprecated="Use Pdf::removeobj instead")
 pub fn Pdf::removeobj(self : Pdf, objnum : Int) -> Unit {
   self.objects.objects.remove(objnum)
 }
 
 ///|
 /// Add an object. Returns the number chosen.
-#as_free_fn(addobj, deprecated="Use Pdf::addobj instead")
 pub fn Pdf::addobj(self : Pdf, obj : PdfObject) -> Int {
   let next = self.objects.max_obj_num + 1
   self.addobj_given_num((next, obj))
@@ -1023,7 +1004,6 @@ pub fn Pdf::addobj(self : Pdf, obj : PdfObject) -> Int {
 
 ///|
 /// Same as addobj, but pick a number ourselves.
-#as_free_fn(addobj_given_num, deprecated="Use Pdf::addobj_given_num instead")
 pub fn Pdf::addobj_given_num(self : Pdf, pair : (Int, PdfObject)) -> Unit {
   let (num, obj) = pair
   if num > self.objects.max_obj_num {
@@ -1034,7 +1014,6 @@ pub fn Pdf::addobj_given_num(self : Pdf, pair : (Int, PdfObject)) -> Unit {
 
 ///|
 /// Lookup an object, failing if not found.
-#as_free_fn(lookup_fail, deprecated="Use Pdf::lookup_fail instead")
 pub fn Pdf::lookup_fail(
   self : Pdf,
   errtext : String,
@@ -1049,7 +1028,6 @@ pub fn Pdf::lookup_fail(
 
 ///|
 /// Find the indirect reference given by the value associated with a key.
-#as_free_fn(find_indirect, deprecated="Use PdfObject::find_indirect instead")
 pub fn PdfObject::find_indirect(self : PdfObject, key : String) -> Int? raise {
   match self {
     Dictionary(_) =>
@@ -1063,7 +1041,6 @@ pub fn PdfObject::find_indirect(self : PdfObject, key : String) -> Int? raise {
 
 ///|
 /// Return the document catalog.
-#as_free_fn(catalog_of_pdf, deprecated="Use Pdf::catalog_of_pdf instead")
 pub fn Pdf::catalog_of_pdf(self : Pdf) -> PdfObject raise {
   let obj = self.lookup_obj(self.root)
   match obj {
@@ -1098,7 +1075,6 @@ fn recurse_dict(
 
 ///|
 /// Iterate over all objects in a document.
-#as_free_fn(objiter, deprecated="Use Pdf::objiter instead")
 pub fn Pdf::objiter(
   self : Pdf,
   f : (Int, PdfObject) -> Unit raise?,
@@ -1110,7 +1086,6 @@ pub fn Pdf::objiter(
 
 ///|
 /// Iterate over all objects in a document, ordered by object number.
-#as_free_fn(objiter_inorder, deprecated="Use Pdf::objiter_inorder instead")
 pub fn Pdf::objiter_inorder(
   self : Pdf,
   f : (Int, PdfObject) -> Unit raise?,
@@ -1120,7 +1095,6 @@ pub fn Pdf::objiter_inorder(
 
 ///|
 /// Iterate over all objects in a document with generation numbers.
-#as_free_fn(objiter_gen, deprecated="Use Pdf::objiter_gen instead")
 pub fn Pdf::objiter_gen(
   self : Pdf,
   f : (Int, Int, PdfObject) -> Unit raise?,
@@ -1136,7 +1110,6 @@ pub fn Pdf::objiter_gen(
 
 ///|
 /// Map a function over all objects in a document.
-#as_free_fn(objselfmap, deprecated="Use Pdf::objselfmap instead")
 pub fn Pdf::objselfmap(
   self : Pdf,
   f : (PdfObject) -> PdfObject raise?,
@@ -1157,7 +1130,6 @@ pub fn Pdf::objselfmap(
 
 ///|
 /// Select objects matching a predicate and return their numbers.
-#as_free_fn(objselect, deprecated="Use Pdf::objselect instead")
 pub fn Pdf::objselect(
   self : Pdf,
   f : (PdfObject) -> Bool raise?,
@@ -1293,7 +1265,6 @@ fn Pdf::referenced_pdfobj(
 
 ///|
 /// Find the objects reachable from the given object.
-#as_free_fn(objects_referenced, deprecated="Use Pdf::objects_referenced instead")
 pub fn Pdf::objects_referenced(
   self : Pdf,
   no_follow_entries : Array[String],
@@ -1347,7 +1318,6 @@ fn Pdf::nullify_deleted_page_references(self : Pdf) -> Unit raise {
 
 ///|
 /// Remove any unreferenced objects.
-#as_free_fn(remove_unreferenced, deprecated="Use Pdf::remove_unreferenced instead")
 pub fn Pdf::remove_unreferenced(self : Pdf) -> Unit raise {
   self.nullify_deleted_page_references()
   let found = refset_empty()
@@ -1394,7 +1364,6 @@ fn Pdf::page_reference_numbers_inner(
 
 ///|
 /// Return the page reference numbers in order.
-#as_free_fn(page_reference_numbers, deprecated="Use Pdf::page_reference_numbers instead")
 pub fn Pdf::page_reference_numbers(self : Pdf) -> Array[Int] raise {
   let root = self.lookup_obj(self.root)
   let pages_node = match self.lookup_direct("/Pages", root) {
@@ -1406,7 +1375,6 @@ pub fn Pdf::page_reference_numbers(self : Pdf) -> Array[Int] raise {
 
 ///|
 /// Renumber indirect references using a change table.
-#as_free_fn(renumber_object_parsed, deprecated="Use Pdf::renumber_object_parsed instead")
 pub fn Pdf::renumber_object_parsed(
   self : Pdf,
   changes : Map[Int, Int],
@@ -1464,7 +1432,6 @@ fn check_object_contains_renumbering(
 
 ///|
 /// Calculate the change table required to renumber objects 1..n.
-#as_free_fn(changes, deprecated="Use Pdf::changes instead")
 pub fn Pdf::changes(self : Pdf) -> Map[Int, Int] {
   let keys = self.objnumbers()
   let table : Map[Int, Int] = Map::new(capacity=keys.length())
@@ -1478,7 +1445,6 @@ pub fn Pdf::changes(self : Pdf) -> Map[Int, Int] {
 
 ///|
 /// Renumber a PDF's objects using a change table.
-#as_free_fn(renumber, deprecated="Use Pdf::renumber instead")
 pub fn Pdf::renumber(
   self : Pdf,
   change_table : Map[Int, Int],
@@ -1609,7 +1575,6 @@ fn deep_copy_pdfobjects(from : Pdf) -> PdfObjMap {
 
 ///|
 /// Create a deep copy of a PDF document.
-#as_free_fn(deep_copy, deprecated="Use Pdf::deep_copy instead")
 pub fn Pdf::deep_copy(self : Pdf) -> Pdf {
   let object_stream_ids = Map::new()
   for key, value in self.objects.object_stream_ids {
@@ -1635,7 +1600,6 @@ pub fn Pdf::deep_copy(self : Pdf) -> Pdf {
 
 ///|
 /// Generate an /ID entry for a document.
-#as_free_fn(generate_id, deprecated="Use Pdf::generate_id instead")
 pub fn Pdf::generate_id(
   self : Pdf,
   path : String,
@@ -1649,7 +1613,6 @@ pub fn Pdf::generate_id(
 
 ///|
 /// Replace the /ID entry in the trailer dictionary.
-#as_free_fn(change_id, deprecated="Use Pdf::change_id instead")
 pub fn Pdf::change_id(self : Pdf, path : String) -> Unit raise {
   match self.trailerdict {
     Dictionary(_) =>

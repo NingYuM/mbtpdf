@@ -188,7 +188,6 @@ fn get_tables(
 }
 
 ///|
-#as_free_fn(read, deprecated="Use `PdfAfm::read`")
 pub fn PdfAfm::read(
   _self : PdfAfm,
   input : @pdfio.Input,

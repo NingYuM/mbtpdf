@@ -28,7 +28,6 @@ pub fn Page::prepend_operators(
 
 ///|
 /// Add stack operators to a content stream to ensure it is composeable.
-#as_free_fn(protect, deprecated="Use `Page::protect_ops` instead")
 pub fn Page::protect_ops(ops : Array[@pdfops.Op]) -> Array[@pdfops.Op] {
   let mut qs = 0
   let mut bigqs = 0

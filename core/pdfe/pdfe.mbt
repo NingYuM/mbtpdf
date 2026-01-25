@@ -20,7 +20,6 @@ pub let logger : Ref[(String) -> Unit] = { val: default }
 
 ///|
 /// Log a string using the current logger.
-#as_free_fn(log, deprecated="Use `Pdfe::log`")
 pub fn Pdfe::log(self : Pdfe, message : String) -> Unit {
   let _ = self
   (logger.val)(message)

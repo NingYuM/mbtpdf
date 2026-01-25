@@ -135,7 +135,6 @@ fn build_fastrefnums(refnums : Array[Int]) -> Map[Int, Int] {
 
 ///|
 /// Build a PDF containing a subset of pages.
-#as_free_fn(pdf_of_pages, deprecated="Use `PdfPageDoc::pdf_of_pages`")
 pub fn PdfPageDoc::pdf_of_pages(
   self : PdfPageDoc,
   range : Array[Int],

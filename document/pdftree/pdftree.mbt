@@ -13,7 +13,6 @@ pub fn PdfTree::new(pdf : @pdf.Pdf) -> PdfTree {
 
 ///|
 /// Read a name tree as a flat (key, value) list.
-#as_free_fn(read_name_tree, deprecated="Use `PdfTree::read_name_tree`")
 pub fn PdfTree::read_name_tree(
   self : PdfTree,
   tree : @pdf.PdfObject,
@@ -23,7 +22,6 @@ pub fn PdfTree::read_name_tree(
 
 ///|
 /// Read a number tree as a flat (key, value) list (numbers as strings).
-#as_free_fn(read_number_tree, deprecated="Use `PdfTree::read_number_tree`")
 pub fn PdfTree::read_number_tree(
   self : PdfTree,
   tree : @pdf.PdfObject,
@@ -33,7 +31,6 @@ pub fn PdfTree::read_number_tree(
 
 ///|
 /// Build a name or number tree from flat (key, value) list.
-#as_free_fn(build_name_tree, deprecated="Use `PdfTree::build_name_tree`")
 pub fn PdfTree::build_name_tree(
   self : PdfTree,
   isnum : Bool,
@@ -64,7 +61,6 @@ pub fn PdfTree::build_name_tree(
 
 ///|
 /// Merge name trees assuming no duplicate keys.
-#as_free_fn(merge_name_trees_no_clash, deprecated="Use `PdfTree::merge_name_trees_no_clash`")
 pub fn PdfTree::merge_name_trees_no_clash(
   self : PdfTree,
   trees : Array[@pdf.PdfObject],
@@ -75,7 +71,6 @@ pub fn PdfTree::merge_name_trees_no_clash(
 
 ///|
 /// Merge number trees assuming no duplicate keys.
-#as_free_fn(merge_number_trees_no_clash, deprecated="Use `PdfTree::merge_number_trees_no_clash`")
 pub fn PdfTree::merge_number_trees_no_clash(
   self : PdfTree,
   trees : Array[@pdf.PdfObject],

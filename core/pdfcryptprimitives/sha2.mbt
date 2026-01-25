@@ -318,7 +318,6 @@ fn sha512_bytes(
 
 ///|
 /// SHA-256 digest of the input stream.
-#as_free_fn(sha256, deprecated="Use `PdfCryptPrimitives::sha256`")
 pub fn PdfCryptPrimitives::sha256(
   _self : PdfCryptPrimitives,
   input : @pdfio.Input,
@@ -329,7 +328,6 @@ pub fn PdfCryptPrimitives::sha256(
 
 ///|
 /// SHA-384 digest of the input stream.
-#as_free_fn(sha384, deprecated="Use `PdfCryptPrimitives::sha384`")
 pub fn PdfCryptPrimitives::sha384(
   _self : PdfCryptPrimitives,
   input : @pdfio.Input,
@@ -344,7 +342,6 @@ pub fn PdfCryptPrimitives::sha384(
 
 ///|
 /// SHA-512 digest of the input stream.
-#as_free_fn(sha512, deprecated="Use `PdfCryptPrimitives::sha512`")
 pub fn PdfCryptPrimitives::sha512(
   _self : PdfCryptPrimitives,
   input : @pdfio.Input,

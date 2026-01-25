@@ -13,16 +13,11 @@ import {
 pub struct PdfTree {
   pdf : @pdf.Pdf
 }
-#as_free_fn(build_name_tree, deprecated)
 pub fn PdfTree::build_name_tree(Self, Bool, Array[(String, @pdf.PdfObject)]) -> @pdf.PdfObject
-#as_free_fn(merge_name_trees_no_clash, deprecated)
 pub fn PdfTree::merge_name_trees_no_clash(Self, Array[@pdf.PdfObject]) -> @pdf.PdfObject
-#as_free_fn(merge_number_trees_no_clash, deprecated)
 pub fn PdfTree::merge_number_trees_no_clash(Self, Array[@pdf.PdfObject]) -> @pdf.PdfObject
 pub fn PdfTree::new(@pdf.Pdf) -> Self
-#as_free_fn(read_name_tree, deprecated)
 pub fn PdfTree::read_name_tree(Self, @pdf.PdfObject) -> Array[(String, @pdf.PdfObject)]
-#as_free_fn(read_number_tree, deprecated)
 pub fn PdfTree::read_number_tree(Self, @pdf.PdfObject) -> Array[(String, @pdf.PdfObject)]
 
 // Type aliases

@@ -1691,7 +1691,6 @@ let glyphlist_src_data : Array[Byte] = [
 ]
 
 ///|
-#as_free_fn(glyphlist_src, deprecated="Use `PdfGlyphList::glyphlist_src`")
 pub fn PdfGlyphList::glyphlist_src(_self : PdfGlyphList) -> Array[Byte] {
   glyphlist_src_data.copy()
 }
@@ -3682,7 +3681,6 @@ let glyphmap_memo : () -> Array[(String, Array[Int])] raise = @pdfutil.PdfUtil::
 )
 
 ///|
-#as_free_fn(glyphmap, deprecated="Use `PdfGlyphList::glyphmap`")
 pub fn PdfGlyphList::glyphmap(
   _self : PdfGlyphList,
 ) -> Array[(String, Array[Int])] raise {
@@ -3729,7 +3727,6 @@ let glyph_hashes_memo : () -> Map[String, Array[Int]] raise = @pdfutil.PdfUtil::
 )
 
 ///|
-#as_free_fn(glyph_hashes, deprecated="Use `PdfGlyphList::glyph_hashes`")
 pub fn PdfGlyphList::glyph_hashes(
   _self : PdfGlyphList,
 ) -> Map[String, Array[Int]] raise {
@@ -3744,7 +3741,6 @@ let reverse_glyph_hashes_memo : () -> Map[Array[Int], String] raise = @pdfutil.P
 )
 
 ///|
-#as_free_fn(reverse_glyph_hashes, deprecated="Use `PdfGlyphList::reverse_glyph_hashes`")
 pub fn PdfGlyphList::reverse_glyph_hashes(
   _self : PdfGlyphList,
 ) -> Map[Array[Int], String] raise {

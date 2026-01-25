@@ -19,21 +19,16 @@ pub struct Encryption {
   user_password : String
   permissions : Array[@pdfcrypt.Permission]
 }
-#as_free_fn(make_encryption, deprecated)
 pub fn Encryption::new(@pdfcrypt.EncryptionMethod, String, String, Array[@pdfcrypt.Permission]) -> Self
 
 pub struct PdfWrite {
   unit : Unit
 }
 pub fn PdfWrite::new() -> Self
-#as_free_fn(pdf_to_channel, deprecated)
 pub async fn PdfWrite::pdf_to_channel(Self, preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, @fs.File) -> Unit
 pub async fn PdfWrite::pdf_to_file(Self, @pdf.Pdf, String) -> Unit
-#as_free_fn(pdf_to_file_options, deprecated)
 pub async fn PdfWrite::pdf_to_file_options(Self, preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, String) -> Unit
-#as_free_fn(pdf_to_output, deprecated)
 pub fn PdfWrite::pdf_to_output(Self, preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, @pdfio.Output) -> Unit raise
-#as_free_fn(string_of_pdf, deprecated)
 pub fn PdfWrite::string_of_pdf(Self, @pdf.PdfObject) -> String
 
 // Type aliases

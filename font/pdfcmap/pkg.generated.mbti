@@ -15,7 +15,6 @@ pub struct CMap {
   map : Array[(String, String)]
   wmode : Int?
 }
-#as_free_fn(parse_cmap, deprecated)
 pub fn CMap::parse(@pdf.Pdf, @pdf.PdfObject) -> Self raise
 pub impl @debug.Debug for CMap
 

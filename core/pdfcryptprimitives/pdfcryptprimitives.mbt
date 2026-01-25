@@ -36,7 +36,6 @@ fn bytes_of_int_arrays(values : Array[Array[Int]]) -> @pdfio.MutableBytes {
 ///|
 /// Given an object number, generation number, input key and key length in bits,
 /// apply Algorithm 3.1 to obtain the hash to be used by the encryption function.
-#as_free_fn(find_hash, deprecated="Use `PdfCryptPrimitives::find_hash`")
 pub fn PdfCryptPrimitives::find_hash(
   self : PdfCryptPrimitives,
   crypt_type : Encryption,
@@ -67,7 +66,6 @@ pub fn PdfCryptPrimitives::find_hash(
 
 ///|
 /// Decrypt or encrypt stream data using the active crypt settings.
-#as_free_fn(decrypt_stream_data, deprecated="Use `PdfCryptPrimitives::decrypt_stream_data`")
 pub fn PdfCryptPrimitives::decrypt_stream_data(
   self : PdfCryptPrimitives,
   crypt_type : Encryption,

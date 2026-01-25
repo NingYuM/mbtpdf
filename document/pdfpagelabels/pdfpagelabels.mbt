@@ -96,7 +96,6 @@ fn label_of_range(pdf : @pdf.Pdf, range : (PdfObject, PdfObject)) -> PageLabel {
 
 ///|
 /// Read page labels from a document.
-#as_free_fn(read, deprecated="Use `PageLabel::read_all` instead")
 pub fn PageLabel::read_all(pdf : @pdf.Pdf) -> Array[PageLabel] raise {
   match pdf.lookup_direct("/PageLabels", pdf.lookup_obj(pdf.root)) {
     None => []
@@ -113,7 +112,6 @@ pub fn PageLabel::read_all(pdf : @pdf.Pdf) -> Array[PageLabel] raise {
 
 ///|
 /// Return a list where every page has a label.
-#as_free_fn(complete, deprecated="Use `PdfPageLabels::complete`")
 pub fn PdfPageLabels::complete(
   _self : PdfPageLabels,
   labels : Array[PageLabel],
@@ -196,7 +194,6 @@ fn pagelabeltext_of_single(n : Int, label : PageLabel) -> String {
 
 ///|
 /// Return the text for a page label.
-#as_free_fn(pagelabeltext_of_pagenumber, deprecated="Use `PdfPageLabels::pagelabeltext_of_pagenumber`")
 pub fn PdfPageLabels::pagelabeltext_of_pagenumber(
   _self : PdfPageLabels,
   n : Int,
@@ -222,7 +219,6 @@ fn pagelabel_of_single(n : Int, label : PageLabel) -> PageLabel {
 
 ///|
 /// Single label representing a given page.
-#as_free_fn(pagelabel_of_pagenumber, deprecated="Use `PdfPageLabels::pagelabel_of_pagenumber`")
 pub fn PdfPageLabels::pagelabel_of_pagenumber(
   _self : PdfPageLabels,
   n : Int,
@@ -253,7 +249,6 @@ fn label_index_for_page(n : Int, labels : Array[PageLabel]) -> Int? {
 
 ///|
 /// Add a range starting at label.startpage, ending at endpage.
-#as_free_fn(add_label, deprecated="Use `PdfPageLabels::add_label`")
 pub fn PdfPageLabels::add_label(
   _self : PdfPageLabels,
   endpage : Int,
@@ -314,7 +309,6 @@ fn option_string_eq(a : String?, b : String?) -> Bool {
 
 ///|
 /// Optimise page labels, removing any which are not required.
-#as_free_fn(coalesce, deprecated="Use `PdfPageLabels::coalesce`")
 pub fn PdfPageLabels::coalesce(
   _self : PdfPageLabels,
   labels : Array[PageLabel],
@@ -339,7 +333,6 @@ pub fn PdfPageLabels::coalesce(
 
 ///|
 /// Merge page labels for a set of PDFs and page ranges.
-#as_free_fn(merge_pagelabels, deprecated="Use `PdfPageLabels::merge_pagelabels`")
 pub fn PdfPageLabels::merge_pagelabels(
   self : PdfPageLabels,
   pdfs : Array[@pdf.Pdf],
@@ -373,7 +366,6 @@ pub fn PdfPageLabels::merge_pagelabels(
 
 ///|
 /// Write page labels to a document, replacing any there.
-#as_free_fn(write, deprecated="Use `PageLabel::write_all` instead")
 pub fn PageLabel::write_all(
   labels : Array[PageLabel],
   pdf : @pdf.Pdf,
@@ -418,7 +410,6 @@ pub fn PageLabel::write_all(
 
 ///|
 /// Remove all page labels.
-#as_free_fn(remove, deprecated="Use `PageLabel::remove_all` instead")
 pub fn PageLabel::remove_all(pdf : @pdf.Pdf) -> Unit raise {
   let rootnum = pdf.root
   let root = pdf.lookup_obj(rootnum)

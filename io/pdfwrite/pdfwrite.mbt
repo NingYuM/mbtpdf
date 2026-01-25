@@ -730,7 +730,6 @@ pub struct Encryption {
 }
 
 ///|
-#as_free_fn(make_encryption, deprecated="Use `Encryption::new`")
 pub fn Encryption::new(
   encryption_method : @pdfcrypt.EncryptionMethod,
   owner_password : String,
@@ -802,7 +801,6 @@ fn crypt_if_necessary(
 
 ///|
 /// Write a PDF to an output.
-#as_free_fn(pdf_to_output, deprecated="Use `PdfWrite::pdf_to_output`")
 pub fn PdfWrite::pdf_to_output(
   _self : PdfWrite,
   preserve_objstm? : Bool = false,
@@ -928,7 +926,6 @@ pub fn PdfWrite::pdf_to_output(
 
 ///|
 /// Write a PDF to a channel.
-#as_free_fn(pdf_to_channel, deprecated="Use `PdfWrite::pdf_to_channel`")
 pub async fn PdfWrite::pdf_to_channel(
   self : PdfWrite,
   preserve_objstm? : Bool = false,
@@ -969,7 +966,6 @@ pub async fn PdfWrite::pdf_to_channel(
 
 ///|
 /// Write a PDF to a file.
-#as_free_fn(pdf_to_file_options, deprecated="Use `PdfWrite::pdf_to_file_options`")
 pub async fn PdfWrite::pdf_to_file_options(
   self : PdfWrite,
   preserve_objstm? : Bool = false,
@@ -1028,7 +1024,6 @@ pub async fn PdfWrite::pdf_to_file(
 
 ///|
 /// String of a PDF object.
-#as_free_fn(string_of_pdf, deprecated="Use `PdfWrite::string_of_pdf`")
 pub fn PdfWrite::string_of_pdf(
   _self : PdfWrite,
   obj : @pdf.PdfObject,

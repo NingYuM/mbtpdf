@@ -55,9 +55,7 @@ pub(all) struct OcgProperties {
   ocg_default_config : OcgConfig
   ocg_configs : Array[OcgConfig]
 }
-#as_free_fn(read_ocg, deprecated)
 pub fn OcgProperties::read(@pdf.Pdf) -> Self? raise
-#as_free_fn(write_ocg, deprecated)
 pub fn OcgProperties::write(Self, @pdf.Pdf) -> Unit
 pub impl @debug.Debug for OcgProperties
 
@@ -77,7 +75,6 @@ pub struct PdfOcg {
   pdf : @pdf.Pdf
 }
 pub fn PdfOcg::new(@pdf.Pdf) -> Self
-#as_free_fn(print_document_ocg, deprecated)
 pub fn PdfOcg::print_document(Self) -> Unit raise
 pub fn PdfOcg::read(Self) -> OcgProperties? raise
 pub fn PdfOcg::write(Self, OcgProperties) -> Unit

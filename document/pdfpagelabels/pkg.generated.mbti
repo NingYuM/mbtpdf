@@ -29,30 +29,21 @@ pub(all) struct PageLabel {
   startpage : Int
   startvalue : Int
 }
-#as_free_fn(read, deprecated)
 pub fn PageLabel::read_all(@pdf.Pdf) -> Array[Self] raise
-#as_free_fn(remove, deprecated)
 pub fn PageLabel::remove_all(@pdf.Pdf) -> Unit raise
 pub fn PageLabel::to_string(Self) -> String
-#as_free_fn(write, deprecated)
 pub fn PageLabel::write_all(Array[Self], @pdf.Pdf) -> Unit raise
 pub impl @debug.Debug for PageLabel
 
 pub struct PdfPageLabels {
   unit : Unit
 }
-#as_free_fn(add_label, deprecated)
 pub fn PdfPageLabels::add_label(Self, Int, Array[PageLabel], PageLabel, Int) -> Array[PageLabel]
-#as_free_fn(coalesce, deprecated)
 pub fn PdfPageLabels::coalesce(Self, Array[PageLabel]) -> Array[PageLabel]
-#as_free_fn(complete, deprecated)
 pub fn PdfPageLabels::complete(Self, Array[PageLabel]) -> Array[PageLabel]
-#as_free_fn(merge_pagelabels, deprecated)
 pub fn PdfPageLabels::merge_pagelabels(Self, Array[@pdf.Pdf], Array[Array[Int]]) -> Array[PageLabel] raise
 pub fn PdfPageLabels::new() -> Self
-#as_free_fn(pagelabel_of_pagenumber, deprecated)
 pub fn PdfPageLabels::pagelabel_of_pagenumber(Self, Int, Array[PageLabel]) -> PageLabel raise
-#as_free_fn(pagelabeltext_of_pagenumber, deprecated)
 pub fn PdfPageLabels::pagelabeltext_of_pagenumber(Self, Int, Array[PageLabel]) -> String raise
 
 // Type aliases

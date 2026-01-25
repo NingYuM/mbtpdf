@@ -26,12 +26,9 @@ pub fn Bookmark::transform(Self, @pdf.Pdf, @pdftransform.TransformMatrix) -> Sel
 pub struct PdfMarks {
   pdf : @pdf.Pdf
 }
-#as_free_fn(add_bookmarks, deprecated)
 pub fn PdfMarks::add_bookmarks(Self, Array[Bookmark]) -> @pdf.Pdf raise
 pub fn PdfMarks::new(@pdf.Pdf) -> Self
-#as_free_fn(read_bookmarks, deprecated)
 pub fn PdfMarks::read_bookmarks(Self, preserve_actions? : Bool) -> Array[Bookmark] raise
-#as_free_fn(remove_bookmarks, deprecated)
 pub fn PdfMarks::remove_bookmarks(Self) -> @pdf.Pdf raise
 
 // Type aliases

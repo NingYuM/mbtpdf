@@ -14,7 +14,6 @@ pub fn PdfJpeg::new() -> PdfJpeg {
 ///|
 /// Return JPEG data starting at the current input position, leaving the input
 /// ready at the byte following the JPEG data.
-#as_free_fn(get_jpeg_data, deprecated="Use `PdfJpeg::get_jpeg_data`")
 pub fn PdfJpeg::get_jpeg_data(
   _self : PdfJpeg,
   input : @pdfio.Input,

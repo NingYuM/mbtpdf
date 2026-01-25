@@ -14,7 +14,6 @@ pub struct PdfMergeDoc {
   pdf : @pdf.Pdf
 }
 pub fn PdfMergeDoc::new(@pdf.Pdf) -> Self
-#as_free_fn(remove_duplicate_fonts, deprecated)
 pub fn PdfMergeDoc::remove_duplicate_fonts(Self) -> Unit
 
 pub struct PdfMerger {
@@ -22,7 +21,6 @@ pub struct PdfMerger {
   pdfs : Array[@pdf.Pdf]
   ranges : Array[Array[Int]]
 }
-#as_free_fn(merge_pdfs, deprecated)
 pub fn PdfMerger::merge_pdfs(Self, Bool, Bool, process_struct_trees? : Bool, add_toplevel_document? : Bool) -> @pdf.Pdf raise
 pub fn PdfMerger::new(Array[String], Array[@pdf.Pdf], Array[Array[Int]]) -> Self
 

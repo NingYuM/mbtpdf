@@ -199,7 +199,6 @@ fn fixup_duplicate_pages_inner(
 
 ///|
 /// Ensure page tree does not contain duplicate page objects.
-#as_free_fn(fixup_duplicate_pages, deprecated="Use `PdfPageDoc::fixup_duplicate_pages`")
 pub fn PdfPageDoc::fixup_duplicate_pages(self : PdfPageDoc) -> Unit raise {
   let pdf = self.pdf
   let nodes = page_tree_nodes_not_pages(pdf)
@@ -234,7 +233,6 @@ fn fixup_parents_inner(
 
 ///|
 /// Rewrite /Parent links for page tree nodes.
-#as_free_fn(fixup_parents, deprecated="Use `PdfPageDoc::fixup_parents`")
 pub fn PdfPageDoc::fixup_parents(self : PdfPageDoc) -> Unit raise {
   let pdf = self.pdf
   let root = pdf.lookup_obj(pdf.root)
@@ -262,7 +260,6 @@ fn fixup_link(
 
 ///|
 /// Duplicate shared annotations across pages.
-#as_free_fn(fixup_duplicate_annots, deprecated="Use `PdfPageDoc::fixup_duplicate_annots`")
 pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
   let pdf = self.pdf
   let src = Ref::new(pdf.objects.max_obj_num)
@@ -348,7 +345,6 @@ fn was_nulled(pdf : @pdf.Pdf, pair : (String, PdfObject)) -> Bool {
 
 ///|
 /// Rewrite /Dests tree entries pointing at removed pages.
-#as_free_fn(fixup_destinations, deprecated="Use `PdfPageDoc::fixup_destinations`")
 pub fn PdfPageDoc::fixup_destinations(self : PdfPageDoc) -> Unit raise {
   let pdf = self.pdf
   match pdf.lookup_chain(pdf.trailerdict, ["/Root", "/Names", "/Dests"]) {
@@ -397,7 +393,6 @@ fn replace_inherit_entry(
 
 ///|
 /// For all pages in objnumbers, ensure inheritable attributes are present.
-#as_free_fn(replace_inherit, deprecated="Use `PdfPageDoc::replace_inherit`")
 pub fn PdfPageDoc::replace_inherit(
   self : PdfPageDoc,
   objnumbers : Array[Int],
@@ -413,7 +408,6 @@ pub fn PdfPageDoc::replace_inherit(
 
 ///|
 /// Get page object number for a 1-based page index.
-#as_free_fn(page_object_number, deprecated="Use `PdfPageDoc::page_object_number`")
 pub fn PdfPageDoc::page_object_number(
   self : PdfPageDoc,
   destpage : Int,
@@ -428,7 +422,6 @@ pub fn PdfPageDoc::page_object_number(
 
 ///|
 /// Build a Fit destination for a page number.
-#as_free_fn(target_of_pagenumber, deprecated="Use `PdfPageDoc::target_of_pagenumber`")
 pub fn PdfPageDoc::target_of_pagenumber(
   self : PdfPageDoc,
   index : Int,

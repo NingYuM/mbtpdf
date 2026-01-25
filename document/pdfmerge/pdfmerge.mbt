@@ -231,7 +231,6 @@ fn stream_compare(pdf : @pdf.Pdf, x : Int, y : Int) -> Int {
 
 ///|
 /// Remove duplicate fonts from a PDF.
-#as_free_fn(remove_duplicate_fonts, deprecated="Use `PdfMergeDoc::remove_duplicate_fonts`")
 pub fn PdfMergeDoc::remove_duplicate_fonts(self : PdfMergeDoc) -> Unit {
   let pdf = self.pdf
   let streamobjs = Array::new()
@@ -953,7 +952,6 @@ fn max_version_number(pdfs : Array[@pdf.Pdf]) -> (Int, Int) raise {
 
 ///|
 /// Merge PDF files.
-#as_free_fn(merge_pdfs, deprecated="Use `PdfMerger::merge_pdfs`")
 pub fn PdfMerger::merge_pdfs(
   self : PdfMerger,
   retain_numbering : Bool,

@@ -12,7 +12,6 @@ fn merge_dict_entries(
 
 ///|
 /// Process a single XObject stream with a transformation function.
-#as_free_fn(process_xobject, deprecated="Use `PdfPageDoc::process_xobject`")
 pub fn PdfPageDoc::process_xobject(
   self : PdfPageDoc,
   f : (@pdf.Pdf, @pdf.PdfObject, Array[@pdf.PdfObject]) -> Array[@pdf.PdfObject],
@@ -74,7 +73,6 @@ pub fn Page::process_xobjects(
 
 ///|
 /// Union two resource dictionaries from the same PDF.
-#as_free_fn(combine_pdf_resources, deprecated="Use `PdfPageDoc::combine_pdf_resources`")
 pub fn PdfPageDoc::combine_pdf_resources(
   self : PdfPageDoc,
   a : @pdf.PdfObject,

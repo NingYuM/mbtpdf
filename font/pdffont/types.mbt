@@ -90,7 +90,6 @@ pub(all) enum StandardFont {
 } derive(Eq, Debug)
 
 ///|
-#as_free_fn(string_of_standard_font, deprecated="Use `StandardFont::to_string` instead")
 pub fn StandardFont::to_string(self : StandardFont) -> String {
   match self {
     StandardFont::TimesRoman => "Times-Roman"
@@ -140,7 +139,6 @@ pub(all) enum Font {
 }
 
 ///|
-#as_free_fn(string_of_fonttype, deprecated="Use `SimpleFontType::to_string` instead")
 pub fn SimpleFontType::to_string(self : SimpleFontType) -> String {
   match self {
     SimpleFontType::Type1 => "Type 1"
@@ -152,7 +150,6 @@ pub fn SimpleFontType::to_string(self : SimpleFontType) -> String {
 }
 
 ///|
-#as_free_fn(string_of_encoding, deprecated="Use `Encoding::to_string` instead")
 pub fn Encoding::to_string(self : Encoding) -> String {
   match self {
     Encoding::ImplicitInFontFile => "ImplicitInFontFile"
@@ -171,7 +168,6 @@ pub fn Encoding::to_string(self : Encoding) -> String {
 }
 
 ///|
-#as_free_fn(string_of_simple_font, deprecated="Use `SimpleFont::to_string` instead")
 pub fn SimpleFont::to_string(self : SimpleFont) -> String {
   "fonttype = " +
   self.fonttype.to_string() +
@@ -183,7 +179,6 @@ pub fn SimpleFont::to_string(self : SimpleFont) -> String {
 }
 
 ///|
-#as_free_fn(string_of_font, deprecated="Use `Font::to_string` instead")
 pub fn Font::to_string(self : Font) -> String {
   match self {
     Font::StandardFont(standard, _) => "StandardFont " + standard.to_string()

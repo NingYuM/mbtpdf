@@ -18,7 +18,6 @@ let lex_syntax : PdfSyntax = PdfSyntax::new()
 
 ///|
 /// Lex a name.
-#as_free_fn(lex_name, deprecated="Use `PdfSyntax::lex_name`")
 pub fn PdfSyntax::lex_name(
   _self : PdfSyntax,
   input : @pdfio.Input,
@@ -77,7 +76,6 @@ pub fn PdfSyntax::lex_name(
 
 ///|
 /// Lex a number.
-#as_free_fn(lex_number, deprecated="Use `PdfSyntax::lex_number`")
 pub fn PdfSyntax::lex_number(
   _self : PdfSyntax,
   input : @pdfio.Input,
@@ -120,7 +118,6 @@ pub fn PdfSyntax::lex_number(
 
 ///|
 /// Lex a string.
-#as_free_fn(lex_string, deprecated="Use `PdfSyntax::lex_string`")
 pub fn PdfSyntax::lex_string(
   _self : PdfSyntax,
   input : @pdfio.Input,
@@ -205,7 +202,6 @@ pub fn PdfSyntax::lex_string(
 
 ///|
 /// Lex a hex string.
-#as_free_fn(lex_hexstring, deprecated="Use `PdfSyntax::lex_hexstring`")
 pub fn PdfSyntax::lex_hexstring(
   _self : PdfSyntax,
   input : @pdfio.Input,
@@ -251,7 +247,6 @@ pub fn PdfSyntax::lex_hexstring(
 
 ///|
 /// Lex a comment.
-#as_free_fn(lex_comment, deprecated="Use `PdfSyntax::lex_comment`")
 pub fn PdfSyntax::lex_comment(
   _self : PdfSyntax,
   input : @pdfio.Input,
@@ -266,7 +261,6 @@ fn ignoreuntilwhite(input : @pdfio.Input) -> Unit raise {
 }
 
 ///|
-#as_free_fn(read_chunk, deprecated="Use `PdfSyntax::read_chunk`")
 pub fn PdfSyntax::read_chunk(
   _self : PdfSyntax,
   count : Int,
@@ -361,7 +355,6 @@ fn find_endstream(input : @pdfio.Input) -> Int raise {
 }
 
 ///|
-#as_free_fn(lex_keyword, deprecated="Use `PdfSyntax::lex_keyword`")
 pub fn PdfSyntax::lex_keyword(
   _self : PdfSyntax,
   input : @pdfio.Input,
@@ -405,7 +398,6 @@ fn lex_malformed_stream_data(input : @pdfio.Input) -> Token raise {
 }
 
 ///|
-#as_free_fn(lex_stream_data, deprecated="Use `PdfSyntax::lex_stream_data`")
 pub fn PdfSyntax::lex_stream_data(
   _self : PdfSyntax,
   input : @pdfio.Input,
@@ -488,7 +480,6 @@ fn take_dict_lexemes(previous_lexemes : Array[Token]) -> Array[Token] {
 }
 
 ///|
-#as_free_fn(lex_stream, deprecated="Use `PdfSyntax::lex_stream`")
 pub fn PdfSyntax::lex_stream(
   _self : PdfSyntax,
   input : @pdfio.Input,
@@ -534,7 +525,6 @@ pub fn PdfSyntax::lex_stream(
 }
 
 ///|
-#as_free_fn(lex_next, deprecated="Use `PdfSyntax::lex_next`")
 pub fn PdfSyntax::lex_next(
   _self : PdfSyntax,
   dict_level : Ref[Int],
@@ -634,7 +624,6 @@ pub fn PdfSyntax::lex_next(
 
 ///|
 /// Lex a dictionary. If minus_one is true, assume the opening << was consumed.
-#as_free_fn(lex_dictionary, deprecated="Use `PdfSyntax::lex_dictionary`")
 pub fn PdfSyntax::lex_dictionary(
   _self : PdfSyntax,
   minus_one : Bool,

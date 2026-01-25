@@ -76,7 +76,6 @@ fn code_int_of_string(code : String) -> Int {
 }
 
 ///|
-#as_free_fn(utf16be_of_codepoint, deprecated="Use `PdfTextUtil::utf16be_of_codepoint`")
 pub fn PdfTextUtil::utf16be_of_codepoint(
   _self : PdfTextUtil,
   u : Int,
@@ -96,7 +95,6 @@ pub fn PdfTextUtil::utf16be_of_codepoint(
 }
 
 ///|
-#as_free_fn(utf16be_of_codepoints, deprecated="Use `PdfTextUtil::utf16be_of_codepoints`")
 pub fn PdfTextUtil::utf16be_of_codepoints(
   self : PdfTextUtil,
   codepoints : Array[Int],
@@ -146,7 +144,6 @@ fn codepoints_of_utf16be_inner(bytes : Array[Int]) -> Array[Int] raise {
 }
 
 ///|
-#as_free_fn(codepoints_of_utf16be, deprecated="Use `PdfTextUtil::codepoints_of_utf16be`")
 pub fn PdfTextUtil::codepoints_of_utf16be(
   _self : PdfTextUtil,
   str : String,
@@ -156,7 +153,6 @@ pub fn PdfTextUtil::codepoints_of_utf16be(
 }
 
 ///|
-#as_free_fn(table_of_encoding, deprecated="Use `PdfTextUtil::table_of_encoding`")
 pub fn PdfTextUtil::table_of_encoding(
   _self : PdfTextUtil,
   encoding : @pdffont.Encoding,
@@ -165,7 +161,6 @@ pub fn PdfTextUtil::table_of_encoding(
 }
 
 ///|
-#as_free_fn(reverse_table_of_encoding, deprecated="Use `PdfTextUtil::reverse_table_of_encoding`")
 pub fn PdfTextUtil::reverse_table_of_encoding(
   _self : PdfTextUtil,
   encoding : @pdffont.Encoding,
@@ -250,7 +245,6 @@ fn codepoints_of_predefined_cmap(
 }
 
 ///|
-#as_free_fn(deprecated="Use `TextExtractor::glyphnames_and_codepoints_of_text`")
 pub fn TextExtractor::glyphnames_and_codepoints_of_text(
   self : TextExtractor,
   text : String,
@@ -310,7 +304,6 @@ pub fn TextExtractor::glyphnames_and_codepoints_of_text(
 }
 
 ///|
-#as_free_fn(deprecated="Use `TextExtractor::codepoints_of_text`")
 pub fn TextExtractor::codepoints_of_text(
   self : TextExtractor,
   text : String,
@@ -324,7 +317,6 @@ pub fn TextExtractor::codepoints_of_text(
 }
 
 ///|
-#as_free_fn(deprecated="Use `TextExtractor::glyphnames_of_text`")
 pub fn TextExtractor::glyphnames_of_text(
   self : TextExtractor,
   text : String,
@@ -406,14 +398,12 @@ pub fn PdfText::charcode_extractor_of_font(
 }
 
 ///|
-#as_free_fn(is_unicode, deprecated="Use `PdfTextUtil::is_unicode`")
 pub fn PdfTextUtil::is_unicode(_self : PdfTextUtil, s : String) -> Bool {
   let bytes = @pdfio.bytes_of_string(s)
   bytes is [b'\xfe', b'\xff', ..]
 }
 
 ///|
-#as_free_fn(codepoint_of_pdfdocencoding_character, deprecated="Use `PdfTextUtil::codepoint_of_pdfdocencoding_character`")
 pub fn PdfTextUtil::codepoint_of_pdfdocencoding_character(
   _self : PdfTextUtil,
   i : Int,
@@ -452,7 +442,6 @@ pub fn PdfTextUtil::codepoint_of_pdfdocencoding_character(
 }
 
 ///|
-#as_free_fn(get_utf8_chars, deprecated="Use `PdfTextUtil::get_utf8_chars`")
 pub fn PdfTextUtil::get_utf8_chars(
   _self : PdfTextUtil,
   c : Int,
@@ -480,7 +469,6 @@ pub fn PdfTextUtil::get_utf8_chars(
 }
 
 ///|
-#as_free_fn(utf8_of_codepoints, deprecated="Use `PdfTextUtil::utf8_of_codepoints`")
 pub fn PdfTextUtil::utf8_of_codepoints(
   self : PdfTextUtil,
   codepoints : Array[Int],
@@ -492,7 +480,6 @@ pub fn PdfTextUtil::utf8_of_codepoints(
 }
 
 ///|
-#as_free_fn(codepoints_of_pdfdocstring, deprecated="Use `PdfTextUtil::codepoints_of_pdfdocstring`")
 pub fn PdfTextUtil::codepoints_of_pdfdocstring(
   self : PdfTextUtil,
   s : String,
@@ -507,7 +494,6 @@ pub fn PdfTextUtil::codepoints_of_pdfdocstring(
 }
 
 ///|
-#as_free_fn(utf8_of_pdfdocstring, deprecated="Use `PdfTextUtil::utf8_of_pdfdocstring`")
 pub fn PdfTextUtil::utf8_of_pdfdocstring(
   self : PdfTextUtil,
   s : String,
@@ -565,7 +551,6 @@ fn codepoints_of_utf8_inner(values : Array[Int]) -> Array[Int] raise {
 }
 
 ///|
-#as_free_fn(codepoints_of_utf8, deprecated="Use `PdfTextUtil::codepoints_of_utf8`")
 pub fn PdfTextUtil::codepoints_of_utf8(
   _self : PdfTextUtil,
   s : String,
@@ -576,7 +561,6 @@ pub fn PdfTextUtil::codepoints_of_utf8(
 }
 
 ///|
-#as_free_fn(pdfdocstring_of_codepoints, deprecated="Use `PdfTextUtil::pdfdocstring_of_codepoints`")
 pub fn PdfTextUtil::pdfdocstring_of_codepoints(
   self : PdfTextUtil,
   codepoints : Array[Int],
@@ -597,7 +581,6 @@ pub fn PdfTextUtil::pdfdocstring_of_codepoints(
 }
 
 ///|
-#as_free_fn(pdfdocstring_of_utf8, deprecated="Use `PdfTextUtil::pdfdocstring_of_utf8`")
 pub fn PdfTextUtil::pdfdocstring_of_utf8(
   self : PdfTextUtil,
   s : String,
@@ -606,7 +589,6 @@ pub fn PdfTextUtil::pdfdocstring_of_utf8(
 }
 
 ///|
-#as_free_fn(simplify_utf16be, deprecated="Use `PdfTextUtil::simplify_utf16be`")
 pub fn PdfTextUtil::simplify_utf16be(
   self : PdfTextUtil,
   s : String,

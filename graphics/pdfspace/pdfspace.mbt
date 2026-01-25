@@ -105,7 +105,6 @@ fn build_table(
 
 ///|
 /// Read a colourspace from a PDF.
-#as_free_fn(read_colourspace, deprecated="Use `ColourSpace::read` instead")
 pub fn ColourSpace::read(
   pdf : @pdf.Pdf,
   resources : PdfObject,
@@ -468,7 +467,6 @@ fn write_iccbased(pdf : @pdf.Pdf, icc : ICCBased) -> PdfObject {
 
 ///|
 /// Write a colourspace to a PDF.
-#as_free_fn(write_colourspace, deprecated="Use `ColourSpace::to_pdf_object` instead")
 pub fn ColourSpace::to_pdf_object(
   self : ColourSpace,
   pdf : @pdf.Pdf,

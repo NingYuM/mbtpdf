@@ -80,7 +80,6 @@ pub fn PdfText::read_basefont(self : PdfText, font : @pdf.PdfObject) -> String {
 }
 
 ///|
-#as_free_fn(parse_charset, deprecated="Use `PdfTextUtil::parse_charset`")
 pub fn PdfTextUtil::parse_charset(
   _self : PdfTextUtil,
   s : String,
@@ -268,7 +267,6 @@ pub fn PdfText::pairs_of_differences(
 }
 
 ///|
-#as_free_fn(standard_font_of_name, deprecated="Use `PdfTextUtil::standard_font_of_name`")
 pub fn PdfTextUtil::standard_font_of_name(
   _self : PdfTextUtil,
   name : String,
@@ -487,7 +485,6 @@ pub fn PdfText::read_cid_system_info(
 }
 
 ///|
-#as_free_fn(read_cid_widths, deprecated="Use `PdfTextUtil::read_cid_widths`")
 pub fn PdfTextUtil::read_cid_widths(
   _self : PdfTextUtil,
   elts : Array[@pdf.PdfObject],
@@ -731,7 +728,6 @@ pub fn PdfText::add_tounicode(
 }
 
 ///|
-#as_free_fn(find_tounicode, deprecated="Use `PdfTextUtil::find_tounicode`")
 pub fn PdfTextUtil::find_tounicode(
   _self : PdfTextUtil,
   font : @pdffont.Font,
@@ -748,7 +744,6 @@ pub fn PdfTextUtil::find_tounicode(
 }
 
 ///|
-#as_free_fn(find_tounicode_bytes, deprecated="Use `PdfTextUtil::find_tounicode_bytes`")
 pub fn PdfTextUtil::find_tounicode_bytes(
   _self : PdfTextUtil,
   font : @pdffont.Font,

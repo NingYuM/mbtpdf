@@ -392,7 +392,6 @@ fn process_cryption(
 
 ///|
 /// Read encryption parameters from an encrypted PDF.
-#as_free_fn(get_encryption_values, deprecated="Use `PdfCrypt::get_encryption_values`")
 pub fn PdfCrypt::get_encryption_values(
   _self : PdfCrypt,
   pdf : @pdf.Pdf,
@@ -520,7 +519,6 @@ pub fn PdfCrypt::get_encryption_values(
 
 ///|
 /// Decrypt a PDF document using the user password.
-#as_free_fn(decrypt_pdf, deprecated="Use `PdfCrypt::decrypt_pdf`")
 pub fn PdfCrypt::decrypt_pdf(
   self : PdfCrypt,
   user_pw : String,
@@ -683,7 +681,6 @@ fn key_or_user_password_from_owner(
 
 ///|
 /// Decrypt a PDF document using the owner password.
-#as_free_fn(decrypt_pdf_owner, deprecated="Use `PdfCrypt::decrypt_pdf_owner`")
 pub fn PdfCrypt::decrypt_pdf_owner(
   self : PdfCrypt,
   owner_pw : String,
@@ -704,7 +701,6 @@ pub fn PdfCrypt::decrypt_pdf_owner(
 
 ///|
 /// Just decrypt a single stream, given the user password and pdf.
-#as_free_fn(decrypt_single_stream, deprecated="Use `PdfCrypt::decrypt_single_stream`")
 pub fn PdfCrypt::decrypt_single_stream(
   self : PdfCrypt,
   user_pw : String?,
@@ -913,7 +909,6 @@ pub fn PdfCrypt::decrypt_single_stream(
 
 ///|
 /// Is a PDF encrypted?
-#as_free_fn(is_encrypted, deprecated="Use `PdfCrypt::is_encrypted`")
 pub fn PdfCrypt::is_encrypted(_self : PdfCrypt, pdf : @pdf.Pdf) -> Bool {
   pdf.lookup_direct("/Encrypt", pdf.trailerdict) is Some(_)
 }
@@ -981,7 +976,6 @@ fn encrypt_pdf_40bit_inner(
 
 ///|
 /// Encrypt a PDF document using 40-bit encryption.
-#as_free_fn(encrypt_pdf_40bit, deprecated="Use `PdfCrypt::encrypt_pdf_40bit`")
 pub fn PdfCrypt::encrypt_pdf_40bit(
   _self : PdfCrypt,
   user_pw : String,
@@ -1105,7 +1099,6 @@ fn encrypt_pdf_128bit_inner_r4(
 
 ///|
 /// Encrypt a PDF document using 128-bit encryption.
-#as_free_fn(encrypt_pdf_128bit, deprecated="Use `PdfCrypt::encrypt_pdf_128bit`")
 pub fn PdfCrypt::encrypt_pdf_128bit(
   _self : PdfCrypt,
   user_pw : String,
@@ -1184,7 +1177,6 @@ fn encrypt_pdf_AES_inner(
 
 ///|
 /// Encrypt a PDF document using AES V2.
-#as_free_fn(encrypt_pdf_AES, deprecated="Use `PdfCrypt::encrypt_pdf_AES`")
 pub fn PdfCrypt::encrypt_pdf_AES(
   _self : PdfCrypt,
   encrypt_metadata : Bool,
@@ -1320,7 +1312,6 @@ fn encrypt_pdf_AES256_call(
 
 ///|
 /// Encrypt a PDF document using AESV3 (non-ISO).
-#as_free_fn(encrypt_pdf_AES256, deprecated="Use `PdfCrypt::encrypt_pdf_AES256`")
 pub fn PdfCrypt::encrypt_pdf_AES256(
   _self : PdfCrypt,
   encrypt_metadata : Bool,
@@ -1336,7 +1327,6 @@ pub fn PdfCrypt::encrypt_pdf_AES256(
 
 ///|
 /// Encrypt a PDF document using AESV3 (ISO).
-#as_free_fn(encrypt_pdf_AES256ISO, deprecated="Use `PdfCrypt::encrypt_pdf_AES256ISO`")
 pub fn PdfCrypt::encrypt_pdf_AES256ISO(
   _self : PdfCrypt,
   encrypt_metadata : Bool,
@@ -1481,7 +1471,6 @@ fn recrypt_pdf_owner(pdf : @pdf.Pdf, owner_pw : String) -> @pdf.Pdf raise {
 
 ///|
 /// Re-encrypt a PDF document, using the saved encryption metadata.
-#as_free_fn(recrypt_pdf, deprecated="Use `PdfCrypt::recrypt_pdf`")
 pub fn PdfCrypt::recrypt_pdf(
   self : PdfCrypt,
   pdf : @pdf.Pdf,

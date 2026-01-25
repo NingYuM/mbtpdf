@@ -619,7 +619,6 @@ fn bpc_value(bpc : @pdf.PdfObject?) -> Int? {
 ///|
 
 ///|
-#as_free_fn(read_raw_image, deprecated="Use `Image::from_raw` instead")
 pub fn Image::from_raw(
   size : Int,
   colspace : @pdfspace.ColourSpace,
@@ -797,7 +796,6 @@ pub fn Image::bpc(pdf : @pdf.Pdf, dict : @pdf.PdfObject) -> @pdf.PdfObject? {
 ///|
 
 ///|
-#as_free_fn(get_raw_image, deprecated="Use `Image::from_stream_data` instead")
 pub fn Image::from_stream_data(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,

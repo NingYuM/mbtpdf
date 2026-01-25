@@ -176,7 +176,6 @@ pub fn copybytes(bytes : MutableBytes) -> MutableBytes {
 
 ///|
 /// Build an input from bytes.
-#as_free_fn(input_of_bytes, deprecated="Use Input::of_bytes instead")
 pub fn Input::of_bytes(
   bytes : MutableBytes,
   source? : String = "bytes",
@@ -209,7 +208,6 @@ pub fn Input::of_bytes(
 
 ///|
 /// Build an input from a string.
-#as_free_fn(input_of_string, deprecated="Use Input::of_string instead")
 pub fn Input::of_string(s : String, source? : String = "string") -> Input {
   Input::of_bytes(bytes_of_string(s), source~)
 }
@@ -227,7 +225,6 @@ async fn run_async_unit(load : async () -> Unit) -> Unit {
 
 ///|
 /// Build an input from a file path (native-only, reads entire file).
-#as_free_fn(input_of_file, deprecated="Use Input::of_file instead")
 pub async fn Input::of_file(
   filename : String,
   source? : String = "file",
@@ -238,7 +235,6 @@ pub async fn Input::of_file(
 
 ///|
 /// Build an input from a channel (native-only, reads entire stream).
-#as_free_fn(input_of_channel, deprecated="Use Input::of_channel instead")
 pub async fn Input::of_channel(
   ch : @fs.File,
   source? : String = "channel",
@@ -249,7 +245,6 @@ pub async fn Input::of_channel(
 
 ///|
 /// Build an output from a channel (native-only).
-#as_free_fn(output_of_channel, deprecated="Use Output::of_channel instead")
 pub fn Output::of_channel(ch : @fs.File) -> Output {
   let mut pos = 0
   let mut highest_written = -1
@@ -304,7 +299,6 @@ pub fn Output::of_channel(ch : @fs.File) -> Output {
 
 ///|
 /// Build an input-output, with an initial buffer size.
-#as_free_fn(input_output_of_bytes, deprecated="Use Output::of_bytes instead")
 pub fn Output::of_bytes(size : Int) -> (Output, Ref[MutableBytes]) {
   let data : Ref[MutableBytes] = { val: mkbytes(size) }
   (output_of_bytes(data), data)
@@ -312,7 +306,6 @@ pub fn Output::of_bytes(size : Int) -> (Output, Ref[MutableBytes]) {
 
 ///|
 /// Extract the contents of an input-output in bytes.
-#as_free_fn(extract_bytes_from_input_output, deprecated="Use Output::extract_bytes instead")
 pub fn Output::extract_bytes(
   self : Output,
   data : Ref[MutableBytes],
@@ -506,14 +499,12 @@ pub struct BitstreamWrite {
 
 ///|
 /// Build a bitstream from an input.
-#as_free_fn(bitbytes_of_input, deprecated="Use `Bitstream::of_input` instead")
 pub fn Bitstream::of_input(input : Input) -> Bitstream {
   { input, curr_byte: 0, bit: 0, bits_read: 0 }
 }
 
 ///|
 /// Get the current position of a bitstream.
-#as_free_fn(bitstream_pos, deprecated="Use `Bitstream::position` instead")
 pub fn Bitstream::position(self : Bitstream) -> BitstreamPosition {
   {
     pos: (self.input.pos_in)(),
@@ -525,7 +516,6 @@ pub fn Bitstream::position(self : Bitstream) -> BitstreamPosition {
 
 ///|
 /// Seek to a previous bitstream position.
-#as_free_fn(bitstream_seek, deprecated="Use `Bitstream::seek` instead")
 pub fn Bitstream::seek(self : Bitstream, pos : BitstreamPosition) -> Unit {
   (self.input.seek_in)(pos.pos)
   self.curr_byte = pos.curr_byte
@@ -535,7 +525,6 @@ pub fn Bitstream::seek(self : Bitstream, pos : BitstreamPosition) -> Unit {
 
 ///|
 /// Read the next bit from a bitstream.
-#as_free_fn(getbit, deprecated="Use `Bitstream::getbit` instead")
 pub fn Bitstream::getbit(self : Bitstream) -> Bool raise {
   if self.bit == 0 {
     let value = (self.input.input_byte)()
@@ -553,7 +542,6 @@ pub fn Bitstream::getbit(self : Bitstream) -> Bool raise {
 
 ///|
 /// Read the next bit as an integer, 0 or 1.
-#as_free_fn(getbitint, deprecated="Use `Bitstream::getbitint` instead")
 pub fn Bitstream::getbitint(self : Bitstream) -> Int raise {
   if self.getbit() {
     1
@@ -564,7 +552,6 @@ pub fn Bitstream::getbitint(self : Bitstream) -> Int raise {
 
 ///|
 /// Align a bitstream to the next byte boundary.
-#as_free_fn(align, deprecated="Use `Bitstream::align` instead")
 pub fn Bitstream::align(self : Bitstream) -> Unit {
   if self.bit > 0 {
     self.bits_read = (self.bits_read / 8 + 1) * 8
@@ -574,14 +561,12 @@ pub fn Bitstream::align(self : Bitstream) -> Unit {
 
 ///|
 /// Make a new write bitstream.
-#as_free_fn(make_write_bitstream, deprecated="Use `BitstreamWrite::new` instead")
 pub fn BitstreamWrite::new() -> BitstreamWrite {
   { bytes: Array::new(), bit: 0 }
 }
 
 ///|
 /// Put a single bit into a write bitstream.
-#as_free_fn(putbit, deprecated="Use `BitstreamWrite::putbit` instead")
 pub fn BitstreamWrite::putbit(self : BitstreamWrite, bit : Int) -> Unit {
   if self.bit == 0 {
     self.bytes.push((0).to_byte())
@@ -600,7 +585,6 @@ pub fn BitstreamWrite::putbit(self : BitstreamWrite, bit : Int) -> Unit {
 
 ///|
 /// Put a multi-bit value into a write bitstream.
-#as_free_fn(putval, deprecated="Use `BitstreamWrite::putval` instead")
 pub fn BitstreamWrite::putval(
   self : BitstreamWrite,
   bits : Int,
@@ -619,7 +603,6 @@ pub fn BitstreamWrite::putval(
 
 ///|
 /// Align a write bitstream to the next byte boundary.
-#as_free_fn(align_write, deprecated="Use `BitstreamWrite::align` instead")
 pub fn BitstreamWrite::align(self : BitstreamWrite) -> Unit {
   if self.bit > 0 {
     while self.bit != 0 {
@@ -630,7 +613,6 @@ pub fn BitstreamWrite::align(self : BitstreamWrite) -> Unit {
 
 ///|
 /// Extract bytes from a write bitstream, padding with zeros.
-#as_free_fn(bytes_of_write_bitstream, deprecated="Use `BitstreamWrite::bytes` instead")
 pub fn BitstreamWrite::bytes(self : BitstreamWrite) -> MutableBytes {
   self.align()
   self.bytes.copy()

@@ -26,7 +26,6 @@ pub(all) enum Destination {
 }
 
 ///|
-#as_free_fn(read_targetpage, deprecated="Use `TargetPage::read` instead")
 fn TargetPage::read(obj : PdfObject) -> TargetPage? {
   match obj {
     Indirect(i) => Some(PageObject(i))
@@ -190,7 +189,6 @@ pub fn Destination::read(
 }
 
 ///|
-#as_free_fn(pdf_of_targetpage, deprecated="Use `TargetPage::to_pdf_object` instead")
 fn TargetPage::to_pdf_object(self : TargetPage) -> PdfObject {
   match self {
     PageObject(i) => Indirect(i)

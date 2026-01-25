@@ -68,7 +68,6 @@ pub let pdf_of_file : Ref[async (Int?, String?, String?, String) -> @pdf.Pdf] = 
 
 ///|
 /// Encode data in FlateDecode.
-#as_free_fn(encode_flate, deprecated="Use `PdfCodec::encode_flate`")
 pub fn PdfCodec::encode_flate(
   _self : PdfCodec,
   data : @pdfio.MutableBytes,
@@ -102,7 +101,6 @@ pub fn PdfCodec::encode_flate(
 
 ///|
 /// Decode data in FlateDecode.
-#as_free_fn(decode_flate, deprecated="Use `PdfCodec::decode_flate`")
 pub fn PdfCodec::decode_flate(
   _self : PdfCodec,
   data : @pdfio.MutableBytes,
@@ -927,7 +925,6 @@ fn encode_ccittg4(
 
 ///|
 /// Encode a PDF stream with an encoding.
-#as_free_fn(encode_pdfstream, deprecated="Use `PdfCodec::encode_pdfstream`")
 pub fn PdfCodec::encode_pdfstream(
   self : PdfCodec,
   pdf : @pdf.Pdf,
@@ -1055,7 +1052,6 @@ pub fn PdfCodec::encode_pdfstream(
 
 ///|
 /// Decode a PDF stream, updating the document.
-#as_free_fn(decode_pdfstream, deprecated="Use `PdfCodec::decode_pdfstream`")
 pub fn PdfCodec::decode_pdfstream(
   self : PdfCodec,
   _pdf : @pdf.Pdf,
@@ -1094,7 +1090,6 @@ pub fn PdfCodec::decode_pdfstream(
 
 ///|
 /// Decode just one stage of a PDF stream.
-#as_free_fn(decode_pdfstream_onestage, deprecated="Use `PdfCodec::decode_pdfstream_onestage`")
 pub fn PdfCodec::decode_pdfstream_onestage(
   self : PdfCodec,
   pdf : @pdf.Pdf,
@@ -1270,7 +1265,6 @@ pub fn PdfCodec::decode_pdfstream_onestage(
 
 ///|
 /// Decode until there's an unknown decoder.
-#as_free_fn(decode_pdfstream_until_unknown, deprecated="Use `PdfCodec::decode_pdfstream_until_unknown`")
 pub fn PdfCodec::decode_pdfstream_until_unknown(
   self : PdfCodec,
   _pdf : @pdf.Pdf,
@@ -1286,7 +1280,6 @@ pub fn PdfCodec::decode_pdfstream_until_unknown(
 
 ///|
 /// Decode bytes using filters in dict; returns None when decoder unsupported.
-#as_free_fn(decode_from_bytes, deprecated="Use `PdfCodec::decode_from_bytes`")
 pub fn PdfCodec::decode_from_bytes(
   self : PdfCodec,
   bytes : @pdfio.MutableBytes,

@@ -1,6 +1,5 @@
 ///|
 /// Build a minimal PDF with a single blank page.
-#as_free_fn(minimum_valid_pdf, deprecated="Use `PdfPageDoc::minimum_valid`")
 pub fn PdfPageDoc::minimum_valid() -> @pdf.Pdf raise {
   let pages = [Page::blank(@pdfpaper.a4)]
   let (pdf, pageroot) = PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree(pages)

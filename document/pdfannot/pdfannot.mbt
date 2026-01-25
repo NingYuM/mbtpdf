@@ -235,7 +235,6 @@ fn get_popup_parent(pdf : @pdf.Pdf, annotation : PdfObject) -> Int? raise {
 
 ///|
 /// Return the annotations on a page in a document.
-#as_free_fn(annotations_of_page, deprecated="Use `PdfAnnot::annotations_of_page`")
 pub fn PdfAnnot::annotations_of_page(
   self : PdfAnnot,
   page : @pdfpage.Page,
@@ -268,7 +267,6 @@ pub fn PdfAnnot::annotations_of_page(
 ///|
 
 ///|
-#as_free_fn(string_of_subtype, deprecated="Use `Subtype::to_string` instead")
 fn Subtype::to_string(self : Subtype) -> String {
   match self {
     Text => "/Text"
@@ -303,7 +301,6 @@ fn Subtype::to_string(self : Subtype) -> String {
 ///|
 
 ///|
-#as_free_fn(obj_of_annot, deprecated="Use `Annotation::to_pdf_object` instead")
 fn Annotation::to_pdf_object(self : Annotation) -> PdfObject raise {
   let dict_entries : Array[(String, PdfObject)] = [
     ("/Subtype", PdfObject::Name(self.subtype.to_string())),
@@ -374,7 +371,6 @@ fn Annotation::to_pdf_object(self : Annotation) -> PdfObject raise {
 
 ///|
 /// Make a border.
-#as_free_fn(make_border, deprecated="Use `Border::new` instead")
 pub fn Border::new(
   width : Double,
   vradius? : Double = 0.0,
@@ -387,7 +383,6 @@ pub fn Border::new(
 
 ///|
 /// Make an annotation of a given subtype.
-#as_free_fn(make, deprecated="Use `Annotation::new` instead")
 pub fn Annotation::new(
   subtype : Subtype,
   content? : String,
@@ -409,7 +404,6 @@ pub fn Annotation::new(
 
 ///|
 /// Add an annotation to a page in a document.
-#as_free_fn(add_annotation, deprecated="Use `PdfAnnot::add_annotation`")
 pub fn PdfAnnot::add_annotation(
   self : PdfAnnot,
   page : @pdfpage.Page,
@@ -433,7 +427,6 @@ pub fn PdfAnnot::add_annotation(
 
 ///|
 /// Transform all annotations in a page dictionary.
-#as_free_fn(transform_annotations, deprecated="Use `PdfAnnot::transform_annotations`")
 pub fn PdfAnnot::transform_annotations(
   self : PdfAnnot,
   transform : @pdftransform.TransformMatrix,

@@ -33,7 +33,6 @@ pub fn PdfGenLex::new() -> PdfGenLex {
 
 ///|
 /// String representation of a token (debug only).
-#as_free_fn(string_of_token, deprecated="Use `PdfGenLex::string_of_token`")
 pub fn PdfGenLex::string_of_token(_self : PdfGenLex, t : Token) -> String {
   match t {
     LexInt(i) => "Int \{i}"
@@ -47,7 +46,6 @@ pub fn PdfGenLex::string_of_token(_self : PdfGenLex, t : Token) -> String {
 
 ///|
 /// String representation of a list of tokens (debug only).
-#as_free_fn(string_of_tokens, deprecated="Use `PdfGenLex::string_of_tokens`")
 pub fn PdfGenLex::string_of_tokens(
   self : PdfGenLex,
   tokens : Array[Token],
@@ -221,7 +219,6 @@ fn lex_item(s : String) -> Token {
 
 ///|
 /// Lex a single token from input.
-#as_free_fn(lex_single, deprecated="Use `PdfGenLex::lex_single`")
 pub fn PdfGenLex::lex_single(self : PdfGenLex, input : @pdfio.Input) -> Token {
   let _ = self
   lex_item(get_section(input))
@@ -229,7 +226,6 @@ pub fn PdfGenLex::lex_single(self : PdfGenLex, input : @pdfio.Input) -> Token {
 
 ///|
 /// Lex all tokens from input.
-#as_free_fn(lex, deprecated="Use `PdfGenLex::lex`")
 pub fn PdfGenLex::lex(self : PdfGenLex, input : @pdfio.Input) -> Array[Token] {
   let out = Array::new()
   let mut done = false
@@ -245,7 +241,6 @@ pub fn PdfGenLex::lex(self : PdfGenLex, input : @pdfio.Input) -> Array[Token] {
 
 ///|
 /// Lex all tokens from a string.
-#as_free_fn(lex_string, deprecated="Use `PdfGenLex::lex_string`")
 pub fn PdfGenLex::lex_string(self : PdfGenLex, s : String) -> Array[Token] {
   let input = @pdfio.Input::of_string(s)
   self.lex(input)

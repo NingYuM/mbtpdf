@@ -22,7 +22,6 @@ priv struct BitReader {
 }
 
 ///|
-#as_free_fn(read_bit, deprecated="Use `BitReader::read_bit` instead")
 fn BitReader::read_bit(self : BitReader) -> Int raise FlateError {
   if self.byte_pos >= self.data.length() {
     raise FlateError::Error("uncompress", "unexpected end of input")
@@ -38,7 +37,6 @@ fn BitReader::read_bit(self : BitReader) -> Int raise FlateError {
 }
 
 ///|
-#as_free_fn(read_bits, deprecated="Use `BitReader::read_bits` instead")
 fn BitReader::read_bits(self : BitReader, count : Int) -> Int raise FlateError {
   let mut value = 0
   for i in 0..<count {
@@ -49,7 +47,6 @@ fn BitReader::read_bits(self : BitReader, count : Int) -> Int raise FlateError {
 }
 
 ///|
-#as_free_fn(align_byte, deprecated="Use `BitReader::align_byte` instead")
 fn BitReader::align_byte(self : BitReader) -> Unit {
   if self.bit_pos != 0 {
     self.bit_pos = 0
@@ -58,7 +55,6 @@ fn BitReader::align_byte(self : BitReader) -> Unit {
 }
 
 ///|
-#as_free_fn(read_u16_le, deprecated="Use `BitReader::read_u16_le` instead")
 fn BitReader::read_u16_le(self : BitReader) -> Int raise FlateError {
   let lo = self.read_bits(8)
   let hi = self.read_bits(8)
@@ -405,7 +401,6 @@ fn zlib_start_offset(data : @pdfio.MutableBytes) -> Int raise FlateError {
 
 ///|
 /// Compress data using a streaming interface (stored blocks only).
-#as_free_fn(compress, deprecated="Use `PdfFlate::compress`")
 pub fn PdfFlate::compress(
   _self : PdfFlate,
   level? : Int = 6,
@@ -497,7 +492,6 @@ pub fn PdfFlate::compress(
 
 ///|
 /// Uncompress data using a streaming interface.
-#as_free_fn(uncompress, deprecated="Use `PdfFlate::uncompress`")
 pub fn PdfFlate::uncompress(
   _self : PdfFlate,
   header? : Bool = true,

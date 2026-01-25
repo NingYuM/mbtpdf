@@ -29,7 +29,6 @@ fn prga(s : Array[Int], pi : Ref[Int], pj : Ref[Int]) -> Int {
 ///|
 /// ARC4 encryption/decryption given a key and some data.
 /// The same function performs encryption and decryption.
-#as_free_fn(crypt, deprecated="Use `PdfCryptPrimitives::crypt`")
 pub fn PdfCryptPrimitives::crypt(
   _self : PdfCryptPrimitives,
   key : Array[Int],

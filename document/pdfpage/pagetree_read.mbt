@@ -149,7 +149,6 @@ fn find_pages(
 
 ///|
 /// Given a pdf, return a list of page objects.
-#as_free_fn(pages_of_pagetree, deprecated="Use `PdfPageDoc::pages_of_pagetree`")
 pub fn PdfPageDoc::pages_of_pagetree(self : PdfPageDoc) -> Array[Page] raise {
   let pdf = self.pdf
   let document_catalog = pdf.lookup_obj(pdf.root)
@@ -225,7 +224,6 @@ fn find_pages_quick(
 
 ///|
 /// Count pages in the page tree quickly.
-#as_free_fn(pages_of_pagetree_quick, deprecated="Use `PdfPageDoc::pages_of_pagetree_quick`")
 pub fn PdfPageDoc::pages_of_pagetree_quick(self : PdfPageDoc) -> Int raise {
   let pdf = self.pdf
   let document_catalog = pdf.lookup_obj(pdf.root)
@@ -243,7 +241,6 @@ pub fn PdfPageDoc::pages_of_pagetree_quick(self : PdfPageDoc) -> Int raise {
 
 ///|
 /// The last page number.
-#as_free_fn(endpage, deprecated="Use `PdfPageDoc::endpage`")
 pub fn PdfPageDoc::endpage(self : PdfPageDoc) -> Int raise {
   self.pages_of_pagetree_quick()
 }
@@ -257,7 +254,6 @@ fn endpage_safe(pdf : @pdf.Pdf) -> Int {
 
 ///|
 /// Fast page count from the top /Count.
-#as_free_fn(endpage_fast, deprecated="Use `PdfPageDoc::endpage_fast`")
 pub fn PdfPageDoc::endpage_fast(self : PdfPageDoc) -> Int raise {
   let pdf = self.pdf
   let document_catalog = pdf.lookup_obj(pdf.root)

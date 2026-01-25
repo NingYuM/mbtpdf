@@ -166,7 +166,6 @@ fn parse_finish(
 
 ///|
 /// Parse a PDF object from tokens.
-#as_free_fn(parse, deprecated="Use `PdfSyntax::parse`")
 pub fn PdfSyntax::parse(
   _self : PdfSyntax,
   tokens : Array[Token],

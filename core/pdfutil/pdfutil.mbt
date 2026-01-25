@@ -35,21 +35,18 @@ fn flush_buffer(buffer : Ref[String], message : String) -> Unit {
 
 ///|
 /// Print something and then flush standard output.
-#as_free_fn(flprint, deprecated="Use `PdfUtil::flprint`")
 pub fn PdfUtil::flprint(self : PdfUtil, message : String) -> Unit {
   flush_buffer(self.stdout_buffer, message)
 }
 
 ///|
 /// Print something and then flush standard error.
-#as_free_fn(fleprint, deprecated="Use `PdfUtil::fleprint`")
 pub fn PdfUtil::fleprint(self : PdfUtil, message : String) -> Unit {
   flush_buffer(self.stderr_buffer, message)
 }
 
 ///|
 /// Memoize a nullary function (cache the first computed value).
-#as_free_fn(memoize, deprecated="Use `PdfUtil::memoize`")
 pub fn[T] PdfUtil::memoize(_self : PdfUtil, f : () -> T raise) -> () -> T raise {
   let cached : Ref[T?] = Ref::new(None)
   let ready : Ref[Bool] = Ref::new(false)
@@ -68,7 +65,6 @@ pub fn[T] PdfUtil::memoize(_self : PdfUtil, f : () -> T raise) -> () -> T raise 
 
 ///|
 /// Build a hash map from a list of key/value pairs.
-#as_free_fn(hashtable_of_dictionary, deprecated="Use `PdfUtil::hashtable_of_dictionary`")
 pub fn[K : Hash + Eq, V] PdfUtil::hashtable_of_dictionary(
   _self : PdfUtil,
   pairs : Array[(K, V)],
@@ -82,14 +78,12 @@ pub fn[K : Hash + Eq, V] PdfUtil::hashtable_of_dictionary(
 
 ///|
 /// Construct an empty hash table.
-#as_free_fn(null_hash, deprecated="Use `PdfUtil::null_hash`")
 pub fn[K, V] PdfUtil::null_hash(_self : PdfUtil) -> Map[K, V] {
   Map::new(capacity=0)
 }
 
 ///|
 /// Extract all pairs from a hash table.
-#as_free_fn(list_of_hashtbl, deprecated="Use `PdfUtil::list_of_hashtbl`")
 pub fn[K, V] PdfUtil::list_of_hashtbl(
   _self : PdfUtil,
   table : Map[K, V],

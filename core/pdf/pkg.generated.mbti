@@ -60,74 +60,41 @@ pub(all) struct Pdf {
   was_linearized : Bool
   mut saved_encryption : SavedEncryption?
 }
-#as_free_fn(addobj, deprecated)
 pub fn Pdf::addobj(Self, PdfObject) -> Int
-#as_free_fn(addobj_given_num, deprecated)
 pub fn Pdf::addobj_given_num(Self, (Int, PdfObject)) -> Unit
-#as_free_fn(catalog_of_pdf, deprecated)
 pub fn Pdf::catalog_of_pdf(Self) -> PdfObject raise
-#as_free_fn(change_id, deprecated)
 pub fn Pdf::change_id(Self, String) -> Unit raise
-#as_free_fn(changes, deprecated)
 pub fn Pdf::changes(Self) -> Map[Int, Int]
-#as_free_fn(contents_of_nametree, deprecated)
 pub fn Pdf::contents_of_nametree(Self, PdfObject) -> Array[(PdfObject, PdfObject)] raise
-#as_free_fn(deep_copy, deprecated)
 pub fn Pdf::deep_copy(Self) -> Self
-#as_free_fn(direct, deprecated)
 pub fn Pdf::direct(Self, PdfObject) -> PdfObject
 pub fn Pdf::empty() -> Self
-#as_free_fn(generate_id, deprecated)
 pub fn Pdf::generate_id(Self, String, () -> Double) -> PdfObject
-#as_free_fn(getnum, deprecated)
 pub fn Pdf::getnum(Self, PdfObject) -> Double raise
-#as_free_fn(indirect_number, deprecated)
 pub fn Pdf::indirect_number(Self, String, PdfObject) -> Int?
-#as_free_fn(lookup_chain, deprecated)
 pub fn Pdf::lookup_chain(Self, PdfObject, ArrayView[String]) -> PdfObject?
-#as_free_fn(lookup_direct, deprecated)
 pub fn Pdf::lookup_direct(Self, String, PdfObject) -> PdfObject?
-#as_free_fn(lookup_direct_orelse, deprecated)
 pub fn Pdf::lookup_direct_orelse(Self, String, String, PdfObject) -> PdfObject?
-#as_free_fn(lookup_fail, deprecated)
 pub fn Pdf::lookup_fail(Self, String, String, PdfObject) -> PdfObject raise
-#as_free_fn(lookup_obj, deprecated)
 pub fn Pdf::lookup_obj(Self, Int) -> PdfObject
-#as_free_fn(nametree_lookup, deprecated)
 pub fn Pdf::nametree_lookup(Self, PdfObject, PdfObject) -> PdfObject? raise
 pub fn Pdf::objcard(Self) -> Int
-#as_free_fn(objects_referenced, deprecated)
 pub fn Pdf::objects_referenced(Self, Array[String], Array[(String, PdfObject)], PdfObject) -> Array[Int]
-#as_free_fn(objiter, deprecated)
 pub fn Pdf::objiter(Self, (Int, PdfObject) -> Unit raise?) -> Unit raise?
-#as_free_fn(objiter_gen, deprecated)
 pub fn Pdf::objiter_gen(Self, (Int, Int, PdfObject) -> Unit raise?) -> Unit raise?
-#as_free_fn(objiter_inorder, deprecated)
 pub fn Pdf::objiter_inorder(Self, (Int, PdfObject) -> Unit raise?) -> Unit raise?
 pub fn Pdf::objnumbers(Self) -> Array[Int]
-#as_free_fn(objselect, deprecated)
 pub fn Pdf::objselect(Self, (PdfObject) -> Bool raise?) -> Array[Int] raise?
-#as_free_fn(objselfmap, deprecated)
 pub fn Pdf::objselfmap(Self, (PdfObject) -> PdfObject raise?) -> Unit raise?
-#as_free_fn(page_reference_numbers, deprecated)
 pub fn Pdf::page_reference_numbers(Self) -> Array[Int] raise
-#as_free_fn(parse_matrix, deprecated)
 pub fn Pdf::parse_matrix(Self, String, PdfObject) -> @pdftransform.TransformMatrix raise
-#as_free_fn(parse_rectangle, deprecated)
 pub fn Pdf::parse_rectangle(Self, PdfObject) -> (Double, Double, Double, Double) raise
-#as_free_fn(remove_unreferenced, deprecated)
 pub fn Pdf::remove_unreferenced(Self) -> Unit raise
-#as_free_fn(removeobj, deprecated)
 pub fn Pdf::removeobj(Self, Int) -> Unit
-#as_free_fn(renumber, deprecated)
 pub fn Pdf::renumber(Self, Map[Int, Int], preserve_order? : Bool) -> Self
-#as_free_fn(renumber_object_parsed, deprecated)
 pub fn Pdf::renumber_object_parsed(Self, Map[Int, Int], PdfObject, preserve_order? : Bool) -> PdfObject
-#as_free_fn(replace_chain, deprecated)
 pub fn Pdf::replace_chain(Self, ArrayView[String], PdfObject) -> Unit raise
-#as_free_fn(transform_quadpoints, deprecated)
 pub fn Pdf::transform_quadpoints(Self, @pdftransform.TransformMatrix, PdfObject) -> PdfObject raise
-#as_free_fn(transform_rect, deprecated)
 pub fn Pdf::transform_rect(Self, @pdftransform.TransformMatrix, PdfObject) -> PdfObject raise
 
 pub(all) enum PdfObject {
@@ -143,13 +110,9 @@ pub(all) enum PdfObject {
   Indirect(Int)
 }
 pub fn PdfObject::add_entry(Self, String, Self) -> Self raise
-#as_free_fn(bigarray_of_stream, deprecated)
 pub fn PdfObject::bigarray_of_stream(Self) -> Array[Byte] raise
-#as_free_fn(find_indirect, deprecated)
 pub fn PdfObject::find_indirect(Self, String) -> Int? raise
-#as_free_fn(getstream, deprecated)
 pub fn PdfObject::getstream(Self) -> Unit raise
-#as_free_fn(lookup_immediate, deprecated)
 pub fn PdfObject::lookup_immediate(Self, String) -> Self?
 pub fn PdfObject::remove_entry(Self, String) -> Self raise
 pub fn PdfObject::replace_entry(Self, String, Self) -> Self raise

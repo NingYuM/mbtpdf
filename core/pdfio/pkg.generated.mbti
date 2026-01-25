@@ -62,17 +62,11 @@ pub struct Bitstream {
   mut bit : Int
   mut bits_read : Int
 }
-#as_free_fn(align, deprecated)
 pub fn Bitstream::align(Self) -> Unit
-#as_free_fn(getbit, deprecated)
 pub fn Bitstream::getbit(Self) -> Bool raise
-#as_free_fn(getbitint, deprecated)
 pub fn Bitstream::getbitint(Self) -> Int raise
-#as_free_fn(bitbytes_of_input, deprecated)
 pub fn Bitstream::of_input(Input) -> Self
-#as_free_fn(bitstream_pos, deprecated)
 pub fn Bitstream::position(Self) -> BitstreamPosition
-#as_free_fn(bitstream_seek, deprecated)
 pub fn Bitstream::seek(Self, BitstreamPosition) -> Unit
 
 pub struct BitstreamPosition {
@@ -87,15 +81,10 @@ pub struct BitstreamWrite {
   bytes : Array[Byte]
   mut bit : Int
 }
-#as_free_fn(align_write, deprecated)
 pub fn BitstreamWrite::align(Self) -> Unit
-#as_free_fn(bytes_of_write_bitstream, deprecated)
 pub fn BitstreamWrite::bytes(Self) -> Array[Byte]
-#as_free_fn(make_write_bitstream, deprecated)
 pub fn BitstreamWrite::new() -> Self
-#as_free_fn(putbit, deprecated)
 pub fn BitstreamWrite::putbit(Self, Int) -> Unit
-#as_free_fn(putval, deprecated)
 pub fn BitstreamWrite::putval(Self, Int, Int) -> Unit raise
 pub impl @debug.Debug for BitstreamWrite
 
@@ -110,13 +99,9 @@ pub struct Input {
 }
 pub fn Input::bytes_of_input(Self, Int, Int) -> Array[Byte] raise
 pub fn Input::nudge(Self) -> Unit
-#as_free_fn(input_of_bytes, deprecated)
 pub fn Input::of_bytes(Array[Byte], source? : String) -> Self
-#as_free_fn(input_of_channel, deprecated)
 pub async fn Input::of_channel(@fs.File, source? : String) -> Self
-#as_free_fn(input_of_file, deprecated)
 pub async fn Input::of_file(String, source? : String) -> Self
-#as_free_fn(input_of_string, deprecated)
 pub fn Input::of_string(String, source? : String) -> Self
 pub fn Input::peek_byte(Self) -> Int
 pub fn Input::peek_char(Self) -> Char?
@@ -136,12 +121,9 @@ pub struct Output {
   out_channel_length : () -> Int
   flush : async () -> Unit
 }
-#as_free_fn(extract_bytes_from_input_output, deprecated)
 pub fn Output::extract_bytes(Self, Ref[Array[Byte]]) -> Array[Byte]
 pub fn Output::getinit(Self, Array[Byte], Int, Int) -> Unit raise
-#as_free_fn(input_output_of_bytes, deprecated)
 pub fn Output::of_bytes(Int) -> (Self, Ref[Array[Byte]])
-#as_free_fn(output_of_channel, deprecated)
 pub fn Output::of_channel(@fs.File) -> Self
 
 // Type aliases

@@ -26,14 +26,10 @@ pub let reverse_name_to_pdf_hashes : Map[Int, String]
 pub struct PdfGlyphList {
   unit : Unit
 }
-#as_free_fn(glyph_hashes, deprecated)
 pub fn PdfGlyphList::glyph_hashes(Self) -> Map[String, Array[Int]] raise
-#as_free_fn(glyphlist_src, deprecated)
 pub fn PdfGlyphList::glyphlist_src(Self) -> Array[Byte]
-#as_free_fn(glyphmap, deprecated)
 pub fn PdfGlyphList::glyphmap(Self) -> Array[(String, Array[Int])] raise
 pub fn PdfGlyphList::new() -> Self
-#as_free_fn(reverse_glyph_hashes, deprecated)
 pub fn PdfGlyphList::reverse_glyph_hashes(Self) -> Map[Array[Int], String] raise
 
 // Type aliases

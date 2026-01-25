@@ -68,7 +68,6 @@ fn md5_pad(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
 
 ///|
 /// MD5 digest of bytes, returning 16 raw bytes.
-#as_free_fn(md5, deprecated="Use `PdfCryptPrimitives::md5`")
 pub fn PdfCryptPrimitives::md5(
   _self : PdfCryptPrimitives,
   data : @pdfio.MutableBytes,

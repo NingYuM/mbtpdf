@@ -102,7 +102,6 @@ fn change_operator(
 
 ///|
 /// Make a collection of pages capable of being merged.
-#as_free_fn(renumber_pages, deprecated="Use `PdfPageDoc::renumber_pages`")
 pub fn PdfPageDoc::renumber_pages(
   self : PdfPageDoc,
   pages : Array[Page],

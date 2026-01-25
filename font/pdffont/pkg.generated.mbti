@@ -42,11 +42,8 @@ pub(all) enum Encoding {
   CustomEncoding(Encoding, Array[(String, Int)])
   FillUndefinedWithStandard(Encoding)
 }
-#as_free_fn(reverse_table_of_encoding, deprecated)
 pub fn Encoding::reverse_table(Self) -> Map[String, Int]
-#as_free_fn(table_of_encoding, deprecated)
 pub fn Encoding::table(Self) -> Map[Int, String]
-#as_free_fn(string_of_encoding, deprecated)
 pub fn Encoding::to_string(Self) -> String
 
 pub(all) enum Font {
@@ -54,7 +51,6 @@ pub(all) enum Font {
   SimpleFont(SimpleFont)
   CIDKeyedFont(String, CompositeCIDFont, CMapEncoding)
 }
-#as_free_fn(string_of_font, deprecated)
 pub fn Font::to_string(Self) -> String
 
 pub(all) struct FontDescriptor {
@@ -91,7 +87,6 @@ pub(all) struct SimpleFont {
   fontmetrics : Array[Double]?
   encoding : Encoding
 }
-#as_free_fn(string_of_simple_font, deprecated)
 pub fn SimpleFont::to_string(Self) -> String
 
 pub(all) enum SimpleFontType {
@@ -100,7 +95,6 @@ pub(all) enum SimpleFontType {
   Type3(Type3Glyphs)
   Truetype
 }
-#as_free_fn(string_of_fonttype, deprecated)
 pub fn SimpleFontType::to_string(Self) -> String
 
 pub(all) enum StandardFont {
@@ -119,7 +113,6 @@ pub(all) enum StandardFont {
   Symbol
   ZapfDingbats
 }
-#as_free_fn(string_of_standard_font, deprecated)
 pub fn StandardFont::to_string(Self) -> String
 pub impl Eq for StandardFont
 pub impl @debug.Debug for StandardFont

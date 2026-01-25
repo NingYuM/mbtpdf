@@ -12,7 +12,6 @@ pub let read_debug : Ref[Bool]
 pub struct Pdfe {
   unit : Unit
 }
-#as_free_fn(log, deprecated)
 pub fn Pdfe::log(Self, String) -> Unit
 pub fn Pdfe::new() -> Self
 

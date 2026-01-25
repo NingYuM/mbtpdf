@@ -25,30 +25,18 @@ pub impl @debug.Debug for EncryptionMethod
 pub struct PdfCrypt {
   unit : Unit
 }
-#as_free_fn(banlist_of_p, deprecated)
 pub fn PdfCrypt::banlist_of_p(Self, Int) -> Array[Permission]
-#as_free_fn(decrypt_pdf, deprecated)
 pub fn PdfCrypt::decrypt_pdf(Self, String, @pdf.Pdf, keyfromowner? : String) -> (@pdf.Pdf?, Array[Permission]) raise
-#as_free_fn(decrypt_pdf_owner, deprecated)
 pub fn PdfCrypt::decrypt_pdf_owner(Self, String, @pdf.Pdf) -> @pdf.Pdf? raise
-#as_free_fn(decrypt_single_stream, deprecated)
 pub fn PdfCrypt::decrypt_single_stream(Self, String?, String?, @pdf.Pdf, Int, Int, @pdf.PdfObject) -> @pdf.PdfObject raise
-#as_free_fn(encrypt_pdf_128bit, deprecated)
 pub fn PdfCrypt::encrypt_pdf_128bit(Self, String, String, Array[Permission], @pdf.Pdf) -> @pdf.Pdf raise
-#as_free_fn(encrypt_pdf_40bit, deprecated)
 pub fn PdfCrypt::encrypt_pdf_40bit(Self, String, String, Array[Permission], @pdf.Pdf) -> @pdf.Pdf raise
-#as_free_fn(encrypt_pdf_AES, deprecated)
 pub fn PdfCrypt::encrypt_pdf_AES(Self, Bool, String, String, Array[Permission], @pdf.Pdf) -> @pdf.Pdf raise
-#as_free_fn(encrypt_pdf_AES256, deprecated)
 pub fn PdfCrypt::encrypt_pdf_AES256(Self, Bool, String, String, Array[Permission], @pdf.Pdf) -> @pdf.Pdf raise
-#as_free_fn(encrypt_pdf_AES256ISO, deprecated)
 pub fn PdfCrypt::encrypt_pdf_AES256ISO(Self, Bool, String, String, Array[Permission], @pdf.Pdf) -> @pdf.Pdf raise
-#as_free_fn(get_encryption_values, deprecated)
 pub fn PdfCrypt::get_encryption_values(Self, @pdf.Pdf) -> (@pdfcryptprimitives.Encryption, String, String, Int, String, String?, String?) raise
-#as_free_fn(is_encrypted, deprecated)
 pub fn PdfCrypt::is_encrypted(Self, @pdf.Pdf) -> Bool
 pub fn PdfCrypt::new() -> Self
-#as_free_fn(recrypt_pdf, deprecated)
 pub fn PdfCrypt::recrypt_pdf(Self, @pdf.Pdf, String, renumber? : Bool) -> @pdf.Pdf raise
 
 pub(all) enum Permission {

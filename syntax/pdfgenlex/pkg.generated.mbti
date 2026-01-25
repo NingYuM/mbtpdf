@@ -14,16 +14,11 @@ import {
 pub struct PdfGenLex {
   unit : Unit
 }
-#as_free_fn(lex, deprecated)
 pub fn PdfGenLex::lex(Self, @pdfio.Input) -> Array[Token]
-#as_free_fn(lex_single, deprecated)
 pub fn PdfGenLex::lex_single(Self, @pdfio.Input) -> Token
-#as_free_fn(lex_string, deprecated)
 pub fn PdfGenLex::lex_string(Self, String) -> Array[Token]
 pub fn PdfGenLex::new() -> Self
-#as_free_fn(string_of_token, deprecated)
 pub fn PdfGenLex::string_of_token(Self, Token) -> String
-#as_free_fn(string_of_tokens, deprecated)
 pub fn PdfGenLex::string_of_tokens(Self, Array[Token]) -> String
 
 pub(all) enum Token {

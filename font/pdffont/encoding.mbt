@@ -24,7 +24,6 @@ fn add_encoding(table : Map[Int, String], encoding : Encoding) -> Unit {
 }
 
 ///|
-#as_free_fn(table_of_encoding, deprecated="Use `Encoding::table`")
 pub fn Encoding::table(self : Encoding) -> Map[Int, String] {
   let table : Map[Int, String] = Map::new(capacity=203)
   add_encoding(table, self)
@@ -32,7 +31,6 @@ pub fn Encoding::table(self : Encoding) -> Map[Int, String] {
 }
 
 ///|
-#as_free_fn(reverse_table_of_encoding, deprecated="Use `Encoding::reverse_table`")
 pub fn Encoding::reverse_table(self : Encoding) -> Map[String, Int] {
   let table : Map[String, Int] = Map::new(capacity=203)
   let addvals = (vals : Array[(String, Int)]) => for pair in vals {

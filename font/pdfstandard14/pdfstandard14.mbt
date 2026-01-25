@@ -136,7 +136,6 @@ fn lookup_tables(font : @pdffont.StandardFont) -> AfmTables raise {
 }
 
 ///|
-#as_free_fn(baseline_adjustment, deprecated="Use `PdfStandard14::baseline_adjustment`")
 pub fn PdfStandard14::baseline_adjustment(
   _self : PdfStandard14,
   font : @pdffont.StandardFont,
@@ -224,7 +223,6 @@ fn width(
 }
 
 ///|
-#as_free_fn(textwidth, deprecated="Use `PdfStandard14::textwidth`")
 pub fn PdfStandard14::textwidth(
   _self : PdfStandard14,
   dokern : Bool,
@@ -241,7 +239,6 @@ pub fn PdfStandard14::textwidth(
 }
 
 ///|
-#as_free_fn(afm_data, deprecated="Use `PdfStandard14::afm_data`")
 pub fn PdfStandard14::afm_data(
   _self : PdfStandard14,
   font : @pdffont.StandardFont,
@@ -250,7 +247,6 @@ pub fn PdfStandard14::afm_data(
 }
 
 ///|
-#as_free_fn(stemv_of_standard_font, deprecated="Use `PdfStandard14::stemv_of_standard_font`")
 pub fn PdfStandard14::stemv_of_standard_font(
   _self : PdfStandard14,
   font : @pdffont.StandardFont,
@@ -274,7 +270,6 @@ pub fn PdfStandard14::stemv_of_standard_font(
 }
 
 ///|
-#as_free_fn(flags_of_standard_font, deprecated="Use `PdfStandard14::flags_of_standard_font`")
 pub fn PdfStandard14::flags_of_standard_font(
   _self : PdfStandard14,
   font : @pdffont.StandardFont,

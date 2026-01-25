@@ -22,7 +22,6 @@ pub(all) struct Annotation {
   colour : (Int, Int, Int)?
   annotrest : @pdf.PdfObject
 }
-#as_free_fn(make, deprecated)
 pub fn Annotation::new(Subtype, content? : String, border? : Border, rectangle? : (Double, Double, Double, Double), colour? : (Int, Int, Int), subject? : String) -> Self
 
 pub(all) struct Border {
@@ -32,19 +31,15 @@ pub(all) struct Border {
   style : Style
   dasharray : Array[Int]
 }
-#as_free_fn(make_border, deprecated)
 pub fn Border::new(Double, vradius? : Double, hradius? : Double, style? : Style, dasharray? : Array[Int]) -> Self
 pub impl @debug.Debug for Border
 
 pub struct PdfAnnot {
   pdf : @pdf.Pdf
 }
-#as_free_fn(add_annotation, deprecated)
 pub fn PdfAnnot::add_annotation(Self, @pdfpage.Page, Annotation) -> @pdfpage.Page raise
-#as_free_fn(annotations_of_page, deprecated)
 pub fn PdfAnnot::annotations_of_page(Self, @pdfpage.Page) -> Array[Annotation] raise
 pub fn PdfAnnot::new(@pdf.Pdf) -> Self
-#as_free_fn(transform_annotations, deprecated)
 pub fn PdfAnnot::transform_annotations(Self, @pdftransform.TransformMatrix, @pdf.PdfObject) -> Unit raise
 
 pub(all) enum Style {

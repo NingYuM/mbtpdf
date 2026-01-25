@@ -12,10 +12,8 @@ pub suberror FlateError {
 pub struct PdfFlate {
   unit : Unit
 }
-#as_free_fn(compress, deprecated)
 pub fn PdfFlate::compress(Self, level? : Int, header? : Bool, (Array[Byte]) -> Int, (Array[Byte], Int) -> Unit) -> Unit
 pub fn PdfFlate::new() -> Self
-#as_free_fn(uncompress, deprecated)
 pub fn PdfFlate::uncompress(Self, header? : Bool, (Array[Byte]) -> Int, (Array[Byte], Int) -> Unit) -> Unit raise FlateError
 
 // Type aliases

@@ -44,54 +44,30 @@ pub fn PdfText::write_tounicode(Self, Map[Int, String]) -> Int
 pub struct PdfTextUtil {
   unit : Unit
 }
-#as_free_fn(codepoint_of_pdfdocencoding_character, deprecated)
 pub fn PdfTextUtil::codepoint_of_pdfdocencoding_character(Self, Int) -> Int raise
-#as_free_fn(codepoints_of_pdfdocstring, deprecated)
 pub fn PdfTextUtil::codepoints_of_pdfdocstring(Self, String) -> Array[Int] raise
-#as_free_fn(codepoints_of_shift_jis, deprecated)
 pub fn PdfTextUtil::codepoints_of_shift_jis(Self, Array[Int]) -> Array[Int]
-#as_free_fn(codepoints_of_utf16be, deprecated)
 pub fn PdfTextUtil::codepoints_of_utf16be(Self, String) -> Array[Int] raise
-#as_free_fn(codepoints_of_utf8, deprecated)
 pub fn PdfTextUtil::codepoints_of_utf8(Self, String) -> Array[Int] raise
-#as_free_fn(find_tounicode, deprecated)
 pub fn PdfTextUtil::find_tounicode(Self, @pdffont.Font) -> Map[Int, String]?
-#as_free_fn(find_tounicode_bytes, deprecated)
 pub fn PdfTextUtil::find_tounicode_bytes(Self, @pdffont.Font) -> Map[String, String]?
-#as_free_fn(get_utf8_chars, deprecated)
 pub fn PdfTextUtil::get_utf8_chars(Self, Int) -> Array[Int] raise
-#as_free_fn(hex, deprecated)
 pub fn PdfTextUtil::hex(Self, String) -> String
-#as_free_fn(is_unicode, deprecated)
 pub fn PdfTextUtil::is_unicode(Self, String) -> Bool
-#as_free_fn(make_font, deprecated)
 pub fn PdfTextUtil::make_font(Self, String, @pdffont.Encoding) -> @pdf.PdfObject
 pub fn PdfTextUtil::new() -> Self
-#as_free_fn(parse_charset, deprecated)
 pub fn PdfTextUtil::parse_charset(Self, String) -> Array[String]
-#as_free_fn(pdfdocstring_of_codepoints, deprecated)
 pub fn PdfTextUtil::pdfdocstring_of_codepoints(Self, Array[Int]) -> String raise
-#as_free_fn(pdfdocstring_of_utf8, deprecated)
 pub fn PdfTextUtil::pdfdocstring_of_utf8(Self, String) -> String raise
-#as_free_fn(read_cid_widths, deprecated)
 pub fn PdfTextUtil::read_cid_widths(Self, Array[@pdf.PdfObject]) -> Array[(Int, Double)] raise
-#as_free_fn(reverse_table_of_encoding, deprecated)
 pub fn PdfTextUtil::reverse_table_of_encoding(Self, @pdffont.Encoding) -> Map[String, Int]
-#as_free_fn(simplify_utf16be, deprecated)
 pub fn PdfTextUtil::simplify_utf16be(Self, String) -> String raise
-#as_free_fn(standard_font_of_name, deprecated)
 pub fn PdfTextUtil::standard_font_of_name(Self, String) -> @pdffont.StandardFont?
-#as_free_fn(table_of_encoding, deprecated)
 pub fn PdfTextUtil::table_of_encoding(Self, @pdffont.Encoding) -> Map[Int, String]
-#as_free_fn(tounicode_map, deprecated)
 pub fn PdfTextUtil::tounicode_map(Self, Int, Array[String]) -> Array[Byte]
-#as_free_fn(utf16be_of_codepoint, deprecated)
 pub fn PdfTextUtil::utf16be_of_codepoint(Self, Int) -> Array[Int] raise
-#as_free_fn(utf16be_of_codepoints, deprecated)
 pub fn PdfTextUtil::utf16be_of_codepoints(Self, Array[Int]) -> String raise
-#as_free_fn(utf8_of_codepoints, deprecated)
 pub fn PdfTextUtil::utf8_of_codepoints(Self, Array[Int]) -> String raise
-#as_free_fn(utf8_of_pdfdocstring, deprecated)
 pub fn PdfTextUtil::utf8_of_pdfdocstring(Self, String) -> String raise
 
 pub struct TextExtractor {
@@ -100,11 +76,8 @@ pub struct TextExtractor {
   tounicode_lengths : Array[Int]
   font : @pdffont.Font
 }
-#as_free_fn(deprecated)
 pub fn TextExtractor::codepoints_of_text(Self, String) -> Array[Int] raise
-#as_free_fn(deprecated)
 pub fn TextExtractor::glyphnames_and_codepoints_of_text(Self, String) -> Array[(String, Array[Int])] raise
-#as_free_fn(deprecated)
 pub fn TextExtractor::glyphnames_of_text(Self, String) -> Array[String] raise
 pub fn TextExtractor::new(@pdffont.Font) -> Self
 

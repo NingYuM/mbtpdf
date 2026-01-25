@@ -188,7 +188,6 @@ fn objects_of_ptree(
 
 ///|
 /// Build a page tree and add it to the PDF.
-#as_free_fn(add_pagetree, deprecated="Use `PdfPageDoc::add_pagetree`")
 pub fn PdfPageDoc::add_pagetree(
   self : PdfPageDoc,
   pages : Array[Page],
@@ -216,7 +215,6 @@ pub fn PdfPageDoc::add_pagetree(
 
 ///|
 /// Replace the root catalog with a new /Pages entry.
-#as_free_fn(add_root, deprecated="Use `PdfPageDoc::add_root`")
 pub fn PdfPageDoc::add_root(
   self : PdfPageDoc,
   pageroot : Int,

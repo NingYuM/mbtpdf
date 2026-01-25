@@ -33,7 +33,6 @@ pub fn Bookmark::to_string(self : Bookmark) -> String {
 
 ///|
 /// Remove any existing /Outlines from the document.
-#as_free_fn(remove_bookmarks, deprecated="Use `PdfMarks::remove_bookmarks`")
 pub fn PdfMarks::remove_bookmarks(self : PdfMarks) -> @pdf.Pdf raise {
   let pdf = self.pdf
   match pdf.lookup_direct("/Root", pdf.trailerdict) {
@@ -404,7 +403,6 @@ fn make_outline_ntree(
 
 ///|
 /// Add bookmarks to the document.
-#as_free_fn(add_bookmarks, deprecated="Use `PdfMarks::add_bookmarks`")
 pub fn PdfMarks::add_bookmarks(
   self : PdfMarks,
   parsed : Array[Bookmark],
@@ -544,7 +542,6 @@ fn do_until_no_next_lb(
 
 ///|
 /// Read all bookmarks from the document.
-#as_free_fn(read_bookmarks, deprecated="Use `PdfMarks::read_bookmarks`")
 pub fn PdfMarks::read_bookmarks(
   self : PdfMarks,
   preserve_actions? : Bool = false,

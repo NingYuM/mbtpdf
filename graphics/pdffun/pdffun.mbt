@@ -160,7 +160,6 @@ fn calculator_ops_to_string(ops : Array[Calculator]) -> String {
 }
 
 ///|
-#as_free_fn(string_of_calculator, deprecated="Use `Calculator::to_string` instead")
 pub fn Calculator::to_string(self : Array[Calculator]) -> String {
   calculator_ops_to_string(self)
 }

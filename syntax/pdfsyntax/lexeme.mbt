@@ -3,7 +3,6 @@ let lexeme_syntax : PdfSyntax = PdfSyntax::new()
 
 ///|
 /// Lex tokens for a single object.
-#as_free_fn(lex_object_at, deprecated="Use `PdfSyntax::lex_object_at`")
 pub fn PdfSyntax::lex_object_at(
   _self : PdfSyntax,
   oneonly : Bool,
@@ -59,7 +58,6 @@ pub fn PdfSyntax::lex_object_at(
 
 ///|
 /// Parse a single object from a string.
-#as_free_fn(parse_single_object, deprecated="Use `PdfSyntax::parse_single_object`")
 pub fn PdfSyntax::parse_single_object(
   _self : PdfSyntax,
   s : String,
@@ -270,7 +268,6 @@ fn make_pdf_string(value : String) -> String {
 
 ///|
 /// String of a lexeme.
-#as_free_fn(string_of_lexeme, deprecated="Use `PdfSyntax::string_of_lexeme`")
 pub fn PdfSyntax::string_of_lexeme(_self : PdfSyntax, t : Token) -> String {
   match t {
     LexNull => "null"

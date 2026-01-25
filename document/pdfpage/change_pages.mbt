@@ -17,7 +17,6 @@ fn matrix_is_identity(m : @pdftransform.TransformMatrix) -> Bool {
 }
 
 ///|
-#as_free_fn(pagenumber_of_target, deprecated="Use `PdfPageDoc::pagenumber_of_target`")
 pub fn PdfPageDoc::pagenumber_of_target(
   self : PdfPageDoc,
   target : @pdfdest.Destination,
@@ -293,7 +292,6 @@ fn select_page_ref_change(refs : Array[Int], index_1 : Int) -> Int raise {
 
 ///|
 /// Replace the page tree with new pages, optionally rewriting references.
-#as_free_fn(change_pages, deprecated="Use `PdfPageDoc::change_pages`")
 pub fn PdfPageDoc::change_pages(
   self : PdfPageDoc,
   change_references : Bool,

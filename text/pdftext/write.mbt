@@ -5,7 +5,6 @@
 type PdfObject = @pdf.PdfObject
 
 ///|
-#as_free_fn(make_font, deprecated="Use `PdfTextUtil::make_font`")
 pub fn PdfTextUtil::make_font(
   _self : PdfTextUtil,
   fontname : String,
@@ -120,7 +119,6 @@ fn hex_byte_lower(value : Int) -> String {
 }
 
 ///|
-#as_free_fn(hex, deprecated="Use `PdfTextUtil::hex`")
 pub fn PdfTextUtil::hex(_self : PdfTextUtil, u : String) -> String {
   let sb = StringBuilder::new()
   let bytes = @pdfio.bytes_of_string(u)
@@ -131,7 +129,6 @@ pub fn PdfTextUtil::hex(_self : PdfTextUtil, u : String) -> String {
 }
 
 ///|
-#as_free_fn(tounicode_map, deprecated="Use `PdfTextUtil::tounicode_map`")
 pub fn PdfTextUtil::tounicode_map(
   self : PdfTextUtil,
   start_code : Int,
