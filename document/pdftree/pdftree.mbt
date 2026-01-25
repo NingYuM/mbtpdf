@@ -163,16 +163,8 @@ fn parse_int(value : String) -> Int {
 
 ///|
 fn compare_string(a : String, b : String) -> Int {
-  let ac = a[:]
-  let bc = b[:]
-  let mut i = 0
-  while i < ac.length() && i < bc.length() {
-    if ac[i] != bc[i] {
-      return ac[i].to_int() - bc[i].to_int()
-    }
-    i = i + 1
-  }
-  ac.length() - bc.length()
+  // Compare in terms of UTF-16 code units (same semantics as the previous loop).
+  a[:].compare(b[:])
 }
 
 ///|
