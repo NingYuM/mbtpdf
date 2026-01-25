@@ -182,16 +182,11 @@ pub fn PdfPageDoc::pdf_of_pages(
     let prefix_rev : Array[@pdfmarks.Bookmark] = Array::new()
     if first_index != -1 {
       let mut level = first_level - 1
-      let mut n = first_index
-      while n >= 0 {
+      for n in first_index>=..0 {
         if level > -1 && marks[n].level == level {
           prefix_rev.push(marks[n])
           level = level - 1
         }
-        if n == 0 {
-          break
-        }
-        n = n - 1
       }
       prefix_rev.rev_in_place()
     }
