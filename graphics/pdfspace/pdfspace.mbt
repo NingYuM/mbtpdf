@@ -519,9 +519,9 @@ pub fn ColourSpace::to_pdf_object(
         Null
       } else {
         let mut hival = -1
-        for pair in table.to_array() {
-          if pair.0 > hival {
-            hival = pair.0
+        for idx, _ in table {
+          if idx > hival {
+            hival = idx
           }
         }
         if hival < 0 {
