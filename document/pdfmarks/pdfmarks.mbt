@@ -376,11 +376,8 @@ fn make_outline_ntree(
     [] => []
     [head, .. rest] => {
       let mut split = 0
-      while split < rest.length() {
-        match rest.get(split) {
-          Some(mark) if mark.level > head.level => split = split + 1
-          _ => break
-        }
+      while split < rest.length() && rest[split].level > head.level {
+        split = split + 1
       }
       let lower = rest.sub(start=0, end=split)
       let remaining = rest.sub(start=split)

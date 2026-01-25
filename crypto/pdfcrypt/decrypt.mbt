@@ -229,22 +229,8 @@ fn process_cryption(
   file_encryption_key : String?,
 ) -> @pdf.Pdf? raise {
   let mut encryption_object_number = -1
-  match (pdf.trailerdict : @pdf.PdfObject) {
-    Dictionary(entries) => {
-      let mut i = 0
-      while i < entries.length() {
-        let (k, v) = entries[i]
-        if k == "/Encrypt" {
-          match (v : @pdf.PdfObject) {
-            Indirect(n) => encryption_object_number = n
-            _ => ()
-          }
-          i = entries.length()
-        } else {
-          i = i + 1
-        }
-      }
-    }
+  match pdf.trailerdict.lookup_immediate("/Encrypt") {
+    Some(Indirect(n)) => encryption_object_number = n
     _ => ()
   }
   let do_encryption = fn(key : Array[Int]) -> @pdf.Pdf? raise {
