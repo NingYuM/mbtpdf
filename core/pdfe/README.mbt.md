@@ -47,8 +47,8 @@ test "log: captures messages with custom logger" {
   let messages : Array[String] = []
   let prev = @pdfe.logger.val
   @pdfe.logger.val = fn(msg) { messages.push(msg) }
-  @pdfe.Pdfe::new().log("hello")
-  @pdfe.Pdfe::new().log("world")
+  @pdfe.log("hello")
+  @pdfe.log("world")
   @pdfe.logger.val = prev
   inspect(messages, content="[\"hello\", \"world\"]")
 }
@@ -72,7 +72,7 @@ let messages : Array[String] = []
 let prev = @pdfe.logger.val
 @pdfe.logger.val = fn(msg) { messages.push(msg) }
 
-// ... code that calls @pdfe.Pdfe::new().log() ...
+// ... code that calls @pdfe.log() ...
 
 // Restore original logger
 @pdfe.logger.val = prev
