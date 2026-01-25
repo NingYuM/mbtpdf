@@ -309,16 +309,6 @@ fn interleave_defaults(n : Int) -> Array[Double] {
 }
 
 ///|
-fn mkreal(x : Double) -> PdfObject {
-  Real(x)
-}
-
-///|
-fn mkint(x : Int) -> PdfObject {
-  Integer(x)
-}
-
-///|
 fn normalize_name(name : String) -> String {
   if name.has_prefix("/") {
     name
@@ -329,7 +319,11 @@ fn normalize_name(name : String) -> String {
 
 ///|
 fn array_of_point(point : Point) -> PdfObject {
-  Array([mkreal(point.0), mkreal(point.1), mkreal(point.2)])
+  Array([
+    @pdf.ToPdfNumber::to_pdf_number(point.0),
+    @pdf.ToPdfNumber::to_pdf_number(point.1),
+    @pdf.ToPdfNumber::to_pdf_number(point.2),
+  ])
 }
 
 ///|
@@ -377,7 +371,11 @@ fn ensure_length(
   }
   match stream_data {
     @pdf.Stream::Got(bytes) =>
-      dict_set(entries, "/Length", mkint(@pdfio.bytes_size(bytes)))
+      dict_set(
+        entries,
+        "/Length",
+        @pdf.ToPdfNumber::to_pdf_number(@pdfio.bytes_size(bytes)),
+      )
     _ => entries
   }
 }
@@ -435,14 +433,20 @@ fn write_iccbased(pdf : @pdf.Pdf, icc : ICCBased) -> PdfObject {
     Stream(r) => {
       let (dict_obj, stream_data) = r.val
       let entries = dict_entries(dict_obj)
-      let entries = dict_set(entries, "/N", mkint(icc.icc_n))
+      let entries = dict_set(
+        entries,
+        "/N",
+        @pdf.ToPdfNumber::to_pdf_number(icc.icc_n),
+      )
       let entries = dict_set(
         entries,
         "/Alternate",
         icc.icc_alternate.to_pdf_object(pdf),
       )
       let entries = if icc.icc_range.length() == 2 * icc.icc_n {
-        let range_arr : PdfObject = Array(icc.icc_range.map(mkreal))
+        let range_arr : PdfObject = Array(
+          icc.icc_range.map(x => @pdf.ToPdfNumber::to_pdf_number(x)),
+        )
         dict_set(entries, "/Range", range_arr)
       } else {
         entries
@@ -482,7 +486,7 @@ pub fn ColourSpace::to_pdf_object(
         Dictionary([
           ("/WhitePoint", array_of_point(white)),
           ("/BlackPoint", array_of_point(black)),
-          ("/Gamma", mkreal(gamma)),
+          ("/Gamma", @pdf.ToPdfNumber::to_pdf_number(gamma)),
         ]),
       ])
     CalRGB(white, black, gamma, matrix) =>
@@ -491,8 +495,11 @@ pub fn ColourSpace::to_pdf_object(
         Dictionary([
           ("/WhitePoint", array_of_point(white)),
           ("/BlackPoint", array_of_point(black)),
-          ("/Gamma", Array(gamma.map(mkreal))),
-          ("/Matrix", Array(matrix.map(mkreal))),
+          ("/Gamma", Array(gamma.map(x => @pdf.ToPdfNumber::to_pdf_number(x)))),
+          (
+            "/Matrix",
+            Array(matrix.map(x => @pdf.ToPdfNumber::to_pdf_number(x))),
+          ),
         ]),
       ])
     Lab(white, black, range) =>
@@ -501,7 +508,7 @@ pub fn ColourSpace::to_pdf_object(
         Dictionary([
           ("/WhitePoint", array_of_point(white)),
           ("/BlackPoint", array_of_point(black)),
-          ("/Range", Array(range.map(mkreal))),
+          ("/Range", Array(range.map(x => @pdf.ToPdfNumber::to_pdf_number(x)))),
         ]),
       ])
     ICCBased(icc) => Array([Name("/ICCBased"), write_iccbased(pdf, icc)])
