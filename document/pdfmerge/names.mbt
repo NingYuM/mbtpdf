@@ -3,7 +3,7 @@ fn apply_namechanges_to_destination_nametree(
   pdf : @pdf.Pdf,
   changes : Array[(String, String)],
 ) -> Unit raise {
-  let changes_map : Map[String, String] = Map::new()
+  let changes_map : Map[String, String] = Map::new(capacity=changes.length())
   for pair in changes {
     changes_map.set(pair.0, pair.1)
   }
@@ -109,11 +109,13 @@ fn apply_namechanges_at_destination_callsites(
   changes : Array[(String, String)],
   allchanges : Array[(String, String)],
 ) -> Unit {
-  let changes_map : Map[String, String] = Map::new()
+  let changes_map : Map[String, String] = Map::new(capacity=changes.length())
   for pair in changes {
     changes_map.set(pair.0, pair.1)
   }
-  let allchanges_map : Map[String, String] = Map::new()
+  let allchanges_map : Map[String, String] = Map::new(
+    capacity=allchanges.length(),
+  )
   for i in (allchanges.length() - 1)>=..0 {
     let pair = allchanges[i]
     allchanges_map.set(pair.0, pair.1)
