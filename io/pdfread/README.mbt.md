@@ -154,13 +154,20 @@ for perm in perms {
 
 ```mbt nocheck
 // Enable debug output
-@pdfread.read_debug.val = true
+///|
+let reader = @pdfread.PdfRead::new(read_debug=true)
 
 // Treat all documents as malformed (for testing)
-@pdfread.debug_always_treat_malformed.val = true
+
+///|
+let reader_force_malformed = @pdfread.PdfRead::new(
+  debug_always_treat_malformed=true,
+)
 
 // Raise errors on malformed documents
-@pdfread.error_on_malformed.val = true
+
+///|
+let reader_strict = @pdfread.PdfRead::new(error_on_malformed=true)
 ```
 
 ## Error Handling

@@ -80,7 +80,7 @@ fn sanitize_trailerdict(
 }
 
 ///|
-fn version_from_catalog(pdf : @pdf.Pdf) -> (Int, Int)? {
+fn version_from_catalog(ctx : PdfRead, pdf : @pdf.Pdf) -> (Int, Int)? {
   match pdf.lookup_direct("/Version", pdf.lookup_obj(pdf.root)) {
     Some(@pdf.PdfObject::Name(s)) => {
       if s.length() < 2 {
@@ -92,7 +92,7 @@ fn version_from_catalog(pdf : @pdf.Pdf) -> (Int, Int)? {
         view => view.to_string()
       }
       let header = "%PDF-\{version}"
-      try read_header(@pdfio.Input::of_string(header)) catch {
+      try read_header(ctx, @pdfio.Input::of_string(header)) catch {
         _ => None
       } noraise {
         pair => Some(pair)
@@ -104,6 +104,7 @@ fn version_from_catalog(pdf : @pdf.Pdf) -> (Int, Int)? {
 
 ///|
 fn read_pdf_internal(
+  ctx : PdfRead,
   revision : Int?,
   user_password : String?,
   owner_password : String?,
@@ -116,15 +117,15 @@ fn read_pdf_internal(
     Some(r) if r < 1 && r != -1 => raise ReadPdfError::BadRevision
     _ => ()
   }
-  if debug_always_treat_malformed.val && revision != Some(-1) {
+  if ctx.debug_always_treat_malformed && revision != Some(-1) {
     return read_malformed_pdf(
-      revision, user_password, owner_password, input, read_stream_data,
+      ctx, revision, user_password, owner_password, input, read_stream_data,
     )
   }
   try {
-    let was_linearized = PdfRead::new().is_linearized(input)
+    let was_linearized = ctx.is_linearized(input)
     (input.seek_in)(0)
-    let (major_header, minor_header) = read_header(input)
+    let (major_header, minor_header) = read_header(ctx, input)
     let mut revisions_count = 1
     let mut current_revision = 0
     let mut got_all_xref_sections = false
@@ -162,7 +163,7 @@ fn read_pdf_internal(
           input, read_stream_data,
         )
       } else {
-        let (entries, xref_objnum, stream_obj) = read_xref_stream(input)
+        let (entries, xref_objnum, stream_obj) = read_xref_stream(ctx, input)
         if !skip {
           let filtered = entries.filter(pair => pair.0 != xref_objnum)
           add_entries(filtered, xrefs)
@@ -178,7 +179,7 @@ fn read_pdf_internal(
         Some(@pdf.PdfObject::Integer(n)) => {
           (input.seek_in)(n)
           @pdfsyntax.PdfSyntax::new().dropwhite(input)
-          let (entries, xref_objnum, _stream_obj) = read_xref_stream(input)
+          let (entries, xref_objnum, _stream_obj) = read_xref_stream(ctx, input)
           if !skip {
             let filtered = entries.filter(pair => pair.0 != xref_objnum)
             add_entries(filtered, xrefs)
@@ -231,6 +232,7 @@ fn read_pdf_internal(
       }
     }
     let objects = build_pdf_objects(
+      ctx,
       input,
       xrefs.to_array(),
       read_stream_data,
@@ -251,7 +253,7 @@ fn read_pdf_internal(
       was_linearized,
       saved_encryption: None,
     }
-    let (major, minor) = match version_from_catalog(pdf_tmp) {
+    let (major, minor) = match version_from_catalog(ctx, pdf_tmp) {
       Some(pair) => pair
       None => (major_header, minor_header)
     }
@@ -284,9 +286,9 @@ fn read_pdf_internal(
     pdf_final
   } catch {
     err =>
-      if should_fallback_on_error(err, revision) {
+      if should_fallback_on_error(ctx, err, revision) {
         read_malformed_pdf(
-          revision, user_password, owner_password, input, read_stream_data,
+          ctx, revision, user_password, owner_password, input, read_stream_data,
         )
       } else {
         raise err

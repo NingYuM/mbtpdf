@@ -8,8 +8,12 @@ fn is_encryption_error(err : Error) -> Bool {
 }
 
 ///|
-fn should_fallback_on_error(err : Error, revision : Int?) -> Bool {
-  if error_on_malformed.val {
+fn should_fallback_on_error(
+  ctx : PdfRead,
+  err : Error,
+  revision : Int?,
+) -> Bool {
+  if ctx.error_on_malformed {
     return false
   }
   if revision is Some(-1) {
@@ -194,6 +198,7 @@ fn find_catalog_object(objects : @pdf.PdfObjMap) -> Int? {
 
 ///|
 fn read_malformed_pdf(
+  ctx : PdfRead,
   revision : Int?,
   user_password : String?,
   owner_password : String?,
@@ -204,7 +209,7 @@ fn read_malformed_pdf(
   let _ = user_password
   let _ = owner_password
   (input.seek_in)(0)
-  let (major_header, minor_header) = read_header(input)
+  let (major_header, minor_header) = read_header(ctx, input)
   let (objects, max_obj) = read_malformed_pdf_objects(input, read_stream_data)
   let trailers = read_malformed_trailerdicts(input)
   let mut trailerdict = if trailers.length() > 0 {
@@ -248,7 +253,7 @@ fn read_malformed_pdf(
     was_linearized: false,
     saved_encryption: None,
   }
-  let (major, minor) = match version_from_catalog(pdf_tmp) {
+  let (major, minor) = match version_from_catalog(ctx, pdf_tmp) {
     Some(pair) => pair
     None => (major_header, minor_header)
   }

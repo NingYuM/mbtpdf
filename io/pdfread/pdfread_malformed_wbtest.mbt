@@ -49,11 +49,7 @@ test "malformed pdf without trailer infers root" {
 
 ///|
 test "malformed pdf honors error_on_malformed" {
-  let prev = error_on_malformed.val
-  error_on_malformed.val = true
-  defer {
-    error_on_malformed.val = prev
-  }
+  let reader = PdfRead::new(error_on_malformed=true)
   let data =
     #|%PDF-1.4
     #|1 0 obj
@@ -63,7 +59,7 @@ test "malformed pdf honors error_on_malformed" {
     #|<< /Type /Pages /Count 0 /Kids [] >>
     #|endobj
     #|%%EOF
-  let res : Result[@pdf.Pdf, Error] = try? PdfRead::new().pdf_of_input(
+  let res : Result[@pdf.Pdf, Error] = try? reader.pdf_of_input(
     None,
     None,
     @pdfio.Input::of_string(data),

@@ -227,6 +227,7 @@ fn read_xref_line_stream(
 
 ///|
 fn read_xref_stream(
+  ctx : PdfRead,
   input : @pdfio.Input,
 ) -> (Array[(Int, XRef)], Int, @pdf.PdfObject) raise {
   let original_pos = (input.pos_in)()
@@ -245,12 +246,12 @@ fn read_xref_stream(
     ) {
     LexInt(i) => i
     _ => {
-      @pdfe.Pdfe::new().log("couldn't lex object number\n")
+      (ctx.logger)("couldn't lex object number\n")
       raise err
     }
   }
-  if read_debug.val {
-    @pdfe.Pdfe::new().log(
+  if ctx.read_debug {
+    (ctx.logger)(
       "Object number of this xref stream is \{xrefstream_objectnumber}\n",
     )
   }
@@ -522,6 +523,7 @@ fn parse_object_stream(
 
 ///|
 fn build_pdf_objects(
+  ctx : PdfRead,
   input : @pdfio.Input,
   xref_entries : Array[(Int, XRef)],
   read_stream_data : Bool,
@@ -573,8 +575,8 @@ fn build_pdf_objects(
       obj
     } catch {
       _ => {
-        if read_debug.val {
-          @pdfe.Pdfe::new().log("parse_obj failed for object \{num}\n")
+        if ctx.read_debug {
+          (ctx.logger)("parse_obj failed for object \{num}\n")
         }
         @pdf.PdfObject::Null
       }
@@ -601,9 +603,7 @@ fn build_pdf_objects(
         input, xrefs, stream_id, user_password, owner_password, partial_pdf,
       ) catch {
         _ => {
-          @pdfe.Pdfe::new().log(
-            "Warning: unable to parse object stream \{stream_id}\n",
-          )
+          (ctx.logger)("Warning: unable to parse object stream \{stream_id}\n")
           Array::new()
         }
       }

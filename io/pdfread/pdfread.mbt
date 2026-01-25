@@ -1,53 +1,50 @@
 ///|
-/// Debug flag for PDF reading (re-exported from pdfe).
-let read_debug : Ref[Bool] = @pdfe.read_debug
-
-///|
-/// If true, do not attempt malformed PDF recovery.
-let error_on_malformed : Ref[Bool] = { val: false }
-
-///|
-/// If true, always treat PDFs as malformed.
-let debug_always_treat_malformed : Ref[Bool] = { val: false }
-
-///|
 pub struct PdfRead {
-  unit : Unit
+  // Keep IO-read configuration on the instance instead of global `Ref` state.
+  read_debug : Bool
+  error_on_malformed : Bool
+  debug_always_treat_malformed : Bool
+  logger : (String) -> Unit
 }
 
 ///|
-pub fn PdfRead::new() -> PdfRead {
-  { unit: () }
+pub fn PdfRead::new(
+  read_debug? : Bool = @pdfe.read_debug.val,
+  error_on_malformed? : Bool = false,
+  debug_always_treat_malformed? : Bool = false,
+  logger? : (String) -> Unit = @pdfe.logger.val,
+) -> PdfRead {
+  { read_debug, error_on_malformed, debug_always_treat_malformed, logger }
 }
 
 ///|
 /// Read a PDF from an input.
 pub fn PdfRead::pdf_of_input(
-  _self : PdfRead,
+  self : PdfRead,
   revision? : Int,
   user_password : String?,
   owner_password : String?,
   input : @pdfio.Input,
 ) -> @pdf.Pdf raise {
-  read_pdf_internal(revision, user_password, owner_password, input, true)
+  read_pdf_internal(self, revision, user_password, owner_password, input, true)
 }
 
 ///|
 /// Read a PDF from an input, lazily.
 pub fn PdfRead::pdf_of_input_lazy(
-  _self : PdfRead,
+  self : PdfRead,
   revision? : Int,
   user_password : String?,
   owner_password : String?,
   input : @pdfio.Input,
 ) -> @pdf.Pdf raise {
-  read_pdf_internal(revision, user_password, owner_password, input, false)
+  read_pdf_internal(self, revision, user_password, owner_password, input, false)
 }
 
 ///|
 /// Read a PDF from a channel.
 pub async fn PdfRead::pdf_of_channel(
-  _self : PdfRead,
+  self : PdfRead,
   revision? : Int,
   source? : String = "channel",
   user_password : String?,
@@ -55,13 +52,13 @@ pub async fn PdfRead::pdf_of_channel(
   channel : @fs.File,
 ) -> @pdf.Pdf {
   let input = @pdfio.Input::of_channel(channel, source~)
-  read_pdf_internal(revision, user_password, owner_password, input, true)
+  read_pdf_internal(self, revision, user_password, owner_password, input, true)
 }
 
 ///|
 /// Read a PDF from a channel lazily.
 pub async fn PdfRead::pdf_of_channel_lazy(
-  _self : PdfRead,
+  self : PdfRead,
   revision? : Int,
   source? : String = "channel",
   user_password : String?,
@@ -69,27 +66,27 @@ pub async fn PdfRead::pdf_of_channel_lazy(
   channel : @fs.File,
 ) -> @pdf.Pdf {
   let input = @pdfio.Input::of_channel(channel, source~)
-  read_pdf_internal(revision, user_password, owner_password, input, false)
+  read_pdf_internal(self, revision, user_password, owner_password, input, false)
 }
 
 ///|
 /// Read a PDF from a file.
 pub async fn PdfRead::pdf_of_file(
-  _self : PdfRead,
+  self : PdfRead,
   revision? : Int,
   user_password : String?,
   owner_password : String?,
   filename : String,
 ) -> @pdf.Pdf {
   let input = @pdfio.Input::of_file(filename, source=filename)
-  read_pdf_internal(revision, user_password, owner_password, input, true)
+  read_pdf_internal(self, revision, user_password, owner_password, input, true)
 }
 
 ///|
 /// Return number of revisions.
-pub fn PdfRead::revisions(_self : PdfRead, input : @pdfio.Input) -> Int raise {
+pub fn PdfRead::revisions(self : PdfRead, input : @pdfio.Input) -> Int raise {
   try {
-    let _ = read_pdf_internal(Some(-1), None, None, input, false)
+    let _ = read_pdf_internal(self, Some(-1), None, None, input, false)
     0
   } catch {
     ReadPdfError::Revisions(n) => n
@@ -178,9 +175,9 @@ pub fn PdfRead::permissions(
 
 ///|
 /// Check if input is linearized.
-pub fn PdfRead::is_linearized(_self : PdfRead, input : @pdfio.Input) -> Bool {
+pub fn PdfRead::is_linearized(self : PdfRead, input : @pdfio.Input) -> Bool {
   try {
-    let _ = read_header(input)
+    let _ = read_header(self, input)
     let lexemes = @pdfsyntax.PdfSyntax::new().lex_dictionary(false, input)
     let (_, parsed) = @pdfsyntax.PdfSyntax::new().parse(
       lexemes,
@@ -197,7 +194,7 @@ pub fn PdfRead::is_linearized(_self : PdfRead, input : @pdfio.Input) -> Bool {
 
 ///|
 /// Read a PDF header.
-fn read_header(input : @pdfio.Input) -> (Int, Int) raise {
+fn read_header(ctx : PdfRead, input : @pdfio.Input) -> (Int, Int) raise {
   fn get8chars(input : @pdfio.Input) -> Array[Char] {
     let out = Array::new(capacity=8)
     let mut ok = true
@@ -254,8 +251,8 @@ fn read_header(input : @pdfio.Input) -> (Int, Int) raise {
         let message = @pdf.input_pdferror(input, "Malformed PDF header")
         raise @pdf.PdfError::Msg(message)
       }
-      if read_debug.val {
-        @pdfe.Pdfe::new().log("setting offset to \{pos}\n")
+      if ctx.read_debug {
+        (ctx.logger)("setting offset to \{pos}\n")
       }
       (input.set_offset)(pos)
       return (major_char.to_int() - '0'.to_int(), digits_to_int(minor_digits))
