@@ -1,25 +1,7 @@
 ///|
 /// Compare two byte arrays lexicographically.
 fn compare_bytes(left : Array[Byte], right : Array[Byte]) -> Int {
-  let min_len = if left.length() < right.length() {
-    left.length()
-  } else {
-    right.length()
-  }
-  for i in 0..<min_len {
-    let a = left[i].to_int()
-    let b = right[i].to_int()
-    if a != b {
-      return a - b
-    }
-  }
-  if left.length() == right.length() {
-    0
-  } else if left.length() < right.length() {
-    -1
-  } else {
-    1
-  }
+  left.compare(right)
 }
 
 ///|
