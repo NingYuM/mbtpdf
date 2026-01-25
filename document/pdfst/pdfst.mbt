@@ -24,10 +24,8 @@ fn ilist(start : Int, finish : Int) -> Array[Int] {
     return []
   }
   let out = Array::new(capacity=finish - start + 1)
-  let mut i = start
-  while i <= finish {
+  for i in start..<=finish {
     out.push(i)
-    i = i + 1
   }
   out
 }
@@ -38,7 +36,7 @@ fn setminus(full : Array[Int], remove : Array[Int]) -> Array[Int] {
   for v in remove {
     remove_set.set(v, ())
   }
-  let out = Array::new()
+  let out = Array::new(capacity=full.length())
   for v in full {
     if remove_set.get(v) is None {
       out.push(v)
@@ -59,7 +57,7 @@ fn set_of_ints(values : Array[Int]) -> Map[Int, Unit] {
 ///|
 fn dedup_ints(values : Array[Int]) -> Array[Int] {
   let set = set_of_ints(values)
-  let out = Array::new()
+  let out = Array::new(capacity=set.length())
   for key, _ in set {
     out.push(key)
   }
@@ -74,7 +72,7 @@ fn dedup_pairs(
   for pair in values {
     set.set(pair.0, pair.1)
   }
-  let out = Array::new()
+  let out = Array::new(capacity=set.length())
   for key, value in set {
     out.push((key, value))
   }
