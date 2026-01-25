@@ -2,7 +2,6 @@
 package "bobzhang/mbtpdf/core/pdfio"
 
 import {
-  "moonbitlang/async/fs",
   "moonbitlang/core/debug",
 }
 
@@ -21,8 +20,6 @@ pub fn bytes_of_caml_bytes(Bytes) -> Array[Byte]
 
 pub fn bytes_of_charlist(Array[Char]) -> Array[Byte]
 
-pub async fn bytes_of_input_channel(@fs.File) -> Array[Byte]
-
 pub fn bytes_of_int_array(Array[Int]) -> Array[Byte]
 
 pub fn bytes_of_list(Array[Int]) -> Array[Byte]
@@ -30,8 +27,6 @@ pub fn bytes_of_list(Array[Int]) -> Array[Byte]
 pub fn bytes_of_string(String) -> Array[Byte]
 
 pub fn bytes_size(Array[Byte]) -> Int
-
-pub async fn bytes_to_output_channel(@fs.File, Array[Byte]) -> Unit
 
 pub fn charlist_of_bytes(Array[Byte]) -> Array[Char]
 
@@ -100,8 +95,6 @@ pub struct Input {
 pub fn Input::bytes_of_input(Self, Int, Int) -> Array[Byte] raise
 pub fn Input::nudge(Self) -> Unit
 pub fn Input::of_bytes(Array[Byte], source? : String) -> Self
-pub async fn Input::of_channel(@fs.File, source? : String) -> Self
-pub async fn Input::of_file(String, source? : String) -> Self
 pub fn Input::of_string(String, source? : String) -> Self
 pub fn Input::peek_byte(Self) -> Int
 pub fn Input::peek_char(Self) -> Char?
@@ -124,7 +117,7 @@ pub struct Output {
 pub fn Output::extract_bytes(Self, Ref[Array[Byte]]) -> Array[Byte]
 pub fn Output::getinit(Self, Array[Byte], Int, Int) -> Unit raise
 pub fn Output::of_bytes(Int) -> (Self, Ref[Array[Byte]])
-pub fn Output::of_channel(@fs.File) -> Self
+pub fn Output::of_write_at(async (BytesView, Int64) -> Unit) -> Self
 
 // Type aliases
 pub type MutableBytes = Array[Byte]

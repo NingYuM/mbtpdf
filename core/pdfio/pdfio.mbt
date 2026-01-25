@@ -213,39 +213,13 @@ pub fn Input::of_string(s : String, source? : String = "string") -> Input {
 }
 
 ///|
-async fn read_data_to_bytes(load : async () -> &@io.Data) -> MutableBytes {
-  let data = load()
-  data.binary().to_array()
-}
-
-///|
-async fn run_async_unit(load : async () -> Unit) -> Unit {
-  load()
-}
-
-///|
-/// Build an input from a file path (native-only, reads entire file).
-pub async fn Input::of_file(
-  filename : String,
-  source? : String = "file",
-) -> Input {
-  let bytes = read_data_to_bytes(() => @fs.read_file(filename))
-  Input::of_bytes(bytes, source~)
-}
-
-///|
-/// Build an input from a channel (native-only, reads entire stream).
-pub async fn Input::of_channel(
-  ch : @fs.File,
-  source? : String = "channel",
-) -> Input {
-  let bytes = read_data_to_bytes(() => ch.read_all())
-  Input::of_bytes(bytes, source~)
-}
-
-///|
-/// Build an output from a channel (native-only).
-pub fn Output::of_channel(ch : @fs.File) -> Output {
+/// Build an output backed by an external `write_at` function.
+///
+/// The output uses an internal growable buffer. `flush` writes the full buffer
+/// from the beginning (position 0).
+pub fn Output::of_write_at(
+  write_at : async (BytesView, Int64) -> Unit,
+) -> Output {
   let mut pos = 0
   let mut highest_written = -1
   let single : MutableBytes = mkbytes(1)
@@ -276,10 +250,10 @@ pub fn Output::of_channel(ch : @fs.File) -> Output {
       bset_unsafe(out, i, bget_unsafe(buffer.val, i))
     }
     let bytes = Bytes::from_array(out)
-    ch.write_at(bytes[:], position=0)
+    write_at(bytes[:], 0)
   }
 
-  let output = {
+  {
     pos_out: () => pos,
     seek_out: p => pos = p,
     output_char: c => {
@@ -294,7 +268,6 @@ pub fn Output::of_channel(ch : @fs.File) -> Output {
     out_channel_length: () => highest_written + 1,
     flush: flush_output,
   }
-  output
 }
 
 ///|
@@ -454,22 +427,6 @@ pub fn Output::getinit(
   for i = offset; i < offset + length; i = i + 1 {
     (self.output_byte)(bget_unsafe(bytes, i))
   }
-}
-
-///|
-/// Extract bytes from input channel.
-pub async fn bytes_of_input_channel(ch : @fs.File) -> MutableBytes {
-  read_data_to_bytes(() => ch.read_all())
-}
-
-///|
-/// Write bytes to output channel.
-pub async fn bytes_to_output_channel(
-  ch : @fs.File,
-  bytes : MutableBytes,
-) -> Unit {
-  let payload = Bytes::from_array(bytes)
-  run_async_unit(() => ch.write(payload))
 }
 
 ///|

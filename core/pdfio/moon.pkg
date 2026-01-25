@@ -1,17 +1,11 @@
 import {
   "bobzhang/mbtpdf/core/pdfe",
-  "moonbitlang/async/fs",
-  "moonbitlang/async/io",
 }
 
 import {
   "moonbitlang/async",
-  "moonbitlang/async/fs",
-  "moonbitlang/async/io",
 } for "test"
 
 import {
   "moonbitlang/async",
-  "moonbitlang/async/fs",
-  "moonbitlang/async/io",
 } for "wbtest"
