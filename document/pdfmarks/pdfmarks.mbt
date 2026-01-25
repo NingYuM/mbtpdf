@@ -392,7 +392,7 @@ fn make_outline_ntree(
       )
       let tree = make_outline_ntree(source, pdf, lower)
       let current = Br(fresh(source, pdf), node, tree, head.isopen)
-      let out = Array::new()
+      let out = Array::new(capacity=1 + remaining.length())
       out.push(current)
       out.append(make_outline_ntree(source, pdf, remaining)[:])
       out
