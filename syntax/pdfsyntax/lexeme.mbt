@@ -79,32 +79,22 @@ fn trim_trailing_zeros(value : String) -> String {
       if len == 0 {
         return value
       }
+      let chars = value[:]
       let mut end = len - 1
-      while end >= 0 {
-        match value.get_char(end) {
-          Some('0') => end = end - 1
-          _ => break
-        }
+      while end >= 0 && chars[end] == '0' {
+        end = end - 1
       }
-      if end >= 0 {
-        match value.get_char(end) {
-          Some('.') => end = end - 1
-          _ => ()
-        }
+      if end >= 0 && chars[end] == '.' {
+        end = end - 1
       }
       if end < 0 {
         "0"
       } else {
-        let sb = StringBuilder::new()
-        let mut i = 0
-        while i <= end {
-          match value.get_char(i) {
-            Some(ch) => sb.write_char(ch)
-            None => break
-          }
-          i = i + 1
+        try value[:end + 1] catch {
+          _ => ""
+        } noraise {
+          view => view.to_string()
         }
-        sb.to_string()
       }
     }
   }
