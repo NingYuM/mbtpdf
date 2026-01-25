@@ -23,8 +23,7 @@ pub fn PdfCodec::new(flate_level? : Int = 6) -> PdfCodec {
 
 ///|
 /// Predictors for decoded data.
-#warnings("-unused_constructor")
-enum Predictor {
+pub(all) enum Predictor {
   TIFF2
   PNGNone
   PNGSub

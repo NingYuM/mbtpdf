@@ -38,7 +38,15 @@ pub fn PdfCodec::encode_flate(Self, Array[Byte]) -> Array[Byte]
 pub fn PdfCodec::encode_pdfstream(Self, @pdf.Pdf, Encoding, @pdf.PdfObject, im? : String, only_if_smaller? : Bool, predictor? : Predictor, predictor_columns? : Int) -> Unit raise CodecError
 pub fn PdfCodec::new(flate_level? : Int) -> Self
 
-type Predictor
+pub(all) enum Predictor {
+  TIFF2
+  PNGNone
+  PNGSub
+  PNGUp
+  PNGAverage
+  PNGPaeth
+  PNGOptimum
+}
 pub impl @debug.Debug for Predictor
 
 // Type aliases

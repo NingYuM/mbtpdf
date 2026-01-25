@@ -74,6 +74,7 @@ let decompressed = @pdfcodec.PdfCodec::new().decode_flate(input)
 
 ```mbt nocheck
 // Configure flate compression level (0-9, default 6)
+
 ///|
 let codec = @pdfcodec.PdfCodec::new(flate_level=9) // Maximum compression
 ```
