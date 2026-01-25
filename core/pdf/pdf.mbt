@@ -91,6 +91,10 @@ pub(all) enum PdfObject {
   String(String)
   Name(String)
   Array(Array[PdfObject])
+  // Use an Array of (key, value) pairs instead of Map:
+  // - Allows representing malformed PDFs with duplicate keys.
+  // - Preserves "first match wins" semantics used by lookup_* (search_by).
+  // - Keeps insertion order stable for serialization.
   Dictionary(Array[(String, PdfObject)])
   Stream(Ref[(PdfObject, Stream)])
   Indirect(Int)
