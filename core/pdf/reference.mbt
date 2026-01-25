@@ -24,12 +24,7 @@ fn refset_elts(rs : Map[Int, Bool]) -> Array[Int] {
 
 ///|
 fn contains_string(xs : Array[String], key : String) -> Bool {
-  for entry in xs {
-    if entry == key {
-      return true
-    }
-  }
-  false
+  xs.search_by(v => v == key) is Some(_)
 }
 
 ///|
@@ -37,18 +32,13 @@ fn dict_contains_name_entry(
   dict : Array[(String, PdfObject)],
   entry : (String, PdfObject),
 ) -> Bool {
-  let (key, value) = entry
-  match value {
-    Name(name) => {
-      for pair in dict {
-        let (k, v) = pair
-        match v {
-          Name(vname) if k == key && vname == name => return true
-          _ => ()
-        }
-      }
-      false
-    }
+  match entry {
+    (key, Name(name)) =>
+      dict.search_by(pair => match pair {
+        (k, Name(vname)) => k == key && vname == name
+        _ => false
+      })
+      is Some(_)
     _ => false
   }
 }
