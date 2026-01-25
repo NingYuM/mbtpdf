@@ -56,9 +56,9 @@ fn merge_namedicts(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int raise {
     "/Dests", "/AP", "/JavaScript", "/Pages", "/Templates", "/IDS", "/URLS", "/EmbeddedFiles",
     "/AlternatePresentations", "/Renditions",
   ]
-  let trees = Array::new()
+  let trees = Array::new(capacity=names.length())
   for name in names {
-    let trees_for_name = Array::new()
+    let trees_for_name = Array::new(capacity=pdfs.length())
     for src in pdfs {
       let catalog = src.catalog_of_pdf()
       match src.lookup_direct("/Names", catalog) {
@@ -74,7 +74,7 @@ fn merge_namedicts(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int raise {
       trees.push((name, trees_for_name))
     }
   }
-  let new_entries = Array::new()
+  let new_entries = Array::new(capacity=trees.length())
   let tree_ctx = @pdftree.PdfTree::new(pdf)
   for pair in trees {
     let merged = tree_ctx.merge_name_trees_no_clash(pair.1)

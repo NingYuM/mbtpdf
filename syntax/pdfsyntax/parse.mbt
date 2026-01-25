@@ -45,7 +45,8 @@ fn parse_dictionary(
   items : Array[ParseItem],
   start : Int,
 ) -> (ParseItem, Int) raise {
-  let entries = Array::new()
+  let remaining = items.length() - start
+  let entries = Array::new(capacity=remaining / 2)
   let mut i = start + 1
   while i < items.length() {
     match items[i] {
@@ -66,7 +67,8 @@ fn parse_dictionary(
 
 ///|
 fn parse_array(items : Array[ParseItem], start : Int) -> (ParseItem, Int) raise {
-  let values = Array::new()
+  let remaining = items.length() - start
+  let values = Array::new(capacity=remaining)
   let mut i = start + 1
   while i < items.length() {
     match items[i] {
