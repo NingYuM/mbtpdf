@@ -25,46 +25,22 @@ fn bytes_of_int_arrays(values : Array[Array[Int]]) -> @pdfio.MutableBytes {
 
 ///|
 fn int_array_prefix(values : Array[Int], len : Int) -> Array[Int] {
-  let out = Array::make(len, 0)
-  for i in 0..<len {
-    out[i] = values[i]
-  }
-  out
+  values[:len].to_array()
 }
 
 ///|
 fn bytes_prefix(values : @pdfio.MutableBytes, len : Int) -> @pdfio.MutableBytes {
-  let out = @pdfio.mkbytes(len)
-  for i in 0..<len {
-    out[i] = values[i]
-  }
-  out
+  values[:len].to_array()
 }
 
 ///|
 fn array_equal(a : Array[Int], b : Array[Int]) -> Bool {
-  if a.length() != b.length() {
-    return false
-  }
-  for i in 0..<a.length() {
-    if a[i] != b[i] {
-      return false
-    }
-  }
-  true
+  a[:].equal(b[:])
 }
 
 ///|
 fn bytes_equal(a : @pdfio.MutableBytes, b : @pdfio.MutableBytes) -> Bool {
-  if a.length() != b.length() {
-    return false
-  }
-  for i in 0..<a.length() {
-    if a[i] != b[i] {
-      return false
-    }
-  }
-  true
+  a[:].equal(b[:])
 }
 
 ///|
