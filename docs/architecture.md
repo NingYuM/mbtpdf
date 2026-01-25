@@ -216,6 +216,16 @@ Unsupported filters (notably `/JBIG2Decode` in the sync path) raise
 `CodecError::DecodeNotSupported` so callers can decide whether to stop or
 continue.
 
+### Encryption Helpers (`@pdfcryptprimitives`)
+
+The encryption layer also has small “centralize the branching” helpers to avoid
+duplicating `match Encryption` logic across packages:
+
+- `Encryption::r_and_keylength()` returns the PDF security handler revision
+  (`/R`) and the key length in bits implied by the variant.
+- `PdfCryptPrimitives::decrypt_stream_data(...)` performs both encryption and
+  decryption for string/stream payload bytes once you have the right keys.
+
 ### CLI Tools (`cmd/`)
 
 | Tool | Description |
