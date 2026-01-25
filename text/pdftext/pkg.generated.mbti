@@ -17,7 +17,6 @@ pub struct PdfText {
 pub fn PdfText::add_tounicode(Self, @pdffont.Font, @pdf.PdfObject) -> @pdffont.Font
 pub fn PdfText::charcode_extractor_of_font(Self, @pdf.PdfObject, debug? : Bool) -> ((Int) -> Int?) raise
 pub fn PdfText::extract_text(Self, page_break? : String) -> String raise
-pub fn PdfText::extract_text_by_page(Self) -> Array[String] raise
 pub fn PdfText::is_cidkeyed_font(Self, @pdf.PdfObject) -> Bool
 pub fn PdfText::is_embedded(Self, @pdf.PdfObject) -> Bool
 pub fn PdfText::is_simple_font(Self, @pdf.PdfObject) -> Bool

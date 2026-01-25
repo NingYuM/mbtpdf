@@ -10,7 +10,7 @@ pub fn PdfText::extract_text(
 }
 
 ///|
-pub fn PdfText::extract_text_by_page(self : PdfText) -> Array[String] raise {
+fn PdfText::extract_text_by_page(self : PdfText) -> Array[String] raise {
   let pages = @pdfpage.PdfPageDoc::new(self.pdf).pages_of_pagetree()
   pages.map(page => self.extract_text_from_page(page))
 }

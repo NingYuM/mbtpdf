@@ -5,14 +5,22 @@ async test "extract text pandoc basic fixture" {
     None,
     "testdata/pandoc/pandoc_basic.pdf",
   )
-  let pages = @pdftext.PdfText::new(pdf).extract_text_by_page()
-  debug_inspect(
+  let pages = @pdftext.PdfText::new(pdf).extract_text(page_break="\n-----\n")
+  inspect(
     pages,
     content=(
-      #|[
-      #|  "PandocFixtureBasic\nPandocFixturePageOne\nThisfixturecheckssimpleASCIItokens.\n•\nAlphaTokenOne\n•\nBetaTokenTwo\n1",
-      #|  "PandocFixturePageTwo\nSecondpagewithnumbers12345andMixedCaseToken.\n2",
-      #|]
+      #|PandocFixtureBasic
+      #|PandocFixturePageOne
+      #|ThisfixturecheckssimpleASCIItokens.
+      #|•
+      #|AlphaTokenOne
+      #|•
+      #|BetaTokenTwo
+      #|1
+      #|-----
+      #|PandocFixturePageTwo
+      #|Secondpagewithnumbers12345andMixedCaseToken.
+      #|2
     ),
   )
 }
