@@ -7,6 +7,24 @@ pub(all) enum Encryption {
 } derive(Debug)
 
 ///|
+/// Return the PDF "revision" (`/R`) and key length (in bits) implied by the
+/// encryption variant.
+///
+/// - `ARC4(bits, r)` uses the explicit values from the parsed encryption dict.
+/// - `AESV2` is always revision 4 with a 128-bit key.
+/// - `AESV3(is_iso)` is revision 5 (or 6 in ISO mode) with a 256-bit key.
+///
+/// This is a small convenience API to avoid scattering the same `match` in
+/// multiple packages.
+pub fn Encryption::r_and_keylength(self : Encryption) -> (Int, Int) {
+  match self {
+    ARC4(bits, r) => (r, bits)
+    AESV2 => (4, 128)
+    AESV3(is_iso) => (if is_iso { 6 } else { 5 }, 256)
+  }
+}
+
+///|
 pub struct PdfCryptPrimitives {
   unit : Unit
 }

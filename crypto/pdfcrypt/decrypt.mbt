@@ -527,11 +527,7 @@ fn key_or_user_password_from_owner(
       (crypt_type, u, o, oe)
     }
   }
-  let (r, keylength) = match crypt_type {
-    @pdfcryptprimitives.Encryption::AESV2 => (4, 128)
-    @pdfcryptprimitives.Encryption::AESV3(iso) => (if iso { 6 } else { 5 }, 256)
-    @pdfcryptprimitives.Encryption::ARC4(k, r_val) => (r_val, k)
-  }
+  let (r, keylength) = crypt_type.r_and_keylength()
   if r == 5 || r == 6 {
     if authenticate_owner_password_aesv3(r == 6, make_utf8(owner_pw), u, o) {
       match oe {
@@ -602,12 +598,7 @@ pub fn PdfCrypt::decrypt_single_stream(
     None => stream
     Some(encrypt_dict) => {
       let (crypt_type, u, o, p, id, ue, oe) = self.get_encryption_values(pdf)
-      let (r, keylength) = match crypt_type {
-        @pdfcryptprimitives.Encryption::AESV2 => (4, 128)
-        @pdfcryptprimitives.Encryption::AESV3(iso) =>
-          (if iso { 6 } else { 5 }, 256)
-        @pdfcryptprimitives.Encryption::ARC4(k, r_val) => (r_val, k)
-      }
+      let (r, keylength) = crypt_type.r_and_keylength()
       let no_encrypt_metadata = match
         pdf.lookup_direct("/EncryptMetadata", encrypt_dict) {
         Some(@pdf.PdfObject::Boolean(false)) => true
