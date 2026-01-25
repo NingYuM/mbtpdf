@@ -1,7 +1,15 @@
 ///|
 /// Name tree helpers.
 fn compare_string(a : String, b : String) -> Int {
-  a[:].compare(b[:])
+  // IMPORTANT:
+  // - `StringView::compare` uses *shortlex* order (length-first), which is not a
+  //   traditional lexicographical string ordering.
+  // - Name trees assume their keys are sorted by a lexicographical order (PDF
+  //   keys are compared byte-wise; in this library we use UTF-16 code units).
+  //
+  // Use `lexical_compare` to match the previous "scan until first difference,
+  // then compare lengths" semantics.
+  a[:].lexical_compare(b[:])
 }
 
 ///|

@@ -163,8 +163,10 @@ fn parse_int(value : String) -> Int {
 
 ///|
 fn compare_string(a : String, b : String) -> Int {
-  // Compare in terms of UTF-16 code units (same semantics as the previous loop).
-  a[:].compare(b[:])
+  // IMPORTANT: `StringView::compare` uses *shortlex* order (length-first).
+  // For name-tree keys we want traditional lexicographical comparison by UTF-16
+  // code units (scan until the first difference, then compare lengths).
+  a[:].lexical_compare(b[:])
 }
 
 ///|

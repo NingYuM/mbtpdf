@@ -1,7 +1,20 @@
 ///|
 /// Compare two byte arrays lexicographically.
-fn compare_bytes(left : Array[Byte], right : Array[Byte]) -> Int {
-  left.compare(right)
+fn compare_bytes(left : ArrayView[Byte], right : ArrayView[Byte]) -> Int {
+  // `Compare for Array[T]` is shortlex (length-first). For bytes we want the
+  // traditional lexicographical order: compare element-by-element first, and
+  // only compare lengths if all compared elements are equal.
+  let left_len = left.length()
+  let right_len = right.length()
+  let min_len = if left_len < right_len { left_len } else { right_len }
+  for i in 0..<min_len {
+    let a = left[i]
+    let b = right[i]
+    if a != b {
+      return a.to_int() - b.to_int()
+    }
+  }
+  left_len - right_len
 }
 
 ///|
