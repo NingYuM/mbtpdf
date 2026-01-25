@@ -171,6 +171,25 @@ test "add_dict_entry" {
 }
 ```
 
+## Traits
+
+### ToPdfNumber
+
+`@pdf.ToPdfNumber` is a small helper trait for converting primitive numeric
+types into `PdfObject` numeric nodes.
+
+```mbt check
+///|
+test "ToPdfNumber converts Int/Double to PdfObject numbers" {
+  guard @pdf.ToPdfNumber::to_pdf_number(42) is Integer(42) else {
+    fail("expected Integer(42)")
+  }
+  guard @pdf.ToPdfNumber::to_pdf_number(1.5) is Real(r) && r == 1.5 else {
+    fail("expected Real(1.5)")
+  }
+}
+```
+
 ### Replacing Entries
 
 ```mbt check

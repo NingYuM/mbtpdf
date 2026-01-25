@@ -7,10 +7,9 @@ Stream encoding and decoding for PDF compression.
 The `pdfcodec` package provides:
 
 - Flate (zlib) compression/decompression
-- ASCII85 encoding/decoding
-- Run-length encoding
-- Predictor filters for images
-- Stream decoding pipelines
+- ASCIIHex / ASCII85 / RunLength / LZW decoding (and encoding for some cases)
+- CCITT Fax decoding (including Group 4)
+- Stream decoding pipelines for `/Filter` chains
 
 ## Encoding Types
 
@@ -20,8 +19,10 @@ pub(all) enum Encoding {
   ASCIIHex
   ASCII85
   RunLength
+  LZW(Int) // EarlyChange
   Flate
-  LZW
+  CCITT(Int, Int) // Columns, Rows
+  CCITTG4(Int, Int) // Columns, Rows
 }
 ```
 
@@ -36,14 +37,13 @@ pub struct PdfCodec { ... }
 pub fn PdfCodec::new() -> PdfCodec
 ```
 
-## Predictor Filters
+## Predictor Filters (Optional)
 
-Used with Flate and LZW for improved image compression:
+`PdfCodec::encode_pdfstream` supports optional predictor encoding.
 
 ```mbt nocheck
 ///|
 pub enum Predictor {
-  None
   TIFF2
   PNGNone
   PNGSub
@@ -77,22 +77,6 @@ let decompressed = @pdfcodec.PdfCodec::new().decode_flate(input)
 @pdfcodec.flate_level.val = 9  // Maximum compression
 ```
 
-## ASCII85 Encoding
-
-### Encode
-
-```mbt nocheck
-///|
-let encoded = @pdfcodec.encode_ascii85(data)
-```
-
-### Decode
-
-```mbt nocheck
-///|
-let decoded = @pdfcodec.decode_ascii85(input)
-```
-
 ## Stream Decoding
 
 Decode stream data based on its /Filter entry:
@@ -104,19 +88,24 @@ let decoded = @pdfcodec.PdfCodec::new().decode_pdfstream_until_unknown(
 )
 ```
 
+## Filter Dispatch Trait
+
+The package exposes a small trait to centralize "decode one filter stage by
+name" logic:
+
+- `trait PdfFilterNameDecode` (implemented for `String`)
+- Used internally by both `decode_pdfstream_onestage` (mutating a PDF stream)
+  and `decode_from_bytes` (pure bytes decoding).
+
+Unsupported filters raise `CodecError::DecodeNotSupported` so callers can
+decide whether to stop or keep decoding.
+
 ## Error Handling
 
 ```mbt nocheck
 ///|
 pub suberror CodecError {
-  BadLength
-  Unknown(String)
+  CouldntDecodeStream(String)
+  DecodeNotSupported(String)
 }
-```
-
-## Debug Options
-
-```mbt nocheck
-// Enable debug output
-@pdfcodec.debug.val = true
 ```
