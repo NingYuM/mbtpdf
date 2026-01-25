@@ -157,17 +157,6 @@ test "encode_pdfstream keeps data when only_if_smaller" {
 ///|
 test "decode_pdfstream handles filter arrays" {
   let pdf = @pdf.Pdf::empty()
-  let old = @pdfcodec.string_of_pdf.val
-  @pdfcodec.string_of_pdf.val = obj => match
-    (@pdf.Pdf::empty().lookup_direct("/Filter", obj) : @pdf.PdfObject?) {
-    Some(Array(filters)) => "\{filters.length()}"
-    Some(Name(name)) => name
-    None => ""
-    _ => "other"
-  }
-  defer {
-    @pdfcodec.string_of_pdf.val = old
-  }
   let original = @pdfio.bytes_of_string("decode chain")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(original))),

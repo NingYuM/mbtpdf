@@ -45,28 +45,6 @@ pub suberror CodecError {
 let flate_level : Ref[Int] = { val: 6 }
 
 ///|
-/// Inter-module recursion hooks (placeholders for now).
-pub let string_of_pdf : Ref[(@pdf.PdfObject) -> String] = { val: _ => "" }
-
-///|
-/// Placeholder for async Pdf.of_file (revision?, user?, owner?, filename).
-#warnings("-unused_async")
-async fn pdf_of_file_placeholder(
-  _revision : Int?,
-  _user_password : String?,
-  _owner_password : String?,
-  _filename : String,
-) -> @pdf.Pdf {
-  @pdf.Pdf::empty()
-}
-
-///|
-/// Async hook for Pdf.of_file (revision?, user?, owner?, filename).
-pub let pdf_of_file : Ref[async (Int?, String?, String?, String) -> @pdf.Pdf] = {
-  val: pdf_of_file_placeholder,
-}
-
-///|
 /// Encode data in FlateDecode.
 pub fn PdfCodec::encode_flate(
   _self : PdfCodec,
@@ -1069,10 +1047,10 @@ pub fn PdfCodec::decode_pdfstream(
         match filter_opt {
           None => ()
           Some(Name(_)) | Some(Array(_)) => {
-            let before = (string_of_pdf.val)(dict)
+            let before = dict.to_string()
             self.decode_pdfstream_onestage(pdf, obj, jbig2dec?)
             let (after_dict, _after_stream) = r.val
-            let after = (string_of_pdf.val)(after_dict)
+            let after = after_dict.to_string()
             if before != after {
               decode_one_stage(pdf, obj)
             }

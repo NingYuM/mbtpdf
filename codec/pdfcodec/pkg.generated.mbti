@@ -7,9 +7,6 @@ import {
 }
 
 // Values
-pub let pdf_of_file : Ref[async (Int?, String?, String?, String) -> @pdf.Pdf]
-
-pub let string_of_pdf : Ref[(@pdf.PdfObject) -> String]
 
 // Errors
 pub suberror CodecError {
