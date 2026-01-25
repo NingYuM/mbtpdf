@@ -370,9 +370,7 @@ fn read_all_input(input : (@pdfio.MutableBytes) -> Int) -> @pdfio.MutableBytes {
     if n <= 0 {
       return
     }
-    for i in 0..<n {
-      out.push(buf[i])
-    }
+    out.append(buf[:n])
     read_more(out, buf, input)
   }
 
