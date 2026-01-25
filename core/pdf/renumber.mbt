@@ -70,7 +70,9 @@ pub fn Pdf::renumber(
       max_obj_num = new_num
     }
   }
-  let object_stream_ids = Map::new()
+  let object_stream_ids = Map::new(
+    capacity=self.objects.object_stream_ids.length(),
+  )
   for key, value in self.objects.object_stream_ids {
     match change_table.get(key) {
       Some(new_key) => object_stream_ids.set(new_key, value)
