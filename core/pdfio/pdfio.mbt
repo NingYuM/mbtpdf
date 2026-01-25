@@ -550,11 +550,11 @@ pub fn BitstreamWrite::putval(
   if bits < 0 || bits > 32 {
     fail("putval")
   }
-  let mut i = bits - 1
-  while i >= 0 {
-    let bit = (value >> i) & 1
-    self.putbit(bit)
-    i = i - 1
+  if bits == 0 {
+    return
+  }
+  for i in (bits - 1)>=..0 {
+    self.putbit((value >> i) & 1)
   }
 }
 
