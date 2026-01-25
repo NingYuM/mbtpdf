@@ -1,8 +1,4 @@
 ///|
-/// Hook for resolving page count (re-exported from pdf).
-let endpage : Ref[(@pdf.Pdf) -> Int] = @pdf.endpage
-
-///|
 pub struct PdfStructTree {
   pdf : @pdf.Pdf
 }
@@ -102,7 +98,7 @@ pub fn PdfStructTree::trim_structure_tree(
 ) -> Unit raise {
   let pdf = self.pdf
   let objnums = pdf.page_reference_numbers()
-  let total_pages = (endpage.val)(pdf)
+  let total_pages = objnums.length()
   let pages_to_remove = setminus(ilist(1, total_pages), range)
   let page_objnums_to_remove = Array::new(capacity=pages_to_remove.length())
   for pnum in pages_to_remove {

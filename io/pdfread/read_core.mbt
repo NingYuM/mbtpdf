@@ -281,10 +281,6 @@ fn read_pdf_internal(
     for objnum, _ in postdeletes {
       remove_postdelete(pdf_final, objnum)
     }
-    if pdf_final.objects.object_stream_ids.length() == 0 {
-      let _ = (endpage.val)(pdf_final)
-
-    }
     pdf_final
   } catch {
     err =>

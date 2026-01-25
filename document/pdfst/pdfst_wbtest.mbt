@@ -64,12 +64,7 @@ fn add_struct_tree(pdf : @pdf.Pdf) -> (Int, Int) raise {
 test "trim_structure_tree removes entries" {
   let pdf = build_two_page_pdf()
   let (root_num, removed_num) = add_struct_tree(pdf)
-  let previous = endpage.val
-  endpage.val = p => @pdfpage.PdfPageDoc::new(p).pages_of_pagetree_quick() catch {
-    _ => 0
-  }
   PdfStructTree::new(pdf).trim_structure_tree([1])
-  endpage.val = previous
   assert_true(!pdf.objnumbers().contains(removed_num))
   let root = pdf.lookup_obj(root_num)
   match (root.lookup_immediate("/K") : @pdf.PdfObject?) {
@@ -128,12 +123,7 @@ test "trim_structure_tree updates nested k arrays" {
     Ref::new((stream_dict, @pdf.Stream::Got(([] : Array[Byte])))),
   )
   ignore(pdf.addobj(stream_obj))
-  let previous = endpage.val
-  endpage.val = p => @pdfpage.PdfPageDoc::new(p).pages_of_pagetree_quick() catch {
-    _ => 0
-  }
   PdfStructTree::new(pdf).trim_structure_tree([1])
-  endpage.val = previous
   assert_true(!pdf.objnumbers().contains(parent_remove))
   let root = pdf.lookup_obj(root_num)
   match (root.lookup_immediate("/K") : @pdf.PdfObject?) {

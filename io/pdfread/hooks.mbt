@@ -1,8 +1,4 @@
 ///|
-/// Hook for page-tree traversal (re-exported from pdf).
-let endpage : Ref[(@pdf.Pdf) -> Int] = @pdf.endpage
-
-///|
 /// Register pdf_of_file hook for decoder modules.
 async fn pdf_of_file_unlabeled(
   revision : Int?,

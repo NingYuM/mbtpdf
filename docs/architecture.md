@@ -63,7 +63,7 @@ Layer 10: CLI
 Key design principles:
 - Mid-layer packages (graphics/pdfops, document/pdfpage, etc.) do not depend on IO services (io/pdfread/io/pdfwrite)
 - Font types live in `font/pdffont`, allowing `font/pdfstandard14` to avoid depending on `text/pdftext`
-- Hooks in `core/pdf` (`endpage`, `string_of_pdf`) enable cross-layer communication
+- Hooks in `core/pdf` (`string_of_pdf`) enable cross-layer communication
 
 ## Package Dependency Map (High Level)
 

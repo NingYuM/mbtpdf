@@ -246,13 +246,6 @@ pub fn PdfPageDoc::endpage(self : PdfPageDoc) -> Int raise {
 }
 
 ///|
-fn endpage_safe(pdf : @pdf.Pdf) -> Int {
-  PdfPageDoc::new(pdf).endpage() catch {
-    _ => 0
-  }
-}
-
-///|
 /// Fast page count from the top /Count.
 pub fn PdfPageDoc::endpage_fast(self : PdfPageDoc) -> Int raise {
   let pdf = self.pdf
@@ -271,7 +264,4 @@ pub fn PdfPageDoc::endpage_fast(self : PdfPageDoc) -> Int raise {
   }
 }
 
-///|
-let _register_endpage : Unit = {
-  @pdf.endpage.val = endpage_safe
-}
+// Note: no global cross-package hooks; call PdfPageDoc::endpage* directly.

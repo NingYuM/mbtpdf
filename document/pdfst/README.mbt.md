@@ -60,15 +60,10 @@ pub fn PdfStructTree::merge_structure_trees(
 - `add_toplevel_document`: Wrap in /Document element (default: false)
 - Returns the merged StructTreeRoot object number
 
-## Variables
+## Notes
 
-### endpage
-
-Hook for resolving page count (re-exported from pdf module).
-
-```moonbit nocheck
-pub let endpage : Ref[(@pdf.Pdf) -> Int]
-```
+This package computes page counts directly via `@pdfpage.PdfPageDoc` (no global
+cross-package hooks).
 
 ## Tagged PDF Structure
 
