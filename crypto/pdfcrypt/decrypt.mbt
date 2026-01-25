@@ -549,25 +549,15 @@ fn key_or_user_password_from_owner(
     }
   } else {
     let user_pw = {
+      let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
       let key = owner_key(padded_owner, keylength, r)
       if r == 2 {
-        @pdfio.string_of_bytes(
-          @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-            key,
-            @pdfio.bytes_of_string(o),
-          ),
-        )
+        @pdfio.string_of_bytes(prims.crypt(key, @pdfio.bytes_of_string(o)))
       } else {
-        let mut acc = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-          key,
-          @pdfio.bytes_of_string(o),
-        )
+        let mut acc = prims.crypt(key, @pdfio.bytes_of_string(o))
         let mut x = 19
         while x >= 0 {
-          acc = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-            mkkey(key, x),
-            acc,
-          )
+          acc = prims.crypt(mkkey(key, x), acc)
           x = x - 1
         }
         @pdfio.string_of_bytes(acc)
@@ -692,28 +682,20 @@ pub fn PdfCrypt::decrypt_single_stream(
         _ =>
           match owner_pw {
             Some(owner_string) => {
+              let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
               let padded_owner = pad_password(
                 @pdfio.int_array_of_string(owner_string),
               )
               let key = owner_key(padded_owner, keylength, r)
               let user_pw_string = if r == 2 {
                 @pdfio.string_of_bytes(
-                  @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-                    key,
-                    @pdfio.bytes_of_string(o),
-                  ),
+                  prims.crypt(key, @pdfio.bytes_of_string(o)),
                 )
               } else {
-                let mut acc = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-                  key,
-                  @pdfio.bytes_of_string(o),
-                )
+                let mut acc = prims.crypt(key, @pdfio.bytes_of_string(o))
                 let mut x = 19
                 while x >= 0 {
-                  acc = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-                    mkkey(key, x),
-                    acc,
-                  )
+                  acc = prims.crypt(mkkey(key, x), acc)
                   x = x - 1
                 }
                 @pdfio.string_of_bytes(acc)

@@ -8,6 +8,7 @@ fn find_key(
   id : String,
   keylength : Int,
 ) -> Array[Int] {
+  let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   let password_ints = @pdfio.int_array_of_string(password)
   let o_ints = @pdfio.int_array_of_string(o)
   let id_ints = @pdfio.int_array_of_string(id)
@@ -26,13 +27,13 @@ fn find_key(
   let digest_input = bytes_of_int_arrays([
     pw, o_ints, from_p, id_ints, rev4_no_metadata,
   ])
-  let h = @pdfcryptprimitives.PdfCryptPrimitives::new().md5(digest_input)
+  let h = prims.md5(digest_input)
   let key_len = keylength / 8
   if r >= 3 {
     let mut i = 1
     let mut h_bytes = h
     while i <= 50 {
-      let digest = @pdfcryptprimitives.PdfCryptPrimitives::new().md5(h_bytes)
+      let digest = prims.md5(h_bytes)
       h_bytes = bytes_prefix(digest, key_len)
       i = i + 1
     }
@@ -53,15 +54,14 @@ fn authenticate_user(
   id : String,
   keylength : Int,
 ) -> Bool {
+  let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   let u_ints = @pdfio.int_array_of_string(u)
   let key = find_key(no_encrypt_metadata, password, r, o, p, id, keylength)
   if r >= 3 {
     let id_ints = @pdfio.int_array_of_string(id)
     let digest_input = bytes_of_int_arrays([paddings, id_ints])
-    let hashed = @pdfcryptprimitives.PdfCryptPrimitives::new().md5(digest_input)
-    let encrypted = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-      key, hashed,
-    )
+    let hashed = prims.md5(digest_input)
+    let encrypted = prims.crypt(key, hashed)
     let mut u_prime = @pdfio.int_array_of_bytes(encrypted)
     let mut x = 1
     while x <= 19 {
@@ -72,31 +72,25 @@ fn authenticate_user(
         k = k + 1
       }
       let data_bytes = @pdfio.bytes_of_int_array(u_prime)
-      let new_bytes = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-        key_prime, data_bytes,
-      )
+      let new_bytes = prims.crypt(key_prime, data_bytes)
       u_prime = @pdfio.int_array_of_bytes(new_bytes)
       x = x + 1
     }
     array_equal(int_array_prefix(u_ints, 16), u_prime)
   } else {
-    let encrypted = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-      key,
-      @pdfio.bytes_of_int_array(paddings),
-    )
+    let encrypted = prims.crypt(key, @pdfio.bytes_of_int_array(paddings))
     array_equal(u_ints, @pdfio.int_array_of_bytes(encrypted))
   }
 }
 
 ///|
 fn owner_key(padded_owner : Array[Int], keylength : Int, r : Int) -> Array[Int] {
-  let mut d = @pdfcryptprimitives.PdfCryptPrimitives::new().md5(
-    @pdfio.bytes_of_int_array(padded_owner),
-  )
+  let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
+  let mut d = prims.md5(@pdfio.bytes_of_int_array(padded_owner))
   if r >= 3 {
     let mut i = 1
     while i <= 50 {
-      d = @pdfcryptprimitives.PdfCryptPrimitives::new().md5(d)
+      d = prims.md5(d)
       i = i + 1
     }
   }
@@ -110,28 +104,20 @@ fn mk_owner(
   user_pw : String,
   keylength : Int,
 ) -> String {
+  let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   let source = if owner_pw == "" { user_pw } else { owner_pw }
   let padded_owner = pad_password(@pdfio.int_array_of_string(source))
   let key = owner_key(padded_owner, keylength, r)
   let padded_user = pad_password(@pdfio.int_array_of_string(user_pw))
   if r == 2 {
     @pdfio.string_of_bytes(
-      @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-        key,
-        @pdfio.bytes_of_int_array(padded_user),
-      ),
+      prims.crypt(key, @pdfio.bytes_of_int_array(padded_user)),
     )
   } else {
-    let mut acc = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-      key,
-      @pdfio.bytes_of_int_array(padded_user),
-    )
+    let mut acc = prims.crypt(key, @pdfio.bytes_of_int_array(padded_user))
     let mut x = 1
     while x <= 19 {
-      acc = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-        mkkey(key, x),
-        acc,
-      )
+      acc = prims.crypt(mkkey(key, x), acc)
       x = x + 1
     }
     @pdfio.string_of_bytes(acc)
@@ -148,27 +134,22 @@ fn mk_user(
   r : Int,
   keylength : Int,
 ) -> String {
+  let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   let key = find_key(no_encrypt_metadata, user_pw, r, o, p, id, keylength)
   if r == 2 {
     @pdfio.string_of_bytes(
-      @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-        key,
-        @pdfio.bytes_of_int_array(paddings),
-      ),
+      prims.crypt(key, @pdfio.bytes_of_int_array(paddings)),
     )
   } else {
     let digest_input = bytes_of_int_arrays([
       paddings,
       @pdfio.int_array_of_string(id),
     ])
-    let d = @pdfcryptprimitives.PdfCryptPrimitives::new().md5(digest_input)
-    let mut acc = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(key, d)
+    let d = prims.md5(digest_input)
+    let mut acc = prims.crypt(key, d)
     let mut x = 1
     while x <= 19 {
-      acc = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-        mkkey(key, x),
-        acc,
-      )
+      acc = prims.crypt(mkkey(key, x), acc)
       x = x + 1
     }
     let zeros = @pdfio.mkbytes(16)
