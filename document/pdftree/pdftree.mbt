@@ -280,22 +280,14 @@ fn build_nt_tree(items : Array[(String, @pdf.PdfObject)]) -> Nt {
 fn clone_entries(
   entries : Array[(String, @pdf.PdfObject)],
 ) -> Array[(String, @pdf.PdfObject)] {
-  let out = Array::new(capacity=entries.length())
-  for entry in entries {
-    out.push(entry)
-  }
-  out
+  entries[:].to_array()
 }
 
 ///|
 fn clone_pairs(
   entries : Array[(@pdf.PdfObject, @pdf.PdfObject)],
 ) -> Array[(@pdf.PdfObject, @pdf.PdfObject)] {
-  let out = Array::new(capacity=entries.length())
-  for entry in entries {
-    out.push(entry)
-  }
-  out
+  entries[:].to_array()
 }
 
 ///|
