@@ -70,9 +70,9 @@ fn sampled_bytes(samples : Array[Int], bits : Int) -> @pdfio.MutableBytes {
 ///|
 fn entries_of_interpolation(i : Interpolation) -> Array[(String, PdfObject)] {
   [
-    ("/C0", PdfObject::Array(i.c0.map(x => ToPdfNumber::to_pdf_number(x)))),
-    ("/C1", PdfObject::Array(i.c1.map(x => ToPdfNumber::to_pdf_number(x)))),
-    ("/N", ToPdfNumber::to_pdf_number(i.n)),
+    ("/C0", PdfObject::Array(i.c0.map(x => @pdf.ToPdfNumber::to_pdf_number(x)))),
+    ("/C1", PdfObject::Array(i.c1.map(x => @pdf.ToPdfNumber::to_pdf_number(x)))),
+    ("/N", @pdf.ToPdfNumber::to_pdf_number(i.n)),
   ]
 }
 
@@ -88,11 +88,13 @@ fn entries_of_stitching(
     ("/Functions", PdfObject::Array(numbers)),
     (
       "/Bounds",
-      PdfObject::Array(s.bounds.map(x => ToPdfNumber::to_pdf_number(x))),
+      PdfObject::Array(s.bounds.map(x => @pdf.ToPdfNumber::to_pdf_number(x))),
     ),
     (
       "/Encode",
-      PdfObject::Array(s.stitch_encode.map(x => ToPdfNumber::to_pdf_number(x))),
+      PdfObject::Array(
+        s.stitch_encode.map(x => @pdf.ToPdfNumber::to_pdf_number(x)),
+      ),
     ),
   ]
 }

@@ -153,4 +153,9 @@ pub type EncryptionValues = (@pdfcryptprimitives.Encryption, String, String, Int
 pub type PdfObjMap = Map[Int, (Ref[ObjectData], Int)]
 
 // Traits
+pub trait ToPdfNumber {
+  to_pdf_number(Self) -> PdfObject
+}
+pub impl ToPdfNumber for Int
+pub impl ToPdfNumber for Double
 

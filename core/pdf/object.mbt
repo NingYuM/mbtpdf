@@ -18,6 +18,25 @@ pub(all) enum PdfObject {
 }
 
 ///|
+/// Convert primitive numeric types into PDF numeric objects.
+///
+/// This is intentionally narrow (only Int/Double) so callers don't have to
+/// choose between PDF Strings vs Names, etc.
+pub trait ToPdfNumber {
+  to_pdf_number(Self) -> PdfObject
+}
+
+///|
+pub impl ToPdfNumber for Int with to_pdf_number(self : Int) -> PdfObject {
+  PdfObject::Integer(self)
+}
+
+///|
+pub impl ToPdfNumber for Double with to_pdf_number(self : Double) -> PdfObject {
+  PdfObject::Real(self)
+}
+
+///|
 /// Remove a dictionary entry (also works for streams).
 pub fn PdfObject::remove_entry(
   self : PdfObject,

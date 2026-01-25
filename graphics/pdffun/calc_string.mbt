@@ -67,7 +67,7 @@ pub fn PdfFunction::to_pdf_object(
   pdf : @pdf.Pdf,
 ) -> PdfObject {
   let domain = PdfObject::Array(
-    self.domain.map(x => ToPdfNumber::to_pdf_number(x)),
+    self.domain.map(x => @pdf.ToPdfNumber::to_pdf_number(x)),
   )
   let range_entry = match self.range {
     None => []
@@ -75,7 +75,7 @@ pub fn PdfFunction::to_pdf_object(
       [
         (
           "/Range",
-          PdfObject::Array(values.map(x => ToPdfNumber::to_pdf_number(x))),
+          PdfObject::Array(values.map(x => @pdf.ToPdfNumber::to_pdf_number(x))),
         ),
       ]
   }
@@ -104,12 +104,14 @@ pub fn PdfFunction::to_pdf_object(
       let sampled_entries = [
         (
           "/Size",
-          PdfObject::Array(s.size.map(x => ToPdfNumber::to_pdf_number(x))),
+          PdfObject::Array(s.size.map(x => @pdf.ToPdfNumber::to_pdf_number(x))),
         ),
         ("/BitsPerSample", PdfObject::Integer(s.bps)),
         (
           "/Encode",
-          PdfObject::Array(encode_vals.map(x => ToPdfNumber::to_pdf_number(x))),
+          PdfObject::Array(
+            encode_vals.map(x => @pdf.ToPdfNumber::to_pdf_number(x)),
+          ),
         ),
       ]
       let sampled_entries = if decode_vals.length() > 0 {
@@ -117,7 +119,7 @@ pub fn PdfFunction::to_pdf_object(
           (
             "/Decode",
             PdfObject::Array(
-              decode_vals.map(x => ToPdfNumber::to_pdf_number(x)),
+              decode_vals.map(x => @pdf.ToPdfNumber::to_pdf_number(x)),
             ),
           ),
         ])
