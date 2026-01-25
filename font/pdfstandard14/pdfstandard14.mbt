@@ -232,7 +232,10 @@ pub fn PdfStandard14::textwidth(
 ) -> Int raise {
   let (_, widths, kerns, charname_to_width) = lookup_tables(font)
   let encoding_table = @pdffont.Encoding::table(encoding)
-  let codes = s.to_array().map(c => c.to_int())
+  let codes = Array::new(capacity=s.length())
+  for c in s {
+    codes.push(c.to_int())
+  }
   width(
     dokern, widths, charname_to_width, encoding, encoding_table, kerns, codes,
   )
