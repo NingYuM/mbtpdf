@@ -232,7 +232,7 @@ pub fn Output::of_write_at(
         buffer.val[:].blit_to(new_bytes)
         buffer.val = new_bytes
       }
-      bset_unsafe(buffer.val, pos, b.to_int())
+      buffer.val.unsafe_set(pos, b)
       pos = pos + 1
     }
     let last = pos - 1
