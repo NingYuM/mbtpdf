@@ -30,7 +30,7 @@ pub fn PdfMerger::merge_pdfs(
     range : Array[Int],
     pagelist : Array[@pdfpage.Page],
   ) -> Array[@pdfpage.Page] raise {
-    let out = Array::new()
+    let out = Array::new(capacity=range.length())
     for n in range {
       if n <= 0 {
         raise @pdf.PdfError::Msg("merge_pdfs: page out of range")
