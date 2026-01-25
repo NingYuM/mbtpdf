@@ -535,10 +535,8 @@ fn key_or_user_password_from_owner(
         @pdfio.string_of_bytes(prims.crypt(key, @pdfio.bytes_of_string(o)))
       } else {
         let mut acc = prims.crypt(key, @pdfio.bytes_of_string(o))
-        let mut x = 19
-        while x >= 0 {
+        for x in 19>=..0 {
           acc = prims.crypt(mkkey(key, x), acc)
-          x = x - 1
         }
         @pdfio.string_of_bytes(acc)
       }
@@ -668,10 +666,8 @@ pub fn PdfCrypt::decrypt_single_stream(
                 )
               } else {
                 let mut acc = prims.crypt(key, @pdfio.bytes_of_string(o))
-                let mut x = 19
-                while x >= 0 {
+                for x in 19>=..0 {
                   acc = prims.crypt(mkkey(key, x), acc)
-                  x = x - 1
                 }
                 @pdfio.string_of_bytes(acc)
               }
