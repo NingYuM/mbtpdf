@@ -1,6 +1,6 @@
 ///|
 fn new_dests(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int? raise {
-  let dests = Array::new()
+  let dests = Array::new(capacity=pdfs.length())
   for src in pdfs {
     let catalog = src.catalog_of_pdf()
     match src.lookup_direct("/Dests", catalog) {
@@ -25,18 +25,18 @@ fn merge_pdfs_renumber(
   if names.length() != pdfs.length() {
     raise @pdf.PdfError::Msg("merge_pdfs_renumber: length mismatch")
   }
-  let table : Map[String, @pdf.Pdf] = Map::new()
+  let table : Map[String, @pdf.Pdf] = Map::new(capacity=names.length())
   for i in 0..<names.length() {
     table.set(names[i], pdfs[i])
   }
-  let unique_names = Array::new()
-  let unique_pdfs = Array::new()
+  let unique_names = Array::new(capacity=table.length())
+  let unique_pdfs = Array::new(capacity=table.length())
   for name, pdf in table {
     unique_names.push(name)
     unique_pdfs.push(pdf)
   }
   let renumbered = @pdf.renumber_pdfs(unique_pdfs)
-  let mapping : Map[String, @pdf.Pdf] = Map::new()
+  let mapping : Map[String, @pdf.Pdf] = Map::new(capacity=unique_names.length())
   for i, name in unique_names {
     mapping.set(name, renumbered[i])
   }
