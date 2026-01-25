@@ -83,9 +83,7 @@ pub fn PdfCodec::encode_flate(
       0
     } else {
       let n = if remaining < buf.length() { remaining } else { buf.length() }
-      for i in 0..<n {
-        buf[i] = data[pos + i]
-      }
+      data[pos:pos + n].blit_to(buf)
       pos = pos + n
       n
     }
