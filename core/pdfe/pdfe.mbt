@@ -5,8 +5,11 @@ fn default(message : String) -> Unit {
 }
 
 ///|
+pub type Logger = (String) -> Unit
+
+///|
 /// The current error logger, set to default upon startup.
-pub let logger : Ref[(String) -> Unit] = { val: default }
+pub let logger : Ref[Logger] = { val: default }
 
 ///|
 /// Log a string using the current logger.

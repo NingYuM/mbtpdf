@@ -18,6 +18,7 @@ pub fn Pdfe::log(Self, String) -> Unit
 pub fn Pdfe::new() -> Self
 
 // Type aliases
+pub type Logger = (String) -> Unit
 
 // Traits
 
