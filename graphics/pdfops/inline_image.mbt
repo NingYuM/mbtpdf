@@ -1,13 +1,9 @@
 ///|
 fn filterspecial(filters : Array[@pdf.PdfObject]) -> Bool {
-  for filter in filters {
-    match filter {
-      Name("/ASCIIHexDecode" | "/ASCII85Decode" | "/AHx" | "/A85") =>
-        return true
-      _ => ()
-    }
-  }
-  false
+  filters.any(filter => match filter {
+    Name("/ASCIIHexDecode" | "/ASCII85Decode" | "/AHx" | "/A85") => true
+    _ => false
+  })
 }
 
 ///|
