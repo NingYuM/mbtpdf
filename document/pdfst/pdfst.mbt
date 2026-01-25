@@ -224,7 +224,11 @@ pub fn PdfStructTrees::renumber_parent_trees(
     Some(tree) => @pdftree.PdfTree::new(pdf).read_number_tree(tree)
     None => []
   })
-  let mapping : Map[(Int, Int), Int] = Map::new()
+  let mut total_entries = 0
+  for tree in parent_trees {
+    total_entries = total_entries + tree.length()
+  }
+  let mapping : Map[(Int, Int), Int] = Map::new(capacity=total_entries)
   let mut next = 0
   for i, tree in parent_trees {
     let pdfn = i + 1
