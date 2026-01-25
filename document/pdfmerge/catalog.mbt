@@ -7,18 +7,9 @@ fn catalog_items_from_original_documents(
     match pdf.catalog_of_pdf() {
       PdfObject::Dictionary(entries) =>
         for entry in entries {
-          let mut replaced = false
-          let mut i = 0
-          while i < out.length() {
-            if out[i].0 == entry.0 {
-              out[i] = entry
-              replaced = true
-              break
-            }
-            i = i + 1
-          }
-          if !replaced {
-            out.push(entry)
+          match out.search_by(existing => existing.0 == entry.0) {
+            Some(i) => out[i] = entry
+            None => out.push(entry)
           }
         }
       _ => raise @pdf.PdfError::Msg("catalog_items_from_original_documents")
