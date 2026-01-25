@@ -132,20 +132,19 @@ pub fn PdfObject::lookup_immediate(
   self : PdfObject,
   key : String,
 ) -> PdfObject? {
+  fn lookup_entries(entries : Array[(String, PdfObject)]) -> PdfObject? {
+    match entries.search_by(pair => pair.0 == key) {
+      None => None
+      Some(i) => Some(entries[i].1)
+    }
+  }
+
   match self {
-    Dictionary(entries) =>
-      match entries.search_by(pair => pair.0 == key) {
-        None => None
-        Some(i) => Some(entries[i].1)
-      }
+    Dictionary(entries) => lookup_entries(entries)
     Stream(r) => {
       let (inner, _) = r.val
       match inner {
-        Dictionary(entries) =>
-          match entries.search_by(pair => pair.0 == key) {
-            None => None
-            Some(i) => Some(entries[i].1)
-          }
+        Dictionary(entries) => lookup_entries(entries)
         _ => None
       }
     }
