@@ -75,6 +75,7 @@ fn decrypt_stream(
           if is_identity(no_encrypt_metadata, pdf, dict) {
             stream
           } else {
+            let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
             let crypt = @pdf.ToGetCrypt::ToDecrypt(@pdf.DeferredEncryption::{
               crypt_type,
               file_encryption_key,
@@ -84,83 +85,43 @@ fn decrypt_stream(
               keylength,
               r,
             })
-            let apply_bytes = fn(
-              key_used : Array[Int],
-              bytes : @pdfio.MutableBytes,
-            ) -> @pdfio.MutableBytes {
-              match (crypt_type : @pdfcryptprimitives.Encryption) {
-                AESV2 =>
-                  if encrypt {
-                    @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data(
-                      4, key_used, bytes,
-                    )
-                  } else {
-                    @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data(
-                      4, key_used, bytes,
-                    )
-                  }
-                AESV3(_) =>
-                  if encrypt {
-                    @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data(
-                      8, key_used, bytes,
-                    )
-                  } else {
-                    @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data(
-                      8, key_used, bytes,
-                    )
-                  }
-                ARC4(_, _) =>
-                  @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-                    key_used, bytes,
-                  )
+            let data_out : @pdf.Stream = match data {
+              Got(bytes) => {
+                if (r == 5 || r == 6) && file_encryption_key is None {
+                  raise @pdf.PdfError::Msg("decrypt: no key C")
+                }
+                Got(
+                  prims.decrypt_stream_data(
+                    crypt_type, encrypt, file_encryption_key, obj, gen, key, keylength,
+                    r, bytes,
+                  ),
+                )
               }
-            }
-            let data_out : @pdf.Stream = if r == 5 || r == 6 {
-              let key_bytes = match file_encryption_key {
-                Some(k) => @pdfio.int_array_of_string(k)
-                None => raise @pdf.PdfError::Msg("decrypt: no key C")
-              }
-              match data {
-                Got(bytes) => Got(apply_bytes(key_bytes, bytes))
-                ToGet(toget) =>
-                  if encrypt {
-                    @pdf.PdfObject::Stream(rf).getstream()
-                    match rf.val {
-                      (_, Got(got_bytes)) =>
-                        Got(apply_bytes(key_bytes, got_bytes))
-                      _ => data
+              ToGet(toget) =>
+                if encrypt {
+                  @pdf.PdfObject::Stream(rf).getstream()
+                  match rf.val {
+                    (_, Got(got_bytes)) => {
+                      if (r == 5 || r == 6) && file_encryption_key is None {
+                        raise @pdf.PdfError::Msg("decrypt: no key C")
+                      }
+                      Got(
+                        prims.decrypt_stream_data(
+                          crypt_type, encrypt, file_encryption_key, obj, gen, key,
+                          keylength, r, got_bytes,
+                        ),
+                      )
                     }
-                  } else {
-                    ToGet(@pdf.ToGet::{
-                      input: toget.input,
-                      position: toget.position,
-                      length: toget.length,
-                      crypt,
-                    })
+                    _ => data
                   }
-              }
-            } else {
-              let hash = @pdfcryptprimitives.PdfCryptPrimitives::new().find_hash(
-                crypt_type, obj, gen, key, keylength,
-              )
-              match data {
-                Got(bytes) => Got(apply_bytes(hash, bytes))
-                ToGet(toget) =>
-                  if encrypt {
-                    @pdf.PdfObject::Stream(rf).getstream()
-                    match rf.val {
-                      (_, Got(got_bytes)) => Got(apply_bytes(hash, got_bytes))
-                      _ => data
-                    }
-                  } else {
-                    ToGet(@pdf.ToGet::{
-                      input: toget.input,
-                      position: toget.position,
-                      length: toget.length,
-                      crypt,
-                    })
-                  }
-              }
+                } else {
+                  ToGet(@pdf.ToGet::{
+                    input: toget.input,
+                    position: toget.position,
+                    length: toget.length,
+                    crypt,
+                  })
+                }
             }
             let dict_out : @pdf.PdfObject = match (dict : @pdf.PdfObject) {
               Dictionary(entries) => {
@@ -214,66 +175,13 @@ fn decrypt(
         objval
       } else {
         let s_bytes = @pdfio.bytes_of_string(s)
-        let out_bytes = if r == 5 || r == 6 {
-          let key_bytes = match file_encryption_key {
-            Some(k) => @pdfio.int_array_of_string(k)
-            None => raise @pdf.PdfError::Msg("decrypt: no key B")
-          }
-          match (crypt_type : @pdfcryptprimitives.Encryption) {
-            AESV2 =>
-              if encrypt {
-                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data(
-                  4, key_bytes, s_bytes,
-                )
-              } else {
-                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data(
-                  4, key_bytes, s_bytes,
-                )
-              }
-            AESV3(_) =>
-              if encrypt {
-                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data(
-                  8, key_bytes, s_bytes,
-                )
-              } else {
-                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data(
-                  8, key_bytes, s_bytes,
-                )
-              }
-            ARC4(_, _) =>
-              @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(
-                key_bytes, s_bytes,
-              )
-          }
-        } else {
-          let hash = @pdfcryptprimitives.PdfCryptPrimitives::new().find_hash(
-            crypt_type, obj, gen, key, keylength,
-          )
-          match (crypt_type : @pdfcryptprimitives.Encryption) {
-            AESV2 =>
-              if encrypt {
-                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data(
-                  4, hash, s_bytes,
-                )
-              } else {
-                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data(
-                  4, hash, s_bytes,
-                )
-              }
-            AESV3(_) =>
-              if encrypt {
-                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data(
-                  8, hash, s_bytes,
-                )
-              } else {
-                @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data(
-                  8, hash, s_bytes,
-                )
-              }
-            ARC4(_, _) =>
-              @pdfcryptprimitives.PdfCryptPrimitives::new().crypt(hash, s_bytes)
-          }
+        if (r == 5 || r == 6) && file_encryption_key is None {
+          raise @pdf.PdfError::Msg("decrypt: no key B")
         }
+        let out_bytes = @pdfcryptprimitives.PdfCryptPrimitives::new().decrypt_stream_data(
+          crypt_type, encrypt, file_encryption_key, obj, gen, key, keylength, r,
+          s_bytes,
+        )
         String(@pdfio.string_of_bytes(out_bytes))
       }
     Stream(_) =>
