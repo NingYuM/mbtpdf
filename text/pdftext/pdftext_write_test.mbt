@@ -1,8 +1,8 @@
 ///|
 fn type3_font_dict() -> @pdf.PdfObject {
   Dictionary([
-    ("/Subtype", Name("/Type3")),
-    ("/BaseFont", Name("/TestFont")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Type3"))),
+    ("/BaseFont", Name(@pdf.PdfName::of_string("/TestFont"))),
     ("/FontBBox", Array([Real(0.0), Real(0.0), Real(1.0), Real(1.0)])),
     (
       "/FontMatrix",
@@ -30,7 +30,7 @@ test "write_encoding handles builtins and custom diffs" {
   let standard_encoding = ctx.read_encoding(standard_font_dict())
   let standard = ctx.write_encoding(standard_encoding)
   match (pdf.lookup_obj(standard) : @pdf.PdfObject) {
-    Name("/StandardEncoding") => ()
+    Name(n) if n.equal_string_bytes("/StandardEncoding") => ()
     _ => fail("expected StandardEncoding name")
   }
   let custom_encoding = ctx.read_encoding(custom_encoding_font_dict())
@@ -43,7 +43,9 @@ test "write_encoding handles builtins and custom diffs" {
       }
     _ => fail("expected encoding dictionary")
   }
-  let implicit_dict : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type0"))])
+  let implicit_dict : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Type0"))),
+  ])
   let implicit = ctx.read_encoding(implicit_dict)
   let implicit_result : Result[Int, Error] = try? ctx.write_encoding(implicit)
   assert_true(implicit_result is Err(_))
@@ -68,7 +70,7 @@ test "write_font handles standard and type3 fonts" {
   match (pdf.lookup_obj(standard) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
       match (pdf.lookup_direct("/BaseFont", dict) : @pdf.PdfObject?) {
-        Some(Name("/Helvetica")) => ()
+        Some(Name(n)) if n.equal_string_bytes("/Helvetica") => ()
         _ => fail("expected /BaseFont /Helvetica")
       }
     _ => fail("expected font dictionary")
@@ -78,7 +80,7 @@ test "write_font handles standard and type3 fonts" {
   match (pdf.lookup_obj(type3_num) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
       match (pdf.lookup_direct("/Subtype", dict) : @pdf.PdfObject?) {
-        Some(Name("/Type3")) => ()
+        Some(Name(n)) if n.equal_string_bytes("/Type3") => ()
         _ => fail("expected /Subtype /Type3")
       }
     _ => fail("expected Type3 font dictionary")

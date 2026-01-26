@@ -2,8 +2,8 @@
 test "process_xobjects updates form xobject stream" {
   let pdf = @pdf.Pdf::empty()
   let stream_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Form")),
-    ("/Filter", Name("/FlateDecode")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Form"))),
+    ("/Filter", Name(@pdf.PdfName::of_string("/FlateDecode"))),
   ])
   let data = @pdfio.bytes_of_list([0x01, 0x02])
   let stream : @pdf.PdfObject = Stream(
@@ -33,7 +33,7 @@ test "process_xobjects updates form xobject stream" {
   ) -> Array[@pdf.PdfObject] {
     let dict_updated : @pdf.PdfObject = Dictionary([
       ("/BBox", bbox),
-      ("/Filter", Name("/ASCIIHexDecode")),
+      ("/Filter", Name(@pdf.PdfName::of_string("/ASCIIHexDecode"))),
     ])
     let updated_data = @pdfio.bytes_of_list([0x41, 0x42])
     [Stream(Ref::new((dict_updated, @pdf.Stream::Got(updated_data))))]
@@ -41,7 +41,7 @@ test "process_xobjects updates form xobject stream" {
   page.process_xobjects(pdf, update)
   let updated = pdf.lookup_obj(xobj_num)
   match (pdf.lookup_direct("/Subtype", updated) : @pdf.PdfObject?) {
-    Some(Name("/Form")) => ()
+    Some(Name(n)) if n.equal_string_bytes("/Form") => ()
     _ => fail("expected /Form subtype")
   }
   match (pdf.lookup_direct("/BBox", updated) : @pdf.PdfObject?) {
@@ -65,7 +65,7 @@ test "combine_pdf_resources merges known and keeps unknown" {
   ])
   let b : @pdf.PdfObject = Dictionary([
     ("/Font", Dictionary([("/F2", Null)])),
-    ("/Bar", Name("/Baz")),
+    ("/Bar", Name(@pdf.PdfName::of_string("/Baz"))),
   ])
   let combined = @pdfpage.PdfPageDoc::new(pdf).combine_pdf_resources(a, b)
   match (pdf.lookup_direct("/Font", combined) : @pdf.PdfObject?) {
@@ -77,7 +77,7 @@ test "combine_pdf_resources merges known and keeps unknown" {
     _ => fail("expected /Foo")
   }
   match (pdf.lookup_direct("/Bar", combined) : @pdf.PdfObject?) {
-    Some(Name("/Baz")) => ()
+    Some(Name(n)) if n.equal_string_bytes("/Baz") => ()
     _ => fail("expected /Bar")
   }
 }

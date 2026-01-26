@@ -18,7 +18,7 @@ test "encode/decode flate stream" {
   }
   match (pdf.lookup_direct("/Filter", encoded_dict) : @pdf.PdfObject?) {
     Some(Name(name)) | Some(Array([Name(name), ..])) =>
-      if name != "/FlateDecode" {
+      if !name.equal_string_bytes("/FlateDecode") {
         fail("expected /FlateDecode filter")
       }
     _ => fail("expected /Filter entry")
@@ -100,7 +100,7 @@ test "encode_pdfstream prepends filter when name already set" {
   let data = @pdfio.bytes_of_string("filter chain")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/Filter", Name("/ASCII85Decode")),
+    ("/Filter", Name(@pdf.PdfName::of_string("/ASCII85Decode"))),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
@@ -109,7 +109,7 @@ test "encode_pdfstream prepends filter when name already set" {
     Some(Array(filters)) => {
       assert_true(filters.length() >= 2)
       match (filters[0] : @pdf.PdfObject) {
-        Name("/FlateDecode") => ()
+        Name(name) if name.equal_string_bytes("/FlateDecode") => ()
         _ => fail("expected /FlateDecode to be first")
       }
     }
@@ -123,7 +123,7 @@ test "encode_pdfstream prepends filter when array already set" {
   let data = @pdfio.bytes_of_string("array filter")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/Filter", Array([Name("/ASCIIHexDecode")])),
+    ("/Filter", Array([Name(@pdf.PdfName::of_string("/ASCIIHexDecode"))])),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
@@ -131,7 +131,7 @@ test "encode_pdfstream prepends filter when array already set" {
   match (pdf.lookup_direct("/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
     Some(Array(filters)) =>
       match (filters[0] : @pdf.PdfObject) {
-        Name("/FlateDecode") => ()
+        Name(name) if name.equal_string_bytes("/FlateDecode") => ()
         _ => fail("expected /FlateDecode to be first")
       }
     _ => fail("expected filter array")

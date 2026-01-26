@@ -49,8 +49,10 @@ pub suberror CodecError {
 ///   means, and reuse it from both:
 ///   - `PdfCodec::decode_pdfstream_onestage` (in-place stream decoding), and
 ///   - `PdfCodec::decode_from_bytes` (pure bytes -> bytes decoding).
-/// - Implementing the trait for `String` keeps call sites readable:
+/// - Implementing the trait for `@pdf.PdfName` keeps call sites readable:
 ///   `PdfFilterNameDecode::decode_stage(filter_name, codec, pdf, parms, bytes, ...)`.
+///
+/// Note: PDF names are byte sequences; `@pdf.PdfName` preserves the raw bytes.
 ///
 /// Semantics:
 /// - "One stage" means applying exactly the first filter in `/Filter` and the

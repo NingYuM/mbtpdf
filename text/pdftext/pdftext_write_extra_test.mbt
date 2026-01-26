@@ -7,7 +7,7 @@ test "write_encoding covers mac and custom encodings" {
   )
   let macroman = ctx.write_encoding(macroman_encoding)
   match (pdf.lookup_obj(macroman) : @pdf.PdfObject) {
-    Name("/MacRomanEncoding") => ()
+    Name(n) if n.equal_string_bytes("/MacRomanEncoding") => ()
     _ => fail("expected /MacRomanEncoding")
   }
   let macexpert_encoding = ctx.read_encoding(
@@ -15,13 +15,13 @@ test "write_encoding covers mac and custom encodings" {
   )
   let macexpert = ctx.write_encoding(macexpert_encoding)
   match (pdf.lookup_obj(macexpert) : @pdf.PdfObject) {
-    Name("/MacExpertEncoding") => ()
+    Name(n) if n.equal_string_bytes("/MacExpertEncoding") => ()
     _ => fail("expected /MacExpertEncoding")
   }
   let filled_encoding = ctx.read_encoding(truetype_font_with_encoding_dict())
   let filled = ctx.write_encoding(filled_encoding)
   match (pdf.lookup_obj(filled) : @pdf.PdfObject) {
-    Name("/MacRomanEncoding") => ()
+    Name(n) if n.equal_string_bytes("/MacRomanEncoding") => ()
     _ => fail("expected filled encoding to reuse inner")
   }
   let custom_encoding = ctx.read_encoding(embedded_font_with_custom_encoding())
@@ -37,8 +37,8 @@ test "write_encoding covers mac and custom encodings" {
     _ => fail("expected custom encoding dictionary")
   }
   let font_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Type1")),
-    ("/BaseFont", Name("/CustomFont")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName::of_string("/CustomFont"))),
   ])
   let implicit_encoding = ctx.read_encoding(font_dict)
   let implicit_result : Result[Int, Error] = try? ctx.write_encoding(
@@ -52,8 +52,8 @@ test "write_font errors on unsupported fonts" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let simple_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Type1")),
-    ("/BaseFont", Name("/CustomFont")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName::of_string("/CustomFont"))),
   ])
   let simple_font = ctx.read_font(simple_dict)
   let simple_result : Result[Int, Error] = try? ctx.write_font(simple_font)
@@ -66,7 +66,7 @@ test "write_font errors on unsupported fonts" {
 ///|
 fn add_font_descriptor(pdf : @pdf.Pdf, fontfile_obj : Int?) -> Int {
   let entries : Array[(String, @pdf.PdfObject)] = [
-    ("/Type", Name("/FontDescriptor")),
+    ("/Type", Name(@pdf.PdfName::of_string("/FontDescriptor"))),
     ("/Ascent", Integer(700)),
     ("/Descent", Integer(-200)),
     ("/AvgWidth", Integer(500)),
@@ -104,12 +104,12 @@ fn truetype_font_dict(
   tounicode_obj : Int?,
 ) -> @pdf.PdfObject {
   let entries : Array[(String, @pdf.PdfObject)] = [
-    ("/Subtype", Name("/TrueType")),
-    ("/BaseFont", Name("/DummyTTF")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/TrueType"))),
+    ("/BaseFont", Name(@pdf.PdfName::of_string("/DummyTTF"))),
     ("/FirstChar", Integer(0)),
     ("/LastChar", Integer(1)),
     ("/Widths", Array([Integer(500), Integer(600)])),
-    ("/Encoding", Name(encoding_name)),
+    ("/Encoding", Name(@pdf.PdfName::of_string(encoding_name))),
   ]
   match font_descriptor {
     Some(objnum) => entries.push(("/FontDescriptor", Indirect(objnum)))
@@ -125,8 +125,8 @@ fn truetype_font_dict(
 ///|
 fn type3_font_dict_extra(font_descriptor : Int?) -> @pdf.PdfObject {
   let entries : Array[(String, @pdf.PdfObject)] = [
-    ("/Subtype", Name("/Type3")),
-    ("/BaseFont", Name("/DummyType3")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Type3"))),
+    ("/BaseFont", Name(@pdf.PdfName::of_string("/DummyType3"))),
     ("/FontBBox", Array([Real(0.0), Real(0.0), Real(0.0), Real(0.0)])),
     (
       "/FontMatrix",
@@ -156,7 +156,7 @@ test "write_font writes type3 font with encoding" {
   match (pdf.lookup_obj(objnum) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
       match (pdf.lookup_direct("/Subtype", dict) : @pdf.PdfObject?) {
-        Some(Name("/Type3")) => ()
+        Some(Name(n)) if n.equal_string_bytes("/Type3") => ()
         _ => fail("expected Type3 subtype")
       }
     _ => fail("expected Type3 font dictionary")

@@ -54,14 +54,18 @@ pub fn PdfCodec::encode_pdfstream(
     Encoding::Flate => "/FlateDecode"
     Encoding::CCITT(_, _) | Encoding::CCITTG4(_, _) => "/CCITTFaxDecode"
   }
+  let encoding_pdf_name = @pdf.PdfName::of_string(encoding_name)
   fn update_filter(dict : @pdf.PdfObject) -> @pdf.PdfObject raise CodecError {
     let filter_obj : @pdf.PdfObject = match pdf.lookup_direct("/Filter", dict) {
-      None => Name(encoding_name)
+      None => Name(encoding_pdf_name)
       Some(Name(name)) =>
-        Array([@pdf.PdfObject::Name(encoding_name), @pdf.PdfObject::Name(name)])
+        Array([
+          @pdf.PdfObject::Name(encoding_pdf_name),
+          @pdf.PdfObject::Name(name),
+        ])
       Some(Array(filters)) => {
         let updated = Array::new(capacity=filters.length() + 1)
-        updated.push(@pdf.PdfObject::Name(encoding_name))
+        updated.push(@pdf.PdfObject::Name(encoding_pdf_name))
         for f in filters {
           updated.push(f)
         }
@@ -187,7 +191,7 @@ pub fn PdfCodec::decode_pdfstream_onestage(
         None => raise CodecError::DecodeNotSupported("no filter")
         Some(filter_obj) => {
           let (filter_name, remaining_filters) : (
-            String,
+            @pdf.PdfName,
             Array[@pdf.PdfObject]?,
           ) = match (filter_obj : @pdf.PdfObject) {
             Name(name) => (name, None)
@@ -276,15 +280,16 @@ pub fn PdfCodec::decode_pdfstream_onestage(
 /// This keeps the set of supported filter names and their parameter handling
 /// in one place, while leaving higher-level `/Filter` array trimming and
 /// dictionary mutation to `decode_pdfstream_onestage`.
-pub impl PdfFilterNameDecode for String with decode_stage(
-  filter_name : String,
+pub impl PdfFilterNameDecode for @pdf.PdfName with decode_stage(
+  filter_name : @pdf.PdfName,
   ctx : PdfCodec,
   pdf : @pdf.Pdf,
   parms : @pdf.PdfObject?,
   data : @pdfio.MutableBytes,
   jbig2dec : String?,
 ) -> @pdfio.MutableBytes raise CodecError {
-  if filter_name == "/FlateDecode" || filter_name == "/Fl" {
+  if filter_name.equal_string_bytes("/FlateDecode") ||
+    filter_name.equal_string_bytes("/Fl") {
     let mut decoded = ctx.decode_flate(data)
     match parms {
       Some(Dictionary(_)) => {
@@ -299,23 +304,28 @@ pub impl PdfFilterNameDecode for String with decode_stage(
       _ => ()
     }
     decoded
-  } else if filter_name == "/ASCIIHexDecode" || filter_name == "/AHx" {
+  } else if filter_name.equal_string_bytes("/ASCIIHexDecode") ||
+    filter_name.equal_string_bytes("/AHx") {
     decode_asciihex(@pdfio.Input::of_bytes(data, source="asciihex"))
-  } else if filter_name == "/ASCII85Decode" || filter_name == "/A85" {
+  } else if filter_name.equal_string_bytes("/ASCII85Decode") ||
+    filter_name.equal_string_bytes("/A85") {
     decode_ascii85(@pdfio.Input::of_bytes(data, source="ascii85"))
-  } else if filter_name == "/RunLengthDecode" || filter_name == "/RL" {
+  } else if filter_name.equal_string_bytes("/RunLengthDecode") ||
+    filter_name.equal_string_bytes("/RL") {
     decode_runlength(@pdfio.Input::of_bytes(data, source="runlength"))
-  } else if filter_name == "/LZWDecode" || filter_name == "/LZW" {
+  } else if filter_name.equal_string_bytes("/LZWDecode") ||
+    filter_name.equal_string_bytes("/LZW") {
     let early = get_int_param(pdf, parms, "/EarlyChange", 1)
     decode_lzw(early, @pdfio.Input::of_bytes(data, source="lzw"))
-  } else if filter_name == "/Crypt" {
+  } else if filter_name.equal_string_bytes("/Crypt") {
     data
-  } else if filter_name == "/JBIG2Decode" {
+  } else if filter_name.equal_string_bytes("/JBIG2Decode") {
     let _ = jbig2dec
     raise CodecError::DecodeNotSupported(
       "JBIG2Decode requires decode_pdfstream_async",
     )
-  } else if filter_name == "/CCITTFaxDecode" || filter_name == "/CCF" {
+  } else if filter_name.equal_string_bytes("/CCITTFaxDecode") ||
+    filter_name.equal_string_bytes("/CCF") {
     let k = get_int_param(pdf, parms, "/K", 0)
     let eol = get_bool_param(pdf, parms, "/EndOfLine", false)
     let eba = get_bool_param(pdf, parms, "/EncodedByteAlign", false)
@@ -336,7 +346,9 @@ pub impl PdfFilterNameDecode for String with decode_stage(
       @pdfio.Input::of_bytes(data, source="ccitt"),
     )
   } else {
-    raise CodecError::DecodeNotSupported("filter not supported: \{filter_name}")
+    raise CodecError::DecodeNotSupported(
+      "filter not supported: \{filter_name.to_string_bytes()}",
+    )
   }
 }
 
@@ -366,7 +378,7 @@ pub fn PdfCodec::decode_from_bytes(
 
   fn decode_stage(
     bytes : @pdfio.MutableBytes,
-    filter_name : String,
+    filter_name : @pdf.PdfName,
     parms : @pdf.PdfObject?,
   ) -> @pdfio.MutableBytes? {
     let decoded_result : Result[@pdfio.MutableBytes, Error] = try? PdfFilterNameDecode::decode_stage(

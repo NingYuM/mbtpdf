@@ -770,10 +770,10 @@ fn build_unicode_pdf() -> @pdf.Pdf raise {
   let pdf = @pdf.Pdf::empty()
   let text = PdfTextUtil::new().utf16be_of_codepoints(codepoints)
   let font : @pdf.PdfObject = Dictionary([
-    ("/Type", Name("/Font")),
-    ("/Subtype", Name("/Type1")),
-    ("/BaseFont", Name("/CustomUnicodeFont")),
-    ("/Encoding", Name("/WinAnsiEncoding")),
+    ("/Type", Name(@pdf.PdfName::of_string("/Font"))),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName::of_string("/CustomUnicodeFont"))),
+    ("/Encoding", Name(@pdf.PdfName::of_string("/WinAnsiEncoding"))),
   ])
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F0", 24.0), OpTj(text), OpET]
   let stream = @pdfops.Op::stream_of_ops(ops)
@@ -833,8 +833,11 @@ fn add_pages_to_pdf(
 fn form_xobject_stream(text : String) -> @pdf.PdfObject raise {
   let ops : Array[@pdfops.Op] = [OpBT, OpTj(text), OpET]
   let stream = @pdfops.Op::stream_of_ops(ops)
-  let stream = stream.add_entry("/Type", Name("/XObject"))
-  stream.add_entry("/Subtype", Name("/Form"))
+  let stream = stream.add_entry(
+    "/Type",
+    Name(@pdf.PdfName::of_string("/XObject")),
+  )
+  stream.add_entry("/Subtype", Name(@pdf.PdfName::of_string("/Form")))
 }
 
 ///|
@@ -895,7 +898,7 @@ test "extract text visits xobjects once" {
   let xobjects : @pdf.PdfObject = Dictionary([
     ("/X1", Indirect(form_indirect_id)),
     ("/X2", form_direct),
-    ("/X3", Dictionary([("/Subtype", Name("/Image"))])),
+    ("/X3", Dictionary([("/Subtype", Name(@pdf.PdfName::of_string("/Image")))])),
   ])
   let resources : @pdf.PdfObject = Dictionary([("/XObject", xobjects)])
   let ops : Array[@pdfops.Op] = [

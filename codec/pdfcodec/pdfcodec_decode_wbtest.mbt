@@ -2,6 +2,11 @@
 let decode_ctx : PdfCodec = PdfCodec::new()
 
 ///|
+fn name_obj(value : String) -> @pdf.PdfObject {
+  Name(@pdf.PdfName::of_string(value))
+}
+
+///|
 fn decode_stream(
   filter : @pdf.PdfObject,
   data : @pdfio.MutableBytes,
@@ -29,14 +34,14 @@ fn decode_stream(
 ///|
 test "decode ASCIIHex stream" {
   let data = @pdfio.bytes_of_string("48656c6c6f>")
-  let decoded = decode_stream(Name("/ASCIIHexDecode"), data)
+  let decoded = decode_stream(name_obj("/ASCIIHexDecode"), data)
   assert_eq(@pdfio.string_of_bytes(decoded), "Hello")
 }
 
 ///|
 test "decode ASCIIHex stream skips whitespace" {
   let data = @pdfio.bytes_of_string("48 65 6c 6c 6f >")
-  let decoded = decode_stream(Name("/ASCIIHexDecode"), data)
+  let decoded = decode_stream(name_obj("/ASCIIHexDecode"), data)
   assert_eq(@pdfio.string_of_bytes(decoded), "Hello")
 }
 
@@ -44,7 +49,7 @@ test "decode ASCIIHex stream skips whitespace" {
 test "decode ASCIIHex stream rejects invalid char" {
   let data = @pdfio.bytes_of_string("GG>")
   let res : Result[@pdfio.MutableBytes, Error] = try? decode_stream(
-    Name("/ASCIIHexDecode"),
+    name_obj("/ASCIIHexDecode"),
     data,
   )
   assert_true(res is Err(_))
@@ -54,7 +59,7 @@ test "decode ASCIIHex stream rejects invalid char" {
 test "decode ASCIIHex stream rejects invalid second char" {
   let data = @pdfio.bytes_of_string("4G>")
   let res : Result[@pdfio.MutableBytes, Error] = try? decode_stream(
-    Name("/ASCIIHexDecode"),
+    name_obj("/ASCIIHexDecode"),
     data,
   )
   assert_true(res is Err(_))
@@ -63,14 +68,14 @@ test "decode ASCIIHex stream rejects invalid second char" {
 ///|
 test "decode ASCIIHex stream ends on leading terminator" {
   let data = @pdfio.bytes_of_string(">0")
-  let decoded = decode_stream(Name("/ASCIIHexDecode"), data)
+  let decoded = decode_stream(name_obj("/ASCIIHexDecode"), data)
   assert_eq(decoded.length(), 0)
 }
 
 ///|
 test "decode ASCII85 stream" {
   let data = @pdfio.bytes_of_string("z~>")
-  let decoded = decode_stream(Name("/ASCII85Decode"), data)
+  let decoded = decode_stream(name_obj("/ASCII85Decode"), data)
   assert_eq(decoded.length(), 4)
   assert_eq(decoded[0].to_int(), 0)
   assert_eq(decoded[3].to_int(), 0)
@@ -80,7 +85,7 @@ test "decode ASCII85 stream" {
 test "decode ASCII85 stream rejects invalid char" {
   let data = @pdfio.bytes_of_string("v~>")
   let res : Result[@pdfio.MutableBytes, Error] = try? decode_stream(
-    Name("/ASCII85Decode"),
+    name_obj("/ASCII85Decode"),
     data,
   )
   assert_true(res is Err(_))
@@ -89,7 +94,7 @@ test "decode ASCII85 stream rejects invalid char" {
 ///|
 test "decode RunLength stream" {
   let data = @pdfio.bytes_of_list([2, 65, 66, 67, 255, 90, 128])
-  let decoded = decode_stream(Name("/RunLengthDecode"), data)
+  let decoded = decode_stream(name_obj("/RunLengthDecode"), data)
   assert_eq(@pdfio.string_of_bytes(decoded), "ABCZZ")
 }
 
@@ -105,7 +110,7 @@ test "decode Flate stream with TIFF predictor" {
     ("/Columns", Integer(6)),
   ])
   let decoded = decode_stream(
-    Name("/FlateDecode"),
+    name_obj("/FlateDecode"),
     compressed,
     parms=parms_dict,
   )
@@ -189,7 +194,7 @@ test "decode_pdfstream_onestage handles /F and /DP keys" {
   let data = @pdfio.bytes_of_string("4869>")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/F", Name("/ASCIIHexDecode")),
+    ("/F", name_obj("/ASCIIHexDecode")),
     ("/DP", Array([Null, Null])),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
@@ -209,7 +214,10 @@ test "decode_pdfstream_onestage trims filter and decode parms arrays" {
   let data = @pdfio.bytes_of_string("4869>")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/Filter", Array([Name("/ASCIIHexDecode"), Name("/ASCIIHexDecode")])),
+    (
+      "/Filter",
+      Array([name_obj("/ASCIIHexDecode"), name_obj("/ASCIIHexDecode")]),
+    ),
     ("/DecodeParms", Array([Null, Null])),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
@@ -232,7 +240,7 @@ test "decode_pdfstream_onestage handles Crypt filter" {
   let data = @pdfio.bytes_of_string("plain")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/Filter", Name("/Crypt")),
+    ("/Filter", name_obj("/Crypt")),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
@@ -251,7 +259,7 @@ test "decode_pdfstream_onestage rejects JBIG2 in sync path" {
   let data = @pdfio.bytes_of_string("data")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/Filter", Name("/JBIG2Decode")),
+    ("/Filter", name_obj("/JBIG2Decode")),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
@@ -267,7 +275,7 @@ test "decode_pdfstream_onestage reports CCITT errors" {
   let data = @pdfio.bytes_of_string("data")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/Filter", Name("/CCITTFaxDecode")),
+    ("/Filter", name_obj("/CCITTFaxDecode")),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
@@ -283,7 +291,7 @@ test "decode_pdfstream_onestage reports LZW errors" {
   let data = @pdfio.bytes_of_string("data")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/Filter", Name("/LZWDecode")),
+    ("/Filter", name_obj("/LZWDecode")),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
@@ -299,7 +307,7 @@ test "decode_pdfstream_until_unknown ignores unsupported filters" {
   let data = @pdfio.bytes_of_string("data")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/Filter", Name("/JBIG2Decode")),
+    ("/Filter", name_obj("/JBIG2Decode")),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)

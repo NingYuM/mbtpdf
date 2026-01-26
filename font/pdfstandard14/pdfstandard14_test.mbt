@@ -84,7 +84,9 @@ test "textwidth handles missing widths and kerning" {
   assert_true(kerns.get((999, 998)) is None)
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
-  let implicit_font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type1"))])
+  let implicit_font : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
+  ])
   let implicit_encoding = ctx.read_encoding(implicit_font)
   let implicit_width = @pdfstandard14.PdfStandard14::new().textwidth(
     true, implicit_encoding, font, missing,
@@ -92,12 +94,15 @@ test "textwidth handles missing widths and kerning" {
   assert_eq(implicit_width, 0)
   assert_true(widths_by_name.get("NoSlash") is None)
   let custom_font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Type1")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
     (
       "/Encoding",
       Dictionary([
-        ("/BaseEncoding", Name("/WinAnsiEncoding")),
-        ("/Differences", Array([Integer(65), Name("NoSlash")])),
+        ("/BaseEncoding", Name(@pdf.PdfName::of_string("/WinAnsiEncoding"))),
+        (
+          "/Differences",
+          Array([Integer(65), Name(@pdf.PdfName::of_string("NoSlash"))]),
+        ),
       ]),
     ),
   ])
@@ -114,8 +119,8 @@ test "textwidth handles empty string and unicode fallback" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let winansi_font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Type1")),
-    ("/Encoding", Name("/WinAnsiEncoding")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
+    ("/Encoding", Name(@pdf.PdfName::of_string("/WinAnsiEncoding"))),
   ])
   let encoding = ctx.read_encoding(winansi_font)
   let width_empty = @pdfstandard14.PdfStandard14::new().textwidth(
@@ -134,7 +139,9 @@ test "textwidth applies kerning for standard fonts" {
   let font = @pdffont.StandardFont::TimesRoman
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
-  let implicit_font : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Type1"))])
+  let implicit_font : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
+  ])
   let encoding = ctx.read_encoding(implicit_font)
   let kerned = @pdfstandard14.PdfStandard14::new().textwidth(
     true, encoding, font, "AV",

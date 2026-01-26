@@ -263,7 +263,7 @@ fn write_pdf_object(
     PdfObject::Integer(i) => sb.write_string(i.to_string())
     PdfObject::Real(r) => sb.write_string(format_real(r))
     PdfObject::String(s) => sb.write_string(make_pdf_string(s))
-    PdfObject::Name(n) => sb.write_string(make_pdf_name(n))
+    PdfObject::Name(n) => sb.write_string(make_pdf_name(n.to_string_bytes()))
     PdfObject::Array(values) => {
       sb.write_char('[')
       for i in 0..<values.length() {

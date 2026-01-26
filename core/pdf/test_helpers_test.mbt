@@ -35,14 +35,14 @@ fn assert_some_integer(obj : @pdf.PdfObject?, expected : Int) -> Unit raise {
 fn make_basic_pdf() -> @pdf.Pdf {
   let base = @pdf.Pdf::empty()
   let pages = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name("/Pages")),
+    ("/Type", @pdf.PdfObject::Name(PdfName::of_string("/Pages"))),
     ("/Kids", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(2)])),
   ])
   let page = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name("/Page")),
+    ("/Type", @pdf.PdfObject::Name(PdfName::of_string("/Page"))),
   ])
   let catalog = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name("/Catalog")),
+    ("/Type", @pdf.PdfObject::Name(PdfName::of_string("/Catalog"))),
     ("/Pages", @pdf.PdfObject::Indirect(1)),
   ])
   base.addobj_given_num((1, pages))

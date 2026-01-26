@@ -23,27 +23,27 @@ fn build_minimal_pdf() -> @pdf.Pdf {
     Ref::new((stream_dict, @pdf.Stream::Got(stream_bytes))),
   )
   let font_dict : @pdf.PdfObject = Dictionary([
-    ("/Type", Name("/Font")),
-    ("/Subtype", Name("/Type1")),
-    ("/BaseFont", Name("/Times-Roman")),
+    ("/Type", Name(@pdf.PdfName::of_string("/Font"))),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName::of_string("/Times-Roman"))),
   ])
   let resources : @pdf.PdfObject = Dictionary([
     ("/Font", Dictionary([("/F0", font_dict)])),
   ])
   let page : @pdf.PdfObject = Dictionary([
-    ("/Type", Name("/Page")),
+    ("/Type", Name(@pdf.PdfName::of_string("/Page"))),
     ("/Parent", Indirect(1)),
     ("/Resources", resources),
     ("/MediaBox", Array([Integer(0), Integer(0), Integer(300), Integer(300)])),
     ("/Contents", Indirect(2)),
   ])
   let pages : @pdf.PdfObject = Dictionary([
-    ("/Type", Name("/Pages")),
+    ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
     ("/Kids", Array([Indirect(3)])),
     ("/Count", Integer(1)),
   ])
   let catalog : @pdf.PdfObject = Dictionary([
-    ("/Type", Name("/Catalog")),
+    ("/Type", Name(@pdf.PdfName::of_string("/Catalog"))),
     ("/Pages", Indirect(1)),
   ])
   pdf.addobj_given_num((1, pages))

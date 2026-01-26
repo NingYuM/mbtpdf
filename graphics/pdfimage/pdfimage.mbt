@@ -189,16 +189,21 @@ fn decode_defaults(
 
 ///|
 fn decode_to_image(pdf : @pdf.Pdf, stream : @pdf.PdfObject) -> Unit raise {
+  fn is_direct_image_filter(name : @pdf.PdfName) -> Bool {
+    name.equal_string_bytes("/DCTDecode") ||
+    name.equal_string_bytes("/DCT") ||
+    name.equal_string_bytes("/JBIG2Decode") ||
+    name.equal_string_bytes("/JPXDecode")
+  }
+
   match (stream : @pdf.PdfObject) {
     Stream(r) => {
       let (dict, _) = r.val
       match pdf.lookup_direct("/Filter", dict) {
         None => ()
         Some(Array([])) => ()
-        Some(Name("/DCTDecode" | "/DCT" | "/JBIG2Decode" | "/JPXDecode")) => ()
-        Some(
-          Array([Name("/DCTDecode" | "/DCT" | "/JBIG2Decode" | "/JPXDecode")])
-        ) => ()
+        Some(Name(n)) if is_direct_image_filter(n) => ()
+        Some(Array([Name(n)])) if is_direct_image_filter(n) => ()
         _ => {
           @pdfcodec.PdfCodec::new().decode_pdfstream_onestage(pdf, stream)
           decode_to_image(pdf, stream)
@@ -763,7 +768,7 @@ pub fn Image::colspace(
         Some(Dictionary(_) as dict_obj) =>
           match colspace {
             Some(Name(name)) =>
-              match pdf.lookup_direct(name, dict_obj) {
+              match pdf.lookup_direct(name.to_string_bytes(), dict_obj) {
                 Some(found) => found
                 None => PdfObject::Name(name)
               }
@@ -850,6 +855,18 @@ pub fn Image::get_image_24bpp(
       _ => None
     }
   }
+  fn is_dct_filter(name : @pdf.PdfName) -> Bool {
+    name.equal_string_bytes("/DCTDecode") || name.equal_string_bytes("/DCT")
+  }
+
+  fn is_jbig2_filter(name : @pdf.PdfName) -> Bool {
+    name.equal_string_bytes("/JBIG2Decode")
+  }
+
+  fn is_jpx_filter(name : @pdf.PdfName) -> Bool {
+    name.equal_string_bytes("/JPXDecode")
+  }
+
   match pdf.lookup_direct_orelse("/Filter", "/F", streamdict) {
     None | Some(Array([])) => {
       let raw = Image::from_stream_data(
@@ -873,10 +890,10 @@ pub fn Image::get_image_24bpp(
       }
       raw
     }
-    Some(Name("/DCTDecode" | "/DCT"))
-    | Some(Array([Name("/DCTDecode" | "/DCT")])) =>
+    Some(Name(n)) if is_dct_filter(n) => Image::JPEG(data, get_decode())
+    Some(Array([Name(n)])) if is_dct_filter(n) =>
       Image::JPEG(data, get_decode())
-    Some(Name("/JBIG2Decode")) | Some(Array([Name("/JBIG2Decode")])) => {
+    Some(Name(n)) if is_jbig2_filter(n) => {
       let globals = match pdf.lookup_direct("/DecodeParms", streamdict) {
         Some(Dictionary(parms)) =>
           match pdf.lookup_direct("/JBIG2Globals", Dictionary(parms)) {
@@ -887,7 +904,19 @@ pub fn Image::get_image_24bpp(
       }
       Image::JBIG2(data, get_decode(), globals)
     }
-    Some(Name("/JPXDecode")) | Some(Array([Name("/JPXDecode")])) =>
+    Some(Array([Name(n)])) if is_jbig2_filter(n) => {
+      let globals = match pdf.lookup_direct("/DecodeParms", streamdict) {
+        Some(Dictionary(parms)) =>
+          match pdf.lookup_direct("/JBIG2Globals", Dictionary(parms)) {
+            Some(Indirect(i)) => Some(i)
+            _ => None
+          }
+        _ => None
+      }
+      Image::JBIG2(data, get_decode(), globals)
+    }
+    Some(Name(n)) if is_jpx_filter(n) => Image::JPEG2000(data, get_decode())
+    Some(Array([Name(n)])) if is_jpx_filter(n) =>
       Image::JPEG2000(data, get_decode())
     _ => raise @pdf.PdfError::Msg("decode_to_image")
   }

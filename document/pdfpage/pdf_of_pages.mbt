@@ -35,7 +35,7 @@ fn buildnode(kids : ArrayView[Int], parent : Int, count : Int) -> PdfObject {
     kid_refs.push(PdfObject::Indirect(kid))
   }
   let entries : Array[(String, PdfObject)] = [
-    ("/Type", PdfObject::Name("/Pages")),
+    ("/Type", PdfObject::Name(@pdf.PdfName::of_string("/Pages"))),
     ("/Kids", PdfObject::Array(kid_refs)),
     ("/Count", PdfObject::Integer(count)),
   ]
@@ -236,8 +236,9 @@ pub fn PdfPageDoc::pdf_of_pages(
   pdf.objiter((i, o) => match o {
     Dictionary(_) =>
       match pdf.lookup_direct("/Type", o) {
-        Some(Name("/Pages")) => pdf.removeobj(i)
-        Some(Name("/Page")) =>
+        Some(Name(name)) if name.equal_string_bytes("/Pages") =>
+          pdf.removeobj(i)
+        Some(Name(name)) if name.equal_string_bytes("/Page") =>
           if objnumbers_set.get(i) is None {
             pdf.removeobj(i)
           }

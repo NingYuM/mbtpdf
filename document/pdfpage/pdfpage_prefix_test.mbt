@@ -8,7 +8,10 @@ fn prefix_resources() -> @pdf.PdfObject {
   Dictionary([
     ("/Font", Dictionary([("/F1", Null)])),
     ("/ExtGState", Dictionary([("/GS1", Null)])),
-    ("/ColorSpace", Dictionary([("/Cs1", Name("/DeviceRGB"))])),
+    (
+      "/ColorSpace",
+      Dictionary([("/Cs1", Name(@pdf.PdfName::of_string("/DeviceRGB")))]),
+    ),
     ("/Pattern", Dictionary([("/P1", Null)])),
     ("/Shading", Dictionary([("/S1", Null)])),
     ("/XObject", Dictionary([("/X1", Null)])),
@@ -59,8 +62,8 @@ test "add_prefix rewrites resources and operators" {
     OpscnName("/P1", [0.2]),
     Opsh("/S1"),
     OpDo("/X1"),
-    OpDP("/Tag", Name("/Prop1")),
-    OpBDC("/Tag", Name("/Prop1")),
+    OpDP("/Tag", Name(@pdf.PdfName::of_string("/Prop1"))),
+    OpBDC("/Tag", Name(@pdf.PdfName::of_string("/Prop1"))),
   ]
   let ops_secondary : Array[@pdfops.Op] = [Opq, OpQ]
   let page : @pdfpage.Page = {
@@ -144,11 +147,11 @@ test "add_prefix rewrites resources and operators" {
         saw_do = true
       }
       OpDP(_, Name(name)) => {
-        assert_eq(name, "/pProp1")
+        assert_true(name.equal_string_bytes("/pProp1"))
         saw_dp = true
       }
       OpBDC(_, Name(name)) => {
-        assert_eq(name, "/pProp1")
+        assert_true(name.equal_string_bytes("/pProp1"))
         saw_bdc = true
       }
       _ => ()
@@ -166,13 +169,16 @@ test "add_prefix rewrites resources and operators" {
 test "add_prefix rewrites inline image colorspace names" {
   let pdf0 = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([
-    ("/ColorSpace", Dictionary([("/CS1", Name("/DeviceRGB"))])),
+    (
+      "/ColorSpace",
+      Dictionary([("/CS1", Name(@pdf.PdfName::of_string("/DeviceRGB")))]),
+    ),
   ])
   let dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/CS1")),
+    ("/CS", Name(@pdf.PdfName::of_string("/CS1"))),
   ])
   let ops : Array[@pdfops.Op] = [
     InlineImage((dict, None, @pdfio.bytes_of_string("RGB"))),
@@ -199,7 +205,7 @@ test "add_prefix rewrites inline image colorspace names" {
       InlineImage((inline_dict, _, _)) =>
         match pdf.lookup_direct("/CS", inline_dict) {
           Some(Name(name)) => {
-            assert_eq(name, "/pCS1")
+            assert_true(name.equal_string_bytes("/pCS1"))
             saw = true
           }
           _ => fail("expected prefixed inline colorspace")
@@ -214,7 +220,10 @@ test "add_prefix rewrites inline image colorspace names" {
 test "add_prefix handles filtered inline images with trailing ops" {
   let pdf0 = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([
-    ("/ColorSpace", Dictionary([("/CS1", Name("/DeviceRGB"))])),
+    (
+      "/ColorSpace",
+      Dictionary([("/CS1", Name(@pdf.PdfName::of_string("/DeviceRGB")))]),
+    ),
   ])
   let raw = @pdfio.bytes_of_list([0x11, 0x22, 0x33])
   let encoded = @pdfcodec.PdfCodec::new().encode_flate(raw)
@@ -222,8 +231,8 @@ test "add_prefix handles filtered inline images with trailing ops" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/CS1")),
-    ("/Filter", Name("/FlateDecode")),
+    ("/CS", Name(@pdf.PdfName::of_string("/CS1"))),
+    ("/Filter", Name(@pdf.PdfName::of_string("/FlateDecode"))),
   ])
   let ops : Array[@pdfops.Op] = [InlineImage((dict, None, encoded)), Opq, OpQ]
   let page : @pdfpage.Page = {
@@ -249,7 +258,7 @@ test "add_prefix handles filtered inline images with trailing ops" {
       InlineImage((inline_dict, _, _)) =>
         match pdf.lookup_direct("/CS", inline_dict) {
           Some(Name(name)) => {
-            assert_eq(name, "/pCS1")
+            assert_true(name.equal_string_bytes("/pCS1"))
             saw_inline = true
           }
           _ => fail("expected prefixed inline colorspace")
@@ -329,7 +338,7 @@ test "add_prefix keeps direct inline colorspace names" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/DeviceRGB")),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceRGB"))),
   ])
   let ops : Array[@pdfops.Op] = [
     InlineImage((dict, None, @pdfio.bytes_of_string("RGB"))),
@@ -356,7 +365,7 @@ test "add_prefix keeps direct inline colorspace names" {
       InlineImage((inline_dict, _, _)) =>
         match pdf.lookup_direct("/CS", inline_dict) {
           Some(Name(name)) => {
-            assert_eq(name, "/DeviceRGB")
+            assert_true(name.equal_string_bytes("/DeviceRGB"))
             saw = true
           }
           _ => fail("expected inline colorspace")
@@ -376,7 +385,12 @@ test "add_prefix preserves inline colorspace arrays" {
     ("/BPC", Integer(8)),
     (
       "/CS",
-      Array([Name("/Indexed"), Name("/DeviceRGB"), Integer(1), String("")]),
+      Array([
+        Name(@pdf.PdfName::of_string("/Indexed")),
+        Name(@pdf.PdfName::of_string("/DeviceRGB")),
+        Integer(1),
+        String(""),
+      ]),
     ),
   ])
   let ops : Array[@pdfops.Op] = [
@@ -418,7 +432,7 @@ test "add_prefix merges non-iso content streams" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/DeviceRGB")),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceRGB"))),
   ])
   let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_string("RGB"))),

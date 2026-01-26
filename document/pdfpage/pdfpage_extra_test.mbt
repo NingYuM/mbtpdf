@@ -102,32 +102,41 @@ test "change_pages rewrites bookmarks and mixed annotations" {
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree(pages_in)
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   let refs = pdf.page_reference_numbers()
-  let dest1 : @pdf.PdfObject = Array([Indirect(refs[0]), Name("/Fit")])
-  let dest2 : @pdf.PdfObject = Array([Indirect(refs[1]), Name("/Fit")])
+  let dest1 : @pdf.PdfObject = Array([
+    Indirect(refs[0]),
+    Name(@pdf.PdfName::of_string("/Fit")),
+  ])
+  let dest2 : @pdf.PdfObject = Array([
+    Indirect(refs[1]),
+    Name(@pdf.PdfName::of_string("/Fit")),
+  ])
   let annot_dest1 : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Link")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Link"))),
     ("/Rect", rect),
     ("/Dest", dest1),
   ])
   let annot_dest2 : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Link")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Link"))),
     ("/Rect", rect),
     ("/Dest", dest2),
   ])
   let annot_action_missing : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Link")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Link"))),
     ("/Rect", rect),
-    ("/A", Dictionary([("/S", Name("/GoTo"))])),
+    ("/A", Dictionary([("/S", Name(@pdf.PdfName::of_string("/GoTo")))])),
   ])
   let annot_action_other : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Link")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Link"))),
     ("/Rect", rect),
-    ("/A", Dictionary([("/S", Name("/URI"))])),
+    ("/A", Dictionary([("/S", Name(@pdf.PdfName::of_string("/URI")))])),
   ])
   let annot_action_none : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Link")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Link"))),
     ("/Rect", rect),
-    ("/A", Dictionary([("/S", Name("/GoTo")), ("/D", dest2)])),
+    (
+      "/A",
+      Dictionary([("/S", Name(@pdf.PdfName::of_string("/GoTo"))), ("/D", dest2)]),
+    ),
   ])
   let annot_nums = [
     pdf.addobj(annot_dest1),
@@ -182,7 +191,9 @@ test "change_pages rewrites bookmarks and mixed annotations" {
     {
       level: 0,
       text: "Named",
-      target: @pdfdest.Destination::NamedDestination("/Named"),
+      target: @pdfdest.Destination::NamedDestination(
+        @pdf.PdfName::of_string("/Named"),
+      ),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -279,12 +290,12 @@ test "fixup_duplicate_pages creates unique refs" {
     Real(100.0),
   ])
   let page : @pdf.PdfObject = Dictionary([
-    ("/Type", Name("/Page")),
+    ("/Type", Name(@pdf.PdfName::of_string("/Page"))),
     ("/MediaBox", rect),
     ("/Parent", Indirect(2)),
   ])
   let pages : @pdf.PdfObject = Dictionary([
-    ("/Type", Name("/Pages")),
+    ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
     ("/Kids", Array([Indirect(1), Indirect(1)])),
     ("/Count", Integer(2)),
   ])
@@ -307,11 +318,11 @@ test "replace_inherit fills mediabox" {
     Real(100.0),
   ])
   let page : @pdf.PdfObject = Dictionary([
-    ("/Type", Name("/Page")),
+    ("/Type", Name(@pdf.PdfName::of_string("/Page"))),
     ("/Parent", Indirect(2)),
   ])
   let pages : @pdf.PdfObject = Dictionary([
-    ("/Type", Name("/Pages")),
+    ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
     ("/Kids", Array([Indirect(1)])),
     ("/Count", Integer(1)),
     ("/MediaBox", rect),
@@ -431,18 +442,24 @@ test "change_pages rewrites annotation and openaction" {
   let refs = pdf.page_reference_numbers()
   let dest_array : @pdf.PdfObject = Array([
     Indirect(refs[0]),
-    Name("/XYZ"),
+    Name(@pdf.PdfName::of_string("/XYZ")),
     Real(10.0),
     Real(20.0),
     Real(1.0),
   ])
   let annot_dest : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Link")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Link"))),
     ("/Dest", dest_array),
   ])
   let annot_action : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Link")),
-    ("/A", Dictionary([("/S", Name("/GoTo")), ("/D", dest_array)])),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Link"))),
+    (
+      "/A",
+      Dictionary([
+        ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
+        ("/D", dest_array),
+      ]),
+    ),
   ])
   let annot1 = pdf.addobj(annot_dest)
   let annot2 = pdf.addobj(annot_action)

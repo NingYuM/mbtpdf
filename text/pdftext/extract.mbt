@@ -122,7 +122,8 @@ fn PdfText::append_text_from_streams(
           }
           if mark_visited(obj_num) {
             let xobj = self.pdf.direct(obj_ref)
-            if self.pdf.lookup_direct("/Subtype", xobj) is Some(Name("/Form")) {
+            if self.pdf.lookup_direct("/Subtype", xobj) is Some(Name(n)) &&
+              n.equal_string_bytes("/Form") {
               let xresources = self.pdf
                 .lookup_direct("/Resources", xobj)
                 .unwrap_or(resources)

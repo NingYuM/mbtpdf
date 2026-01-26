@@ -115,23 +115,26 @@ pub fn ColourSpace::read(
     _ => space
   }
   match (direct : PdfObject) {
-    Name("/DeviceGray") | Name("/G") => DeviceGray
-    Name("/DeviceRGB") | Name("/RGB") => DeviceRGB
-    Name("/DeviceCMYK") | Name("/CMYK") => DeviceCMYK
-    Name("/Pattern") => Pattern
-    Array([Name("/Pattern"), base]) =>
+    Name(n) if n.equal_string_bytes("/DeviceGray") || n.equal_string_bytes("/G") =>
+      DeviceGray
+    Name(n) if n.equal_string_bytes("/DeviceRGB") ||
+      n.equal_string_bytes("/RGB") => DeviceRGB
+    Name(n) if n.equal_string_bytes("/DeviceCMYK") ||
+      n.equal_string_bytes("/CMYK") => DeviceCMYK
+    Name(n) if n.equal_string_bytes("/Pattern") => Pattern
+    Array([Name(n), base]) if n.equal_string_bytes("/Pattern") =>
       PatternWithBaseColourspace(ColourSpace::read(pdf, resources, base))
     Array([one]) => ColourSpace::read(pdf, resources, one)
     Name(name) =>
       match pdf.lookup_direct("/ColorSpace", resources) {
         Some(csdict) =>
-          match pdf.lookup_direct(name, csdict) {
+          match pdf.lookup_direct(name.to_string_bytes(), csdict) {
             Some(space_obj) => ColourSpace::read(pdf, resources, space_obj)
             None => fail("Not_found")
           }
         None => fail("Not_found")
       }
-    Array([Name("/CalGray"), dict]) => {
+    Array([Name(n), dict]) if n.equal_string_bytes("/CalGray") => {
       let whitepoint = read_point(pdf, dict, "/WhitePoint")
       let blackpoint = read_point(pdf, dict, "/BlackPoint")
       let gamma = match pdf.lookup_direct("/Gamma", dict) {
@@ -140,7 +143,7 @@ pub fn ColourSpace::read(
       }
       CalGray(whitepoint, blackpoint, gamma)
     }
-    Array([Name("/CalRGB"), dict]) => {
+    Array([Name(n), dict]) if n.equal_string_bytes("/CalRGB") => {
       let whitepoint = read_point(pdf, dict, "/WhitePoint")
       let blackpoint = read_point(pdf, dict, "/BlackPoint")
       let gamma = match (pdf.lookup_direct("/Gamma", dict) : PdfObject?) {
@@ -164,7 +167,7 @@ pub fn ColourSpace::read(
       }
       CalRGB(whitepoint, blackpoint, gamma, matrix)
     }
-    Array([Name("/Lab"), dict]) => {
+    Array([Name(n), dict]) if n.equal_string_bytes("/Lab") => {
       let whitepoint = read_point(pdf, dict, "/WhitePoint")
       let blackpoint = read_point(pdf, dict, "/BlackPoint")
       let range = match (pdf.lookup_direct("/Range", dict) : PdfObject?) {
@@ -174,7 +177,7 @@ pub fn ColourSpace::read(
       }
       Lab(whitepoint, blackpoint, range)
     }
-    Array([Name("/ICCBased"), stream]) =>
+    Array([Name(n), stream]) if n.equal_string_bytes("/ICCBased") =>
       match (pdf.direct(stream) : PdfObject) {
         Stream(r) => {
           let (dict, _) = r.val
@@ -213,7 +216,10 @@ pub fn ColourSpace::read(
         }
         _ => raise @pdf.PdfError::Msg("ICCBased not a stream")
       }
-    Array([Name("/Indexed") | Name("/I"), base, hival_obj, lookup_data]) => {
+    Array([Name(n), base, hival_obj, lookup_data]) if n.equal_string_bytes(
+        "/Indexed",
+      ) ||
+      n.equal_string_bytes("/I") => {
       let hival = match (hival_obj : PdfObject) {
         Integer(h) => h
         _ => raise @pdf.PdfError::Msg("Bad /Hival")
@@ -264,16 +270,20 @@ pub fn ColourSpace::read(
       }
       Indexed(base_space, table)
     }
-    Array([Name("/Separation"), Name(name), alternate, tint]) => {
+    Array([Name(n), Name(sep_name), alternate, tint]) if n.equal_string_bytes(
+        "/Separation",
+      ) => {
       let alt_space = ColourSpace::read(pdf, resources, alternate)
       let tint_transform = @pdffun.PdfFunction::parse(pdf, tint)
-      Separation(name, alt_space, tint_transform)
+      Separation(sep_name.to_string_bytes(), alt_space, tint_transform)
     }
-    Array([Name("/DeviceN"), Array(names), alternate, tint]) => {
+    Array([Name(n), Array(names), alternate, tint]) if n.equal_string_bytes(
+        "/DeviceN",
+      ) => {
       let out_names = Array::new(capacity=names.length())
       for name in names {
         match (name : PdfObject) {
-          Name(value) => out_names.push(value)
+          Name(value) => out_names.push(value.to_string_bytes())
           _ => fail("Not_found")
         }
       }
@@ -282,11 +292,13 @@ pub fn ColourSpace::read(
       let empty_dict : PdfObject = Dictionary([])
       DeviceN(out_names, alt_space, tint_transform, empty_dict)
     }
-    Array([Name("/DeviceN"), Array(names), alternate, tint, attributes]) => {
+    Array([Name(n), Array(names), alternate, tint, attributes]) if n.equal_string_bytes(
+        "/DeviceN",
+      ) => {
       let out_names = Array::new(capacity=names.length())
       for name in names {
         match (name : PdfObject) {
-          Name(value) => out_names.push(value)
+          Name(value) => out_names.push(value.to_string_bytes())
           _ => fail("Not_found")
         }
       }
@@ -477,12 +489,12 @@ pub fn ColourSpace::to_pdf_object(
 ) -> PdfObject {
   let _ = pdf
   match self {
-    DeviceGray => Name("/DeviceGray")
-    DeviceRGB => Name("/DeviceRGB")
-    DeviceCMYK => Name("/DeviceCMYK")
+    DeviceGray => Name(@pdf.PdfName::of_string("/DeviceGray"))
+    DeviceRGB => Name(@pdf.PdfName::of_string("/DeviceRGB"))
+    DeviceCMYK => Name(@pdf.PdfName::of_string("/DeviceCMYK"))
     CalGray(white, black, gamma) =>
       Array([
-        Name("/CalGray"),
+        Name(@pdf.PdfName::of_string("/CalGray")),
         Dictionary([
           ("/WhitePoint", array_of_point(white)),
           ("/BlackPoint", array_of_point(black)),
@@ -491,7 +503,7 @@ pub fn ColourSpace::to_pdf_object(
       ])
     CalRGB(white, black, gamma, matrix) =>
       Array([
-        Name("/CalRGB"),
+        Name(@pdf.PdfName::of_string("/CalRGB")),
         Dictionary([
           ("/WhitePoint", array_of_point(white)),
           ("/BlackPoint", array_of_point(black)),
@@ -504,14 +516,18 @@ pub fn ColourSpace::to_pdf_object(
       ])
     Lab(white, black, range) =>
       Array([
-        Name("/Lab"),
+        Name(@pdf.PdfName::of_string("/Lab")),
         Dictionary([
           ("/WhitePoint", array_of_point(white)),
           ("/BlackPoint", array_of_point(black)),
           ("/Range", Array(range.map(x => @pdf.ToPdfNumber::to_pdf_number(x)))),
         ]),
       ])
-    ICCBased(icc) => Array([Name("/ICCBased"), write_iccbased(pdf, icc)])
+    ICCBased(icc) =>
+      Array([
+        Name(@pdf.PdfName::of_string("/ICCBased")),
+        write_iccbased(pdf, icc),
+      ])
     Indexed(base, table) => {
       let components = components_of_colourspace(base)
       if components == 0 {
@@ -530,30 +546,30 @@ pub fn ColourSpace::to_pdf_object(
         let data = table_bytes(table, hival, components)
         let lookup = @pdfio.string_of_bytes(data)
         Array([
-          Name("/Indexed"),
+          Name(@pdf.PdfName::of_string("/Indexed")),
           base.to_pdf_object(pdf),
           Integer(hival),
           String(lookup),
         ])
       }
     }
-    Pattern => Name("/Pattern")
+    Pattern => Name(@pdf.PdfName::of_string("/Pattern"))
     PatternWithBaseColourspace(base) =>
-      Array([Name("/Pattern"), base.to_pdf_object(pdf)])
+      Array([Name(@pdf.PdfName::of_string("/Pattern")), base.to_pdf_object(pdf)])
     Separation(name, alternate, tint) =>
       Array([
-        Name("/Separation"),
-        Name(normalize_name(name)),
+        Name(@pdf.PdfName::of_string("/Separation")),
+        Name(@pdf.PdfName::of_string(normalize_name(name))),
         alternate.to_pdf_object(pdf),
         tint.to_pdf_object(pdf),
       ])
     DeviceN(names, alternate, tint, attrs) => {
       let names_arr : Array[PdfObject] = names.map(fn(name) {
-        Name(normalize_name(name))
+        Name(@pdf.PdfName::of_string(normalize_name(name)))
       })
       let names_obj : PdfObject = Array(names_arr)
       let base : Array[PdfObject] = [
-        Name("/DeviceN"),
+        Name(@pdf.PdfName::of_string("/DeviceN")),
         names_obj,
         alternate.to_pdf_object(pdf),
         tint.to_pdf_object(pdf),

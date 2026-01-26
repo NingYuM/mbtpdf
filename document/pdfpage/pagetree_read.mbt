@@ -37,7 +37,42 @@ fn find_pages(
     _ => {
       let typ = pdf.lookup_direct("/Type", pages)
       match typ {
-        Some(Name("/Pages")) | None => {
+        None => {
+          let kids = match
+            pdf.lookup_fail("No /Kids in page tree", "/Kids", pages) {
+            Array(values) => values
+            _ => raise @pdf.PdfError::Msg("Malformed /Kids in page tree node")
+          }
+          let resources = match pdf.lookup_direct("/Resources", pages) {
+            Some(x) => Some(x)
+            None => resources
+          }
+          let mediabox = match pdf.lookup_direct("/MediaBox", pages) {
+            Some(x) => Some(x)
+            None => mediabox
+          }
+          let rotate = match pdf.lookup_direct("/Rotate", pages) {
+            Some(Integer(r)) => Rotation::from_int(r)
+            _ => rotate
+          }
+          let out = Array::new()
+          for kid in kids {
+            let kid_obj = match kid {
+              Indirect(k) => {
+                let obj = pdf.lookup_obj(k)
+                match obj {
+                  Null => raise @pdf.PdfError::Msg("missing kid")
+                  _ => obj
+                }
+              }
+              Dictionary(d) => PdfObject::Dictionary(d)
+              _ => raise @pdf.PdfError::Msg("malformed kid")
+            }
+            out.append(find_pages(kid_obj, pdf, resources, mediabox, rotate)[:])
+          }
+          out
+        }
+        Some(Name(name)) if name.equal_string_bytes("/Pages") => {
           let kids = match
             pdf.lookup_fail("No /Kids in page tree", "/Kids", pages) {
             Array(values) => values
@@ -191,7 +226,23 @@ fn find_pages_quick(
     _ => {
       let typ = pdf.lookup_direct("/Type", resolved)
       match typ {
-        Some(Name("/Pages")) | None => {
+        None => {
+          let kids = match
+            pdf.lookup_fail("No /Kids in page tree", "/Kids", resolved) {
+            Array(values) => values
+            _ => raise @pdf.PdfError::Msg("Malformed /Kids in page tree node")
+          }
+          let mut total = 0
+          for kid in kids {
+            match kid {
+              Indirect(_) | Dictionary(_) =>
+                total = total + find_pages_quick(count + 1, kid, pdf, stack)
+              _ => raise @pdf.PdfError::Msg("malformed kid")
+            }
+          }
+          total
+        }
+        Some(Name(name)) if name.equal_string_bytes("/Pages") => {
           let kids = match
             pdf.lookup_fail("No /Kids in page tree", "/Kids", resolved) {
             Array(values) => values

@@ -93,7 +93,7 @@ test "encode_pdfstream ccitt g3 roundtrip" {
   match pdf.lookup_direct("/Filter", encoded_dict) {
     Some(@pdf.PdfObject::Name(name))
     | Some(@pdf.PdfObject::Array([@pdf.PdfObject::Name(name), ..])) =>
-      if name != "/CCITTFaxDecode" {
+      if !name.equal_string_bytes("/CCITTFaxDecode") {
         fail("expected /CCITTFaxDecode filter")
       }
     _ => fail("expected /Filter entry")
@@ -130,7 +130,7 @@ test "encode_pdfstream ccitt g4 roundtrip" {
   match pdf.lookup_direct("/Filter", encoded_dict) {
     Some(@pdf.PdfObject::Name(name))
     | Some(@pdf.PdfObject::Array([@pdf.PdfObject::Name(name), ..])) =>
-      if name != "/CCITTFaxDecode" {
+      if !name.equal_string_bytes("/CCITTFaxDecode") {
         fail("expected /CCITTFaxDecode filter")
       }
     _ => fail("expected /Filter entry")

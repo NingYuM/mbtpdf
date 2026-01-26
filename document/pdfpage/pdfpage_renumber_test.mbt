@@ -3,7 +3,10 @@ fn renumber_resources() -> @pdf.PdfObject {
   Dictionary([
     ("/Font", Dictionary([("/F1", Null)])),
     ("/ExtGState", Dictionary([("/GS1", Null)])),
-    ("/ColorSpace", Dictionary([("/CS1", Name("/DeviceRGB"))])),
+    (
+      "/ColorSpace",
+      Dictionary([("/CS1", Name(@pdf.PdfName::of_string("/DeviceRGB")))]),
+    ),
     ("/Pattern", Dictionary([("/P1", Null)])),
     ("/Shading", Dictionary([("/Sh1", Null)])),
     ("/XObject", Dictionary([("/X1", Null)])),
@@ -24,9 +27,9 @@ fn renumber_page(rect : @pdf.PdfObject) -> @pdfpage.Page raise {
     OpscnName("/P1", [0.2]),
     Opsh("/Sh1"),
     OpDo("/X1"),
-    OpDP("/Span", Name("/Prop1")),
-    OpBDC("/Span", Name("/Prop1")),
-    OpBDC("/Span", Name("/PropMissing")),
+    OpDP("/Span", Name(@pdf.PdfName::of_string("/Prop1"))),
+    OpBDC("/Span", Name(@pdf.PdfName::of_string("/Prop1"))),
+    OpBDC("/Span", Name(@pdf.PdfName::of_string("/PropMissing"))),
   ]
   {
     content: [@pdfops.Op::stream_of_ops(ops)],
@@ -100,15 +103,15 @@ test "renumber_pages renames resource operators consistently" {
     _ => fail("expected OpDo")
   }
   match (ops[10] : @pdfops.Op) {
-    OpDP(_, Name(name)) => assert_true(name != "/Prop1")
+    OpDP(_, Name(name)) => assert_true(!name.equal_string_bytes("/Prop1"))
     _ => fail("expected OpDP")
   }
   match (ops[11] : @pdfops.Op) {
-    OpBDC(_, Name(name)) => assert_true(name != "/Prop1")
+    OpBDC(_, Name(name)) => assert_true(!name.equal_string_bytes("/Prop1"))
     _ => fail("expected OpBDC renamed")
   }
   match (ops[12] : @pdfops.Op) {
-    OpBDC(_, Name(name)) => assert_eq(name, "/PropMissing")
+    OpBDC(_, Name(name)) => assert_true(name.equal_string_bytes("/PropMissing"))
     _ => fail("expected OpBDC missing")
   }
 }

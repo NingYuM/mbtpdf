@@ -255,7 +255,7 @@ test "merge_structure_trees merges roots" {
     ("/K", Indirect(kid1)),
     ("/IDTree", idtree1),
     ("/ParentTree", parenttree1),
-    ("/RoleMap", Dictionary([("/Sect", Name("/Div"))])),
+    ("/RoleMap", Dictionary([("/Sect", Name(@pdf.PdfName::of_string("/Div")))])),
     ("/Namespaces", Array([Dictionary([("/NS", String("ns1"))])])),
     ("/PronunciationLexicon", Array([])),
   ])
@@ -269,10 +269,13 @@ test "merge_structure_trees merges roots" {
     ("/K", Array([kid2, Integer(3)])),
     ("/IDTree", idtree2),
     ("/ParentTree", parenttree2),
-    ("/RoleMap", Name("/NotADict")),
-    ("/ClassMap", Dictionary([("/Class", Name("/Span"))])),
+    ("/RoleMap", Name(@pdf.PdfName::of_string("/NotADict"))),
+    (
+      "/ClassMap",
+      Dictionary([("/Class", Name(@pdf.PdfName::of_string("/Span")))]),
+    ),
     ("/Namespaces", Dictionary([])),
-    ("/AF", Array([Name("/File")])),
+    ("/AF", Array([Name(@pdf.PdfName::of_string("/File"))])),
   ])
   ignore(install_struct_root(pdf2, root2))
   let merged = PdfStructTree::new(pdf_out).merge_structure_trees(
@@ -284,7 +287,7 @@ test "merge_structure_trees merges roots" {
       match (pdf_out.lookup_obj(root_num) : @pdf.PdfObject) {
         Dictionary(_) as dict =>
           match (pdf_out.lookup_direct("/Type", dict) : @pdf.PdfObject?) {
-            Some(Name("/StructTreeRoot")) => ()
+            Some(Name(n)) if n.equal_string_bytes("/StructTreeRoot") => ()
             _ => fail("expected StructTreeRoot type")
           }
         _ => fail("expected merged root dict")

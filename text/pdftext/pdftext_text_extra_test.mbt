@@ -4,30 +4,40 @@ fn font_with_encoding_name(
   subtype? : String = "/Type1",
 ) -> @pdf.PdfObject {
   Dictionary([
-    ("/Subtype", Name(subtype)),
-    ("/BaseFont", Name("/CustomFont")),
-    ("/Encoding", Name(encoding_name)),
+    ("/Subtype", Name(@pdf.PdfName::of_string(subtype))),
+    ("/BaseFont", Name(@pdf.PdfName::of_string("/CustomFont"))),
+    ("/Encoding", Name(@pdf.PdfName::of_string(encoding_name))),
   ])
 }
 
 ///|
 fn truetype_font_with_encoding_dict() -> @pdf.PdfObject {
   Dictionary([
-    ("/Subtype", Name("/TrueType")),
-    ("/BaseFont", Name("/CustomFont")),
-    ("/Encoding", Dictionary([("/BaseEncoding", Name("/MacRomanEncoding"))])),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/TrueType"))),
+    ("/BaseFont", Name(@pdf.PdfName::of_string("/CustomFont"))),
+    (
+      "/Encoding",
+      Dictionary([
+        ("/BaseEncoding", Name(@pdf.PdfName::of_string("/MacRomanEncoding"))),
+      ]),
+    ),
   ])
 }
 
 ///|
 fn embedded_font_with_custom_encoding() -> @pdf.PdfObject {
   Dictionary([
-    ("/Subtype", Name("/Type1")),
-    ("/BaseFont", Name("/CustomFont")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName::of_string("/CustomFont"))),
     ("/FontDescriptor", Dictionary([("/FontFile2", Indirect(10))])),
     (
       "/Encoding",
-      Dictionary([("/Differences", Array([Integer(65), Name("/A")]))]),
+      Dictionary([
+        (
+          "/Differences",
+          Array([Integer(65), Name(@pdf.PdfName::of_string("/A"))]),
+        ),
+      ]),
     ),
   ])
 }
@@ -35,11 +45,16 @@ fn embedded_font_with_custom_encoding() -> @pdf.PdfObject {
 ///|
 fn font_with_difference(name : String) -> @pdf.PdfObject {
   Dictionary([
-    ("/Subtype", Name("/Type1")),
-    ("/BaseFont", Name("/CustomFont")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName::of_string("/CustomFont"))),
     (
       "/Encoding",
-      Dictionary([("/Differences", Array([Integer(70), Name(name)]))]),
+      Dictionary([
+        (
+          "/Differences",
+          Array([Integer(70), Name(@pdf.PdfName::of_string(name))]),
+        ),
+      ]),
     ),
   ])
 }
@@ -72,8 +87,8 @@ test "reverse tables handle implicit and mac encodings" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let font_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Type1")),
-    ("/BaseFont", Name("/CustomFont")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName::of_string("/CustomFont"))),
   ])
   let implicit_encoding = ctx.read_encoding(font_dict)
   let implicit = @pdftext.PdfTextUtil::new().reverse_table_of_encoding(

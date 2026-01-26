@@ -30,7 +30,7 @@ fn set_catalog_entry(
 
 ///|
 fn dest_for_page(page_objnum : Int) -> @pdf.PdfObject {
-  Array([Indirect(page_objnum), Name("/Fit")])
+  Array([Indirect(page_objnum), Name(@pdf.PdfName::of_string("/Fit"))])
 }
 
 ///|
@@ -45,7 +45,7 @@ fn xyz_dest_for_page(page_objnum : Int) -> @pdf.PdfObject {
 
 ///|
 fn action_for_dest(dest : @pdf.PdfObject) -> @pdf.PdfObject {
-  Dictionary([("/S", Name("/GoTo")), ("/D", dest)])
+  Dictionary([("/S", Name(@pdf.PdfName::of_string("/GoTo"))), ("/D", dest)])
 }
 
 ///|
@@ -131,21 +131,23 @@ test "change_pages rewrites bookmarks annotations and openaction" {
   pdf = add_bookmarks_for_pages(pdf, page1, page2)
   let dest_page2 = dest_for_page(page2)
   let annot_dest : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Link")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Link"))),
     ("/Dest", dest_page2),
   ])
   let annot_dest_num = pdf.addobj(annot_dest)
   let annot_action : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Link")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Link"))),
     ("/A", action_for_dest(dest_page2)),
   ])
   let annot_action_num = pdf.addobj(annot_action)
   let annot_action_invalid : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name("/Link")),
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Link"))),
     ("/A", Null),
   ])
   let annot_action_invalid_num = pdf.addobj(annot_action_invalid)
-  let annot_not_link : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Text"))])
+  let annot_not_link : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Text"))),
+  ])
   let annot_not_link_num = pdf.addobj(annot_not_link)
   let annots : Array[@pdf.PdfObject] = [
     Indirect(annot_dest_num),

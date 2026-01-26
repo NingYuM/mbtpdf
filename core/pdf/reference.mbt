@@ -151,7 +151,8 @@ fn Pdf::page_reference_numbers_inner(
   pages_node : PdfObject,
   node_number : Int,
 ) -> Array[Int] {
-  if self.lookup_direct("/Type", pages_node) is Some(Name("/Page")) {
+  if self.lookup_direct("/Type", pages_node) is Some(Name(name)) &&
+    name.equal_string_bytes("/Page") {
     [node_number]
   } else {
     match self.lookup_direct("/Kids", pages_node) {

@@ -9,7 +9,7 @@ test "pagenumber_of_target handles non-page targets" {
   )
   assert_eq(
     @pdfpage.PdfPageDoc::new(pdf).pagenumber_of_target(
-      @pdfdest.Destination::NamedDestination("/Name"),
+      @pdfdest.Destination::NamedDestination(@pdf.PdfName::of_string("/Name")),
     ),
     0,
   )
@@ -25,9 +25,12 @@ test "pagenumber_of_target handles non-page targets" {
 test "pagenumber_of_target follows GoTo action and fastrefnums" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let refs = pdf.page_reference_numbers()
-  let dest_array : @pdf.PdfObject = Array([Indirect(refs[0]), Name("/Fit")])
+  let dest_array : @pdf.PdfObject = Array([
+    Indirect(refs[0]),
+    Name(@pdf.PdfName::of_string("/Fit")),
+  ])
   let action : @pdf.PdfObject = Dictionary([
-    ("/S", Name("/GoTo")),
+    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
     ("/D", dest_array),
   ])
   let table : Map[Int, Int] = Map::new()
@@ -42,8 +45,12 @@ test "pagenumber_of_target follows GoTo action and fastrefnums" {
 ///|
 test "pagenumber_of_target handles action edge cases" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  let action_missing : @pdf.PdfObject = Dictionary([("/S", Name("/GoTo"))])
-  let action_other : @pdf.PdfObject = Dictionary([("/S", Name("/URI"))])
+  let action_missing : @pdf.PdfObject = Dictionary([
+    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
+  ])
+  let action_other : @pdf.PdfObject = Dictionary([
+    ("/S", Name(@pdf.PdfName::of_string("/URI"))),
+  ])
   assert_eq(
     @pdfpage.PdfPageDoc::new(pdf).pagenumber_of_target(
       @pdfdest.Destination::Action(action_missing),
@@ -62,9 +69,12 @@ test "pagenumber_of_target handles action edge cases" {
 test "pagenumber_of_target follows GoTo action without fastrefnums" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let refs = pdf.page_reference_numbers()
-  let dest_array : @pdf.PdfObject = Array([Indirect(refs[0]), Name("/Fit")])
+  let dest_array : @pdf.PdfObject = Array([
+    Indirect(refs[0]),
+    Name(@pdf.PdfName::of_string("/Fit")),
+  ])
   let action : @pdf.PdfObject = Dictionary([
-    ("/S", Name("/GoTo")),
+    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
     ("/D", dest_array),
   ])
   let dest = @pdfdest.Destination::Action(action)

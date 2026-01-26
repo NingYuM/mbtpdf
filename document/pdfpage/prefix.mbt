@@ -48,8 +48,8 @@ fn names_used(pdf : @pdf.Pdf) -> Array[String] {
   pdf.objiter((_, obj) => match obj {
     @pdf.PdfObject::Dictionary(_) | @pdf.PdfObject::Stream(_) =>
       match pdf.lookup_direct("/Type", obj) {
-        Some(@pdf.PdfObject::Name("/Page"))
-        | Some(@pdf.PdfObject::Name("/Pages")) =>
+        Some(@pdf.PdfObject::Name(name)) if name.equal_string_bytes("/Page") ||
+          name.equal_string_bytes("/Pages") =>
           match pdf.lookup_direct("/Resources", obj) {
             Some(resources) =>
               for key in resource_keys {
@@ -123,18 +123,34 @@ fn prefix_operator(
     Opsh(s) => Opsh(addp(prefix, s))
     OpDo(x) => OpDo(addp(prefix, x))
     OpDP(n, @pdf.PdfObject::Name(x)) =>
-      OpDP(n, @pdf.PdfObject::Name(addp(prefix, x)))
+      OpDP(
+        n,
+        @pdf.PdfObject::Name(
+          @pdf.PdfName::of_string(addp(prefix, x.to_string_bytes())),
+        ),
+      )
     OpBDC(n, @pdf.PdfObject::Name(x)) =>
-      OpBDC(n, @pdf.PdfObject::Name(addp(prefix, x)))
+      OpBDC(
+        n,
+        @pdf.PdfObject::Name(
+          @pdf.PdfName::of_string(addp(prefix, x.to_string_bytes())),
+        ),
+      )
     InlineImage((dict, dp, bytes)) => {
       let dict_updated = match
         pdf.lookup_direct_orelse("/CS", "/ColorSpace", dict) {
-        Some(@pdf.PdfObject::Name(n)) if direct_cs_names_inline.contains(n) =>
-          dict
-        Some(@pdf.PdfObject::Name(n)) => {
-          let stripped = dict.remove_entry("/ColorSpace").remove_entry("/CS")
-          stripped.add_entry("/CS", @pdf.PdfObject::Name(addp(prefix, n)))
-        }
+        Some(@pdf.PdfObject::Name(n)) =>
+          if direct_cs_names_inline.contains(n.to_string_bytes()) {
+            dict
+          } else {
+            let stripped = dict.remove_entry("/ColorSpace").remove_entry("/CS")
+            stripped.add_entry(
+              "/CS",
+              @pdf.PdfObject::Name(
+                @pdf.PdfName::of_string(addp(prefix, n.to_string_bytes())),
+              ),
+            )
+          }
         _ => dict
       }
       InlineImage((dict_updated, dp, bytes))
@@ -206,8 +222,8 @@ fn add_prefix_impl(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
     match obj {
       @pdf.PdfObject::Dictionary(dict) =>
         match pdf.lookup_direct("/Type", obj) {
-          Some(@pdf.PdfObject::Name("/Page"))
-          | Some(@pdf.PdfObject::Name("/Pages")) => {
+          Some(@pdf.PdfObject::Name(name)) if name.equal_string_bytes("/Page") ||
+            name.equal_string_bytes("/Pages") => {
             let (resources, resources_updated) = match
               pdf.lookup_direct("/Resources", obj) {
               Some(res) => (Some(res), Some(change_resources(pdf, prefix, res)))
@@ -290,8 +306,8 @@ fn merge_content_streams(pdf : @pdf.Pdf) -> Unit raise {
     match obj {
       @pdf.PdfObject::Dictionary(dict) =>
         match pdf.lookup_direct("/Type", obj) {
-          Some(@pdf.PdfObject::Name("/Page"))
-          | Some(@pdf.PdfObject::Name("/Pages")) =>
+          Some(@pdf.PdfObject::Name(name)) if name.equal_string_bytes("/Page") ||
+            name.equal_string_bytes("/Pages") =>
             match dict.search_by(pair => pair.0 == "/Contents") {
               Some(index) =>
                 match dict[index].1 {

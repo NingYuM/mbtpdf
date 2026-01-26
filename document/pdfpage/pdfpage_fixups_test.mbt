@@ -38,7 +38,9 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
     page, page,
   ])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
-  let annot_base : @pdf.PdfObject = Dictionary([("/Subtype", Name("/Text"))])
+  let annot_base : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Text"))),
+  ])
   let annot_num = pdf.addobj(annot_base)
   let annot_with_popup = annot_base.add_entry("/Popup", Indirect(annot_num))
   pdf.addobj_given_num((annot_num, annot_with_popup))
@@ -66,7 +68,10 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
 test "fixup_destinations removes nulled entries" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let null_num = pdf.addobj(Null)
-  let dead_dest : @pdf.PdfObject = Array([Indirect(null_num), Name("/Fit")])
+  let dead_dest : @pdf.PdfObject = Array([
+    Indirect(null_num),
+    Name(@pdf.PdfName::of_string("/Fit")),
+  ])
   let tree_ctx = @pdftree.PdfTree::new(pdf)
   let tree = tree_ctx.build_name_tree(false, [("Dead", dead_dest)])
   let names : @pdf.PdfObject = Dictionary([("/Dests", tree)])
@@ -110,12 +115,12 @@ test "fixup_parents raises without page tree" {
 test "fixup_parents skips direct kids" {
   let pdf0 = @pdf.Pdf::empty()
   let page : @pdf.PdfObject = Dictionary([
-    ("/Type", Name("/Page")),
+    ("/Type", Name(@pdf.PdfName::of_string("/Page"))),
     ("/Resources", Dictionary([])),
     ("/MediaBox", fixups_sample_rect()),
   ])
   let pages : @pdf.PdfObject = Dictionary([
-    ("/Type", Name("/Pages")),
+    ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
     ("/Kids", Array([page])),
     ("/Count", Integer(1)),
   ])

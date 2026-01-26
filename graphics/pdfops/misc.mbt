@@ -7,21 +7,22 @@ pub fn Op::components(
 ) -> Int raise {
   match space {
     Name(name) => {
-      if name == "/CalGray" || name == "/DeviceGray" || name == "/G" {
+      let name_s = name.to_string_bytes()
+      if name_s == "/CalGray" || name_s == "/DeviceGray" || name_s == "/G" {
         return 1
       }
-      if name == "/CalRGB" || name == "/DeviceRGB" || name == "/RGB" {
+      if name_s == "/CalRGB" || name_s == "/DeviceRGB" || name_s == "/RGB" {
         return 3
       }
-      if name == "/CalCMYK" || name == "/DeviceCMYK" || name == "/CMYK" {
+      if name_s == "/CalCMYK" || name_s == "/DeviceCMYK" || name_s == "/CMYK" {
         return 4
       }
-      if name == "/Pattern" {
+      if name_s == "/Pattern" {
         raise @pdf.PdfError::Msg("Can't use /Pattern here")
       }
       match pdf.lookup_direct("/ColorSpace", resources) {
         Some(csdict) =>
-          match pdf.lookup_direct(name, csdict) {
+          match pdf.lookup_direct(name_s, csdict) {
             Some(space_next) => Op::components(pdf, resources, space_next)
             None => raise @pdf.PdfError::Msg("ColorSpace not found")
           }
@@ -32,7 +33,7 @@ pub fn Op::components(
       if items.length() >= 2 {
         match items[0] {
           Name(name) =>
-            match name {
+            match name.to_string_bytes() {
               "/Lab" => if items.length() == 2 { return 3 }
               "/ICCBased" =>
                 if items.length() == 2 {

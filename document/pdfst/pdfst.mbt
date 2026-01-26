@@ -497,7 +497,9 @@ pub fn PdfStructTree::merge_structure_trees(
   }
 
   let standard_entries = Array::new()
-  standard_entries.push(("/Type", @pdf.PdfObject::Name("/StructTreeRoot")))
+  standard_entries.push(
+    ("/Type", @pdf.PdfObject::Name(@pdf.PdfName::of_string("/StructTreeRoot"))),
+  )
   standard_entries.append(optional("/IDTree", merged_idtree)[:])
   standard_entries.append(optional("/ParentTree", merged_parenttree)[:])
   standard_entries.append(optional("/RoleMap", merged_rolemap)[:])
@@ -524,7 +526,7 @@ pub fn PdfStructTree::merge_structure_trees(
     let top_level_objnum = pdf.addobj(
       @pdf.PdfObject::Dictionary([
         ("/NS", @pdf.PdfObject::Indirect(namespace_objnum)),
-        ("/S", @pdf.PdfObject::Name("/Document")),
+        ("/S", @pdf.PdfObject::Name(@pdf.PdfName::of_string("/Document"))),
         ("/P", @pdf.PdfObject::Indirect(struct_tree_objnum)),
         ("/K", merged_k),
       ]),

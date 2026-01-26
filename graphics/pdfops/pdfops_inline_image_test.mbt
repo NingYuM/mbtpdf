@@ -6,7 +6,7 @@ test "parse inline image flate data" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/DeviceGray")),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceGray"))),
   ])
   let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x7f]))),
@@ -34,13 +34,16 @@ test "parse inline image flate data" {
 test "parse inline image uses resources for colorspace" {
   let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([
-    ("/ColorSpace", Dictionary([("/Cs1", Name("/DeviceRGB"))])),
+    (
+      "/ColorSpace",
+      Dictionary([("/Cs1", Name(@pdf.PdfName::of_string("/DeviceRGB")))]),
+    ),
   ])
   let dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/Cs1")),
+    ("/CS", Name(@pdf.PdfName::of_string("/Cs1"))),
   ])
   let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_string("RGB"))),
@@ -68,8 +71,8 @@ test "parse inline image handles DCT data" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/DeviceRGB")),
-    ("/Filter", Name("/DCT")),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceRGB"))),
+    ("/Filter", Name(@pdf.PdfName::of_string("/DCT"))),
   ])
   let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0xFF, 0xD9]))),
@@ -109,7 +112,12 @@ test "parse inline image handles colorspace array" {
     ("/BPC", Integer(8)),
     (
       "/CS",
-      Array([Name("/Indexed"), Name("/DeviceRGB"), Integer(1), String("")]),
+      Array([
+        Name(@pdf.PdfName::of_string("/Indexed")),
+        Name(@pdf.PdfName::of_string("/DeviceRGB")),
+        Integer(1),
+        String(""),
+      ]),
     ),
   ])
   let rendered = @pdfops.Op::string_of_ops([
@@ -174,8 +182,8 @@ test "parse inline image decodes flate filter" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/DeviceGray")),
-    ("/Filter", Name("/FlateDecode")),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceGray"))),
+    ("/Filter", Name(@pdf.PdfName::of_string("/FlateDecode"))),
   ])
   let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, encoded)),
@@ -252,19 +260,19 @@ test "parse inline image errors on missing width/height/BPC" {
   let dict1 : @pdf.PdfObject = Dictionary([
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/DeviceGray")),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceGray"))),
   ])
   parse_inline_image_error(dict1)
   let dict2 : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/DeviceGray")),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceGray"))),
   ])
   parse_inline_image_error(dict2)
   let dict3 : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
     ("/H", Integer(1)),
-    ("/CS", Name("/DeviceGray")),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceGray"))),
   ])
   parse_inline_image_error(dict3)
 }
@@ -289,8 +297,8 @@ test "parse inline image cleans filter arrays" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/DeviceGray")),
-    ("/Filter", Array([Name("/FlateDecode")])),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceGray"))),
+    ("/Filter", Array([Name(@pdf.PdfName::of_string("/FlateDecode"))])),
   ])
   let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, encoded)),
@@ -322,8 +330,8 @@ test "parse inline image decode failures raise" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/DeviceGray")),
-    ("/Filter", Name("/FlateDecode")),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceGray"))),
+    ("/Filter", Name(@pdf.PdfName::of_string("/FlateDecode"))),
   ])
   let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x00]))),
@@ -343,7 +351,7 @@ test "parse inline image errors on missing colorspace entry and type" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/CS1")),
+    ("/CS", Name(@pdf.PdfName::of_string("/CS1"))),
   ])
   let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x00]))),
@@ -401,8 +409,8 @@ test "parse inline image handles bad filters" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/DeviceGray")),
-    ("/Filter", Name("/BadFilter")),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceGray"))),
+    ("/Filter", Name(@pdf.PdfName::of_string("/BadFilter"))),
   ])
   let rendered = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_list([0x00]))),
@@ -417,7 +425,7 @@ test "parse inline image handles bad filters" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/DeviceGray")),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceGray"))),
     ("/Filter", Array([Integer(1)])),
   ])
   let rendered_array = @pdfops.Op::string_of_ops([
@@ -433,8 +441,14 @@ test "parse inline image handles bad filters" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/DeviceGray")),
-    ("/Filter", Array([Name("/FlateDecode"), Name("/ASCIIHexDecode")])),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceGray"))),
+    (
+      "/Filter",
+      Array([
+        Name(@pdf.PdfName::of_string("/FlateDecode")),
+        Name(@pdf.PdfName::of_string("/ASCIIHexDecode")),
+      ]),
+    ),
   ])
   let rendered_multi = @pdfops.Op::string_of_ops([
     @pdfops.Op::InlineImage((dict_multi, None, @pdfio.bytes_of_list([0x00]))),
@@ -521,7 +535,7 @@ test "parse inline image errors on invalid filter array" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name("/DeviceGray")),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceGray"))),
     ("/Filter", Array([Integer(1)])),
   ])
   let rendered = @pdfops.Op::string_of_ops([
@@ -539,12 +553,15 @@ test "parse inline image errors on invalid filter array" {
 test "components handles indexed shorthand and errors" {
   let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
-  let indexed : @pdf.PdfObject = Array([Name("/I"), Name("/DeviceRGB")])
+  let indexed : @pdf.PdfObject = Array([
+    Name(@pdf.PdfName::of_string("/I")),
+    Name(@pdf.PdfName::of_string("/DeviceRGB")),
+  ])
   assert_eq(@pdfops.Op::components(pdf, resources, indexed), 1)
   let bad_first : Result[Int, Error] = try? @pdfops.Op::components(
     pdf,
     resources,
-    Array([Integer(1), Name("/DeviceRGB")]),
+    Array([Integer(1), Name(@pdf.PdfName::of_string("/DeviceRGB"))]),
   )
   assert_true(bad_first is Err(_))
 }

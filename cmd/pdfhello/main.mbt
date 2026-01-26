@@ -2,9 +2,9 @@
 async fn main {
   try {
     let font = @pdf.PdfObject::Dictionary([
-      ("/Type", Name("/Font")),
-      ("/Subtype", Name("/Type1")),
-      ("/BaseFont", Name("/Times-Italic")),
+      ("/Type", Name(@pdf.PdfName::of_string("/Font"))),
+      ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
+      ("/BaseFont", Name(@pdf.PdfName::of_string("/Times-Italic"))),
     ])
     let ops : Array[@pdfops.Op] = [
       Opcm(

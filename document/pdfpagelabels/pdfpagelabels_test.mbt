@@ -252,16 +252,16 @@ fn set_page_labels(pdf : @pdf.Pdf, nums : Array[@pdf.PdfObject]) -> Unit raise {
 test "read handles label styles and bad startpage" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let nums : Array[@pdf.PdfObject] = [
-    Name("/Bad"),
-    Dictionary([("/S", Name("/R"))]),
+    Name(@pdf.PdfName::of_string("/Bad")),
+    Dictionary([("/S", Name(@pdf.PdfName::of_string("/R")))]),
     Integer(0),
-    Dictionary([("/S", Name("/r"))]),
+    Dictionary([("/S", Name(@pdf.PdfName::of_string("/r")))]),
     Integer(1),
-    Dictionary([("/S", Name("/A"))]),
+    Dictionary([("/S", Name(@pdf.PdfName::of_string("/A")))]),
     Integer(2),
-    Dictionary([("/S", Name("/a"))]),
+    Dictionary([("/S", Name(@pdf.PdfName::of_string("/a")))]),
     Integer(3),
-    Dictionary([("/S", Name("/D"))]),
+    Dictionary([("/S", Name(@pdf.PdfName::of_string("/D")))]),
     Integer(4),
     Dictionary([("/P", String("P"))]),
   ]

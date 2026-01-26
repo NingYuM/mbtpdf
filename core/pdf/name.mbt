@@ -63,6 +63,10 @@ pub fn PdfName::to_string_bytes(self : PdfName) -> String {
 
 ///|
 /// Compare by raw bytes, lexicographically (prefix order).
+///
+/// Note: MoonBit's default `compare` for sequences/strings is *shortlex*
+/// (length-first, then element-wise). PDF name ordering (e.g. in name trees)
+/// needs byte-wise lexicographic order, so we implement it explicitly.
 pub fn PdfName::lexical_compare(self : PdfName, other : PdfName) -> Int {
   let a = self.bytes
   let b = other.bytes
@@ -102,4 +106,14 @@ pub fn PdfName::equal_string_bytes(self : PdfName, key : String) -> Bool {
     }
   }
   true
+}
+
+///|
+/// Debug rendering uses the historical "bytes-in-String" encoding.
+///
+/// This is convenient for tests and logs, but keep in mind it is *not* a
+/// Unicode decode. Non-ASCII bytes will be rendered as code units with the
+/// same numeric value (0..255).
+pub impl Show for PdfName with output(self : PdfName, logger : &Logger) -> Unit {
+  logger.write_string(self.to_string_bytes())
 }

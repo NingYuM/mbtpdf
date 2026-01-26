@@ -8,7 +8,7 @@ test "string_of_pdf basic" {
 ///|
 test "string_of_pdf dictionary" {
   let obj : @pdf.PdfObject = Dictionary([
-    ("/Type", Name("/Example")),
+    ("/Type", Name(@pdf.PdfName::of_string("/Example"))),
     ("/Count", Integer(2)),
   ])
   let s = @pdfwrite.PdfWrite::new().string_of_pdf(obj)
@@ -17,7 +17,7 @@ test "string_of_pdf dictionary" {
 
 ///|
 test "string_of_pdf escapes names" {
-  let obj : @pdf.PdfObject = Name("/A B#C/D")
+  let obj : @pdf.PdfObject = Name(@pdf.PdfName::of_string("/A B#C/D"))
   let s = @pdfwrite.PdfWrite::new().string_of_pdf(obj)
   assert_eq(s, "/A#20B#23C#2FD")
 }
@@ -72,7 +72,7 @@ test "string_of_pdf trims trailing zeros" {
 ///|
 test "string_of_pdf invalid name" {
   let write_ctx = @pdfwrite.PdfWrite::new(logger=_ => ())
-  let s = write_ctx.string_of_pdf(Name("Example"))
+  let s = write_ctx.string_of_pdf(Name(@pdf.PdfName::of_string("Example")))
   assert_eq(s, "/Example")
 }
 

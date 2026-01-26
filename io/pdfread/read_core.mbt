@@ -82,10 +82,12 @@ fn sanitize_trailerdict(
 ///|
 fn version_from_catalog(ctx : PdfRead, pdf : @pdf.Pdf) -> (Int, Int)? {
   match pdf.lookup_direct("/Version", pdf.lookup_obj(pdf.root)) {
-    Some(@pdf.PdfObject::Name(s)) => {
+    Some(@pdf.PdfObject::Name(name)) => {
+      let s = name.to_string_bytes()
       if s.length() < 2 {
         return None
       }
+      // `/Version` is a name like `/1.7` (byte-string). Slice off the `/`.
       let version = try s[1:] catch {
         _ => return None
       } noraise {
@@ -271,8 +273,11 @@ fn read_pdf_internal(
         @pdf.PdfObject::Stream(r) => {
           let (dict, _) = r.val
           match pdf.lookup_direct("/Type", dict) {
-            Some(@pdf.PdfObject::Name("/XRef"))
-            | Some(@pdf.PdfObject::Name("/ObjStm")) => pdf.removeobj(objnum)
+            Some(@pdf.PdfObject::Name(name)) if name.equal_string_bytes("/XRef") =>
+              pdf.removeobj(objnum)
+            Some(@pdf.PdfObject::Name(name)) if name.equal_string_bytes(
+                "/ObjStm",
+              ) => pdf.removeobj(objnum)
             _ => ()
           }
         }

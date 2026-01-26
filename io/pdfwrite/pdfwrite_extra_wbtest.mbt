@@ -59,7 +59,7 @@ test "string_of_pdf encodes control and delimiter bytes" {
     0x2f, 0x14, 0x16, 0x1a, 0x28, 0x29, 0x3c, 0x25,
   ])
   let name = @pdfio.string_of_bytes(bytes)
-  let rendered = write_ctx.string_of_pdf(Name(name))
+  let rendered = write_ctx.string_of_pdf(Name(@pdf.PdfName::of_string(name)))
   assert_true(rendered.contains("#14"))
   assert_true(rendered.contains("#16"))
   assert_true(rendered.contains("#1A"))
@@ -71,7 +71,7 @@ test "string_of_pdf encodes control and delimiter bytes" {
 
 ///|
 test "string_of_pdf encodes greater-than in names" {
-  let rendered = write_ctx.string_of_pdf(Name("/A>"))
+  let rendered = write_ctx.string_of_pdf(Name(@pdf.PdfName::of_string("/A>")))
   assert_true(rendered.contains("#3E"))
 }
 
@@ -79,14 +79,16 @@ test "string_of_pdf encodes greater-than in names" {
 test "string_of_pdf encodes delimiter bytes in names" {
   let cases = [("/[", "/#5B"), ("/]", "/#5D"), ("/{", "/#7B"), ("/}", "/#7D")]
   for pair in cases {
-    let rendered = write_ctx.string_of_pdf(Name(pair.0))
+    let rendered = write_ctx.string_of_pdf(
+      Name(@pdf.PdfName::of_string(pair.0)),
+    )
     assert_eq(rendered, pair.1)
   }
 }
 
 ///|
 test "string_of_pdf handles short names" {
-  let rendered = write_ctx.string_of_pdf(Name("/"))
+  let rendered = write_ctx.string_of_pdf(Name(@pdf.PdfName::of_string("/")))
   assert_eq(rendered, "/")
 }
 

@@ -13,7 +13,7 @@ pub(all) enum TargetPage {
 pub(all) enum Destination {
   Action(PdfObject)
   NullDestination
-  NamedDestination(String)
+  NamedDestination(@pdf.PdfName)
   StringDestination(String)
   XYZ(TargetPage, Double?, Double?, Double?)
   Fit(TargetPage)
@@ -48,7 +48,7 @@ fn read_array_destination(
   arr : Array[PdfObject],
 ) -> Destination? raise {
   match arr {
-    [page, Name("/XYZ"), left, top, zoom] =>
+    [page, Name(name), left, top, zoom] if name.equal_string_bytes("/XYZ") =>
       match TargetPage::read(page) {
         Some(p) =>
           Some(
@@ -61,48 +61,50 @@ fn read_array_destination(
           )
         None => None
       }
-    [page, Name("/XYZ"), left, top] =>
+    [page, Name(name), left, top] if name.equal_string_bytes("/XYZ") =>
       match TargetPage::read(page) {
         Some(p) =>
           Some(XYZ(p, option_getnum(pdf, left), option_getnum(pdf, top), None))
         None => None
       }
-    [page, Name("/XYZ"), left] =>
+    [page, Name(name), left] if name.equal_string_bytes("/XYZ") =>
       match TargetPage::read(page) {
         Some(p) => Some(XYZ(p, option_getnum(pdf, left), None, None))
         None => None
       }
-    [page, Name("/FitH"), top] =>
+    [page, Name(name), top] if name.equal_string_bytes("/FitH") =>
       match TargetPage::read(page) {
         Some(p) => Some(FitH(p, option_getnum(pdf, top)))
         None => None
       }
-    [page, Name("/FitV"), left] =>
+    [page, Name(name), left] if name.equal_string_bytes("/FitV") =>
       match TargetPage::read(page) {
         Some(p) => Some(FitV(p, option_getnum(pdf, left)))
         None => None
       }
-    [page, Name("/FitBH"), top] =>
+    [page, Name(name), top] if name.equal_string_bytes("/FitBH") =>
       match TargetPage::read(page) {
         Some(p) => Some(FitBH(p, option_getnum(pdf, top)))
         None => None
       }
-    [page, Name("/FitBV"), left] =>
+    [page, Name(name), left] if name.equal_string_bytes("/FitBV") =>
       match TargetPage::read(page) {
         Some(p) => Some(FitBV(p, option_getnum(pdf, left)))
         None => None
       }
-    [page, Name("/Fit")] =>
+    [page, Name(name)] if name.equal_string_bytes("/Fit") =>
       match TargetPage::read(page) {
         Some(p) => Some(Fit(p))
         None => None
       }
-    [page, Name("/FitB")] =>
+    [page, Name(name)] if name.equal_string_bytes("/FitB") =>
       match TargetPage::read(page) {
         Some(p) => Some(FitB(p))
         None => None
       }
-    [page, Name("/FitR"), left, bottom, right, top] =>
+    [page, Name(name), left, bottom, right, top] if name.equal_string_bytes(
+        "/FitR",
+      ) =>
       match TargetPage::read(page) {
         Some(p) =>
           Some(
@@ -152,7 +154,7 @@ pub fn Destination::read(
           Some(catalog) =>
             match pdf.lookup_direct("/Dests", catalog) {
               Some(dests) =>
-                match pdf.lookup_direct(name, dests) {
+                match pdf.lookup_direct(name.to_string_bytes(), dests) {
                   Some(dest) => Destination::read(pdf, dest, shallow~)
                   None => NamedDestination(name)
                 }
@@ -208,31 +210,52 @@ pub fn Destination::to_pdf_object(self : Destination) -> PdfObject {
   match self {
     Action(a) => a
     NullDestination => Null
-    NamedDestination(s) => Name(s)
+    NamedDestination(name) => Name(name)
     StringDestination(s) => String(s)
     XYZ(p, left, top, zoom) =>
       Array([
         p.to_pdf_object(),
-        Name("/XYZ"),
+        Name(@pdf.PdfName::of_string("/XYZ")),
         pos_null(left),
         pos_null(top),
         pos_null(zoom),
       ])
-    Fit(p) => Array([p.to_pdf_object(), Name("/Fit")])
-    FitH(p, top) => Array([p.to_pdf_object(), Name("/FitH"), pos_null(top)])
-    FitV(p, left) => Array([p.to_pdf_object(), Name("/FitV"), pos_null(left)])
+    Fit(p) => Array([p.to_pdf_object(), Name(@pdf.PdfName::of_string("/Fit"))])
+    FitH(p, top) =>
+      Array([
+        p.to_pdf_object(),
+        Name(@pdf.PdfName::of_string("/FitH")),
+        pos_null(top),
+      ])
+    FitV(p, left) =>
+      Array([
+        p.to_pdf_object(),
+        Name(@pdf.PdfName::of_string("/FitV")),
+        pos_null(left),
+      ])
     FitR(p, left, bottom, right, top) =>
       Array([
         p.to_pdf_object(),
-        Name("/FitR"),
+        Name(@pdf.PdfName::of_string("/FitR")),
         Real(left),
         Real(bottom),
         Real(right),
         Real(top),
       ])
-    FitB(p) => Array([p.to_pdf_object(), Name("/FitB")])
-    FitBH(p, top) => Array([p.to_pdf_object(), Name("/FitBH"), pos_null(top)])
-    FitBV(p, left) => Array([p.to_pdf_object(), Name("/FitBV"), pos_null(left)])
+    FitB(p) =>
+      Array([p.to_pdf_object(), Name(@pdf.PdfName::of_string("/FitB"))])
+    FitBH(p, top) =>
+      Array([
+        p.to_pdf_object(),
+        Name(@pdf.PdfName::of_string("/FitBH")),
+        pos_null(top),
+      ])
+    FitBV(p, left) =>
+      Array([
+        p.to_pdf_object(),
+        Name(@pdf.PdfName::of_string("/FitBV")),
+        pos_null(left),
+      ])
   }
 }
 
@@ -294,7 +317,7 @@ pub fn Destination::transform(
     }
     Action(a) =>
       match (pdf.lookup_direct("/S", a), pdf.lookup_direct("/D", a)) {
-        (Some(Name("/GoTo")), Some(d)) => {
+        (Some(Name(name)), Some(d)) if name.equal_string_bytes("/GoTo") => {
           let transformed = Destination::read(pdf, d, shallow=true).transform(
             pdf, t,
           )

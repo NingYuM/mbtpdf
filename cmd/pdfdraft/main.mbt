@@ -1,6 +1,9 @@
 ///|
 fn isimage(pdf : @pdf.Pdf, xobj : @pdf.PdfObject) -> Bool {
-  pdf.lookup_direct("/Subtype", xobj) is Some(@pdf.PdfObject::Name("/Image"))
+  match pdf.lookup_direct("/Subtype", xobj) {
+    Some(@pdf.PdfObject::Name(n)) => n.equal_string_bytes("/Image")
+    _ => false
+  }
 }
 
 ///|

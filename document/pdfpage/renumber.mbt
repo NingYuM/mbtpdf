@@ -69,10 +69,17 @@ fn change_operator(
     Opsh(s) => Opsh(lookup("/Shading", seqnum, s))
     OpDo(x) => OpDo(lookup("/XObject", seqnum, x))
     OpDP(n, @pdf.PdfObject::Name(p)) =>
-      OpDP(n, @pdf.PdfObject::Name(lookup("/Properties", seqnum, p)))
+      OpDP(
+        n,
+        @pdf.PdfObject::Name(
+          @pdf.PdfName::of_string(
+            lookup("/Properties", seqnum, p.to_string_bytes()),
+          ),
+        ),
+      )
     OpBDC(n, @pdf.PdfObject::Name(p)) =>
-      match lookup_option("/Properties", seqnum, p) {
-        Some(x) => OpBDC(n, @pdf.PdfObject::Name(x))
+      match lookup_option("/Properties", seqnum, p.to_string_bytes()) {
+        Some(x) => OpBDC(n, @pdf.PdfObject::Name(@pdf.PdfName::of_string(x)))
         None => {
           @pdfe.log("Warning: Missing OpBDC /Properties entry\n")
           OpBDC(n, @pdf.PdfObject::Name(p))
@@ -81,19 +88,25 @@ fn change_operator(
     InlineImage((dict, dp, bytes)) => {
       let dict_updated = match
         pdf.lookup_direct_orelse("/CS", "/ColorSpace", dict) {
-        Some(@pdf.PdfObject::Name("/DeviceGray"))
-        | Some(@pdf.PdfObject::Name("/DeviceRGB"))
-        | Some(@pdf.PdfObject::Name("/DeviceCMYK"))
-        | Some(@pdf.PdfObject::Name("/G"))
-        | Some(@pdf.PdfObject::Name("/RGB"))
-        | Some(@pdf.PdfObject::Name("/CMYK")) => dict
-        Some(@pdf.PdfObject::Name(n)) => {
-          let stripped = dict.remove_entry("/ColorSpace").remove_entry("/CS")
-          stripped.add_entry(
-            "/CS",
-            @pdf.PdfObject::Name(lookup("/ColorSpace", seqnum, n)),
-          )
-        }
+        Some(@pdf.PdfObject::Name(n)) =>
+          if n.equal_string_bytes("/DeviceGray") ||
+            n.equal_string_bytes("/DeviceRGB") ||
+            n.equal_string_bytes("/DeviceCMYK") ||
+            n.equal_string_bytes("/G") ||
+            n.equal_string_bytes("/RGB") ||
+            n.equal_string_bytes("/CMYK") {
+            dict
+          } else {
+            let stripped = dict.remove_entry("/ColorSpace").remove_entry("/CS")
+            stripped.add_entry(
+              "/CS",
+              @pdf.PdfObject::Name(
+                @pdf.PdfName::of_string(
+                  lookup("/ColorSpace", seqnum, n.to_string_bytes()),
+                ),
+              ),
+            )
+          }
         _ => dict
       }
       InlineImage((dict_updated, dp, bytes))

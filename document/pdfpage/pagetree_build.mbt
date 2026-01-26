@@ -75,7 +75,7 @@ fn mkpage(
     }
   }
   let entries : Array[(String, PdfObject)] = [
-    ("/Type", PdfObject::Name("/Page")),
+    ("/Type", PdfObject::Name(@pdf.PdfName::of_string("/Page"))),
     ("/Parent", PdfObject::Indirect(parent)),
     ("/Resources", page.resources),
     ("/MediaBox", page.mediabox),
@@ -134,7 +134,7 @@ fn objects_of_ptree(
       }
       let kids = page_objects.map(pair => PdfObject::Indirect(pair.0))
       let node_entries : Array[(String, PdfObject)] = [
-        ("/Type", PdfObject::Name("/Pages")),
+        ("/Type", PdfObject::Name(@pdf.PdfName::of_string("/Pages"))),
         ("/Kids", PdfObject::Array(kids)),
         ("/Count", PdfObject::Integer(pages.length())),
       ]
@@ -167,7 +167,7 @@ fn objects_of_ptree(
       kids.append(page_objects.map(pair => PdfObject::Indirect(pair.0))[:])
       kids.push(PdfObject::Indirect(right_num))
       let node_entries : Array[(String, PdfObject)] = [
-        ("/Type", PdfObject::Name("/Pages")),
+        ("/Type", PdfObject::Name(@pdf.PdfName::of_string("/Pages"))),
         ("/Kids", PdfObject::Array(kids)),
         (
           "/Count",
@@ -229,7 +229,10 @@ pub fn PdfPageDoc::add_root(
   for entry in existing_entries {
     root = root.add_entry(entry.0, entry.1)
   }
-  root = root.add_entry("/Type", PdfObject::Name("/Catalog"))
+  root = root.add_entry(
+    "/Type",
+    PdfObject::Name(@pdf.PdfName::of_string("/Catalog")),
+  )
   root = root.add_entry("/Pages", PdfObject::Indirect(pageroot))
   let rootnum = pdf.addobj(root)
   let trailerdict = match pdf.trailerdict {

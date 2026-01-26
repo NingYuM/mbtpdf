@@ -1,7 +1,11 @@
 ///|
 fn filterspecial(filters : Array[@pdf.PdfObject]) -> Bool {
   filters.any(filter => match filter {
-    Name("/ASCIIHexDecode" | "/ASCII85Decode" | "/AHx" | "/A85") => true
+    Name(name) =>
+      name.equal_string_bytes("/ASCIIHexDecode") ||
+      name.equal_string_bytes("/ASCII85Decode") ||
+      name.equal_string_bytes("/AHx") ||
+      name.equal_string_bytes("/A85")
     _ => false
   })
 }
@@ -148,12 +152,12 @@ fn lex_inline_image(
     }
     let cspace = match pdf.lookup_direct_orelse("/CS", "/ColorSpace", dict) {
       Some(Name(name)) =>
-        if name == "/DeviceGray" ||
-          name == "/DeviceRGB" ||
-          name == "/DeviceCMYK" ||
-          name == "/G" ||
-          name == "/RGB" ||
-          name == "/CMYK" {
+        if name.equal_string_bytes("/DeviceGray") ||
+          name.equal_string_bytes("/DeviceRGB") ||
+          name.equal_string_bytes("/DeviceCMYK") ||
+          name.equal_string_bytes("/G") ||
+          name.equal_string_bytes("/RGB") ||
+          name.equal_string_bytes("/CMYK") {
           PdfObject::Name(name)
         } else {
           if debug.val {
@@ -161,7 +165,7 @@ fn lex_inline_image(
           }
           match pdf.lookup_direct("/ColorSpace", resources) {
             Some(Dictionary(_) as d) =>
-              match pdf.lookup_direct(name, d) {
+              match pdf.lookup_direct(name.to_string_bytes(), d) {
                 Some(space) => space
                 None => {
                   @pdfe.log("no colourspace A\n")
@@ -179,7 +183,8 @@ fn lex_inline_image(
       Some(Array(_) as n) => n
       None =>
         match pdf.lookup_direct_orelse("/IM", "/ImageMask", dict) {
-          Some(Boolean(true)) => PdfObject::Name("/DeviceGray")
+          Some(Boolean(true)) =>
+            PdfObject::Name(@pdf.PdfName::of_string("/DeviceGray"))
           _ => {
             @pdfe.log("no colourspace C\n")
             nocontent(input)
@@ -227,7 +232,8 @@ fn lex_inline_image(
         out
       }
       Some(Name(name)) =>
-        if name == "/DCT" || name == "/DCTDecode" {
+        if name.equal_string_bytes("/DCT") ||
+          name.equal_string_bytes("/DCTDecode") {
           get_jpeg_data(input)
         } else {
           let encoded = read_inline_image_encoded_data(input)
@@ -244,7 +250,8 @@ fn lex_inline_image(
         if items.length() == 1 {
           match items[0] {
             Name(name) =>
-              if name == "/DCT" || name == "/DCTDecode" {
+              if name.equal_string_bytes("/DCT") ||
+                name.equal_string_bytes("/DCTDecode") {
                 get_jpeg_data(input)
               } else {
                 let encoded = read_inline_image_encoded_data(input)
@@ -305,7 +312,8 @@ fn lex_inline_image(
     }
     let dict_clean = match filter_opt {
       Some(Name(name)) =>
-        if name == "/DCT" || name == "/DCTDecode" {
+        if name.equal_string_bytes("/DCT") ||
+          name.equal_string_bytes("/DCTDecode") {
           dict
         } else {
           let mut cleaned = dict
@@ -318,7 +326,8 @@ fn lex_inline_image(
         if items.length() == 1 {
           match items[0] {
             Name(name) =>
-              if name == "/DCT" || name == "/DCTDecode" {
+              if name.equal_string_bytes("/DCT") ||
+                name.equal_string_bytes("/DCTDecode") {
                 dict
               } else {
                 let mut cleaned = dict

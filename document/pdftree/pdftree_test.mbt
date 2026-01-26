@@ -20,9 +20,9 @@ test "build and read number tree" {
   let pdf = @pdf.Pdf::empty()
   let tree_ctx = @pdftree.PdfTree::new(pdf)
   let entries : Array[(String, @pdf.PdfObject)] = [
-    ("1", Name("/One")),
-    ("3", Name("/Three")),
-    ("2", Name("/Two")),
+    ("1", Name(@pdf.PdfName::of_string("/One"))),
+    ("3", Name(@pdf.PdfName::of_string("/Three"))),
+    ("2", Name(@pdf.PdfName::of_string("/Two"))),
   ]
   let tree = tree_ctx.build_name_tree(true, entries)
   let read = tree_ctx.read_number_tree(tree)
@@ -77,7 +77,7 @@ test "build_name_tree uses kids for large inputs" {
 test "read_name_tree skips malformed keys" {
   let pdf = @pdf.Pdf::empty()
   let tree : @pdf.PdfObject = Dictionary([
-    ("/Names", Array([Integer(1), Name("/One")])),
+    ("/Names", Array([Integer(1), Name(@pdf.PdfName::of_string("/One"))])),
   ])
   let read = @pdftree.PdfTree::new(pdf).read_name_tree(tree)
   assert_eq(read.length(), 0)
@@ -91,11 +91,11 @@ test "read_number_tree handles duplicate keys" {
       "/Nums",
       Array([
         Integer(1),
-        Name("/One"),
+        Name(@pdf.PdfName::of_string("/One")),
         Integer(1),
-        Name("/Uno"),
+        Name(@pdf.PdfName::of_string("/Uno")),
         Integer(2),
-        Name("/Two"),
+        Name(@pdf.PdfName::of_string("/Two")),
       ]),
     ),
   ])
@@ -105,7 +105,10 @@ test "read_number_tree handles duplicate keys" {
   for pair in read {
     if pair.0 == "1" {
       match (pair.1 : @pdf.PdfObject) {
-        Name("/One") | Name("/Uno") => found = true
+        Name(name) =>
+          if name.equal_string_bytes("/One") || name.equal_string_bytes("/Uno") {
+            found = true
+          }
         _ => ()
       }
     }

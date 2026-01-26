@@ -55,5 +55,5 @@ pub impl @debug.Debug for Predictor
 pub trait PdfFilterNameDecode {
   decode_stage(Self, PdfCodec, @pdf.Pdf, @pdf.PdfObject?, Array[Byte], String?) -> Array[Byte] raise CodecError
 }
-pub impl PdfFilterNameDecode for String
+pub impl PdfFilterNameDecode for @pdf.PdfName
 

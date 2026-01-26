@@ -63,14 +63,16 @@ test "merge_pdfs keeps named and action bookmarks while dropping out of range" {
   ]
   add_names_dests(pdf, entries)
   let action : @pdf.PdfObject = Dictionary([
-    ("/S", Name("/GoTo")),
+    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
     ("/D", String("DestB")),
   ])
   let bookmarks : Array[@pdfmarks.Bookmark] = [
     {
       level: 0,
       text: "Named",
-      target: @pdfdest.Destination::NamedDestination("/DestA"),
+      target: @pdfdest.Destination::NamedDestination(
+        @pdf.PdfName::of_string("/DestA"),
+      ),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -119,7 +121,7 @@ test "merge_pdfs handles malformed names and optional catalog entries" {
   set_catalog_entry(
     pdf1,
     "/OCProperties",
-    Dictionary([("/OCGs", Array([Name("/OCG1")]))]),
+    Dictionary([("/OCGs", Array([Name(@pdf.PdfName::of_string("/OCG1"))]))]),
   )
   set_catalog_entry(pdf1, "/AcroForm", Null)
   set_catalog_entry(pdf2, "/AcroForm", Dictionary([("/Fields", Array([Null]))]))

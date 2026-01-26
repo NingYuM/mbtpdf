@@ -32,7 +32,7 @@ fn parse_R(tokens : Array[Token]) -> Array[ParseItem] {
       LexInt(v) => out.push(Parsed(Integer(v)))
       LexReal(v) => out.push(Parsed(Real(v)))
       LexString(s) => out.push(Parsed(String(s)))
-      LexName(n) => out.push(Parsed(Name(n)))
+      LexName(n) => out.push(Parsed(Name(@pdf.PdfName::of_string(n))))
       other => out.push(Lexeme(other))
     }
     i = i + 1
@@ -55,7 +55,7 @@ fn parse_dictionary(
         let (key_item, next_i) = parse_value(items, i)
         let (val_item, next_i2) = parse_value(items, next_i)
         match (key_item, val_item) {
-          (Parsed(Name(k)), Parsed(v)) => entries.push((k, v))
+          (Parsed(Name(k)), Parsed(v)) => entries.push((k.to_string_bytes(), v))
           _ => raise @pdf.PdfError::Msg("parse_dictionary")
         }
         i = next_i2

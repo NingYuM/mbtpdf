@@ -36,7 +36,7 @@ test "parse_single_object names, strings, and atoms" {
   let syntax = @pdfsyntax.PdfSyntax::new()
   let name_obj = syntax.parse_single_object("/A#20B")
   match (name_obj : @pdf.PdfObject) {
-    Name(name) => assert_eq(name, "/A B")
+    Name(name) => assert_eq(name.to_string_bytes(), "/A B")
     _ => fail("expected name")
   }
   let str_obj = syntax.parse_single_object("(hello\\nworld)")

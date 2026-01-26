@@ -25,7 +25,7 @@ test "streams and transforms" {
   assert_eq(pdf.getnum(PdfObject::Real(3.5)), 3.5)
   assert_eq(pdf.getnum(PdfObject::Integer(4)), 4.0)
   assert_eq(pdf.getnum(PdfObject::Indirect(1)), 7.0)
-  assert_is_err(try? pdf.getnum(PdfObject::Name("/A")))
+  assert_is_err(try? pdf.getnum(PdfObject::Name(PdfName::of_string("/A"))))
   assert_eq(
     pdf.parse_rectangle(
       PdfObject::Array([

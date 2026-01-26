@@ -185,7 +185,9 @@ test "write/read Separation and name lookup" {
 test "write/read DeviceN with attributes" {
   let pdf = @pdf.Pdf::empty()
   let tint = sample_tint_function()
-  let attrs : @pdf.PdfObject = Dictionary([("/Subtype", Name("/NChannel"))])
+  let attrs : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name(@pdf.PdfName::of_string("/NChannel"))),
+  ])
   let space = @pdfspace.ColourSpace::DeviceN(
     ["C1", "C2"],
     @pdfspace.ColourSpace::DeviceCMYK,

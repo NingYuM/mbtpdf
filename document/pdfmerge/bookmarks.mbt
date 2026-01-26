@@ -35,7 +35,47 @@ fn merge_bookmarks(
       fn pageobjectnumber_of_target(t : @pdfdest.Destination) -> Int raise {
         match t {
           NullDestination => 0
-          NamedDestination(s) | StringDestination(s) =>
+          NamedDestination(name) => {
+            // Spec-wise this resolves via the legacy catalog `/Dests` dictionary,
+            // but some PDFs (and tests) effectively behave like the string-based
+            // name tree. Be tolerant and fall back to the name tree if needed.
+            let key = name.to_string_bytes()
+            let direct_dest = match
+              pdf.lookup_direct("/Dests", pdf.catalog_of_pdf()) {
+              Some(dests) => pdf.lookup_direct(key, dests)
+              None => None
+            }
+            match direct_dest {
+              Some(dest) => {
+                let r = pageobjectnumber_of_target(
+                  @pdfdest.Destination::read(pdf, dest),
+                )
+                match lookup(r, changes_rev) {
+                  Some(old) => old
+                  None => r
+                }
+              }
+              None =>
+                match lookup(key, dest_nametree) {
+                  Some(dest) =>
+                    match pdf.lookup_direct("/D", dest) {
+                      Some(dest_obj) => {
+                        let r = pageobjectnumber_of_target(
+                          @pdfdest.Destination::read(pdf, dest_obj),
+                        )
+                        match lookup(r, changes_rev) {
+                          Some(old) => old
+                          None => r
+                        }
+                      }
+                      None => 0
+                    }
+                  None => 0
+                }
+            }
+          }
+          StringDestination(s) =>
+            // String destinations resolve via the name tree at `/Names` `/Dests`.
             match lookup(s, dest_nametree) {
               Some(dest) =>
                 match pdf.lookup_direct("/D", dest) {
@@ -54,7 +94,7 @@ fn merge_bookmarks(
             }
           Action(a) =>
             match pdf.lookup_direct("/S", a) {
-              Some(PdfObject::Name("/GoTo")) =>
+              Some(PdfObject::Name(n)) if n.equal_string_bytes("/GoTo") =>
                 match pdf.lookup_direct("/D", a) {
                   Some(PdfObject::String(s)) =>
                     match lookup(s, dest_nametree) {

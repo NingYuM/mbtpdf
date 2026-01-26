@@ -76,11 +76,11 @@ fn label_of_range(pdf : @pdf.Pdf, range : (PdfObject, PdfObject)) -> PageLabel {
     }
   }
   let labelstyle = match pdf.lookup_direct("/S", thing) {
-    Some(Name("/D")) => DecimalArabic
-    Some(Name("/R")) => UppercaseRoman
-    Some(Name("/r")) => LowercaseRoman
-    Some(Name("/A")) => UppercaseLetters
-    Some(Name("/a")) => LowercaseLetters
+    Some(Name(name)) if name.equal_string_bytes("/D") => DecimalArabic
+    Some(Name(name)) if name.equal_string_bytes("/R") => UppercaseRoman
+    Some(Name(name)) if name.equal_string_bytes("/r") => LowercaseRoman
+    Some(Name(name)) if name.equal_string_bytes("/A") => UppercaseLetters
+    Some(Name(name)) if name.equal_string_bytes("/a") => LowercaseLetters
     _ => NoLabelPrefixOnly
   }
   let labelprefix = match pdf.lookup_direct("/P", thing) {
@@ -378,11 +378,16 @@ pub fn PageLabel::write_all(
       let entries = Array::new()
       match label.labelstyle {
         NoLabelPrefixOnly => ()
-        DecimalArabic => entries.push(("/S", PdfObject::Name("/D")))
-        UppercaseRoman => entries.push(("/S", PdfObject::Name("/R")))
-        LowercaseRoman => entries.push(("/S", PdfObject::Name("/r")))
-        UppercaseLetters => entries.push(("/S", PdfObject::Name("/A")))
-        LowercaseLetters => entries.push(("/S", PdfObject::Name("/a")))
+        DecimalArabic =>
+          entries.push(("/S", PdfObject::Name(@pdf.PdfName::of_string("/D"))))
+        UppercaseRoman =>
+          entries.push(("/S", PdfObject::Name(@pdf.PdfName::of_string("/R"))))
+        LowercaseRoman =>
+          entries.push(("/S", PdfObject::Name(@pdf.PdfName::of_string("/r"))))
+        UppercaseLetters =>
+          entries.push(("/S", PdfObject::Name(@pdf.PdfName::of_string("/A"))))
+        LowercaseLetters =>
+          entries.push(("/S", PdfObject::Name(@pdf.PdfName::of_string("/a"))))
       }
       match label.labelprefix {
         Some(p) => entries.push(("/P", PdfObject::String(p)))

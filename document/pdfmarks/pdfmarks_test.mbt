@@ -216,7 +216,7 @@ test "add_bookmarks links siblings and counts" {
 test "read_bookmarks toggles action preservation" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let action : @pdf.PdfObject = Dictionary([
-    ("/S", Name("/GoTo")),
+    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
     ("/D", String("dest")),
   ])
   let marks : Array[@pdfmarks.Bookmark] = [

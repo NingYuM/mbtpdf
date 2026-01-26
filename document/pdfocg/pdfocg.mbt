@@ -95,9 +95,12 @@ fn read_config(pdf : @pdf.Pdf, config : @pdf.PdfObject) -> OcgConfig {
     _ => None
   }
   let ocgconfig_basestate = match pdf.lookup_direct("/BaseState", config) {
-    Some(PdfObject::Name("/ON")) => OcgState::On
-    Some(PdfObject::Name("/OFF")) => OcgState::Off
-    Some(PdfObject::Name("/Unchanged")) => OcgState::Unchanged
+    Some(PdfObject::Name(name)) if name.equal_string_bytes("/ON") =>
+      OcgState::On
+    Some(PdfObject::Name(name)) if name.equal_string_bytes("/OFF") =>
+      OcgState::Off
+    Some(PdfObject::Name(name)) if name.equal_string_bytes("/Unchanged") =>
+      OcgState::Unchanged
     _ => OcgState::On
   }
   let ocgconfig_on = match pdf.lookup_direct("/ON", config) {
@@ -121,10 +124,10 @@ fn read_config(pdf : @pdf.Pdf, config : @pdf.PdfObject) -> OcgConfig {
     _ => None
   }
   let ocgconfig_intent = match pdf.lookup_direct("/Intent", config) {
-    Some(PdfObject::Name(n)) => [n]
+    Some(PdfObject::Name(n)) => [n.to_string_bytes()]
     Some(PdfObject::Array(items)) =>
       items.map(item => match pdf.direct(item) {
-        PdfObject::Name(n) => n
+        PdfObject::Name(n) => n.to_string_bytes()
         _ => ""
       })
     _ => ["/View"]
@@ -137,7 +140,8 @@ fn read_config(pdf : @pdf.Pdf, config : @pdf.PdfObject) -> OcgConfig {
   }
   let ocgconfig_order = None
   let ocgconfig_listmode = match pdf.lookup_direct("/ListMode", config) {
-    Some(PdfObject::Name("/VisiblePages")) => OcgListMode::VisiblePages
+    Some(PdfObject::Name(name)) if name.equal_string_bytes("/VisiblePages") =>
+      OcgListMode::VisiblePages
     _ => OcgListMode::AllPages
   }
   let ocgconfig_rbgroups = []
@@ -178,10 +182,10 @@ fn read_individual_ocg(pdf : @pdf.Pdf, ocg : @pdf.PdfObject) -> Ocg raise {
     _ => raise @pdf.PdfError::Msg("No /Name in optional content group")
   }
   let ocg_intent = match pdf.lookup_direct("/Intent", ocg) {
-    Some(PdfObject::Name(n)) => [n]
+    Some(PdfObject::Name(n)) => [n.to_string_bytes()]
     Some(PdfObject::Array(items)) =>
       items.filter_map(item => match pdf.direct(item) {
-        PdfObject::Name(n) => Some(n)
+        PdfObject::Name(n) => Some(n.to_string_bytes())
         _ => None
       })
     _ => ["/View"]
