@@ -139,8 +139,8 @@ async fn main {
   let in_file = args[1]
   let out_file = args[2]
   try {
-    let pdf = @pdfread.PdfRead::new().pdf_of_file(None, None, in_file)
-    @pdfwrite.PdfWrite::new().pdf_to_file(remove_images(pdf), out_file)
+    let pdf = @pdfreadfs.PdfReadFs::new().pdf_of_file(None, None, in_file)
+    @pdfwritefs.PdfWriteFs::new().pdf_to_file(remove_images(pdf), out_file)
   } catch {
     err => {
       println("Failed to produce output.")

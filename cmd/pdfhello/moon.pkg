@@ -4,7 +4,7 @@ import {
   "bobzhang/mbtpdf/document/pdfpage",
   "bobzhang/mbtpdf/document/pdfpaper",
   "bobzhang/mbtpdf/core/pdftransform",
-  "bobzhang/mbtpdf/io/pdfwrite",
+  "bobzhang/mbtpdf/io/pdfwritefs",
   "moonbitlang/async",
 }
 

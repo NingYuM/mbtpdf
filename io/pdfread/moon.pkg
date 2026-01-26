@@ -14,11 +14,13 @@ import {
 import {
   "bobzhang/mbtpdf/document/pdfpage",
   "bobzhang/mbtpdf/io/pdfwrite",
+  "bobzhang/mbtpdf/io/pdfreadfs",
   "moonbitlang/async",
 } for "test"
 
 import {
   "bobzhang/mbtpdf/document/pdfpage",
   "bobzhang/mbtpdf/io/pdfwrite",
+  "bobzhang/mbtpdf/io/pdfreadfs",
   "moonbitlang/async",
 } for "wbtest"

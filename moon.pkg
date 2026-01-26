@@ -1,7 +1,9 @@
 import {
   "bobzhang/mbtpdf/core/pdf",
   "bobzhang/mbtpdf/io/pdfread",
+  "bobzhang/mbtpdf/io/pdfreadfs",
   "bobzhang/mbtpdf/io/pdfwrite",
+  "bobzhang/mbtpdf/io/pdfwritefs",
   "bobzhang/mbtpdf/crypto/pdfcrypt",
 }
 

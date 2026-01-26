@@ -5,7 +5,9 @@ import {
   "bobzhang/mbtpdf/core/pdf",
   "bobzhang/mbtpdf/crypto/pdfcrypt",
   "bobzhang/mbtpdf/io/pdfread",
+  "bobzhang/mbtpdf/io/pdfreadfs",
   "bobzhang/mbtpdf/io/pdfwrite",
+  "bobzhang/mbtpdf/io/pdfwritefs",
 }
 
 // Values
@@ -28,7 +30,11 @@ pub using @pdf {type PdfObject}
 
 pub using @pdfread {type PdfRead}
 
+pub using @pdfreadfs {type PdfReadFs}
+
 pub using @pdfwrite {type PdfWrite}
+
+pub using @pdfwritefs {type PdfWriteFs}
 
 pub using @pdfcrypt {type Permission}
 

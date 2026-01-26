@@ -244,7 +244,7 @@ test "pdf_to_output drops invalid object stream ids and writes toget" {
 async test "pdf_to_file writes output" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let path = "pdfwrite_async_test.pdf"
-  write_ctx.pdf_to_file(pdf, path)
+  @pdfwritefs.PdfWriteFs::of_writer(write_ctx).pdf_to_file(pdf, path)
   let file = @fs.open(path, mode=ReadOnly)
   let bytes = @pdfiofs.bytes_of_input_channel(file)
   assert_true(bytes.length() > 0)
@@ -256,7 +256,9 @@ async test "pdf_to_file writes output" {
 async test "pdf_to_file_options supports recrypt" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let path = "pdfwrite_async_recrypt.pdf"
-  let res : Result[Unit, Error] = try? write_ctx.pdf_to_file_options(
+  let res : Result[Unit, Error] = try? @pdfwritefs.PdfWriteFs::of_writer(
+    write_ctx,
+  ).pdf_to_file_options(
     preserve_objstm=false,
     generate_objstm=false,
     compress_objstm=false,

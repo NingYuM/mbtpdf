@@ -17,6 +17,6 @@ import {
 
 import {
   "bobzhang/mbtpdf/font/pdffont",
-  "bobzhang/mbtpdf/io/pdfread",
+  "bobzhang/mbtpdf/io/pdfreadfs",
   "moonbitlang/async",
 } for "test"

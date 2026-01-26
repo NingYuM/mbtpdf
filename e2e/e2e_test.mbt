@@ -33,14 +33,12 @@ async fn ensure_dir(path : String) -> Unit {
 ///|
 async fn read_pdf(path : String) -> @pdf.Pdf {
   assert_fixture(path)
-  @pdfread.PdfRead::new().pdf_of_file(None, None, path)
+  @pdfreadfs.PdfReadFs::new().pdf_of_file(None, None, path)
 }
 
 ///|
 async fn write_pdf(path : String, pdf : @pdf.Pdf) -> Unit {
-  let file = @fs.open(path, mode=WriteOnly, create=0o644, truncate=true)
-  defer file.close()
-  @pdfwrite.PdfWrite::new().pdf_to_channel(None, true, pdf, file)
+  @pdfwritefs.PdfWriteFs::new().pdf_to_file(pdf, path)
 }
 
 ///|
@@ -1931,7 +1929,7 @@ async test "e2e write object streams and read back" {
   let out_path = OUTPUT_DIR + "/objstm.pdf"
   let file = @fs.open(out_path, mode=WriteOnly, create=0o644, truncate=true)
   defer file.close()
-  @pdfwrite.PdfWrite::new().pdf_to_channel(
+  @pdfwritefs.PdfWriteFs::new().pdf_to_channel(
     generate_objstm=true,
     compress_objstm=true,
     None,
@@ -1958,8 +1956,8 @@ async test "e2e encrypt pdf and require password" {
   let out_path = OUTPUT_DIR + "/encrypted.pdf"
   let file = @fs.open(out_path, mode=WriteOnly, create=0o644, truncate=true)
   defer file.close()
-  @pdfwrite.PdfWrite::new().pdf_to_channel(Some(enc), true, pdf, file)
-  let res : Result[@pdf.Pdf, Error] = try? @pdfread.PdfRead::new().pdf_of_file(
+  @pdfwritefs.PdfWriteFs::new().pdf_to_channel(Some(enc), true, pdf, file)
+  let res : Result[@pdf.Pdf, Error] = try? @pdfreadfs.PdfReadFs::new().pdf_of_file(
     None,
     None,
     out_path,
@@ -1971,7 +1969,7 @@ async test "e2e encrypt pdf and require password" {
       }
     Err(_) => fail("expected read to succeed without password")
   }
-  let parsed_pw = @pdfread.PdfRead::new().pdf_of_file(
+  let parsed_pw = @pdfreadfs.PdfReadFs::new().pdf_of_file(
     Some("user-pass"),
     None,
     out_path,

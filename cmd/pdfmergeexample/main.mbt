@@ -50,10 +50,10 @@ async fn main {
   try {
     let pdfs = Array::new()
     for name in in_names {
-      pdfs.push(@pdfread.PdfRead::new().pdf_of_file(None, None, name))
+      pdfs.push(@pdfreadfs.PdfReadFs::new().pdf_of_file(None, None, name))
     }
     let merged = merge_pdfs(pdfs)
-    @pdfwrite.PdfWrite::new().pdf_to_file(merged, out_name)
+    @pdfwritefs.PdfWriteFs::new().pdf_to_file(merged, out_name)
   } catch {
     err => {
       println("Failed to merge files.")

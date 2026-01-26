@@ -1,6 +1,6 @@
 ///|
 async test "extract text intro pdf" {
-  let pdf = @pdfread.PdfRead::new().pdf_of_file(
+  let pdf = @pdfreadfs.PdfReadFs::new().pdf_of_file(
     None,
     None,
     "testdata/introduction_to_camlpdf.pdf",
@@ -274,7 +274,7 @@ async test "extract text intro pdf" {
 
 ///|
 async test "extract text pdf.js identity sample" {
-  let pdf = @pdfread.PdfRead::new().pdf_of_file(
+  let pdf = @pdfreadfs.PdfReadFs::new().pdf_of_file(
     None,
     None,
     "testdata/pdfjs_identity_tounicode.pdf",
@@ -288,7 +288,7 @@ async test "extract text pdf.js identity sample" {
 ///|
 #skip("slow")
 async test "extract text SFAA Japanese" {
-  let pdf = @pdfread.PdfRead::new().pdf_of_file(
+  let pdf = @pdfreadfs.PdfReadFs::new().pdf_of_file(
     None,
     None,
     "testdata/SFAA_Japanese.pdf",
