@@ -1,6 +1,6 @@
 ///|
 test "landscape swaps width and height" {
-  let paper : @pdfpaper.Paper = Paper(unit=Inch, width=8.5, height=11.0)
+  let paper : @pdfpaper.Paper = Paper::new(unit=Inch, width=8.5, height=11.0)
   let swapped = paper.landscape()
   assert_eq(swapped.width(), 11.0)
   assert_eq(swapped.height(), 8.5)
@@ -8,7 +8,11 @@ test "landscape swaps width and height" {
 
 ///|
 test "paper accessors return values" {
-  let paper : @pdfpaper.Paper = Paper(unit=Centimetre, width=10.0, height=20.0)
+  let paper : @pdfpaper.Paper = Paper::new(
+    unit=Centimetre,
+    width=10.0,
+    height=20.0,
+  )
   match paper.unit() {
     Centimetre => ()
     _ => fail("expected centimetre unit")

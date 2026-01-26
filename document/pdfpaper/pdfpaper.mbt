@@ -4,17 +4,17 @@ pub struct Paper {
   unit : @pdfunits.LengthUnit
   width : Double
   height : Double
-
-  fn new(
-    unit~ : @pdfunits.LengthUnit,
-    width~ : Double,
-    height~ : Double,
-  ) -> Paper
+  // uncomment later
+  // fn new(
+  //   unit~ : @pdfunits.LengthUnit,
+  //   width~ : Double,
+  //   height~ : Double,
+  // ) -> Paper
 } derive(Debug)
 
 ///|
 /// Make a paper size from unit, width, and height.
-fn Paper::new(
+pub fn Paper::new(
   unit~ : @pdfunits.LengthUnit,
   width~ : Double,
   height~ : Double,
