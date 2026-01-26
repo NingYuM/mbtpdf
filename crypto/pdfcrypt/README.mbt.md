@@ -77,7 +77,7 @@ let encryption = @pdfwrite.Encryption::new(
   ],
 )
 
-@pdfwrite.PdfWrite::new().pdf_to_file_options(
+@pdfwritefs.PdfWriteFs::new().pdf_to_file_options(
   encryption=Some(encryption),
   build_new_id=true,
   pdf~,
@@ -93,7 +93,7 @@ When reading encrypted PDFs:
 // With user password
 
 ///|
-let pdf = @pdfread.PdfRead::new().pdf_of_file(
+let pdf = @pdfreadfs.PdfReadFs::new().pdf_of_file(
   user_password=Some("user123"),
   owner_password=None,
   filename="encrypted.pdf",
@@ -102,7 +102,7 @@ let pdf = @pdfread.PdfRead::new().pdf_of_file(
 // With owner password (full access)
 
 ///|
-let pdf = @pdfread.PdfRead::new().pdf_of_file(
+let pdf = @pdfreadfs.PdfReadFs::new().pdf_of_file(
   user_password=None,
   owner_password=Some("owner456"),
   filename="encrypted.pdf",

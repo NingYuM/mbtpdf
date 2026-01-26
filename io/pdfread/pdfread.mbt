@@ -42,47 +42,6 @@ pub fn PdfRead::pdf_of_input_lazy(
 }
 
 ///|
-/// Read a PDF from a channel.
-pub async fn PdfRead::pdf_of_channel(
-  self : PdfRead,
-  revision? : Int,
-  source? : String = "channel",
-  user_password : String?,
-  owner_password : String?,
-  channel : @fs.File,
-) -> @pdf.Pdf {
-  let input = @pdfiofs.input_of_channel(channel, source~)
-  read_pdf_internal(self, revision, user_password, owner_password, input, true)
-}
-
-///|
-/// Read a PDF from a channel lazily.
-pub async fn PdfRead::pdf_of_channel_lazy(
-  self : PdfRead,
-  revision? : Int,
-  source? : String = "channel",
-  user_password : String?,
-  owner_password : String?,
-  channel : @fs.File,
-) -> @pdf.Pdf {
-  let input = @pdfiofs.input_of_channel(channel, source~)
-  read_pdf_internal(self, revision, user_password, owner_password, input, false)
-}
-
-///|
-/// Read a PDF from a file.
-pub async fn PdfRead::pdf_of_file(
-  self : PdfRead,
-  revision? : Int,
-  user_password : String?,
-  owner_password : String?,
-  filename : String,
-) -> @pdf.Pdf {
-  let input = @pdfiofs.input_of_file(filename, source=filename)
-  read_pdf_internal(self, revision, user_password, owner_password, input, true)
-}
-
-///|
 /// Return number of revisions.
 pub fn PdfRead::revisions(self : PdfRead, input : @pdfio.Input) -> Int raise {
   try {

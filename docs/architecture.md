@@ -113,7 +113,7 @@ Base utilities used across most packages:
   - Example:
     ```mbt
     async fn load() -> @pdf.Pdf {
-      let pdf = @pdfread.PdfRead::new().pdf_of_file(None, None, "input.pdf")
+      let pdf = @pdfreadfs.PdfReadFs::new().pdf_of_file(None, None, "input.pdf")
       let _ = @pdfread.PdfRead::new().what_encryption(pdf)
       pdf
     }
@@ -128,7 +128,7 @@ Base utilities used across most packages:
   - Example:
     ```mbt
     async fn save(pdf : @pdf.Pdf) -> Unit {
-      @pdfwrite.PdfWrite::new().pdf_to_file(pdf, "output.pdf")
+      @pdfwritefs.PdfWriteFs::new().pdf_to_file(pdf, "output.pdf")
     }
     ```
 

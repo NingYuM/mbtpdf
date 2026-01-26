@@ -28,13 +28,13 @@ pub fn PdfWrite::new(logger? : (String) -> Unit = @pdfe.logger.val) -> PdfWrite
 ### To File (Simple)
 
 ```mbt nocheck
-@pdfwrite.PdfWrite::new().pdf_to_file(pdf, "/path/to/output.pdf")
+@pdfwritefs.PdfWriteFs::new().pdf_to_file(pdf, "/path/to/output.pdf")
 ```
 
 ### To File (With Options)
 
 ```mbt nocheck
-@pdfwrite.PdfWrite::new().pdf_to_file_options(
+@pdfwritefs.PdfWriteFs::new().pdf_to_file_options(
   preserve_objstm=false,    // Keep existing object streams
   generate_objstm=true,     // Create new object streams
   compress_objstm=true,     // Compress object streams
@@ -48,7 +48,7 @@ pub fn PdfWrite::new(logger? : (String) -> Unit = @pdfe.logger.val) -> PdfWrite
 ### To Channel (async)
 
 ```mbt nocheck
-@pdfwrite.PdfWrite::new().pdf_to_channel(
+@pdfwritefs.PdfWriteFs::new().pdf_to_channel(
   encryption=None,
   build_new_id=true,
   pdf~,
@@ -86,7 +86,7 @@ let encryption = @pdfwrite.Encryption::new(
 ### Writing Encrypted PDF
 
 ```mbt nocheck
-@pdfwrite.PdfWrite::new().pdf_to_file_options(
+@pdfwritefs.PdfWriteFs::new().pdf_to_file_options(
   encryption=Some(encryption),
   build_new_id=true,
   pdf~,
@@ -96,12 +96,12 @@ let encryption = @pdfwrite.Encryption::new(
 
 ### Re-encryption
 
-To preserve encryption from the original file:
+To re-encrypt an already-encrypted PDF (using its saved encryption metadata):
 
 ```mbt nocheck
-@pdfwrite.PdfWrite::new().pdf_to_file_options(
-  recrypt="/path/to/original.pdf",  // Path for ID preservation
-  encryption=None,                   // Uses saved encryption
+@pdfwritefs.PdfWriteFs::new().pdf_to_file_options(
+  recrypt="user-password",           // Password for the existing encryption
+  encryption=None,                   // Uses saved encryption metadata
   build_new_id=false,
   pdf~,
   filename="/path/to/output.pdf",
@@ -114,7 +114,7 @@ PDF 1.5+ supports object streams for compression:
 
 ```mbt nocheck
 // Generate compressed object streams
-@pdfwrite.PdfWrite::new().pdf_to_file_options(
+@pdfwritefs.PdfWriteFs::new().pdf_to_file_options(
   generate_objstm=true,   // Create object streams
   compress_objstm=true,   // Compress with deflate
   encryption=None,
@@ -124,7 +124,7 @@ PDF 1.5+ supports object streams for compression:
 )
 
 // Preserve existing object streams
-@pdfwrite.PdfWrite::new().pdf_to_file_options(
+@pdfwritefs.PdfWriteFs::new().pdf_to_file_options(
   preserve_objstm=true,
   encryption=None,
   build_new_id=true,

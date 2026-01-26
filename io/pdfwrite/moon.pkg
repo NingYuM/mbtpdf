@@ -1,11 +1,9 @@
 import {
   "bobzhang/mbtpdf/core/pdf",
   "bobzhang/mbtpdf/core/pdfio",
-  "bobzhang/mbtpdf/io/pdfiofs",
   "bobzhang/mbtpdf/codec/pdfcodec",
   "bobzhang/mbtpdf/crypto/pdfcrypt",
   "bobzhang/mbtpdf/core/pdfe",
-  "moonbitlang/async/fs",
 }
 
 import {
@@ -21,5 +19,7 @@ import {
   "bobzhang/mbtpdf/io/pdfread",
   "bobzhang/mbtpdf/io/pdfwritefs",
   "bobzhang/mbtpdf/document/pdfpage",
+  "bobzhang/mbtpdf/io/pdfiofs",
   "moonbitlang/async",
+  "moonbitlang/async/fs",
 } for "wbtest"

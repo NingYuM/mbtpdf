@@ -5,7 +5,6 @@ import {
   "bobzhang/mbtpdf/core/pdf",
   "bobzhang/mbtpdf/core/pdfio",
   "bobzhang/mbtpdf/crypto/pdfcrypt",
-  "moonbitlang/async/fs",
 }
 
 // Values
@@ -25,9 +24,6 @@ pub struct PdfWrite {
   logger : (String) -> Unit
 }
 pub fn PdfWrite::new(logger? : (String) -> Unit) -> Self
-pub async fn PdfWrite::pdf_to_channel(Self, preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, @fs.File) -> Unit
-pub async fn PdfWrite::pdf_to_file(Self, @pdf.Pdf, String) -> Unit
-pub async fn PdfWrite::pdf_to_file_options(Self, preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, String) -> Unit
 pub fn PdfWrite::pdf_to_output(Self, preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, @pdfio.Output) -> Unit raise
 pub fn PdfWrite::string_of_pdf(Self, @pdf.PdfObject) -> String
 

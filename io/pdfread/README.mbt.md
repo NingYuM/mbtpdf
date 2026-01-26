@@ -57,7 +57,7 @@ let pdf = @pdfread.PdfRead::new().pdf_of_input_lazy(
 
 ```mbt nocheck
 ///|
-let pdf = @pdfread.PdfRead::new().pdf_of_file(
+let pdf = @pdfreadfs.PdfReadFs::new().pdf_of_file(
   user_password=None,
   owner_password=None,
   filename="/path/to/document.pdf",
@@ -68,7 +68,7 @@ let pdf = @pdfread.PdfRead::new().pdf_of_file(
 
 ```mbt nocheck
 ///|
-let pdf = @pdfread.PdfRead::new().pdf_of_channel(
+let pdf = @pdfreadfs.PdfReadFs::new().pdf_of_channel(
   user_password=None,
   owner_password=None,
   channel,

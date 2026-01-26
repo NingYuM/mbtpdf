@@ -109,12 +109,12 @@ async fn merge_two_files(
   file2 : String,
   output : String,
 ) -> Unit {
-  let pdf1 = @pdfread.PdfRead::new().pdf_of_file(
+  let pdf1 = @pdfreadfs.PdfReadFs::new().pdf_of_file(
     user_password=None,
     owner_password=None,
     filename=file1,
   )
-  let pdf2 = @pdfread.PdfRead::new().pdf_of_file(
+  let pdf2 = @pdfreadfs.PdfReadFs::new().pdf_of_file(
     user_password=None,
     owner_password=None,
     filename=file2,
@@ -125,7 +125,7 @@ async fn merge_two_files(
     ilist(1, pages1),
     ilist(1, pages2),
   ]).merge_pdfs(false, true)
-  @pdfwrite.PdfWrite::new().pdf_to_file(merged, output)
+  @pdfwritefs.PdfWriteFs::new().pdf_to_file(merged, output)
 }
 ```
 

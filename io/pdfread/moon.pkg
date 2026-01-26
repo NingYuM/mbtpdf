@@ -4,11 +4,9 @@ import {
   "bobzhang/mbtpdf/crypto/pdfcrypt",
   "bobzhang/mbtpdf/core/pdfcryptprimitives",
   "bobzhang/mbtpdf/core/pdfio",
-  "bobzhang/mbtpdf/io/pdfiofs",
   "bobzhang/mbtpdf/syntax/pdfgenlex",
   "bobzhang/mbtpdf/syntax/pdfsyntax",
   "bobzhang/mbtpdf/core/pdfe",
-  "moonbitlang/async/fs",
 }
 
 import {
