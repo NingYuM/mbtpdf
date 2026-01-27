@@ -2,7 +2,3 @@ import {
   "bobzhang/mbtpdf/core/pdf",
   "bobzhang/mbtpdf/core/pdfe",
 }
-
-import {
-  "bobzhang/mbtpdf/document/pdfpage",
-} for "test"

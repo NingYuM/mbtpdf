@@ -1,17 +1,6 @@
 import {
+  "bobzhang/mbtpdf/codec/pdfflate",
   "bobzhang/mbtpdf/core/pdf",
   "bobzhang/mbtpdf/core/pdfio",
-  "bobzhang/mbtpdf/codec/pdfflate",
-  "moonbitlang/async/fs",
-  "moonbitlang/async/io",
-  "moonbitlang/async/process",
-  "moonbitlang/core/env",
+  "moonbitlang/async",
 }
-
-import {
-  "moonbitlang/async",
-} for "test"
-
-import {
-  "moonbitlang/async",
-} for "wbtest"

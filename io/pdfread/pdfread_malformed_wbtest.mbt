@@ -93,11 +93,12 @@ test "malformed pdf skips bad objects and trailers" {
 
 ///|
 async test "revision -1 returns revisions error" {
-  let res : Result[@pdf.Pdf, Error] = try? @pdfreadfs.PdfReadFs::new().pdf_of_file(
+  let input = @pdfiofs.input_of_file("testdata/pdfjs_identity_tounicode.pdf")
+  let res : Result[@pdf.Pdf, Error] = try? PdfRead::new().pdf_of_input(
     revision=-1,
     None,
     None,
-    "testdata/pdfjs_identity_tounicode.pdf",
+    input,
   )
   assert_true(res is Err(_))
 }

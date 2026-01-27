@@ -1,27 +1,65 @@
 ///|
-fn build_two_page_pdf() -> @pdf.Pdf raise {
-  let pages = [
-    @pdfpage.Page::blank(@pdfpaper.a4),
-    @pdfpage.Page::blank(@pdfpaper.a4),
-  ]
-  let (pdf, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree(
-    pages,
-  )
-  @pdfpage.PdfPageDoc::new(pdf).add_root(pageroot, [])
+fn sample_rect() -> @pdf.PdfObject {
+  Array([Integer(0), Integer(0), Integer(100), Integer(100)])
 }
 
 ///|
 fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
-  let pages = Array::new()
+  let pdf = @pdf.Pdf::empty()
+
+  // Create placeholder /Pages root so pages can reference it as /Parent.
+  let pages_root_num = pdf.addobj(
+    Dictionary([
+      ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+      ("/Kids", Array([])),
+      ("/Count", Integer(count)),
+    ]),
+  )
+  let kids : Array[@pdf.PdfObject] = []
   let mut i = 0
   while i < count {
-    pages.push(@pdfpage.Page::blank(@pdfpaper.a4))
+    let page_obj : @pdf.PdfObject = Dictionary([
+      ("/Type", Name(@pdf.PdfName::of_string("/Page"))),
+      ("/Parent", Indirect(pages_root_num)),
+      ("/MediaBox", sample_rect()),
+    ])
+    let page_num = pdf.addobj(page_obj)
+    kids.push(Indirect(page_num))
     i = i + 1
   }
-  let (pdf, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree(
-    pages,
+
+  // Fill /Kids now that we have page object numbers.
+  pdf.addobj_given_num(
+    (
+      pages_root_num,
+      Dictionary([
+        ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+        ("/Kids", Array(kids)),
+        ("/Count", Integer(count)),
+      ]),
+    ),
   )
-  @pdfpage.PdfPageDoc::new(pdf).add_root(pageroot, [])
+  let catalog_num = pdf.addobj(
+    Dictionary([
+      ("/Type", Name(@pdf.PdfName::of_string("/Catalog"))),
+      ("/Pages", Indirect(pages_root_num)),
+    ]),
+  )
+  let trailerdict = pdf.trailerdict.add_entry("/Root", Indirect(catalog_num))
+  {
+    major: pdf.major,
+    minor: pdf.minor,
+    root: catalog_num,
+    objects: pdf.objects,
+    trailerdict,
+    was_linearized: pdf.was_linearized,
+    saved_encryption: pdf.saved_encryption,
+  }
+}
+
+///|
+fn build_two_page_pdf() -> @pdf.Pdf raise {
+  build_page_pdf(2)
 }
 
 ///|

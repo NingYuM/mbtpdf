@@ -38,14 +38,51 @@ fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
     Real(100.0),
     Real(100.0),
   ])
-  let pages = Array::new(capacity=count)
-  for i in 0..<count {
-    pages.push(@pdfpage.Page::custom(rect))
-  }
-  let (pdf0, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree(
-    pages,
+  let pdf = @pdf.Pdf::empty()
+  let pages_root_num = pdf.addobj(
+    Dictionary([
+      ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+      ("/Kids", Array([])),
+      ("/Count", Integer(count)),
+    ]),
   )
-  @pdfpage.PdfPageDoc::new(pdf0).add_root(pageroot, [])
+  let kids : Array[@pdf.PdfObject] = []
+  for _ in 0..<count {
+    let page_num = pdf.addobj(
+      Dictionary([
+        ("/Type", Name(@pdf.PdfName::of_string("/Page"))),
+        ("/Parent", Indirect(pages_root_num)),
+        ("/MediaBox", rect),
+      ]),
+    )
+    kids.push(Indirect(page_num))
+  }
+  pdf.addobj_given_num(
+    (
+      pages_root_num,
+      Dictionary([
+        ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+        ("/Kids", Array(kids)),
+        ("/Count", Integer(count)),
+      ]),
+    ),
+  )
+  let catalog_num = pdf.addobj(
+    Dictionary([
+      ("/Type", Name(@pdf.PdfName::of_string("/Catalog"))),
+      ("/Pages", Indirect(pages_root_num)),
+    ]),
+  )
+  let trailerdict = pdf.trailerdict.add_entry("/Root", Indirect(catalog_num))
+  {
+    major: pdf.major,
+    minor: pdf.minor,
+    root: catalog_num,
+    objects: pdf.objects,
+    trailerdict,
+    was_linearized: pdf.was_linearized,
+    saved_encryption: pdf.saved_encryption,
+  }
 }
 
 ///|
@@ -187,21 +224,7 @@ test "merge_pagelabels combines ranges" {
 
 ///|
 test "write/read pagelabels roundtrip" {
-  let rect : @pdf.PdfObject = Array([
-    Real(0.0),
-    Real(0.0),
-    Real(100.0),
-    Real(100.0),
-  ])
-  let pages = [
-    @pdfpage.Page::custom(rect),
-    @pdfpage.Page::custom(rect),
-    @pdfpage.Page::custom(rect),
-  ]
-  let (pdf0, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree(
-    pages,
-  )
-  let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(pageroot, [])
+  let pdf = make_pdf_with_pages(3)
   let labels = [
     PageLabel::{
       labelstyle: LabelStyle::DecimalArabic,
@@ -250,7 +273,7 @@ fn set_page_labels(pdf : @pdf.Pdf, nums : Array[@pdf.PdfObject]) -> Unit raise {
 
 ///|
 test "read handles label styles and bad startpage" {
-  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf = make_pdf_with_pages(1)
   let nums : Array[@pdf.PdfObject] = [
     Name(@pdf.PdfName::of_string("/Bad")),
     Dictionary([("/S", Name(@pdf.PdfName::of_string("/R")))]),

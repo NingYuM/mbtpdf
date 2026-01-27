@@ -3,7 +3,3 @@ import {
   "bobzhang/mbtpdf/core/pdfe",
   "bobzhang/mbtpdf/core/pdftransform",
 }
-
-import {
-  "bobzhang/mbtpdf/document/pdfpage",
-} for "test"

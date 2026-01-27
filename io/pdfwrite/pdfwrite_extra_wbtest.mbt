@@ -244,7 +244,11 @@ test "pdf_to_output drops invalid object stream ids and writes toget" {
 async test "pdf_to_file writes output" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let path = "pdfwrite_async_test.pdf"
-  @pdfwritefs.PdfWriteFs::of_writer(write_ctx).pdf_to_file(pdf, path)
+  let file = @fs.open(path, mode=WriteOnly, create=0o644, truncate=true)
+  defer file.close()
+  let output = @pdfiofs.output_of_channel(file)
+  write_ctx.pdf_to_output(None, true, pdf, output)
+  (output.flush)()
   let file = @fs.open(path, mode=ReadOnly)
   let bytes = @pdfiofs.bytes_of_input_channel(file)
   assert_true(bytes.length() > 0)
@@ -253,22 +257,15 @@ async test "pdf_to_file writes output" {
 }
 
 ///|
-async test "pdf_to_file_options supports recrypt" {
+test "pdf_to_output supports recrypt" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  let path = "pdfwrite_async_recrypt.pdf"
-  let res : Result[Unit, Error] = try? @pdfwritefs.PdfWriteFs::of_writer(
-    write_ctx,
-  ).pdf_to_file_options(
-    preserve_objstm=false,
-    generate_objstm=false,
-    compress_objstm=false,
+  let (output, _) = @pdfio.Output::of_bytes(2048)
+  let res : Result[Unit, Error] = try? write_ctx.pdf_to_output(
     recrypt="pass",
     None,
     true,
     pdf,
-    path,
+    output,
   )
   assert_true(res is Err(_))
-  let _ : Result[Unit, Error] = try? @fs.remove(path)
-
 }

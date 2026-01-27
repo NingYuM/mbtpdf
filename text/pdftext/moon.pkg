@@ -1,22 +1,16 @@
 import {
   "bobzhang/mbtpdf/core/pdf",
-  "bobzhang/mbtpdf/font/pdfcmap",
   "bobzhang/mbtpdf/core/pdfe",
-  "bobzhang/mbtpdf/font/pdffont",
-  "bobzhang/mbtpdf/syntax/pdfgenlex",
-  "bobzhang/mbtpdf/font/pdfglyphlist",
   "bobzhang/mbtpdf/core/pdfio",
-  "bobzhang/mbtpdf/graphics/pdfops",
-  "bobzhang/mbtpdf/document/pdfpage",
-  "bobzhang/mbtpdf/syntax/pdfsyntax",
   "bobzhang/mbtpdf/core/pdftransform",
   "bobzhang/mbtpdf/core/pdfutil",
-  "moonbitlang/core/encoding/utf8",
-  "moonbitlang/core/builtin",
-}
-
-import {
+  "bobzhang/mbtpdf/document/pdfpage",
   "bobzhang/mbtpdf/font/pdffont",
+  "bobzhang/mbtpdf/font/pdfcmap",
+  "bobzhang/mbtpdf/font/pdfglyphlist",
+  "bobzhang/mbtpdf/graphics/pdfops",
   "bobzhang/mbtpdf/io/pdfreadfs",
+  "bobzhang/mbtpdf/syntax/pdfsyntax",
   "moonbitlang/async",
-} for "test"
+  "moonbitlang/core/encoding/utf8",
+}

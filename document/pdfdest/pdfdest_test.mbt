@@ -5,6 +5,67 @@ fn assert_close(a : Double, b : Double) -> Unit raise {
 }
 
 ///|
+fn default_rect() -> @pdf.PdfObject {
+  Array([Integer(0), Integer(0), Integer(100), Integer(100)])
+}
+
+///|
+fn pdf_with_pages(count : Int, mediabox : @pdf.PdfObject) -> @pdf.Pdf raise {
+  let pdf = @pdf.Pdf::empty()
+  let pages_root_num = pdf.addobj(
+    Dictionary([
+      ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+      ("/Kids", Array([])),
+      ("/Count", Integer(count)),
+    ]),
+  )
+  let kids : Array[@pdf.PdfObject] = []
+  let mut i = 0
+  while i < count {
+    let page_num = pdf.addobj(
+      Dictionary([
+        ("/Type", Name(@pdf.PdfName::of_string("/Page"))),
+        ("/Parent", Indirect(pages_root_num)),
+        ("/MediaBox", mediabox),
+      ]),
+    )
+    kids.push(Indirect(page_num))
+    i = i + 1
+  }
+  pdf.addobj_given_num(
+    (
+      pages_root_num,
+      Dictionary([
+        ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+        ("/Kids", Array(kids)),
+        ("/Count", Integer(count)),
+      ]),
+    ),
+  )
+  let catalog_num = pdf.addobj(
+    Dictionary([
+      ("/Type", Name(@pdf.PdfName::of_string("/Catalog"))),
+      ("/Pages", Indirect(pages_root_num)),
+    ]),
+  )
+  let trailerdict = pdf.trailerdict.add_entry("/Root", Indirect(catalog_num))
+  {
+    major: pdf.major,
+    minor: pdf.minor,
+    root: catalog_num,
+    objects: pdf.objects,
+    trailerdict,
+    was_linearized: pdf.was_linearized,
+    saved_encryption: pdf.saved_encryption,
+  }
+}
+
+///|
+fn minimum_valid_pdf() -> @pdf.Pdf raise {
+  pdf_with_pages(1, default_rect())
+}
+
+///|
 test "read_destination array" {
   let pdf = @pdf.Pdf::empty()
   let obj : @pdf.PdfObject = Array([
@@ -101,7 +162,7 @@ test "transform_destination clips FitV/FitBH" {
 
 ///|
 test "transform_destination updates GoTo action" {
-  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf = minimum_valid_pdf()
   let refs = pdf.page_reference_numbers()
   let action : @pdf.PdfObject = Dictionary([
     ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
@@ -285,7 +346,7 @@ test "read_destination name resolution" {
     Name(@pdf.PdfName::of_string("/Missing")),
   )
   assert_true(no_root is Err(_))
-  let pdf_missing_dests = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf_missing_dests = minimum_valid_pdf()
   match
     Destination::read(
       pdf_missing_dests,
@@ -295,7 +356,7 @@ test "read_destination name resolution" {
       ()
     _ => fail("expected NamedDestination with no /Dests")
   }
-  let pdf_missing_entry = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf_missing_entry = minimum_valid_pdf()
   let root = pdf_missing_entry.lookup_obj(pdf_missing_entry.root)
   let dests : @pdf.PdfObject = Dictionary([("/Other", Null)])
   let root = root.add_entry("/Dests", dests)
@@ -313,7 +374,7 @@ test "read_destination name resolution" {
 
 ///|
 test "read_destination string resolution" {
-  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf = minimum_valid_pdf()
   match Destination::read(pdf, String("Shallow"), shallow=true) {
     Destination::StringDestination("Shallow") => ()
     _ => fail("expected shallow StringDestination")
@@ -322,7 +383,7 @@ test "read_destination string resolution" {
     Destination::StringDestination("Missing") => ()
     _ => fail("expected StringDestination with no /Names")
   }
-  let pdf_no_dests = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf_no_dests = minimum_valid_pdf()
   let root = pdf_no_dests.lookup_obj(pdf_no_dests.root)
   let root = root.add_entry("/Names", Dictionary([]))
   pdf_no_dests.addobj_given_num((pdf_no_dests.root, root))
@@ -330,7 +391,7 @@ test "read_destination string resolution" {
     Destination::StringDestination("Missing") => ()
     _ => fail("expected StringDestination with missing /Dests")
   }
-  let pdf_with_tree = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf_with_tree = minimum_valid_pdf()
   let dest : @pdf.PdfObject = Array([
     Integer(0),
     Name(@pdf.PdfName::of_string("/Fit")),
@@ -346,7 +407,7 @@ test "read_destination string resolution" {
     Destination::Fit(TargetPage::OtherDocPageNumber(0)) => ()
     _ => fail("expected resolved StringDestination")
   }
-  let pdf_no_match = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf_no_match = minimum_valid_pdf()
   let dests : @pdf.PdfObject = Dictionary([
     ("/Names", Array([String("Other"), dest])),
   ])
@@ -491,12 +552,7 @@ test "read_destination resolves named dests in catalog" {
     Real(100.0),
     Real(100.0),
   ])
-  let page = @pdfpage.Page::custom(rect)
-  let (pdf0, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([
-      page,
-    ],
-  )
-  let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(pageroot, [])
+  let pdf = pdf_with_pages(1, rect)
   let refs = pdf.page_reference_numbers()
   let dest : @pdf.PdfObject = Array([
     Indirect(refs[0]),

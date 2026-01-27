@@ -18,4 +18,4 @@ import {
   "bobzhang/mbtpdf/io/pdfwritefs",
   "moonbitlang/async",
   "moonbitlang/async/fs",
-} for "test"
+}

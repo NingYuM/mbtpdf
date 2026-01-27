@@ -1,13 +1,10 @@
 import {
   "bobzhang/mbtpdf/core/pdf",
+  "bobzhang/mbtpdf/crypto/pdfcrypt",
   "bobzhang/mbtpdf/io/pdfread",
   "bobzhang/mbtpdf/io/pdfreadfs",
   "bobzhang/mbtpdf/io/pdfwrite",
   "bobzhang/mbtpdf/io/pdfwritefs",
-  "bobzhang/mbtpdf/crypto/pdfcrypt",
-}
-
-import {
   "moonbitlang/async/fs",
   "moonbitlang/async",
-} for "test"
+}

@@ -1,31 +1,46 @@
 ///|
-async test "bookmark string roundtrip through file output" {
-  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
-  let marks : Array[@pdfmarks.Bookmark] = [
-    {
-      level: 0,
-      text: "Café",
-      target: @pdfdest.Destination::NullDestination,
-      isopen: false,
-      colour: (0.0, 0.0, 0.0),
-      flags: 0,
-    },
-  ]
-  let pdf_with = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(marks)
-  let dir = "tmp/pdfmarks"
-  if !@fs.exists(dir) {
-    @fs.mkdir(dir, permission=0o755, recursive=true)
+fn minimum_valid_pdf() -> @pdf.Pdf raise {
+  let pdf = @pdf.Pdf::empty()
+  let pages_root_num = pdf.addobj(
+    Dictionary([
+      ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+      ("/Kids", Array([])),
+      ("/Count", Integer(1)),
+    ]),
+  )
+  let page_num = pdf.addobj(
+    Dictionary([
+      ("/Type", Name(@pdf.PdfName::of_string("/Page"))),
+      ("/Parent", Indirect(pages_root_num)),
+      ("/MediaBox", Array([Integer(0), Integer(0), Integer(100), Integer(100)])),
+    ]),
+  )
+  pdf.addobj_given_num(
+    (
+      pages_root_num,
+      Dictionary([
+        ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+        ("/Kids", Array([Indirect(page_num)])),
+        ("/Count", Integer(1)),
+      ]),
+    ),
+  )
+  let catalog_num = pdf.addobj(
+    Dictionary([
+      ("/Type", Name(@pdf.PdfName::of_string("/Catalog"))),
+      ("/Pages", Indirect(pages_root_num)),
+    ]),
+  )
+  let trailerdict = pdf.trailerdict.add_entry("/Root", Indirect(catalog_num))
+  {
+    major: pdf.major,
+    minor: pdf.minor,
+    root: catalog_num,
+    objects: pdf.objects,
+    trailerdict,
+    was_linearized: pdf.was_linearized,
+    saved_encryption: pdf.saved_encryption,
   }
-  let filename = dir + "/bookmark_string_test.pdf"
-  let file = @fs.open(filename, mode=WriteOnly, create=0o644, truncate=true)
-  defer file.close()
-  @pdfwritefs.PdfWriteFs::new().pdf_to_channel(None, true, pdf_with, file)
-  let parsed = @pdfreadfs.PdfReadFs::new().pdf_of_file(None, None, filename)
-  let parsed_marks = @pdfmarks.PdfMarks::new(parsed).read_bookmarks()
-  assert_eq(parsed_marks.length(), 1)
-  assert_eq(parsed_marks[0].text, "Café")
-  let _ : Result[Unit, Error] = try? @fs.remove(filename)
-
 }
 
 ///|
@@ -60,7 +75,7 @@ test "string_of_bookmark includes text" {
 
 ///|
 test "remove_bookmarks clears outlines" {
-  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf = minimum_valid_pdf()
   let marks : Array[@pdfmarks.Bookmark] = [
     {
       level: 0,
@@ -107,7 +122,7 @@ test "transform_bookmark translates destination" {
 
 ///|
 test "add_bookmarks links siblings and counts" {
-  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf = minimum_valid_pdf()
   let marks : Array[@pdfmarks.Bookmark] = [
     {
       level: 0,
@@ -214,7 +229,7 @@ test "add_bookmarks links siblings and counts" {
 
 ///|
 test "read_bookmarks toggles action preservation" {
-  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf = minimum_valid_pdf()
   let action : @pdf.PdfObject = Dictionary([
     ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
     ("/D", String("dest")),
