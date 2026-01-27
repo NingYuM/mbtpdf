@@ -249,3 +249,208 @@ test "target_of_pagenumber returns fit destination" {
     _ => fail("expected Fit destination")
   }
 }
+
+///|
+test "change_pages tolerates missing matrix entries" {
+  let mut pdf = build_two_page_pdf()
+  let page1 = page_objnum(pdf, 1)
+  let page2 = page_objnum(pdf, 2)
+  pdf = add_bookmarks_for_pages(pdf, page1, page2)
+  let scale : @pdftransform.TransformMatrix = {
+    a: 2.0,
+    b: 0.0,
+    c: 0.0,
+    d: 2.0,
+    e: 0.0,
+    f: 0.0,
+  }
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
+  // Provide a matrix only for the first page; the second should default to identity.
+  let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices=[
+    (1, scale),
+  ])
+  assert_eq(@pdfpage.PdfPageDoc::new(updated).pages_of_pagetree_quick(), 2)
+}
+
+///|
+test "change_pages logs when /Annots is not an array" {
+  let pdf = build_two_page_pdf()
+  let page1 = page_objnum(pdf, 1)
+  let page_obj = pdf.lookup_obj(page1)
+  let updated_page = page_obj.add_entry("/Annots", Integer(1))
+  pdf.addobj_given_num((page1, updated_page))
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
+  let matrices = [
+    (1, @pdftransform.TransformMatrix::identity()),
+    (2, @pdftransform.TransformMatrix::identity()),
+  ]
+  let messages : Array[String] = []
+  let prev = @pdfe.logger.val
+  @pdfe.logger.val = fn(msg) { messages.push(msg) }
+  ignore(@pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices~))
+  @pdfe.logger.val = prev
+  assert_true(
+    messages[:].contains(
+      "change_pages_process_annotations: /Annots not an array\n",
+    ),
+  )
+}
+
+///|
+test "change_pages ignores unsupported openaction dictionaries" {
+  let pdf = build_two_page_pdf()
+  set_catalog_entry(
+    pdf,
+    "/OpenAction",
+    Dictionary([
+      ("/S", Name(@pdf.PdfName::of_string("/URI"))),
+      ("/URI", String("x")),
+    ]),
+  )
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
+  let matrices = [
+    (1, @pdftransform.TransformMatrix::identity()),
+    (2, @pdftransform.TransformMatrix::identity()),
+  ]
+  let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(
+    true,
+    pages,
+    matrices~,
+  )
+  assert_eq(@pdfpage.PdfPageDoc::new(updated).pages_of_pagetree_quick(), 2)
+}
+
+///|
+test "change_pages applies explicit page reference changes" {
+  let pdf = build_two_page_pdf()
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
+  let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, changes=[
+    (1, 2),
+    (2, 1),
+  ])
+  assert_eq(@pdfpage.PdfPageDoc::new(updated).pages_of_pagetree_quick(), 2)
+}
+
+///|
+test "change_pages processes bookmark targets with missing matrices and tables" {
+  let mut pdf = build_two_page_pdf()
+  let page1 = page_objnum(pdf, 1)
+  let page2 = page_objnum(pdf, 2)
+  let marks : Array[@pdfmarks.Bookmark] = [
+    {
+      level: 1,
+      text: "Missing matrix",
+      target: @pdfdest.Destination::XYZ(
+        @pdfdest.TargetPage::PageObject(page2),
+        Some(0.0),
+        Some(0.0),
+        Some(1.0),
+      ),
+      isopen: true,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 1,
+      text: "Missing refnum",
+      target: @pdfdest.Destination::XYZ(
+        @pdfdest.TargetPage::PageObject(999999),
+        Some(0.0),
+        Some(0.0),
+        Some(1.0),
+      ),
+      isopen: true,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 1,
+      text: "Other doc page",
+      target: @pdfdest.Destination::FitH(
+        @pdfdest.TargetPage::OtherDocPageNumber(0),
+        Some(0.0),
+      ),
+      isopen: true,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+  ]
+  pdf = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(marks)
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
+  let scale : @pdftransform.TransformMatrix = {
+    a: 2.0,
+    b: 0.0,
+    c: 0.0,
+    d: 2.0,
+    e: 0.0,
+    f: 0.0,
+  }
+  let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices=[
+    (1, scale),
+  ])
+  assert_eq(@pdfpage.PdfPageDoc::new(updated).pages_of_pagetree_quick(), 2)
+  // Touch locals to avoid unused warnings.
+  assert_true(page1 > 0)
+}
+
+///|
+test "change_pages catches failures in annotations and openaction rewriting" {
+  let pdf = build_two_page_pdf()
+  let page1 = page_objnum(pdf, 1)
+  let bad_dest : @pdf.PdfObject = Array([
+    Indirect(page1),
+    Name(@pdf.PdfName::of_string("/XYZ")),
+    Name(@pdf.PdfName::of_string("/BadNumber")),
+    Null,
+    Null,
+  ])
+  let bad_dest_annot : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Link"))),
+    ("/Dest", bad_dest),
+  ])
+  let bad_annot_num = pdf.addobj(bad_dest_annot)
+  update_page_annots(pdf, page1, [Indirect(bad_annot_num)])
+  set_catalog_entry(
+    pdf,
+    "/OpenAction",
+    Dictionary([
+      ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
+      ("/D", bad_dest),
+    ]),
+  )
+  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
+  let matrices = [
+    (1, @pdftransform.TransformMatrix::identity()),
+    (2, @pdftransform.TransformMatrix::identity()),
+  ]
+  let messages : Array[String] = []
+  let prev = @pdfe.logger.val
+  @pdfe.logger.val = fn(msg) { messages.push(msg) }
+  ignore(@pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices~))
+  @pdfe.logger.val = prev
+  assert_true(
+    messages[:].contains("failure in change_pages_process_annotations\n"),
+  )
+  assert_true(
+    messages[:].contains("failure in change_pages_process_openaction\n"),
+  )
+}
+
+///|
+test "change_pages tolerates non-dictionary base root" {
+  let base = @pdf.Pdf::empty()
+  base.addobj_given_num((1, @pdf.PdfObject::Integer(0)))
+  let pdf : @pdf.Pdf = {
+    major: base.major,
+    minor: base.minor,
+    root: 1,
+    objects: base.objects,
+    trailerdict: base.trailerdict,
+    was_linearized: base.was_linearized,
+    saved_encryption: base.saved_encryption,
+  }
+  let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(false, [
+    @pdfpage.Page::blank(@pdfpaper.a4),
+  ])
+  assert_eq(@pdfpage.PdfPageDoc::new(updated).pages_of_pagetree_quick(), 1)
+}

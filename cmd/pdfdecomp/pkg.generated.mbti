@@ -2,6 +2,7 @@
 package "bobzhang/mbtpdf/cmd/pdfdecomp"
 
 // Values
+pub async fn run(Array[String]) -> Unit
 
 // Errors
 

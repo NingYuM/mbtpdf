@@ -1,9 +1,11 @@
 import {
   "bobzhang/mbtpdf/crypto/pdfcrypt",
+  "bobzhang/mbtpdf/document/pdfpage",
   "bobzhang/mbtpdf/io/pdfreadfs",
   "bobzhang/mbtpdf/io/pdfwritefs",
   "moonbitlang/core/env",
   "moonbitlang/async",
+  "moonbitlang/async/fs",
 }
 
 options(

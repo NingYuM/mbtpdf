@@ -33,7 +33,11 @@ fn merge_pdfs(pdfs : Array[@pdf.Pdf]) -> @pdf.Pdf raise {
 
 ///|
 async fn main {
-  let args = @env.args()
+  run(@env.args())
+}
+
+///|
+pub async fn run(args : Array[String]) -> Unit {
   let argc = args.length()
   if argc < 3 {
     println("Syntax: pdfmerge <inputs> <output>")

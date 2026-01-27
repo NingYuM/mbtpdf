@@ -54,17 +54,16 @@ pub fn PdfSyntax::lex_name(
           )
           raise @pdf.PdfError::Msg(message)
         }
-        let hex = String::from_array([c1, c2])
-        try @strconv.parse_int("0x\{hex}") catch {
+        match (hex_value(c1), hex_value(c2)) {
+          (Some(hi), Some(lo)) => bytes.push(((hi << 4) + lo).to_byte())
           _ => {
+            let hex = String::from_array([c1, c2])
             let message = @pdf.input_pdferror(
               input,
               "lex_name: bad hex escape #\{hex}",
             )
             raise @pdf.PdfError::Msg(message)
           }
-        } noraise {
-          v => bytes.push(v.to_byte())
         }
       } else {
         bytes.push(b.to_byte())
@@ -185,11 +184,11 @@ pub fn PdfSyntax::lex_string(
               }
             }
             let octal = digits.map(c => c.to_string()).join("")
-            try @strconv.parse_int("0o\{octal}") catch {
-              _ => ()
-            } noraise {
-              v => bytes.push(v.to_byte())
+            let mut value = 0
+            for ch in octal {
+              value = value * 8 + (ch.to_int() - '0'.to_int())
             }
+            bytes.push(value.to_byte())
           }
           other => bytes.push(other.to_int().to_byte())
         }
@@ -326,10 +325,12 @@ fn skip_stream_beginning(input : @pdfio.Input) -> Unit raise {
 }
 
 ///|
-fn find_endstream(input : @pdfio.Input) -> Int raise {
-  fn match_chunk(s : String, input : @pdfio.Input) -> Bool raise {
+fn find_endstream(input : @pdfio.Input) -> Int {
+  fn match_chunk(s : String, input : @pdfio.Input) -> Bool {
     let pos = (input.pos_in)()
-    let ok = lex_syntax.read_chunk(s.length(), input) == s
+    let ok = try lex_syntax.read_chunk(s.length(), input) == s catch {
+      _ => false
+    }
     (input.seek_in)(pos)
     ok
   }

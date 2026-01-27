@@ -13,7 +13,11 @@ fn rebuild_page(pdf : @pdf.Pdf, page : @pdfpage.Page) -> @pdfpage.Page raise {
 
 ///|
 async fn main {
-  let args = @env.args()
+  run(@env.args())
+}
+
+///|
+pub async fn run(args : Array[String]) -> Unit {
   if args.length() != 3 {
     println("Syntax: pdftest <input> <output>")
     return
@@ -41,7 +45,12 @@ async fn main {
     let (output, buffer) = @pdfio.Output::of_bytes(1024)
     @pdfwrite.PdfWrite::new().pdf_to_output(None, true, pdf, output)
     let out_bytes = output.extract_bytes(buffer)
-    @fs.write_file(out_name, Bytes::from_array(out_bytes))
+    @fs.write_file(
+      out_name,
+      Bytes::from_array(out_bytes),
+      create=0o644,
+      truncate=true,
+    )
   } catch {
     err => {
       println("Test failed:")

@@ -172,6 +172,56 @@ test "merge_pdfs warns on duplicate names with struct trees" {
 }
 
 ///|
+test "merge_pdfs rewrites string and legacy named bookmarks" {
+  let pdf = make_pdf_pages(1)
+  // Name tree entry for string destinations.
+  add_names_dests(pdf, [("DestB", dest_dict_for_page(pdf, 1))])
+  // Legacy catalog /Dests dictionary for name destinations.
+  let target = @pdfdest.TargetPage::PageObject(page_ref(pdf, 1))
+  let dest_obj = @pdfdest.Destination::Fit(target).to_pdf_object()
+  set_catalog_entry(pdf, "/Dests", Dictionary([("/DestA", dest_obj)]))
+  let bookmarks : Array[@pdfmarks.Bookmark] = [
+    {
+      level: 0,
+      text: "String",
+      target: @pdfdest.Destination::StringDestination("DestB"),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "Named",
+      target: @pdfdest.Destination::NamedDestination(
+        @pdf.PdfName::of_string("/DestA"),
+      ),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "Null",
+      target: @pdfdest.Destination::NullDestination,
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+  ]
+  let pdf = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(bookmarks)
+  let merged = PdfMerger::new(["one"], [pdf], [[1]]).merge_pdfs(
+    false,
+    false,
+    process_struct_trees=false,
+    add_toplevel_document=false,
+  )
+  let marks = @pdfmarks.PdfMarks::new(merged).read_bookmarks(
+    preserve_actions=true,
+  )
+  assert_true(marks.length() >= 2)
+}
+
+///|
 test "merge_pdfs uses highest version and removes duplicates" {
   let pdf1 = with_version(@pdfpage.PdfPageDoc::minimum_valid(), 1, 4)
   let pdf2 = with_version(@pdfpage.PdfPageDoc::minimum_valid(), 1, 6)

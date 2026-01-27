@@ -188,6 +188,38 @@ test "print_document_ocg handles missing ocg" {
 }
 
 ///|
+test "print_document_ocg prints ocgs and configs" {
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
+  let ocg_obj : @pdf.PdfObject = Dictionary([
+    ("/Name", String("Layer Print")),
+    ("/Intent", Name(@pdf.PdfName::of_string("/View"))),
+  ])
+  let ocg_ref = pdf.addobj(ocg_obj)
+  let default_config : @pdf.PdfObject = Dictionary([
+    ("/Name", String("Default")),
+    ("/Locked", Array([Indirect(ocg_ref)])),
+    ("/Intent", Array([Name(@pdf.PdfName::of_string("/View"))])),
+  ])
+  let alt_config : @pdf.PdfObject = Dictionary([
+    ("/BaseState", Name(@pdf.PdfName::of_string("/ON"))),
+  ])
+  let ocprops : @pdf.PdfObject = Dictionary([
+    ("/OCGs", Array([Indirect(ocg_ref)])),
+    ("/D", default_config),
+    ("/Configs", Array([alt_config])),
+  ])
+  let root = pdf.lookup_obj(pdf.root)
+  let updated_root = root.add_entry("/OCProperties", ocprops)
+  pdf.addobj_given_num((pdf.root, updated_root))
+  let ctx = PdfOcg::new(pdf)
+  ctx.print_document()
+  match ctx.read() {
+    None => fail("expected ocproperties")
+    Some(props) => ctx.write(props)
+  }
+}
+
+///|
 test "read_ocg handles direct ocgs and usage defaults" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let ocg_obj : @pdf.PdfObject = Dictionary([

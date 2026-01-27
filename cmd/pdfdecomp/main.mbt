@@ -1,6 +1,10 @@
 ///|
 async fn main {
-  let args = @env.args()
+  run(@env.args())
+}
+
+///|
+pub async fn run(args : Array[String]) -> Unit {
   if args.length() != 3 {
     println("Syntax: pdfdecomp <input> <output>")
     return

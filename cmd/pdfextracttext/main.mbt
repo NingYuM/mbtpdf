@@ -1,6 +1,10 @@
 ///|
 async fn main {
-  let args = @env.args()
+  run(@env.args())
+}
+
+///|
+pub async fn run(args : Array[String]) -> Unit {
   if args.length() < 2 || args.length() > 3 {
     println("Syntax: pdftext <input> [output]")
     return
@@ -14,7 +18,7 @@ async fn main {
     }
     let text = @pdftext.PdfText::new(pdf).extract_text()
     match out_file {
-      Some(path) => @fs.write_file(path, text)
+      Some(path) => @fs.write_file(path, text, create=0o644, truncate=true)
       None => println(text)
     }
   } catch {

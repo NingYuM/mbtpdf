@@ -323,3 +323,24 @@ pub fn PdfObject::to_string_including_data(self : PdfObject) -> String {
   write_pdf_object(self, true, true, sb)
   sb.to_string()
 }
+
+///|
+test "serialize helpers handle trimming and slicing" {
+  assert_eq(trim_trailing_zeros("123"), "123")
+  assert_eq(trim_trailing_zeros("1.23000"), "1.23")
+  assert_eq(trim_trailing_zeros("0.000"), "0")
+  assert_eq(slice_from("x", 2), "")
+  assert_eq(slice_range("x", 0, 5), "")
+  assert_eq(parse_signed_int(""), 0)
+  assert_eq(parse_signed_int("+12x"), 12)
+  assert_eq(parse_signed_int("-3"), -3)
+}
+
+///|
+test "expand_scientific formats exponent strings" {
+  assert_eq(expand_scientific("-1.2300"), "-1.23")
+  assert_eq(expand_scientific("e1"), "0")
+  assert_eq(expand_scientific("1e-3"), "0.001")
+  assert_eq(expand_scientific("1e3"), "1000")
+  assert_eq(expand_scientific("12.34e1"), "123.4")
+}

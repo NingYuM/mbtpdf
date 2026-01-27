@@ -41,13 +41,16 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
   let annot_base : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name(@pdf.PdfName::of_string("/Text"))),
   ])
+  let unrelated_num = pdf.addobj(annot_base)
   let annot_num = pdf.addobj(annot_base)
-  let annot_with_popup = annot_base.add_entry("/Popup", Indirect(annot_num))
+  let annot_with_popup = annot_base
+    .add_entry("/Popup", Indirect(annot_num))
+    .add_entry("/Parent", Indirect(unrelated_num))
   pdf.addobj_given_num((annot_num, annot_with_popup))
   let refs = pdf.page_reference_numbers()
   for refnum in refs {
     let page_obj = pdf.lookup_obj(refnum)
-    let annots : @pdf.PdfObject = Array([Indirect(annot_num)])
+    let annots : @pdf.PdfObject = Array([Indirect(annot_num), Integer(0)])
     let updated = page_obj.add_entry("/Annots", annots)
     pdf.addobj_given_num((refnum, updated))
   }
@@ -127,4 +130,109 @@ test "fixup_parents skips direct kids" {
   let pages_num = pdf0.addobj(pages)
   let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(pages_num, [])
   @pdfpage.PdfPageDoc::new(pdf).fixup_parents()
+}
+
+///|
+test "fixup_duplicate_pages errors on malformed root entries" {
+  let base = @pdf.Pdf::empty()
+  // Root is not a dictionary.
+  base.addobj_given_num((1, @pdf.PdfObject::Integer(0)))
+  let pdf_bad_root : @pdf.Pdf = {
+    major: base.major,
+    minor: base.minor,
+    root: 1,
+    objects: base.objects,
+    trailerdict: base.trailerdict,
+    was_linearized: base.was_linearized,
+    saved_encryption: base.saved_encryption,
+  }
+  let bad_root_res : Result[Unit, Error] = try? @pdfpage.PdfPageDoc::new(
+    pdf_bad_root,
+  ).fixup_duplicate_pages()
+  assert_true(bad_root_res is Err(_))
+
+  // Root dictionary missing /Pages.
+  let base2 = @pdf.Pdf::empty()
+  let root_num = base2.addobj(@pdf.PdfObject::Dictionary([]))
+  let pdf_missing_pages : @pdf.Pdf = {
+    major: base2.major,
+    minor: base2.minor,
+    root: root_num,
+    objects: base2.objects,
+    trailerdict: base2.trailerdict,
+    was_linearized: base2.was_linearized,
+    saved_encryption: base2.saved_encryption,
+  }
+  let missing_pages_res : Result[Unit, Error] = try? @pdfpage.PdfPageDoc::new(
+    pdf_missing_pages,
+  ).fixup_duplicate_pages()
+  assert_true(missing_pages_res is Err(_))
+
+  // Root dictionary has /Pages but not an indirect reference.
+  let base3 = @pdf.Pdf::empty()
+  let root_num3 = base3.addobj(
+    @pdf.PdfObject::Dictionary([("/Pages", @pdf.PdfObject::Integer(1))]),
+  )
+  let pdf_pages_not_indirect : @pdf.Pdf = {
+    major: base3.major,
+    minor: base3.minor,
+    root: root_num3,
+    objects: base3.objects,
+    trailerdict: base3.trailerdict,
+    was_linearized: base3.was_linearized,
+    saved_encryption: base3.saved_encryption,
+  }
+  let pages_not_indirect_res : Result[Unit, Error] = try? @pdfpage.PdfPageDoc::new(
+    pdf_pages_not_indirect,
+  ).fixup_duplicate_pages()
+  assert_true(pages_not_indirect_res is Err(_))
+}
+
+///|
+test "fixup_duplicate_pages scans malformed page trees" {
+  let base = @pdf.Pdf::empty()
+  // Pages node with a non-indirect kid.
+  let pages_num = base.addobj(
+    @pdf.PdfObject::Dictionary([
+      ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+      ("/Kids", Array([@pdf.PdfObject::Integer(1)])),
+      ("/Count", Integer(1)),
+    ]),
+  )
+  let root_num = base.addobj(
+    @pdf.PdfObject::Dictionary([("/Pages", Indirect(pages_num))]),
+  )
+  let pdf : @pdf.Pdf = {
+    major: base.major,
+    minor: base.minor,
+    root: root_num,
+    objects: base.objects,
+    trailerdict: base.trailerdict,
+    was_linearized: base.was_linearized,
+    saved_encryption: base.saved_encryption,
+  }
+  @pdfpage.PdfPageDoc::new(pdf).fixup_duplicate_pages()
+
+  // Pages node with /Kids not an array (forces unordered traversal fallback).
+  let base2 = @pdf.Pdf::empty()
+  let pages_num2 = base2.addobj(
+    @pdf.PdfObject::Dictionary([
+      ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+      ("/Kids", Integer(1)),
+      ("/Count", Integer(1)),
+    ]),
+  )
+  let root_num2 = base2.addobj(
+    @pdf.PdfObject::Dictionary([("/Pages", Indirect(pages_num2))]),
+  )
+  let pdf2 : @pdf.Pdf = {
+    major: base2.major,
+    minor: base2.minor,
+    root: root_num2,
+    objects: base2.objects,
+    trailerdict: base2.trailerdict,
+    was_linearized: base2.was_linearized,
+    saved_encryption: base2.saved_encryption,
+  }
+  @pdfpage.PdfPageDoc::new(pdf2).fixup_duplicate_pages()
 }

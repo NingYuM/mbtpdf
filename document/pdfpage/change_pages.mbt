@@ -300,7 +300,6 @@ pub fn PdfPageDoc::change_pages(
   let pdf = @pdf.Pdf::empty()
   basepdf.objiter((k, v) => pdf.addobj_given_num((k, v)))
   copy_object_stream_ids(pdf, basepdf)
-  let old_page_numbers = basepdf.page_reference_numbers()
   let (pdf, pagetree_num) = PdfPageDoc::new(pdf).add_pagetree(pages)
   let pdf : @pdf.Pdf = {
     major: basepdf.major,
@@ -316,10 +315,11 @@ pub fn PdfPageDoc::change_pages(
     _ => []
   }
   let pdf = PdfPageDoc::new(pdf).add_root(pagetree_num, existing_root_entries)
-  let new_page_numbers = pdf.page_reference_numbers()
   if !change_references {
     pdf
   } else {
+    let old_page_numbers = basepdf.page_reference_numbers()
+    let new_page_numbers = pdf.page_reference_numbers()
     let changes = match changes {
       None =>
         if old_page_numbers.length() == new_page_numbers.length() {

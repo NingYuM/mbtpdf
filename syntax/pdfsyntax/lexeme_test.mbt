@@ -30,6 +30,13 @@ test "string_of_lexeme escapes string data" {
 }
 
 ///|
+test "string_of_lexeme escapes more control characters" {
+  let token : Token = LexString("\r\t\b\f")
+  let syntax = @pdfsyntax.PdfSyntax::new()
+  assert_eq(syntax.string_of_lexeme(token), "(\\r\\t\\b\\f)")
+}
+
+///|
 test "string_of_lexeme prints comments and streams" {
   let syntax = @pdfsyntax.PdfSyntax::new()
   assert_eq(syntax.string_of_lexeme(LexComment("note")), "\n%note\n")
@@ -54,4 +61,30 @@ test "string_of_lexeme formats scientific real" {
   let syntax = @pdfsyntax.PdfSyntax::new()
   let formatted = syntax.string_of_lexeme(LexReal(value))
   assert_true(!formatted.contains("e") && !formatted.contains("E"))
+}
+
+///|
+test "string_of_lexeme expands small scientific real to leading zeros" {
+  let candidates : Array[Double] = [
+    1.0e-5, 1.0e-40, 1.0e-100, 1.0e-200, 1.0e-300,
+  ]
+  let mut picked : Double? = None
+  for candidate in candidates {
+    let raw = candidate.to_string()
+    if raw.contains("e-") || raw.contains("E-") {
+      picked = Some(candidate)
+      break
+    }
+  }
+  let value = match picked {
+    Some(v) => v
+    None => fail("expected scientific negative exponent in Double::to_string")
+  }
+  let syntax = @pdfsyntax.PdfSyntax::new()
+  let formatted = syntax.string_of_lexeme(LexReal(value))
+  assert_true(
+    formatted.has_prefix("0.") &&
+    !formatted.contains("e") &&
+    !formatted.contains("E"),
+  )
 }

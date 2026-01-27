@@ -212,3 +212,111 @@ test "decompose handles zero scale" {
   assert_close(tx, 0.0)
   assert_close(ty, 0.0)
 }
+
+///|
+test "identity and empty compose" {
+  let id = @pdftransform.Transform::identity()
+  assert_eq(
+    id.to_matrix().to_string(),
+    @pdftransform.TransformMatrix::identity().to_string(),
+  )
+  let composed = id.compose(@pdftransform.TransformOp::Translate(1.0, 2.0))
+  match composed {
+    { ops: [@pdftransform.TransformOp::Translate(dx, dy)] } => {
+      assert_close(dx, 1.0)
+      assert_close(dy, 2.0)
+    }
+    _ => fail("expected single translate op")
+  }
+}
+
+///|
+test "compose merges rotate and shear when compatible" {
+  let tr = @pdftransform.Transform::new([
+    @pdftransform.TransformOp::Rotate((0.0, 0.0), 1.0),
+  ])
+  let merged = tr.compose(@pdftransform.TransformOp::Rotate((0.0, 0.0), 2.0))
+  match merged {
+    { ops: [@pdftransform.TransformOp::Rotate((_, _), angle)] } =>
+      assert_close(angle, 3.0)
+    _ => fail("expected merged rotate")
+  }
+  let shearx = @pdftransform.Transform::new([
+    @pdftransform.TransformOp::ShearX((1.0, 2.0), 1.0),
+  ])
+  let shearx2 = shearx.compose(
+    @pdftransform.TransformOp::ShearX((1.0, 2.0), 3.0),
+  )
+  match shearx2 {
+    { ops: [@pdftransform.TransformOp::ShearX((x, y), factor)] } => {
+      assert_close(x, 1.0)
+      assert_close(y, 2.0)
+      assert_close(factor, 4.0)
+    }
+    _ => fail("expected merged shear-x")
+  }
+  let sheary = @pdftransform.Transform::new([
+    @pdftransform.TransformOp::ShearY((1.0, 2.0), 1.0),
+  ])
+  let sheary2 = sheary.compose(
+    @pdftransform.TransformOp::ShearY((1.0, 2.0), 3.0),
+  )
+  match sheary2 {
+    { ops: [@pdftransform.TransformOp::ShearY((x, y), factor)] } => {
+      assert_close(x, 1.0)
+      assert_close(y, 2.0)
+      assert_close(factor, 4.0)
+    }
+    _ => fail("expected merged shear-y")
+  }
+}
+
+///|
+test "compose preserves ops for incompatible kinds" {
+  let tr = @pdftransform.Transform::new([
+    @pdftransform.TransformOp::Translate(1.0, 2.0),
+  ])
+  let composed = tr.compose(@pdftransform.TransformOp::Rotate((0.0, 0.0), 1.0))
+  match composed {
+    {
+      ops: [
+        @pdftransform.TransformOp::Rotate(_, _),
+        @pdftransform.TransformOp::Translate(_, _),
+      ],
+    } => ()
+    _ => fail("expected rotate to be prepended")
+  }
+}
+
+///|
+test "to_matrix and to_string include rotate and shear" {
+  let rotate = @pdftransform.TransformOp::Rotate((0.0, 0.0), 1.0)
+  let _ = rotate.to_matrix()
+  let shear_x = @pdftransform.TransformOp::ShearX((0.0, 0.0), 1.0)
+  let _ = shear_x.to_matrix()
+  let shear_y = @pdftransform.TransformOp::ShearY((0.0, 0.0), 1.0)
+  let _ = shear_y.to_matrix()
+  let tr = @pdftransform.Transform::new([rotate, shear_x, shear_y])
+  let s = tr.to_string()
+  assert_true(s.contains("Rotate by"))
+  assert_true(s.contains("Shear in X"))
+  assert_true(s.contains("Shear in Y"))
+}
+
+///|
+test "matrix_invert fails when determinant is NaN" {
+  let nan = 0.0 / 0.0
+  let m : @pdftransform.TransformMatrix = {
+    a: nan,
+    b: 0.0,
+    c: 0.0,
+    d: 1.0,
+    e: 0.0,
+    f: 0.0,
+  }
+  let res : Result[@pdftransform.TransformMatrix, Error] = try? m.invert()
+  match res {
+    Err(_) => ()
+    _ => fail("expected NonInvertable")
+  }
+}

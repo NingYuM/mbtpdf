@@ -277,6 +277,48 @@ test "get_image_24bpp default decode for Lab" {
 }
 
 ///|
+test "from_raw errors on indexed palettes missing entries" {
+  let data8 = @pdfio.bytes_of_list([0])
+  let table_empty : Map[Int, Array[Int]] = Map::new()
+  let rgb_indexed : @pdfspace.ColourSpace = Indexed(DeviceRGB, table_empty)
+  let res8 : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::from_raw(
+    1,
+    rgb_indexed,
+    Some(Integer(8)),
+    1,
+    1,
+    data8,
+  )
+  assert_true(res8 is Err(_))
+  let data4 = @pdfio.bytes_of_list([0x01])
+  let res4 : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::from_raw(
+    1,
+    rgb_indexed,
+    Some(Integer(4)),
+    2,
+    1,
+    data4,
+  )
+  assert_true(res4 is Err(_))
+}
+
+///|
+test "from_raw errors on CMYK indexed palettes missing entries" {
+  let data4 = @pdfio.bytes_of_list([0x01])
+  let table_empty : Map[Int, Array[Int]] = Map::new()
+  let cmyk_indexed : @pdfspace.ColourSpace = Indexed(DeviceCMYK, table_empty)
+  let res : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::from_raw(
+    1,
+    cmyk_indexed,
+    Some(Integer(4)),
+    2,
+    1,
+    data4,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
 test "get_image_24bpp default decode for ICCBased" {
   let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
@@ -537,6 +579,104 @@ test "get_image_24bpp handles indexed Lab" {
     Raw(_, _, _, bytes) => assert_eq(bytes.length(), 3)
     _ => fail("expected indexed Lab image")
   }
+}
+
+///|
+test "get_image_24bpp clamps indexed Lab conversions" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([])
+  let lab : @pdf.PdfObject = Array([
+    Name(@pdf.PdfName::of_string("/Lab")),
+    Dictionary([
+      // Large values trigger clamp branches during conversion.
+      ("/WhitePoint", Array([Real(5000.0), Real(-5000.0), Real(5000.0)])),
+      ("/BlackPoint", Array([Real(0.0), Real(0.0), Real(0.0)])),
+    ]),
+  ])
+  let table = @pdfio.string_of_bytes(@pdfio.bytes_of_list([0, 0, 0]))
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Width", Integer(1)),
+    ("/Height", Integer(1)),
+    ("/BitsPerComponent", Integer(8)),
+    (
+      "/ColorSpace",
+      Array([
+        Name(@pdf.PdfName::of_string("/Indexed")),
+        lab,
+        Integer(0),
+        String(table),
+      ]),
+    ),
+  ])
+  let data = @pdfio.bytes_of_list([0])
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+    Raw(_, _, _, bytes) => assert_eq(bytes.length(), 3)
+    _ => fail("expected indexed Lab image")
+  }
+}
+
+///|
+test "from_raw supports ICCBased RGB alternates in indexed palettes" {
+  let data = @pdfio.bytes_of_list([0])
+  let table : Map[Int, Array[Int]] = Map::new()
+  table.set(0, [255, 0, 0])
+  let icc : @pdfspace.ICCBased = {
+    icc_n: 3,
+    icc_alternate: @pdfspace.ColourSpace::DeviceRGB,
+    icc_range: [0.0, 1.0, 0.0, 1.0, 0.0, 1.0],
+    icc_metadata: None,
+    icc_stream: @pdf.PdfObject::Null,
+  }
+  let space : @pdfspace.ColourSpace = Indexed(ICCBased(icc), table)
+  match @pdfimage.Image::from_raw(1, space, Some(Integer(8)), 1, 1, data) {
+    Raw(_, _, _, bytes) => assert_eq(bytes[0].to_int(), 255)
+    _ => fail("expected Raw indexed image")
+  }
+}
+
+///|
+test "from_raw supports DeviceN CMYK bases in indexed palettes" {
+  let data = @pdfio.bytes_of_list([0])
+  let table : Map[Int, Array[Int]] = Map::new()
+  table.set(0, [0, 0, 0, 255])
+  let devn : @pdfspace.ColourSpace = DeviceN(
+    ["C"],
+    DeviceCMYK,
+    sample_cmyk_function(),
+    Null,
+  )
+  let space : @pdfspace.ColourSpace = Indexed(devn, table)
+  match @pdfimage.Image::from_raw(1, space, Some(Integer(8)), 1, 1, data) {
+    Raw(_, _, _, bytes) => assert_eq(bytes.length(), 3)
+    _ => fail("expected Raw indexed image")
+  }
+}
+
+///|
+test "from_raw rejects non-integer bpc and unknown indexed bases" {
+  let data = @pdfio.bytes_of_list([0])
+  let bad_bpc : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::from_raw(
+    1,
+    @pdfspace.ColourSpace::DeviceRGB,
+    Some(Name(@pdf.PdfName::of_string("/BPC"))),
+    1,
+    1,
+    data,
+  )
+  assert_true(bad_bpc is Err(_))
+  let table : Map[Int, Array[Int]] = Map::new()
+  table.set(0, [0])
+  let bad_indexed : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::from_raw(
+    1,
+    @pdfspace.ColourSpace::Indexed(DeviceGray, table),
+    Some(Integer(8)),
+    1,
+    1,
+    data,
+  )
+  assert_true(bad_indexed is Err(_))
 }
 
 ///|

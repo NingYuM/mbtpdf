@@ -45,6 +45,25 @@ test "objects_referenced no_follow_contains name match" {
 }
 
 ///|
+test "objects_referenced no_follow_contains scans non-name entries" {
+  let pdf = Pdf::empty()
+  let dict = PdfObject::Dictionary([
+    // Duplicate key: first non-Name should be skipped by predicate.
+    ("/Type", PdfObject::Integer(1)),
+    ("/Type", PdfObject::Name(PdfName::of_string("/Page"))),
+    ("/Kid", PdfObject::Indirect(2)),
+  ])
+  pdf.addobj_given_num((1, dict))
+  pdf.addobj_given_num((2, PdfObject::Integer(9)))
+  let referenced = pdf.objects_referenced(
+    [],
+    [("/Type", PdfObject::Name(PdfName::of_string("/Page")))],
+    PdfObject::Indirect(1),
+  )
+  assert_eq(referenced.length(), 0)
+}
+
+///|
 test "objects_referenced indirect and stream targets" {
   let pdf = Pdf::empty()
   pdf.addobj_given_num((5, PdfObject::Integer(99)))

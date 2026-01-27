@@ -42,3 +42,35 @@ test "paper constants match expected sizes" {
   assert_eq(@pdfpaper.uslegal.width(), 8.5)
   assert_eq(@pdfpaper.uslegal.height(), 14.0)
 }
+
+///|
+test "rectangle converts to points" {
+  let paper : @pdfpaper.Paper = Paper::new(unit=Inch, width=1.0, height=2.0)
+  match paper.rectangle() {
+    @pdf.PdfObject::Array(
+      [
+        @pdf.PdfObject::Real(x0),
+        @pdf.PdfObject::Real(y0),
+        @pdf.PdfObject::Real(x1),
+        @pdf.PdfObject::Real(y1),
+      ]
+    ) => {
+      assert_eq(x0, 0.0)
+      assert_eq(y0, 0.0)
+      assert_eq(x1, 72.0)
+      assert_eq(y1, 144.0)
+    }
+    other => fail("unexpected rectangle: \{other.to_string()}")
+  }
+}
+
+///|
+test "a-series constants are portrait" {
+  let papers : Array[@pdfpaper.Paper] = [
+    @pdfpaper.a0, @pdfpaper.a1, @pdfpaper.a2, @pdfpaper.a3, @pdfpaper.a4, @pdfpaper.a5,
+    @pdfpaper.a6, @pdfpaper.a7, @pdfpaper.a8, @pdfpaper.a9, @pdfpaper.a10,
+  ]
+  for paper in papers {
+    assert_true(paper.height() > paper.width())
+  }
+}

@@ -633,3 +633,241 @@ test "transform_annotations leaves non-array quadpoints" {
     _ => fail("expected non-array quadpoints")
   }
 }
+
+///|
+test "read_annotation covers remaining subtypes" {
+  let pdf = @pdf.Pdf::empty()
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(10.0),
+    Real(10.0),
+  ])
+  let subtype_names : Array[String] = [
+    "/Square", "/Circle", "/Polygon", "/PolyLine", "/StrikeOut", "/Caret", "/Ink",
+    "/FileAttachment", "/Sound", "/Movie", "/Widget", "/Screen", "/PrinterMark",
+    "/TrapNet", "/Watermark", "/3D",
+  ]
+  let nums = subtype_names.map(fn(name) {
+    pdf.addobj(
+      Dictionary([
+        ("/Subtype", Name(@pdf.PdfName::of_string(name))),
+        ("/Rect", rect),
+      ]),
+    )
+  })
+  let rest : @pdf.PdfObject = Dictionary([
+    ("/Annots", Array(nums.map(fn(n) { Indirect(n) }))),
+  ])
+  let base = @pdfpage.Page::custom(rect)
+  let page : @pdfpage.Page = {
+    content: base.content,
+    mediabox: base.mediabox,
+    resources: base.resources,
+    rotate: base.rotate,
+    rest,
+  }
+  let parsed = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
+  assert_eq(parsed.length(), subtype_names.length())
+  match (parsed[0].subtype : @pdfannot.Subtype) {
+    Square => ()
+    _ => fail("expected Square")
+  }
+  match (parsed[1].subtype : @pdfannot.Subtype) {
+    Circle => ()
+    _ => fail("expected Circle")
+  }
+  match (parsed[2].subtype : @pdfannot.Subtype) {
+    Polygon => ()
+    _ => fail("expected Polygon")
+  }
+  match (parsed[3].subtype : @pdfannot.Subtype) {
+    PolyLine => ()
+    _ => fail("expected PolyLine")
+  }
+  match (parsed[4].subtype : @pdfannot.Subtype) {
+    StrikeOut => ()
+    _ => fail("expected StrikeOut")
+  }
+  match (parsed[5].subtype : @pdfannot.Subtype) {
+    Caret => ()
+    _ => fail("expected Caret")
+  }
+  match (parsed[6].subtype : @pdfannot.Subtype) {
+    Ink => ()
+    _ => fail("expected Ink")
+  }
+  match (parsed[7].subtype : @pdfannot.Subtype) {
+    FileAttachment => ()
+    _ => fail("expected FileAttachment")
+  }
+  match (parsed[8].subtype : @pdfannot.Subtype) {
+    Sound => ()
+    _ => fail("expected Sound")
+  }
+  match (parsed[9].subtype : @pdfannot.Subtype) {
+    Movie => ()
+    _ => fail("expected Movie")
+  }
+  match (parsed[10].subtype : @pdfannot.Subtype) {
+    Widget => ()
+    _ => fail("expected Widget")
+  }
+  match (parsed[11].subtype : @pdfannot.Subtype) {
+    Screen => ()
+    _ => fail("expected Screen")
+  }
+  match (parsed[12].subtype : @pdfannot.Subtype) {
+    PrinterMark => ()
+    _ => fail("expected PrinterMark")
+  }
+  match (parsed[13].subtype : @pdfannot.Subtype) {
+    TrapNet => ()
+    _ => fail("expected TrapNet")
+  }
+  match (parsed[14].subtype : @pdfannot.Subtype) {
+    Watermark => ()
+    _ => fail("expected Watermark")
+  }
+  match (parsed[15].subtype : @pdfannot.Subtype) {
+    ThreeDee => ()
+    _ => fail("expected ThreeDee")
+  }
+}
+
+///|
+test "read_annotation handles inset style and non-name /S" {
+  let pdf = @pdf.Pdf::empty()
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(10.0),
+    Real(10.0),
+  ])
+  let annots : Array[@pdf.PdfObject] = [
+    Dictionary([
+      ("/Subtype", Name(@pdf.PdfName::of_string("/Text"))),
+      ("/Rect", rect),
+      ("/BS", Dictionary([("/S", Name(@pdf.PdfName::of_string("/I")))])),
+    ]),
+    Dictionary([
+      ("/Subtype", Name(@pdf.PdfName::of_string("/Text"))),
+      ("/Rect", rect),
+      ("/BS", Dictionary([("/S", Integer(1))])),
+    ]),
+  ]
+  let nums = annots.map(fn(annot) { pdf.addobj(annot) })
+  let rest : @pdf.PdfObject = Dictionary([
+    ("/Annots", Array(nums.map(fn(n) { Indirect(n) }))),
+  ])
+  let base = @pdfpage.Page::custom(rect)
+  let page : @pdfpage.Page = {
+    content: base.content,
+    mediabox: base.mediabox,
+    resources: base.resources,
+    rotate: base.rotate,
+    rest,
+  }
+  let parsed = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
+  match (parsed[0].border.style : @pdfannot.Style) {
+    Inset => ()
+    _ => fail("expected inset style")
+  }
+  match (parsed[1].border.style : @pdfannot.Style) {
+    NoStyle => ()
+    _ => fail("expected default style")
+  }
+}
+
+///|
+test "read_annotation errors on popup stream and add_annotation requires dictionary rest" {
+  let pdf = @pdf.Pdf::empty()
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(10.0),
+    Real(10.0),
+  ])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Popup"))),
+    ("/Rect", rect),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(['x'.to_int().to_byte()])))
+  let stream_obj = @pdf.PdfObject::Stream(stream_ref)
+  let objnum = pdf.addobj(stream_obj)
+  let rest : @pdf.PdfObject = Dictionary([
+    ("/Annots", Array([Indirect(objnum)])),
+  ])
+  let base = @pdfpage.Page::custom(rect)
+  let page : @pdfpage.Page = {
+    content: base.content,
+    mediabox: base.mediabox,
+    resources: base.resources,
+    rotate: base.rotate,
+    rest,
+  }
+  assert_is_err(try? @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page))
+  let bad_page : @pdfpage.Page = {
+    content: base.content,
+    mediabox: base.mediabox,
+    resources: base.resources,
+    rotate: base.rotate,
+    rest: Integer(1),
+  }
+  let annot = @pdfannot.Annotation::new(@pdfannot.Subtype::Text)
+  assert_is_err(
+    try? @pdfannot.PdfAnnot::new(pdf).add_annotation(bad_page, annot),
+  )
+}
+
+///|
+test "add_annotation covers remaining subtype variants" {
+  let pdf = @pdf.Pdf::empty()
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(10.0),
+    Real(10.0),
+  ])
+  let page = @pdfpage.Page::custom(rect)
+  let variants : Array[(@pdfannot.Subtype, String)] = [
+    (@pdfannot.Subtype::Square, "/Square"),
+    (@pdfannot.Subtype::Circle, "/Circle"),
+    (@pdfannot.Subtype::Polygon, "/Polygon"),
+    (@pdfannot.Subtype::PolyLine, "/PolyLine"),
+    (@pdfannot.Subtype::StrikeOut, "/StrikeOut"),
+    (@pdfannot.Subtype::Caret, "/Caret"),
+    (@pdfannot.Subtype::Ink, "/Ink"),
+    (@pdfannot.Subtype::FileAttachment, "/FileAttachment"),
+    (@pdfannot.Subtype::Sound, "/Sound"),
+    (@pdfannot.Subtype::Movie, "/Movie"),
+    (@pdfannot.Subtype::Widget, "/Widget"),
+    (@pdfannot.Subtype::Screen, "/Screen"),
+    (@pdfannot.Subtype::PrinterMark, "/PrinterMark"),
+    (@pdfannot.Subtype::TrapNet, "/TrapNet"),
+    (@pdfannot.Subtype::Watermark, "/Watermark"),
+    (@pdfannot.Subtype::ThreeDee, "/3D"),
+    (
+      @pdfannot.Subtype::Popup(
+        @pdfannot.Annotation::new(@pdfannot.Subtype::Text),
+      ),
+      "/Popup",
+    ),
+    (@pdfannot.Subtype::Unknown("x"), "/Unknown"),
+  ]
+  for pair in variants {
+    let (subtype, expected) = pair
+    let updated = @pdfannot.PdfAnnot::new(pdf).add_annotation(
+      page,
+      @pdfannot.Annotation::new(subtype),
+    )
+    match (pdf.lookup_direct("/Annots", updated.rest) : @pdf.PdfObject?) {
+      Some(Array([first, ..])) =>
+        match (pdf.lookup_direct("/Subtype", first) : @pdf.PdfObject?) {
+          Some(Name(name)) => assert_eq(name.to_string_bytes(), expected)
+          _ => fail("expected /Subtype")
+        }
+      _ => fail("expected /Annots")
+    }
+  }
+}

@@ -296,7 +296,12 @@ pub fn Input::nudge(self : Input) -> Unit {
 ///|
 /// Move backward one byte.
 pub fn Input::rewind(self : Input) -> Unit {
-  (self.seek_in)((self.pos_in)() - 1)
+  let pos = (self.pos_in)()
+  if pos <= 0 {
+    (self.seek_in)(0)
+  } else {
+    (self.seek_in)(pos - 1)
+  }
 }
 
 ///|
@@ -319,6 +324,9 @@ pub fn Input::peek_byte(self : Input) -> Int {
 /// Read the previous character, moving the pointer back one.
 pub fn Input::read_char_back(self : Input) -> Char? {
   let pos = (self.pos_in)()
+  if pos <= 0 {
+    return None
+  }
   (self.seek_in)(pos - 1)
   let chr = (self.input_char)()
   (self.seek_in)(pos - 1)
