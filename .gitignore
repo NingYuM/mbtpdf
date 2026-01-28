@@ -5,3 +5,5 @@ target
 .mooncakes/
 .moonagent/
 camlpdf
+__pycache__/
+*.pyc

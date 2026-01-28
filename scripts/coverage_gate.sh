@@ -51,5 +51,12 @@ if [[ "$do_clean" -eq 1 ]]; then
   moon coverage clean
 fi
 
-moon coverage analyze -q -- -f summary > /dev/null
-python3 scripts/coverage_gate.py "$threshold"
+tmp_out="$(mktemp)"
+trap 'rm -f "$tmp_out"' EXIT
+
+if ! moon coverage analyze -q -- -f summary >"$tmp_out" 2>&1; then
+  cat "$tmp_out" >&2
+  exit 1
+fi
+
+PYTHONDONTWRITEBYTECODE=1 python3 scripts/coverage_gate.py "$threshold"
