@@ -25,6 +25,8 @@ When `true`, `PdfUtil::flprint` / `PdfUtil::fleprint` are suppressed (useful for
 pub let quiet : Ref[Bool]
 ```
 
+For repo-wide conventions on keeping test output quiet, see `docs/logging-hygiene.md`.
+
 ## Methods
 
 ### PdfUtil::flprint

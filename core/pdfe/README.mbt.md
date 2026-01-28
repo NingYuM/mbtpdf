@@ -11,6 +11,8 @@ In addition, it provides:
 - A `quiet` flag to suppress `@pdfe.log` output.
 - Scoped helpers (`with_silenced_logs`, `with_logger`) that restore state even if the action fails.
 
+For repo-wide conventions on keeping test output quiet, see `docs/logging-hygiene.md`.
+
 ## Types
 
 ### Logger
