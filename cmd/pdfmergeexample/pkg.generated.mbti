@@ -2,7 +2,7 @@
 package "bobzhang/mbtpdf/cmd/pdfmergeexample"
 
 // Values
-pub async fn run(Array[String]) -> Unit
+pub async fn run(Array[String], quiet? : Bool) -> Unit
 
 // Errors
 

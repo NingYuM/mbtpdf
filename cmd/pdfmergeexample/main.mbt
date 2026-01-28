@@ -37,10 +37,12 @@ async fn main {
 }
 
 ///|
-pub async fn run(args : Array[String]) -> Unit {
+pub async fn run(args : Array[String], quiet? : Bool = false) -> Unit {
   let argc = args.length()
   if argc < 3 {
-    println("Syntax: pdfmerge <inputs> <output>")
+    if !quiet {
+      println("Syntax: pdfmerge <inputs> <output>")
+    }
     return
   }
   let out_name = args[argc - 1]
@@ -59,9 +61,10 @@ pub async fn run(args : Array[String]) -> Unit {
     let merged = merge_pdfs(pdfs)
     @pdfwritefs.PdfWriteFs::new().pdf_to_file(merged, out_name)
   } catch {
-    err => {
-      println("Failed to merge files.")
-      println(err)
-    }
+    err =>
+      if !quiet {
+        println("Failed to merge files.")
+        println(err)
+      }
   }
 }
