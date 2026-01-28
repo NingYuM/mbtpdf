@@ -71,7 +71,7 @@ test "decode_from_bytes finishes when clear code is followed by EOD" {
 ///|
 test "encode/decode LZW roundtrips medium input" {
   let ctx = @pdfcodec.PdfCodec::new()
-  // NOTE: Keep the payload modest; larger payloads may exercise code-length
+  // TODO: Keep the payload modest; larger payloads may exercise code-length
   // transitions and have historically been a fragile area.
   let original = @pdfio.mkbytes(250)
   for i in 0..<250 {
