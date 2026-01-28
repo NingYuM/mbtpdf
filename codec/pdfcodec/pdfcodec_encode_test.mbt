@@ -81,6 +81,134 @@ test "encode/decode ASCII85 stream" {
 }
 
 ///|
+test "encode/decode ASCII85 roundtrips short chunks (1..3 bytes)" {
+  let ctx = @pdfcodec.PdfCodec::new()
+  let pdf = @pdf.Pdf::empty()
+  fn roundtrip(original : @pdfio.MutableBytes) -> Unit raise {
+    let dict : @pdf.PdfObject = Dictionary([
+      ("/Length", Integer(@pdfio.bytes_size(original))),
+    ])
+    let stream_ref = Ref::new((dict, @pdf.Stream::Got(original)))
+    let stream_obj : @pdf.PdfObject = Stream(stream_ref)
+    ctx.encode_pdfstream(
+      pdf,
+      Encoding::ASCII85,
+      stream_obj,
+      only_if_smaller=false,
+    )
+    ctx.decode_pdfstream_onestage(pdf, stream_obj)
+    match (stream_ref.val.1 : @pdf.Stream) {
+      Got(decoded) => {
+        assert_eq(@pdfio.bytes_size(decoded), @pdfio.bytes_size(original))
+        for i in 0..<@pdfio.bytes_size(original) {
+          assert_eq(
+            @pdfio.bget_unsafe(decoded, i),
+            @pdfio.bget_unsafe(original, i),
+          )
+        }
+      }
+      _ => fail("expected decoded stream bytes")
+    }
+  }
+
+  roundtrip(@pdfio.bytes_of_list([1]))
+  roundtrip(@pdfio.bytes_of_list([1, 2]))
+  roundtrip(@pdfio.bytes_of_list([1, 2, 3]))
+}
+
+///|
+test "decode_from_bytes ASCIIHex handles odd nibble" {
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Filter", Name(@pdf.PdfName::of_string("/ASCIIHexDecode"))),
+  ])
+  let out = @pdfcodec.PdfCodec::new().decode_from_bytes(
+    @pdfio.bytes_of_string("F>"),
+    dict,
+  )
+  match out {
+    Some(decoded) => {
+      assert_eq(decoded.length(), 1)
+      assert_eq(decoded[0], (240).to_byte())
+    }
+    None => fail("expected ASCIIHex decode to succeed")
+  }
+}
+
+///|
+test "encode ASCII85 uses z for zero tuple" {
+  let pdf = @pdf.Pdf::empty()
+  let zeros = @pdfio.bytes_of_list([0, 0, 0, 0])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Length", Integer(@pdfio.bytes_size(zeros))),
+  ])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(zeros)))
+  let stream_obj : @pdf.PdfObject = Stream(stream_ref)
+  ctx.encode_pdfstream(
+    pdf,
+    Encoding::ASCII85,
+    stream_obj,
+    only_if_smaller=false,
+  )
+  let encoded_bytes = match (stream_ref.val.1 : @pdf.Stream) {
+    Got(bytes) => bytes
+    _ => fail("expected encoded stream bytes")
+  }
+  assert_true(@pdfio.string_of_bytes(encoded_bytes).contains("z"))
+}
+
+///|
+test "decode_from_bytes ASCII85 handles z tuple" {
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Filter", Name(@pdf.PdfName::of_string("/ASCII85Decode"))),
+  ])
+  let out = @pdfcodec.PdfCodec::new().decode_from_bytes(
+    @pdfio.bytes_of_string("z~>"),
+    dict,
+  )
+  match out {
+    Some(decoded) => {
+      assert_eq(decoded.length(), 4)
+      for b in decoded {
+        assert_eq(b, (0).to_byte())
+      }
+    }
+    None => fail("expected ASCII85 decode to succeed")
+  }
+}
+
+///|
+test "decode_from_bytes ASCII85 flushes full groups and ignores 1-digit tail" {
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Filter", Name(@pdf.PdfName::of_string("/ASCII85Decode"))),
+  ])
+  let out = @pdfcodec.PdfCodec::new().decode_from_bytes(
+    @pdfio.bytes_of_string("!!!!!!~>"),
+    dict,
+  )
+  match out {
+    Some(decoded) => {
+      assert_eq(decoded.length(), 4)
+      for b in decoded {
+        assert_eq(b, (0).to_byte())
+      }
+    }
+    None => fail("expected ASCII85 decode to succeed")
+  }
+}
+
+///|
+test "decode_from_bytes ASCII85 returns None on invalid characters" {
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Filter", Name(@pdf.PdfName::of_string("/ASCII85Decode"))),
+  ])
+  let out = @pdfcodec.PdfCodec::new().decode_from_bytes(
+    @pdfio.bytes_of_string("v~>"),
+    dict,
+  )
+  assert_true(out is None)
+}
+
+///|
 test "encode/decode RunLength stream" {
   let original = @pdfio.bytes_of_string("runlength data")
   let decoded = roundtrip_encoding(Encoding::RunLength, original)
