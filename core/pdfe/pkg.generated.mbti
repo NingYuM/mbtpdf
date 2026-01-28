@@ -12,6 +12,8 @@ pub let quiet : Ref[Bool]
 
 pub let read_debug : Ref[Bool]
 
+pub fn warn(String) -> Unit
+
 pub fn[T] with_logger((String) -> Unit, () -> T raise) -> T raise
 
 pub fn[T] with_silenced_logs(() -> T raise) -> T raise
