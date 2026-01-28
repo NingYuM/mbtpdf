@@ -4,9 +4,11 @@ async fn main {
 }
 
 ///|
-pub async fn run(args : Array[String]) -> Unit {
+pub async fn run(args : Array[String], quiet? : Bool = false) -> Unit {
   if args.length() < 2 || args.length() > 3 {
-    println("Syntax: pdftext <input> [output]")
+    if !quiet {
+      println("Syntax: pdftext <input> [output]")
+    }
     return
   }
   let in_file = args[1]
@@ -19,12 +21,13 @@ pub async fn run(args : Array[String]) -> Unit {
     let text = @pdftext.PdfText::new(pdf).extract_text()
     match out_file {
       Some(path) => @fs.write_file(path, text, create=0o644, truncate=true)
-      None => println(text)
+      None => if !quiet { println(text) }
     }
   } catch {
-    err => {
-      println("Failed to extract text.")
-      println(err)
-    }
+    err =>
+      if !quiet {
+        println("Failed to extract text.")
+        println(err)
+      }
   }
 }
