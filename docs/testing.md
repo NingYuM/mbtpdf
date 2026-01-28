@@ -6,6 +6,9 @@
 // Run all tests.
 // moon test
 
+// Lint/type-check quickly (recommended in CI too).
+// moon check
+
 // Run one package.
 // moon test document/pdfpage
 
@@ -47,3 +50,7 @@ percentage (excluding `cmd/*` and `io/*`):
 // COVERAGE_MIN=97 scripts/coverage_gate.sh
 ```
 
+## CI
+
+GitHub Actions runs `moon fmt --check`, `moon test`, `moon check`, and the
+coverage gate. See `.github/workflows/ci.yml`.
