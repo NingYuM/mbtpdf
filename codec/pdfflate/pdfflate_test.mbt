@@ -99,6 +99,19 @@ test "uncompress fixed huffman" {
 }
 
 ///|
+test "uncompress fixed huffman with length/distance pairs" {
+  // Hand-crafted raw DEFLATE stream (fixed Huffman) which emits:
+  // "ABCDEF" then (len=11, dist=5) then (len=3, dist=1) then end-of-block.
+  let data : @pdfio.MutableBytes = [
+    0x73, 0x74, 0x72, 0x76, 0x71, 0x75, 0x43, 0x22, 0x80, 0x00, 0x00,
+  ]
+  let out = run_uncompress(data, false) catch {
+    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+  }
+  assert_eq(@pdfio.string_of_bytes(out), "ABCDEFBCDEFBCDEFBBBB")
+}
+
+///|
 test "uncompress dynamic huffman" {
   let data : @pdfio.MutableBytes = [
     120, 156, 237, 196, 57, 1, 0, 0, 8, 4, 160, 172, 231, 211, 191, 130, 41, 220,
@@ -211,6 +224,16 @@ test "uncompress rejects invalid distance symbol" {
     data, false,
   )
   assert_flate_error(result, "invalid distance symbol")
+}
+
+///|
+test "uncompress rejects distance beyond output" {
+  // Starts with a (len=3, dist=1) copy with no prior output.
+  let data : @pdfio.MutableBytes = [0x03, 0x02, 0x00]
+  let result : Result[@pdfio.MutableBytes, Error] = try? run_uncompress(
+    data, false,
+  )
+  assert_flate_error(result, "distance beyond output")
 }
 
 ///|

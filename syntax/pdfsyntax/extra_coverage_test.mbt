@@ -56,6 +56,10 @@ test "lexer covers name, number, string, and chunk error paths" {
     @pdfgenlex.Token::LexReal(_) => ()
     other => fail("expected LexReal, got \{syn.string_of_lexeme(other)}")
   }
+  match syn.lex_number(@pdfio.Input::of_string("nan", source="nan")) {
+    @pdfgenlex.Token::LexReal(_) => ()
+    other => fail("expected LexReal, got \{syn.string_of_lexeme(other)}")
+  }
   match syn.lex_number(@pdfio.Input::of_string("1.2.3", source="bad")) {
     @pdfgenlex.Token::LexNone => ()
     other => fail("expected LexNone, got \{syn.string_of_lexeme(other)}")
@@ -120,4 +124,76 @@ test "lex_stream_data handles malformed and rewind cases" {
     @pdfgenlex.Token::LexStream(_) => ()
     other => fail("expected LexStream, got \{syn.string_of_lexeme(other)}")
   }
+}
+
+///|
+test "lex_keyword covers R and unknown keywords" {
+  let syn = @pdfsyntax.PdfSyntax::new()
+  match syn.lex_keyword(@pdfio.Input::of_string("R", source="kw-r")) {
+    @pdfgenlex.Token::LexR => ()
+    other => fail("expected LexR, got \{syn.string_of_lexeme(other)}")
+  }
+  match syn.lex_keyword(@pdfio.Input::of_string("nonsense", source="kw-none")) {
+    @pdfgenlex.Token::LexNone => ()
+    other => fail("expected LexNone, got \{syn.string_of_lexeme(other)}")
+  }
+}
+
+///|
+test "lex_stream errors when previous lexemes are not a dictionary" {
+  let syn = @pdfsyntax.PdfSyntax::new()
+  let res : Result[@pdfgenlex.Token, Error] = try? syn.lex_stream(
+    @pdfio.Input::of_string("stream\nabc", source="stream-bad"),
+    [@pdfgenlex.Token::LexInt(1)],
+    _k => [],
+    false,
+  )
+  assert_is_err(res)
+}
+
+///|
+test "lex_stream falls back to malformed stream scan on missing /Length" {
+  let syn = @pdfsyntax.PdfSyntax::new()
+  let dict_lexemes = syn.lex_dictionary(
+    false,
+    @pdfio.Input::of_string("<< /Type /X >>", source="stream-dict"),
+  )
+  match
+    syn.lex_stream(
+      @pdfio.Input::of_string("stream\nABCDEF", source="stream-no-end"),
+      dict_lexemes,
+      _k => [],
+      false,
+    ) {
+    @pdfgenlex.Token::LexStream(_) => ()
+    other => fail("expected LexStream, got \{syn.string_of_lexeme(other)}")
+  }
+}
+
+///|
+test "lex_next stops on short 's' sequences" {
+  let syn = @pdfsyntax.PdfSyntax::new()
+  let dict_level : Ref[Int] = { val: 0 }
+  let array_level : Ref[Int] = { val: 0 }
+  let prev : Array[@pdfgenlex.Token] = []
+  let t1 = syn.lex_next(
+    dict_level,
+    array_level,
+    true,
+    @pdfio.Input::of_string("st", source="lex-next-st"),
+    prev,
+    false,
+    _ => [],
+  )
+  assert_true(t1 is @pdfgenlex.Token::StopLexing)
+  let t2 = syn.lex_next(
+    dict_level,
+    array_level,
+    true,
+    @pdfio.Input::of_string("sta", source="lex-next-sta"),
+    prev,
+    false,
+    _ => [],
+  )
+  assert_true(t2 is @pdfgenlex.Token::StopLexing)
 }

@@ -216,6 +216,88 @@ test "read_metrics accepts real widths" {
 }
 
 ///|
+test "read_metrics accepts integer MissingWidth" {
+  let pdf = @pdf.Pdf::empty()
+  let ctx = @pdftext.PdfText::new(pdf)
+  let descriptor : @pdf.PdfObject = Dictionary([("/MissingWidth", Integer(12))])
+  let font : @pdf.PdfObject = Dictionary([
+    ("/FontDescriptor", descriptor),
+    ("/FirstChar", Integer(0)),
+    ("/LastChar", Integer(0)),
+    ("/Widths", Array([Integer(250)])),
+  ])
+  match ctx.read_metrics(font) {
+    Some(metrics) => {
+      assert_eq(metrics.length(), 256)
+      assert_eq(metrics[0], 250.0)
+      assert_eq(metrics[1], 12.0)
+    }
+    None => fail("expected metrics")
+  }
+}
+
+///|
+test "read_encoding errors on bad or missing font subtype" {
+  let pdf = @pdf.Pdf::empty()
+  let ctx = @pdftext.PdfText::new(pdf)
+  let font : @pdf.PdfObject = Dictionary([("/Encoding", Dictionary([]))])
+  let res : Result[@pdffont.Encoding, Error] = try? ctx.read_encoding(font)
+  assert_true(res is Err(_))
+}
+
+///|
+test "cid helpers error on malformed inputs" {
+  let pdf = @pdf.Pdf::empty()
+  let ctx = @pdftext.PdfText::new(pdf)
+  let sysinfo : Result[@pdffont.CIDSystemInfo, Error] = try? ctx.read_cid_system_info(
+    Dictionary([]),
+  )
+  assert_true(sysinfo is Err(_))
+  let util = @pdftext.PdfTextUtil::new()
+  let bad1 : Result[Array[(Int, Double)], Error] = try? util.read_cid_widths([
+    Integer(0),
+    Integer(10),
+  ])
+  assert_true(bad1 is Err(_))
+  let bad2 : Result[Array[(Int, Double)], Error] = try? util.read_cid_widths([
+    Integer(0),
+    Integer(1),
+    Name(@pdf.PdfName::of_string("/Bad")),
+  ])
+  assert_true(bad2 is Err(_))
+  let bad3 : Result[Array[(Int, Double)], Error] = try? util.read_cid_widths([
+    Integer(0),
+    Name(@pdf.PdfName::of_string("/Bad")),
+  ])
+  assert_true(bad3 is Err(_))
+  let bad4 : Result[Array[(Int, Double)], Error] = try? util.read_cid_widths([
+    Name(@pdf.PdfName::of_string("/Bad")),
+  ])
+  assert_true(bad4 is Err(_))
+}
+
+///|
+test "read_descendant errors when FontDescriptor missing" {
+  let pdf = @pdf.Pdf::empty()
+  let ctx = @pdftext.PdfText::new(pdf)
+  let dict : @pdf.PdfObject = Dictionary([
+    (
+      "/CIDSystemInfo",
+      Dictionary([
+        ("/Registry", String("R")),
+        ("/Ordering", String("O")),
+        ("/Supplement", Integer(0)),
+      ]),
+    ),
+    ("/BaseFont", Name(@pdf.PdfName::of_string("/Foo"))),
+  ])
+  let res : Result[@pdffont.CompositeCIDFont, Error] = try? ctx.read_descendant(
+    dict,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
 test "pairs_of_differences rejects malformed inputs" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
