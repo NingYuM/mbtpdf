@@ -59,6 +59,32 @@ test "with_logger restores previous logger on error" {
 }
 
 ///|
+test "warn appends newline (and preserves existing newline)" {
+  let messages : Array[String] = []
+  @pdfe.with_logger(fn(message) { messages.push(message) }, fn() {
+    @pdfe.warn("hello")
+    @pdfe.warn("world\n")
+    ()
+  })
+  inspect(messages, content="[\"hello\\n\", \"world\\n\"]")
+}
+
+///|
+test "debug logs only when read_debug is enabled" {
+  let prev = @pdfe.read_debug.val
+  let messages : Array[String] = []
+  @pdfe.with_logger(fn(message) { messages.push(message) }, fn() {
+    @pdfe.read_debug.val = false
+    @pdfe.debug("hidden\n")
+    @pdfe.read_debug.val = true
+    @pdfe.debug("shown\n")
+    @pdfe.read_debug.val = prev
+    ()
+  })
+  inspect(messages, content="[\"shown\\n\"]")
+}
+
+///|
 test "default logger writes via PdfUtil" {
   let prev_quiet = @pdfutil.quiet.val
   let prev_printer = @pdfutil.printer.val

@@ -248,7 +248,7 @@ fn process_cryption(
           r, file_encryption_key, obj,
         ) catch {
           _ => {
-            @pdfe.log("Warning: unable to decrypt object \{objnum}\n")
+            @pdfe.warn("Warning: unable to decrypt object \{objnum}")
             obj
           }
         }

@@ -81,7 +81,7 @@ fn change_operator(
       match lookup_option("/Properties", seqnum, p.to_string_bytes()) {
         Some(x) => OpBDC(n, @pdf.PdfObject::Name(@pdf.PdfName::of_string(x)))
         None => {
-          @pdfe.log("Warning: Missing OpBDC /Properties entry\n")
+          @pdfe.warn("Warning: Missing OpBDC /Properties entry")
           OpBDC(n, @pdf.PdfObject::Name(p))
         }
       }

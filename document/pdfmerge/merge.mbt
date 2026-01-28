@@ -86,7 +86,7 @@ pub fn PdfMerger::merge_pdfs(
     }
   } catch {
     _ => {
-      @pdfe.log("Warning: failed to merge OCGs\n")
+      @pdfe.warn("Warning: failed to merge OCGs")
       extra_catalog_entries
     }
   }
@@ -102,7 +102,7 @@ pub fn PdfMerger::merge_pdfs(
     }
   } catch {
     _ => {
-      @pdfe.log("Warning: failed to merge Acroforms\n")
+      @pdfe.warn("Warning: failed to merge Acroforms")
       extra_catalog_entries
     }
   }
@@ -125,7 +125,7 @@ pub fn PdfMerger::merge_pdfs(
       }
     } catch {
       _ => {
-        @pdfe.log("Warning: failed to merge structure tree roots\n")
+        @pdfe.warn("Warning: failed to merge structure tree roots")
         extra_catalog_entries
       }
     }

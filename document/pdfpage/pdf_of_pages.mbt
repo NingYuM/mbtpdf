@@ -257,7 +257,7 @@ pub fn PdfPageDoc::pdf_of_pages(
   PdfPageDoc::new(pdf).fixup_parents()
   PdfPageDoc::new(pdf).fixup_destinations()
   try PdfPageDoc::new(pdf).fixup_duplicate_annots() catch {
-    _ => @pdfe.log("warning: fixup_duplicate_annots\n")
+    _ => @pdfe.warn("warning: fixup_duplicate_annots")
   } noraise {
     _ => ()
   }

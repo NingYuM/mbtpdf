@@ -296,7 +296,7 @@ fn lex_inline_image(
     let end1 = (input.input_byte)()
     let end2 = (input.input_byte)()
     if end1 != 'E'.to_int() || end2 != 'I'.to_int() {
-      @pdfe.log("warning: bad end to inline image \{end1}, \{end2}\n")
+      @pdfe.warn("warning: bad end to inline image \{end1}, \{end2}")
       PdfSyntax::new().ignoreuntil(true, chr => chr == 'E', input)
       PdfSyntax::new().ignoreuntil(true, chr => chr == 'I', input)
       input.nudge()

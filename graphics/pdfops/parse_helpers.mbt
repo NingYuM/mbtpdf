@@ -141,7 +141,7 @@ fn parse_tj_op(section : Array[Lexeme]) -> Op raise {
           Obj(LexInt(value)) =>
             elements.push(PdfObject::Real(Double::from_int(value)))
           Obj(LexString(text)) => elements.push(PdfObject::String(text))
-          _ => @pdfe.log("Warning: malformed TJ element; skipping\n")
+          _ => @pdfe.warn("Warning: malformed TJ element; skipping")
         }
       }
       return Op::OpTJ(PdfObject::Array(elements))

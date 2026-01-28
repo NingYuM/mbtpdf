@@ -54,7 +54,7 @@ fn apply_namechanges_to_destination_nametree(
             }
             updated = add_entry(updated, "/Names", PdfObject::Array(rebuilt))
           }
-          None => @pdfe.log("Warning: malformed /Names")
+          None => @pdfe.warn("Warning: malformed /Names")
         }
       _ => ()
     }

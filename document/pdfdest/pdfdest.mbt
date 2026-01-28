@@ -182,7 +182,7 @@ pub fn Destination::read(
         }
       }
     _ => {
-      @pdfe.log("Warning: Could not read destination \{resolved.to_string()}\n")
+      @pdfe.warn("Warning: Could not read destination \{resolved.to_string()}")
       NullDestination
     }
   }
