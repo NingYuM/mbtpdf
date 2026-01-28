@@ -279,9 +279,9 @@ async test "extract text pdf.js identity sample" {
     None,
     "testdata/pdfjs_identity_tounicode.pdf",
   )
-  let extracted = @pdftext.PdfText::new(pdf).extract_text(
-    page_break="\n-------------\n",
-  )
+  let extracted = @pdfe.with_logger(_ => (), fn() {
+    @pdftext.PdfText::new(pdf).extract_text(page_break="\n-------------\n")
+  })
   inspect(extracted, content="ABCdef")
 }
 
