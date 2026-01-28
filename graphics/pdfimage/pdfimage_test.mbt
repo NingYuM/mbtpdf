@@ -30,6 +30,57 @@ test "colspace resolves named resource" {
 }
 
 ///|
+test "colspace falls back to unresolved name when resource entry missing" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([("/ColorSpace", Dictionary([]))])
+  let image : @pdf.PdfObject = Dictionary([
+    ("/CS", Name(@pdf.PdfName::of_string("/Missing"))),
+  ])
+  let res : Result[@pdfspace.ColourSpace, Error] = try? @pdfimage.Image::colspace(
+    pdf, image, resources,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "colspace uses direct ColorSpace object when provided" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([
+    (
+      "/ColorSpace",
+      Dictionary([("/CS1", Name(@pdf.PdfName::of_string("/DeviceRGB")))]),
+    ),
+  ])
+  let image : @pdf.PdfObject = Dictionary([("/ColorSpace", Dictionary([]))])
+  let res : Result[@pdfspace.ColourSpace, Error] = try? @pdfimage.Image::colspace(
+    pdf, image, resources,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "colspace errors when resources has colorspaces but image omits entry" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([("/ColorSpace", Dictionary([]))])
+  let image : @pdf.PdfObject = Dictionary([])
+  let res : Result[@pdfspace.ColourSpace, Error] = try? @pdfimage.Image::colspace(
+    pdf, image, resources,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "colspace errors when colorspace missing in both image and resources" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([])
+  let image : @pdf.PdfObject = Dictionary([])
+  let res : Result[@pdfspace.ColourSpace, Error] = try? @pdfimage.Image::colspace(
+    pdf, image, resources,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
 test "bpc returns component bits" {
   let pdf = @pdf.Pdf::empty()
   let image : @pdf.PdfObject = Dictionary([("/BPC", Integer(8))])
@@ -85,6 +136,100 @@ test "get_image_24bpp raw rgb" {
       assert_eq(bytes[3].to_int(), 0)
     }
     _ => fail("expected Raw image")
+  }
+}
+
+///|
+test "get_image_24bpp rejects non-stream inputs" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([])
+  let res : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::get_image_24bpp(
+    pdf,
+    resources,
+    Integer(1),
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "get_image_24bpp errors on missing height" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([])
+  let data = @pdfio.bytes_of_list([0])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Width", Integer(1)),
+    ("/BitsPerComponent", Integer(1)),
+    ("/ColorSpace", Name(@pdf.PdfName::of_string("/DeviceGray"))),
+    ("/ImageMask", Boolean(true)),
+  ])
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let res : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::get_image_24bpp(
+    pdf, resources, stream,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "get_image_24bpp errors on non-array decode entry" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([])
+  let data = @pdfio.bytes_of_list([0])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Width", Integer(1)),
+    ("/Height", Integer(1)),
+    ("/BitsPerComponent", Integer(1)),
+    ("/ColorSpace", Name(@pdf.PdfName::of_string("/DeviceGray"))),
+    ("/Decode", Integer(1)),
+  ])
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let res : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::get_image_24bpp(
+    pdf, resources, stream,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "get_image_24bpp reads JBIG2 globals for filter array" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([])
+  let globals_num = pdf.addobj(@pdf.PdfObject::String("globals"))
+  let data = @pdfio.bytes_of_list([1, 2, 3, 4])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Width", Integer(1)),
+    ("/Height", Integer(1)),
+    ("/BitsPerComponent", Integer(1)),
+    ("/Filter", Array([Name(@pdf.PdfName::of_string("/JBIG2Decode"))])),
+    ("/DecodeParms", Dictionary([("/JBIG2Globals", Indirect(globals_num))])),
+  ])
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+    JBIG2(_, _, globals) =>
+      match globals {
+        Some(i) => assert_eq(i, globals_num)
+        None => fail("expected globals")
+      }
+    _ => fail("expected JBIG2 image")
+  }
+}
+
+///|
+test "get_image_24bpp JBIG2 filter array ignores non-indirect globals entry" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([])
+  let data = @pdfio.bytes_of_list([1, 2, 3, 4])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Width", Integer(1)),
+    ("/Height", Integer(1)),
+    ("/BitsPerComponent", Integer(1)),
+    ("/Filter", Array([Name(@pdf.PdfName::of_string("/JBIG2Decode"))])),
+    ("/DecodeParms", Dictionary([("/JBIG2Globals", Integer(1))])),
+  ])
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+    JBIG2(_, _, globals) => assert_eq(globals, None)
+    _ => fail("expected JBIG2 image")
   }
 }
 
@@ -185,6 +330,26 @@ test "get_image_24bpp returns jpeg2000 for JPX filter" {
 }
 
 ///|
+test "get_image_24bpp returns jpeg2000 for JPX filter array" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([])
+  let data = @pdfio.bytes_of_list([1, 2, 3])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Width", Integer(1)),
+    ("/Height", Integer(1)),
+    ("/BitsPerComponent", Integer(8)),
+    ("/ColorSpace", Name(@pdf.PdfName::of_string("/DeviceRGB"))),
+    ("/Filter", Array([Name(@pdf.PdfName::of_string("/JPXDecode"))])),
+  ])
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+    JPEG2000(bytes, _) => assert_eq(bytes.length(), 3)
+    _ => fail("expected JPEG2000 image")
+  }
+}
+
+///|
 test "get_image_24bpp returns JBIG2 with globals" {
   let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
@@ -204,9 +369,99 @@ test "get_image_24bpp returns JBIG2 with globals" {
     (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
     JBIG2(bytes, _, globals_ref) => {
       assert_eq(bytes.length(), 3)
-      assert_eq(globals_ref, None)
+      match globals_ref {
+        Some(i) => assert_eq(i, globals)
+        None => fail("expected globals")
+      }
     }
     _ => fail("expected JBIG2 image")
+  }
+}
+
+///|
+test "get_image_24bpp JBIG2 ignores non-indirect globals entry" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([])
+  let data = @pdfio.bytes_of_list([9, 8, 7])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Width", Integer(1)),
+    ("/Height", Integer(1)),
+    ("/BitsPerComponent", Integer(1)),
+    ("/ColorSpace", Name(@pdf.PdfName::of_string("/DeviceGray"))),
+    ("/Filter", Name(@pdf.PdfName::of_string("/JBIG2Decode"))),
+    ("/DecodeParms", Dictionary([("/JBIG2Globals", Integer(1))])),
+  ])
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+    JBIG2(_, _, globals_ref) => assert_eq(globals_ref, None)
+    _ => fail("expected JBIG2 image")
+  }
+}
+
+///|
+test "get_image_24bpp JBIG2 ignores malformed decodeparms" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([])
+  let data = @pdfio.bytes_of_list([9, 8, 7])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Width", Integer(1)),
+    ("/Height", Integer(1)),
+    ("/BitsPerComponent", Integer(1)),
+    ("/ColorSpace", Name(@pdf.PdfName::of_string("/DeviceGray"))),
+    ("/Filter", Name(@pdf.PdfName::of_string("/JBIG2Decode"))),
+    ("/DecodeParms", Integer(1)),
+  ])
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+    JBIG2(_, _, globals_ref) => assert_eq(globals_ref, None)
+    _ => fail("expected JBIG2 image")
+  }
+}
+
+///|
+test "get_image_24bpp reads image mask when BitsPerComponent missing" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Width", Integer(1)),
+    ("/Height", Integer(1)),
+    ("/ImageMask", Boolean(true)),
+  ])
+  let data = @pdfio.bytes_of_list([0])
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+    Raw(_, _, _, bytes) => assert_eq(bytes.length(), 3)
+    _ => fail("expected Raw image")
+  }
+}
+
+///|
+test "get_image_24bpp ignores decode for indexed colourspace" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([])
+  let table = @pdfio.string_of_bytes(@pdfio.bytes_of_list([255, 0, 0]))
+  let colorspace : @pdf.PdfObject = Array([
+    Name(@pdf.PdfName::of_string("/Indexed")),
+    Name(@pdf.PdfName::of_string("/DeviceRGB")),
+    Integer(0),
+    String(table),
+  ])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Width", Integer(1)),
+    ("/Height", Integer(1)),
+    ("/BitsPerComponent", Integer(8)),
+    ("/ColorSpace", colorspace),
+    ("/Decode", Array([Real(1.0), Real(0.0)])),
+  ])
+  let data = @pdfio.bytes_of_list([0])
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+    Raw(_, _, _, bytes) => assert_eq(bytes[0].to_int(), 255)
+    _ => fail("expected Raw image")
   }
 }
 

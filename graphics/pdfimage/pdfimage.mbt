@@ -896,7 +896,7 @@ pub fn Image::get_image_24bpp(
     Some(Name(n)) if is_jbig2_filter(n) => {
       let globals = match pdf.lookup_direct("/DecodeParms", streamdict) {
         Some(Dictionary(parms)) =>
-          match pdf.lookup_direct("/JBIG2Globals", Dictionary(parms)) {
+          match PdfObject::Dictionary(parms).lookup_immediate("/JBIG2Globals") {
             Some(Indirect(i)) => Some(i)
             _ => None
           }
@@ -907,7 +907,7 @@ pub fn Image::get_image_24bpp(
     Some(Array([Name(n)])) if is_jbig2_filter(n) => {
       let globals = match pdf.lookup_direct("/DecodeParms", streamdict) {
         Some(Dictionary(parms)) =>
-          match pdf.lookup_direct("/JBIG2Globals", Dictionary(parms)) {
+          match PdfObject::Dictionary(parms).lookup_immediate("/JBIG2Globals") {
             Some(Indirect(i)) => Some(i)
             _ => None
           }
