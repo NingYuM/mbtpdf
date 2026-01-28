@@ -317,7 +317,8 @@ test "read_destination array variants" {
     Name(@pdf.PdfName::of_string("/FitH")),
     Real(1.0),
   ])
-  match Destination::read(pdf, bad_target) {
+  match
+    @pdfe.with_logger(_ => (), fn() { Destination::read(pdf, bad_target) }) {
     Destination::NullDestination => ()
     _ => fail("expected NullDestination for bad target")
   }
@@ -331,7 +332,8 @@ test "read_destination handles missing and invalid objects" {
     Destination::NullDestination => ()
     _ => fail("expected NullDestination for missing /D")
   }
-  match Destination::read(pdf, Integer(1)) {
+  match
+    @pdfe.with_logger(_ => (), fn() { Destination::read(pdf, Integer(1)) }) {
     Destination::NullDestination => ()
     _ => fail("expected NullDestination for invalid object")
   }
