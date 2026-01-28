@@ -171,6 +171,37 @@ test "lex_stream falls back to malformed stream scan on missing /Length" {
 }
 
 ///|
+test "lex_stream resolves indirect /Length via lexobj" {
+  let syn = @pdfsyntax.PdfSyntax::new()
+  let input = @pdfio.Input::of_string(
+    (
+      #|1 0 obj
+      #|<< /Length 2 0 R >>
+      #|stream
+      #|ABCD
+      #|endstream
+      #|endobj
+    ),
+  )
+  let tokens = syn.lex_object_at(false, input, true, fn(k) {
+    assert_eq(k, 2)
+    syn.lex_object_at(
+      false,
+      @pdfio.Input::of_string(
+        (
+          #|2 0 obj
+          #|4
+          #|endobj
+        ),
+      ),
+      true,
+      _ => [],
+    )
+  })
+  assert_true(tokens.exists(t => t is @pdfgenlex.Token::LexStream(_)))
+}
+
+///|
 test "lex_next stops on short 's' sequences" {
   let syn = @pdfsyntax.PdfSyntax::new()
   let dict_level : Ref[Int] = { val: 0 }

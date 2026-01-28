@@ -1,9 +1,4 @@
 ///|
-fn is_hex_digit(c : Char) -> Bool {
-  c is ('0'..='9' | 'a'..='f' | 'A'..='F')
-}
-
-///|
 fn hex_value(c : Char) -> Int? {
   match c {
     '0'..='9' => Some(c.to_int() - '0'.to_int())
@@ -46,17 +41,9 @@ pub fn PdfSyntax::lex_name(
         }
         let c1 = h1.to_byte().to_char()
         let c2 = h2.to_byte().to_char()
-        if !is_hex_digit(c1) || !is_hex_digit(c2) {
-          let hex = String::from_array([c1, c2])
-          let message = @pdf.input_pdferror(
-            input,
-            "lex_name: bad hex escape #\{hex}",
-          )
-          raise @pdf.PdfError::Msg(message)
-        }
-        match (hex_value(c1), hex_value(c2)) {
-          (Some(hi), Some(lo)) => bytes.push(((hi << 4) + lo).to_byte())
-          _ => {
+        let hi = match hex_value(c1) {
+          Some(v) => v
+          None => {
             let hex = String::from_array([c1, c2])
             let message = @pdf.input_pdferror(
               input,
@@ -65,6 +52,18 @@ pub fn PdfSyntax::lex_name(
             raise @pdf.PdfError::Msg(message)
           }
         }
+        let lo = match hex_value(c2) {
+          Some(v) => v
+          None => {
+            let hex = String::from_array([c1, c2])
+            let message = @pdf.input_pdferror(
+              input,
+              "lex_name: bad hex escape #\{hex}",
+            )
+            raise @pdf.PdfError::Msg(message)
+          }
+        }
+        bytes.push(((hi << 4) + lo).to_byte())
       } else {
         bytes.push(b.to_byte())
       }
@@ -83,12 +82,7 @@ pub fn PdfSyntax::lex_number(
   let mut number = s
   if number.length() > 1 {
     match (number.get_char(0), number.get_char(1)) {
-      (Some('-'), Some('-')) =>
-        number = try number[1:] catch {
-          _ => number
-        } noraise {
-          view => view.to_string()
-        }
+      (Some('-'), Some('-')) => number = number[:].sub(start=1).to_string()
       _ => ()
     }
   }

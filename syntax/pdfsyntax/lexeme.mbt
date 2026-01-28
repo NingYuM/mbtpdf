@@ -280,3 +280,22 @@ pub fn PdfSyntax::string_of_lexeme(_self : PdfSyntax, t : Token) -> String {
     LexNone => "LexNone"
   }
 }
+
+///|
+test "lexeme helpers cover edge inputs" {
+  assert_eq(trim_trailing_zeros("1.2300"), "1.23")
+  assert_eq(trim_trailing_zeros(".000"), "0")
+  assert_eq(trim_trailing_zeros("1"), "1")
+  assert_eq(slice_from("", 1), "")
+  assert_eq(slice_range("", 0, 1), "")
+  assert_eq(parse_signed_int(""), 0)
+  assert_eq(parse_signed_int("+12"), 12)
+  assert_eq(parse_signed_int("-12"), -12)
+  assert_eq(parse_signed_int("12x"), 12)
+  assert_eq(expand_scientific("1E1"), "10")
+  assert_eq(expand_scientific("-1e0"), "-1")
+  assert_eq(expand_scientific(".e1"), "0")
+  assert_eq(expand_scientific("1.0e-2"), "0.01")
+  assert_eq(expand_scientific("1.0e1"), "10")
+  assert_eq(expand_scientific("1.23e1"), "12.3")
+}
