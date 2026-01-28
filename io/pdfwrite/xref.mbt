@@ -135,7 +135,32 @@ pub fn PdfWrite::pdf_to_output(
   pdf : @pdf.Pdf,
   output : @pdfio.Output,
 ) -> Unit raise {
+  let options : PdfWriteOptions = {
+    preserve_objstm,
+    generate_objstm,
+    compress_objstm,
+    recrypt,
+    encryption,
+    build_new_id,
+  }
+  self.pdf_to_output_with_options(options, pdf, output)
+}
+
+///|
+/// Write a PDF to an output using an options record.
+pub fn PdfWrite::pdf_to_output_with_options(
+  self : PdfWrite,
+  options : PdfWriteOptions,
+  pdf : @pdf.Pdf,
+  output : @pdfio.Output,
+) -> Unit raise {
   let mut pdf = pdf
+  let preserve_objstm = options.preserve_objstm
+  let generate_objstm = options.generate_objstm
+  let compress_objstm = options.compress_objstm
+  let recrypt = options.recrypt
+  let encryption = options.encryption
+  let build_new_id = options.build_new_id
   if build_new_id {
     pdf.change_id("")
   }

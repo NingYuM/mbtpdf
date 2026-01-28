@@ -25,7 +25,18 @@ pub struct PdfWrite {
 }
 pub fn PdfWrite::new(logger? : (String) -> Unit) -> Self
 pub fn PdfWrite::pdf_to_output(Self, preserve_objstm? : Bool, generate_objstm? : Bool, compress_objstm? : Bool, recrypt? : String, Encryption?, Bool, @pdf.Pdf, @pdfio.Output) -> Unit raise
+pub fn PdfWrite::pdf_to_output_with_options(Self, PdfWriteOptions, @pdf.Pdf, @pdfio.Output) -> Unit raise
 pub fn PdfWrite::string_of_pdf(Self, @pdf.PdfObject) -> String
+
+pub struct PdfWriteOptions {
+  preserve_objstm : Bool
+  generate_objstm : Bool
+  compress_objstm : Bool
+  recrypt : String?
+  encryption : Encryption?
+  build_new_id : Bool
+}
+pub fn PdfWriteOptions::default() -> Self
 
 // Type aliases
 pub using @pdfcrypt {type EncryptionMethod}

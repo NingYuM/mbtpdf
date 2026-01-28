@@ -23,6 +23,21 @@ pub struct PdfWrite { ... }
 pub fn PdfWrite::new(logger? : (String) -> Unit = @pdfe.logger.val) -> PdfWrite
 ```
 
+### PdfWriteOptions
+
+Bundled options for writing a PDF.
+
+```mbt nocheck
+pub struct PdfWriteOptions { ... }
+pub fn PdfWriteOptions::default() -> PdfWriteOptions
+pub fn PdfWrite::pdf_to_output_with_options(
+  self : PdfWrite,
+  options : PdfWriteOptions,
+  pdf : @pdf.Pdf,
+  output : @pdfio.Output,
+) -> Unit raise
+```
+
 ## Writing PDFs
 
 ### To File (Simple)
@@ -66,6 +81,15 @@ let (output, data) = @pdfio.Output::of_bytes(65536)
   pdf~,
   output~,
 )
+let bytes = output.extract_bytes(data)
+```
+
+### To Output Stream (With `PdfWriteOptions`)
+
+```mbt nocheck
+let (output, data) = @pdfio.Output::of_bytes(65536)
+let options = @pdfwrite.PdfWriteOptions::default()
+@pdfwrite.PdfWrite::new().pdf_to_output_with_options(options, pdf, output)
 let bytes = output.extract_bytes(data)
 ```
 
