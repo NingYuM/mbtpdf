@@ -72,8 +72,6 @@ test "ccitt g3 roundtrip covers many terminating codes" {
 
 ///|
 test "ccitt g4 roundtrip covers many terminating codes" {
-  // TODO: Add broader G4 coverage once large/complex vectors are stable.
-  // Some larger multi-row patterns can fail to roundtrip (encode/decode mismatch).
   let columns = 8
   let rows = 2
   let raw = bitmap_bytes_from_row_runs(
@@ -100,5 +98,24 @@ test "ccitt g4 roundtrip covers many makeup codes" {
   let columns = 256
   let rows = 1
   let raw = bitmap_bytes_from_row_runs([[64, 64, 64, 64]], 1)
+  ccitt_roundtrip(Encoding::CCITTG4(columns, rows), -1, columns, rows, raw)
+}
+
+///|
+test "ccitt g4 roundtrip covers varied run lengths (single-row)" {
+  // TODO(#3): Some broader vectors (e.g. 1..=64 in a single row) don't roundtrip
+  // today; keep this test to cover a stable mix of short + long runs.
+  let runs : Array[Int] = []
+  let mut columns = 0
+  for i in 1..<=16 {
+    runs.push(i)
+    columns = columns + i
+  }
+  runs.push(64)
+  columns = columns + 64
+  runs.push(256 - columns)
+  columns = 256
+  let rows = 2
+  let raw = bitmap_bytes_from_row_runs([runs, runs], 1)
   ccitt_roundtrip(Encoding::CCITTG4(columns, rows), -1, columns, rows, raw)
 }
