@@ -149,3 +149,31 @@ fn parse_tj_op(section : Array[Lexeme]) -> Op raise {
   }
   raise @pdf.PdfError::Msg("malformed TJ op")
 }
+
+///|
+test "parse helpers cover int/real conversion paths" {
+  assert_eq(lexeme_real(Obj(LexInt(2))).unwrap(), 2.0)
+  assert_eq(lexeme_int(Obj(LexInt(2))).unwrap(), 2)
+  match lexeme_pdfobj(Lexeme::Op("q")) {
+    None => ()
+    Some(_) => fail("expected non-object lexeme to return None")
+  }
+  let op = parse_tj_op([
+    Obj(LexLeftSquare),
+    Obj(LexString("A")),
+    Obj(LexInt(120)),
+    Obj(LexString("B")),
+    Obj(LexRightSquare),
+    Lexeme::Op("TJ"),
+  ])
+  match op {
+    OpTJ(PdfObject::Array(values)) => {
+      assert_eq(values.length(), 3)
+      match values[1] {
+        PdfObject::Real(v) => assert_eq(v, 120.0)
+        _ => fail("expected int TJ element to be converted to Real")
+      }
+    }
+    _ => fail("expected OpTJ")
+  }
+}
