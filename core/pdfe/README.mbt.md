@@ -6,6 +6,11 @@ Error logging utilities for PDF operations.
 
 This package provides a configurable logging system for error messages during PDF processing. It uses a replaceable logger function that defaults to writing to stderr.
 
+In addition, it provides:
+
+- A `quiet` flag to suppress `@pdfe.log` output.
+- Scoped helpers (`with_silenced_logs`, `with_logger`) that restore state even if the action fails.
+
 ## Types
 
 ### Logger
@@ -27,6 +32,14 @@ The current error logger, stored as a mutable reference. Can be replaced for cus
 pub let logger : Ref[Logger]
 ```
 
+### quiet
+
+When `true`, calls to `@pdfe.log` are suppressed.
+
+```moonbit nocheck
+pub let quiet : Ref[Bool]
+```
+
 ### read_debug
 
 Debug flag for PDF reading operations. Set to `true` to enable debug output.
@@ -45,37 +58,62 @@ Log a message using the current logger.
 ///|
 test "log: captures messages with custom logger" {
   let messages : Array[String] = []
-  let prev = @pdfe.logger.val
-  @pdfe.logger.val = fn(msg) { messages.push(msg) }
-  @pdfe.log("hello")
-  @pdfe.log("world")
-  @pdfe.logger.val = prev
+  @pdfe.with_logger(fn(msg) { messages.push(msg) }, fn() {
+    @pdfe.log("hello")
+    @pdfe.log("world")
+    ()
+  })
   inspect(messages, content="[\"hello\", \"world\"]")
 }
 ```
 
-### default
+### with_silenced_logs
 
-The default logger function that writes to stderr.
+Run an action with logging suppressed, restoring the previous state.
+
+```moonbit check
+///|
+test "with_silenced_logs: suppresses log calls within scope" {
+  let messages : Array[String] = []
+  @pdfe.with_logger(fn(msg) { messages.push(msg) }, fn() {
+    @pdfe.with_silenced_logs(fn() {
+      @pdfe.log("hidden")
+      ()
+    })
+    @pdfe.log("shown")
+    ()
+  })
+  inspect(messages, content="[\"shown\"]")
+}
+```
+
+### with_logger
+
+Run an action with a temporary logger, restoring the previous logger.
 
 ```moonbit nocheck
-pub fn default(String) -> Unit
+pub fn[T] with_logger(Logger, () -> T raise) -> T raise
 ```
 
 ## Usage
 
-**Replace the logger for testing:**
+**Capture logs in tests:**
 
 ```moonbit nocheck
-// Capture log messages
 let messages : Array[String] = []
-let prev = @pdfe.logger.val
-@pdfe.logger.val = fn(msg) { messages.push(msg) }
+@pdfe.with_logger(fn(msg) { messages.push(msg) }, fn() {
+  // ... code that calls @pdfe.log() ...
+  ()
+})
+```
 
-// ... code that calls @pdfe.log() ...
+**Silence noisy logs for a scope (recommended for tests that trigger malformed inputs):**
 
-// Restore original logger
-@pdfe.logger.val = prev
+```moonbit nocheck
+@pdfe.with_silenced_logs(fn() {
+  // ... code that calls @pdfe.log() ...
+  ()
+})
 ```
 
 **Enable debug mode:**

@@ -285,10 +285,10 @@ test "change_pages logs when /Annots is not an array" {
     (2, @pdftransform.TransformMatrix::identity()),
   ]
   let messages : Array[String] = []
-  let prev = @pdfe.logger.val
-  @pdfe.logger.val = fn(msg) { messages.push(msg) }
-  ignore(@pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices~))
-  @pdfe.logger.val = prev
+  @pdfe.with_logger(fn(msg) { messages.push(msg) }, fn() {
+    ignore(@pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices~))
+    ()
+  })
   assert_true(
     messages[:].contains(
       "change_pages_process_annotations: /Annots not an array\n",
@@ -424,10 +424,10 @@ test "change_pages catches failures in annotations and openaction rewriting" {
     (2, @pdftransform.TransformMatrix::identity()),
   ]
   let messages : Array[String] = []
-  let prev = @pdfe.logger.val
-  @pdfe.logger.val = fn(msg) { messages.push(msg) }
-  ignore(@pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices~))
-  @pdfe.logger.val = prev
+  @pdfe.with_logger(fn(msg) { messages.push(msg) }, fn() {
+    ignore(@pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices~))
+    ()
+  })
   assert_true(
     messages[:].contains("failure in change_pages_process_annotations\n"),
   )

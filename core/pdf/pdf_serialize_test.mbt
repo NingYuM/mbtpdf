@@ -47,10 +47,9 @@ test "PdfObject::to_string escapes strings and normalizes names" {
     ("/Needs Escape", PdfObject::String("a(b)\\c\n")),
   ])
   let messages : Array[String] = []
-  let prev = @pdfe.logger.val
-  @pdfe.logger.val = fn(msg) { messages.push(msg) }
-  let rendered = obj.to_string()
-  @pdfe.logger.val = prev
+  let rendered = @pdfe.with_logger(fn(msg) { messages.push(msg) }, fn() {
+    obj.to_string()
+  })
   assert_true(rendered.contains("/Type"))
   assert_true(rendered.contains("/NoSlash"))
   assert_true(rendered.contains("#20"))
@@ -82,10 +81,9 @@ test "to_string_including_data warns when stream cannot be got" {
   )
   let stream_obj = PdfObject::Stream(stream_ref)
   let messages : Array[String] = []
-  let prev = @pdfe.logger.val
-  @pdfe.logger.val = fn(msg) { messages.push(msg) }
-  let rendered = stream_obj.to_string_including_data()
-  @pdfe.logger.val = prev
+  let rendered = @pdfe.with_logger(fn(msg) { messages.push(msg) }, fn() {
+    stream_obj.to_string_including_data()
+  })
   assert_true(rendered.contains("stream"))
   assert_true(
     messages[:].contains("WARNING: toget in string_of_pdfobj_including_data\n"),

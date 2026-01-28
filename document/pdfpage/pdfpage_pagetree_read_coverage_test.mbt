@@ -87,10 +87,9 @@ test "pages_of_pagetree reads inherited resources and contents shapes" {
   )
   let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(pages_root_num, [])
   let messages : Array[String] = []
-  let prev = @pdfe.logger.val
-  @pdfe.logger.val = fn(msg) { messages.push(msg) }
-  let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
-  @pdfe.logger.val = prev
+  let pages = @pdfe.with_logger(fn(msg) { messages.push(msg) }, fn() {
+    @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
+  })
   assert_eq(pages.length(), 2)
   assert_eq(pages[0].content.length(), 1)
   assert_eq(pages[1].content.length(), 0)
