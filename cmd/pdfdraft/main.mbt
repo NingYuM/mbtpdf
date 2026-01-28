@@ -135,9 +135,11 @@ async fn main {
 }
 
 ///|
-pub async fn run(args : Array[String]) -> Unit {
+pub async fn run(args : Array[String], quiet? : Bool = false) -> Unit {
   if args.length() != 3 {
-    println("Syntax: pdfdraft <input> <output>")
+    if !quiet {
+      println("Syntax: pdfdraft <input> <output>")
+    }
     return
   }
   let in_file = args[1]
@@ -146,9 +148,10 @@ pub async fn run(args : Array[String]) -> Unit {
     let pdf = @pdfreadfs.PdfReadFs::new().pdf_of_file(None, None, in_file)
     @pdfwritefs.PdfWriteFs::new().pdf_to_file(remove_images(pdf), out_file)
   } catch {
-    err => {
-      println("Failed to produce output.")
-      println(err)
-    }
+    err =>
+      if !quiet {
+        println("Failed to produce output.")
+        println(err)
+      }
   }
 }
