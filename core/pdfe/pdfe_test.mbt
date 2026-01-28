@@ -57,3 +57,26 @@ test "with_logger restores previous logger on error" {
   inspect(inner_messages, content="[\"inner\"]")
   inspect(outer_messages, content="[\"outer\"]")
 }
+
+///|
+test "default logger writes via PdfUtil" {
+  let prev_quiet = @pdfutil.quiet.val
+  let prev_printer = @pdfutil.printer.val
+  let lines : Array[String] = []
+  @pdfutil.printer.val = s => lines.push(s)
+  try {
+    @pdfutil.quiet.val = true
+    @pdfutil.PdfUtil::new().fleprint("reset")
+    @pdfutil.quiet.val = false
+    (@pdfe.logger.val)("hello\n")
+    assert_eq(lines, ["hello"])
+    @pdfutil.quiet.val = prev_quiet
+    @pdfutil.printer.val = prev_printer
+  } catch {
+    err => {
+      @pdfutil.quiet.val = prev_quiet
+      @pdfutil.printer.val = prev_printer
+      raise err
+    }
+  }
+}
