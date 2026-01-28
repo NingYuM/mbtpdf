@@ -1,0 +1,49 @@
+# Testing & Coverage
+
+## Run tests
+
+```mbt nocheck
+// Run all tests.
+// moon test
+
+// Run one package.
+// moon test document/pdfpage
+
+// Run formatting + tests (useful before pushing).
+// moon fmt
+// moon test
+```
+
+## Logging hygiene in tests
+
+Some packages emit *expected* warnings when exercising malformed inputs. Tests
+should keep output quiet (especially in CI) by using scoped suppression helpers.
+
+See `docs/logging-hygiene.md`.
+
+## Coverage
+
+```mbt nocheck
+// Full-module coverage summary.
+// moon coverage clean
+// moon coverage analyze -- -f summary
+```
+
+### Coverage policy
+
+- `io/*` is excluded from coverage targets (policy).
+- `cmd/*` is executable-only; coverage can be skipped.
+
+### Coverage gate script
+
+This repo ships a small gate that enforces a minimum per-package coverage
+percentage (excluding `cmd/*` and `io/*`):
+
+```mbt nocheck
+// Default is 95% (override with COVERAGE_MIN).
+// scripts/coverage_gate.sh
+//
+// scripts/coverage_gate.sh --threshold 95
+// COVERAGE_MIN=97 scripts/coverage_gate.sh
+```
+

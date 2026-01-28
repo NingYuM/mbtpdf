@@ -12,6 +12,7 @@ PDF toolchain implemented in [MoonBit](https://docs.moonbitlang.com), centered o
 - `docs/architecture.md`
 - `docs/e2e-tests.md`
 - `docs/pdf-format-tutorial.md`
+- `docs/testing.md`
 
 ## Quick start
 
