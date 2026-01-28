@@ -72,7 +72,10 @@ test "string_of_pdf trims trailing zeros" {
 ///|
 test "string_of_pdf invalid name" {
   let write_ctx = @pdfwrite.PdfWrite::new(logger=_ => ())
-  let s = write_ctx.string_of_pdf(Name(@pdf.PdfName::of_string("Example")))
+  let name = @pdfe.with_silenced_logs(fn() {
+    @pdf.PdfName::of_string("Example")
+  })
+  let s = write_ctx.string_of_pdf(Name(name))
   assert_eq(s, "/Example")
 }
 
