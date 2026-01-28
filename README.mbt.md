@@ -9,10 +9,12 @@ PDF toolchain implemented in [MoonBit](https://docs.moonbitlang.com), centered o
 
 ## Documentation
 
+- `docs/README.md`
 - `docs/architecture.md`
 - `docs/e2e-tests.md`
 - `docs/pdf-format-tutorial.md`
 - `docs/testing.md`
+- `docs/logging-hygiene.md`
 
 ## Quick start
 
