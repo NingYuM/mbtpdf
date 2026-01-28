@@ -2,7 +2,7 @@
 package "bobzhang/mbtpdf/cmd/main"
 
 // Values
-pub fn run() -> Unit
+pub fn run(quiet? : Bool) -> Unit
 
 // Errors
 

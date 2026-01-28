@@ -1,4 +1,4 @@
 ///|
 test "run executes" {
-  run()
+  run(quiet=true)
 }

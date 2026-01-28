@@ -1,8 +1,10 @@
 ///|
-pub fn run() -> Unit {
-  println(
-    "mbtpdf: see cmd/pdfhello, cmd/pdfmergeexample, cmd/pdfextracttext, etc.",
-  )
+pub fn run(quiet? : Bool = false) -> Unit {
+  if !quiet {
+    println(
+      "mbtpdf: see cmd/pdfhello, cmd/pdfmergeexample, cmd/pdfextracttext, etc.",
+    )
+  }
 }
 
 ///|
