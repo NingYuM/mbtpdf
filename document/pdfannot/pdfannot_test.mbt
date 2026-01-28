@@ -390,7 +390,9 @@ test "transform_annotations keeps malformed quadpoints" {
     ("/Annots", Array([Indirect(objnum)])),
   ])
   let tr = @pdftransform.TransformMatrix::translate(5.0, 5.0)
-  @pdfannot.PdfAnnot::new(pdf).transform_annotations(tr, rest)
+  @pdfe.with_silenced_logs(fn() {
+    @pdfannot.PdfAnnot::new(pdf).transform_annotations(tr, rest)
+  })
   let updated = pdf.lookup_obj(objnum)
   match pdf.lookup_direct("/Rect", updated) {
     Some(rect) => {
@@ -626,7 +628,9 @@ test "transform_annotations leaves non-array quadpoints" {
     ("/Annots", Array([Indirect(objnum)])),
   ])
   let tr = @pdftransform.TransformMatrix::translate(5.0, 5.0)
-  @pdfannot.PdfAnnot::new(pdf).transform_annotations(tr, rest)
+  @pdfe.with_silenced_logs(fn() {
+    @pdfannot.PdfAnnot::new(pdf).transform_annotations(tr, rest)
+  })
   let updated = pdf.lookup_obj(objnum)
   match (pdf.lookup_direct("/QuadPoints", updated) : @pdf.PdfObject?) {
     Some(Name(n)) if n.equal_string_bytes("/Bad") => ()
