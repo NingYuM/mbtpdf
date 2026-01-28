@@ -251,4 +251,6 @@ duplicating `match Encryption` logic across packages:
 
 - `e2e/*`: End-to-end roundtrip tests (merge, split, annotate, encrypt, etc.)
 - Per-package `*_test.mbt` files: Unit tests for individual packages
-- See `docs/e2e-tests.md` for detailed test coverage information
+- See `docs/e2e-tests.md` for end-to-end details
+- See `docs/testing.md` for test commands, coverage, and the per-package coverage gate
+- See `docs/logging-hygiene.md` for keeping test output quiet in CI

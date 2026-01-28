@@ -4,6 +4,8 @@ This repo has a lot of tests that intentionally feed malformed PDFs into the par
 
 For CI and for local developer experience, tests should avoid printing expected warnings to stdout/stderr unless the test is explicitly asserting on them.
 
+See `docs/testing.md` for the recommended test/coverage commands and the CI coverage gate.
+
 ## Use `core/pdfe` for scoped log control
 
 Most warnings go through `@pdfe.log` (see `core/pdfe`).
@@ -53,4 +55,3 @@ let prev = @pdfutil.printer.val
 ## CLI packages: prefer `run(..., quiet=true)` in tests
 
 CLI `cmd/*` packages may print usage/errors. Their tests should call `run(..., quiet=true)` when exercising invalid argument handling or expected failures.
-
