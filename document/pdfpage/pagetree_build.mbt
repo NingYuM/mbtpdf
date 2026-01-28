@@ -250,3 +250,12 @@ pub fn PdfPageDoc::add_root(
     saved_encryption: pdf.saved_encryption,
   }
 }
+
+///|
+test "split3 errors on invalid n" {
+  let res : Result[(ArrayView[Int], ArrayView[Int], ArrayView[Int]), Error] = try? split3(
+    3,
+    [1, 2, 3][:],
+  )
+  assert_true(res is Err(_))
+}

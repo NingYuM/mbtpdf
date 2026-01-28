@@ -68,6 +68,27 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
 }
 
 ///|
+test "fixup_duplicate_annots tolerates missing popup/parent links" {
+  let pdf0 = @pdf.Pdf::empty()
+  let page = @pdfpage.Page::custom(fixups_sample_rect())
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([
+    page, page,
+  ])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
+  let annot : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Text"))),
+  ])
+  let annot_num = pdf.addobj(annot)
+  let refs = pdf.page_reference_numbers()
+  for refnum in refs {
+    let page_obj = pdf.lookup_obj(refnum)
+    let updated = page_obj.add_entry("/Annots", Array([Indirect(annot_num)]))
+    pdf.addobj_given_num((refnum, updated))
+  }
+  @pdfpage.PdfPageDoc::new(pdf).fixup_duplicate_annots()
+}
+
+///|
 test "fixup_destinations removes nulled entries" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let null_num = pdf.addobj(Null)

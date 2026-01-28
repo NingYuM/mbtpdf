@@ -80,6 +80,16 @@ test "pdf_of_pages errors on invalid page index" {
 }
 
 ///|
+test "pdf_of_pages errors on index < 1" {
+  let pdf = pdf_of_pages_make_pdf(2)
+  let res : Result[@pdf.Pdf, Error] = try? @pdfpage.PdfPageDoc::new(pdf).pdf_of_pages([
+      0,
+    ],
+  )
+  assert_true(res is Err(_))
+}
+
+///|
 test "pdf_of_pages builds pagetree for many pages" {
   let pdf = pdf_of_pages_make_pdf(12)
   let subset = @pdfpage.PdfPageDoc::new(pdf).pdf_of_pages([

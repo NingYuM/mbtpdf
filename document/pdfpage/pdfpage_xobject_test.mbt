@@ -178,3 +178,92 @@ test "process_xobjects errors on non-indirect xobject references" {
   let res : Result[Unit, Error] = try? page.process_xobjects(pdf, update)
   assert_true(res is Err(_))
 }
+
+///|
+test "process_xobjects ignores non-form xobjects" {
+  let pdf = @pdf.Pdf::empty()
+  let xobj_dict : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Image"))),
+  ])
+  let xobj_num = pdf.addobj(xobj_dict)
+  let resources : @pdf.PdfObject = Dictionary([
+    ("/XObject", Dictionary([("/Im0", Indirect(xobj_num))])),
+  ])
+  let page : @pdfpage.Page = {
+    content: [],
+    mediabox: Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    resources,
+    rotate: @pdfpage.Rotation::Rotate0,
+    rest: Dictionary([]),
+  }
+  let calls : Ref[Int] = { val: 0 }
+  let update = fn(
+    _ : @pdf.Pdf,
+    _ : @pdf.PdfObject,
+    _ : Array[@pdf.PdfObject],
+  ) -> Array[@pdf.PdfObject] {
+    calls.val = calls.val + 1
+    []
+  }
+  page.process_xobjects(pdf, update)
+  assert_eq(calls.val, 0)
+}
+
+///|
+test "process_xobjects does nothing when /XObject is missing" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([])
+  let page : @pdfpage.Page = {
+    content: [],
+    mediabox: Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    resources,
+    rotate: @pdfpage.Rotation::Rotate0,
+    rest: Dictionary([]),
+  }
+  page.process_xobjects(pdf, fn(_, _, _) { [] })
+}
+
+///|
+test "combine_pdf_resources handles non-dictionary inputs" {
+  let pdf = @pdf.Pdf::empty()
+  let combined = @pdfpage.PdfPageDoc::new(pdf).combine_pdf_resources(
+    Integer(1),
+    Dictionary([("/Font", Dictionary([("/F1", Null)]))]),
+  )
+  match (pdf.lookup_direct("/Font", combined) : @pdf.PdfObject?) {
+    Some(Dictionary(_)) => ()
+    _ => fail("expected /Font to be preserved")
+  }
+}
+
+///|
+test "process_xobjects errors when updater returns non-stream" {
+  let pdf = @pdf.Pdf::empty()
+  let stream_dict : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Form"))),
+  ])
+  let data = @pdfio.bytes_of_list([0x01])
+  let stream : @pdf.PdfObject = Stream(
+    Ref::new((stream_dict, @pdf.Stream::Got(data))),
+  )
+  let xobj_num = pdf.addobj(stream)
+  let resources : @pdf.PdfObject = Dictionary([
+    ("/XObject", Dictionary([("/X1", Indirect(xobj_num))])),
+  ])
+  let page : @pdfpage.Page = {
+    content: [],
+    mediabox: Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    resources,
+    rotate: @pdfpage.Rotation::Rotate0,
+    rest: Dictionary([]),
+  }
+  let update = fn(
+    _ : @pdf.Pdf,
+    _ : @pdf.PdfObject,
+    _ : Array[@pdf.PdfObject],
+  ) -> Array[@pdf.PdfObject] {
+    [Integer(0)]
+  }
+  let res : Result[Unit, Error] = try? page.process_xobjects(pdf, update)
+  assert_true(res is Err(_))
+}
