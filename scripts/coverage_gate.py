@@ -16,14 +16,14 @@ def is_excluded(pkg: str) -> bool:
 
 
 def discover_packages(repo_root: Path) -> list[str]:
-  pkgs: set[str] = set()
-  for name in ("moon.pkg", "moon.pkg.json"):
-    for pkg_file in repo_root.rglob(name):
-      rel_parent = pkg_file.parent.relative_to(repo_root).as_posix()
-      if rel_parent.startswith(("_build/", "target/", ".git/", ".mooncakes/")):
-        continue
-      pkgs.add(rel_parent if rel_parent else ".")
-  return sorted(pkgs)
+    pkgs: set[str] = set()
+    for name in ("moon.pkg", "moon.pkg.json"):
+        for pkg_file in repo_root.rglob(name):
+            rel_parent = pkg_file.parent.relative_to(repo_root).as_posix()
+            if rel_parent.startswith(("_build/", "target/", ".git/", ".mooncakes/")):
+                continue
+            pkgs.add(rel_parent if rel_parent else ".")
+    return sorted(pkgs)
 
 
 def run_pkg_summary(pkg: str) -> tuple[int, int]:
