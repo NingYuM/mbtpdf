@@ -4,9 +4,11 @@ async fn main {
 }
 
 ///|
-pub async fn run(args : Array[String]) -> Unit {
+pub async fn run(args : Array[String], quiet? : Bool = false) -> Unit {
   if args.length() != 3 {
-    println("Syntax: pdfdecomp <input> <output>")
+    if !quiet {
+      println("Syntax: pdfdecomp <input> <output>")
+    }
     return
   }
   let in_file = args[1]
@@ -20,9 +22,10 @@ pub async fn run(args : Array[String]) -> Unit {
     })
     @pdfwritefs.PdfWriteFs::new().pdf_to_file(pdf, out_file)
   } catch {
-    err => {
-      println("Failed to decompress file.")
-      println(err)
-    }
+    err =>
+      if !quiet {
+        println("Failed to decompress file.")
+        println(err)
+      }
   }
 }

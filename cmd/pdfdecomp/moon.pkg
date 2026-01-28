@@ -1,4 +1,6 @@
 import {
+  "bobzhang/mbtpdf/core/pdfe",
+  "bobzhang/mbtpdf/core/pdfutil",
   "bobzhang/mbtpdf/core/pdf",
   "bobzhang/mbtpdf/document/pdfpage",
   "bobzhang/mbtpdf/io/pdfreadfs",
