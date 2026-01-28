@@ -182,6 +182,10 @@ Base utilities used across most packages:
 
 ## Entry Points and Tests
 
+### Logging hygiene
+
+See `docs/logging-hygiene.md` for the repo-wide conventions used to keep test output quiet (scoped `@pdfe` helpers, `PdfRead` logger injection, and `@pdfutil` printing suppression).
+
 ## Traits Used For Refactoring
 
 MoonBit traits are used as "typeclass-style" abstractions to remove duplicated
