@@ -7,6 +7,10 @@ let stdout_buffer : Ref[String] = Ref::new("")
 let stderr_buffer : Ref[String] = Ref::new("")
 
 ///|
+/// When true, PdfUtil printing is suppressed (used to keep tests quiet).
+pub let quiet : Ref[Bool] = Ref::new(false)
+
+///|
 pub struct PdfUtil {
   stdout_buffer : Ref[String]
   stderr_buffer : Ref[String]
@@ -20,17 +24,21 @@ pub fn PdfUtil::new() -> PdfUtil {
 ///|
 /// Flush complete lines from a buffer using println, keeping partial tails.
 fn flush_buffer(buffer : Ref[String], message : String) -> Unit {
-  let combined = buffer.val + message
-  let mut line = StringBuilder::new()
-  for ch in combined {
-    if ch == '\n' {
-      println(line.to_string())
-      line = StringBuilder::new()
-    } else {
-      line.write_char(ch)
+  if quiet.val {
+    buffer.val = ""
+  } else {
+    let combined = buffer.val + message
+    let mut line = StringBuilder::new()
+    for ch in combined {
+      if ch == '\n' {
+        println(line.to_string())
+        line = StringBuilder::new()
+      } else {
+        line.write_char(ch)
+      }
     }
+    buffer.val = line.to_string()
   }
-  buffer.val = line.to_string()
 }
 
 ///|

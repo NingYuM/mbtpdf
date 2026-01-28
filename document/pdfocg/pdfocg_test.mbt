@@ -184,7 +184,10 @@ test "read_ocg parses ocg intent name" {
 ///|
 test "print_document_ocg handles missing ocg" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
+  let prev = @pdfutil.quiet.val
+  @pdfutil.quiet.val = true
   PdfOcg::new(pdf).print_document()
+  @pdfutil.quiet.val = prev
 }
 
 ///|
@@ -212,7 +215,10 @@ test "print_document_ocg prints ocgs and configs" {
   let updated_root = root.add_entry("/OCProperties", ocprops)
   pdf.addobj_given_num((pdf.root, updated_root))
   let ctx = PdfOcg::new(pdf)
+  let prev = @pdfutil.quiet.val
+  @pdfutil.quiet.val = true
   ctx.print_document()
+  @pdfutil.quiet.val = prev
   match ctx.read() {
     None => fail("expected ocproperties")
     Some(props) => ctx.write(props)

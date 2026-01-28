@@ -15,6 +15,16 @@ pub struct PdfUtil { ... }
 pub fn PdfUtil::new() -> PdfUtil
 ```
 
+## Values
+
+### quiet
+
+When `true`, `PdfUtil::flprint` / `PdfUtil::fleprint` are suppressed (useful for keeping tests quiet).
+
+```moonbit nocheck
+pub let quiet : Ref[Bool]
+```
+
 ## Methods
 
 ### PdfUtil::flprint

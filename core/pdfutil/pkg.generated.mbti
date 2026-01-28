@@ -2,6 +2,7 @@
 package "bobzhang/mbtpdf/core/pdfutil"
 
 // Values
+pub let quiet : Ref[Bool]
 
 // Errors
 
