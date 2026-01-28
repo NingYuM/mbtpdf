@@ -2,7 +2,7 @@
 package "bobzhang/mbtpdf/cmd/pdfhello"
 
 // Values
-pub async fn run(out_file? : String) -> Unit
+pub async fn run(out_file? : String, quiet? : Bool) -> Unit
 
 // Errors
 

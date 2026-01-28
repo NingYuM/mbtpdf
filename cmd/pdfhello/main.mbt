@@ -1,5 +1,8 @@
 ///|
-pub async fn run(out_file? : String = "hello.pdf") -> Unit {
+pub async fn run(
+  out_file? : String = "hello.pdf",
+  quiet? : Bool = false,
+) -> Unit {
   try {
     let font = @pdf.PdfObject::Dictionary([
       ("/Type", Name(@pdf.PdfName::of_string("/Font"))),
@@ -32,10 +35,11 @@ pub async fn run(out_file? : String = "hello.pdf") -> Unit {
     let pdf = @pdfpage.PdfPageDoc::new(pdf).add_root(pageroot, [])
     @pdfwritefs.PdfWriteFs::new().pdf_to_file(pdf, out_file)
   } catch {
-    err => {
-      println("Failed to produce output.")
-      println(err)
-    }
+    err =>
+      if !quiet {
+        println("Failed to produce output.")
+        println(err)
+      }
   }
 }
 
