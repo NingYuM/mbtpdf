@@ -55,7 +55,9 @@ test "postpend_operators handles empty content" {
 
 ///|
 test "protect adds missing Q operators" {
-  let fixed = @pdfpage.Page::protect_ops([Opq, Opq])
+  let fixed = @pdfe.with_logger(_ => (), fn() {
+    @pdfpage.Page::protect_ops([Opq, Opq])
+  })
   assert_eq(fixed.length(), 2)
   match (fixed : Array[@pdfops.Op]) {
     [OpQ, OpQ] => ()

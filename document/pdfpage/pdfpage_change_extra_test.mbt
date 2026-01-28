@@ -172,11 +172,9 @@ test "change_pages rewrites bookmarks annotations and openaction" {
   }
   let matrices = [(1, scale), (2, @pdftransform.TransformMatrix::identity())]
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
-  let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(
-    true,
-    pages,
-    matrices~,
-  )
+  let updated = @pdfe.with_logger(_ => (), fn() {
+    @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices~)
+  })
   assert_eq(@pdfpage.PdfPageDoc::new(updated).pages_of_pagetree_quick(), 2)
   let catalog = updated.catalog_of_pdf()
   match (updated.lookup_direct("/OpenAction", catalog) : @pdf.PdfObject?) {
@@ -220,11 +218,9 @@ test "change_pages logs when lengths differ with matrices" {
   let pdf = build_two_page_pdf()
   let pages = [@pdfpage.Page::blank(@pdfpaper.a4)]
   let matrices = [(1, @pdftransform.TransformMatrix::identity())]
-  let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(
-    true,
-    pages,
-    matrices~,
-  )
+  let updated = @pdfe.with_logger(_ => (), fn() {
+    @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices~)
+  })
   assert_eq(@pdfpage.PdfPageDoc::new(updated).pages_of_pagetree_quick(), 1)
 }
 

@@ -56,9 +56,9 @@ test "renumber_pages renames resource operators consistently" {
     Real(100.0),
     Real(100.0),
   ])
-  let updated = @pdfpage.PdfPageDoc::new(pdf).renumber_pages([
-    renumber_page(rect),
-  ])
+  let updated = @pdfe.with_logger(_ => (), fn() {
+    @pdfpage.PdfPageDoc::new(pdf).renumber_pages([renumber_page(rect)])
+  })
   let renamed = updated[0]
   let ops = @pdfops.Op::parse_operators(pdf, renamed.resources, renamed.content)
   assert_eq(ops.length(), 13)

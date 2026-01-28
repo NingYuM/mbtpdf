@@ -469,7 +469,10 @@ test "add_prefix merges non-iso content streams" {
     ],
   )
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
-  @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
+  @pdfe.with_logger(_ => (), fn() {
+    @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
+    ()
+  })
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   assert_eq(pages[0].content.length(), 1)
 }
