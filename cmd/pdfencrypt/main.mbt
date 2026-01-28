@@ -4,9 +4,11 @@ async fn main {
 }
 
 ///|
-pub async fn run(args : Array[String]) -> Unit {
+pub async fn run(args : Array[String], quiet? : Bool = false) -> Unit {
   if args.length() != 4 {
-    println("Syntax: pdfencrypt <input> <output> <owner-password>")
+    if !quiet {
+      println("Syntax: pdfencrypt <input> <output> <owner-password>")
+    }
     return
   }
   let in_file = args[1]
@@ -20,9 +22,10 @@ pub async fn run(args : Array[String]) -> Unit {
     )
     @pdfwritefs.PdfWriteFs::new().pdf_to_file(encrypted, out_file)
   } catch {
-    err => {
-      println("Failed to produce output.")
-      println(err)
-    }
+    err =>
+      if !quiet {
+        println("Failed to produce output.")
+        println(err)
+      }
   }
 }
