@@ -1,6 +1,6 @@
 ///|
 test "malformed pdf honors /Version in catalog when forced" {
-  let reader = PdfRead::new(debug_always_treat_malformed=true)
+  let reader = PdfRead::new(debug_always_treat_malformed=true, logger=_ => ())
   let data =
     #|%PDF-1.4
     #|1 0 obj
@@ -12,14 +12,16 @@ test "malformed pdf honors /Version in catalog when forced" {
     #|trailer
     #|<< /Root 1 0 R >>
     #|%%EOF
-  let pdf = reader.pdf_of_input(None, None, @pdfio.Input::of_string(data))
+  let pdf = @pdfe.with_silenced_logs(fn() {
+    reader.pdf_of_input(None, None, @pdfio.Input::of_string(data))
+  })
   assert_eq(pdf.major, 1)
   assert_eq(pdf.minor, 7)
 }
 
 ///|
 test "malformed pdf falls back to catalog when /Root is direct" {
-  let reader = PdfRead::new(debug_always_treat_malformed=true)
+  let reader = PdfRead::new(debug_always_treat_malformed=true, logger=_ => ())
   let data =
     #|%PDF-1.4
     #|2 0 obj
@@ -31,13 +33,15 @@ test "malformed pdf falls back to catalog when /Root is direct" {
     #|trailer
     #|<< /Root 99 >>
     #|%%EOF
-  let pdf = reader.pdf_of_input(None, None, @pdfio.Input::of_string(data))
+  let pdf = @pdfe.with_silenced_logs(fn() {
+    reader.pdf_of_input(None, None, @pdfio.Input::of_string(data))
+  })
   assert_eq(pdf.root, 1)
 }
 
 ///|
 test "malformed pdf without /Root and catalog errors" {
-  let reader = PdfRead::new(debug_always_treat_malformed=true)
+  let reader = PdfRead::new(debug_always_treat_malformed=true, logger=_ => ())
   let data =
     #|%PDF-1.4
     #|1 0 obj
@@ -46,17 +50,15 @@ test "malformed pdf without /Root and catalog errors" {
     #|trailer
     #|<< /Size 2 >>
     #|trailer
-  let res : Result[@pdf.Pdf, Error] = try? reader.pdf_of_input(
-    None,
-    None,
-    @pdfio.Input::of_string(data),
-  )
+  let res : Result[@pdf.Pdf, Error] = try? @pdfe.with_silenced_logs(fn() {
+    reader.pdf_of_input(None, None, @pdfio.Input::of_string(data))
+  })
   assert_true(res is Err(_))
 }
 
 ///|
 test "malformed pdf ignores invalid /Version name" {
-  let reader = PdfRead::new(debug_always_treat_malformed=true)
+  let reader = PdfRead::new(debug_always_treat_malformed=true, logger=_ => ())
   let data =
     #|%PDF-1.4
     #|1 0 obj
@@ -68,14 +70,16 @@ test "malformed pdf ignores invalid /Version name" {
     #|trailer
     #|<< /Root 1 0 R >>
     #|%%EOF
-  let pdf = reader.pdf_of_input(None, None, @pdfio.Input::of_string(data))
+  let pdf = @pdfe.with_silenced_logs(fn() {
+    reader.pdf_of_input(None, None, @pdfio.Input::of_string(data))
+  })
   assert_eq(pdf.major, 1)
   assert_eq(pdf.minor, 4)
 }
 
 ///|
 test "malformed pdf ignores short /Version name" {
-  let reader = PdfRead::new(debug_always_treat_malformed=true)
+  let reader = PdfRead::new(debug_always_treat_malformed=true, logger=_ => ())
   let data =
     #|%PDF-1.4
     #|1 0 obj
@@ -87,14 +91,16 @@ test "malformed pdf ignores short /Version name" {
     #|trailer
     #|<< /Root 1 0 R >>
     #|%%EOF
-  let pdf = reader.pdf_of_input(None, None, @pdfio.Input::of_string(data))
+  let pdf = @pdfe.with_silenced_logs(fn() {
+    reader.pdf_of_input(None, None, @pdfio.Input::of_string(data))
+  })
   assert_eq(pdf.major, 1)
   assert_eq(pdf.minor, 4)
 }
 
 ///|
 test "malformed pdf errors on missing startxref digits" {
-  let reader = PdfRead::new(error_on_malformed=true)
+  let reader = PdfRead::new(error_on_malformed=true, logger=_ => ())
   let data =
     #|%PDF-1.4
     #|1 0 obj
@@ -105,28 +111,24 @@ test "malformed pdf errors on missing startxref digits" {
     #|endobj
     #|startxref
     #|%%EOF
-  let res : Result[@pdf.Pdf, Error] = try? reader.pdf_of_input(
-    None,
-    None,
-    @pdfio.Input::of_string(data),
-  )
+  let res : Result[@pdf.Pdf, Error] = try? @pdfe.with_silenced_logs(fn() {
+    reader.pdf_of_input(None, None, @pdfio.Input::of_string(data))
+  })
   assert_true(res is Err(_))
 }
 
 ///|
 test "malformed pdf errors on missing root and trailer" {
-  let reader = PdfRead::new(debug_always_treat_malformed=true)
-  let res : Result[@pdf.Pdf, Error] = try? reader.pdf_of_input(
-    None,
-    None,
-    @pdfio.Input::of_string("trailer"),
-  )
+  let reader = PdfRead::new(debug_always_treat_malformed=true, logger=_ => ())
+  let res : Result[@pdf.Pdf, Error] = try? @pdfe.with_silenced_logs(fn() {
+    reader.pdf_of_input(None, None, @pdfio.Input::of_string("trailer"))
+  })
   assert_true(res is Err(_))
 }
 
 ///|
 test "malformed pdf parses stream with indirect length" {
-  let reader = PdfRead::new(debug_always_treat_malformed=true)
+  let reader = PdfRead::new(debug_always_treat_malformed=true, logger=_ => ())
   let data =
     #|%PDF-1.4
     #|1 0 obj
@@ -147,17 +149,21 @@ test "malformed pdf parses stream with indirect length" {
     #|trailer
     #|<< /Root 3 0 R >>
     #|%%EOF
-  let pdf = reader.pdf_of_input(None, None, @pdfio.Input::of_string(data))
+  let pdf = @pdfe.with_silenced_logs(fn() {
+    reader.pdf_of_input(None, None, @pdfio.Input::of_string(data))
+  })
   assert_eq(pdf.root, 3)
 }
 
 ///|
 test "pdf_of_input rejects invalid revision" {
-  let res : Result[@pdf.Pdf, Error] = try? PdfRead::new().pdf_of_input(
-    revision=0,
-    None,
-    None,
-    @pdfio.Input::of_string("%PDF-1.4"),
-  )
+  let res : Result[@pdf.Pdf, Error] = try? @pdfe.with_silenced_logs(fn() {
+    PdfRead::new(logger=_ => ()).pdf_of_input(
+      revision=0,
+      None,
+      None,
+      @pdfio.Input::of_string("%PDF-1.4"),
+    )
+  })
   assert_true(res is Err(_))
 }
