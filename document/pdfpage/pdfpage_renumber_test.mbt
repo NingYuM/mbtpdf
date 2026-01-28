@@ -115,3 +115,88 @@ test "renumber_pages renames resource operators consistently" {
     _ => fail("expected OpBDC missing")
   }
 }
+
+///|
+test "renumber_pages rewrites inline image colorspace names" {
+  let pdf = @pdf.Pdf::empty()
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(100.0),
+    Real(100.0),
+  ])
+  let resources : @pdf.PdfObject = Dictionary([
+    (
+      "/ColorSpace",
+      Dictionary([("/CS1", Name(@pdf.PdfName::of_string("/DeviceRGB")))]),
+    ),
+  ])
+  let img1_dict : @pdf.PdfObject = Dictionary([
+    ("/W", Integer(1)),
+    ("/H", Integer(1)),
+    ("/BPC", Integer(8)),
+    ("/CS", Name(@pdf.PdfName::of_string("/CS1"))),
+  ])
+  let img2_dict : @pdf.PdfObject = Dictionary([
+    ("/W", Integer(1)),
+    ("/H", Integer(1)),
+    ("/BPC", Integer(8)),
+    (
+      "/CS",
+      Array([
+        Name(@pdf.PdfName::of_string("/Indexed")),
+        Name(@pdf.PdfName::of_string("/DeviceRGB")),
+        Integer(0),
+        String(@pdfio.string_of_bytes(@pdfio.bytes_of_list([255, 0, 0]))),
+      ]),
+    ),
+  ])
+  let img3_dict : @pdf.PdfObject = Dictionary([
+    ("/W", Integer(1)),
+    ("/H", Integer(1)),
+    ("/BPC", Integer(8)),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceRGB"))),
+  ])
+  let ops : Array[@pdfops.Op] = [
+    InlineImage((img1_dict, None, @pdfio.bytes_of_string("RGB"))),
+    InlineImage((img2_dict, None, @pdfio.bytes_of_list([0]))),
+    InlineImage((img3_dict, None, @pdfio.bytes_of_string("RGB"))),
+  ]
+  let page : @pdfpage.Page = {
+    content: [@pdfops.Op::stream_of_ops(ops)],
+    mediabox: rect,
+    resources,
+    rotate: @pdfpage.Rotation::Rotate0,
+    rest: Dictionary([]),
+  }
+  let updated = @pdfpage.PdfPageDoc::new(pdf).renumber_pages([page])
+  let renamed = updated[0]
+  let ops_out = @pdfops.Op::parse_operators(
+    pdf,
+    renamed.resources,
+    renamed.content,
+  )
+  let mut saw_renamed = false
+  let mut saw_passthrough = false
+  let mut saw_device = false
+  for op in ops_out {
+    match (op : @pdfops.Op) {
+      InlineImage((inline_dict, _, _)) =>
+        match pdf.lookup_direct("/CS", inline_dict) {
+          Some(Name(name)) =>
+            if name.equal_string_bytes("/DeviceRGB") {
+              saw_device = true
+            } else {
+              assert_true(!name.equal_string_bytes("/CS1"))
+              saw_renamed = true
+            }
+          Some(Array(_)) => saw_passthrough = true
+          _ => ()
+        }
+      _ => ()
+    }
+  }
+  assert_true(saw_renamed)
+  assert_true(saw_passthrough)
+  assert_true(saw_device)
+}
