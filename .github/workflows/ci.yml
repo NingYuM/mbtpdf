@@ -27,8 +27,10 @@ jobs:
       - name: Test
         run: moon test
 
+      - name: Check
+        run: moon check
+
       - name: Coverage gate (>= 95%)
         run: |
           chmod +x scripts/coverage_gate.sh
           scripts/coverage_gate.sh --threshold 95
-
