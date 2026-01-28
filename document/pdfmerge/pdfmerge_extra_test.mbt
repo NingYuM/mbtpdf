@@ -42,6 +42,11 @@ fn dest_dict_for_page(pdf : @pdf.Pdf, index : Int) -> @pdf.PdfObject raise {
 }
 
 ///|
+fn dest_dict(dest : @pdfdest.Destination) -> @pdf.PdfObject {
+  Dictionary([("/D", dest.to_pdf_object())])
+}
+
+///|
 fn with_version(pdf : @pdf.Pdf, major : Int, minor : Int) -> @pdf.Pdf {
   {
     major,
@@ -317,4 +322,279 @@ test "merge_pdfs errors on page out of range" {
     add_toplevel_document=false,
   )
   assert_true(res is Err(_))
+}
+
+///|
+test "merge_pdfs errors on non-positive page indices" {
+  let pdf = make_pdf_pages(1)
+  let res : Result[@pdf.Pdf, Error] = try? PdfMerger::new(["one"], [pdf], [[0]]).merge_pdfs(
+    false,
+    false,
+    process_struct_trees=false,
+    add_toplevel_document=false,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "merge_pdfs rewrites and preserves diverse destination bookmark targets" {
+  fn mk_mark(
+    text : String,
+    target : @pdfdest.Destination,
+  ) -> @pdfmarks.Bookmark {
+    { level: 0, text, target, isopen: false, colour: (0.0, 0.0, 0.0), flags: 0 }
+  }
+
+  let pdf = make_pdf_pages(2)
+  let tp1 = @pdfdest.TargetPage::PageObject(page_ref(pdf, 1))
+
+  // Legacy catalog /Dests dictionary (used for NamedDestination lookups).
+  let legacy_fit = @pdfdest.Destination::Fit(tp1).to_pdf_object()
+  let legacy_other = @pdfdest.Destination::Fit(
+    @pdfdest.TargetPage::OtherDocPageNumber(1),
+  ).to_pdf_object()
+  set_catalog_entry(
+    pdf,
+    "/Dests",
+    Dictionary([("/LegacyFit", legacy_fit), ("/LegacyOther", legacy_other)]),
+  )
+  let bookmarks : Array[@pdfmarks.Bookmark] = [
+    mk_mark(
+      "LegacyFit",
+      @pdfdest.Destination::NamedDestination(
+        @pdf.PdfName::of_string("/LegacyFit"),
+      ),
+    ),
+    mk_mark(
+      "LegacyOther",
+      @pdfdest.Destination::NamedDestination(
+        @pdf.PdfName::of_string("/LegacyOther"),
+      ),
+    ),
+    mk_mark("DirectFitH", @pdfdest.Destination::FitH(tp1, Some(0.0))),
+    mk_mark("DirectFitV", @pdfdest.Destination::FitV(tp1, Some(0.0))),
+    mk_mark("DirectFitR", @pdfdest.Destination::FitR(tp1, 0.0, 0.0, 1.0, 1.0)),
+    mk_mark("DirectFitB", @pdfdest.Destination::FitB(tp1)),
+    mk_mark("DirectFitBH", @pdfdest.Destination::FitBH(tp1, Some(0.0))),
+    mk_mark("DirectFitBV", @pdfdest.Destination::FitBV(tp1, Some(0.0))),
+  ]
+  let pdf = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(bookmarks)
+  let merged = PdfMerger::new(["one"], [pdf], [[1]]).merge_pdfs(
+    false,
+    false,
+    process_struct_trees=false,
+    add_toplevel_document=false,
+  )
+  let marks = @pdfmarks.PdfMarks::new(merged).read_bookmarks(
+    preserve_actions=true,
+  )
+  let texts = marks.map(m => m.text)
+  assert_true(texts.contains("LegacyFit"))
+  assert_true(texts.contains("DirectFitH"))
+  assert_true(texts.contains("DirectFitV"))
+  assert_true(texts.contains("DirectFitR"))
+  assert_true(texts.contains("DirectFitB"))
+  assert_true(texts.contains("DirectFitBH"))
+  assert_true(texts.contains("DirectFitBV"))
+  // Some destinations should be dropped because they don't map to a selected page.
+  assert_true(!texts.contains("LegacyOther"))
+}
+
+///|
+test "merge_pdfs resolves NamedDestination via name tree when /Dests missing" {
+  let pdf = make_pdf_pages(1)
+  let tp1 = @pdfdest.TargetPage::PageObject(page_ref(pdf, 1))
+  add_names_dests(pdf, [
+    ("/OnlyInTree", dest_dict(@pdfdest.Destination::Fit(tp1))),
+    ("TreeStr", dest_dict(@pdfdest.Destination::FitH(tp1, Some(0.0)))),
+    (
+      "/OtherDocNamed",
+      dest_dict(
+        @pdfdest.Destination::Fit(@pdfdest.TargetPage::OtherDocPageNumber(1)),
+      ),
+    ),
+    ("/NoDNamed", Dictionary([])),
+    (
+      "OtherDocStr",
+      dest_dict(
+        @pdfdest.Destination::Fit(@pdfdest.TargetPage::OtherDocPageNumber(1)),
+      ),
+    ),
+    ("NoDStr", Dictionary([])),
+  ])
+  let action_goto : @pdf.PdfObject = Dictionary([
+    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
+    ("/D", String("TreeStr")),
+  ])
+  let action_bad_d : @pdf.PdfObject = Dictionary([
+    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
+    ("/D", Integer(0)),
+  ])
+  let action_bad_s : @pdf.PdfObject = Dictionary([
+    ("/S", Name(@pdf.PdfName::of_string("/NotGoTo"))),
+    ("/D", String("TreeStr")),
+  ])
+  let action_missing_dest : @pdf.PdfObject = Dictionary([
+    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
+    ("/D", String("MissingStr")),
+  ])
+  let action_no_d : @pdf.PdfObject = Dictionary([
+    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
+    ("/D", String("NoDStr")),
+  ])
+  let bookmarks : Array[@pdfmarks.Bookmark] = [
+    {
+      level: 0,
+      text: "TreeOnly",
+      target: @pdfdest.Destination::NamedDestination(
+        @pdf.PdfName::of_string("/OnlyInTree"),
+      ),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "TreeStr",
+      target: @pdfdest.Destination::StringDestination("TreeStr"),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "TreeAction",
+      target: @pdfdest.Destination::Action(action_goto),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "OtherDocNamed",
+      target: @pdfdest.Destination::NamedDestination(
+        @pdf.PdfName::of_string("/OtherDocNamed"),
+      ),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "NoDNamed",
+      target: @pdfdest.Destination::NamedDestination(
+        @pdf.PdfName::of_string("/NoDNamed"),
+      ),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "OtherDocStr",
+      target: @pdfdest.Destination::StringDestination("OtherDocStr"),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "NoDStr",
+      target: @pdfdest.Destination::StringDestination("NoDStr"),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "MissingStr",
+      target: @pdfdest.Destination::StringDestination("MissingStr"),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "BadActionD",
+      target: @pdfdest.Destination::Action(action_bad_d),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "BadActionS",
+      target: @pdfdest.Destination::Action(action_bad_s),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "BadActionMissingDest",
+      target: @pdfdest.Destination::Action(action_missing_dest),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+    {
+      level: 0,
+      text: "BadActionNoD",
+      target: @pdfdest.Destination::Action(action_no_d),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+  ]
+  let pdf = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(bookmarks)
+  let merged = PdfMerger::new(["one"], [pdf], [[1]]).merge_pdfs(
+    false,
+    false,
+    process_struct_trees=false,
+    add_toplevel_document=false,
+  )
+  let marks = @pdfmarks.PdfMarks::new(merged).read_bookmarks(
+    preserve_actions=true,
+  )
+  let texts = marks.map(m => m.text)
+  assert_true(texts.contains("TreeOnly"))
+  assert_true(texts.contains("TreeStr"))
+  assert_true(texts.contains("TreeAction"))
+  assert_true(!texts.contains("OtherDocNamed"))
+  assert_true(!texts.contains("NoDNamed"))
+  assert_true(!texts.contains("OtherDocStr"))
+  assert_true(!texts.contains("NoDStr"))
+  assert_true(!texts.contains("MissingStr"))
+  assert_true(!texts.contains("BadActionD"))
+  assert_true(!texts.contains("BadActionS"))
+  assert_true(!texts.contains("BadActionMissingDest"))
+  assert_true(!texts.contains("BadActionNoD"))
+}
+
+///|
+test "merge_pdfs drops NamedDestination when no destination trees exist" {
+  let pdf = make_pdf_pages(1)
+  let bookmarks : Array[@pdfmarks.Bookmark] = [
+    {
+      level: 0,
+      text: "MissingDest",
+      target: @pdfdest.Destination::NamedDestination(
+        @pdf.PdfName::of_string("/MissingDest"),
+      ),
+      isopen: false,
+      colour: (0.0, 0.0, 0.0),
+      flags: 0,
+    },
+  ]
+  let pdf = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(bookmarks)
+  let merged = PdfMerger::new(["one"], [pdf], [[1]]).merge_pdfs(
+    false,
+    false,
+    process_struct_trees=false,
+    add_toplevel_document=false,
+  )
+  let marks = @pdfmarks.PdfMarks::new(merged).read_bookmarks(
+    preserve_actions=true,
+  )
+  assert_eq(marks.length(), 0)
 }
