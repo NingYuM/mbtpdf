@@ -244,18 +244,26 @@ pub fn PdfCodec::decode_pdfstream_onestage(
           }
           new_dict = match parms {
             None => new_dict
-            Some(Array(arr)) => {
-              let rest = arr.sub(start=1).to_array()
-              if rest.length() == 0 {
+            Some(Array(arr)) =>
+              if arr.length() == 0 {
                 map_pdf_error("remove decode parms", fn() raise {
                   new_dict.remove_entry(parms_key)
                 })
               } else {
-                map_pdf_error("replace decode parms", fn() raise {
-                  new_dict.replace_entry(parms_key, @pdf.PdfObject::Array(rest))
-                })
+                let rest = arr.sub(start=1).to_array()
+                if rest.length() == 0 {
+                  map_pdf_error("remove decode parms", fn() raise {
+                    new_dict.remove_entry(parms_key)
+                  })
+                } else {
+                  map_pdf_error("replace decode parms", fn() raise {
+                    new_dict.replace_entry(
+                      parms_key,
+                      @pdf.PdfObject::Array(rest),
+                    )
+                  })
+                }
               }
-            }
             Some(_) =>
               map_pdf_error("remove decode parms", fn() raise {
                 new_dict.remove_entry(parms_key)
