@@ -1,5 +1,6 @@
 import {
   "bobzhang/mbtpdf/core/pdf",
+  "bobzhang/mbtpdf/core/pdfe",
   "bobzhang/mbtpdf/document/pdfannot",
   "bobzhang/mbtpdf/document/pdfdest",
   "bobzhang/mbtpdf/document/pdfmarks",
