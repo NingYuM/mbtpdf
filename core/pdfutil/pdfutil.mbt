@@ -11,6 +11,13 @@ let stderr_buffer : Ref[String] = Ref::new("")
 pub let quiet : Ref[Bool] = Ref::new(false)
 
 ///|
+pub type Printer = (String) -> Unit
+
+///|
+/// Where PdfUtil printing is sent (defaults to println). Tests can override.
+pub let printer : Ref[Printer] = Ref::new(fn(line) { println(line) })
+
+///|
 pub struct PdfUtil {
   stdout_buffer : Ref[String]
   stderr_buffer : Ref[String]
@@ -31,7 +38,7 @@ fn flush_buffer(buffer : Ref[String], message : String) -> Unit {
     let mut line = StringBuilder::new()
     for ch in combined {
       if ch == '\n' {
-        println(line.to_string())
+        (printer.val)(line.to_string())
         line = StringBuilder::new()
       } else {
         line.write_char(ch)
@@ -57,17 +64,13 @@ pub fn PdfUtil::fleprint(self : PdfUtil, message : String) -> Unit {
 /// Memoize a nullary function (cache the first computed value).
 pub fn[T] PdfUtil::memoize(_self : PdfUtil, f : () -> T raise) -> () -> T raise {
   let cached : Ref[T?] = Ref::new(None)
-  let ready : Ref[Bool] = Ref::new(false)
-  () => if ready.val {
-    match cached.val {
-      Some(value) => value
-      None => f()
+  () => match cached.val {
+    Some(value) => value
+    None => {
+      let value = f()
+      cached.val = Some(value)
+      value
     }
-  } else {
-    let value = f()
-    cached.val = Some(value)
-    ready.val = true
-    value
   }
 }
 

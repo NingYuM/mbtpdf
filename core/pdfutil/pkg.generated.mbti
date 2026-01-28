@@ -2,6 +2,8 @@
 package "bobzhang/mbtpdf/core/pdfutil"
 
 // Values
+pub let printer : Ref[(String) -> Unit]
+
 pub let quiet : Ref[Bool]
 
 // Errors
@@ -20,6 +22,7 @@ pub fn PdfUtil::new() -> Self
 pub fn[K, V] PdfUtil::null_hash(Self) -> Map[K, V]
 
 // Type aliases
+pub type Printer = (String) -> Unit
 
 // Traits
 
