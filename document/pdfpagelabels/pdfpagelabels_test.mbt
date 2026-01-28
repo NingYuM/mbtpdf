@@ -289,7 +289,9 @@ test "read handles label styles and bad startpage" {
     Dictionary([("/P", String("P"))]),
   ]
   set_page_labels(pdf, nums)
-  let labels = @pdfpagelabels.PageLabel::read_all(pdf)
+  let labels = @pdfe.with_logger(_ => (), fn() {
+    @pdfpagelabels.PageLabel::read_all(pdf)
+  })
   assert_eq(labels.length(), 6)
   assert_eq(labels[0].startpage, 1)
   match labels[0].labelstyle {
