@@ -126,11 +126,9 @@ pub fn PdfCryptPrimitives::decrypt_stream_data(
           self.aes_decrypt_data(4, hash, data)
         }
       AESV3(_) =>
-        if encrypt {
-          self.aes_encrypt_data(8, hash, data)
-        } else {
-          self.aes_decrypt_data(8, hash, data)
-        }
+        fail(
+          "decrypt_stream_data: AESV3 requires r=5 or 6 (file encryption key)",
+        )
       ARC4(_, _) => self.crypt(hash, data)
     }
   }

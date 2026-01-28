@@ -76,3 +76,117 @@ test "decrypt_stream_data arc4 roundtrip" {
   )
   assert_eq(@pdfio.string_of_bytes(dec), "secret")
 }
+
+///|
+test "arc4 crypt returns copy when key is empty" {
+  let data = @pdfio.bytes_of_string("x")
+  let out = @pdfcryptprimitives.PdfCryptPrimitives::new().crypt([], data)
+  assert_eq(out, data)
+}
+
+///|
+test "aes ecb encrypt/decrypt handles empty data" {
+  let key : Array[Int] = [
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
+    0x0d, 0x0e, 0x0f,
+  ]
+  let empty = @pdfio.mkbytes(0)
+  let enc = @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data_ecb(
+    4, key, empty,
+  )
+  assert_eq(@pdfio.bytes_size(enc), 0)
+  let dec = @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data_ecb(
+    4, key, empty,
+  )
+  assert_eq(@pdfio.bytes_size(dec), 0)
+}
+
+///|
+test "aes ecb remove_padding keeps data for invalid padding" {
+  let key : Array[Int] = [
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
+    0x0d, 0x0e, 0x0f,
+  ]
+  let plaintext = @pdfio.bytes_of_list([
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x02,
+  ])
+  let encrypted = @pdfcryptprimitives.PdfCryptPrimitives::new().aes_encrypt_data_ecb(
+    4, key, plaintext,
+  )
+  let decrypted = @pdfcryptprimitives.PdfCryptPrimitives::new().aes_decrypt_data_ecb(
+    4, key, encrypted,
+  )
+  assert_eq(@pdfio.bytes_size(decrypted), 16)
+  assert_eq(decrypted, plaintext)
+}
+
+///|
+test "decrypt_stream_data uses file key for r=5 AESV2 and ARC4" {
+  let ctx = @pdfcryptprimitives.PdfCryptPrimitives::new()
+  let file_key = "0123456789ABCDEF"
+  let data = @pdfio.bytes_of_string("payload")
+  let enc_aes = ctx.decrypt_stream_data(
+    @pdfcryptprimitives.Encryption::AESV2,
+    true,
+    Some(file_key),
+    1,
+    0,
+    [],
+    128,
+    5,
+    data,
+  )
+  let dec_aes = ctx.decrypt_stream_data(
+    @pdfcryptprimitives.Encryption::AESV2,
+    false,
+    Some(file_key),
+    1,
+    0,
+    [],
+    128,
+    5,
+    enc_aes,
+  )
+  assert_eq(@pdfio.string_of_bytes(dec_aes), "payload")
+  let enc_arc4 = ctx.decrypt_stream_data(
+    @pdfcryptprimitives.Encryption::ARC4(40, 5),
+    true,
+    Some(file_key),
+    1,
+    0,
+    [],
+    40,
+    5,
+    data,
+  )
+  let dec_arc4 = ctx.decrypt_stream_data(
+    @pdfcryptprimitives.Encryption::ARC4(40, 5),
+    false,
+    Some(file_key),
+    1,
+    0,
+    [],
+    40,
+    5,
+    enc_arc4,
+  )
+  assert_eq(@pdfio.string_of_bytes(dec_arc4), "payload")
+}
+
+///|
+test "decrypt_stream_data rejects AESV3 when r!=5/6" {
+  let ctx = @pdfcryptprimitives.PdfCryptPrimitives::new()
+  let res : Result[@pdfio.MutableBytes, Error] = try? ctx.decrypt_stream_data(
+    @pdfcryptprimitives.Encryption::AESV3(false),
+    true,
+    None,
+    1,
+    0,
+    [1, 2, 3],
+    40,
+    4,
+    @pdfio.bytes_of_string("x"),
+  )
+  assert_true(res is Err(_))
+}
