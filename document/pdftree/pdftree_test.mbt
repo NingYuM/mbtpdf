@@ -77,7 +77,15 @@ test "build_name_tree uses kids for large inputs" {
 test "read_name_tree skips malformed keys" {
   let pdf = @pdf.Pdf::empty()
   let tree : @pdf.PdfObject = Dictionary([
-    ("/Names", Array([Integer(1), Name(@pdf.PdfName::of_string("/One"))])),
+    (
+      "/Names",
+      Array([
+        Integer(1),
+        Name(@pdf.PdfName::of_string("/One")),
+        String("B"),
+        Name(@pdf.PdfName::of_string("/Two")),
+      ]),
+    ),
   ])
   let read = @pdftree.PdfTree::new(pdf).read_name_tree(tree)
   assert_eq(read.length(), 0)
@@ -114,6 +122,39 @@ test "read_number_tree handles duplicate keys" {
     }
   }
   assert_true(found)
+}
+
+///|
+test "build_number_tree parses non-integer keys as 0" {
+  let pdf = @pdf.Pdf::empty()
+  let tree_ctx = @pdftree.PdfTree::new(pdf)
+  let entries : Array[(String, @pdf.PdfObject)] = [
+    ("x", Name(@pdf.PdfName::of_string("/X"))),
+    ("2", Name(@pdf.PdfName::of_string("/Two"))),
+  ]
+  let tree = tree_ctx.build_name_tree(true, entries)
+  let read = tree_ctx.read_number_tree(tree)
+  assert_eq(read.length(), 2)
+  assert_eq(read[0].0, "0")
+  assert_eq(read[1].0, "2")
+}
+
+///|
+test "read_number_tree returns empty on non-integer keys" {
+  let pdf = @pdf.Pdf::empty()
+  let tree : @pdf.PdfObject = Dictionary([
+    (
+      "/Nums",
+      Array([
+        String("x"),
+        Name(@pdf.PdfName::of_string("/X")),
+        Integer(2),
+        Name(@pdf.PdfName::of_string("/Two")),
+      ]),
+    ),
+  ])
+  let read = @pdftree.PdfTree::new(pdf).read_number_tree(tree)
+  assert_eq(read.length(), 0)
 }
 
 ///|

@@ -831,11 +831,17 @@ test "add_annotation covers remaining subtype variants" {
   ])
   let page = @pdfpage.Page::custom(rect)
   let variants : Array[(@pdfannot.Subtype, String)] = [
+    (@pdfannot.Subtype::FreeText, "/FreeText"),
+    (@pdfannot.Subtype::Line, "/Line"),
     (@pdfannot.Subtype::Square, "/Square"),
     (@pdfannot.Subtype::Circle, "/Circle"),
     (@pdfannot.Subtype::Polygon, "/Polygon"),
     (@pdfannot.Subtype::PolyLine, "/PolyLine"),
+    (@pdfannot.Subtype::Highlight, "/Highlight"),
+    (@pdfannot.Subtype::Underline, "/Underline"),
+    (@pdfannot.Subtype::Squiggly, "/Squiggly"),
     (@pdfannot.Subtype::StrikeOut, "/StrikeOut"),
+    (@pdfannot.Subtype::Stamp, "/Stamp"),
     (@pdfannot.Subtype::Caret, "/Caret"),
     (@pdfannot.Subtype::Ink, "/Ink"),
     (@pdfannot.Subtype::FileAttachment, "/FileAttachment"),
@@ -869,5 +875,32 @@ test "add_annotation covers remaining subtype variants" {
         }
       _ => fail("expected /Annots")
     }
+  }
+}
+
+///|
+test "transform_annotations leaves missing keys untouched" {
+  let pdf = @pdf.Pdf::empty()
+  let annot_dict : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Text"))),
+  ])
+  let objnum = pdf.addobj(annot_dict)
+  let rest : @pdf.PdfObject = Dictionary([
+    ("/Annots", Array([Indirect(objnum)])),
+  ])
+  let tr = @pdftransform.TransformMatrix::translate(10.0, 20.0)
+  @pdfannot.PdfAnnot::new(pdf).transform_annotations(tr, rest)
+  let updated = pdf.lookup_obj(objnum)
+  match (pdf.lookup_direct("/Rect", updated) : @pdf.PdfObject?) {
+    None => ()
+    _ => fail("expected no /Rect")
+  }
+  match (pdf.lookup_direct("/QuadPoints", updated) : @pdf.PdfObject?) {
+    None => ()
+    _ => fail("expected no /QuadPoints")
+  }
+  match (pdf.lookup_direct("/L", updated) : @pdf.PdfObject?) {
+    None => ()
+    _ => fail("expected no /L")
   }
 }

@@ -272,6 +272,55 @@ test "compose merges rotate and shear when compatible" {
 }
 
 ///|
+test "compose keeps rotate/shear when centers differ" {
+  let rotate = @pdftransform.Transform::new([
+    @pdftransform.TransformOp::Rotate((0.0, 0.0), 1.0),
+  ])
+  let rotate2 = rotate.compose(
+    @pdftransform.TransformOp::Rotate((1.0, 0.0), 2.0),
+  )
+  match rotate2 {
+    {
+      ops: [
+        @pdftransform.TransformOp::Rotate((1.0, 0.0), _),
+        @pdftransform.TransformOp::Rotate((0.0, 0.0), _),
+      ],
+    } => ()
+    _ => fail("expected two rotate ops")
+  }
+  let shearx = @pdftransform.Transform::new([
+    @pdftransform.TransformOp::ShearX((0.0, 0.0), 1.0),
+  ])
+  let shearx2 = shearx.compose(
+    @pdftransform.TransformOp::ShearX((1.0, 0.0), 2.0),
+  )
+  match shearx2 {
+    {
+      ops: [
+        @pdftransform.TransformOp::ShearX((1.0, 0.0), _),
+        @pdftransform.TransformOp::ShearX((0.0, 0.0), _),
+      ],
+    } => ()
+    _ => fail("expected two shear-x ops")
+  }
+  let sheary = @pdftransform.Transform::new([
+    @pdftransform.TransformOp::ShearY((0.0, 0.0), 1.0),
+  ])
+  let sheary2 = sheary.compose(
+    @pdftransform.TransformOp::ShearY((1.0, 0.0), 2.0),
+  )
+  match sheary2 {
+    {
+      ops: [
+        @pdftransform.TransformOp::ShearY((1.0, 0.0), _),
+        @pdftransform.TransformOp::ShearY((0.0, 0.0), _),
+      ],
+    } => ()
+    _ => fail("expected two shear-y ops")
+  }
+}
+
+///|
 test "compose preserves ops for incompatible kinds" {
   let tr = @pdftransform.Transform::new([
     @pdftransform.TransformOp::Translate(1.0, 2.0),

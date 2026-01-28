@@ -437,7 +437,7 @@ test "coalesce handles single label" {
 
 ///|
 test "write handles all labelstyle variants" {
-  let pdf = make_pdf_with_pages(3)
+  let pdf = make_pdf_with_pages(4)
   let labels = [
     PageLabel::{
       labelstyle: LabelStyle::NoLabelPrefixOnly,
@@ -457,10 +457,16 @@ test "write handles all labelstyle variants" {
       startpage: 3,
       startvalue: 2,
     },
+    PageLabel::{
+      labelstyle: LabelStyle::UppercaseLetters,
+      labelprefix: Some("S-"),
+      startpage: 4,
+      startvalue: 1,
+    },
   ]
   @pdfpagelabels.PageLabel::write_all(labels, pdf)
   let read_back = @pdfpagelabels.PageLabel::read_all(pdf)
-  assert_eq(read_back.length(), 3)
+  assert_eq(read_back.length(), 4)
   match read_back[0].labelstyle {
     LabelStyle::NoLabelPrefixOnly => ()
     _ => fail("expected NoLabelPrefixOnly")
@@ -473,4 +479,20 @@ test "write handles all labelstyle variants" {
     LabelStyle::LowercaseLetters => ()
     _ => fail("expected LowercaseLetters")
   }
+  match read_back[3].labelstyle {
+    LabelStyle::UppercaseLetters => ()
+    _ => fail("expected UppercaseLetters")
+  }
+}
+
+///|
+test "pagelabel to_string prints None prefix" {
+  let label = PageLabel::{
+    labelstyle: LabelStyle::DecimalArabic,
+    labelprefix: None,
+    startpage: 1,
+    startvalue: 1,
+  }
+  let s = label.to_string()
+  assert_true(s.contains("labelprefix: None"))
 }

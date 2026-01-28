@@ -86,3 +86,45 @@ test "Date::of_pdf_string rejects invalid values" {
   )
   assert_true(bad_format is Err(_))
 }
+
+///|
+test "Date::of_pdf_string rejects too-short strings" {
+  let r1 : Result[@pdfdate.Date, Error] = try? @pdfdate.Date::of_pdf_string(
+    "D:",
+  )
+  assert_true(r1 is Err(_))
+  let r2 : Result[@pdfdate.Date, Error] = try? @pdfdate.Date::of_pdf_string(
+    "202",
+  )
+  assert_true(r2 is Err(_))
+}
+
+///|
+test "Date::of_pdf_string accepts incomplete day digits as short form" {
+  let parsed = @pdfdate.Date::of_pdf_string("D:2024010")
+  assert_eq(parsed.year, 2024)
+  assert_eq(parsed.month, 1)
+  assert_eq(parsed.day, 1)
+}
+
+///|
+test "Date::of_pdf_string parses Z when it appears early" {
+  let parsed = @pdfdate.Date::of_pdf_string("D:2024Z")
+  assert_eq(parsed.year, 2024)
+  assert_eq(parsed.month, 1)
+  assert_eq(parsed.day, 1)
+  assert_eq(parsed.hour_offset, 0)
+  assert_eq(parsed.minute_offset, 0)
+}
+
+///|
+test "Date::of_pdf_string rejects malformed trailing timezone/junk" {
+  let bad1 : Result[@pdfdate.Date, Error] = try? @pdfdate.Date::of_pdf_string(
+    "D:20241301020304+",
+  )
+  assert_true(bad1 is Err(_))
+  let bad2 : Result[@pdfdate.Date, Error] = try? @pdfdate.Date::of_pdf_string(
+    "D:20241301020304X",
+  )
+  assert_true(bad2 is Err(_))
+}
