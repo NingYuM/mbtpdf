@@ -295,9 +295,11 @@ test "string_of_ops renders inline image" {
 
 ///|
 test "parse_single_stream returns OpUnknown for bad ops" {
-  let pdf = @pdf.Pdf::empty()
-  let resources : @pdf.PdfObject = Dictionary([])
-  let data = @pdfio.bytes_of_string("1 2 ZZ")
-  let ops = @pdfops.Op::parse_single_stream(pdf, resources, data)
-  assert_true(ops.exists(fn(op : @pdfops.Op) { op is OpUnknown(_) }))
+  @pdfe.with_silenced_logs(fn() {
+    let pdf = @pdf.Pdf::empty()
+    let resources : @pdf.PdfObject = Dictionary([])
+    let data = @pdfio.bytes_of_string("1 2 ZZ")
+    let ops = @pdfops.Op::parse_single_stream(pdf, resources, data)
+    assert_true(ops.exists(fn(op : @pdfops.Op) { op is OpUnknown(_) }))
+  })
 }

@@ -29,80 +29,85 @@ test "string_of_op delegates to string_of_ops" {
 
 ///|
 test "parse_single_stream ignores comments and yields unknown" {
-  let pdf = @pdf.Pdf::empty()
-  let resources : @pdf.PdfObject = Dictionary([])
-  let data = @pdfio.bytes_of_string("%c\ntrue false ZZ q Q")
-  let ops = Op::parse_single_stream(pdf, resources, data)
-  assert_true(ops.exists(fn(op : Op) { op is OpUnknown(_) }))
-  assert_true(ops.exists(fn(op : Op) { op is Opq }))
-  assert_true(ops.exists(fn(op : Op) { op is OpQ }))
+  @pdfe.with_silenced_logs(fn() {
+    let pdf = @pdf.Pdf::empty()
+    let resources : @pdf.PdfObject = Dictionary([])
+    let data = @pdfio.bytes_of_string("%c\ntrue false ZZ q Q")
+    let ops = Op::parse_single_stream(pdf, resources, data)
+    assert_true(ops.exists(fn(op : Op) { op is OpUnknown(_) }))
+    assert_true(ops.exists(fn(op : Op) { op is Opq }))
+    assert_true(ops.exists(fn(op : Op) { op is OpQ }))
+  })
 }
 
 ///|
 test "components handles extra branches and errors" {
-  let pdf = @pdf.Pdf::empty()
-  let resources : @pdf.PdfObject = Dictionary([])
-  assert_eq(
-    Op::components(pdf, resources, Name(@pdf.PdfName::of_string("/CalCMYK"))),
-    4,
-  )
-  assert_eq(
-    Op::components(
+  @pdfe.with_logger(_ => (), fn() {
+    let pdf = @pdf.Pdf::empty()
+    let resources : @pdf.PdfObject = Dictionary([])
+    assert_eq(
+      Op::components(pdf, resources, Name(@pdf.PdfName::of_string("/CalCMYK"))),
+      4,
+    )
+    assert_eq(
+      Op::components(
+        pdf,
+        resources,
+        Array([Name(@pdf.PdfName::of_string("/Lab")), Dictionary([])]),
+      ),
+      3,
+    )
+    assert_eq(
+      Op::components(
+        pdf,
+        resources,
+        Array([
+          Name(@pdf.PdfName::of_string("/Indexed")),
+          Name(@pdf.PdfName::of_string("/DeviceRGB")),
+          Integer(0),
+          String(""),
+        ]),
+      ),
+      1,
+    )
+    let missing_dict : Result[Int, Error] = try? Op::components(
       pdf,
       resources,
-      Array([Name(@pdf.PdfName::of_string("/Lab")), Dictionary([])]),
-    ),
-    3,
-  )
-  assert_eq(
-    Op::components(
+      Name(@pdf.PdfName::of_string("/MyCS")),
+    )
+    assert_true(missing_dict is Err(_))
+    let resources_empty : @pdf.PdfObject = Dictionary([
+      ("/ColorSpace", Dictionary([])),
+    ])
+    let missing_entry : Result[Int, Error] = try? Op::components(
+      pdf,
+      resources_empty,
+      Name(@pdf.PdfName::of_string("/MyCS")),
+    )
+    assert_true(missing_entry is Err(_))
+    let bad_icc : Result[Int, Error] = try? Op::components(
+      pdf,
+      resources,
+      Array([Name(@pdf.PdfName::of_string("/ICCBased")), Dictionary([])]),
+    )
+    assert_true(bad_icc is Err(_))
+    let bad_device_n : Result[Int, Error] = try? Op::components(
       pdf,
       resources,
       Array([
-        Name(@pdf.PdfName::of_string("/Indexed")),
+        Name(@pdf.PdfName::of_string("/DeviceN")),
         Name(@pdf.PdfName::of_string("/DeviceRGB")),
-        Integer(0),
-        String(""),
       ]),
-    ),
-    1,
-  )
-  let missing_dict : Result[Int, Error] = try? Op::components(
-    pdf,
-    resources,
-    Name(@pdf.PdfName::of_string("/MyCS")),
-  )
-  assert_true(missing_dict is Err(_))
-  let resources_empty : @pdf.PdfObject = Dictionary([
-    ("/ColorSpace", Dictionary([])),
-  ])
-  let missing_entry : Result[Int, Error] = try? Op::components(
-    pdf,
-    resources_empty,
-    Name(@pdf.PdfName::of_string("/MyCS")),
-  )
-  assert_true(missing_entry is Err(_))
-  let bad_icc : Result[Int, Error] = try? Op::components(
-    pdf,
-    resources,
-    Array([Name(@pdf.PdfName::of_string("/ICCBased")), Dictionary([])]),
-  )
-  assert_true(bad_icc is Err(_))
-  let bad_device_n : Result[Int, Error] = try? Op::components(
-    pdf,
-    resources,
-    Array([
-      Name(@pdf.PdfName::of_string("/DeviceN")),
-      Name(@pdf.PdfName::of_string("/DeviceRGB")),
-    ]),
-  )
-  assert_true(bad_device_n is Err(_))
-  let bad_other : Result[Int, Error] = try? Op::components(
-    pdf,
-    resources,
-    Integer(1),
-  )
-  assert_true(bad_other is Err(_))
+    )
+    assert_true(bad_device_n is Err(_))
+    let bad_other : Result[Int, Error] = try? Op::components(
+      pdf,
+      resources,
+      Integer(1),
+    )
+    assert_true(bad_other is Err(_))
+    ()
+  })
 }
 
 ///|
@@ -124,14 +129,17 @@ test "components handles /I alias" {
 
 ///|
 test "components errors on array without name leader" {
-  let pdf = @pdf.Pdf::empty()
-  let resources : @pdf.PdfObject = Dictionary([])
-  let res : Result[Int, Error] = try? Op::components(
-    pdf,
-    resources,
-    Array([Integer(1), Name(@pdf.PdfName::of_string("/DeviceRGB"))]),
-  )
-  assert_true(res is Err(_))
+  @pdfe.with_logger(_ => (), fn() {
+    let pdf = @pdf.Pdf::empty()
+    let resources : @pdf.PdfObject = Dictionary([])
+    let res : Result[Int, Error] = try? Op::components(
+      pdf,
+      resources,
+      Array([Integer(1), Name(@pdf.PdfName::of_string("/DeviceRGB"))]),
+    )
+    assert_true(res is Err(_))
+    ()
+  })
 }
 
 ///|
