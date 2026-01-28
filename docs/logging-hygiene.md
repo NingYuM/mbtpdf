@@ -10,6 +10,11 @@ See `docs/testing.md` for the recommended test/coverage commands and the CI cove
 
 Most warnings go through `@pdfe.log` (see `core/pdfe`).
 
+- Debug-only logs:
+  ```mbt nocheck
+  @pdfe.read_debug.val = true
+  @pdfe.debug("...") // only logs when read_debug is enabled
+  ```
 - Silence logs in a scope:
   ```mbt nocheck
   @pdfe.with_silenced_logs(fn() {

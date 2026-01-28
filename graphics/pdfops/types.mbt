@@ -104,9 +104,6 @@ priv suberror LexingEnd
 priv suberror CouldntHandleContent
 
 ///|
-let debug : Ref[Bool] = { val: false }
-
-///|
 let write_comments : Ref[Bool] = { val: false }
 
 ///|

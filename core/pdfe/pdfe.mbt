@@ -28,6 +28,14 @@ pub fn log(message : String) -> Unit {
 pub let read_debug : Ref[Bool] = { val: false }
 
 ///|
+/// Log a string only when `read_debug` is enabled.
+pub fn debug(message : String) -> Unit {
+  if read_debug.val {
+    log(message)
+  }
+}
+
+///|
 /// Run an action with logging suppressed, restoring the previous state.
 pub fn[T] with_silenced_logs(action : () -> T raise) -> T raise {
   let prev = quiet.val

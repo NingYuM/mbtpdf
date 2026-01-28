@@ -211,7 +211,7 @@ pub let end_artifact : Op = OpEMC
 
 ```mbt nocheck
 // Enable debug output
-@pdfops.debug.val = true
+@pdfe.read_debug.val = true
 
 // Include comments in output
 @pdfops.write_comments.val = true

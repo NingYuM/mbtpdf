@@ -2,6 +2,8 @@
 package "bobzhang/mbtpdf/core/pdfe"
 
 // Values
+pub fn debug(String) -> Unit
+
 pub fn log(String) -> Unit
 
 pub let logger : Ref[(String) -> Unit]
