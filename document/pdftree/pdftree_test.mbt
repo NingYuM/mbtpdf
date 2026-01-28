@@ -87,7 +87,9 @@ test "read_name_tree skips malformed keys" {
       ]),
     ),
   ])
-  let read = @pdftree.PdfTree::new(pdf).read_name_tree(tree)
+  let read = @pdfe.with_logger(_ => (), fn() {
+    @pdftree.PdfTree::new(pdf).read_name_tree(tree)
+  })
   assert_eq(read.length(), 0)
 }
 
@@ -153,7 +155,9 @@ test "read_number_tree returns empty on non-integer keys" {
       ]),
     ),
   ])
-  let read = @pdftree.PdfTree::new(pdf).read_number_tree(tree)
+  let read = @pdfe.with_logger(_ => (), fn() {
+    @pdftree.PdfTree::new(pdf).read_number_tree(tree)
+  })
   assert_eq(read.length(), 0)
 }
 
