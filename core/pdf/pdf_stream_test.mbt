@@ -139,28 +139,34 @@ test "streams and transforms" {
     PdfObject::Real(8.0),
     PdfObject::Real(9.0),
   ])
-  match
-    pdf.transform_quadpoints(
-      @pdftransform.TransformMatrix::identity(),
-      qp_mixed,
-    ) {
-    PdfObject::Array(values) => assert_eq(values.length(), 10)
-    _ => fail("expected quadpoints")
-  }
-  let qp_bad = PdfObject::Array([PdfObject::Real(0.0), PdfObject::Real(1.0)])
-  match
-    pdf.transform_quadpoints(@pdftransform.TransformMatrix::identity(), qp_bad) {
-    PdfObject::Array(values) => assert_eq(values.length(), 2)
-    _ => fail("expected quadpoints")
-  }
-  match
-    pdf.transform_quadpoints(
-      @pdftransform.TransformMatrix::identity(),
-      PdfObject::Integer(1),
-    ) {
-    PdfObject::Integer(1) => ()
-    _ => fail("expected passthrough")
-  }
+  @pdfe.with_logger(_ => (), fn() {
+    match
+      pdf.transform_quadpoints(
+        @pdftransform.TransformMatrix::identity(),
+        qp_mixed,
+      ) {
+      PdfObject::Array(values) => assert_eq(values.length(), 10)
+      _ => fail("expected quadpoints")
+    }
+    let qp_bad = PdfObject::Array([PdfObject::Real(0.0), PdfObject::Real(1.0)])
+    match
+      pdf.transform_quadpoints(
+        @pdftransform.TransformMatrix::identity(),
+        qp_bad,
+      ) {
+      PdfObject::Array(values) => assert_eq(values.length(), 2)
+      _ => fail("expected quadpoints")
+    }
+    match
+      pdf.transform_quadpoints(
+        @pdftransform.TransformMatrix::identity(),
+        PdfObject::Integer(1),
+      ) {
+      PdfObject::Integer(1) => ()
+      _ => fail("expected passthrough")
+    }
+    ()
+  })
 }
 
 ///|

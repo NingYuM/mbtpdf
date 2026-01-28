@@ -42,12 +42,12 @@ test "lookup_immediate_all works on stream dictionaries" {
 
 ///|
 test "PdfObject::to_string escapes strings and normalizes names" {
-  let obj = PdfObject::Dictionary([
-    ("Type", PdfObject::Name(PdfName::of_string("NoSlash"))),
-    ("/Needs Escape", PdfObject::String("a(b)\\c\n")),
-  ])
   let messages : Array[String] = []
   let rendered = @pdfe.with_logger(fn(msg) { messages.push(msg) }, fn() {
+    let obj = PdfObject::Dictionary([
+      ("Type", PdfObject::Name(PdfName::of_string("NoSlash"))),
+      ("/Needs Escape", PdfObject::String("a(b)\\c\n")),
+    ])
     obj.to_string()
   })
   assert_true(rendered.contains("/Type"))

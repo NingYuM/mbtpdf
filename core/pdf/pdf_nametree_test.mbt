@@ -150,7 +150,9 @@ test "contents_of_nametree" {
       ]),
     ),
   ])
-  let contents = pdf.contents_of_nametree(tree)
+  let contents = @pdfe.with_logger(_ => (), fn() {
+    pdf.contents_of_nametree(tree)
+  })
   assert_eq(contents.length(), 1)
   match contents[0] {
     (PdfObject::String("A"), PdfObject::Integer(1)) => ()
