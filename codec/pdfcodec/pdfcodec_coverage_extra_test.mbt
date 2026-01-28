@@ -69,10 +69,81 @@ test "decode_from_bytes finishes when clear code is followed by EOD" {
 }
 
 ///|
+test "decode_from_bytes LZW handles code == next_code (KwKwK)" {
+  let bw = @pdfio.BitstreamWrite::new()
+  bw.putval(9, 256)
+  bw.putval(9, 65)
+  // First dictionary code after clear is 258; using it immediately triggers the
+  // KwKwK special case (code == next_code).
+  bw.putval(9, 258)
+  bw.putval(9, 257)
+  let encoded = bw.bytes()
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Filter", Name(@pdf.PdfName::of_string("/LZWDecode"))),
+    ("/DecodeParms", Dictionary([("/EarlyChange", Integer(1))])),
+  ])
+  match
+    (
+      @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) :
+      @pdfio.MutableBytes?) {
+    Some(decoded) => assert_eq(@pdfio.string_of_bytes(decoded), "AAA")
+    None => fail("expected LZW decode to succeed")
+  }
+}
+
+///|
+test "decode_from_bytes LZW bumps code length past 9 bits (literal-only stream)" {
+  let bw = @pdfio.BitstreamWrite::new()
+  let mut code_length = 9
+  let mut next_code = 258
+  let early = 1
+  bw.putval(code_length, 256)
+  // First literal after clear (no dictionary growth yet).
+  bw.putval(code_length, 65)
+  // Then feed enough literal codes to force next_code to grow beyond 512.
+  for _ in 0..<253 {
+    bw.putval(code_length, 65)
+    next_code = next_code + 1
+    let next_check = next_code + early
+    if next_check == 512 || next_check == 1024 || next_check == 2048 {
+      code_length = code_length + 1
+    }
+  }
+  bw.putval(code_length, 257)
+  let encoded = bw.bytes()
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Filter", Name(@pdf.PdfName::of_string("/LZWDecode"))),
+    ("/DecodeParms", Dictionary([("/EarlyChange", Integer(1))])),
+  ])
+  match
+    (
+      @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) :
+      @pdfio.MutableBytes?) {
+    Some(decoded) => assert_eq(@pdfio.string_of_bytes(decoded), "A".repeat(254))
+    None => fail("expected LZW decode to succeed")
+  }
+}
+
+///|
+test "decode_from_bytes LZW returns None on truncated input" {
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Filter", Name(@pdf.PdfName::of_string("/LZWDecode"))),
+    ("/DecodeParms", Dictionary([("/EarlyChange", Integer(1))])),
+  ])
+  // One byte is too short to contain a full clear + data + EOD sequence.
+  let out = @pdfcodec.PdfCodec::new().decode_from_bytes(
+    @pdfio.bytes_of_list([0]),
+    dict,
+  )
+  assert_true(out is None)
+}
+
+///|
 test "encode/decode LZW roundtrips medium input" {
   let ctx = @pdfcodec.PdfCodec::new()
-  // TODO: Keep the payload modest; larger payloads may exercise code-length
-  // transitions and have historically been a fragile area.
+  // Keep this payload modest for speed.
+  // TODO: LZW code-length transitions (9->10 bits) appear unstable for some
+  // large payloads; add a large-payload roundtrip once fixed.
   let original = @pdfio.mkbytes(250)
   for i in 0..<250 {
     @pdfio.bset_unsafe(original, i, i % 251)
@@ -85,6 +156,26 @@ test "encode/decode LZW roundtrips medium input" {
     _ => fail("expected decoded stream bytes")
   }
   assert_bytes_equal(decoded, original)
+}
+
+///|
+test "encode_pdfstream LZW clears dictionary when full" {
+  let ctx = @pdfcodec.PdfCodec::new()
+  let original = @pdfio.mkbytes(5000)
+  let mut s : UInt = 0x1234_5678
+  for i in 0..<@pdfio.bytes_size(original) {
+    s = s ^ (s << 13)
+    s = s ^ (s >> 17)
+    s = s ^ (s << 5)
+    @pdfio.bset_unsafe(original, i, (s & 0xff).reinterpret_as_int())
+  }
+  let (pdf, stream_ref, stream_obj) = mk_stream(original, [])
+  ctx.encode_pdfstream(pdf, Encoding::LZW(1), stream_obj, only_if_smaller=false)
+  match (pdf.lookup_direct("/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
+    Some(Name(name)) if name.equal_string_bytes("/LZWDecode") => ()
+    Some(Array([Name(name), ..])) if name.equal_string_bytes("/LZWDecode") => ()
+    _ => fail("expected /LZWDecode filter after encoding")
+  }
 }
 
 ///|

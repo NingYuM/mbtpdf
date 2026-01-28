@@ -20,17 +20,28 @@ fn decode_lzw(
   }
 
   fn decode_string(code : Int) -> Array[Int] {
-    let out : Array[Int] = Array::new()
-    fn build(c : Int) -> Unit {
-      if c > 255 {
-        build(prefix_code[c])
-        out.push(append_character[c])
-      } else {
-        out.push(c)
-      }
+    if code < 0 || code >= prefix_code.length() {
+      return []
     }
-
-    build(code)
+    let reversed : Array[Int] = Array::new()
+    let mut c = code
+    let mut steps = 0
+    while c > 255 {
+      if c < 0 || c >= prefix_code.length() {
+        return []
+      }
+      steps = steps + 1
+      if steps > prefix_code.length() {
+        return []
+      }
+      reversed.push(append_character[c])
+      c = prefix_code[c]
+    }
+    reversed.push(c)
+    let out : Array[Int] = Array::new(capacity=reversed.length())
+    for i in 0..<reversed.length() {
+      out.push(reversed[reversed.length() - 1 - i])
+    }
     out
   }
 
@@ -92,7 +103,12 @@ fn decode_lzw(
           output.push(old_code.to_byte())
         }
       } else {
-        let chars = if new_code >= next_code {
+        if new_code > next_code {
+          raise Failure::Failure(
+            "bad code: new=\{new_code} next=\{next_code} bits=\{code_length}",
+          )
+        }
+        let chars = if new_code == next_code {
           let expanded = decode_string(old_code)
           expanded.push(character)
           expanded
@@ -100,7 +116,9 @@ fn decode_lzw(
           decode_string(new_code)
         }
         if chars.length() == 0 {
-          raise Failure::Failure("LZW")
+          raise Failure::Failure(
+            "bad string: code=\{new_code} next=\{next_code} bits=\{code_length}",
+          )
         }
         character = chars[0]
         for ch in chars {
@@ -120,6 +138,8 @@ fn decode_lzw(
     }
     output
   } catch {
+    Failure::Failure(msg) =>
+      raise CodecError::CouldntDecodeStream("LZW: \{msg}")
     _ => raise CodecError::CouldntDecodeStream("LZW")
   }
 }
@@ -176,6 +196,8 @@ fn encode_lzw(
     out.putval(code_length, eod_code)
     out.bytes()
   } catch {
+    Failure::Failure(msg) =>
+      raise CodecError::CouldntDecodeStream("LZW: \{msg}")
     _ => raise CodecError::CouldntDecodeStream("LZW")
   }
 }
