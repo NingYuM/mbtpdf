@@ -17,9 +17,11 @@ async fn main {
 }
 
 ///|
-pub async fn run(args : Array[String]) -> Unit {
+pub async fn run(args : Array[String], quiet? : Bool = false) -> Unit {
   if args.length() != 3 {
-    println("Syntax: pdftest <input> <output>")
+    if !quiet {
+      println("Syntax: pdftest <input> <output>")
+    }
     return
   }
   let in_name = args[1]
@@ -52,9 +54,10 @@ pub async fn run(args : Array[String]) -> Unit {
       truncate=true,
     )
   } catch {
-    err => {
-      println("Test failed:")
-      println(err)
-    }
+    err =>
+      if !quiet {
+        println("Test failed:")
+        println(err)
+      }
   }
 }
