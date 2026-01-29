@@ -237,6 +237,33 @@ test "combine_pdf_resources handles non-dictionary inputs" {
 }
 
 ///|
+test "combine_pdf_resources ignores non-dictionary rhs" {
+  let pdf = @pdf.Pdf::empty()
+  let combined = @pdfpage.PdfPageDoc::new(pdf).combine_pdf_resources(
+    Dictionary([("/Font", Dictionary([("/F1", Null)]))]),
+    Integer(0),
+  )
+  match (pdf.lookup_direct("/Font", combined) : @pdf.PdfObject?) {
+    Some(Dictionary(entries)) => assert_eq(entries.length(), 1)
+    _ => fail("expected /Font to be preserved")
+  }
+}
+
+///|
+test "process_xobject errors when form xobject is not a stream" {
+  let pdf = @pdf.Pdf::empty()
+  let xobj_num = pdf.addobj(
+    Dictionary([("/Subtype", Name(@pdf.PdfName::of_string("/Form")))]),
+  )
+  let res : Result[Unit, Error] = try? @pdfpage.PdfPageDoc::new(pdf).process_xobject(
+    fn(_, _, _) { [] },
+    Dictionary([]),
+    xobj_num,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
 test "process_xobjects errors when updater returns non-stream" {
   let pdf = @pdf.Pdf::empty()
   let stream_dict : @pdf.PdfObject = Dictionary([

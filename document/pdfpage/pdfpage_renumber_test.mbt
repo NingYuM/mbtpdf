@@ -200,3 +200,25 @@ test "renumber_pages rewrites inline image colorspace names" {
   assert_true(saw_passthrough)
   assert_true(saw_device)
 }
+
+///|
+test "renumber_pages errors on missing resource key references" {
+  let pdf = @pdf.Pdf::empty()
+  let rect : @pdf.PdfObject = Array([
+    Real(0.0),
+    Real(0.0),
+    Real(100.0),
+    Real(100.0),
+  ])
+  let page : @pdfpage.Page = {
+    content: [@pdfops.Op::stream_of_ops([OpTf("/MissingFont", 12.0)])],
+    mediabox: rect,
+    resources: Dictionary([]),
+    rotate: @pdfpage.Rotation::Rotate0,
+    rest: Dictionary([]),
+  }
+  let res : Result[Array[@pdfpage.Page], Error] = try? @pdfpage.PdfPageDoc::new(
+    pdf,
+  ).renumber_pages([page])
+  assert_true(res is Err(_))
+}

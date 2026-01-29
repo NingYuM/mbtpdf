@@ -192,3 +192,15 @@ test "endpage_fast handles missing count" {
   let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(pages_num, [])
   assert_eq(@pdfpage.PdfPageDoc::new(pdf).endpage_fast(), 0)
 }
+
+///|
+test "pdf_of_pages errors when trailer missing /Root" {
+  let pdf = pdf_of_pages_make_pdf(2)
+  // Make trailer dict malformed for pdf_of_pages.
+  pdf.trailerdict = Dictionary([])
+  let res : Result[@pdf.Pdf, Error] = try? @pdfpage.PdfPageDoc::new(pdf).pdf_of_pages([
+      1,
+    ],
+  )
+  assert_true(res is Err(_))
+}

@@ -158,6 +158,26 @@ test "pages_of_pagetree errors on malformed and missing kids" {
 }
 
 ///|
+test "pages_of_pagetree errors when typ is missing and /Kids malformed" {
+  let base = @pdf.Pdf::empty()
+  let bad_node_num = base.addobj(
+    Dictionary([
+      // No /Type entry -> typ=None branch.
+      ("/Kids", Integer(0)),
+    ]),
+  )
+  let root_num = base.addobj(
+    Dictionary([
+      ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+      ("/Kids", Array([Indirect(bad_node_num)])),
+      ("/Count", Integer(1)),
+    ]),
+  )
+  let pdf = @pdfpage.PdfPageDoc::new(base).add_root(root_num, [])
+  assert_is_err(try? @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree())
+}
+
+///|
 test "add_pagetree errors on empty page list and bad rest" {
   let pdf = @pdf.Pdf::empty()
   let res : Result[(@pdf.Pdf, Int), Error] = try? @pdfpage.PdfPageDoc::new(pdf).add_pagetree([],
