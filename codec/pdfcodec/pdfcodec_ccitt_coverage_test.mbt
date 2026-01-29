@@ -82,6 +82,25 @@ test "ccitt g4 roundtrip covers many terminating codes" {
 }
 
 ///|
+test "ccitt g4 roundtrip covers pass mode" {
+  let columns = 16
+  let rows = 2
+  let raw = bitmap_bytes_from_row_runs([[4, 2, 10], [8, 2, 6]], 1)
+  ccitt_roundtrip(Encoding::CCITTG4(columns, rows), -1, columns, rows, raw)
+}
+
+///|
+test "ccitt g4 roundtrip covers vertical modes" {
+  let columns = 16
+  let rows = 4
+  let raw = bitmap_bytes_from_row_runs(
+    [[5, 5, 6], [7, 3, 6], [10, 1, 5], [7, 3, 6]],
+    1,
+  )
+  ccitt_roundtrip(Encoding::CCITTG4(columns, rows), -1, columns, rows, raw)
+}
+
+///|
 test "ccitt g3 roundtrip covers many makeup codes" {
   let columns = 2624
   let rows : Array[Array[Int]] = []
@@ -130,4 +149,38 @@ test "ccitt g4 roundtrip covers 1..=64 run lengths starting black" {
   let rows = 1
   let raw = bitmap_bytes_from_row_runs([runs], 0)
   ccitt_roundtrip(Encoding::CCITTG4(columns, rows), -1, columns, rows, raw)
+}
+
+///|
+test "encode_pdfstream CCITT errors on insufficient data" {
+  let pdf = @pdf.Pdf::empty()
+  let data = @pdfio.mkbytes(0)
+  let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(0))])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj : @pdf.PdfObject = Stream(stream_ref)
+  let ctx : PdfCodec = PdfCodec::new()
+  let res : Result[Unit, Error] = try? ctx.encode_pdfstream(
+    pdf,
+    Encoding::CCITT(16, 1),
+    stream_obj,
+    only_if_smaller=false,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "encode_pdfstream CCITTG4 errors on insufficient data" {
+  let pdf = @pdf.Pdf::empty()
+  let data = @pdfio.mkbytes(0)
+  let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(0))])
+  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_obj : @pdf.PdfObject = Stream(stream_ref)
+  let ctx : PdfCodec = PdfCodec::new()
+  let res : Result[Unit, Error] = try? ctx.encode_pdfstream(
+    pdf,
+    Encoding::CCITTG4(16, 1),
+    stream_obj,
+    only_if_smaller=false,
+  )
+  assert_true(res is Err(_))
 }
