@@ -93,10 +93,10 @@ pub fn Pdf::replace_chain(Self, ArrayView[String], PdfObject) -> Unit raise
 pub fn Pdf::transform_quadpoints(Self, @pdftransform.TransformMatrix, PdfObject) -> PdfObject raise
 pub fn Pdf::transform_rect(Self, @pdftransform.TransformMatrix, PdfObject) -> PdfObject raise
 
-pub(all) struct PdfName {
-  bytes : Bytes
-}
+pub(all) struct PdfName(Bytes)
 pub fn PdfName::equal_string_bytes(Self, String) -> Bool
+#deprecated
+pub fn PdfName::inner(Self) -> Bytes
 pub fn PdfName::lexical_compare(Self, Self) -> Int
 pub fn PdfName::of_bytes(Bytes) -> Self
 pub fn PdfName::of_string(String) -> Self
