@@ -74,6 +74,25 @@ test "build_name_tree uses kids for large inputs" {
 }
 
 ///|
+test "build_name_tree uses integer limits for large number trees" {
+  let pdf = @pdf.Pdf::empty()
+  let tree_ctx = @pdftree.PdfTree::new(pdf)
+  let entries : Array[(String, @pdf.PdfObject)] = Array::makei(11, i => (
+    i.to_string(),
+    Integer(i),
+  ))
+  let tree = tree_ctx.build_name_tree(true, entries)
+  match pdf.lookup_direct("/Kids", tree) {
+    Some(Array(kids)) => assert_true(kids.length() > 0)
+    _ => fail("expected /Kids on large number tree")
+  }
+  let read = tree_ctx.read_number_tree(tree)
+  assert_eq(read.length(), 11)
+  assert_eq(read[0].0, "0")
+  assert_eq(read[10].0, "10")
+}
+
+///|
 test "read_name_tree skips malformed keys" {
   let pdf = @pdf.Pdf::empty()
   let tree : @pdf.PdfObject = Dictionary([
