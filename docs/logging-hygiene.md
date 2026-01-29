@@ -44,17 +44,18 @@ let pdf = reader.pdf_of_input(None, None, input)
 Some internal paths print via `@pdfutil.PdfUtil::flprint` / `fleprint`. In tests, you can suppress those with:
 
 ```mbt nocheck
-@pdfutil.quiet.val = true
+@pdfutil.with_quiet(true, fn() {
+  // ...
+})
 ```
 
 If you need to assert on printed lines, override the printer:
 
 ```mbt nocheck
 let lines : Array[String] = []
-let prev = @pdfutil.printer.val
-@pdfutil.printer.val = s => lines.push(s)
-// ... run code ...
-@pdfutil.printer.val = prev
+@pdfutil.with_printer(s => lines.push(s), fn() {
+  // ... run code ...
+})
 ```
 
 ## CLI packages: prefer `run(..., quiet=true)` in tests
