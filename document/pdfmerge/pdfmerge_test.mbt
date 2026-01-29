@@ -43,6 +43,20 @@ fn add_dest_name_tree(pdf : @pdf.Pdf, name : String) -> Unit raise {
 }
 
 ///|
+fn add_dest_name_tree_with_non_indirect_kid(
+  pdf : @pdf.Pdf,
+  name : String,
+) -> Unit raise {
+  let root_tree : @pdf.PdfObject = Dictionary([
+    ("/Names", Array([String(name), Null])),
+    ("/Limits", Array([String(name), String(name)])),
+    // Malformed /Kids entries should be ignored.
+    ("/Kids", Array([Integer(0)])),
+  ])
+  set_catalog_entry(pdf, "/Names", Dictionary([("/Dests", root_tree)]))
+}
+
+///|
 fn add_dest_callsites(pdf : @pdf.Pdf, name : String) -> Unit {
   let dest_obj : @pdf.PdfObject = Dictionary([("/Dest", String(name))])
   ignore(pdf.addobj(dest_obj))
@@ -251,6 +265,25 @@ test "merge_pdfs renames destination names and callsites" {
   assert_true(!dest_strings.contains("dest"))
   assert_true(dest_strings.contains("dest-f0"))
   assert_true(dest_strings.contains("dest-f1"))
+}
+
+///|
+test "merge_pdfs rewrites destination callsites using global rename table" {
+  let pdf1 = @pdfpage.PdfPageDoc::minimum_valid()
+  let pdf2 = @pdfpage.PdfPageDoc::minimum_valid()
+  // pdf1 references a destination that only exists in pdf2.
+  add_dest_callsites(pdf1, "shared")
+  add_dest_name_tree_with_non_indirect_kid(pdf2, "shared")
+  let merged = @pdfe.with_logger(_ => (), fn() {
+    PdfMerger::new(["one", "two"], [pdf1, pdf2], [[1], [1]]).merge_pdfs(
+      false,
+      false,
+      process_struct_trees=false,
+      add_toplevel_document=false,
+    )
+  })
+  let dest_strings = collect_dest_strings(merged)
+  assert_true(dest_strings.contains("shared"))
 }
 
 ///|

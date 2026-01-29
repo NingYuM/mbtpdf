@@ -313,6 +313,16 @@ test "merge_pdfs errors on mismatched names" {
 }
 
 ///|
+test "merge_pdfs errors on mismatched pdfs and ranges lengths" {
+  let pdf = make_pdf_pages(1)
+  let res : Result[@pdf.Pdf, Error] = try? PdfMerger::new(["one"], [pdf], [
+    [1],
+    [1],
+  ]).merge_pdfs(false, false)
+  assert_true(res is Err(_))
+}
+
+///|
 test "merge_pdfs errors on page out of range" {
   let pdf = make_pdf_pages(1)
   let res : Result[@pdf.Pdf, Error] = try? PdfMerger::new(["one"], [pdf], [[2]]).merge_pdfs(
