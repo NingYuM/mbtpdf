@@ -714,46 +714,43 @@ test "eval_function clamps range and rejects bad domain" {
 
 ///|
 test "parse function rejects bad inputs" {
-  let prev_logger = @pdfe.logger.val
-  @pdfe.logger.val = _ => ()
-  defer {
-    @pdfe.logger.val = prev_logger
-  }
-  let pdf = @pdf.Pdf::empty()
-  let bad_type : @pdf.PdfObject = Dictionary([
-    ("/FunctionType", Integer(9)),
-    ("/Domain", Array([])),
-  ])
-  let bad_type_result : Result[PdfFunction, Error] = try? PdfFunction::parse(
-    pdf, bad_type,
-  )
-  assert_true(bad_type_result is Err(_))
-  let bad_calc_dict : @pdf.PdfObject = Dictionary([
-    ("/FunctionType", Integer(4)),
-    ("/Domain", Array([])),
-  ])
-  let bad_calc_data = @pdfio.bytes_of_string("{ nope }")
-  let bad_calc_stream : @pdf.PdfObject = Stream(
-    Ref::new((bad_calc_dict, @pdf.Stream::Got(bad_calc_data))),
-  )
-  let bad_calc_result : Result[PdfFunction, Error] = try? PdfFunction::parse(
-    pdf, bad_calc_stream,
-  )
-  assert_true(bad_calc_result is Err(_))
-  let sampled_dict : @pdf.PdfObject = Dictionary([
-    ("/FunctionType", Integer(0)),
-    ("/Domain", Array([Real(0.0), Real(1.0)])),
-    ("/Size", Array([Integer(2)])),
-    ("/BitsPerSample", Integer(1)),
-  ])
-  let sampled_data = @pdfio.bytes_of_list([0, 1])
-  let sampled_stream : @pdf.PdfObject = Stream(
-    Ref::new((sampled_dict, @pdf.Stream::Got(sampled_data))),
-  )
-  let sampled_result : Result[PdfFunction, Error] = try? PdfFunction::parse(
-    pdf, sampled_stream,
-  )
-  assert_true(sampled_result is Err(_))
+  @pdfe.with_logger(_ => (), fn() {
+    let pdf = @pdf.Pdf::empty()
+    let bad_type : @pdf.PdfObject = Dictionary([
+      ("/FunctionType", Integer(9)),
+      ("/Domain", Array([])),
+    ])
+    let bad_type_result : Result[PdfFunction, Error] = try? PdfFunction::parse(
+      pdf, bad_type,
+    )
+    assert_true(bad_type_result is Err(_))
+    let bad_calc_dict : @pdf.PdfObject = Dictionary([
+      ("/FunctionType", Integer(4)),
+      ("/Domain", Array([])),
+    ])
+    let bad_calc_data = @pdfio.bytes_of_string("{ nope }")
+    let bad_calc_stream : @pdf.PdfObject = Stream(
+      Ref::new((bad_calc_dict, @pdf.Stream::Got(bad_calc_data))),
+    )
+    let bad_calc_result : Result[PdfFunction, Error] = try? PdfFunction::parse(
+      pdf, bad_calc_stream,
+    )
+    assert_true(bad_calc_result is Err(_))
+    let sampled_dict : @pdf.PdfObject = Dictionary([
+      ("/FunctionType", Integer(0)),
+      ("/Domain", Array([Real(0.0), Real(1.0)])),
+      ("/Size", Array([Integer(2)])),
+      ("/BitsPerSample", Integer(1)),
+    ])
+    let sampled_data = @pdfio.bytes_of_list([0, 1])
+    let sampled_stream : @pdf.PdfObject = Stream(
+      Ref::new((sampled_dict, @pdf.Stream::Got(sampled_data))),
+    )
+    let sampled_result : Result[PdfFunction, Error] = try? PdfFunction::parse(
+      pdf, sampled_stream,
+    )
+    assert_true(sampled_result is Err(_))
+  })
 }
 
 ///|
