@@ -31,6 +31,14 @@ PDF toolchain implemented in [MoonBit](https://docs.moonbitlang.com), centered o
 // moon coverage analyze
 ```
 
+## Coverage gate
+
+CI enforces minimum per-package coverage (excluding `cmd/*` and `io/*`):
+
+```mbt nocheck
+// scripts/coverage_gate.sh --threshold 95
+```
+
 ## Logging hygiene (tests)
 
 Many packages emit *expected* warnings when fuzzing malformed inputs. Tests should keep output quiet:
