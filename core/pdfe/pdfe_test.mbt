@@ -86,23 +86,13 @@ test "debug logs only when read_debug is enabled" {
 
 ///|
 test "default logger writes via PdfUtil" {
-  let prev_quiet = @pdfutil.quiet.val
-  let prev_printer = @pdfutil.printer.val
   let lines : Array[String] = []
-  @pdfutil.printer.val = s => lines.push(s)
-  try {
-    @pdfutil.quiet.val = true
-    @pdfutil.PdfUtil::new().fleprint("reset")
-    @pdfutil.quiet.val = false
-    (@pdfe.logger.val)("hello\n")
-    assert_eq(lines, ["hello"])
-    @pdfutil.quiet.val = prev_quiet
-    @pdfutil.printer.val = prev_printer
-  } catch {
-    err => {
-      @pdfutil.quiet.val = prev_quiet
-      @pdfutil.printer.val = prev_printer
-      raise err
-    }
-  }
+  @pdfutil.with_printer(s => lines.push(s), fn() {
+    @pdfutil.with_quiet(true, fn() { @pdfutil.PdfUtil::new().fleprint("reset") })
+    @pdfutil.with_quiet(false, fn() {
+      (@pdfe.logger.val)("hello\n")
+      assert_eq(lines, ["hello"])
+    })
+    ()
+  })
 }

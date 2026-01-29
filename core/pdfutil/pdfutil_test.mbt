@@ -1,34 +1,27 @@
 ///|
 test "PdfUtil print shims respect quiet and printer" {
   let util = @pdfutil.PdfUtil::new()
-  let prev_quiet = @pdfutil.quiet.val
-  let prev_printer = @pdfutil.printer.val
   let lines : Array[String] = []
-  @pdfutil.printer.val = s => lines.push(s)
-  try {
-    @pdfutil.quiet.val = true
-    util.flprint("reset")
-    util.fleprint("reset")
-    assert_eq(lines.length(), 0)
-    @pdfutil.quiet.val = false
-    util.flprint("a")
-    util.flprint("b\nc")
-    util.flprint("\n")
-    util.fleprint("err\n")
-    assert_eq(lines, ["ab", "c", "err"])
-    @pdfutil.quiet.val = true
-    util.flprint("ignored\n")
-    util.fleprint("ignored\n")
-    assert_eq(lines, ["ab", "c", "err"])
-    @pdfutil.quiet.val = prev_quiet
-    @pdfutil.printer.val = prev_printer
-  } catch {
-    err => {
-      @pdfutil.quiet.val = prev_quiet
-      @pdfutil.printer.val = prev_printer
-      raise err
-    }
-  }
+  @pdfutil.with_printer(s => lines.push(s), fn() {
+    @pdfutil.with_quiet(true, fn() {
+      util.flprint("reset")
+      util.fleprint("reset")
+      assert_eq(lines.length(), 0)
+    })
+    @pdfutil.with_quiet(false, fn() {
+      util.flprint("a")
+      util.flprint("b\nc")
+      util.flprint("\n")
+      util.fleprint("err\n")
+      assert_eq(lines, ["ab", "c", "err"])
+    })
+    @pdfutil.with_quiet(true, fn() {
+      util.flprint("ignored\n")
+      util.fleprint("ignored\n")
+      assert_eq(lines, ["ab", "c", "err"])
+    })
+    ()
+  })
 }
 
 ///|

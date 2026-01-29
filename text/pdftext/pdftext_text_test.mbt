@@ -147,15 +147,12 @@ test "charcode extractor debug handles bad tounicode values" {
   tounicode.set(33, @pdfio.string_of_int_array([0xd8, 0x00]))
   let tounicode_ref = ctx.write_tounicode(tounicode)
   let font = simple_font_with_tounicode(tounicode_ref)
-  let prev_quiet = @pdfutil.quiet.val
-  @pdfutil.quiet.val = true
-  defer {
-    @pdfutil.quiet.val = prev_quiet
-  }
-  @pdfe.with_logger(_ => (), fn() {
-    let charcode = ctx.charcode_extractor_of_font(font, debug=true)
-    let _ = charcode(65)
-
+  @pdfutil.with_quiet(true, fn() {
+    @pdfe.with_logger(_ => (), fn() {
+      let charcode = ctx.charcode_extractor_of_font(font, debug=true)
+      let _ = charcode(65)
+      ()
+    })
   })
 }
 
