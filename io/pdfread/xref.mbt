@@ -346,7 +346,6 @@ fn read_xref_stream(
     Some(Array(elts)) => {
       // PDF spec: /Index is an array of (start, count) pairs, so it must be even-length.
       let pairs = Array::new()
-      // TODO(upstream): `;` should be optional
       for i = 0; i < elts.length(); {
         match elts.get_slice(i, i + 2) {
           Some([Integer(s), Integer(l)]) => {
