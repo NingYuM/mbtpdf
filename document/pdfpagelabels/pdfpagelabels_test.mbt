@@ -356,6 +356,107 @@ test "pagelabeltext handles empty roman and letter values" {
 }
 
 ///|
+test "pagelabeltext supports NoLabelPrefixOnly" {
+  let labels = [
+    PageLabel::{
+      labelstyle: LabelStyle::NoLabelPrefixOnly,
+      labelprefix: Some("P-"),
+      startpage: 1,
+      startvalue: 1,
+    },
+  ]
+  assert_eq(ctx.pagelabeltext_of_pagenumber(1, labels), "P-")
+}
+
+///|
+test "coalesce covers all labelstyle equality branches" {
+  let labels = [
+    PageLabel::{
+      labelstyle: LabelStyle::DecimalArabic,
+      labelprefix: None,
+      startpage: 1,
+      startvalue: 1,
+    },
+    PageLabel::{
+      labelstyle: LabelStyle::DecimalArabic,
+      labelprefix: Some("D"),
+      startpage: 2,
+      startvalue: 2,
+    },
+    PageLabel::{
+      labelstyle: LabelStyle::UppercaseRoman,
+      labelprefix: None,
+      startpage: 3,
+      startvalue: 3,
+    },
+    PageLabel::{
+      labelstyle: LabelStyle::UppercaseRoman,
+      labelprefix: None,
+      startpage: 4,
+      startvalue: 4,
+    },
+    PageLabel::{
+      labelstyle: LabelStyle::LowercaseRoman,
+      labelprefix: None,
+      startpage: 5,
+      startvalue: 5,
+    },
+    PageLabel::{
+      labelstyle: LabelStyle::LowercaseRoman,
+      labelprefix: None,
+      startpage: 6,
+      startvalue: 6,
+    },
+    PageLabel::{
+      labelstyle: LabelStyle::UppercaseLetters,
+      labelprefix: None,
+      startpage: 7,
+      startvalue: 7,
+    },
+    PageLabel::{
+      labelstyle: LabelStyle::UppercaseLetters,
+      labelprefix: None,
+      startpage: 8,
+      startvalue: 8,
+    },
+    PageLabel::{
+      labelstyle: LabelStyle::LowercaseLetters,
+      labelprefix: None,
+      startpage: 9,
+      startvalue: 9,
+    },
+    PageLabel::{
+      labelstyle: LabelStyle::LowercaseLetters,
+      labelprefix: None,
+      startpage: 10,
+      startvalue: 10,
+    },
+    PageLabel::{
+      labelstyle: LabelStyle::NoLabelPrefixOnly,
+      labelprefix: Some("N"),
+      startpage: 11,
+      startvalue: 11,
+    },
+    PageLabel::{
+      labelstyle: LabelStyle::NoLabelPrefixOnly,
+      labelprefix: Some("N"),
+      startpage: 12,
+      startvalue: 12,
+    },
+  ]
+  let merged = ctx.coalesce(labels)
+  assert_eq(merged.length(), 7)
+  match merged[2].labelstyle {
+    LabelStyle::UppercaseRoman => ()
+    _ => fail("expected UppercaseRoman")
+  }
+  match merged[3].labelstyle {
+    LabelStyle::LowercaseRoman => ()
+    _ => fail("expected LowercaseRoman")
+  }
+}
+
+///|
 test "add_label replica branches" {
   let base = [
     PageLabel::{
