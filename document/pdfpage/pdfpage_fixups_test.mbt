@@ -92,12 +92,25 @@ test "fixup_duplicate_annots tolerates missing popup/parent links" {
 test "fixup_destinations removes nulled entries" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let null_num = pdf.addobj(Null)
+  let live_page_num = match
+    @pdfpage.PdfPageDoc::new(pdf).page_object_number(1) {
+    Some(n) => n
+    None => fail("expected page 1")
+  }
   let dead_dest : @pdf.PdfObject = Array([
     Indirect(null_num),
     Name(@pdf.PdfName::of_string("/Fit")),
   ])
+  let live_dest : @pdf.PdfObject = Array([
+    Indirect(live_page_num),
+    Name(@pdf.PdfName::of_string("/Fit")),
+  ])
   let tree_ctx = @pdftree.PdfTree::new(pdf)
-  let tree = tree_ctx.build_name_tree(false, [("Dead", dead_dest)])
+  let tree = tree_ctx.build_name_tree(false, [
+    ("Dead", dead_dest),
+    ("Live", live_dest),
+    ("Weird", Integer(0)),
+  ])
   let names : @pdf.PdfObject = Dictionary([("/Dests", tree)])
   let catalog = pdf.catalog_of_pdf()
   let updated_catalog = catalog.add_entry("/Names", names)
@@ -121,7 +134,9 @@ test "fixup_destinations removes nulled entries" {
     None => fail("expected destinations tree")
   }
   let entries = @pdftree.PdfTree::new(pdf_direct).read_name_tree(updated_tree)
-  assert_eq(entries.length(), 0)
+  assert_eq(entries.length(), 2)
+  assert_true(entries[:].any(pair => pair.0 == "Live"))
+  assert_true(entries[:].any(pair => pair.0 == "Weird"))
 }
 
 ///|

@@ -476,3 +476,150 @@ test "add_prefix merges non-iso content streams" {
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   assert_eq(pages[0].content.length(), 1)
 }
+
+///|
+test "add_prefix merge_content_streams tolerates varied /Contents shapes" {
+  let pdf0 = @pdf.Pdf::empty()
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/W", Integer(1)),
+    ("/H", Integer(1)),
+    ("/BPC", Integer(8)),
+    ("/CS", Name(@pdf.PdfName::of_string("/DeviceRGB"))),
+  ])
+  let rendered = @pdfops.Op::string_of_ops([
+    @pdfops.Op::InlineImage((dict, None, @pdfio.bytes_of_string("RGB"))),
+  ])
+  let bytes = @pdfio.bytes_of_string(rendered)
+  let mid = @pdfio.bytes_size(bytes) / 2
+  let first = bytes[:mid].to_array()
+  let second = bytes[mid:].to_array()
+  let stream1 : @pdf.PdfObject = Stream(
+    Ref::new(
+      (
+        Dictionary([("/Length", Integer(@pdfio.bytes_size(first)))]),
+        @pdf.Stream::Got(first),
+      ),
+    ),
+  )
+  let stream2 : @pdf.PdfObject = Stream(
+    Ref::new(
+      (
+        Dictionary([("/Length", Integer(@pdfio.bytes_size(second)))]),
+        @pdf.Stream::Got(second),
+      ),
+    ),
+  )
+  let non_iso_page : @pdfpage.Page = {
+    content: [stream1, stream2],
+    mediabox: prefix_sample_rect(),
+    resources: Dictionary([]),
+    rotate: @pdfpage.Rotation::Rotate0,
+    rest: Dictionary([]),
+  }
+  let base_page : @pdfpage.Page = {
+    content: [@pdfops.Op::stream_of_ops([Opq, OpQ])],
+    mediabox: prefix_sample_rect(),
+    resources: Dictionary([]),
+    rotate: @pdfpage.Rotation::Rotate0,
+    rest: Dictionary([]),
+  }
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([
+    non_iso_page, base_page, base_page, base_page,
+  ])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
+  let page1_num = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(1) {
+    Some(n) => n
+    None => fail("expected page 1")
+  }
+  let page2_num = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(2) {
+    Some(n) => n
+    None => fail("expected page 2")
+  }
+  let page4_num = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(4) {
+    Some(n) => n
+    None => fail("expected page 4")
+  }
+
+  // Make page 2 use a single indirect contents reference (non-array).
+  let page2_obj = pdf.lookup_obj(page2_num)
+  let page2_first = match pdf.lookup_direct("/Contents", page2_obj) {
+    Some(Array(contents)) => contents[0]
+    _ => fail("expected page2 /Contents array")
+  }
+  pdf.addobj_given_num(
+    (page2_num, page2_obj.add_entry("/Contents", page2_first)),
+  )
+
+  // Make page 4 use a non-array, non-indirect /Contents value.
+  let page4_obj = pdf.lookup_obj(page4_num)
+  pdf.addobj_given_num(
+    (page4_num, page4_obj.add_entry("/Contents", Integer(0))),
+  )
+  @pdfe.with_logger(_ => (), fn() {
+    @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
+    ()
+  })
+
+  // Non-ISO page should have been merged into a single indirect stream.
+  let page1_obj = pdf.lookup_obj(page1_num)
+  match page1_obj.lookup_immediate("/Contents") {
+    Some(Indirect(_)) => ()
+    _ => fail("expected merged /Contents to be indirect")
+  }
+}
+
+///|
+test "add_prefix errors on /Contents arrays containing non-indirect objects" {
+  let pdf0 = @pdf.Pdf::empty()
+  let page : @pdfpage.Page = {
+    content: [@pdfops.Op::stream_of_ops([Opq])],
+    mediabox: prefix_sample_rect(),
+    resources: Dictionary([]),
+    rotate: @pdfpage.Rotation::Rotate0,
+    rest: Dictionary([]),
+  }
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
+  let page_num = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(1) {
+    Some(n) => n
+    None => fail("expected page object number")
+  }
+  let page_obj = pdf.lookup_obj(page_num)
+  pdf.addobj_given_num(
+    (page_num, page_obj.add_entry("/Contents", Array([Integer(0)]))),
+  )
+  let res : Result[Unit, Error] = try? @pdfpage.PdfPageDoc::new(pdf).add_prefix(
+    "p",
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "add_prefix errors when /Contents indirect points to non-stream object" {
+  let pdf0 = @pdf.Pdf::empty()
+  let page : @pdfpage.Page = {
+    content: [@pdfops.Op::stream_of_ops([Opq])],
+    mediabox: prefix_sample_rect(),
+    resources: Dictionary([]),
+    rotate: @pdfpage.Rotation::Rotate0,
+    rest: Dictionary([]),
+  }
+  let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
+  let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
+  let page_num = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(1) {
+    Some(n) => n
+    None => fail("expected page object number")
+  }
+  let non_stream_num = pdf.addobj(Integer(0))
+  let page_obj = pdf.lookup_obj(page_num)
+  pdf.addobj_given_num(
+    (
+      page_num,
+      page_obj.add_entry("/Contents", Array([Indirect(non_stream_num)])),
+    ),
+  )
+  let res : Result[Unit, Error] = try? @pdfpage.PdfPageDoc::new(pdf).add_prefix(
+    "p",
+  )
+  assert_true(res is Err(_))
+}

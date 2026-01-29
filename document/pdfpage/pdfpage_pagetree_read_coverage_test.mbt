@@ -117,6 +117,44 @@ test "pages_of_pagetree reads inherited resources and contents shapes" {
 }
 
 ///|
+test "pages_of_pagetree inherits resources and rotate through typ-none nodes" {
+  let pdf0 = @pdf.Pdf::empty()
+  let resources_parent : @pdf.PdfObject = Dictionary([("/Font", Dictionary([]))])
+  let mediabox_parent : @pdf.PdfObject = sample_rect()
+  let stream_num = empty_stream(pdf0)
+  let page_dict : @pdf.PdfObject = Dictionary([
+    ("/Type", Name(@pdf.PdfName::of_string("/Page"))),
+    ("/Contents", Indirect(stream_num)),
+  ])
+  let intermediate_num = pdf0.addobj(
+    Dictionary([
+      // No /Type, and no /Resources /MediaBox /Rotate: should inherit from args.
+      ("/Kids", Array([page_dict])),
+    ]),
+  )
+  let pages_root_num = pdf0.addobj(
+    Dictionary([
+      ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+      ("/Kids", Array([Indirect(intermediate_num)])),
+      ("/Resources", resources_parent),
+      ("/MediaBox", mediabox_parent),
+      ("/Rotate", Integer(90)),
+      ("/Count", Integer(1)),
+    ]),
+  )
+  let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(pages_root_num, [])
+  let pages = @pdfe.with_logger(_ => (), fn() {
+    @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
+  })
+  assert_eq(pages.length(), 1)
+  match (pages[0].rotate : @pdfpage.Rotation) {
+    Rotate90 => ()
+    _ => fail("expected inherited /Rotate 90")
+  }
+  assert_eq(pages[0].mediabox.to_string(), mediabox_parent.to_string())
+}
+
+///|
 test "pages_of_pagetree errors on malformed and missing kids" {
   let base = @pdf.Pdf::empty()
   let bad_kids_num = base.addobj(
