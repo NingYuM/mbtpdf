@@ -53,3 +53,54 @@ test "read rejects malformed kern lines" {
   ] = try? @pdfafm.PdfAfm::new().read(input)
   assert_true(res is Err(_))
 }
+
+///|
+test "read ignores short lines and unknown kern glyphs" {
+  let afm =
+    #|StartFontMetrics 4.1
+    #|FooBar
+    #|FontName TestFont
+    #|StartCharMetrics 2
+    #|X
+    #|C 65 ; WX 600 ; N A ;
+    #|EndCharMetrics
+    #|StartKernPairs 2
+    #|K
+    #|KPX A Z -50
+    #|KPX A A -30
+    #|EndKernPairs
+    #|EndFontMetrics
+    #|
+  let input = @pdfio.Input::of_string(afm)
+  let (headers, widths, kerns, widths_prime) = @pdfafm.PdfAfm::new().read(input)
+  match headers.search_by(pair => pair.0 == "FooBar") {
+    Some(index) => assert_eq(headers[index].1, "")
+    None => fail("expected FooBar header")
+  }
+  assert_eq(widths, [(65, 600)])
+  assert_eq(kerns, [(65, 65, -30)])
+  assert_eq(widths_prime, [("A", 600)])
+}
+
+///|
+test "read rejects malformed char metrics lines" {
+  let afm =
+    #|StartFontMetrics 4.1
+    #|FontName BrokenFont
+    #|StartCharMetrics 1
+    #|C 65 ; N A ;
+    #|EndCharMetrics
+    #|EndFontMetrics
+    #|
+  let input = @pdfio.Input::of_string(afm)
+  let res : Result[
+    (
+      Array[(String, String)],
+      Array[(Int, Int)],
+      Array[(Int, Int, Int)],
+      Array[(String, Int)],
+    ),
+    Error,
+  ] = try? @pdfafm.PdfAfm::new().read(input)
+  assert_true(res is Err(_))
+}
