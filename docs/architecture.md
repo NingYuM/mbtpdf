@@ -66,6 +66,9 @@ Key design principles:
 - Mid-layer packages (graphics/pdfops, document/pdfpage, etc.) do not depend on IO services (io/pdfread/io/pdfwrite)
 - Font types live in `font/pdffont`, allowing `font/pdfstandard14` to avoid depending on `text/pdftext`
 
+Notes / current exceptions:
+- Some higher-level feature packages may include IO convenience dependencies (for example, `text/pdftext` currently imports `io/pdfreadfs`). If stricter layering becomes desirable, consider splitting such packages into a pure “core” package plus an optional IO adapter package.
+
 ## Package Dependency Map (High Level)
 
 ```
