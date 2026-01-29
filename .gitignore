@@ -7,3 +7,4 @@ target
 camlpdf
 __pycache__/
 *.pyc
+tmp/
