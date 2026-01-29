@@ -2,6 +2,44 @@
 let ctx : @pdfflate.PdfFlate = PdfFlate::new()
 
 ///|
+priv struct LsbBitWriter {
+  out : @pdfio.MutableBytes
+  mut cur : Int
+  mut bit_pos : Int
+}
+
+///|
+fn LsbBitWriter::new() -> LsbBitWriter {
+  { out: Array::new(), cur: 0, bit_pos: 0 }
+}
+
+///|
+fn LsbBitWriter::write_bits(
+  self : LsbBitWriter,
+  value : Int,
+  count : Int,
+) -> Unit {
+  for i in 0..<count {
+    let bit = (value >> i) & 1
+    self.cur = self.cur | (bit << self.bit_pos)
+    self.bit_pos = self.bit_pos + 1
+    if self.bit_pos == 8 {
+      self.out.push(self.cur.to_byte())
+      self.cur = 0
+      self.bit_pos = 0
+    }
+  }
+}
+
+///|
+fn LsbBitWriter::finish(self : LsbBitWriter) -> @pdfio.MutableBytes {
+  if self.bit_pos != 0 {
+    self.out.push(self.cur.to_byte())
+  }
+  self.out
+}
+
+///|
 fn run_uncompress(
   data : @pdfio.MutableBytes,
   header : Bool,
@@ -146,6 +184,19 @@ test "compress/uncompress roundtrip raw" {
 }
 
 ///|
+test "compress/uncompress roundtrip raw multi-block stored" {
+  let input : @pdfio.MutableBytes = Array::make(70000, (0).to_byte())
+  for i in 0..<input.length() {
+    input[i] = (i & 0xFF).to_byte()
+  }
+  let encoded = run_compress(input, false)
+  let decoded = run_uncompress(encoded, false) catch {
+    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+  }
+  assert_eq(decoded, input)
+}
+
+///|
 test "uncompress rejects empty data" {
   let data : @pdfio.MutableBytes = []
   let result : Result[@pdfio.MutableBytes, Error] = try? run_uncompress(
@@ -224,6 +275,53 @@ test "uncompress rejects invalid distance symbol" {
     data, false,
   )
   assert_flate_error(result, "invalid distance symbol")
+}
+
+///|
+test "uncompress rejects dynamic repeat with no previous code length" {
+  let w = LsbBitWriter::new()
+  w.write_bits(1, 1) // BFINAL
+  w.write_bits(2, 2) // BTYPE = 2 (dynamic)
+  w.write_bits(0, 5) // HLIT = 257
+  w.write_bits(0, 5) // HDIST = 1
+  w.write_bits(0, 4) // HCLEN = 4
+  // code length code lengths: symbols [16, 17, 18, 0]
+  w.write_bits(1, 3) // symbol 16 has code length 1
+  w.write_bits(0, 3)
+  w.write_bits(0, 3)
+  w.write_bits(0, 3)
+  // first decoded code-length symbol is 16 (repeat) with no previous length
+  w.write_bits(0, 1)
+  let data = w.finish()
+  let result : Result[@pdfio.MutableBytes, Error] = try? run_uncompress(
+    data, false,
+  )
+  assert_flate_error(result, "repeat with no previous code length")
+}
+
+///|
+test "uncompress rejects dynamic code length overflow" {
+  let w = LsbBitWriter::new()
+  w.write_bits(1, 1) // BFINAL
+  w.write_bits(2, 2) // BTYPE = 2 (dynamic)
+  w.write_bits(0, 5) // HLIT = 257
+  w.write_bits(0, 5) // HDIST = 1
+  w.write_bits(0, 4) // HCLEN = 4
+  // code length code lengths: symbols [16, 17, 18, 0]
+  w.write_bits(0, 3)
+  w.write_bits(0, 3)
+  w.write_bits(1, 3) // symbol 18 has code length 1
+  w.write_bits(0, 3)
+  // Emit two "repeat zero 138 times" instructions; the second overflows total=258.
+  w.write_bits(0, 1) // symbol 18
+  w.write_bits(0x7F, 7)
+  w.write_bits(0, 1) // symbol 18
+  w.write_bits(0x7F, 7)
+  let data = w.finish()
+  let result : Result[@pdfio.MutableBytes, Error] = try? run_uncompress(
+    data, false,
+  )
+  assert_flate_error(result, "code length overflow")
 }
 
 ///|
