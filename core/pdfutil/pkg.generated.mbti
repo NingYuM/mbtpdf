@@ -6,6 +6,10 @@ pub let printer : Ref[(String) -> Unit]
 
 pub let quiet : Ref[Bool]
 
+pub fn[T] with_printer((String) -> Unit, () -> T raise) -> T raise
+
+pub fn[T] with_quiet(Bool, () -> T raise) -> T raise
+
 // Errors
 
 // Types and methods
