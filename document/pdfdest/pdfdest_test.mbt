@@ -325,6 +325,38 @@ test "read_destination array variants" {
 }
 
 ///|
+test "read_destination returns NullDestination for invalid page targets" {
+  let pdf = @pdf.Pdf::empty()
+  let not_a_page : @pdf.PdfObject = Name(@pdf.PdfName::of_string("/NotPage"))
+  let objs : Array[@pdf.PdfObject] = [
+    Array([not_a_page, Name(@pdf.PdfName::of_string("/XYZ")), Null, Null, Null]),
+    Array([not_a_page, Name(@pdf.PdfName::of_string("/XYZ")), Null, Null]),
+    Array([not_a_page, Name(@pdf.PdfName::of_string("/XYZ")), Null]),
+    Array([not_a_page, Name(@pdf.PdfName::of_string("/FitH")), Null]),
+    Array([not_a_page, Name(@pdf.PdfName::of_string("/FitV")), Null]),
+    Array([not_a_page, Name(@pdf.PdfName::of_string("/FitBH")), Null]),
+    Array([not_a_page, Name(@pdf.PdfName::of_string("/FitBV")), Null]),
+    Array([not_a_page, Name(@pdf.PdfName::of_string("/Fit"))]),
+    Array([not_a_page, Name(@pdf.PdfName::of_string("/FitB"))]),
+    Array([
+      not_a_page,
+      Name(@pdf.PdfName::of_string("/FitR")),
+      Real(1.0),
+      Real(2.0),
+      Real(3.0),
+      Real(4.0),
+    ]),
+    Array([Indirect(1), Name(@pdf.PdfName::of_string("/NotADest"))]),
+  ]
+  for obj in objs {
+    match @pdfe.with_logger(_ => (), fn() { Destination::read(pdf, obj) }) {
+      Destination::NullDestination => ()
+      _ => fail("expected NullDestination for invalid destination array")
+    }
+  }
+}
+
+///|
 test "read_destination handles missing and invalid objects" {
   let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([])
