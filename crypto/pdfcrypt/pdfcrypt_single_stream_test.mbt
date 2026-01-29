@@ -101,3 +101,69 @@ test "decrypt_single_stream restores AES256 stream bytes" {
     _ => fail("expected stream object")
   }
 }
+
+///|
+test "decrypt_single_stream restores ARC4 128 stream bytes via owner password" {
+  let pdf = pdf_with_stream()
+  let (_orig_objnum, _orig_gen, orig_stream) = first_stream(pdf)
+  orig_stream.getstream()
+  let orig_bytes = match (orig_stream : @pdf.PdfObject) {
+    Stream(r) =>
+      match r.val.1 {
+        @pdf.Stream::Got(bytes) => bytes
+        _ => fail("expected stream bytes")
+      }
+    _ => fail("expected stream object")
+  }
+  let enc = @pdfcrypt.PdfCrypt::new().encrypt_pdf_128bit(
+    "user",
+    "owner",
+    [],
+    pdf,
+  )
+  let (objnum, gen, stream) = first_stream(enc)
+  let decrypted = @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
+    None,
+    Some("owner"),
+    enc,
+    objnum,
+    gen,
+    stream,
+  )
+  decrypted.getstream()
+  match (decrypted : @pdf.PdfObject) {
+    Stream(r) =>
+      match r.val.1 {
+        @pdf.Stream::Got(bytes) => {
+          assert_eq(@pdfio.bytes_size(bytes), @pdfio.bytes_size(orig_bytes))
+          assert_eq(
+            @pdfio.int_array_of_bytes(bytes),
+            @pdfio.int_array_of_bytes(orig_bytes),
+          )
+        }
+        _ => fail("expected decrypted bytes")
+      }
+    _ => fail("expected stream object")
+  }
+}
+
+///|
+test "decrypt_single_stream rejects bad owner password for ARC4 128" {
+  let pdf = pdf_with_stream()
+  let enc = @pdfcrypt.PdfCrypt::new().encrypt_pdf_128bit(
+    "user",
+    "owner",
+    [],
+    pdf,
+  )
+  let (objnum, gen, stream) = first_stream(enc)
+  let res : Result[@pdf.PdfObject, Error] = try? @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
+    None,
+    Some("wrong"),
+    enc,
+    objnum,
+    gen,
+    stream,
+  )
+  assert_true(res is Err(_))
+}

@@ -174,3 +174,17 @@ test "recrypt_pdf requires correct password" {
   )
   assert_true(bad is Err(_))
 }
+
+///|
+test "recrypt_pdf handles failure to load saved encryption metadata" {
+  let pdf = @pdfpage.PdfPageDoc::minimum_valid()
+  // Mark the document as "encrypted" with an invalid /Encrypt entry, so
+  // load_saved_encryption_from_pdf fails and is ignored.
+  pdf.trailerdict = pdf.trailerdict.add_entry("/Encrypt", Integer(0))
+  let res : Result[@pdf.Pdf, Error] = try? @pdfcrypt.PdfCrypt::new().recrypt_pdf(
+    pdf,
+    "pw",
+    renumber=false,
+  )
+  assert_true(res is Err(_))
+}
