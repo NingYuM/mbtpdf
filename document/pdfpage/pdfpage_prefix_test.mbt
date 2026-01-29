@@ -147,11 +147,11 @@ test "add_prefix rewrites resources and operators" {
         saw_do = true
       }
       OpDP(_, Name(name)) => {
-        assert_true(name.equal_string_bytes("/pProp1"))
+        assert_true(name is PdfName("/pProp1"))
         saw_dp = true
       }
       OpBDC(_, Name(name)) => {
-        assert_true(name.equal_string_bytes("/pProp1"))
+        assert_true(name is PdfName("/pProp1"))
         saw_bdc = true
       }
       _ => ()
@@ -205,7 +205,7 @@ test "add_prefix rewrites inline image colorspace names" {
       InlineImage((inline_dict, _, _)) =>
         match pdf.lookup_direct("/CS", inline_dict) {
           Some(Name(name)) => {
-            assert_true(name.equal_string_bytes("/pCS1"))
+            assert_true(name is PdfName("/pCS1"))
             saw = true
           }
           _ => fail("expected prefixed inline colorspace")
@@ -258,7 +258,7 @@ test "add_prefix handles filtered inline images with trailing ops" {
       InlineImage((inline_dict, _, _)) =>
         match pdf.lookup_direct("/CS", inline_dict) {
           Some(Name(name)) => {
-            assert_true(name.equal_string_bytes("/pCS1"))
+            assert_true(name is PdfName("/pCS1"))
             saw_inline = true
           }
           _ => fail("expected prefixed inline colorspace")
@@ -365,7 +365,7 @@ test "add_prefix keeps direct inline colorspace names" {
       InlineImage((inline_dict, _, _)) =>
         match pdf.lookup_direct("/CS", inline_dict) {
           Some(Name(name)) => {
-            assert_true(name.equal_string_bytes("/DeviceRGB"))
+            assert_true(name is PdfName("/DeviceRGB"))
             saw = true
           }
           _ => fail("expected inline colorspace")

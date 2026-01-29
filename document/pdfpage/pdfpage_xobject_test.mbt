@@ -41,7 +41,7 @@ test "process_xobjects updates form xobject stream" {
   page.process_xobjects(pdf, update)
   let updated = pdf.lookup_obj(xobj_num)
   match (pdf.lookup_direct("/Subtype", updated) : @pdf.PdfObject?) {
-    Some(Name(n)) if n.equal_string_bytes("/Form") => ()
+    Some(Name(PdfName("/Form"))) => ()
     _ => fail("expected /Form subtype")
   }
   match (pdf.lookup_direct("/BBox", updated) : @pdf.PdfObject?) {
@@ -77,7 +77,7 @@ test "combine_pdf_resources merges known and keeps unknown" {
     _ => fail("expected /Foo")
   }
   match (pdf.lookup_direct("/Bar", combined) : @pdf.PdfObject?) {
-    Some(Name(n)) if n.equal_string_bytes("/Baz") => ()
+    Some(Name(PdfName("/Baz"))) => ()
     _ => fail("expected /Bar")
   }
 }

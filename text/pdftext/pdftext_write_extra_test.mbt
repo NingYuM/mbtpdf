@@ -7,7 +7,7 @@ test "write_encoding covers mac and custom encodings" {
   )
   let macroman = ctx.write_encoding(macroman_encoding)
   match (pdf.lookup_obj(macroman) : @pdf.PdfObject) {
-    Name(n) if n.equal_string_bytes("/MacRomanEncoding") => ()
+    Name(@pdf.PdfName("/MacRomanEncoding")) => ()
     _ => fail("expected /MacRomanEncoding")
   }
   let macexpert_encoding = ctx.read_encoding(
@@ -15,13 +15,13 @@ test "write_encoding covers mac and custom encodings" {
   )
   let macexpert = ctx.write_encoding(macexpert_encoding)
   match (pdf.lookup_obj(macexpert) : @pdf.PdfObject) {
-    Name(n) if n.equal_string_bytes("/MacExpertEncoding") => ()
+    Name(@pdf.PdfName("/MacExpertEncoding")) => ()
     _ => fail("expected /MacExpertEncoding")
   }
   let filled_encoding = ctx.read_encoding(truetype_font_with_encoding_dict())
   let filled = ctx.write_encoding(filled_encoding)
   match (pdf.lookup_obj(filled) : @pdf.PdfObject) {
-    Name(n) if n.equal_string_bytes("/MacRomanEncoding") => ()
+    Name(@pdf.PdfName("/MacRomanEncoding")) => ()
     _ => fail("expected filled encoding to reuse inner")
   }
   let custom_encoding = ctx.read_encoding(embedded_font_with_custom_encoding())
@@ -156,7 +156,7 @@ test "write_font writes type3 font with encoding" {
   match (pdf.lookup_obj(objnum) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
       match (pdf.lookup_direct("/Subtype", dict) : @pdf.PdfObject?) {
-        Some(Name(n)) if n.equal_string_bytes("/Type3") => ()
+        Some(Name(@pdf.PdfName("/Type3"))) => ()
         _ => fail("expected Type3 subtype")
       }
     _ => fail("expected Type3 font dictionary")

@@ -134,10 +134,7 @@ test "read_number_tree handles duplicate keys" {
   for pair in read {
     if pair.0 == "1" {
       match (pair.1 : @pdf.PdfObject) {
-        Name(name) =>
-          if name.equal_string_bytes("/One") || name.equal_string_bytes("/Uno") {
-            found = true
-          }
+        Name(name) => if name is PdfName("/One" | "/Uno") { found = true }
         _ => ()
       }
     }

@@ -90,7 +90,7 @@ fn collect_dest_strings(pdf : @pdf.Pdf) -> Array[String] {
         _ => ()
       }
       match lookup_entry(entries, "/S") {
-        Some(Name(n)) if n.equal_string_bytes("/GoTo") =>
+        Some(Name(PdfName("/GoTo"))) =>
           match lookup_entry(entries, "/D") {
             Some(String(s)) => out.push(s)
             _ => ()

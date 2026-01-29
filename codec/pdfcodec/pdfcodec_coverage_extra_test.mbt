@@ -170,8 +170,8 @@ test "encode_pdfstream LZW clears dictionary when full" {
   let (pdf, stream_ref, stream_obj) = mk_stream(original, [])
   ctx.encode_pdfstream(pdf, Encoding::LZW(1), stream_obj, only_if_smaller=false)
   match (pdf.lookup_direct("/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
-    Some(Name(name)) if name.equal_string_bytes("/LZWDecode") => ()
-    Some(Array([Name(name), ..])) if name.equal_string_bytes("/LZWDecode") => ()
+    Some(Name(PdfName("/LZWDecode"))) => ()
+    Some(Array([Name(PdfName("/LZWDecode")), ..])) => ()
     _ => fail("expected /LZWDecode filter after encoding")
   }
 
@@ -244,8 +244,8 @@ test "encode_pdfstream LZW grows code length past 9 bits" {
   let (pdf, stream_ref, stream_obj) = mk_stream(data, [])
   ctx.encode_pdfstream(pdf, Encoding::LZW(1), stream_obj, only_if_smaller=false)
   match (pdf.lookup_direct("/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
-    Some(Name(name)) if name.equal_string_bytes("/LZWDecode") => ()
-    Some(Array([Name(name), ..])) if name.equal_string_bytes("/LZWDecode") => ()
+    Some(Name(PdfName("/LZWDecode"))) => ()
+    Some(Array([Name(PdfName("/LZWDecode")), ..])) => ()
     _ => fail("expected /LZWDecode filter after encoding")
   }
 }

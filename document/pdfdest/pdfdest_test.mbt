@@ -90,8 +90,7 @@ test "read_destination shallow name" {
     shallow=true,
   )
   match dest {
-    Destination::NamedDestination(name) if name.equal_string_bytes("/Chapter1") =>
-      ()
+    Destination::NamedDestination(PdfName("/Chapter1")) => ()
     _ => fail("expected NamedDestination")
   }
 }
@@ -109,7 +108,7 @@ test "destination to_pdf_object" {
   match (obj : @pdf.PdfObject) {
     Array(
       [Integer(3), Name(name), Real(10.0), Real(20.0), Real(30.0), Real(40.0)]
-    ) if name.equal_string_bytes("/FitR") => ()
+    ) if name is PdfName("/FitR") => ()
     _ => fail("unexpected pdfobject for destination")
   }
 }
@@ -182,9 +181,7 @@ test "transform_destination updates GoTo action" {
   match updated {
     Destination::Action(dict) =>
       match pdf.lookup_direct("/D", dict) {
-        Some(Array([_, Name(name), left, top, _])) if name.equal_string_bytes(
-            "/XYZ",
-          ) => {
+        Some(Array([_, Name(PdfName("/XYZ")), left, top, _])) => {
           assert_close(pdf.getnum(left), 15.0)
           assert_close(pdf.getnum(top), 17.0)
         }
@@ -386,8 +383,7 @@ test "read_destination name resolution" {
       pdf_missing_dests,
       Name(@pdf.PdfName::of_string("/Missing")),
     ) {
-    Destination::NamedDestination(name) if name.equal_string_bytes("/Missing") =>
-      ()
+    Destination::NamedDestination(PdfName("/Missing")) => ()
     _ => fail("expected NamedDestination with no /Dests")
   }
   let pdf_missing_entry = minimum_valid_pdf()
@@ -400,8 +396,7 @@ test "read_destination name resolution" {
       pdf_missing_entry,
       Name(@pdf.PdfName::of_string("/Missing")),
     ) {
-    Destination::NamedDestination(name) if name.equal_string_bytes("/Missing") =>
-      ()
+    Destination::NamedDestination(PdfName("/Missing")) => ()
     _ => fail("expected NamedDestination for missing entry")
   }
 }
@@ -459,48 +454,42 @@ test "read_destination string resolution" {
 test "destination to_pdf_object variants" {
   let action = Destination::Action(Name(@pdf.PdfName::of_string("/GoTo")))
   match (action.to_pdf_object() : @pdf.PdfObject) {
-    Name(name) if name.equal_string_bytes("/GoTo") => ()
+    Name(PdfName("/GoTo")) => ()
     _ => fail("expected action to passthrough")
   }
   let named = Destination::NamedDestination(@pdf.PdfName::of_string("/Dest"))
   match (named.to_pdf_object() : @pdf.PdfObject) {
-    Name(name) if name.equal_string_bytes("/Dest") => ()
+    Name(PdfName("/Dest")) => ()
     _ => fail("expected named destination name")
   }
   let fit = Destination::Fit(TargetPage::PageObject(1))
   match (fit.to_pdf_object() : @pdf.PdfObject) {
-    Array([Indirect(1), Name(name)]) if name.equal_string_bytes("/Fit") => ()
+    Array([Indirect(1), Name(PdfName("/Fit"))]) => ()
     _ => fail("expected Fit object")
   }
   let fith = Destination::FitH(TargetPage::OtherDocPageNumber(2), None)
   match (fith.to_pdf_object() : @pdf.PdfObject) {
-    Array([Integer(2), Name(name), Null]) if name.equal_string_bytes("/FitH") =>
-      ()
+    Array([Integer(2), Name(PdfName("/FitH")), Null]) => ()
     _ => fail("expected FitH object")
   }
   let fitv = Destination::FitV(TargetPage::PageObject(3), Some(12.0))
   match (fitv.to_pdf_object() : @pdf.PdfObject) {
-    Array([Indirect(3), Name(name), Real(12.0)]) if name.equal_string_bytes(
-        "/FitV",
-      ) => ()
+    Array([Indirect(3), Name(PdfName("/FitV")), Real(12.0)]) => ()
     _ => fail("expected FitV object")
   }
   let fitb = Destination::FitB(TargetPage::PageObject(4))
   match (fitb.to_pdf_object() : @pdf.PdfObject) {
-    Array([Indirect(4), Name(name)]) if name.equal_string_bytes("/FitB") => ()
+    Array([Indirect(4), Name(PdfName("/FitB"))]) => ()
     _ => fail("expected FitB object")
   }
   let fitbh = Destination::FitBH(TargetPage::OtherDocPageNumber(5), Some(1.5))
   match (fitbh.to_pdf_object() : @pdf.PdfObject) {
-    Array([Integer(5), Name(name), Real(1.5)]) if name.equal_string_bytes(
-        "/FitBH",
-      ) => ()
+    Array([Integer(5), Name(PdfName("/FitBH")), Real(1.5)]) => ()
     _ => fail("expected FitBH object")
   }
   let fitbv = Destination::FitBV(TargetPage::OtherDocPageNumber(6), None)
   match (fitbv.to_pdf_object() : @pdf.PdfObject) {
-    Array([Integer(6), Name(name), Null]) if name.equal_string_bytes("/FitBV") =>
-      ()
+    Array([Integer(6), Name(PdfName("/FitBV")), Null]) => ()
     _ => fail("expected FitBV object")
   }
 }
@@ -565,15 +554,14 @@ test "transform_destination variants" {
   match action.transform(pdf, tr) {
     Destination::Action(dict) =>
       match pdf.lookup_direct("/S", dict) {
-        Some(Name(name)) if name.equal_string_bytes("/URI") => ()
+        Some(Name(PdfName("/URI"))) => ()
         _ => fail("expected unchanged action")
       }
     _ => fail("expected action destination")
   }
   let named = Destination::NamedDestination(@pdf.PdfName::of_string("/Name"))
   match named.transform(pdf, tr) {
-    Destination::NamedDestination(name) if name.equal_string_bytes("/Name") =>
-      ()
+    Destination::NamedDestination(PdfName("/Name")) => ()
     _ => fail("expected NamedDestination passthrough")
   }
 }

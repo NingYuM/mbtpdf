@@ -579,7 +579,7 @@ test "add_annotation merges existing annots and extras" {
   match (pdf.lookup_direct("/Annots", updated.rest) : @pdf.PdfObject?) {
     Some(Array([first, second])) => {
       match (pdf.lookup_direct("/Subtype", first) : @pdf.PdfObject?) {
-        Some(Name(n)) if n.equal_string_bytes("/FreeText") => ()
+        Some(Name(@pdf.PdfName("/FreeText"))) => ()
         _ => fail("expected freetext subtype")
       }
       match (pdf.lookup_direct("/Foo", first) : @pdf.PdfObject?) {
@@ -587,7 +587,7 @@ test "add_annotation merges existing annots and extras" {
         _ => fail("expected extra field")
       }
       match (pdf.lookup_direct("/Subtype", second) : @pdf.PdfObject?) {
-        Some(Name(n)) if n.equal_string_bytes("/Text") => ()
+        Some(Name(@pdf.PdfName("/Text"))) => ()
         _ => fail("expected existing annotation")
       }
     }
@@ -633,7 +633,7 @@ test "transform_annotations leaves non-array quadpoints" {
   })
   let updated = pdf.lookup_obj(objnum)
   match (pdf.lookup_direct("/QuadPoints", updated) : @pdf.PdfObject?) {
-    Some(Name(n)) if n.equal_string_bytes("/Bad") => ()
+    Some(Name(@pdf.PdfName("/Bad"))) => ()
     _ => fail("expected non-array quadpoints")
   }
 }

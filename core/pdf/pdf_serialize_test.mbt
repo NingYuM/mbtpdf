@@ -5,7 +5,7 @@ test "PdfName compare, bytes, and show" {
   assert_eq(a.to_bytes().length(), 2)
   let names = [b, a]
   names.sort()
-  assert_true(names[0].equal_string_bytes("/A"))
+  assert_true(names[0] is PdfName("/A"))
   assert_eq(a.to_string(), "/A")
 }
 

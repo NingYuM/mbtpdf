@@ -327,7 +327,7 @@ test "merge_structure_trees merges roots" {
       match (pdf_out.lookup_obj(root_num) : @pdf.PdfObject) {
         Dictionary(_) as dict =>
           match (pdf_out.lookup_direct("/Type", dict) : @pdf.PdfObject?) {
-            Some(Name(n)) if n.equal_string_bytes("/StructTreeRoot") => ()
+            Some(Name(@pdf.PdfName("/StructTreeRoot"))) => ()
             _ => fail("expected StructTreeRoot type")
           }
         _ => fail("expected merged root dict")

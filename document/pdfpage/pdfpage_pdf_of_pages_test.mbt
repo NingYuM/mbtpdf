@@ -101,7 +101,7 @@ test "pdf_of_pages builds pagetree for many pages" {
     None => fail("expected /Pages")
   }
   match (subset.lookup_direct("/Type", pages) : @pdf.PdfObject?) {
-    Some(Name(name)) if name.equal_string_bytes("/Pages") => ()
+    Some(Name(PdfName("/Pages"))) => ()
     _ => fail("expected /Type /Pages")
   }
   let count = match (subset.lookup_direct("/Count", pages) : @pdf.PdfObject?) {

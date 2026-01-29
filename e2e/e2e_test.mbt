@@ -428,7 +428,7 @@ fn assert_url_action(
 ) -> Unit raise {
   let action = pdf.direct(action_obj)
   match (pdf.lookup_direct("/S", action) : @pdf.PdfObject?) {
-    Some(Name(n)) if n.equal_string_bytes("/URI") => ()
+    Some(Name(@pdf.PdfName("/URI"))) => ()
     _ => fail("expected /S /URI")
   }
   match (pdf.lookup_direct("/URI", action) : @pdf.PdfObject?) {
@@ -445,11 +445,11 @@ fn assert_ap_stream(
 ) -> Unit raise {
   let stream = pdf.direct(stream_obj)
   match (pdf.lookup_direct("/Type", stream) : @pdf.PdfObject?) {
-    Some(Name(n)) if n.equal_string_bytes("/XObject") => ()
+    Some(Name(@pdf.PdfName("/XObject"))) => ()
     _ => fail("expected /Type /XObject")
   }
   match (pdf.lookup_direct("/Subtype", stream) : @pdf.PdfObject?) {
-    Some(Name(n)) if n.equal_string_bytes("/Form") => ()
+    Some(Name(@pdf.PdfName("/Form"))) => ()
     _ => fail("expected /Subtype /Form")
   }
   let bytes = stream.bigarray_of_stream()
@@ -507,7 +507,7 @@ fn assert_embedded_file_stream(
   expected_payload : String,
 ) -> Unit raise {
   match (pdf.lookup_direct("/Type", stream_obj) : @pdf.PdfObject?) {
-    Some(Name(n)) if n.equal_string_bytes("/EmbeddedFile") => ()
+    Some(Name(@pdf.PdfName("/EmbeddedFile"))) => ()
     _ => fail("expected /Type /EmbeddedFile")
   }
   let bytes = stream_obj.bigarray_of_stream()
@@ -528,7 +528,7 @@ fn assert_embedded_file_spec(
 ) -> Unit raise {
   let spec = pdf.direct(filespec_obj)
   match (pdf.lookup_direct("/Type", spec) : @pdf.PdfObject?) {
-    Some(Name(n)) if n.equal_string_bytes("/Filespec") => ()
+    Some(Name(@pdf.PdfName("/Filespec"))) => ()
     _ => fail("expected /Type /Filespec")
   }
   match (pdf.lookup_direct("/F", spec) : @pdf.PdfObject?) {
@@ -600,7 +600,7 @@ fn assert_rendition_entry(
   }
   let dict = pdf.direct(entry)
   match (pdf.lookup_direct("/S", dict) : @pdf.PdfObject?) {
-    Some(Name(n)) if n.equal_string_bytes("/MR") => ()
+    Some(Name(@pdf.PdfName("/MR"))) => ()
     _ => fail("expected /S /MR")
   }
   match (pdf.lookup_direct("/N", dict) : @pdf.PdfObject?) {
@@ -626,7 +626,7 @@ fn assert_alt_presentation_entry(
   }
   let dict = pdf.direct(entry)
   match (pdf.lookup_direct("/Type", dict) : @pdf.PdfObject?) {
-    Some(Name(n)) if n.equal_string_bytes("/AlternatePresentations") => ()
+    Some(Name(@pdf.PdfName("/AlternatePresentations"))) => ()
     _ => fail("expected /Type /AlternatePresentations")
   }
   match (pdf.lookup_direct("/Title", dict) : @pdf.PdfObject?) {

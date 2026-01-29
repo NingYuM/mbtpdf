@@ -17,10 +17,8 @@ test "encode/decode flate stream" {
     _ => fail("expected encoded stream bytes")
   }
   match (pdf.lookup_direct("/Filter", encoded_dict) : @pdf.PdfObject?) {
-    Some(Name(name)) | Some(Array([Name(name), ..])) =>
-      if !name.equal_string_bytes("/FlateDecode") {
-        fail("expected /FlateDecode filter")
-      }
+    Some(Name(PdfName("/FlateDecode")))
+    | Some(Array([Name(PdfName("/FlateDecode")), ..])) => ()
     _ => fail("expected /Filter entry")
   }
   match (pdf.lookup_direct("/Length", encoded_dict) : @pdf.PdfObject?) {
@@ -237,7 +235,7 @@ test "encode_pdfstream prepends filter when name already set" {
     Some(Array(filters)) => {
       assert_true(filters.length() >= 2)
       match (filters[0] : @pdf.PdfObject) {
-        Name(name) if name.equal_string_bytes("/FlateDecode") => ()
+        Name(PdfName("/FlateDecode")) => ()
         _ => fail("expected /FlateDecode to be first")
       }
     }
@@ -259,7 +257,7 @@ test "encode_pdfstream prepends filter when array already set" {
   match (pdf.lookup_direct("/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
     Some(Array(filters)) =>
       match (filters[0] : @pdf.PdfObject) {
-        Name(name) if name.equal_string_bytes("/FlateDecode") => ()
+        Name(PdfName("/FlateDecode")) => ()
         _ => fail("expected /FlateDecode to be first")
       }
     _ => fail("expected filter array")

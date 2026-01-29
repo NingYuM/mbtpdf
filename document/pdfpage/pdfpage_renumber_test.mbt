@@ -103,15 +103,15 @@ test "renumber_pages renames resource operators consistently" {
     _ => fail("expected OpDo")
   }
   match (ops[10] : @pdfops.Op) {
-    OpDP(_, Name(name)) => assert_true(!name.equal_string_bytes("/Prop1"))
+    OpDP(_, Name(name)) => assert_true(!(name is PdfName("/Prop1")))
     _ => fail("expected OpDP")
   }
   match (ops[11] : @pdfops.Op) {
-    OpBDC(_, Name(name)) => assert_true(!name.equal_string_bytes("/Prop1"))
+    OpBDC(_, Name(name)) => assert_true(!(name is PdfName("/Prop1")))
     _ => fail("expected OpBDC renamed")
   }
   match (ops[12] : @pdfops.Op) {
-    OpBDC(_, Name(name)) => assert_true(name.equal_string_bytes("/PropMissing"))
+    OpBDC(_, Name(name)) => assert_true(name is PdfName("/PropMissing"))
     _ => fail("expected OpBDC missing")
   }
 }
@@ -184,10 +184,10 @@ test "renumber_pages rewrites inline image colorspace names" {
       InlineImage((inline_dict, _, _)) =>
         match pdf.lookup_direct("/CS", inline_dict) {
           Some(Name(name)) =>
-            if name.equal_string_bytes("/DeviceRGB") {
+            if name is PdfName("/DeviceRGB") {
               saw_device = true
             } else {
-              assert_true(!name.equal_string_bytes("/CS1"))
+              assert_true(!(name is PdfName("/CS1")))
               saw_renamed = true
             }
           Some(Array(_)) => saw_passthrough = true

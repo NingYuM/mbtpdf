@@ -336,9 +336,9 @@ test "write_colourspace ICCBased missing stream falls back" {
     ColourSpace::ICCBased(icc).to_pdf_object(pdf)
   })
   match (obj : @pdf.PdfObject) {
-    Array([Name(n), alt]) if n.equal_string_bytes("/ICCBased") =>
+    Array([Name(@pdf.PdfName("/ICCBased")), alt]) =>
       match (alt : @pdf.PdfObject) {
-        Name(n) if n.equal_string_bytes("/DeviceRGB") => ()
+        Name(@pdf.PdfName("/DeviceRGB")) => ()
         _ => fail("expected alternate colourspace")
       }
     _ => fail("expected ICCBased array")
@@ -383,7 +383,7 @@ test "write_colourspace Indexed handles DeviceGray and DeviceCMYK" {
     pdf,
   )
   match (gray : @pdf.PdfObject) {
-    Array([Name(n), _, _, _]) if n.equal_string_bytes("/Indexed") => ()
+    Array([Name(@pdf.PdfName("/Indexed")), _, _, _]) => ()
     _ => fail("expected indexed DeviceGray")
   }
   let table_cmyk : Map[Int, Array[Int]] = Map::new()
@@ -392,7 +392,7 @@ test "write_colourspace Indexed handles DeviceGray and DeviceCMYK" {
     pdf,
   )
   match (cmyk : @pdf.PdfObject) {
-    Array([Name(n), _, _, _]) if n.equal_string_bytes("/Indexed") => ()
+    Array([Name(@pdf.PdfName("/Indexed")), _, _, _]) => ()
     _ => fail("expected indexed DeviceCMYK")
   }
 }
@@ -402,7 +402,7 @@ test "write_colourspace returns pattern name" {
   let pdf = @pdf.Pdf::empty()
   let obj = ColourSpace::Pattern.to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
-    Name(n) if n.equal_string_bytes("/Pattern") => ()
+    Name(@pdf.PdfName("/Pattern")) => ()
     _ => fail("expected /Pattern name")
   }
 }
@@ -426,7 +426,7 @@ test "write_colourspace ICCBased preserves length and skips bad range" {
   }
   let obj = ColourSpace::ICCBased(icc).to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
-    Array([Name(tag), Indirect(n)]) if tag.equal_string_bytes("/ICCBased") =>
+    Array([Name(@pdf.PdfName("/ICCBased")), Indirect(n)]) =>
       match (pdf.lookup_obj(n) : @pdf.PdfObject) {
         Stream(r) => {
           let (dict_obj, _) = r.val
@@ -456,7 +456,7 @@ test "write_colourspace ICCBased handles non-dict stream data" {
   }
   let obj = ColourSpace::ICCBased(icc).to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
-    Array([Name(tag), Indirect(_)]) if tag.equal_string_bytes("/ICCBased") => ()
+    Array([Name(@pdf.PdfName("/ICCBased")), Indirect(_)]) => ()
     _ => fail("expected ICCBased array")
   }
 }
@@ -651,7 +651,7 @@ test "read_colourspace DeviceN attributes and name validation" {
       assert_eq(names.length(), 1)
       assert_eq(names[0], "/Cyan")
       match pdf.lookup_direct("/Subtype", attr_dict) {
-        Some(Name(n)) if n.equal_string_bytes("/DeviceN") => ()
+        Some(Name(@pdf.PdfName("/DeviceN"))) => ()
         _ => fail("expected DeviceN subtype")
       }
     }
@@ -690,7 +690,7 @@ test "write_colourspace writes ICCBased metadata and range" {
   }
   let obj = ColourSpace::ICCBased(icc).to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
-    Array([Name(tag), Indirect(n)]) if tag.equal_string_bytes("/ICCBased") =>
+    Array([Name(@pdf.PdfName("/ICCBased")), Indirect(n)]) =>
       match (pdf.lookup_obj(n) : @pdf.PdfObject) {
         Stream(r) => {
           let (dict, _) = r.val
@@ -743,8 +743,8 @@ test "write_colourspace handles Pattern with base" {
     pdf,
   )
   match (obj : @pdf.PdfObject) {
-    Array([Name(a), Name(b)]) if a.equal_string_bytes("/Pattern") &&
-      b.equal_string_bytes("/DeviceGray") => ()
+    Array([Name(@pdf.PdfName("/Pattern")), Name(@pdf.PdfName("/DeviceGray"))]) =>
+      ()
     _ => fail("expected Pattern with base")
   }
 }

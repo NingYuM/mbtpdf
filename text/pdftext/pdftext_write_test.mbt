@@ -30,7 +30,7 @@ test "write_encoding handles builtins and custom diffs" {
   let standard_encoding = ctx.read_encoding(standard_font_dict())
   let standard = ctx.write_encoding(standard_encoding)
   match (pdf.lookup_obj(standard) : @pdf.PdfObject) {
-    Name(n) if n.equal_string_bytes("/StandardEncoding") => ()
+    Name(@pdf.PdfName("/StandardEncoding")) => ()
     _ => fail("expected StandardEncoding name")
   }
   let custom_encoding = ctx.read_encoding(custom_encoding_font_dict())
@@ -70,7 +70,7 @@ test "write_font handles standard and type3 fonts" {
   match (pdf.lookup_obj(standard) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
       match (pdf.lookup_direct("/BaseFont", dict) : @pdf.PdfObject?) {
-        Some(Name(n)) if n.equal_string_bytes("/Helvetica") => ()
+        Some(Name(@pdf.PdfName("/Helvetica"))) => ()
         _ => fail("expected /BaseFont /Helvetica")
       }
     _ => fail("expected font dictionary")
@@ -80,7 +80,7 @@ test "write_font handles standard and type3 fonts" {
   match (pdf.lookup_obj(type3_num) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
       match (pdf.lookup_direct("/Subtype", dict) : @pdf.PdfObject?) {
-        Some(Name(n)) if n.equal_string_bytes("/Type3") => ()
+        Some(Name(@pdf.PdfName("/Type3"))) => ()
         _ => fail("expected /Subtype /Type3")
       }
     _ => fail("expected Type3 font dictionary")
