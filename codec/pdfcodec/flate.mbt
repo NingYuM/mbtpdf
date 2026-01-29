@@ -296,8 +296,7 @@ pub impl PdfFilterNameDecode for @pdf.PdfName with decode_stage(
   data : @pdfio.MutableBytes,
   jbig2dec : String?,
 ) -> @pdfio.MutableBytes raise CodecError {
-  if filter_name.equal_string_bytes("/FlateDecode") ||
-    filter_name.equal_string_bytes("/Fl") {
+  if filter_name is PdfName("/FlateDecode" | "/Fl") {
     let mut decoded = ctx.decode_flate(data)
     match parms {
       Some(Dictionary(_)) => {
@@ -312,28 +311,23 @@ pub impl PdfFilterNameDecode for @pdf.PdfName with decode_stage(
       _ => ()
     }
     decoded
-  } else if filter_name.equal_string_bytes("/ASCIIHexDecode") ||
-    filter_name.equal_string_bytes("/AHx") {
+  } else if filter_name is PdfName("/ASCIIHexDecode" | "/AHx") {
     decode_asciihex(@pdfio.Input::of_bytes(data, source="asciihex"))
-  } else if filter_name.equal_string_bytes("/ASCII85Decode") ||
-    filter_name.equal_string_bytes("/A85") {
+  } else if filter_name is PdfName("/ASCII85Decode" | "/A85") {
     decode_ascii85(@pdfio.Input::of_bytes(data, source="ascii85"))
-  } else if filter_name.equal_string_bytes("/RunLengthDecode") ||
-    filter_name.equal_string_bytes("/RL") {
+  } else if filter_name is PdfName("/RunLengthDecode" | "/RL") {
     decode_runlength(@pdfio.Input::of_bytes(data, source="runlength"))
-  } else if filter_name.equal_string_bytes("/LZWDecode") ||
-    filter_name.equal_string_bytes("/LZW") {
+  } else if filter_name is PdfName("/LZWDecode" | "/LZW") {
     let early = get_int_param(pdf, parms, "/EarlyChange", 1)
     decode_lzw(early, @pdfio.Input::of_bytes(data, source="lzw"))
-  } else if filter_name.equal_string_bytes("/Crypt") {
+  } else if filter_name is PdfName("/Crypt") {
     data
-  } else if filter_name.equal_string_bytes("/JBIG2Decode") {
+  } else if filter_name is PdfName("/JBIG2Decode") {
     let _ = jbig2dec
     raise CodecError::DecodeNotSupported(
       "JBIG2Decode requires decode_pdfstream_async",
     )
-  } else if filter_name.equal_string_bytes("/CCITTFaxDecode") ||
-    filter_name.equal_string_bytes("/CCF") {
+  } else if filter_name is PdfName("/CCITTFaxDecode" | "/CCF") {
     let k = get_int_param(pdf, parms, "/K", 0)
     let eol = get_bool_param(pdf, parms, "/EndOfLine", false)
     let eba = get_bool_param(pdf, parms, "/EncodedByteAlign", false)

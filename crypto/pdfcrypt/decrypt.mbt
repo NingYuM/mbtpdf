@@ -18,8 +18,8 @@ fn is_identity(
   dict : @pdf.PdfObject,
 ) -> Bool {
   let identity_crypt_filter_present = match pdf.lookup_direct("/Filter", dict) {
-    Some(Name(name)) if name.equal_string_bytes("/Crypt") => true
-    Some(Array([Name(name), ..])) if name.equal_string_bytes("/Crypt") => true
+    Some(Name(PdfName("/Crypt"))) => true
+    Some(Array([Name(PdfName("/Crypt")), ..])) => true
     _ => false
   }
   let identity_param = if identity_crypt_filter_present {
@@ -27,14 +27,14 @@ fn is_identity(
       Some(Dictionary(decodeparms)) =>
         match
           pdf.lookup_direct("/Name", @pdf.PdfObject::Dictionary(decodeparms)) {
-          Some(Name(name)) if name.equal_string_bytes("/Identity") => true
+          Some(Name(PdfName("/Identity"))) => true
           None => true
           _ => false
         }
       Some(Array([Dictionary(decodeparms), ..])) =>
         match
           pdf.lookup_direct("/Name", @pdf.PdfObject::Dictionary(decodeparms)) {
-          Some(Name(name)) if name.equal_string_bytes("/Identity") => true
+          Some(Name(PdfName("/Identity"))) => true
           None => true
           _ => false
         }
@@ -46,7 +46,7 @@ fn is_identity(
   }
   let is_metadata = if no_encrypt_metadata {
     match pdf.lookup_direct("/Type", dict) {
-      Some(Name(name)) if name.equal_string_bytes("/Metadata") => true
+      Some(Name(PdfName("/Metadata"))) => true
       _ => false
     }
   } else {
@@ -302,21 +302,21 @@ pub fn PdfCrypt::get_encryption_values(
       Some(@pdf.PdfObject::Integer(1)),
       _,
       Some(@pdf.PdfObject::Integer(r)),
-    ) if name.equal_string_bytes("/Standard") =>
+    ) if name is PdfName("/Standard") =>
       Some(@pdfcryptprimitives.Encryption::ARC4(40, r))
     (
       Some(@pdf.PdfObject::Name(name)),
       Some(@pdf.PdfObject::Integer(2)),
       None,
       Some(@pdf.PdfObject::Integer(r)),
-    ) if name.equal_string_bytes("/Standard") =>
+    ) if name is PdfName("/Standard") =>
       Some(@pdfcryptprimitives.Encryption::ARC4(40, r))
     (
       Some(@pdf.PdfObject::Name(name)),
       Some(@pdf.PdfObject::Integer(2)),
       Some(@pdf.PdfObject::Integer(n)),
       _,
-    ) if name.equal_string_bytes("/Standard") =>
+    ) if name is PdfName("/Standard") =>
       if n % 8 == 0 && n >= 40 && n <= 128 {
         Some(@pdfcryptprimitives.Encryption::ARC4(n, 3))
       } else {
@@ -327,16 +327,14 @@ pub fn PdfCrypt::get_encryption_values(
       Some(@pdf.PdfObject::Integer(v)),
       length,
       Some(@pdf.PdfObject::Integer(r)),
-    ) if name.equal_string_bytes("/Standard") =>
+    ) if name is PdfName("/Standard") =>
       if v == 4 || v == 5 {
         match pdf.lookup_direct("/CF", encryptdict) {
           Some(cfdict) =>
             match pdf.lookup_direct("/StdCF", cfdict) {
               Some(stdcfdict) =>
                 match pdf.lookup_direct("/CFM", stdcfdict) {
-                  Some(@pdf.PdfObject::Name(cfm)) if cfm.equal_string_bytes(
-                      "/V2",
-                    ) =>
+                  Some(@pdf.PdfObject::Name(PdfName("/V2"))) =>
                     match length {
                       Some(@pdf.PdfObject::Integer(i)) =>
                         Some(@pdfcryptprimitives.Encryption::ARC4(i, 4))
@@ -347,12 +345,10 @@ pub fn PdfCrypt::get_encryption_values(
                           _ => None
                         }
                     }
-                  Some(@pdf.PdfObject::Name(cfm)) if cfm.equal_string_bytes(
-                      "/AESV2",
-                    ) => Some(@pdfcryptprimitives.Encryption::AESV2)
-                  Some(@pdf.PdfObject::Name(cfm)) if cfm.equal_string_bytes(
-                      "/AESV3",
-                    ) => Some(@pdfcryptprimitives.Encryption::AESV3(r == 6))
+                  Some(@pdf.PdfObject::Name(PdfName("/AESV2"))) =>
+                    Some(@pdfcryptprimitives.Encryption::AESV2)
+                  Some(@pdf.PdfObject::Name(PdfName("/AESV3"))) =>
+                    Some(@pdfcryptprimitives.Encryption::AESV3(r == 6))
                   _ => None
                 }
               _ => None

@@ -139,7 +139,7 @@ fn apply_namechanges_at_destination_callsites(
           updated.push((entry.0, f(entry.1)))
         }
         let updated = match lookup("/S", updated) {
-          Some(PdfObject::Name(n)) if n.equal_string_bytes("/GoTo") =>
+          Some(PdfObject::Name(PdfName("/GoTo"))) =>
             match lookup("/D", updated) {
               Some(PdfObject::String(s)) =>
                 add_entry(updated, "/D", PdfObject::String(rewrite_string(s)))

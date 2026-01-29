@@ -89,12 +89,15 @@ fn change_operator(
       let dict_updated = match
         pdf.lookup_direct_orelse("/CS", "/ColorSpace", dict) {
         Some(@pdf.PdfObject::Name(n)) =>
-          if n.equal_string_bytes("/DeviceGray") ||
-            n.equal_string_bytes("/DeviceRGB") ||
-            n.equal_string_bytes("/DeviceCMYK") ||
-            n.equal_string_bytes("/G") ||
-            n.equal_string_bytes("/RGB") ||
-            n.equal_string_bytes("/CMYK") {
+          if n
+            is PdfName(
+              "/DeviceGray"
+              | "/DeviceRGB"
+              | "/DeviceCMYK"
+              | "/G"
+              | "/RGB"
+              | "/CMYK"
+            ) {
             dict
           } else {
             let stripped = dict.remove_entry("/ColorSpace").remove_entry("/CS")

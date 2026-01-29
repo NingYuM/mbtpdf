@@ -236,9 +236,8 @@ pub fn PdfPageDoc::pdf_of_pages(
   pdf.objiter((i, o) => match o {
     Dictionary(_) =>
       match pdf.lookup_direct("/Type", o) {
-        Some(Name(name)) if name.equal_string_bytes("/Pages") =>
-          pdf.removeobj(i)
-        Some(Name(name)) if name.equal_string_bytes("/Page") =>
+        Some(Name(PdfName("/Pages"))) => pdf.removeobj(i)
+        Some(Name(PdfName("/Page"))) =>
           if objnumbers_set.get(i) is None {
             pdf.removeobj(i)
           }

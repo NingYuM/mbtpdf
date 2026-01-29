@@ -94,7 +94,7 @@ fn merge_bookmarks(
             }
           Action(a) =>
             match pdf.lookup_direct("/S", a) {
-              Some(PdfObject::Name(n)) if n.equal_string_bytes("/GoTo") =>
+              Some(PdfObject::Name(PdfName("/GoTo"))) =>
                 match pdf.lookup_direct("/D", a) {
                   Some(PdfObject::String(s)) =>
                     match lookup(s, dest_nametree) {

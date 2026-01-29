@@ -22,7 +22,7 @@ pub fn PdfPageDoc::process_xobject(
   let xobj = pdf.lookup_obj(objnum)
   match pdf.lookup_direct("/Subtype", xobj) {
     None => raise @pdf.PdfError::Msg("No /Subtype in Xobject")
-    Some(@pdf.PdfObject::Name(name)) if name.equal_string_bytes("/Form") => {
+    Some(@pdf.PdfObject::Name(PdfName("/Form"))) => {
       xobj.getstream()
       match xobj {
         @pdf.PdfObject::Stream(r) =>

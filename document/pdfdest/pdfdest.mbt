@@ -48,7 +48,7 @@ fn read_array_destination(
   arr : Array[PdfObject],
 ) -> Destination? raise {
   match arr {
-    [page, Name(name), left, top, zoom] if name.equal_string_bytes("/XYZ") =>
+    [page, Name(PdfName("/XYZ")), left, top, zoom] =>
       match TargetPage::read(page) {
         Some(p) =>
           Some(
@@ -61,50 +61,48 @@ fn read_array_destination(
           )
         None => None
       }
-    [page, Name(name), left, top] if name.equal_string_bytes("/XYZ") =>
+    [page, Name(PdfName("/XYZ")), left, top] =>
       match TargetPage::read(page) {
         Some(p) =>
           Some(XYZ(p, option_getnum(pdf, left), option_getnum(pdf, top), None))
         None => None
       }
-    [page, Name(name), left] if name.equal_string_bytes("/XYZ") =>
+    [page, Name(PdfName("/XYZ")), left] =>
       match TargetPage::read(page) {
         Some(p) => Some(XYZ(p, option_getnum(pdf, left), None, None))
         None => None
       }
-    [page, Name(name), top] if name.equal_string_bytes("/FitH") =>
+    [page, Name(PdfName("/FitH")), top] =>
       match TargetPage::read(page) {
         Some(p) => Some(FitH(p, option_getnum(pdf, top)))
         None => None
       }
-    [page, Name(name), left] if name.equal_string_bytes("/FitV") =>
+    [page, Name(PdfName("/FitV")), left] =>
       match TargetPage::read(page) {
         Some(p) => Some(FitV(p, option_getnum(pdf, left)))
         None => None
       }
-    [page, Name(name), top] if name.equal_string_bytes("/FitBH") =>
+    [page, Name(PdfName("/FitBH")), top] =>
       match TargetPage::read(page) {
         Some(p) => Some(FitBH(p, option_getnum(pdf, top)))
         None => None
       }
-    [page, Name(name), left] if name.equal_string_bytes("/FitBV") =>
+    [page, Name(PdfName("/FitBV")), left] =>
       match TargetPage::read(page) {
         Some(p) => Some(FitBV(p, option_getnum(pdf, left)))
         None => None
       }
-    [page, Name(name)] if name.equal_string_bytes("/Fit") =>
+    [page, Name(PdfName("/Fit"))] =>
       match TargetPage::read(page) {
         Some(p) => Some(Fit(p))
         None => None
       }
-    [page, Name(name)] if name.equal_string_bytes("/FitB") =>
+    [page, Name(PdfName("/FitB"))] =>
       match TargetPage::read(page) {
         Some(p) => Some(FitB(p))
         None => None
       }
-    [page, Name(name), left, bottom, right, top] if name.equal_string_bytes(
-        "/FitR",
-      ) =>
+    [page, Name(PdfName("/FitR")), left, bottom, right, top] =>
       match TargetPage::read(page) {
         Some(p) =>
           Some(
@@ -317,7 +315,7 @@ pub fn Destination::transform(
     }
     Action(a) =>
       match (pdf.lookup_direct("/S", a), pdf.lookup_direct("/D", a)) {
-        (Some(Name(name)), Some(d)) if name.equal_string_bytes("/GoTo") => {
+        (Some(Name(PdfName("/GoTo"))), Some(d)) => {
           let transformed = Destination::read(pdf, d, shallow=true).transform(
             pdf, t,
           )

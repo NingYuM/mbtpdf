@@ -187,9 +187,7 @@ fn find_catalog_object(objects : @pdf.PdfObjMap) -> Int? {
       @pdf.ObjectData::Parsed(obj)
       | @pdf.ObjectData::ParsedAlreadyDecrypted(obj) =>
         match obj.lookup_immediate("/Type") {
-          Some(@pdf.PdfObject::Name(name)) if name.equal_string_bytes(
-              "/Catalog",
-            ) => return Some(objnum)
+          Some(@pdf.PdfObject::Name(PdfName("/Catalog"))) => return Some(objnum)
           _ => ()
         }
       _ => ()

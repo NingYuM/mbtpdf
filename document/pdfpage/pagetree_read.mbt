@@ -72,7 +72,7 @@ fn find_pages(
           }
           out
         }
-        Some(Name(name)) if name.equal_string_bytes("/Pages") => {
+        Some(Name(PdfName("/Pages"))) => {
           let kids = match
             pdf.lookup_fail("No /Kids in page tree", "/Kids", pages) {
             Array(values) => values
@@ -242,7 +242,7 @@ fn find_pages_quick(
           }
           total
         }
-        Some(Name(name)) if name.equal_string_bytes("/Pages") => {
+        Some(Name(PdfName("/Pages"))) => {
           let kids = match
             pdf.lookup_fail("No /Kids in page tree", "/Kids", resolved) {
             Array(values) => values

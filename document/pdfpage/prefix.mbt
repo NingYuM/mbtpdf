@@ -48,8 +48,7 @@ fn names_used(pdf : @pdf.Pdf) -> Array[String] {
   pdf.objiter((_, obj) => match obj {
     @pdf.PdfObject::Dictionary(_) | @pdf.PdfObject::Stream(_) =>
       match pdf.lookup_direct("/Type", obj) {
-        Some(@pdf.PdfObject::Name(name)) if name.equal_string_bytes("/Page") ||
-          name.equal_string_bytes("/Pages") =>
+        Some(@pdf.PdfObject::Name(PdfName("/Page" | "/Pages"))) =>
           match pdf.lookup_direct("/Resources", obj) {
             Some(resources) =>
               for key in resource_keys {
@@ -222,8 +221,7 @@ fn add_prefix_impl(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
     match obj {
       @pdf.PdfObject::Dictionary(dict) =>
         match pdf.lookup_direct("/Type", obj) {
-          Some(@pdf.PdfObject::Name(name)) if name.equal_string_bytes("/Page") ||
-            name.equal_string_bytes("/Pages") => {
+          Some(@pdf.PdfObject::Name(PdfName("/Page" | "/Pages"))) => {
             let (resources, resources_updated) = match
               pdf.lookup_direct("/Resources", obj) {
               Some(res) => (Some(res), Some(change_resources(pdf, prefix, res)))
@@ -306,8 +304,7 @@ fn merge_content_streams(pdf : @pdf.Pdf) -> Unit raise {
     match obj {
       @pdf.PdfObject::Dictionary(dict) =>
         match pdf.lookup_direct("/Type", obj) {
-          Some(@pdf.PdfObject::Name(name)) if name.equal_string_bytes("/Page") ||
-            name.equal_string_bytes("/Pages") =>
+          Some(@pdf.PdfObject::Name(PdfName("/Page" | "/Pages"))) =>
             match dict.search_by(pair => pair.0 == "/Contents") {
               Some(index) =>
                 match dict[index].1 {

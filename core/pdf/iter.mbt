@@ -110,8 +110,7 @@ fn Pdf::nullify_deleted_page_references(self : Pdf) -> Unit raise {
   self.objiter((objnum, obj) => match obj {
     Dictionary(_) =>
       match self.lookup_direct("/Type", obj) {
-        Some(Name(name)) if name.equal_string_bytes("/Page") =>
-          page_object_numbers.push(objnum)
+        Some(Name(PdfName("/Page"))) => page_object_numbers.push(objnum)
         _ => ()
       }
     _ => ()

@@ -190,7 +190,7 @@ pub fn PdfText::read_metrics(
   }
 
   let fontdescriptor = match self.pdf.lookup_direct("/Subtype", font) {
-    Some(Name(n)) if n.equal_string_bytes("/Type3") => Some(font)
+    Some(Name(PdfName("/Type3"))) => Some(font)
     _ => self.pdf.lookup_direct("/FontDescriptor", font)
   }
   match fontdescriptor {
@@ -297,7 +297,7 @@ pub fn PdfText::is_standard14font(
   font : @pdf.PdfObject,
 ) -> Bool {
   match self.pdf.lookup_direct("/Subtype", font) {
-    Some(Name(n)) if n.equal_string_bytes("/Type1") =>
+    Some(Name(PdfName("/Type1"))) =>
       match self.pdf.lookup_direct("/BaseFont", font) {
         Some(Name(name)) => {
           let basefont = name.to_string_bytes()
@@ -350,12 +350,9 @@ pub fn PdfText::read_encoding(
   font : @pdf.PdfObject,
 ) -> @pdffont.Encoding raise {
   match self.pdf.lookup_direct("/Encoding", font) {
-    Some(Name(n)) if n.equal_string_bytes("/MacRomanEncoding") =>
-      Encoding::MacRomanEncoding
-    Some(Name(n)) if n.equal_string_bytes("/MacExpertEncoding") =>
-      Encoding::MacExpertEncoding
-    Some(Name(n)) if n.equal_string_bytes("/WinAnsiEncoding") =>
-      Encoding::WinAnsiEncoding
+    Some(Name(PdfName("/MacRomanEncoding"))) => Encoding::MacRomanEncoding
+    Some(Name(PdfName("/MacExpertEncoding"))) => Encoding::MacExpertEncoding
+    Some(Name(PdfName("/WinAnsiEncoding"))) => Encoding::WinAnsiEncoding
     Some(encdict) =>
       match encdict {
         Dictionary(_) =>
@@ -368,11 +365,11 @@ pub fn PdfText::read_encoding(
                 fonttype == "/TrueType" {
                 let base_encoding = match
                   self.pdf.lookup_direct("/BaseEncoding", encdict) {
-                  Some(Name(n)) if n.equal_string_bytes("/MacRomanEncoding") =>
+                  Some(Name(PdfName("/MacRomanEncoding"))) =>
                     Encoding::MacRomanEncoding
-                  Some(Name(n)) if n.equal_string_bytes("/MacExpertEncoding") =>
+                  Some(Name(PdfName("/MacExpertEncoding"))) =>
                     Encoding::MacExpertEncoding
-                  Some(Name(n)) if n.equal_string_bytes("/WinAnsiEncoding") =>
+                  Some(Name(PdfName("/WinAnsiEncoding"))) =>
                     Encoding::WinAnsiEncoding
                   None =>
                     if self.is_embedded(font) {
@@ -474,7 +471,7 @@ pub fn PdfText::is_simple_font(self : PdfText, font : @pdf.PdfObject) -> Bool {
 ///|
 pub fn PdfText::is_cidkeyed_font(self : PdfText, font : @pdf.PdfObject) -> Bool {
   match self.pdf.lookup_direct("/Subtype", font) {
-    Some(Name(n)) if n.equal_string_bytes("/Type0") => true
+    Some(Name(PdfName("/Type0"))) => true
     _ => false
   }
 }

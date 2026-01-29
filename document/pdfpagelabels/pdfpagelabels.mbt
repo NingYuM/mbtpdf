@@ -76,11 +76,11 @@ fn label_of_range(pdf : @pdf.Pdf, range : (PdfObject, PdfObject)) -> PageLabel {
     }
   }
   let labelstyle = match pdf.lookup_direct("/S", thing) {
-    Some(Name(name)) if name.equal_string_bytes("/D") => DecimalArabic
-    Some(Name(name)) if name.equal_string_bytes("/R") => UppercaseRoman
-    Some(Name(name)) if name.equal_string_bytes("/r") => LowercaseRoman
-    Some(Name(name)) if name.equal_string_bytes("/A") => UppercaseLetters
-    Some(Name(name)) if name.equal_string_bytes("/a") => LowercaseLetters
+    Some(Name(PdfName("/D"))) => DecimalArabic
+    Some(Name(PdfName("/R"))) => UppercaseRoman
+    Some(Name(PdfName("/r"))) => LowercaseRoman
+    Some(Name(PdfName("/A"))) => UppercaseLetters
+    Some(Name(PdfName("/a"))) => LowercaseLetters
     _ => NoLabelPrefixOnly
   }
   let labelprefix = match pdf.lookup_direct("/P", thing) {

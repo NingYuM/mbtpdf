@@ -273,11 +273,10 @@ fn read_pdf_internal(
         @pdf.PdfObject::Stream(r) => {
           let (dict, _) = r.val
           match pdf.lookup_direct("/Type", dict) {
-            Some(@pdf.PdfObject::Name(name)) if name.equal_string_bytes("/XRef") =>
+            Some(@pdf.PdfObject::Name(PdfName("/XRef"))) =>
               pdf.removeobj(objnum)
-            Some(@pdf.PdfObject::Name(name)) if name.equal_string_bytes(
-                "/ObjStm",
-              ) => pdf.removeobj(objnum)
+            Some(@pdf.PdfObject::Name(PdfName("/ObjStm"))) =>
+              pdf.removeobj(objnum)
             _ => ()
           }
         }
