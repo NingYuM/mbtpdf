@@ -574,6 +574,218 @@ test "from_raw errors on CMYK indexed palettes missing entries" {
 }
 
 ///|
+test "from_raw errors on 8bpp CMYK indexed palettes missing entries" {
+  let data = @pdfio.bytes_of_list([0])
+  let table_empty : Map[Int, Array[Int]] = Map::new()
+  let cmyk_indexed : @pdfspace.ColourSpace = Indexed(DeviceCMYK, table_empty)
+  let res : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::from_raw(
+    1,
+    cmyk_indexed,
+    Some(Integer(8)),
+    1,
+    1,
+    data,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "from_raw 4bpp indexed palettes error on second nibble" {
+  let data = @pdfio.bytes_of_list([0x01])
+  let rgb_table : Map[Int, Array[Int]] = Map::new()
+  rgb_table.set(0, [255, 0, 0])
+  let rgb_indexed : @pdfspace.ColourSpace = Indexed(DeviceRGB, rgb_table)
+  let rgb_res : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::from_raw(
+    1,
+    rgb_indexed,
+    Some(Integer(4)),
+    2,
+    1,
+    data,
+  )
+  assert_true(rgb_res is Err(_))
+  let cmyk_table : Map[Int, Array[Int]] = Map::new()
+  cmyk_table.set(0, [0, 0, 0, 255])
+  let cmyk_indexed : @pdfspace.ColourSpace = Indexed(DeviceCMYK, cmyk_table)
+  let cmyk_res : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::from_raw(
+    1,
+    cmyk_indexed,
+    Some(Integer(4)),
+    2,
+    1,
+    data,
+  )
+  assert_true(cmyk_res is Err(_))
+}
+
+///|
+test "from_raw separation cmyk can overflow values" {
+  let tint : @pdffun.PdfFunction = {
+    func: @pdffun.PdfFunctionKind::Calculator([
+      @pdffun.Calculator::Pop,
+      @pdffun.Calculator::Float(2.0),
+      @pdffun.Calculator::Float(0.0),
+      @pdffun.Calculator::Float(0.0),
+      @pdffun.Calculator::Float(0.0),
+    ]),
+    domain: [0.0, 1.0],
+    range: None,
+  }
+  let space : @pdfspace.ColourSpace = Separation("Spot", DeviceCMYK, tint)
+  let data = @pdfio.bytes_of_list([255])
+  match @pdfimage.Image::from_raw(1, space, Some(Integer(8)), 1, 1, data) {
+    Raw(_, _, _, bytes) => {
+      assert_eq(bytes.length(), 3)
+      assert_eq(bytes[0].to_int(), 0)
+    }
+    _ => fail("expected Raw separation image")
+  }
+}
+
+///|
+test "from_raw separation cmyk errors on bad tint transform" {
+  let tint : @pdffun.PdfFunction = {
+    func: @pdffun.PdfFunctionKind::Calculator([@pdffun.Calculator::Add]),
+    domain: [0.0, 1.0],
+    range: None,
+  }
+  let space : @pdfspace.ColourSpace = Separation("Spot", DeviceCMYK, tint)
+  let data = @pdfio.bytes_of_list([0])
+  let res : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::from_raw(
+    1,
+    space,
+    Some(Integer(8)),
+    1,
+    1,
+    data,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "from_raw supports DeviceN RGB bases in indexed palettes" {
+  let data = @pdfio.bytes_of_list([0])
+  let table : Map[Int, Array[Int]] = Map::new()
+  table.set(0, [255, 0, 0])
+  let devn : @pdfspace.ColourSpace = DeviceN(
+    ["C"],
+    DeviceRGB,
+    sample_tint_function(),
+    Null,
+  )
+  let space : @pdfspace.ColourSpace = Indexed(devn, table)
+  match @pdfimage.Image::from_raw(1, space, Some(Integer(8)), 1, 1, data) {
+    Raw(_, _, _, bytes) => assert_eq(bytes[0].to_int(), 255)
+    _ => fail("expected Raw indexed image")
+  }
+}
+
+///|
+test "from_raw supports DeviceN ICCBased alternates in indexed palettes" {
+  let data = @pdfio.bytes_of_list([0])
+  let table : Map[Int, Array[Int]] = Map::new()
+  table.set(0, [255, 0, 0])
+  let icc : @pdfspace.ICCBased = {
+    icc_n: 3,
+    icc_alternate: @pdfspace.ColourSpace::DeviceRGB,
+    icc_range: [0.0, 1.0, 0.0, 1.0, 0.0, 1.0],
+    icc_metadata: None,
+    icc_stream: @pdf.PdfObject::Null,
+  }
+  let devn : @pdfspace.ColourSpace = DeviceN(
+    ["C"],
+    ICCBased(icc),
+    sample_tint_function(),
+    Null,
+  )
+  let space : @pdfspace.ColourSpace = Indexed(devn, table)
+  match @pdfimage.Image::from_raw(1, space, Some(Integer(8)), 1, 1, data) {
+    Raw(_, _, _, bytes) => assert_eq(bytes[0].to_int(), 255)
+    _ => fail("expected Raw indexed image")
+  }
+}
+
+///|
+test "from_raw supports ICCBased CMYK alternates in indexed palettes" {
+  let data = @pdfio.bytes_of_list([0])
+  let table : Map[Int, Array[Int]] = Map::new()
+  table.set(0, [0, 0, 0, 255])
+  let icc : @pdfspace.ICCBased = {
+    icc_n: 4,
+    icc_alternate: @pdfspace.ColourSpace::DeviceCMYK,
+    icc_range: [0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0],
+    icc_metadata: None,
+    icc_stream: @pdf.PdfObject::Null,
+  }
+  let space : @pdfspace.ColourSpace = Indexed(ICCBased(icc), table)
+  match @pdfimage.Image::from_raw(1, space, Some(Integer(8)), 1, 1, data) {
+    Raw(_, _, _, bytes) => assert_eq(bytes.length(), 3)
+    _ => fail("expected Raw indexed image")
+  }
+}
+
+///|
+test "from_raw supports DeviceN ICCBased CMYK alternates in indexed palettes" {
+  let data = @pdfio.bytes_of_list([0])
+  let table : Map[Int, Array[Int]] = Map::new()
+  table.set(0, [0, 0, 0, 255])
+  let icc : @pdfspace.ICCBased = {
+    icc_n: 4,
+    icc_alternate: @pdfspace.ColourSpace::DeviceCMYK,
+    icc_range: [0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0],
+    icc_metadata: None,
+    icc_stream: @pdf.PdfObject::Null,
+  }
+  let devn : @pdfspace.ColourSpace = DeviceN(
+    ["C"],
+    ICCBased(icc),
+    sample_tint_function(),
+    Null,
+  )
+  let space : @pdfspace.ColourSpace = Indexed(devn, table)
+  match @pdfimage.Image::from_raw(1, space, Some(Integer(8)), 1, 1, data) {
+    Raw(_, _, _, bytes) => assert_eq(bytes.length(), 3)
+    _ => fail("expected Raw indexed image")
+  }
+}
+
+///|
+test "from_raw DeviceN non-rgb/non-cmyk bases in indexed palettes return error" {
+  let data = @pdfio.bytes_of_list([0])
+  let table_empty : Map[Int, Array[Int]] = Map::new()
+  let devn : @pdfspace.ColourSpace = DeviceN(
+    ["C"],
+    DeviceGray,
+    sample_tint_function(),
+    Null,
+  )
+  let space : @pdfspace.ColourSpace = Indexed(devn, table_empty)
+  let res : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::from_raw(
+    1,
+    space,
+    Some(Integer(8)),
+    1,
+    1,
+    data,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
+test "from_raw bpc 4 unsupported colourspace returns error" {
+  let data = @pdfio.bytes_of_list([0x00])
+  let res : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::from_raw(
+    1,
+    @pdfspace.ColourSpace::DeviceRGB,
+    Some(Integer(4)),
+    1,
+    1,
+    data,
+  )
+  assert_true(res is Err(_))
+}
+
+///|
 test "get_image_24bpp default decode for ICCBased" {
   let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
@@ -932,6 +1144,44 @@ test "from_raw rejects non-integer bpc and unknown indexed bases" {
     data,
   )
   assert_true(bad_indexed is Err(_))
+}
+
+///|
+test "get_image_24bpp JBIG2 ignores non-dictionary DecodeParms" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([])
+  let data = @pdfio.bytes_of_list([1, 2, 3, 4])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Width", Integer(1)),
+    ("/Height", Integer(1)),
+    ("/BitsPerComponent", Integer(1)),
+    ("/Filter", Name(@pdf.PdfName::of_string("/JBIG2Decode"))),
+    ("/DecodeParms", Integer(0)),
+  ])
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  match
+    (@pdfimage.Image::get_image_24bpp(pdf, resources, stream) : @pdfimage.Image) {
+    JBIG2(_, _, globals) => assert_true(globals is None)
+    _ => fail("expected JBIG2 image")
+  }
+}
+
+///|
+test "get_image_24bpp errors when Decode present but BitsPerComponent missing for mask" {
+  let pdf = @pdf.Pdf::empty()
+  let resources : @pdf.PdfObject = Dictionary([])
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/Width", Integer(8)),
+    ("/Height", Integer(1)),
+    ("/ImageMask", Boolean(true)),
+    ("/Decode", Array([Real(1.0), Real(0.0)])),
+  ])
+  let data = @pdfio.bytes_of_list([0xff])
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let res : Result[@pdfimage.Image, Error] = try? @pdfimage.Image::get_image_24bpp(
+    pdf, resources, stream,
+  )
+  assert_true(res is Err(_))
 }
 
 ///|
