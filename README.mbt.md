@@ -18,36 +18,36 @@ PDF toolchain implemented in [MoonBit](https://docs.moonbitlang.com), centered o
 
 ## Quick start
 
-```mbt nocheck
-// Run the "hello world" PDF generator.
-// moon run cmd/pdfhello
+```sh
+# Run the "hello world" PDF generator.
+moon run cmd/pdfhello
 ```
 
 ## Testing
 
-```mbt nocheck
-// moon test
-// moon check
-// moon coverage analyze
+```sh
+moon test
+moon check
+moon coverage analyze
 ```
 
 ## Coverage gate
 
 CI enforces minimum per-package coverage (excluding `cmd/*` and `io/*`):
 
-```mbt nocheck
-// scripts/coverage_gate.sh --threshold 95
+```sh
+scripts/coverage_gate.sh --threshold 95
 ```
 
 ## Logging hygiene (tests)
 
 Many packages emit *expected* warnings when fuzzing malformed inputs. Tests should keep output quiet:
 
-```mbt nocheck
+```mbt
 // Prefer scoped suppression so state is restored even on failure.
-// @pdfe.with_logger(_ => (), fn() { ... })
-// @pdfe.with_silenced_logs(fn() { ... })
-//
+@pdfe.with_logger(_ => (), fn() { ... })
+@pdfe.with_silenced_logs(fn() { ... })
+
 // Some code paths print via PdfUtil; you can silence those too:
-// @pdfutil.quiet.val = true
+@pdfutil.quiet.val = true
 ```

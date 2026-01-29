@@ -2,19 +2,19 @@
 
 ## Run tests
 
-```mbt nocheck
-// Run all tests.
-// moon test
+```sh
+# Run all tests.
+moon test
 
-// Lint/type-check quickly (recommended in CI too).
-// moon check
+# Lint/type-check quickly (recommended in CI too).
+moon check
 
-// Run one package.
-// moon test document/pdfpage
+# Run one package.
+moon test document/pdfpage
 
-// Run formatting + tests (useful before pushing).
-// moon fmt
-// moon test
+# Run formatting + tests (useful before pushing).
+moon fmt
+moon test
 ```
 
 ## Logging hygiene in tests
@@ -26,10 +26,10 @@ See `docs/logging-hygiene.md`.
 
 ## Coverage
 
-```mbt nocheck
-// Full-module coverage summary.
-// moon coverage clean
-// moon coverage analyze -- -f summary
+```sh
+# Full-module coverage summary.
+moon coverage clean
+moon coverage analyze -- -f summary
 ```
 
 ### Coverage policy
@@ -42,12 +42,12 @@ See `docs/logging-hygiene.md`.
 This repo ships a small gate that enforces a minimum per-package coverage
 percentage (excluding `cmd/*` and `io/*`):
 
-```mbt nocheck
-// Default is 95% (override with COVERAGE_MIN).
-// scripts/coverage_gate.sh
-//
-// scripts/coverage_gate.sh --threshold 95
-// COVERAGE_MIN=97 scripts/coverage_gate.sh
+```sh
+# Default is 95% (override with COVERAGE_MIN).
+scripts/coverage_gate.sh
+
+scripts/coverage_gate.sh --threshold 95
+COVERAGE_MIN=97 scripts/coverage_gate.sh
 ```
 
 ## CI
