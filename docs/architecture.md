@@ -69,6 +69,18 @@ Key design principles:
 Notes / current exceptions:
 - Some higher-level feature packages may include IO convenience dependencies (for example, `text/pdftext` currently imports `io/pdfreadfs`). If stricter layering becomes desirable, consider splitting such packages into a pure “core” package plus an optional IO adapter package.
 
+## Dependency audits
+
+This repo includes a small helper to audit package dependencies declared in `moon.pkg`:
+
+```sh
+scripts/deps_audit.sh
+scripts/deps_audit.sh --fail
+```
+
+- `violation`: any package importing `cmd/*` (should not happen).
+- `note`: non-`cmd/*`/`io/*`/`e2e/*` packages that import an `io/*` package (often intentional, but worth reviewing if you want strict layering).
+
 ## Package Dependency Map (High Level)
 
 ```
