@@ -63,6 +63,17 @@ pub fn[T] with_silenced_logs(action : () -> T raise) -> T raise {
 }
 
 ///|
+/// Async variant of with_silenced_logs.
+pub async fn[T] with_silenced_logs_async(action : async () -> T) -> T {
+  let prev = quiet.val
+  quiet.val = true
+  defer {
+    quiet.val = prev
+  }
+  action()
+}
+
+///|
 /// Run an action with a temporary logger, restoring the previous logger.
 pub fn[T] with_logger(temp : Logger, action : () -> T raise) -> T raise {
   let prev = logger.val
@@ -77,4 +88,15 @@ pub fn[T] with_logger(temp : Logger, action : () -> T raise) -> T raise {
       raise err
     }
   }
+}
+
+///|
+/// Async variant of with_logger.
+pub async fn[T] with_logger_async(temp : Logger, action : async () -> T) -> T {
+  let prev = logger.val
+  logger.val = temp
+  defer {
+    logger.val = prev
+  }
+  action()
 }

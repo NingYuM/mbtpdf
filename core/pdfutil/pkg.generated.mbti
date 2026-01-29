@@ -8,7 +8,11 @@ pub let quiet : Ref[Bool]
 
 pub fn[T] with_printer((String) -> Unit, () -> T raise) -> T raise
 
+pub async fn[T] with_printer_async((String) -> Unit, async () -> T) -> T
+
 pub fn[T] with_quiet(Bool, () -> T raise) -> T raise
+
+pub async fn[T] with_quiet_async(Bool, async () -> T) -> T
 
 // Errors
 

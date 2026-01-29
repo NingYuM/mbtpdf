@@ -40,6 +40,31 @@ pub fn[T] with_printer(value : Printer, action : () -> T raise) -> T raise {
 }
 
 ///|
+/// Async variant of with_quiet.
+pub async fn[T] with_quiet_async(value : Bool, action : async () -> T) -> T {
+  let prev = quiet.val
+  quiet.val = value
+  defer {
+    quiet.val = prev
+  }
+  action()
+}
+
+///|
+/// Async variant of with_printer.
+pub async fn[T] with_printer_async(
+  value : Printer,
+  action : async () -> T,
+) -> T {
+  let prev = printer.val
+  printer.val = value
+  defer {
+    printer.val = prev
+  }
+  action()
+}
+
+///|
 pub struct PdfUtil {
   stdout_buffer : Ref[String]
   stderr_buffer : Ref[String]
