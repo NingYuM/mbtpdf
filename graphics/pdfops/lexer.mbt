@@ -138,7 +138,7 @@ fn lex_next(
     }
   } catch {
     @pdf.PdfError::Msg(message) =>
-      raise @pdf.PdfError::Msg("Pdfpages.lex_next => \{message}")
+      raise @pdf.PdfError::Msg("pdfops.lex_next => \{message}")
     CouldntHandleContent => raise @pdf.PdfError::Msg("Malformed page content")
     err => raise err
   }
