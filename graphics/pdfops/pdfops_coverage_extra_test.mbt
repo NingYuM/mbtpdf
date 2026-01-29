@@ -219,6 +219,102 @@ test "parse_single_stream parses dash pattern 'd' op" {
 }
 
 ///|
+test "parse_single_stream errors on malformed dash pattern op" {
+  @pdfe.with_silenced_logs(fn() {
+    let pdf = @pdf.Pdf::empty()
+    let resources : @pdf.PdfObject = Dictionary([])
+    let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.Op::parse_single_stream(
+      pdf,
+      resources,
+      @pdfio.bytes_of_string("[] d"),
+    )
+    assert_true(res is Err(_))
+  })
+}
+
+///|
+test "parse_single_stream parses inline image with leading operands" {
+  @pdfe.with_silenced_logs(fn() {
+    let pdf = @pdf.Pdf::empty()
+    let resources : @pdf.PdfObject = Dictionary([])
+    let header = @pdfio.bytes_of_string(
+      "1 2 BI /W 1 /H 1 /BPC 8 /CS /DeviceGray ID ",
+    )
+    let data = @pdfio.bytes_of_list([0x80])
+    let footer = @pdfio.bytes_of_string(" EI")
+    let stream = concat_parts([header, data, footer])
+    let ops = @pdfops.Op::parse_single_stream(pdf, resources, stream)
+    assert_true(ops.exists(fn(op : @pdfops.Op) { op is InlineImage(_) }))
+  })
+}
+
+///|
+test "stream_of_ops inserts whitespace around empty operator text" {
+  let stream = @pdfops.Op::stream_of_ops([@pdfops.Op::Opq, OpUnknown(""), OpQ])
+  match (stream : @pdf.PdfObject) {
+    Stream(r) => {
+      let (_, contents) = r.val
+      match contents {
+        @pdf.Stream::Got(bytes) => {
+          let text = @pdfio.string_of_bytes(bytes)
+          assert_true(text.contains("q  Q"))
+        }
+        _ => fail("expected stream bytes")
+      }
+    }
+    _ => fail("expected stream object")
+  }
+}
+
+///|
+test "parse_operators errors when given a non-stream object" {
+  @pdfe.with_silenced_logs(fn() {
+    let pdf = @pdf.Pdf::empty()
+    let resources : @pdf.PdfObject = Dictionary([])
+    let res : Result[Array[@pdfops.Op], Error] = try? @pdfops.Op::parse_operators(
+      pdf,
+      resources,
+      [Integer(1)],
+    )
+    assert_true(res is Err(_))
+  })
+}
+
+///|
+test "parse inline image supports stacked flate filters and cleans dict" {
+  @pdfe.with_silenced_logs(fn() {
+    let pdf = @pdf.Pdf::empty()
+    let resources : @pdf.PdfObject = Dictionary([])
+    let raw = @pdfio.bytes_of_list([0x7f])
+    let encoded_once = @pdfcodec.PdfCodec::new().encode_flate(raw)
+    let encoded_twice = @pdfcodec.PdfCodec::new().encode_flate(encoded_once)
+    let header = @pdfio.bytes_of_string(
+      "BI /W 1 /H 1 /BPC 8 /CS /DeviceGray /Filter [/FlateDecode /FlateDecode] ID ",
+    )
+    let footer = @pdfio.bytes_of_string(" EI")
+    let stream = concat_parts([header, encoded_twice, footer])
+    let ops = @pdfops.Op::parse_single_stream(pdf, resources, stream)
+    let mut saw = false
+    for op in ops {
+      match (op : @pdfops.Op) {
+        InlineImage((dict, _, data)) => {
+          assert_eq(@pdfio.bytes_size(data), 1)
+          assert_eq(@pdfio.bget_unsafe(data, 0), 0x7F)
+          match
+            (@pdf.Pdf::empty().lookup_direct("/Filter", dict) : @pdf.PdfObject?) {
+            None => ()
+            _ => fail("expected cleaned dict without /Filter")
+          }
+          saw = true
+        }
+        _ => ()
+      }
+    }
+    assert_true(saw)
+  })
+}
+
+///|
 test "parse_single_stream errors on malformed dash pattern 'd' op" {
   @pdfe.with_silenced_logs(fn() {
     let pdf = @pdf.Pdf::empty()

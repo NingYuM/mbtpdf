@@ -753,9 +753,9 @@ fn parse_operator(
           if operand_count == 2 {
             let name = as_name(0)
             if name is Some(value) {
-              match lexeme_pdfobj(section[1]) {
-                Some(obj) => return (Op::OpDP(value, obj), next_index)
-                None => ()
+              let obj = lexeme_pdfobj(section[1])
+              if obj is Some(props) {
+                return (Op::OpDP(value, props), next_index)
               }
             }
           }
@@ -770,9 +770,9 @@ fn parse_operator(
           if operand_count == 2 {
             let name = as_name(0)
             if name is Some(value) {
-              match lexeme_pdfobj(section[1]) {
-                Some(obj) => return (Op::OpBDC(value, obj), next_index)
-                None => ()
+              let obj = lexeme_pdfobj(section[1])
+              if obj is Some(props) {
+                return (Op::OpBDC(value, props), next_index)
               }
             }
           }

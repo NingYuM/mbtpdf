@@ -23,14 +23,14 @@ pub fn Op::parse_operators(
   let rawstreams : Array[@pdfio.MutableBytes] = Array::new()
   for stream in streams {
     let direct = pdf.direct(stream)
+    let r = match direct {
+      Stream(r) => r
+      _ => raise @pdf.PdfError::Msg("Malformed stream")
+    }
     @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, direct)
     direct.getstream()
-    match direct {
-      Stream(r) =>
-        match r.val {
-          (_, @pdf.Stream::Got(data)) => rawstreams.push(data)
-          _ => raise @pdf.PdfError::Msg("Malformed stream")
-        }
+    match r.val {
+      (_, @pdf.Stream::Got(data)) => rawstreams.push(data)
       _ => raise @pdf.PdfError::Msg("Malformed stream")
     }
   }

@@ -83,9 +83,9 @@ fn parse_dash_op(section : Array[Lexeme]) -> Op raise {
   }
   let op = section[section.length() - 1]
   if op is Lexeme::Op("d") {
-    let phase = lexeme_real(section[section.length() - 2])
-    if phase is None {
-      raise @pdf.PdfError::Msg("malformed 'd' op")
+    let phase = match lexeme_real(section[section.length() - 2]) {
+      Some(value) => value
+      None => raise @pdf.PdfError::Msg("malformed 'd' op")
     }
     let right = section[section.length() - 3]
     if right is Obj(LexRightSquare) {
@@ -106,10 +106,7 @@ fn parse_dash_op(section : Array[Lexeme]) -> Op raise {
           None => raise @pdf.PdfError::Msg("malformed 'd' op")
         }
       }
-      match phase {
-        Some(value) => return Op::Opd(values, value)
-        None => raise @pdf.PdfError::Msg("malformed 'd' op")
-      }
+      return Op::Opd(values, phase)
     }
   }
   raise @pdf.PdfError::Msg("malformed 'd' op")
