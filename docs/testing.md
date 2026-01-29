@@ -17,6 +17,16 @@ moon fmt
 moon test
 ```
 
+## One-shot local gate
+
+```sh
+# Run the same checks CI runs, plus the per-package coverage gate.
+scripts/devcheck.sh
+
+# Override coverage threshold (default 95).
+scripts/devcheck.sh 97
+```
+
 ## Logging hygiene in tests
 
 Some packages emit *expected* warnings when exercising malformed inputs. Tests

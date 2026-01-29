@@ -31,6 +31,13 @@ moon check
 moon coverage analyze
 ```
 
+## Local CI gate
+
+```sh
+# Format check + lint + tests + per-package coverage gate (default 95%).
+scripts/devcheck.sh
+```
+
 ## Coverage gate
 
 CI enforces minimum per-package coverage (excluding `cmd/*` and `io/*`):
