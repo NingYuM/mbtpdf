@@ -22,15 +22,6 @@ jobs:
           moon update
 
       - name: Format check
-        run: moon fmt --check
-
-      - name: Test
-        run: moon test
-
-      - name: Check
-        run: moon check
-
-      - name: Coverage gate (>= 95%)
         run: |
-          chmod +x scripts/coverage_gate.sh
-          scripts/coverage_gate.sh --threshold 95
+          chmod +x scripts/devcheck.sh
+          scripts/devcheck.sh 95
