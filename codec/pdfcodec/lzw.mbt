@@ -179,7 +179,7 @@ fn encode_lzw(
           if next_code < 4096 {
             dict[key] = next_code
             next_code = next_code + 1
-            let next_check = next_code + early
+            let next_check = next_code - 1 + early
             if next_check == 512 || next_check == 1024 || next_check == 2048 {
               code_length = code_length + 1
             }

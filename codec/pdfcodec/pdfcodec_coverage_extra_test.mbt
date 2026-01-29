@@ -142,8 +142,6 @@ test "decode_from_bytes LZW returns None on truncated input" {
 test "encode/decode LZW roundtrips medium input" {
   let ctx = @pdfcodec.PdfCodec::new()
   // Keep this payload modest for speed.
-  // TODO: LZW code-length transitions (9->10 bits) appear unstable for some
-  // large payloads; add a large-payload roundtrip once fixed.
   let original = @pdfio.mkbytes(250)
   for i in 0..<250 {
     @pdfio.bset_unsafe(original, i, i % 251)
@@ -176,6 +174,64 @@ test "encode_pdfstream LZW clears dictionary when full" {
     Some(Array([Name(name), ..])) if name.equal_string_bytes("/LZWDecode") => ()
     _ => fail("expected /LZWDecode filter after encoding")
   }
+
+  // Sanity-check the produced LZW code stream before running the full decoder:
+  // ensure no code exceeds `next_code` under the same growth rules.
+  let encoded = match (stream_ref.val.1 : @pdf.Stream) {
+    Got(bytes) => bytes
+    _ => fail("expected encoded stream bytes")
+  }
+  let bs = @pdfio.Bitstream::of_input(
+    @pdfio.Input::of_bytes(encoded, source="lzw"),
+  )
+  fn read_code(bits : Int) -> Int raise {
+    let mut value = 0
+    for _ in 0..<bits {
+      value = (value << 1) | bs.getbitint()
+    }
+    value
+  }
+
+  let mut code_length = 9
+  let mut next_code = 258
+  let early = 1
+  let mut have_prev = false
+  let mut codes_seen = 0
+  // Read up to a bounded number of codes for fast failure messages.
+  while codes_seen < 2000 {
+    let code = read_code(code_length)
+    codes_seen = codes_seen + 1
+    if code == 257 {
+      break
+    } else if code == 256 {
+      have_prev = false
+      next_code = 258
+      code_length = 9
+    } else if !have_prev {
+      have_prev = true
+    } else {
+      if code > next_code {
+        fail(
+          "invalid LZW code stream: code=\{code} next=\{next_code} bits=\{code_length} at=\{codes_seen}",
+        )
+      }
+      next_code = next_code + 1
+      let next_check = next_code + early
+      if next_check == 512 || next_check == 1024 || next_check == 2048 {
+        code_length = code_length + 1
+      }
+    }
+  }
+  ctx.decode_pdfstream_onestage(pdf, stream_obj) catch {
+    CodecError::CouldntDecodeStream(msg) =>
+      fail("expected decode to succeed, got: \{msg}")
+    err => raise err
+  }
+  let decoded = match (stream_ref.val.1 : @pdf.Stream) {
+    Got(bytes) => bytes
+    _ => fail("expected decoded stream bytes")
+  }
+  assert_bytes_equal(decoded, original)
 }
 
 ///|
