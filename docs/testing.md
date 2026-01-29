@@ -54,3 +54,7 @@ percentage (excluding `cmd/*` and `io/*`):
 
 GitHub Actions runs `moon fmt --check`, `moon test`, `moon check`, and the
 coverage gate. See `.github/workflows/ci.yml`.
+
+## Troubleshooting
+
+See `docs/troubleshooting.md` (snapshots, noisy logs, coverage gate, build lock).
