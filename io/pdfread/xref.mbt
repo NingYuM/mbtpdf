@@ -59,11 +59,22 @@ fn split_fields(line : String) -> Array[String] {
 
 ///|
 fn parse_uint_string(s : String) -> Int? {
-  if s == "" {
+  let chars = s[:]
+  if chars.length() == 0 {
+    return None
+  }
+  // Some writers (non-standard) append a trailing `;` after the xref section
+  // header numbers. Be tolerant: accept `"<num>;"` (and CRLF inputs).
+  let mut end = chars.length()
+  while end > 0 && (chars[end - 1] == ';' || chars[end - 1] == '\r') {
+    end = end - 1
+  }
+  if end <= 0 {
     return None
   }
   let mut value = 0
-  for c in s {
+  for i in 0..<end {
+    let c = chars[i]
     if c < '0' || c > '9' {
       return None
     }
