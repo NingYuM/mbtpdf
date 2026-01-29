@@ -768,7 +768,7 @@ async test "extract text SFAA Japanese" {
 fn build_unicode_pdf() -> @pdf.Pdf raise {
   let codepoints : Array[Int] = ['你', '好', '世', '界', '☺']
   let pdf = @pdf.Pdf::empty()
-  let text = PdfTextUtil::new().utf16be_of_codepoints(codepoints)
+  let text = @pdftext.PdfTextUtil::new().utf16be_of_codepoints(codepoints)
   let font : @pdf.PdfObject = Dictionary([
     ("/Type", Name(@pdf.PdfName::of_string("/Font"))),
     ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
@@ -787,7 +787,7 @@ fn build_unicode_pdf() -> @pdf.Pdf raise {
     content: [stream],
     mediabox,
     resources: Dictionary([("/Font", Dictionary([("/F0", font)]))]),
-    rotate: Rotate0,
+    rotate: @pdfpage.Rotation::Rotate0,
     rest: Dictionary([]),
   }
   let (pdf, pageroot) = @pdfpage.PdfPageDoc::new(pdf).add_pagetree([page])
@@ -838,6 +838,28 @@ fn form_xobject_stream(text : String) -> @pdf.PdfObject raise {
     Name(@pdf.PdfName::of_string("/XObject")),
   )
   stream.add_entry("/Subtype", Name(@pdf.PdfName::of_string("/Form")))
+}
+
+///|
+fn cid_font_dict(encoding_name : String) -> @pdf.PdfObject {
+  let descendant : @pdf.PdfObject = Dictionary([
+    (
+      "/CIDSystemInfo",
+      Dictionary([
+        ("/Registry", String("Adobe")),
+        ("/Ordering", String("Identity")),
+        ("/Supplement", Integer(0)),
+      ]),
+    ),
+    ("/BaseFont", Name(@pdf.PdfName::of_string("/CIDFont"))),
+    ("/FontDescriptor", Dictionary([])),
+  ])
+  Dictionary([
+    ("/Subtype", Name(@pdf.PdfName::of_string("/Type0"))),
+    ("/BaseFont", Name(@pdf.PdfName::of_string("/CIDFontType0"))),
+    ("/DescendantFonts", Array([descendant])),
+    ("/Encoding", Name(@pdf.PdfName::of_string(encoding_name))),
+  ])
 }
 
 ///|

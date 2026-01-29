@@ -9,8 +9,6 @@ import {
   "bobzhang/mbtpdf/font/pdfcmap",
   "bobzhang/mbtpdf/font/pdfglyphlist",
   "bobzhang/mbtpdf/graphics/pdfops",
-  "bobzhang/mbtpdf/io/pdfreadfs",
   "bobzhang/mbtpdf/syntax/pdfsyntax",
-  "moonbitlang/async",
   "moonbitlang/core/encoding/utf8",
 }
