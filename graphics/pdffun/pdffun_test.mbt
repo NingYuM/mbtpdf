@@ -254,92 +254,84 @@ test "eval stitching function" {
 
 ///|
 test "PdfFunction::print covers kinds and array sizes" {
-  let prev_logger = @pdfe.logger.val
-  @pdfe.logger.val = _ => ()
-  defer {
-    @pdfe.logger.val = prev_logger
-  }
-  let empty_doubles : Array[Double] = []
-  let some_doubles : Array[Double] = [0.0, 1.0]
-  let empty_ints : Array[Int] = []
-  let some_ints : Array[Int] = [1, 2]
-  let sampled_empty : PdfFunction = {
-    func: PdfFunctionKind::Sampled({
-      size: empty_ints,
-      order: 1,
-      encode: empty_doubles,
-      decode: empty_doubles,
-      bps: 8,
-      samples: empty_ints,
-    }),
-    domain: empty_doubles,
-    range: None,
-  }
-  let sampled_full : PdfFunction = {
-    func: PdfFunctionKind::Sampled({
-      size: some_ints,
-      order: 1,
-      encode: some_doubles,
-      decode: some_doubles,
-      bps: 8,
-      samples: some_ints,
-    }),
-    domain: some_doubles,
-    range: Some(some_doubles),
-  }
-  let interpolation : PdfFunction = {
-    func: PdfFunctionKind::Interpolation({
-      c0: empty_doubles,
-      c1: empty_doubles,
-      n: 1.0,
-    }),
-    domain: empty_doubles,
-    range: None,
-  }
-  let stitching : PdfFunction = {
-    func: PdfFunctionKind::Stitching({
-      functions: [interpolation],
-      bounds: empty_doubles,
-      stitch_encode: empty_doubles,
-    }),
-    domain: empty_doubles,
-    range: None,
-  }
-  let calculator : PdfFunction = {
-    func: PdfFunctionKind::Calculator([
-      Calculator::Bool(true),
-      Calculator::Bool(false),
-      Calculator::Add,
-      Calculator::Atan,
-      Calculator::Ceiling,
-      Calculator::Cos,
-      Calculator::If([Calculator::Int(1)]),
-      Calculator::IfElse([Calculator::Int(0)], [Calculator::Int(1)]),
-      Calculator::Neg,
-      Calculator::Index,
-      Calculator::Round,
-      Calculator::Sin,
-      Calculator::Sqrt,
-      Calculator::Sub,
-      Calculator::Roll,
-    ]),
-    domain: empty_doubles,
-    range: None,
-  }
-  sampled_empty.print()
-  sampled_full.print()
-  interpolation.print()
-  stitching.print()
-  calculator.print()
+  @pdfe.with_logger(_ => (), fn() {
+    let empty_doubles : Array[Double] = []
+    let some_doubles : Array[Double] = [0.0, 1.0]
+    let empty_ints : Array[Int] = []
+    let some_ints : Array[Int] = [1, 2]
+    let sampled_empty : PdfFunction = {
+      func: PdfFunctionKind::Sampled({
+        size: empty_ints,
+        order: 1,
+        encode: empty_doubles,
+        decode: empty_doubles,
+        bps: 8,
+        samples: empty_ints,
+      }),
+      domain: empty_doubles,
+      range: None,
+    }
+    let sampled_full : PdfFunction = {
+      func: PdfFunctionKind::Sampled({
+        size: some_ints,
+        order: 1,
+        encode: some_doubles,
+        decode: some_doubles,
+        bps: 8,
+        samples: some_ints,
+      }),
+      domain: some_doubles,
+      range: Some(some_doubles),
+    }
+    let interpolation : PdfFunction = {
+      func: PdfFunctionKind::Interpolation({
+        c0: empty_doubles,
+        c1: empty_doubles,
+        n: 1.0,
+      }),
+      domain: empty_doubles,
+      range: None,
+    }
+    let stitching : PdfFunction = {
+      func: PdfFunctionKind::Stitching({
+        functions: [interpolation],
+        bounds: empty_doubles,
+        stitch_encode: empty_doubles,
+      }),
+      domain: empty_doubles,
+      range: None,
+    }
+    let calculator : PdfFunction = {
+      func: PdfFunctionKind::Calculator([
+        Calculator::Bool(true),
+        Calculator::Bool(false),
+        Calculator::Add,
+        Calculator::Atan,
+        Calculator::Ceiling,
+        Calculator::Cos,
+        Calculator::If([Calculator::Int(1)]),
+        Calculator::IfElse([Calculator::Int(0)], [Calculator::Int(1)]),
+        Calculator::Neg,
+        Calculator::Index,
+        Calculator::Round,
+        Calculator::Sin,
+        Calculator::Sqrt,
+        Calculator::Sub,
+        Calculator::Roll,
+      ]),
+      domain: empty_doubles,
+      range: None,
+    }
+    sampled_empty.print()
+    sampled_full.print()
+    interpolation.print()
+    stitching.print()
+    calculator.print()
+  })
 }
 
 ///|
 test "parse calculator keywords from stream" {
-  let prev_logger = @pdfe.logger.val
-  @pdfe.logger.val = _ => ()
-  defer {
-    @pdfe.logger.val = prev_logger
-  }
   let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(4)),
@@ -349,46 +341,48 @@ test "parse calculator keywords from stream" {
     "{ true 1.5 add 2 round 3 1 roll 2 atan 30 sin ceiling sqrt cos sub 2 abs 1 neg 0 index { 1 } if { 0 } { 1 } ifelse }",
   )
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
-  let fun = PdfFunction::parse(pdf, stream)
-  match (fun.func : PdfFunctionKind) {
-    Calculator(ops) => {
-      assert_true(ops.length() >= 10)
-      match (ops[0] : Calculator) {
-        Bool(true) => ()
-        _ => fail("expected boolean literal")
+  @pdfe.with_logger(_ => (), fn() {
+    let fun = PdfFunction::parse(pdf, stream)
+    match (fun.func : PdfFunctionKind) {
+      Calculator(ops) => {
+        assert_true(ops.length() >= 10)
+        match (ops[0] : Calculator) {
+          Bool(true) => ()
+          _ => fail("expected boolean literal")
+        }
+        match (ops[1] : Calculator) {
+          Float(f) => assert_close(f, 1.5)
+          _ => fail("expected float literal")
+        }
+        match (ops[2] : Calculator) {
+          Add => ()
+          _ => fail("expected add operator")
+        }
+        match (ops[3] : Calculator) {
+          Int(2) => ()
+          _ => fail("expected int literal")
+        }
+        match (ops[4] : Calculator) {
+          Round => ()
+          _ => fail("expected round operator")
+        }
+        match (ops[5] : Calculator) {
+          Int(3) => ()
+          _ => fail("expected int literal")
+        }
+        match (ops[6] : Calculator) {
+          Int(1) => ()
+          _ => fail("expected int literal")
+        }
+        match (ops[7] : Calculator) {
+          Roll => ()
+          _ => fail("expected roll operator")
+        }
       }
-      match (ops[1] : Calculator) {
-        Float(f) => assert_close(f, 1.5)
-        _ => fail("expected float literal")
-      }
-      match (ops[2] : Calculator) {
-        Add => ()
-        _ => fail("expected add operator")
-      }
-      match (ops[3] : Calculator) {
-        Int(2) => ()
-        _ => fail("expected int literal")
-      }
-      match (ops[4] : Calculator) {
-        Round => ()
-        _ => fail("expected round operator")
-      }
-      match (ops[5] : Calculator) {
-        Int(3) => ()
-        _ => fail("expected int literal")
-      }
-      match (ops[6] : Calculator) {
-        Int(1) => ()
-        _ => fail("expected int literal")
-      }
-      match (ops[7] : Calculator) {
-        Roll => ()
-        _ => fail("expected roll operator")
-      }
+      _ => fail("expected calculator function")
     }
-    _ => fail("expected calculator function")
-  }
-  fun.print()
+    fun.print()
+  })
 }
 
 ///|
@@ -764,44 +758,41 @@ test "parse function rejects bad inputs" {
 
 ///|
 test "PdfFunction::print covers extra calculator strings" {
-  let prev_logger = @pdfe.logger.val
-  @pdfe.logger.val = _ => ()
-  defer {
-    @pdfe.logger.val = prev_logger
-  }
-  let fun : PdfFunction = {
-    func: PdfFunctionKind::Calculator([
-      Calculator::Cvi,
-      Calculator::Cvr,
-      Calculator::Div,
-      Calculator::Exp,
-      Calculator::Floor,
-      Calculator::Idiv,
-      Calculator::Ln,
-      Calculator::Log,
-      Calculator::Mod,
-      Calculator::Mul,
-      Calculator::Truncate,
-      Calculator::And,
-      Calculator::Bitshift,
-      Calculator::Eq,
-      Calculator::Ge,
-      Calculator::Gt,
-      Calculator::Le,
-      Calculator::Lt,
-      Calculator::Ne,
-      Calculator::Not,
-      Calculator::Or,
-      Calculator::Xor,
-      Calculator::Copy,
-      Calculator::Exch,
-      Calculator::Pop,
-      Calculator::Dup,
-    ]),
-    domain: [],
-    range: None,
-  }
-  fun.print()
+  @pdfe.with_logger(_ => (), fn() {
+    let fun : PdfFunction = {
+      func: PdfFunctionKind::Calculator([
+        Calculator::Cvi,
+        Calculator::Cvr,
+        Calculator::Div,
+        Calculator::Exp,
+        Calculator::Floor,
+        Calculator::Idiv,
+        Calculator::Ln,
+        Calculator::Log,
+        Calculator::Mod,
+        Calculator::Mul,
+        Calculator::Truncate,
+        Calculator::And,
+        Calculator::Bitshift,
+        Calculator::Eq,
+        Calculator::Ge,
+        Calculator::Gt,
+        Calculator::Le,
+        Calculator::Lt,
+        Calculator::Ne,
+        Calculator::Not,
+        Calculator::Or,
+        Calculator::Xor,
+        Calculator::Copy,
+        Calculator::Exch,
+        Calculator::Pop,
+        Calculator::Dup,
+      ]),
+      domain: [],
+      range: None,
+    }
+    fun.print()
+  })
 }
 
 ///|
