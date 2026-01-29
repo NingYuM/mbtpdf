@@ -103,8 +103,7 @@ test "ccitt g4 roundtrip covers many makeup codes" {
 
 ///|
 test "ccitt g4 roundtrip covers varied run lengths (single-row)" {
-  // TODO(#3): Some broader vectors (e.g. 1..=64 in a single row) don't roundtrip
-  // today; keep this test to cover a stable mix of short + long runs.
+  // Stable mix of short + long runs.
   let runs : Array[Int] = []
   let mut columns = 0
   for i in 1..<=16 {
@@ -117,5 +116,18 @@ test "ccitt g4 roundtrip covers varied run lengths (single-row)" {
   columns = 256
   let rows = 2
   let raw = bitmap_bytes_from_row_runs([runs, runs], 1)
+  ccitt_roundtrip(Encoding::CCITTG4(columns, rows), -1, columns, rows, raw)
+}
+
+///|
+test "ccitt g4 roundtrip covers 1..=64 run lengths starting black" {
+  let runs : Array[Int] = []
+  let mut columns = 0
+  for i in 1..<=64 {
+    runs.push(i)
+    columns = columns + i
+  }
+  let rows = 1
+  let raw = bitmap_bytes_from_row_runs([runs], 0)
   ccitt_roundtrip(Encoding::CCITTG4(columns, rows), -1, columns, rows, raw)
 }

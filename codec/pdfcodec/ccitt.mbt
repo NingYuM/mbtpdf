@@ -684,10 +684,14 @@ fn encode_ccittg4_line(
   let mut a0_run = 0
   let mut ref_run = 0
   while a0 < columns {
-    while a0_run + 1 < coding.length() && a0 >= coding[a0_run + 1] {
+    while a0_run + 1 < coding.length() &&
+          a0 >= coding[a0_run + 1] &&
+          !(a0 == 0 && coding[a0_run + 1] == 0) {
       a0_run = a0_run + 1
     }
-    while ref_run + 1 < reference.length() && a0 >= reference[ref_run + 1] {
+    while ref_run + 1 < reference.length() &&
+          a0 >= reference[ref_run + 1] &&
+          !(a0 == 0 && reference[ref_run + 1] == 0) {
       ref_run = ref_run + 1
     }
     let a0_iswhite = a0_run % 2 == 0
