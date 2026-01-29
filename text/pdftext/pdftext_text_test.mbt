@@ -130,6 +130,36 @@ test "pdfdocstring conversions" {
 }
 
 ///|
+test "shift_jis decoder covers ascii and error branches" {
+  let util = @pdftext.PdfTextUtil::new()
+  inspect(util.codepoints_of_shift_jis([0x41, 0x7f]), content="[65, 127]")
+  inspect(util.codepoints_of_shift_jis([0xa1]), content="[65377]")
+  inspect(util.codepoints_of_shift_jis([0x82]), content="[65533]")
+  inspect(util.codepoints_of_shift_jis([0x82, 0x00]), content="[65533]")
+  inspect(util.codepoints_of_shift_jis([0x80]), content="[65533]")
+}
+
+///|
+test "charcode extractor debug handles bad tounicode values" {
+  let pdf = @pdf.Pdf::empty()
+  let ctx = @pdftext.PdfText::new(pdf)
+  let tounicode : Map[Int, String] = Map::new()
+  tounicode.set(33, @pdfio.string_of_int_array([0xd8, 0x00]))
+  let tounicode_ref = ctx.write_tounicode(tounicode)
+  let font = simple_font_with_tounicode(tounicode_ref)
+  let prev_quiet = @pdfutil.quiet.val
+  @pdfutil.quiet.val = true
+  defer {
+    @pdfutil.quiet.val = prev_quiet
+  }
+  @pdfe.with_logger(_ => (), fn() {
+    let charcode = ctx.charcode_extractor_of_font(font, debug=true)
+    let _ = charcode(65)
+
+  })
+}
+
+///|
 test "utf8 conversion helpers" {
   let cps = [0x41, 0x20ac, 0x1f600]
   let utf8 = @pdftext.PdfTextUtil::new().utf8_of_codepoints(cps)
