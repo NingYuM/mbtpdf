@@ -81,16 +81,15 @@ fn is_whitespace_or_delimiter_byte(b : Int) -> Bool {
 
 ///|
 fn dropwhite(input : @pdfio.Input) -> Unit {
-  let mut done = false
-  while !done {
+  while true {
     let b = (input.input_byte)()
     if b == @pdfio.no_more {
-      done = true
+      break
     } else if is_whitespace_byte(b) {
-      ()
+      continue
     } else {
       input.rewind()
-      done = true
+      break
     }
   }
 }
@@ -98,14 +97,13 @@ fn dropwhite(input : @pdfio.Input) -> Unit {
 ///|
 fn getuntil(input : @pdfio.Input) -> String {
   let bytes : Array[Byte] = Array::new()
-  let mut done = false
-  while !done {
+  while true {
     let b = (input.input_byte)()
     if b == @pdfio.no_more {
-      done = true
+      break
     } else if is_whitespace_or_delimiter_byte(b) {
       input.rewind()
-      done = true
+      break
     } else {
       bytes.push(b.to_byte())
     }
@@ -116,17 +114,16 @@ fn getuntil(input : @pdfio.Input) -> String {
 ///|
 fn get_string(input : @pdfio.Input) -> String {
   let bytes : Array[Byte] = Array::new()
-  let mut done = false
   let _ = (input.input_byte)()
   bytes.push('"'.to_int().to_byte())
-  while !done {
+  while true {
     let b = (input.input_byte)()
     if b == @pdfio.no_more {
-      done = true
+      break
     } else if b == '\\' {
       let next = (input.input_byte)()
       if next == @pdfio.no_more {
-        done = true
+        break
       } else if next == '"' {
         bytes.push('"'.to_int().to_byte())
       } else {
@@ -135,7 +132,7 @@ fn get_string(input : @pdfio.Input) -> String {
       }
     } else if b == '"' {
       bytes.push(b.to_byte())
-      done = true
+      break
     } else {
       bytes.push(b.to_byte())
     }
@@ -228,11 +225,11 @@ pub fn PdfGenLex::lex_single(self : PdfGenLex, input : @pdfio.Input) -> Token {
 /// Lex all tokens from input.
 pub fn PdfGenLex::lex(self : PdfGenLex, input : @pdfio.Input) -> Array[Token] {
   let out = Array::new()
-  let mut done = false
-  while !done {
+  
+  while true{
     let t = self.lex_single(input)
     match t {
-      LexNull => done = true
+      LexNull => break
       _ => out.push(t)
     }
   }
