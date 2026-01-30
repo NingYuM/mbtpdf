@@ -220,7 +220,7 @@ fn p_of_perms(key : @pdfio.MutableBytes, perms : String) -> Int? raise {
     remove_padding=false,
   )
   let ints = @pdfio.int_array_of_bytes(ps)
-  if ints[9] != 'a' || ints[10] != 'd' || ints[11] != 'b' {
+  if !(ints[9:] is ['a', 'd', 'b', ..]) {
     None
   } else {
     let p = (ints[0] & 0xff) |

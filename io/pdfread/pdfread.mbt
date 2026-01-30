@@ -184,37 +184,26 @@ fn read_header(ctx : PdfRead, input : @pdfio.Input) -> (Int, Int) raise {
   while pos <= 1024 {
     (input.seek_in)(pos)
     let chars = get8chars(input)
-    if chars.length() == 8 &&
-      chars[0] == '%' &&
-      chars[1] == 'P' &&
-      chars[2] == 'D' &&
-      chars[3] == 'F' &&
-      chars[4] == '-' &&
-      chars[6] == '.' {
-      let major_char = chars[5]
-      if !(major_char is ('0'..='9')) {
-        return (2, 0)
-      }
-      let minor_digits = Array::new()
-      let mut idx = 7
-      while idx < chars.length() {
-        let c = chars[idx]
-        if c is ('0'..='9') {
-          minor_digits.push(c)
-          idx = idx + 1
-        } else {
-          idx = chars.length()
+    match chars {
+      ['%', 'P', 'D', 'F', '-', major_char, '.', minor_char] => {
+        if !(major_char is ('0'..='9')) {
+          return (2, 0)
         }
+        let minor_digits = Array::new()
+        if minor_char is ('0'..='9') {
+          minor_digits.push(minor_char)
+        }
+        if minor_digits.length() == 0 {
+          let message = @pdf.input_pdferror(input, "Malformed PDF header")
+          raise @pdf.PdfError::Msg(message)
+        }
+        if ctx.read_debug {
+          (ctx.logger)("setting offset to \{pos}\n")
+        }
+        (input.set_offset)(pos)
+        return (major_char.to_int() - '0', digits_to_int(minor_digits))
       }
-      if minor_digits.length() == 0 {
-        let message = @pdf.input_pdferror(input, "Malformed PDF header")
-        raise @pdf.PdfError::Msg(message)
-      }
-      if ctx.read_debug {
-        (ctx.logger)("setting offset to \{pos}\n")
-      }
-      (input.set_offset)(pos)
-      return (major_char.to_int() - '0', digits_to_int(minor_digits))
+      _ => ()
     }
     pos = pos + 1
   }
