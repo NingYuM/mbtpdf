@@ -1,8 +1,8 @@
 ///|
 fn standard_font_dict() -> @pdf.PdfObject {
   Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/Helvetica"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName("/Helvetica"))),
     ("/Encoding", Dictionary([])),
   ])
 }
@@ -10,25 +10,22 @@ fn standard_font_dict() -> @pdf.PdfObject {
 ///|
 fn win_ansi_font_dict() -> @pdf.PdfObject {
   Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/Helvetica"))),
-    ("/Encoding", Name(@pdf.PdfName::of_string("/WinAnsiEncoding"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName("/Helvetica"))),
+    ("/Encoding", Name(@pdf.PdfName("/WinAnsiEncoding"))),
   ])
 }
 
 ///|
 fn custom_encoding_font_dict() -> @pdf.PdfObject {
   Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/Helvetica"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName("/Helvetica"))),
     (
       "/Encoding",
       Dictionary([
-        ("/BaseEncoding", Name(@pdf.PdfName::of_string("/WinAnsiEncoding"))),
-        (
-          "/Differences",
-          Array([Integer(65), Name(@pdf.PdfName::of_string("/A"))]),
-        ),
+        ("/BaseEncoding", Name(@pdf.PdfName("/WinAnsiEncoding"))),
+        ("/Differences", Array([Integer(65), Name(@pdf.PdfName("/A"))])),
       ]),
     ),
   ])
@@ -37,8 +34,8 @@ fn custom_encoding_font_dict() -> @pdf.PdfObject {
 ///|
 fn simple_font_with_tounicode(tounicode_ref : Int) -> @pdf.PdfObject {
   Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/Helvetica"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName("/Helvetica"))),
     ("/FirstChar", Integer(33)),
     ("/LastChar", Integer(33)),
     ("/Widths", Array([Integer(500)])),
@@ -57,12 +54,12 @@ fn cid_font_dict(encoding_name : String) -> @pdf.PdfObject {
         ("/Supplement", Integer(0)),
       ]),
     ),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/CIDFont"))),
+    ("/BaseFont", Name(@pdf.PdfName("/CIDFont"))),
     ("/FontDescriptor", Dictionary([])),
   ])
   Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type0"))),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/CIDFontType0"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type0"))),
+    ("/BaseFont", Name(@pdf.PdfName("/CIDFontType0"))),
     ("/DescendantFonts", Array([descendant])),
     ("/Encoding", Name(@pdf.PdfName::of_string(encoding_name))),
   ])

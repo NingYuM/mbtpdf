@@ -66,39 +66,36 @@ test "string_of_fonttype covers variants" {
 test "string_of_encoding covers variants" {
   let pdf = @pdf.Pdf::empty()
   let implicit_font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
   ])
   assert_eq(encoding_string(pdf, implicit_font), "ImplicitInFontFile")
   let mac_font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
-    ("/Encoding", Name(@pdf.PdfName::of_string("/MacRomanEncoding"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/Encoding", Name(@pdf.PdfName("/MacRomanEncoding"))),
   ])
   assert_eq(encoding_string(pdf, mac_font), "MacRomanEncoding")
   let expert_font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
-    ("/Encoding", Name(@pdf.PdfName::of_string("/MacExpertEncoding"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/Encoding", Name(@pdf.PdfName("/MacExpertEncoding"))),
   ])
   assert_eq(encoding_string(pdf, expert_font), "MacExpertEncoding")
   let ansi_font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
-    ("/Encoding", Name(@pdf.PdfName::of_string("/WinAnsiEncoding"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/Encoding", Name(@pdf.PdfName("/WinAnsiEncoding"))),
   ])
   assert_eq(encoding_string(pdf, ansi_font), "WinAnsiEncoding")
   let standard_font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
     ("/Encoding", Dictionary([])),
   ])
   assert_eq(encoding_string(pdf, standard_font), "StandardEncoding")
   let custom_font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
     (
       "/Encoding",
       Dictionary([
-        ("/BaseEncoding", Name(@pdf.PdfName::of_string("/WinAnsiEncoding"))),
-        (
-          "/Differences",
-          Array([Integer(65), Name(@pdf.PdfName::of_string("/A"))]),
-        ),
+        ("/BaseEncoding", Name(@pdf.PdfName("/WinAnsiEncoding"))),
+        ("/Differences", Array([Integer(65), Name(@pdf.PdfName("/A"))])),
       ]),
     ),
   ])
@@ -107,12 +104,10 @@ test "string_of_encoding covers variants" {
     "CustomEncoding with base WinAnsiEncoding and differences 65 -> /A, ",
   )
   let fill_font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/TrueType"))),
+    ("/Subtype", Name(@pdf.PdfName("/TrueType"))),
     (
       "/Encoding",
-      Dictionary([
-        ("/BaseEncoding", Name(@pdf.PdfName::of_string("/WinAnsiEncoding"))),
-      ]),
+      Dictionary([("/BaseEncoding", Name(@pdf.PdfName("/WinAnsiEncoding")))]),
     ),
   ])
   assert_eq(
@@ -126,19 +121,16 @@ test "string_of_simple_font formats details" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/Helvetica"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName("/Helvetica"))),
     ("/FirstChar", Integer(65)),
     ("/LastChar", Integer(65)),
     ("/Widths", Array([Integer(500)])),
     (
       "/Encoding",
       Dictionary([
-        ("/BaseEncoding", Name(@pdf.PdfName::of_string("/WinAnsiEncoding"))),
-        (
-          "/Differences",
-          Array([Integer(65), Name(@pdf.PdfName::of_string("/A"))]),
-        ),
+        ("/BaseEncoding", Name(@pdf.PdfName("/WinAnsiEncoding"))),
+        ("/Differences", Array([Integer(65), Name(@pdf.PdfName("/A"))])),
       ]),
     ),
   ])
@@ -157,14 +149,14 @@ test "string_of_font covers variants" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let standard_font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/Helvetica"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName("/Helvetica"))),
   ])
   let standard = ctx.read_standard14font(standard_font)
   assert_eq(standard.to_string(), "StandardFont Helvetica")
   let simple_font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/Helvetica"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName("/Helvetica"))),
     ("/FirstChar", Integer(65)),
     ("/LastChar", Integer(65)),
     ("/Widths", Array([Integer(500)])),
@@ -180,13 +172,13 @@ test "string_of_font covers variants" {
         ("/Supplement", Integer(0)),
       ]),
     ),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/CIDFont"))),
+    ("/BaseFont", Name(@pdf.PdfName("/CIDFont"))),
     ("/FontDescriptor", Dictionary([])),
   ])
   let cid_font : @pdf.PdfObject = Dictionary([
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/CIDFontType0"))),
+    ("/BaseFont", Name(@pdf.PdfName("/CIDFontType0"))),
     ("/DescendantFonts", Array([descendant])),
-    ("/Encoding", Name(@pdf.PdfName::of_string("/Identity-H"))),
+    ("/Encoding", Name(@pdf.PdfName("/Identity-H"))),
   ])
   let cid = ctx.read_cidkeyed_font(cid_font)
   assert_eq(cid.to_string(), "CIDKeyedFont /CIDFontType0")

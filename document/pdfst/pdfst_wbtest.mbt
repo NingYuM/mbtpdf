@@ -10,7 +10,7 @@ fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
   // Create placeholder /Pages root so pages can reference it as /Parent.
   let pages_root_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+      ("/Type", Name(@pdf.PdfName("/Pages"))),
       ("/Kids", Array([])),
       ("/Count", Integer(count)),
     ]),
@@ -19,7 +19,7 @@ fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
   let mut i = 0
   while i < count {
     let page_obj : @pdf.PdfObject = Dictionary([
-      ("/Type", Name(@pdf.PdfName::of_string("/Page"))),
+      ("/Type", Name(@pdf.PdfName("/Page"))),
       ("/Parent", Indirect(pages_root_num)),
       ("/MediaBox", sample_rect()),
     ])
@@ -33,7 +33,7 @@ fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
     (
       pages_root_num,
       Dictionary([
-        ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+        ("/Type", Name(@pdf.PdfName("/Pages"))),
         ("/Kids", Array(kids)),
         ("/Count", Integer(count)),
       ]),
@@ -41,7 +41,7 @@ fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
   )
   let catalog_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName::of_string("/Catalog"))),
+      ("/Type", Name(@pdf.PdfName("/Catalog"))),
       ("/Pages", Indirect(pages_root_num)),
     ]),
   )
@@ -293,7 +293,7 @@ test "merge_structure_trees merges roots" {
     ("/K", Indirect(kid1)),
     ("/IDTree", idtree1),
     ("/ParentTree", parenttree1),
-    ("/RoleMap", Dictionary([("/Sect", Name(@pdf.PdfName::of_string("/Div")))])),
+    ("/RoleMap", Dictionary([("/Sect", Name(@pdf.PdfName("/Div")))])),
     ("/Namespaces", Array([Dictionary([("/NS", String("ns1"))])])),
     ("/PronunciationLexicon", Array([])),
   ])
@@ -307,13 +307,10 @@ test "merge_structure_trees merges roots" {
     ("/K", Array([kid2, Integer(3)])),
     ("/IDTree", idtree2),
     ("/ParentTree", parenttree2),
-    ("/RoleMap", Name(@pdf.PdfName::of_string("/NotADict"))),
-    (
-      "/ClassMap",
-      Dictionary([("/Class", Name(@pdf.PdfName::of_string("/Span")))]),
-    ),
+    ("/RoleMap", Name(@pdf.PdfName("/NotADict"))),
+    ("/ClassMap", Dictionary([("/Class", Name(@pdf.PdfName("/Span")))])),
     ("/Namespaces", Dictionary([])),
-    ("/AF", Array([Name(@pdf.PdfName::of_string("/File"))])),
+    ("/AF", Array([Name(@pdf.PdfName("/File"))])),
   ])
   ignore(install_struct_root(pdf2, root2))
   let merged = @pdfe.with_logger(_ => (), fn() {

@@ -175,8 +175,7 @@ fn lex_inline_image(
       Some(Array(_) as n) => n
       None =>
         match pdf.lookup_direct_orelse("/IM", "/ImageMask", dict) {
-          Some(Boolean(true)) =>
-            PdfObject::Name(@pdf.PdfName::of_string("/DeviceGray"))
+          Some(Boolean(true)) => PdfObject::Name(@pdf.PdfName("/DeviceGray"))
           _ => {
             @pdfe.debug("no colourspace C\n")
             nocontent(input)

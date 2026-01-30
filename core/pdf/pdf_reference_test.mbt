@@ -30,15 +30,15 @@ test "objects_referenced no_follow_contains non-name" {
 test "objects_referenced no_follow_contains name match" {
   let pdf = Pdf::empty()
   let dict = PdfObject::Dictionary([
-    ("/Other", PdfObject::Name(PdfName::of_string("/Other"))),
-    ("/Type", PdfObject::Name(PdfName::of_string("/Page"))),
+    ("/Other", PdfObject::Name(@pdf.PdfName("/Other"))),
+    ("/Type", PdfObject::Name(@pdf.PdfName("/Page"))),
     ("/Kid", PdfObject::Indirect(2)),
   ])
   pdf.addobj_given_num((1, dict))
   pdf.addobj_given_num((2, PdfObject::Integer(9)))
   let referenced = pdf.objects_referenced(
     [],
-    [("/Type", PdfObject::Name(PdfName::of_string("/Page")))],
+    [("/Type", PdfObject::Name(@pdf.PdfName("/Page")))],
     PdfObject::Indirect(1),
   )
   assert_eq(referenced.length(), 0)
@@ -50,14 +50,14 @@ test "objects_referenced no_follow_contains scans non-name entries" {
   let dict = PdfObject::Dictionary([
     // Duplicate key: first non-Name should be skipped by predicate.
     ("/Type", PdfObject::Integer(1)),
-    ("/Type", PdfObject::Name(PdfName::of_string("/Page"))),
+    ("/Type", PdfObject::Name(@pdf.PdfName("/Page"))),
     ("/Kid", PdfObject::Indirect(2)),
   ])
   pdf.addobj_given_num((1, dict))
   pdf.addobj_given_num((2, PdfObject::Integer(9)))
   let referenced = pdf.objects_referenced(
     [],
-    [("/Type", PdfObject::Name(PdfName::of_string("/Page")))],
+    [("/Type", PdfObject::Name(@pdf.PdfName("/Page")))],
     PdfObject::Indirect(1),
   )
   assert_eq(referenced.length(), 0)

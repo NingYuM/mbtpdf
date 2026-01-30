@@ -379,15 +379,15 @@ pub fn PageLabel::write_all(
       match label.labelstyle {
         NoLabelPrefixOnly => ()
         DecimalArabic =>
-          entries.push(("/S", PdfObject::Name(@pdf.PdfName::of_string("/D"))))
+          entries.push(("/S", PdfObject::Name(@pdf.PdfName("/D"))))
         UppercaseRoman =>
-          entries.push(("/S", PdfObject::Name(@pdf.PdfName::of_string("/R"))))
+          entries.push(("/S", PdfObject::Name(@pdf.PdfName("/R"))))
         LowercaseRoman =>
-          entries.push(("/S", PdfObject::Name(@pdf.PdfName::of_string("/r"))))
+          entries.push(("/S", PdfObject::Name(@pdf.PdfName("/r"))))
         UppercaseLetters =>
-          entries.push(("/S", PdfObject::Name(@pdf.PdfName::of_string("/A"))))
+          entries.push(("/S", PdfObject::Name(@pdf.PdfName("/A"))))
         LowercaseLetters =>
-          entries.push(("/S", PdfObject::Name(@pdf.PdfName::of_string("/a"))))
+          entries.push(("/S", PdfObject::Name(@pdf.PdfName("/a"))))
       }
       match label.labelprefix {
         Some(p) => entries.push(("/P", PdfObject::String(p)))

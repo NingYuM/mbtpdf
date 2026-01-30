@@ -344,10 +344,7 @@ fn string_of_lexeme(lexeme : Lexeme) -> String raise {
         @pdf.Pdf::empty().lookup_direct_orelse("/F", "/Filter", dict) {
         None | Some(Array([])) => {
           let _ = dp
-          let dict = dict.add_entry(
-            "/F",
-            PdfObject::Name(@pdf.PdfName::of_string("/Fl")),
-          )
+          let dict = dict.add_entry("/F", PdfObject::Name(@pdf.PdfName("/Fl")))
           let encoded = @pdfcodec.PdfCodec::new().encode_flate(data)
           (dict, encoded)
         }

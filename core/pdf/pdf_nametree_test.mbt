@@ -120,7 +120,7 @@ test "nametree lookup" {
   )
   match
     kids_pdf.nametree_lookup(
-      PdfObject::Name(PdfName::of_string("/M")),
+      PdfObject::Name(@pdf.PdfName("/M")),
       parent_with_kids,
     ) {
     None => ()
@@ -174,7 +174,7 @@ test "contents_of_nametree" {
   let flattened = pdf.contents_of_nametree(parent)
   assert_eq(flattened.length(), 2)
   let bad = PdfObject::Dictionary([
-    ("/Type", PdfObject::Name(PdfName::of_string("/Other"))),
+    ("/Type", PdfObject::Name(@pdf.PdfName("/Other"))),
   ])
   assert_is_err(try? pdf.contents_of_nametree(bad))
 }

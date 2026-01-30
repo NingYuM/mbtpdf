@@ -8,7 +8,7 @@ fn encrypt_pdf_40bit_inner(
   pdf : @pdf.Pdf,
 ) -> @pdf.Pdf raise {
   let crypt_dict = @pdf.PdfObject::Dictionary([
-    ("/Filter", @pdf.PdfObject::Name(@pdf.PdfName::of_string("/Standard"))),
+    ("/Filter", @pdf.PdfObject::Name(@pdf.PdfName("/Standard"))),
     ("/V", @pdf.PdfObject::Integer(1)),
     ("/R", @pdf.PdfObject::Integer(2)),
     ("/O", @pdf.PdfObject::String(owner)),

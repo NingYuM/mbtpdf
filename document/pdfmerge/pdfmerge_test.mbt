@@ -61,7 +61,7 @@ fn add_dest_callsites(pdf : @pdf.Pdf, name : String) -> Unit {
   let dest_obj : @pdf.PdfObject = Dictionary([("/Dest", String(name))])
   ignore(pdf.addobj(dest_obj))
   let action_obj : @pdf.PdfObject = Dictionary([
-    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
+    ("/S", Name(@pdf.PdfName("/GoTo"))),
     ("/D", String(name)),
   ])
   ignore(pdf.addobj(action_obj))
@@ -186,7 +186,7 @@ test "remove_duplicate_fonts keeps distinct streams" {
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(1))])
   let dict_alt : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(1)),
-    ("/Subtype", Name(@pdf.PdfName::of_string("/XObject"))),
+    ("/Subtype", Name(@pdf.PdfName("/XObject"))),
   ])
   let stream1 : @pdf.PdfObject = Stream(
     Ref::new((dict, @pdf.Stream::Got([0x01]))),
@@ -296,11 +296,11 @@ test "merge_pdfs merges dests ocg and acroform" {
     pdf1,
     "/OCProperties",
     Dictionary([
-      ("/OCGs", Array([Name(@pdf.PdfName::of_string("/OCG1"))])),
+      ("/OCGs", Array([Name(@pdf.PdfName("/OCG1"))])),
       (
         "/D",
         Dictionary([
-          ("/ON", Array([Name(@pdf.PdfName::of_string("/OCG1"))])),
+          ("/ON", Array([Name(@pdf.PdfName("/OCG1"))])),
           ("/Name", String("Layer1")),
         ]),
       ),
@@ -310,12 +310,12 @@ test "merge_pdfs merges dests ocg and acroform" {
     pdf2,
     "/OCProperties",
     Dictionary([
-      ("/OCGs", Array([Name(@pdf.PdfName::of_string("/OCG2"))])),
+      ("/OCGs", Array([Name(@pdf.PdfName("/OCG2"))])),
       (
         "/D",
         Dictionary([
-          ("/OFF", Array([Name(@pdf.PdfName::of_string("/OCG2"))])),
-          ("/BaseState", Name(@pdf.PdfName::of_string("/OFF"))),
+          ("/OFF", Array([Name(@pdf.PdfName("/OCG2"))])),
+          ("/BaseState", Name(@pdf.PdfName("/OFF"))),
         ]),
       ),
       ("/Configs", Array([Dictionary([("/Name", String("Cfg"))])])),

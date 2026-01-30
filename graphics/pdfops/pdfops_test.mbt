@@ -38,35 +38,21 @@ test "stream_of_ops builds a stream" {
 test "components resolves color spaces" {
   let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([
-    (
-      "/ColorSpace",
-      Dictionary([("/MyCS", Name(@pdf.PdfName::of_string("/DeviceGray")))]),
-    ),
+    ("/ColorSpace", Dictionary([("/MyCS", Name(@pdf.PdfName("/DeviceGray")))])),
   ])
   assert_eq(
-    @pdfops.Op::components(
-      pdf,
-      resources,
-      Name(@pdf.PdfName::of_string("/DeviceRGB")),
-    ),
+    @pdfops.Op::components(pdf, resources, Name(@pdf.PdfName("/DeviceRGB"))),
     3,
   )
   assert_eq(
-    @pdfops.Op::components(
-      pdf,
-      resources,
-      Name(@pdf.PdfName::of_string("/MyCS")),
-    ),
+    @pdfops.Op::components(pdf, resources, Name(@pdf.PdfName("/MyCS"))),
     1,
   )
   assert_eq(
     @pdfops.Op::components(
       pdf,
       resources,
-      Array([
-        Name(@pdf.PdfName::of_string("/Pattern")),
-        Name(@pdf.PdfName::of_string("/DeviceRGB")),
-      ]),
+      Array([Name(@pdf.PdfName("/Pattern")), Name(@pdf.PdfName("/DeviceRGB"))]),
     ),
     3,
   )
@@ -74,10 +60,7 @@ test "components resolves color spaces" {
     @pdfops.Op::components(
       pdf,
       resources,
-      Array([
-        Name(@pdf.PdfName::of_string("/ICCBased")),
-        Dictionary([("/N", Integer(4))]),
-      ]),
+      Array([Name(@pdf.PdfName("/ICCBased")), Dictionary([("/N", Integer(4))])]),
     ),
     4,
   )
@@ -86,11 +69,8 @@ test "components resolves color spaces" {
       pdf,
       resources,
       Array([
-        Name(@pdf.PdfName::of_string("/DeviceN")),
-        Array([
-          Name(@pdf.PdfName::of_string("/A")),
-          Name(@pdf.PdfName::of_string("/B")),
-        ]),
+        Name(@pdf.PdfName("/DeviceN")),
+        Array([Name(@pdf.PdfName("/A")), Name(@pdf.PdfName("/B"))]),
       ]),
     ),
     2,
@@ -100,9 +80,9 @@ test "components resolves color spaces" {
       pdf,
       resources,
       Array([
-        Name(@pdf.PdfName::of_string("/Separation")),
-        Name(@pdf.PdfName::of_string("/Spot")),
-        Name(@pdf.PdfName::of_string("/DeviceRGB")),
+        Name(@pdf.PdfName("/Separation")),
+        Name(@pdf.PdfName("/Spot")),
+        Name(@pdf.PdfName("/DeviceRGB")),
         Dictionary([]),
       ]),
     ),
@@ -111,7 +91,7 @@ test "components resolves color spaces" {
   let pattern_err : Result[Int, Error] = try? @pdfops.Op::components(
     pdf,
     resources,
-    Name(@pdf.PdfName::of_string("/Pattern")),
+    Name(@pdf.PdfName("/Pattern")),
   )
   assert_true(pattern_err is Err(_))
 }
@@ -282,7 +262,7 @@ test "string_of_ops renders inline image" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name(@pdf.PdfName::of_string("/DeviceGray"))),
+    ("/CS", Name(@pdf.PdfName("/DeviceGray"))),
   ])
   let inline_data = @pdfio.bytes_of_list([128])
   let rendered = @pdfops.Op::string_of_ops([

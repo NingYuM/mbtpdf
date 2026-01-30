@@ -158,7 +158,7 @@ fn add_embedded_file(
 ) -> Unit raise {
   let bytes = @pdfio.bytes_of_string(payload)
   let stream_dict : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName::of_string("/EmbeddedFile"))),
+    ("/Type", Name(@pdf.PdfName("/EmbeddedFile"))),
     ("/Length", Integer(@pdfio.bytes_size(bytes))),
   ])
   let stream_obj : @pdf.PdfObject = Stream(
@@ -166,7 +166,7 @@ fn add_embedded_file(
   )
   let stream_num = pdf.addobj(stream_obj)
   let filespec : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName::of_string("/Filespec"))),
+    ("/Type", Name(@pdf.PdfName("/Filespec"))),
     ("/F", String(filename)),
     ("/UF", String(filename)),
     ("/EF", Dictionary([("/F", Indirect(stream_num))])),
@@ -178,8 +178,8 @@ fn add_embedded_file(
 fn make_ap_stream(payload : String) -> @pdf.PdfObject {
   let bytes = @pdfio.bytes_of_string(payload)
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName::of_string("/XObject"))),
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Form"))),
+    ("/Type", Name(@pdf.PdfName("/XObject"))),
+    ("/Subtype", Name(@pdf.PdfName("/Form"))),
     ("/BBox", Array([Integer(0), Integer(0), Integer(10), Integer(10)])),
     ("/Resources", Dictionary([])),
     ("/Length", Integer(@pdfio.bytes_size(bytes))),
@@ -201,7 +201,7 @@ fn make_ap_entry(
 ///|
 fn make_rendition_dict(name : String, tag : String) -> @pdf.PdfObject {
   Dictionary([
-    ("/S", Name(@pdf.PdfName::of_string("/MR"))),
+    ("/S", Name(@pdf.PdfName("/MR"))),
     ("/N", String(name)),
     ("/T", String(tag)),
   ])
@@ -210,7 +210,7 @@ fn make_rendition_dict(name : String, tag : String) -> @pdf.PdfObject {
 ///|
 fn make_alt_presentation_dict(name : String, tag : String) -> @pdf.PdfObject {
   Dictionary([
-    ("/Type", Name(@pdf.PdfName::of_string("/AlternatePresentations"))),
+    ("/Type", Name(@pdf.PdfName("/AlternatePresentations"))),
     ("/Title", String(name)),
     ("/T", String(tag)),
   ])
@@ -253,22 +253,19 @@ fn make_bulk_url_entries(
 
 ///|
 fn make_url_action(uri : String) -> @pdf.PdfObject {
-  Dictionary([
-    ("/S", Name(@pdf.PdfName::of_string("/URI"))),
-    ("/URI", String(uri)),
-  ])
+  Dictionary([("/S", Name(@pdf.PdfName("/URI"))), ("/URI", String(uri))])
 }
 
 ///|
 fn add_ocg_properties(pdf : @pdf.Pdf, ocg_name : String) -> Unit raise {
   let ocg : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName::of_string("/OCG"))),
+    ("/Type", Name(@pdf.PdfName("/OCG"))),
     ("/Name", String(ocg_name)),
   ])
   let ocg_num = pdf.addobj(ocg)
   let default_dict : @pdf.PdfObject = Dictionary([
-    ("/BaseState", Name(@pdf.PdfName::of_string("/ON"))),
-    ("/Intent", Name(@pdf.PdfName::of_string("/View"))),
+    ("/BaseState", Name(@pdf.PdfName("/ON"))),
+    ("/Intent", Name(@pdf.PdfName("/View"))),
     ("/Name", String("Default")),
     ("/ON", Array([Indirect(ocg_num)])),
   ])
@@ -287,20 +284,20 @@ fn add_ocg_properties_with_config(
   config_name : String,
 ) -> Unit raise {
   let ocg : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName::of_string("/OCG"))),
+    ("/Type", Name(@pdf.PdfName("/OCG"))),
     ("/Name", String(ocg_name)),
   ])
   let ocg_num = pdf.addobj(ocg)
   let default_dict : @pdf.PdfObject = Dictionary([
-    ("/BaseState", Name(@pdf.PdfName::of_string("/ON"))),
-    ("/Intent", Name(@pdf.PdfName::of_string("/View"))),
+    ("/BaseState", Name(@pdf.PdfName("/ON"))),
+    ("/Intent", Name(@pdf.PdfName("/View"))),
     ("/Name", String("Default")),
     ("/ON", Array([Indirect(ocg_num)])),
   ])
   let config_dict : @pdf.PdfObject = Dictionary([
     ("/Name", String(config_name)),
-    ("/BaseState", Name(@pdf.PdfName::of_string("/OFF"))),
-    ("/Intent", Name(@pdf.PdfName::of_string("/View"))),
+    ("/BaseState", Name(@pdf.PdfName("/OFF"))),
+    ("/Intent", Name(@pdf.PdfName("/View"))),
     ("/ON", Array([Indirect(ocg_num)])),
   ])
   let ocprops : @pdf.PdfObject = Dictionary([
@@ -386,8 +383,8 @@ fn add_struct_tree_root(
   parent_key : Int,
 ) -> Unit raise {
   let struct_elem : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName::of_string("/StructElem"))),
-    ("/S", Name(@pdf.PdfName::of_string("/P"))),
+    ("/Type", Name(@pdf.PdfName("/StructElem"))),
+    ("/S", Name(@pdf.PdfName("/P"))),
     ("/Pg", Indirect(page_ref)),
   ])
   let struct_elem_num = pdf.addobj(struct_elem)
@@ -395,7 +392,7 @@ fn add_struct_tree_root(
     (parent_key.to_string(), Indirect(struct_elem_num)),
   ])
   let struct_root : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName::of_string("/StructTreeRoot"))),
+    ("/Type", Name(@pdf.PdfName("/StructTreeRoot"))),
     ("/K", Indirect(struct_elem_num)),
     ("/ParentTree", parent_tree),
   ])
@@ -1040,11 +1037,11 @@ async test "e2e merge preserves /Dests dictionary" {
   let right_expected = merged_pages[left_count]
   let left_read = @pdfdest.Destination::read(
     merged,
-    Name(@pdf.PdfName::of_string("/LeftDest")),
+    Name(@pdf.PdfName("/LeftDest")),
   )
   let right_read = @pdfdest.Destination::read(
     merged,
-    Name(@pdf.PdfName::of_string("/RightDest")),
+    Name(@pdf.PdfName("/RightDest")),
   )
   assert_destination_page(left_read, left_expected)
   assert_destination_page(right_read, right_expected)
@@ -1057,11 +1054,11 @@ async test "e2e merge preserves /Dests dictionary" {
   let parsed_right = parsed_pages[left_count]
   let parsed_left_read = @pdfdest.Destination::read(
     parsed,
-    Name(@pdf.PdfName::of_string("/LeftDest")),
+    Name(@pdf.PdfName("/LeftDest")),
   )
   let parsed_right_read = @pdfdest.Destination::read(
     parsed,
-    Name(@pdf.PdfName::of_string("/RightDest")),
+    Name(@pdf.PdfName("/RightDest")),
   )
   assert_destination_page(parsed_left_read, parsed_left)
   assert_destination_page(parsed_right_read, parsed_right)
@@ -1303,11 +1300,11 @@ async test "e2e merge preserves /Names JavaScript" {
   let left = @pdfpage.PdfPageDoc::minimum_valid()
   let right = @pdfpage.PdfPageDoc::minimum_valid()
   let left_action : @pdf.PdfObject = Dictionary([
-    ("/S", Name(@pdf.PdfName::of_string("/JavaScript"))),
+    ("/S", Name(@pdf.PdfName("/JavaScript"))),
     ("/JS", String("app.alert('left')")),
   ])
   let right_action : @pdf.PdfObject = Dictionary([
-    ("/S", Name(@pdf.PdfName::of_string("/JavaScript"))),
+    ("/S", Name(@pdf.PdfName("/JavaScript"))),
     ("/JS", String("app.alert('right')")),
   ])
   add_names_tree(left, "/JavaScript", [("LeftScript", left_action)])

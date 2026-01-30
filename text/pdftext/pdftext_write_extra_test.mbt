@@ -37,8 +37,8 @@ test "write_encoding covers mac and custom encodings" {
     _ => fail("expected custom encoding dictionary")
   }
   let font_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/CustomFont"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName("/CustomFont"))),
   ])
   let implicit_encoding = ctx.read_encoding(font_dict)
   let implicit_result : Result[Int, Error] = try? ctx.write_encoding(
@@ -52,8 +52,8 @@ test "write_font errors on unsupported fonts" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let simple_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/CustomFont"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName("/CustomFont"))),
   ])
   let simple_font = ctx.read_font(simple_dict)
   let simple_result : Result[Int, Error] = try? ctx.write_font(simple_font)
@@ -66,7 +66,7 @@ test "write_font errors on unsupported fonts" {
 ///|
 fn add_font_descriptor(pdf : @pdf.Pdf, fontfile_obj : Int?) -> Int {
   let entries : Array[(String, @pdf.PdfObject)] = [
-    ("/Type", Name(@pdf.PdfName::of_string("/FontDescriptor"))),
+    ("/Type", Name(@pdf.PdfName("/FontDescriptor"))),
     ("/Ascent", Integer(700)),
     ("/Descent", Integer(-200)),
     ("/AvgWidth", Integer(500)),
@@ -104,8 +104,8 @@ fn truetype_font_dict(
   tounicode_obj : Int?,
 ) -> @pdf.PdfObject {
   let entries : Array[(String, @pdf.PdfObject)] = [
-    ("/Subtype", Name(@pdf.PdfName::of_string("/TrueType"))),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/DummyTTF"))),
+    ("/Subtype", Name(@pdf.PdfName("/TrueType"))),
+    ("/BaseFont", Name(@pdf.PdfName("/DummyTTF"))),
     ("/FirstChar", Integer(0)),
     ("/LastChar", Integer(1)),
     ("/Widths", Array([Integer(500), Integer(600)])),
@@ -125,8 +125,8 @@ fn truetype_font_dict(
 ///|
 fn type3_font_dict_extra(font_descriptor : Int?) -> @pdf.PdfObject {
   let entries : Array[(String, @pdf.PdfObject)] = [
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type3"))),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/DummyType3"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type3"))),
+    ("/BaseFont", Name(@pdf.PdfName("/DummyType3"))),
     ("/FontBBox", Array([Real(0.0), Real(0.0), Real(0.0), Real(0.0)])),
     (
       "/FontMatrix",

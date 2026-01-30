@@ -9,7 +9,7 @@ fn encrypt_pdf_AES_inner(
   pdf : @pdf.Pdf,
 ) -> @pdf.Pdf raise {
   let crypt_dict = @pdf.PdfObject::Dictionary([
-    ("/Filter", @pdf.PdfObject::Name(@pdf.PdfName::of_string("/Standard"))),
+    ("/Filter", @pdf.PdfObject::Name(@pdf.PdfName("/Standard"))),
     ("/V", @pdf.PdfObject::Integer(4)),
     (
       "/CF",
@@ -18,11 +18,8 @@ fn encrypt_pdf_AES_inner(
           "/StdCF",
           @pdf.PdfObject::Dictionary([
             ("/Length", @pdf.PdfObject::Integer(16)),
-            (
-              "/AuthEvent",
-              @pdf.PdfObject::Name(@pdf.PdfName::of_string("/DocOpen")),
-            ),
-            ("/CFM", @pdf.PdfObject::Name(@pdf.PdfName::of_string("/AESV2"))),
+            ("/AuthEvent", @pdf.PdfObject::Name(@pdf.PdfName("/DocOpen"))),
+            ("/CFM", @pdf.PdfObject::Name(@pdf.PdfName("/AESV2"))),
           ]),
         ),
       ]),
@@ -33,8 +30,8 @@ fn encrypt_pdf_AES_inner(
     ("/O", @pdf.PdfObject::String(owner)),
     ("/U", @pdf.PdfObject::String(user)),
     ("/P", @pdf.PdfObject::Integer(p)),
-    ("/StrF", @pdf.PdfObject::Name(@pdf.PdfName::of_string("/StdCF"))),
-    ("/StmF", @pdf.PdfObject::Name(@pdf.PdfName::of_string("/StdCF"))),
+    ("/StrF", @pdf.PdfObject::Name(@pdf.PdfName("/StdCF"))),
+    ("/StmF", @pdf.PdfObject::Name(@pdf.PdfName("/StdCF"))),
   ])
   match
     process_cryption(

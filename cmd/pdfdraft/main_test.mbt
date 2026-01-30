@@ -19,10 +19,10 @@ async test "run removes image xobjects and writes output" {
       cleanup(in_file)
       cleanup(out_file)
       let img_xobj : @pdf.PdfObject = Dictionary([
-        ("/Subtype", Name(@pdf.PdfName::of_string("/Image"))),
+        ("/Subtype", Name(@pdf.PdfName("/Image"))),
       ])
       let form_xobj : @pdf.PdfObject = Dictionary([
-        ("/Subtype", Name(@pdf.PdfName::of_string("/Form"))),
+        ("/Subtype", Name(@pdf.PdfName("/Form"))),
       ])
       let resources : @pdf.PdfObject = Dictionary([
         ("/XObject", Dictionary([("/Im0", img_xobj), ("/Form0", form_xobj)])),
@@ -31,7 +31,7 @@ async test "run removes image xobjects and writes output" {
         ("/W", Integer(1)),
         ("/H", Integer(1)),
         ("/BPC", Integer(8)),
-        ("/CS", Name(@pdf.PdfName::of_string("/DeviceGray"))),
+        ("/CS", Name(@pdf.PdfName("/DeviceGray"))),
       ])
       let inline_data = @pdfops.Op::InlineImage(
         (inline_dict, None, [(0).to_byte()]),

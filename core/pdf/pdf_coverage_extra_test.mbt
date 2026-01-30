@@ -1,12 +1,12 @@
 ///|
 test "serialization escapes extra cases" {
-  let minimal = PdfObject::Name(PdfName::of_string("/"))
+  let minimal = PdfObject::Name(@pdf.PdfName("/"))
   assert_eq(minimal.to_string(), "/")
-  let delimiter = PdfObject::Name(PdfName::of_string("/A(B"))
+  let delimiter = PdfObject::Name(@pdf.PdfName("/A(B"))
   assert_true(delimiter.to_string().contains("#28"))
-  let delimiter2 = PdfObject::Name(PdfName::of_string("/A)B"))
+  let delimiter2 = PdfObject::Name(@pdf.PdfName("/A)B"))
   assert_true(delimiter2.to_string().contains("#29"))
-  let delimiter3 = PdfObject::Name(PdfName::of_string("/A<B"))
+  let delimiter3 = PdfObject::Name(@pdf.PdfName("/A<B"))
   assert_true(delimiter3.to_string().contains("#3C"))
   let control = PdfObject::Name(PdfName::of_string("/\u0013"))
   assert_true(control.to_string().contains("#13"))

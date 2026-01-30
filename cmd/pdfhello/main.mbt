@@ -5,9 +5,9 @@ pub async fn run(
 ) -> Unit {
   try {
     let font = @pdf.PdfObject::Dictionary([
-      ("/Type", Name(@pdf.PdfName::of_string("/Font"))),
-      ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
-      ("/BaseFont", Name(@pdf.PdfName::of_string("/Times-Italic"))),
+      ("/Type", Name(@pdf.PdfName("/Font"))),
+      ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+      ("/BaseFont", Name(@pdf.PdfName("/Times-Italic"))),
     ])
     let ops : Array[@pdfops.Op] = [
       Opcm(

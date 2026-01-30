@@ -41,7 +41,7 @@ fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
   let pdf = @pdf.Pdf::empty()
   let pages_root_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+      ("/Type", Name(@pdf.PdfName("/Pages"))),
       ("/Kids", Array([])),
       ("/Count", Integer(count)),
     ]),
@@ -50,7 +50,7 @@ fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
   for _ in 0..<count {
     let page_num = pdf.addobj(
       Dictionary([
-        ("/Type", Name(@pdf.PdfName::of_string("/Page"))),
+        ("/Type", Name(@pdf.PdfName("/Page"))),
         ("/Parent", Indirect(pages_root_num)),
         ("/MediaBox", rect),
       ]),
@@ -61,7 +61,7 @@ fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
     (
       pages_root_num,
       Dictionary([
-        ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+        ("/Type", Name(@pdf.PdfName("/Pages"))),
         ("/Kids", Array(kids)),
         ("/Count", Integer(count)),
       ]),
@@ -69,7 +69,7 @@ fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
   )
   let catalog_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName::of_string("/Catalog"))),
+      ("/Type", Name(@pdf.PdfName("/Catalog"))),
       ("/Pages", Indirect(pages_root_num)),
     ]),
   )
@@ -275,16 +275,16 @@ fn set_page_labels(pdf : @pdf.Pdf, nums : Array[@pdf.PdfObject]) -> Unit raise {
 test "read handles label styles and bad startpage" {
   let pdf = make_pdf_with_pages(1)
   let nums : Array[@pdf.PdfObject] = [
-    Name(@pdf.PdfName::of_string("/Bad")),
-    Dictionary([("/S", Name(@pdf.PdfName::of_string("/R")))]),
+    Name(@pdf.PdfName("/Bad")),
+    Dictionary([("/S", Name(@pdf.PdfName("/R")))]),
     Integer(0),
-    Dictionary([("/S", Name(@pdf.PdfName::of_string("/r")))]),
+    Dictionary([("/S", Name(@pdf.PdfName("/r")))]),
     Integer(1),
-    Dictionary([("/S", Name(@pdf.PdfName::of_string("/A")))]),
+    Dictionary([("/S", Name(@pdf.PdfName("/A")))]),
     Integer(2),
-    Dictionary([("/S", Name(@pdf.PdfName::of_string("/a")))]),
+    Dictionary([("/S", Name(@pdf.PdfName("/a")))]),
     Integer(3),
-    Dictionary([("/S", Name(@pdf.PdfName::of_string("/D")))]),
+    Dictionary([("/S", Name(@pdf.PdfName("/D")))]),
     Integer(4),
     Dictionary([("/P", String("P"))]),
   ]

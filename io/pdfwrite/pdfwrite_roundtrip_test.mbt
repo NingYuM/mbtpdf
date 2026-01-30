@@ -23,27 +23,27 @@ fn build_minimal_pdf() -> @pdf.Pdf {
     Ref::new((stream_dict, @pdf.Stream::Got(stream_bytes))),
   )
   let font_dict : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName::of_string("/Font"))),
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type1"))),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/Times-Roman"))),
+    ("/Type", Name(@pdf.PdfName("/Font"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/BaseFont", Name(@pdf.PdfName("/Times-Roman"))),
   ])
   let resources : @pdf.PdfObject = Dictionary([
     ("/Font", Dictionary([("/F0", font_dict)])),
   ])
   let page : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName::of_string("/Page"))),
+    ("/Type", Name(@pdf.PdfName("/Page"))),
     ("/Parent", Indirect(1)),
     ("/Resources", resources),
     ("/MediaBox", Array([Integer(0), Integer(0), Integer(300), Integer(300)])),
     ("/Contents", Indirect(2)),
   ])
   let pages : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+    ("/Type", Name(@pdf.PdfName("/Pages"))),
     ("/Kids", Array([Indirect(3)])),
     ("/Count", Integer(1)),
   ])
   let catalog : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName::of_string("/Catalog"))),
+    ("/Type", Name(@pdf.PdfName("/Catalog"))),
     ("/Pages", Indirect(1)),
   ])
   pdf.addobj_given_num((1, pages))

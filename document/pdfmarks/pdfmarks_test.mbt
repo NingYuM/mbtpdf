@@ -3,14 +3,14 @@ fn minimum_valid_pdf() -> @pdf.Pdf raise {
   let pdf = @pdf.Pdf::empty()
   let pages_root_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+      ("/Type", Name(@pdf.PdfName("/Pages"))),
       ("/Kids", Array([])),
       ("/Count", Integer(1)),
     ]),
   )
   let page_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName::of_string("/Page"))),
+      ("/Type", Name(@pdf.PdfName("/Page"))),
       ("/Parent", Indirect(pages_root_num)),
       ("/MediaBox", Array([Integer(0), Integer(0), Integer(100), Integer(100)])),
     ]),
@@ -19,7 +19,7 @@ fn minimum_valid_pdf() -> @pdf.Pdf raise {
     (
       pages_root_num,
       Dictionary([
-        ("/Type", Name(@pdf.PdfName::of_string("/Pages"))),
+        ("/Type", Name(@pdf.PdfName("/Pages"))),
         ("/Kids", Array([Indirect(page_num)])),
         ("/Count", Integer(1)),
       ]),
@@ -27,7 +27,7 @@ fn minimum_valid_pdf() -> @pdf.Pdf raise {
   )
   let catalog_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName::of_string("/Catalog"))),
+      ("/Type", Name(@pdf.PdfName("/Catalog"))),
       ("/Pages", Indirect(pages_root_num)),
     ]),
   )
@@ -231,7 +231,7 @@ test "add_bookmarks links siblings and counts" {
 test "read_bookmarks toggles action preservation" {
   let pdf = minimum_valid_pdf()
   let action : @pdf.PdfObject = Dictionary([
-    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
+    ("/S", Name(@pdf.PdfName("/GoTo"))),
     ("/D", String("dest")),
   ])
   let marks : Array[@pdfmarks.Bookmark] = [

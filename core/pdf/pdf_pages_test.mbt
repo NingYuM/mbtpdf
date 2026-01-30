@@ -2,11 +2,11 @@
 test "page_reference_numbers variants" {
   let base1 = Pdf::empty()
   let pages_kid_non_indirect = PdfObject::Dictionary([
-    ("/Type", PdfObject::Name(PdfName::of_string("/Pages"))),
+    ("/Type", PdfObject::Name(@pdf.PdfName("/Pages"))),
     ("/Kids", PdfObject::Array([PdfObject::Integer(1)])),
   ])
   let catalog1 = PdfObject::Dictionary([
-    ("/Type", PdfObject::Name(PdfName::of_string("/Catalog"))),
+    ("/Type", PdfObject::Name(@pdf.PdfName("/Catalog"))),
     ("/Pages", PdfObject::Indirect(1)),
   ])
   base1.addobj_given_num((1, pages_kid_non_indirect))
@@ -23,11 +23,11 @@ test "page_reference_numbers variants" {
   assert_eq(pdf1.page_reference_numbers().length(), 0)
   let base2 = Pdf::empty()
   let pages_kid_not_array = PdfObject::Dictionary([
-    ("/Type", PdfObject::Name(PdfName::of_string("/Pages"))),
+    ("/Type", PdfObject::Name(@pdf.PdfName("/Pages"))),
     ("/Kids", PdfObject::Integer(9)),
   ])
   let catalog2 = PdfObject::Dictionary([
-    ("/Type", PdfObject::Name(PdfName::of_string("/Catalog"))),
+    ("/Type", PdfObject::Name(@pdf.PdfName("/Catalog"))),
     ("/Pages", PdfObject::Indirect(1)),
   ])
   base2.addobj_given_num((1, pages_kid_not_array))
@@ -44,7 +44,7 @@ test "page_reference_numbers variants" {
   assert_eq(pdf2.page_reference_numbers(), [-1])
   let base3 = Pdf::empty()
   let root_only = PdfObject::Dictionary([
-    ("/Type", PdfObject::Name(PdfName::of_string("/Catalog"))),
+    ("/Type", PdfObject::Name(@pdf.PdfName("/Catalog"))),
   ])
   base3.addobj_given_num((1, root_only))
   let pdf3 = Pdf::{
@@ -63,7 +63,7 @@ test "page_reference_numbers variants" {
 test "remove_unreferenced nullifies page refs" {
   let pdf = make_basic_pdf()
   let extra_page = PdfObject::Dictionary([
-    ("/Type", PdfObject::Name(PdfName::of_string("/Page"))),
+    ("/Type", PdfObject::Name(@pdf.PdfName("/Page"))),
   ])
   pdf.addobj_given_num((4, extra_page))
   let stream = make_stream(

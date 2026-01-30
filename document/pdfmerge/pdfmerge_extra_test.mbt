@@ -68,16 +68,14 @@ test "merge_pdfs keeps named and action bookmarks while dropping out of range" {
   ]
   add_names_dests(pdf, entries)
   let action : @pdf.PdfObject = Dictionary([
-    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
+    ("/S", Name(@pdf.PdfName("/GoTo"))),
     ("/D", String("DestB")),
   ])
   let bookmarks : Array[@pdfmarks.Bookmark] = [
     {
       level: 0,
       text: "Named",
-      target: @pdfdest.Destination::NamedDestination(
-        @pdf.PdfName::of_string("/DestA"),
-      ),
+      target: @pdfdest.Destination::NamedDestination(@pdf.PdfName("/DestA")),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -126,7 +124,7 @@ test "merge_pdfs handles malformed names and optional catalog entries" {
   set_catalog_entry(
     pdf1,
     "/OCProperties",
-    Dictionary([("/OCGs", Array([Name(@pdf.PdfName::of_string("/OCG1"))]))]),
+    Dictionary([("/OCGs", Array([Name(@pdf.PdfName("/OCG1"))]))]),
   )
   set_catalog_entry(pdf1, "/AcroForm", Null)
   set_catalog_entry(pdf2, "/AcroForm", Dictionary([("/Fields", Array([Null]))]))
@@ -197,9 +195,7 @@ test "merge_pdfs rewrites string and legacy named bookmarks" {
     {
       level: 0,
       text: "Named",
-      target: @pdfdest.Destination::NamedDestination(
-        @pdf.PdfName::of_string("/DestA"),
-      ),
+      target: @pdfdest.Destination::NamedDestination(@pdf.PdfName("/DestA")),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -371,15 +367,11 @@ test "merge_pdfs rewrites and preserves diverse destination bookmark targets" {
   let bookmarks : Array[@pdfmarks.Bookmark] = [
     mk_mark(
       "LegacyFit",
-      @pdfdest.Destination::NamedDestination(
-        @pdf.PdfName::of_string("/LegacyFit"),
-      ),
+      @pdfdest.Destination::NamedDestination(@pdf.PdfName("/LegacyFit")),
     ),
     mk_mark(
       "LegacyOther",
-      @pdfdest.Destination::NamedDestination(
-        @pdf.PdfName::of_string("/LegacyOther"),
-      ),
+      @pdfdest.Destination::NamedDestination(@pdf.PdfName("/LegacyOther")),
     ),
     mk_mark("DirectFitH", @pdfdest.Destination::FitH(tp1, Some(0.0))),
     mk_mark("DirectFitV", @pdfdest.Destination::FitV(tp1, Some(0.0))),
@@ -433,23 +425,23 @@ test "merge_pdfs resolves NamedDestination via name tree when /Dests missing" {
     ("NoDStr", Dictionary([])),
   ])
   let action_goto : @pdf.PdfObject = Dictionary([
-    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
+    ("/S", Name(@pdf.PdfName("/GoTo"))),
     ("/D", String("TreeStr")),
   ])
   let action_bad_d : @pdf.PdfObject = Dictionary([
-    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
+    ("/S", Name(@pdf.PdfName("/GoTo"))),
     ("/D", Integer(0)),
   ])
   let action_bad_s : @pdf.PdfObject = Dictionary([
-    ("/S", Name(@pdf.PdfName::of_string("/NotGoTo"))),
+    ("/S", Name(@pdf.PdfName("/NotGoTo"))),
     ("/D", String("TreeStr")),
   ])
   let action_missing_dest : @pdf.PdfObject = Dictionary([
-    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
+    ("/S", Name(@pdf.PdfName("/GoTo"))),
     ("/D", String("MissingStr")),
   ])
   let action_no_d : @pdf.PdfObject = Dictionary([
-    ("/S", Name(@pdf.PdfName::of_string("/GoTo"))),
+    ("/S", Name(@pdf.PdfName("/GoTo"))),
     ("/D", String("NoDStr")),
   ])
   let bookmarks : Array[@pdfmarks.Bookmark] = [
@@ -457,7 +449,7 @@ test "merge_pdfs resolves NamedDestination via name tree when /Dests missing" {
       level: 0,
       text: "TreeOnly",
       target: @pdfdest.Destination::NamedDestination(
-        @pdf.PdfName::of_string("/OnlyInTree"),
+        @pdf.PdfName("/OnlyInTree"),
       ),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
@@ -483,7 +475,7 @@ test "merge_pdfs resolves NamedDestination via name tree when /Dests missing" {
       level: 0,
       text: "OtherDocNamed",
       target: @pdfdest.Destination::NamedDestination(
-        @pdf.PdfName::of_string("/OtherDocNamed"),
+        @pdf.PdfName("/OtherDocNamed"),
       ),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
@@ -492,9 +484,7 @@ test "merge_pdfs resolves NamedDestination via name tree when /Dests missing" {
     {
       level: 0,
       text: "NoDNamed",
-      target: @pdfdest.Destination::NamedDestination(
-        @pdf.PdfName::of_string("/NoDNamed"),
-      ),
+      target: @pdfdest.Destination::NamedDestination(@pdf.PdfName("/NoDNamed")),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -589,7 +579,7 @@ test "merge_pdfs drops NamedDestination when no destination trees exist" {
       level: 0,
       text: "MissingDest",
       target: @pdfdest.Destination::NamedDestination(
-        @pdf.PdfName::of_string("/MissingDest"),
+        @pdf.PdfName("/MissingDest"),
       ),
       isopen: false,
       colour: (0.0, 0.0, 0.0),

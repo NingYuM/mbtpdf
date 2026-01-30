@@ -1,8 +1,8 @@
 ///|
 fn type3_font_dict() -> @pdf.PdfObject {
   Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type3"))),
-    ("/BaseFont", Name(@pdf.PdfName::of_string("/TestFont"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type3"))),
+    ("/BaseFont", Name(@pdf.PdfName("/TestFont"))),
     ("/FontBBox", Array([Real(0.0), Real(0.0), Real(1.0), Real(1.0)])),
     (
       "/FontMatrix",
@@ -44,7 +44,7 @@ test "write_encoding handles builtins and custom diffs" {
     _ => fail("expected encoding dictionary")
   }
   let implicit_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName::of_string("/Type0"))),
+    ("/Subtype", Name(@pdf.PdfName("/Type0"))),
   ])
   let implicit = ctx.read_encoding(implicit_dict)
   let implicit_result : Result[Int, Error] = try? ctx.write_encoding(implicit)

@@ -1,11 +1,11 @@
 ///|
 test "PdfName compare, bytes, and show" {
-  let a = PdfName::of_string("/A")
-  let b = PdfName::of_string("/B")
+  let a = @pdf.PdfName("/A")
+  let b = @pdf.PdfName("/B")
   assert_eq(a.to_bytes().length(), 2)
   let names = [b, a]
   names.sort()
-  assert_true(names[0] is PdfName("/A"))
+  assert_true(names[0] is @pdf.PdfName("/A"))
   assert_eq(a.to_string(), "/A")
 }
 

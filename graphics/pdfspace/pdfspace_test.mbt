@@ -11,7 +11,7 @@ test "read_colourspace device rgb" {
   let space = ColourSpace::read(
     pdf,
     resources,
-    Name(@pdf.PdfName::of_string("/DeviceRGB")),
+    Name(@pdf.PdfName("/DeviceRGB")),
   )
   match space {
     ColourSpace::DeviceRGB => ()
@@ -29,8 +29,8 @@ test "read_colourspace indexed" {
     pdf,
     resources,
     Array([
-      Name(@pdf.PdfName::of_string("/Indexed")),
-      Name(@pdf.PdfName::of_string("/DeviceRGB")),
+      Name(@pdf.PdfName("/Indexed")),
+      Name(@pdf.PdfName("/DeviceRGB")),
       Integer(0),
       lookup,
     ]),
