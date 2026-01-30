@@ -1,9 +1,5 @@
 ///|
-fn bytes_slice(
-  bytes : Array[Byte],
-  start : Int,
-  len : Int,
-) -> Array[Byte] {
+fn bytes_slice(bytes : Array[Byte], start : Int, len : Int) -> Array[Byte] {
   let out = @pdfio.mkbytes(len)
   for i in 0..<len {
     out[i] = bytes[start + i]

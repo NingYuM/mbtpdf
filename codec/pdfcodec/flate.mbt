@@ -17,9 +17,7 @@ pub fn PdfCodec::decode_flate(
     }
   }
   let out : Array[Byte] = Array::new()
-  let output = (buf : Array[Byte], length : Int) => out.append(
-    buf[:length],
-  )
+  let output = (buf : Array[Byte], length : Int) => out.append(buf[:length])
   try {
     @pdfflate.PdfFlate::new().uncompress(header=true, input, output)
     out

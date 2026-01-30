@@ -419,11 +419,7 @@ pub fn PdfFlate::compress(
     write_byte((value >> 8) & 0xff)
   }
 
-  fn write_bytes(
-    data : Array[Byte],
-    offset : Int,
-    length : Int,
-  ) -> Unit {
+  fn write_bytes(data : Array[Byte], offset : Int, length : Int) -> Unit {
     if length == 0 {
       return
     }

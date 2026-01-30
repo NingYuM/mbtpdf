@@ -91,9 +91,7 @@ pub fn PdfCodec::encode_flate(
     }
   }
   let out : Array[Byte] = Array::new()
-  let output = (buf : Array[Byte], length : Int) => out.append(
-    buf[:length],
-  )
+  let output = (buf : Array[Byte], length : Int) => out.append(buf[:length])
   @pdfflate.PdfFlate::new().compress(
     level=self.flate_level,
     header=true,

@@ -27,8 +27,7 @@ test "parse_single_object parses integer" {
 ```mbt check
 ///|
 test "parse_single_object parses array" {
-  guard @pdfsyntax.parse_single_object("[1 2 3]")
-    is Array(items) else {
+  guard @pdfsyntax.parse_single_object("[1 2 3]") is Array(items) else {
     fail("expected array")
   }
   inspect(items.length(), content="3")
@@ -38,9 +37,7 @@ test "parse_single_object parses array" {
 ```mbt check
 ///|
 test "parse_single_object parses dictionary" {
-  let obj = @pdfsyntax.parse_single_object(
-    "<< /Type /Page /Count 5 >>",
-  )
+  let obj = @pdfsyntax.parse_single_object("<< /Type /Page /Count 5 >>")
   guard obj is Dictionary(entries) else { fail("expected dictionary") }
   inspect(entries.length(), content="2")
 }
@@ -67,9 +64,7 @@ test "lex_name reads PDF name" {
 ///|
 test "lex_number reads integer" {
   let input = @pdfio.Input::of_string("123")
-  guard @pdfsyntax.lex_number(input) is LexInt(n) else {
-    fail("expected int")
-  }
+  guard @pdfsyntax.lex_number(input) is LexInt(n) else { fail("expected int") }
   inspect(n, content="123")
 }
 ```
@@ -145,7 +140,7 @@ Returns a tuple of (object number, parsed object). The object number is 0 for st
 ```mbt check
 ///|
 test "parse with object header" {
-let tokens = @pdfgenlex.lex_string("1 0 obj << /Type /Page >> endobj")
+  let tokens = @pdfgenlex.lex_string("1 0 obj << /Type /Page >> endobj")
   // This simplified lexer doesn't handle obj/endobj
   // Full parsing would use lex_object_at
   inspect(tokens.length() > 0, content="true")
@@ -160,22 +155,10 @@ let tokens = @pdfgenlex.lex_string("1 0 obj << /Type /Page >> endobj")
 ///|
 test "string_of_lexeme" {
   inspect(@pdfsyntax.string_of_lexeme(LexNull), content="null")
-  inspect(
-    @pdfsyntax.string_of_lexeme(LexInt(42)),
-    content="42",
-  )
-  inspect(
-    @pdfsyntax.string_of_lexeme(LexName("/Type")),
-    content="/Type",
-  )
-  inspect(
-    @pdfsyntax.string_of_lexeme(LexLeftSquare),
-    content="[",
-  )
-  inspect(
-    @pdfsyntax.string_of_lexeme(LexLeftDict),
-    content="<<",
-  )
+  inspect(@pdfsyntax.string_of_lexeme(LexInt(42)), content="42")
+  inspect(@pdfsyntax.string_of_lexeme(LexName("/Type")), content="/Type")
+  inspect(@pdfsyntax.string_of_lexeme(LexLeftSquare), content="[")
+  inspect(@pdfsyntax.string_of_lexeme(LexLeftDict), content="<<")
 }
 ```
 
@@ -198,7 +181,6 @@ test "dropwhite skips whitespace" {
 ///|
 test "getuntil_string reads until delimiter" {
   let input = @pdfio.Input::of_string("name/next")
-  
   let s = @pdfsyntax.getuntil_string(
     true,
     c => @pdfsyntax.is_whitespace_or_delimiter(c),

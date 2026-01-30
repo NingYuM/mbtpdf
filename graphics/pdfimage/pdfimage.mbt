@@ -47,11 +47,7 @@ fn invert_bits(bytes : Array[Byte]) -> Unit {
 }
 
 ///|
-fn decode(
-  fs : Array[Double],
-  bpc : Int,
-  image : Array[Byte],
-) -> Unit raise {
+fn decode(fs : Array[Double], bpc : Int, image : Array[Byte]) -> Unit raise {
   if fs.length() == 0 {
     return
   }

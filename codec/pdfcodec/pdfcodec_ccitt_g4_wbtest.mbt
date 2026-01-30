@@ -1,8 +1,5 @@
 ///|
-fn bytes_from_runs(
-  start_white : Bool,
-  runs : Array[Int],
-) -> Array[Byte] {
+fn bytes_from_runs(start_white : Bool, runs : Array[Int]) -> Array[Byte] {
   let writer = @pdfio.BitstreamWrite::new()
   let mut white = start_white
   for run in runs {

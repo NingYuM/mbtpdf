@@ -3,7 +3,6 @@ type Token = @pdfgenlex.Token
 
 ///|
 test "string_of_lexeme renders tokens" {
-  
   assert_eq(@pdfsyntax.string_of_lexeme(LexNull), "null")
   assert_eq(@pdfsyntax.string_of_lexeme(LexBool(true)), "true")
   assert_eq(@pdfsyntax.string_of_lexeme(LexBool(false)), "false")
@@ -25,20 +24,17 @@ test "string_of_lexeme renders tokens" {
 test "string_of_lexeme escapes string data" {
   let value = "a(b)\\\n"
   let token : Token = LexString(value)
-  
   assert_eq(@pdfsyntax.string_of_lexeme(token), "(a\\(b\\)\\\\\\n)")
 }
 
 ///|
 test "string_of_lexeme escapes more control characters" {
   let token : Token = LexString("\r\t\b\f")
-  
   assert_eq(@pdfsyntax.string_of_lexeme(token), "(\\r\\t\\b\\f)")
 }
 
 ///|
 test "string_of_lexeme prints comments and streams" {
-  
   assert_eq(@pdfsyntax.string_of_lexeme(LexComment("note")), "\n%note\n")
   let stream = @pdf.Stream::Got(@pdfio.bytes_of_string("data"))
   assert_eq(@pdfsyntax.string_of_lexeme(LexStream(stream)), "LexStream")
@@ -58,7 +54,6 @@ test "string_of_lexeme formats scientific real" {
     Some(v) => v
     None => fail("expected scientific notation in Double::to_string")
   }
-  
   let formatted = @pdfsyntax.string_of_lexeme(LexReal(value))
   assert_true(!formatted.contains("e") && !formatted.contains("E"))
 }
@@ -80,7 +75,6 @@ test "string_of_lexeme expands small scientific real to leading zeros" {
     Some(v) => v
     None => fail("expected scientific negative exponent in Double::to_string")
   }
-  
   let formatted = @pdfsyntax.string_of_lexeme(LexReal(value))
   assert_true(
     formatted.has_prefix("0.") &&

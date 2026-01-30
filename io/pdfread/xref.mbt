@@ -301,12 +301,7 @@ fn read_xref_stream(
     [LexInt(o), LexInt(g), ..] => (o, g)
     _ => raise err
   }
-  let stream_token = @pdfsyntax.lex_stream(
-    input,
-    dictlex,
-    _ => [],
-    true,
-  )
+  let stream_token = @pdfsyntax.lex_stream(input, dictlex, _ => [], true)
   let tokens = Array::new()
   for t in dictlex {
     tokens.push(t)
@@ -516,12 +511,7 @@ fn parse_object_stream(
     }
     if should_parse {
       (stm_input.seek_in)(offset + first)
-      let lexemes = @pdfsyntax.lex_object_at(
-        true,
-        stm_input,
-        true,
-        _ => [],
-      )
+      let lexemes = @pdfsyntax.lex_object_at(true, stm_input, true, _ => [])
       let (_, obj) = @pdfsyntax.parse(lexemes)
       objects.push((objnum, obj))
     }

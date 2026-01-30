@@ -12,10 +12,7 @@ fn hex_value(c : Char) -> Int? {
 
 ///|
 /// Lex a name.
-pub fn lex_name(
-  
-  input : @pdfio.Input,
-) -> Token raise {
+pub fn lex_name(input : @pdfio.Input) -> Token raise {
   let bytes : Array[Byte] = Array::new()
   let _ = (input.input_byte)()
   bytes.push('/'.to_int().to_byte())
@@ -73,10 +70,7 @@ pub fn lex_name(
 
 ///|
 /// Lex a number.
-pub fn lex_number(
-  
-  input : @pdfio.Input,
-) -> Token raise {
+pub fn lex_number(input : @pdfio.Input) -> Token raise {
   let s = getuntil_white_or_delimiter_string(input)
   let mut number = s
   if number.length() > 1 {
@@ -110,10 +104,7 @@ pub fn lex_number(
 
 ///|
 /// Lex a string.
-pub fn lex_string(
-  
-  input : @pdfio.Input,
-) -> Token raise {
+pub fn lex_string(input : @pdfio.Input) -> Token raise {
   let bytes : Array[Byte] = Array::new()
   let mut paren = 1
   let first = (input.input_byte)()
@@ -194,10 +185,7 @@ pub fn lex_string(
 
 ///|
 /// Lex a hex string.
-pub fn lex_hexstring(
-  
-  input : @pdfio.Input,
-) -> Token raise {
+pub fn lex_hexstring(input : @pdfio.Input) -> Token raise {
   let _ = (input.input_byte)()
   let bytes : Array[Byte] = Array::new()
   let mut pending : Int? = None
@@ -239,10 +227,7 @@ pub fn lex_hexstring(
 
 ///|
 /// Lex a comment.
-pub fn lex_comment(
-  
-  input : @pdfio.Input,
-) -> Token raise {
+pub fn lex_comment(input : @pdfio.Input) -> Token raise {
   ignoreuntil(false, is_newline, input)
   LexComment("")
 }
@@ -253,11 +238,7 @@ fn ignoreuntilwhite(input : @pdfio.Input) -> Unit raise {
 }
 
 ///|
-pub fn read_chunk(
-  
-  count : Int,
-  input : @pdfio.Input,
-) -> String raise {
+pub fn read_chunk(count : Int, input : @pdfio.Input) -> String raise {
   let pos = (input.pos_in)()
   let sb = StringBuilder::new()
   let mut i = 0
@@ -349,10 +330,7 @@ fn find_endstream(input : @pdfio.Input) -> Int {
 }
 
 ///|
-pub fn lex_keyword(
-  
-  input : @pdfio.Input,
-) -> Token raise {
+pub fn lex_keyword(input : @pdfio.Input) -> Token raise {
   let kw = getuntil_white_or_delimiter_string(input)
   match kw {
     "obj" => LexObj
@@ -393,7 +371,6 @@ fn lex_malformed_stream_data(input : @pdfio.Input) -> Token raise {
 
 ///|
 pub fn lex_stream_data(
-  
   input : @pdfio.Input,
   length : Int,
   read_data : Bool,
@@ -454,7 +431,6 @@ fn take_dict_lexemes(previous_lexemes : Array[Token]) -> Array[Token] {
 
 ///|
 pub fn lex_stream(
-  
   input : @pdfio.Input,
   previous_lexemes : Array[Token],
   lexobj : (Int) -> Array[Token] raise,
@@ -499,7 +475,6 @@ pub fn lex_stream(
 
 ///|
 pub fn lex_next(
-  
   dict_level : Ref[Int],
   array_level : Ref[Int],
   end_on_stream : Bool,
@@ -575,9 +550,7 @@ pub fn lex_next(
           } else if end_on_stream {
             StopLexing
           } else {
-            lex_stream(
-              input, previous_lexemes, lexobj, read_stream_data,
-            )
+            lex_stream(input, previous_lexemes, lexobj, read_stream_data)
           }
         }
       }
@@ -598,7 +571,6 @@ pub fn lex_next(
 ///|
 /// Lex a dictionary. If minus_one is true, assume the opening << was consumed.
 pub fn lex_dictionary(
-  
   minus_one : Bool,
   input : @pdfio.Input,
 ) -> Array[Token] raise {
@@ -607,15 +579,7 @@ pub fn lex_dictionary(
   let array_level : Ref[Int] = { val: 0 }
   let mut done = false
   while !done {
-    let t = lex_next(
-      dict_level,
-      array_level,
-      false,
-      input,
-      tokens,
-      false,
-      _ => [],
-    )
+    let t = lex_next(dict_level, array_level, false, input, tokens, false, _ => [])
     tokens.push(t)
     match (t : Token) {
       LexRightDict =>

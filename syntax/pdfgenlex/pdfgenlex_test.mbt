@@ -11,10 +11,10 @@ test "lex quoted string with escaped quote" {
 
 ///|
 test "Token debug format" {
-  let tokens = [
-    @pdfgenlex.Token::LexInt(1),
-    @pdfgenlex.Token::LexReal(1.5),
-    @pdfgenlex.Token::LexName("abc"),
+  let tokens : Array[@pdfgenlex.Token] = [
+    LexInt(1),
+    LexReal(1.5),
+    LexName("abc"),
   ]
   debug_inspect(
     tokens,
@@ -77,7 +77,10 @@ test "lex_string tokenizes delimiter characters" {
 test "lex_string handles malformed strings" {
   debug_inspect(@pdfgenlex.lex_string("\"x"), content="[LexString(\"\")]")
   debug_inspect(@pdfgenlex.lex_string("\"a\\"), content="[LexString(\"\")]")
-  debug_inspect(@pdfgenlex.lex_string("\"a\\n\""), content="[LexString(\"a\\\\n\")]")
+  debug_inspect(
+    @pdfgenlex.lex_string("\"a\\n\""),
+    content="[LexString(\"a\\\\n\")]",
+  )
 }
 
 ///|

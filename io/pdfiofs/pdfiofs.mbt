@@ -7,9 +7,7 @@
 /// These helpers currently read the whole file/channel into memory.
 
 ///|
-async fn read_data_to_bytes(
-  load : async () -> &@io.Data,
-) -> Array[Byte] {
+async fn read_data_to_bytes(load : async () -> &@io.Data) -> Array[Byte] {
   let data = load()
   data.binary().to_array()
 }

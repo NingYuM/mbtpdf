@@ -145,10 +145,7 @@ fn decode_lzw(
 }
 
 ///|
-fn encode_lzw(
-  early : Int,
-  data : Array[Byte],
-) -> Array[Byte] raise CodecError {
+fn encode_lzw(early : Int, data : Array[Byte]) -> Array[Byte] raise CodecError {
   let clear_code = 256
   let eod_code = 257
   let mut code_length = 9

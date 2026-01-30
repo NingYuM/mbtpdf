@@ -14,11 +14,7 @@ fn read_startxref(input : @pdfio.Input) -> Int raise {
   @pdfsyntax.find_eof(input)
   @pdfsyntax.backline(input)
   @pdfsyntax.ignoreuntil(false, is_digit, input)
-  let digits = @pdfsyntax.getuntil_string(
-    false,
-    c => !is_digit(c),
-    input,
-  )
+  let digits = @pdfsyntax.getuntil_string(false, c => !is_digit(c), input)
   if digits.length() == 0 {
     let message = @pdf.input_pdferror(input, "Could not find xref pointer")
     raise @pdf.PdfError::Msg(message)
@@ -52,12 +48,7 @@ fn read_trailer_dict_from_table(
   input : @pdfio.Input,
   read_stream_data : Bool,
 ) -> @pdf.PdfObject raise {
-  let lexemes = @pdfsyntax.lex_object_at(
-    true,
-    input,
-    read_stream_data,
-    _ => [],
-  )
+  let lexemes = @pdfsyntax.lex_object_at(true, input, read_stream_data, _ => [])
   let (_, parsed) = @pdfsyntax.parse(lexemes)
   extract_trailer_dict(parsed)
 }

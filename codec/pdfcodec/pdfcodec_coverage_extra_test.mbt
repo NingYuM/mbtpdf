@@ -1,8 +1,5 @@
 ///|
-fn assert_bytes_equal(
-  a : Array[Byte],
-  b : Array[Byte],
-) -> Unit raise {
+fn assert_bytes_equal(a : Array[Byte], b : Array[Byte]) -> Unit raise {
   let alen = @pdfio.bytes_size(a)
   let blen = @pdfio.bytes_size(b)
   assert_eq(alen, blen)
@@ -39,9 +36,7 @@ test "decode_from_bytes handles LZW clear codes mid-stream" {
     ("/DecodeParms", Dictionary([("/EarlyChange", Integer(1))])),
   ])
   match
-    (
-      @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) :
-      Array[Byte]?) {
+    (@pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) : Array[Byte]?) {
     Some(decoded) => assert_eq(@pdfio.string_of_bytes(decoded), "AB")
     None => fail("expected LZW decode to succeed")
   }
@@ -60,9 +55,7 @@ test "decode_from_bytes finishes when clear code is followed by EOD" {
     ("/DecodeParms", Dictionary([("/EarlyChange", Integer(1))])),
   ])
   match
-    (
-      @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) :
-      Array[Byte]?) {
+    (@pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) : Array[Byte]?) {
     Some(decoded) => assert_eq(@pdfio.string_of_bytes(decoded), "A")
     None => fail("expected LZW decode to succeed")
   }
@@ -83,9 +76,7 @@ test "decode_from_bytes LZW handles code == next_code (KwKwK)" {
     ("/DecodeParms", Dictionary([("/EarlyChange", Integer(1))])),
   ])
   match
-    (
-      @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) :
-      Array[Byte]?) {
+    (@pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) : Array[Byte]?) {
     Some(decoded) => assert_eq(@pdfio.string_of_bytes(decoded), "AAA")
     None => fail("expected LZW decode to succeed")
   }
@@ -116,9 +107,7 @@ test "decode_from_bytes LZW bumps code length past 9 bits (literal-only stream)"
     ("/DecodeParms", Dictionary([("/EarlyChange", Integer(1))])),
   ])
   match
-    (
-      @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) :
-      Array[Byte]?) {
+    (@pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) : Array[Byte]?) {
     Some(decoded) => assert_eq(@pdfio.string_of_bytes(decoded), "A".repeat(254))
     None => fail("expected LZW decode to succeed")
   }

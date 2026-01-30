@@ -50,7 +50,7 @@ scripts/coverage_gate.sh --threshold 95
 
 Many packages emit *expected* warnings when fuzzing malformed inputs. Tests should keep output quiet:
 
-```mbt
+```mbt nocheck
 // Prefer scoped suppression so state is restored even on failure.
 @pdfe.with_logger(_ => (), fn() { ... })
 @pdfe.with_silenced_logs(fn() { ... })

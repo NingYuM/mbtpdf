@@ -5,7 +5,7 @@ pub(all) struct ToGet {
   position : Int
   length : Int
   crypt : ToGetCrypt
-}
+} derive(Debug(ignore=@pdfio.Input))
 
 ///|
 pub fn ToGet::new(
@@ -27,7 +27,7 @@ pub fn ToGet::length(self : ToGet) -> Int {
 pub(all) enum Stream {
   Got(Array[Byte])
   ToGet(ToGet)
-}
+} derive(Debug)
 
 ///|
 /// Get a stream from disk if it hasn't already been got.
@@ -80,9 +80,7 @@ pub fn PdfObject::getstream(self : PdfObject) -> Unit raise {
 
 ///|
 /// Find the contents of a stream as bytes.
-pub fn PdfObject::bigarray_of_stream(
-  self : PdfObject,
-) -> Array[Byte] raise {
+pub fn PdfObject::bigarray_of_stream(self : PdfObject) -> Array[Byte] raise {
   self.getstream()
   match self {
     Stream(r) =>

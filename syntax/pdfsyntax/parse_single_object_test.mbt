@@ -1,6 +1,5 @@
 ///|
 test "parse_single_object numbers" {
-  
   let obj = @pdfsyntax.parse_single_object("123")
   match (obj : @pdf.PdfObject) {
     Integer(123) => ()
@@ -15,7 +14,6 @@ test "parse_single_object numbers" {
 
 ///|
 test "parse_single_object collections" {
-  
   let obj = @pdfsyntax.parse_single_object("[1 2 3]")
   match (obj : @pdf.PdfObject) {
     Array(values) => if values.length() != 3 { fail("expected array length 3") }
@@ -33,7 +31,6 @@ test "parse_single_object collections" {
 
 ///|
 test "parse_single_object names, strings, and atoms" {
-  
   let name_obj = @pdfsyntax.parse_single_object("/A#20B")
   match (name_obj : @pdf.PdfObject) {
     Name(name) => assert_eq(name.to_string_bytes(), "/A B")

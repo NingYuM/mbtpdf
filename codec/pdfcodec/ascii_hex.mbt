@@ -43,9 +43,7 @@ fn encode_asciihex(stream : Array[Byte]) -> Array[Byte] {
 }
 
 ///|
-fn decode_asciihex(
-  input : @pdfio.Input,
-) -> Array[Byte] raise CodecError {
+fn decode_asciihex(input : @pdfio.Input) -> Array[Byte] raise CodecError {
   let output = Array::new()
   let mut enddata = false
   try {

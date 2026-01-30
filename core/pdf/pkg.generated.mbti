@@ -5,6 +5,7 @@ import {
   "bobzhang/mbtpdf/core/pdfcryptprimitives",
   "bobzhang/mbtpdf/core/pdfio",
   "bobzhang/mbtpdf/core/pdftransform",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -39,6 +40,7 @@ pub(all) struct DeferredEncryption {
   keylength : Int
   r : Int
 }
+pub impl @debug.Debug for DeferredEncryption
 
 pub(all) enum ObjectData {
   Parsed(PdfObject)
@@ -147,6 +149,7 @@ pub(all) enum Stream {
   Got(Array[Byte])
   ToGet(ToGet)
 }
+pub impl @debug.Debug for Stream
 
 pub(all) struct ToGet {
   input : @pdfio.Input
@@ -156,11 +159,13 @@ pub(all) struct ToGet {
 }
 pub fn ToGet::length(Self) -> Int
 pub fn ToGet::new(@pdfio.Input, Int, Int, crypt? : ToGetCrypt) -> Self
+pub impl @debug.Debug for ToGet
 
 pub(all) enum ToGetCrypt {
   NoChange
   ToDecrypt(DeferredEncryption)
 }
+pub impl @debug.Debug for ToGetCrypt
 
 // Type aliases
 pub type EncryptionValues = (@pdfcryptprimitives.Encryption, String, String, Int, String, String?, String?)

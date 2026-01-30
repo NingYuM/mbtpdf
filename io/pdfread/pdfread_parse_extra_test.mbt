@@ -1,34 +1,20 @@
 ///|
 test "parse errors on non-name dictionary key" {
-  let tokens = [
-    @pdfgenlex.Token::LexLeftDict,
-    @pdfgenlex.Token::LexInt(1),
-    @pdfgenlex.Token::LexInt(2),
-    @pdfgenlex.Token::LexRightDict,
-  ]
-  let res : Result[(Int, @pdf.PdfObject), Error] = try? @pdfsyntax.parse(
-    tokens,
-  )
+  let tokens : Array[Token] = [LexLeftDict, LexInt(1), LexInt(2), LexRightDict]
+  let res : Result[(Int, @pdf.PdfObject), Error] = try? @pdfsyntax.parse(tokens)
   assert_true(res is Err(_))
 }
 
 ///|
 test "parse errors on invalid array element" {
-  let tokens = [@pdfgenlex.Token::LexLeftSquare, @pdfgenlex.Token::LexRightDict]
-  let res : Result[(Int, @pdf.PdfObject), Error] = try? @pdfsyntax.parse(
-    tokens,
-  )
+  let tokens : Array[Token] = [LexLeftSquare, LexRightDict]
+  let res : Result[(Int, @pdf.PdfObject), Error] = try? @pdfsyntax.parse(tokens)
   assert_true(res is Err(_))
 }
 
 ///|
 test "parse returns null for empty object" {
-  let tokens = [
-    @pdfgenlex.Token::LexInt(10),
-    @pdfgenlex.Token::LexInt(0),
-    @pdfgenlex.Token::LexObj,
-    @pdfgenlex.Token::LexEndObj,
-  ]
+  let tokens : Array[Token] = [LexInt(10), LexInt(0), LexObj, LexEndObj]
   let (objnum, obj) = @pdfsyntax.parse(tokens)
   assert_eq(objnum, 10)
   match (obj : @pdf.PdfObject) {
@@ -38,15 +24,18 @@ test "parse returns null for empty object" {
 }
 
 ///|
+using @pdfgenlex {type Token}
+
+///|
 test "parse skips unmatched stream pattern" {
-  let tokens = [
-    @pdfgenlex.Token::LexInt(1),
-    @pdfgenlex.Token::LexInt(0),
-    @pdfgenlex.Token::LexObj,
-    @pdfgenlex.Token::LexBool(false),
-    @pdfgenlex.Token::LexInt(2),
-    @pdfgenlex.Token::LexInt(3),
-    @pdfgenlex.Token::LexInt(4),
+  let tokens : Array[Token] = [
+    LexInt(1),
+    LexInt(0),
+    LexObj,
+    LexBool(false),
+    LexInt(2),
+    LexInt(3),
+    LexInt(4),
   ]
   let (objnum, obj) = @pdfsyntax.parse(tokens)
   assert_eq(objnum, 1)
@@ -58,11 +47,8 @@ test "parse skips unmatched stream pattern" {
 
 ///|
 test "parse returns null when failure_is_ok" {
-  let tokens = [@pdfgenlex.Token::LexObj, @pdfgenlex.Token::LexEndObj]
-  let (objnum, obj) = @pdfsyntax.parse(
-    tokens,
-    failure_is_ok=true,
-  )
+  let tokens : Array[Token] = [LexObj, LexEndObj]
+  let (objnum, obj) = @pdfsyntax.parse(tokens, failure_is_ok=true)
   assert_eq(objnum, 0)
   match (obj : @pdf.PdfObject) {
     Null => ()

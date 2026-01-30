@@ -8,7 +8,6 @@ fn[T] assert_is_err(res : Result[T, Error]) -> Unit raise {
 
 ///|
 test "input utils handle EOF and rewind paths" {
-  
   let empty = @pdfio.Input::of_string("", source="empty")
   assert_eq(@pdfsyntax.getuntil(true, _ => true, empty).length(), 0)
   let input_chars = @pdfio.Input::of_string("ab ", source="getuntil")
@@ -44,7 +43,6 @@ test "input utils handle EOF and rewind paths" {
 
 ///|
 test "lexer covers name, number, string, and chunk error paths" {
-  
 
   // Bad name hex escape.
   assert_is_err(
@@ -53,19 +51,20 @@ test "lexer covers name, number, string, and chunk error paths" {
 
   // Number parsing fallbacks.
   match @pdfsyntax.lex_number(@pdfio.Input::of_string("1e-3", source="real")) {
-    @pdfgenlex.Token::LexReal(_) => ()
+    LexReal(_) => ()
     other => fail("expected LexReal, got \{@pdfsyntax.string_of_lexeme(other)}")
   }
   match @pdfsyntax.lex_number(@pdfio.Input::of_string("nan", source="nan")) {
-    @pdfgenlex.Token::LexReal(_) => ()
+    LexReal(_) => ()
     other => fail("expected LexReal, got \{@pdfsyntax.string_of_lexeme(other)}")
   }
   match @pdfsyntax.lex_number(@pdfio.Input::of_string("1.2.3", source="bad")) {
-    @pdfgenlex.Token::LexNone => ()
+    LexNone => ()
     other => fail("expected LexNone, got \{@pdfsyntax.string_of_lexeme(other)}")
   }
-  match @pdfsyntax.lex_number(@pdfio.Input::of_string("12a", source="fallback")) {
-    @pdfgenlex.Token::LexNone => ()
+  match
+    @pdfsyntax.lex_number(@pdfio.Input::of_string("12a", source="fallback")) {
+    LexNone => ()
     other => fail("expected LexNone, got \{@pdfsyntax.string_of_lexeme(other)}")
   }
 
@@ -76,13 +75,17 @@ test "lexer covers name, number, string, and chunk error paths" {
 
   // lex_string escape unexpected EOF.
   assert_is_err(
-    try? @pdfsyntax.lex_string(@pdfio.Input::of_string("(\\", source="eof-string")),
+    try? @pdfsyntax.lex_string(
+      @pdfio.Input::of_string("(\\", source="eof-string"),
+    ),
   )
 
   // lex_string CR escape path with rewind.
-  let token = @pdfsyntax.lex_string(@pdfio.Input::of_string("(\\\rX)", source="cr"))
+  let token = @pdfsyntax.lex_string(
+    @pdfio.Input::of_string("(\\\rX)", source="cr"),
+  )
   match token {
-    @pdfgenlex.Token::LexString(_) => ()
+    LexString(_) => ()
     _ => fail("expected string token")
   }
 
@@ -91,19 +94,22 @@ test "lexer covers name, number, string, and chunk error paths" {
     @pdfio.Input::of_string("(\\888)", source="octal"),
   )
   match token2 {
-    @pdfgenlex.Token::LexString(_) => ()
+    LexString(_) => ()
     _ => fail("expected string token")
   }
 
   // read_chunk failure rewinds and raises.
   assert_is_err(
-    try? @pdfsyntax.read_chunk(5, @pdfio.Input::of_string("abc", source="chunk")),
+    try? @pdfsyntax.read_chunk(
+      5,
+      @pdfio.Input::of_string("abc", source="chunk"),
+    ),
   )
 }
 
 ///|
 test "lex_stream_data handles malformed and rewind cases" {
-  
+
   // CR not followed by LF triggers a rewind.
   match
     @pdfsyntax.lex_stream_data(
@@ -111,8 +117,9 @@ test "lex_stream_data handles malformed and rewind cases" {
       999,
       false,
     ) {
-    @pdfgenlex.Token::LexStream(_) => ()
-    other => fail("expected LexStream, got \{@pdfsyntax.string_of_lexeme(other)}")
+    LexStream(_) => ()
+    other =>
+      fail("expected LexStream, got \{@pdfsyntax.string_of_lexeme(other)}")
   }
   // Non-newline char triggers rewind branch too.
   match
@@ -121,30 +128,32 @@ test "lex_stream_data handles malformed and rewind cases" {
       999,
       false,
     ) {
-    @pdfgenlex.Token::LexStream(_) => ()
-    other => fail("expected LexStream, got \{@pdfsyntax.string_of_lexeme(other)}")
+    LexStream(_) => ()
+    other =>
+      fail("expected LexStream, got \{@pdfsyntax.string_of_lexeme(other)}")
   }
 }
 
 ///|
 test "lex_keyword covers R and unknown keywords" {
-  
   match @pdfsyntax.lex_keyword(@pdfio.Input::of_string("R", source="kw-r")) {
-    @pdfgenlex.Token::LexR => ()
+    LexR => ()
     other => fail("expected LexR, got \{@pdfsyntax.string_of_lexeme(other)}")
   }
-  match @pdfsyntax.lex_keyword(@pdfio.Input::of_string("nonsense", source="kw-none")) {
-    @pdfgenlex.Token::LexNone => ()
+  match
+    @pdfsyntax.lex_keyword(
+      @pdfio.Input::of_string("nonsense", source="kw-none"),
+    ) {
+    LexNone => ()
     other => fail("expected LexNone, got \{@pdfsyntax.string_of_lexeme(other)}")
   }
 }
 
 ///|
 test "lex_stream errors when previous lexemes are not a dictionary" {
-  
   let res : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.lex_stream(
     @pdfio.Input::of_string("stream\nabc", source="stream-bad"),
-    [@pdfgenlex.Token::LexInt(1)],
+    [LexInt(1)],
     _k => [],
     false,
   )
@@ -153,7 +162,6 @@ test "lex_stream errors when previous lexemes are not a dictionary" {
 
 ///|
 test "lex_stream falls back to malformed stream scan on missing /Length" {
-  
   let dict_lexemes = @pdfsyntax.lex_dictionary(
     false,
     @pdfio.Input::of_string("<< /Type /X >>", source="stream-dict"),
@@ -165,14 +173,14 @@ test "lex_stream falls back to malformed stream scan on missing /Length" {
       _k => [],
       false,
     ) {
-    @pdfgenlex.Token::LexStream(_) => ()
-    other => fail("expected LexStream, got \{@pdfsyntax.string_of_lexeme(other)}")
+    LexStream(_) => ()
+    other =>
+      fail("expected LexStream, got \{@pdfsyntax.string_of_lexeme(other)}")
   }
 }
 
 ///|
 test "lex_stream resolves indirect /Length via lexobj" {
-  
   let input = @pdfio.Input::of_string(
     (
       #|1 0 obj
@@ -198,12 +206,11 @@ test "lex_stream resolves indirect /Length via lexobj" {
       _ => [],
     )
   })
-  assert_true(tokens.exists(t => t is @pdfgenlex.Token::LexStream(_)))
+  assert_true(tokens.exists(t => t is LexStream(_)))
 }
 
 ///|
 test "lex_next stops on short 's' sequences" {
-  
   let dict_level : Ref[Int] = { val: 0 }
   let array_level : Ref[Int] = { val: 0 }
   let prev : Array[@pdfgenlex.Token] = []
@@ -216,7 +223,7 @@ test "lex_next stops on short 's' sequences" {
     false,
     _ => [],
   )
-  assert_true(t1 is @pdfgenlex.Token::StopLexing)
+  assert_true(t1 is StopLexing)
   let t2 = @pdfsyntax.lex_next(
     dict_level,
     array_level,
@@ -226,5 +233,5 @@ test "lex_next stops on short 's' sequences" {
     false,
     _ => [],
   )
-  assert_true(t2 is @pdfgenlex.Token::StopLexing)
+  assert_true(t2 is StopLexing)
 }

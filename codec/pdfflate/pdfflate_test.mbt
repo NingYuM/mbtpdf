@@ -67,10 +67,7 @@ fn run_uncompress(
 }
 
 ///|
-fn run_compress(
-  data : Array[Byte],
-  header : Bool,
-) -> Array[Byte] {
+fn run_compress(data : Array[Byte], header : Bool) -> Array[Byte] {
   let mut pos = 0
   let input = (buf : Array[Byte]) => {
     let remaining = data.length() - pos
@@ -199,81 +196,63 @@ test "compress/uncompress roundtrip raw multi-block stored" {
 ///|
 test "uncompress rejects empty data" {
   let data : Array[Byte] = []
-  let result : Result[Array[Byte], Error] = try? run_uncompress(
-    data, false,
-  )
+  let result : Result[Array[Byte], Error] = try? run_uncompress(data, false)
   assert_flate_error(result, "unexpected end of input")
 }
 
 ///|
 test "uncompress rejects short zlib header" {
   let data : Array[Byte] = [120]
-  let result : Result[Array[Byte], Error] = try? run_uncompress(
-    data, true,
-  )
+  let result : Result[Array[Byte], Error] = try? run_uncompress(data, true)
   assert_flate_error(result, "zlib header too short")
 }
 
 ///|
 test "uncompress rejects unsupported method" {
   let data : Array[Byte] = [0, 0]
-  let result : Result[Array[Byte], Error] = try? run_uncompress(
-    data, true,
-  )
+  let result : Result[Array[Byte], Error] = try? run_uncompress(data, true)
   assert_flate_error(result, "unsupported compression method")
 }
 
 ///|
 test "uncompress rejects invalid header checksum" {
   let data : Array[Byte] = [0x78, 0x00]
-  let result : Result[Array[Byte], Error] = try? run_uncompress(
-    data, true,
-  )
+  let result : Result[Array[Byte], Error] = try? run_uncompress(data, true)
   assert_flate_error(result, "invalid zlib header")
 }
 
 ///|
 test "uncompress rejects preset dictionary flag" {
   let data : Array[Byte] = [0x78, 0x20]
-  let result : Result[Array[Byte], Error] = try? run_uncompress(
-    data, true,
-  )
+  let result : Result[Array[Byte], Error] = try? run_uncompress(data, true)
   assert_flate_error(result, "preset dictionary not supported")
 }
 
 ///|
 test "uncompress rejects invalid block type" {
   let data : Array[Byte] = [0x07]
-  let result : Result[Array[Byte], Error] = try? run_uncompress(
-    data, false,
-  )
+  let result : Result[Array[Byte], Error] = try? run_uncompress(data, false)
   assert_flate_error(result, "invalid block type")
 }
 
 ///|
 test "uncompress rejects stored length mismatch" {
   let data : Array[Byte] = [0x01, 0x01, 0x00, 0x00, 0x00]
-  let result : Result[Array[Byte], Error] = try? run_uncompress(
-    data, false,
-  )
+  let result : Result[Array[Byte], Error] = try? run_uncompress(data, false)
   assert_flate_error(result, "stored block length mismatch")
 }
 
 ///|
 test "uncompress rejects invalid literal/length symbol" {
   let data : Array[Byte] = [0x1B, 0x03]
-  let result : Result[Array[Byte], Error] = try? run_uncompress(
-    data, false,
-  )
+  let result : Result[Array[Byte], Error] = try? run_uncompress(data, false)
   assert_flate_error(result, "invalid literal/length symbol")
 }
 
 ///|
 test "uncompress rejects invalid distance symbol" {
   let data : Array[Byte] = [0x03, 0x3E]
-  let result : Result[Array[Byte], Error] = try? run_uncompress(
-    data, false,
-  )
+  let result : Result[Array[Byte], Error] = try? run_uncompress(data, false)
   assert_flate_error(result, "invalid distance symbol")
 }
 
@@ -293,9 +272,7 @@ test "uncompress rejects dynamic repeat with no previous code length" {
   // first decoded code-length symbol is 16 (repeat) with no previous length
   w.write_bits(0, 1)
   let data = w.finish()
-  let result : Result[Array[Byte], Error] = try? run_uncompress(
-    data, false,
-  )
+  let result : Result[Array[Byte], Error] = try? run_uncompress(data, false)
   assert_flate_error(result, "repeat with no previous code length")
 }
 
@@ -318,9 +295,7 @@ test "uncompress rejects dynamic code length overflow" {
   w.write_bits(0, 1) // symbol 18
   w.write_bits(0x7F, 7)
   let data = w.finish()
-  let result : Result[Array[Byte], Error] = try? run_uncompress(
-    data, false,
-  )
+  let result : Result[Array[Byte], Error] = try? run_uncompress(data, false)
   assert_flate_error(result, "code length overflow")
 }
 
@@ -328,9 +303,7 @@ test "uncompress rejects dynamic code length overflow" {
 test "uncompress rejects distance beyond output" {
   // Starts with a (len=3, dist=1) copy with no prior output.
   let data : Array[Byte] = [0x03, 0x02, 0x00]
-  let result : Result[Array[Byte], Error] = try? run_uncompress(
-    data, false,
-  )
+  let result : Result[Array[Byte], Error] = try? run_uncompress(data, false)
   assert_flate_error(result, "distance beyond output")
 }
 

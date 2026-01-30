@@ -120,7 +120,6 @@ pub fn Output::of_bytes(Int) -> (Self, Ref[Array[Byte]])
 pub fn Output::of_write_at(async (BytesView, Int64) -> Unit) -> Self
 
 // Type aliases
-pub type MutableBytes = Array[Byte]
 
 // Traits
 

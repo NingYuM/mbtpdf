@@ -75,15 +75,11 @@ test "lex_string parses multiple tokens" {
 ///|
 test "lex_single returns one token" {
   let input = @pdfio.Input::of_string("123 456")
-  guard @pdfgenlex.lex_single(input) is LexInt(n) else {
-    fail("expected int")
-  }
+  guard @pdfgenlex.lex_single(input) is LexInt(n) else { fail("expected int") }
   inspect(n, content="123")
 
   // Second call returns next token
-  guard @pdfgenlex.lex_single(input) is LexInt(m) else {
-    fail("expected int")
-  }
+  guard @pdfgenlex.lex_single(input) is LexInt(m) else { fail("expected int") }
   inspect(m, content="456")
 }
 ```

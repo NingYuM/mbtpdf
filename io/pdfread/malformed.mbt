@@ -55,9 +55,7 @@ fn read_malformed_pdf_objects(
       break
     }
     let start = (input.pos_in)()
-    let objnum_str = @pdfsyntax.getuntil_white_or_delimiter_string(
-      input,
-    )
+    let objnum_str = @pdfsyntax.getuntil_white_or_delimiter_string(input)
     let objnum = match parse_uint_string(objnum_str) {
       Some(v) => v
       None => {
@@ -66,9 +64,7 @@ fn read_malformed_pdf_objects(
       }
     }
     @pdfsyntax.dropwhite(input)
-    let gen_str = @pdfsyntax.getuntil_white_or_delimiter_string(
-      input,
-    )
+    let gen_str = @pdfsyntax.getuntil_white_or_delimiter_string(input)
     let gen = match parse_uint_string(gen_str) {
       Some(v) => v
       None => {
@@ -77,25 +73,15 @@ fn read_malformed_pdf_objects(
       }
     }
     @pdfsyntax.dropwhite(input)
-    let kw = @pdfsyntax.getuntil_white_or_delimiter_string(
-      input,
-    )
+    let kw = @pdfsyntax.getuntil_white_or_delimiter_string(input)
     if kw != "obj" {
       (input.seek_in)(start + 1)
       continue
     }
     let parsed = try {
       (input.seek_in)(start)
-      let lexemes = @pdfsyntax.lex_object_at(
-        false,
-        input,
-        read_stream_data,
-        _ => [],
-      )
-      let (_, obj) = @pdfsyntax.parse(
-        lexemes,
-        failure_is_ok=true,
-      )
+      let lexemes = @pdfsyntax.lex_object_at(false, input, read_stream_data, _ => [])
+      let (_, obj) = @pdfsyntax.parse(lexemes, failure_is_ok=true)
       Some(obj)
     } catch {
       _ => None
@@ -156,10 +142,7 @@ fn read_malformed_trailerdicts(
       try {
         @pdfsyntax.dropwhite(input)
         let lexemes = @pdfsyntax.lex_dictionary(false, input)
-        let (_, parsed) = @pdfsyntax.parse(
-          lexemes,
-          failure_is_ok=true,
-        )
+        let (_, parsed) = @pdfsyntax.parse(lexemes, failure_is_ok=true)
         let dict = extract_trailer_dict(parsed)
         dicts.push(dict)
       } catch {

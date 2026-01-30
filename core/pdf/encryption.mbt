@@ -28,11 +28,11 @@ pub(all) struct DeferredEncryption {
   key : Array[Int]
   keylength : Int
   r : Int
-}
+} derive(Debug)
 
 ///|
 /// Indicates whether a stream needs decryption when materialized.
 pub(all) enum ToGetCrypt {
   NoChange
   ToDecrypt(DeferredEncryption)
-}
+} derive(Debug)

@@ -138,10 +138,7 @@ pub fn PdfRead::is_linearized(self : PdfRead, input : @pdfio.Input) -> Bool {
   try {
     let _ = read_header(self, input)
     let lexemes = @pdfsyntax.lex_dictionary(false, input)
-    let (_, parsed) = @pdfsyntax.parse(
-      lexemes,
-      failure_is_ok=true,
-    )
+    let (_, parsed) = @pdfsyntax.parse(lexemes, failure_is_ok=true)
     match @pdf.Pdf::empty().lookup_direct("/Linearized", parsed) {
       Some(@pdf.PdfObject::Integer(_)) | Some(@pdf.PdfObject::Real(_)) => true
       _ => false

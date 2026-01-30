@@ -2,7 +2,7 @@
 test "lex_stream_data reads stream bytes" {
   let input = @pdfio.Input::of_string("stream\nABCendstream")
   match @pdfsyntax.lex_stream_data(input, 3, true) {
-    @pdfgenlex.Token::LexStream(@pdf.Stream::Got(bytes)) =>
+    LexStream(@pdf.Stream::Got(bytes)) =>
       assert_eq(@pdfio.string_of_bytes(bytes), "ABC")
     _ => fail("expected stream bytes")
   }
@@ -12,7 +12,7 @@ test "lex_stream_data reads stream bytes" {
 test "lex_stream_data returns ToGet for unread stream" {
   let input = @pdfio.Input::of_string("stream\nXYZendstream")
   match @pdfsyntax.lex_stream_data(input, 3, false) {
-    @pdfgenlex.Token::LexStream(@pdf.Stream::ToGet(toget)) =>
+    LexStream(@pdf.Stream::ToGet(toget)) =>
       assert_eq(@pdf.ToGet::length(toget), 3)
     _ => fail("expected ToGet stream")
   }
@@ -22,7 +22,7 @@ test "lex_stream_data returns ToGet for unread stream" {
 test "lex_stream_data falls back for malformed length" {
   let input = @pdfio.Input::of_string("stream\nendstreamXXXX")
   match @pdfsyntax.lex_stream_data(input, 2, true) {
-    @pdfgenlex.Token::LexStream(@pdf.Stream::Got(bytes)) =>
+    LexStream(@pdf.Stream::Got(bytes)) =>
       assert_eq(@pdfio.string_of_bytes(bytes), "")
     _ => fail("expected stream bytes")
   }
@@ -32,7 +32,7 @@ test "lex_stream_data falls back for malformed length" {
 test "lex_stream_data fallback ignores read_data flag" {
   let input = @pdfio.Input::of_string("stream\nendstreamXXXX")
   match @pdfsyntax.lex_stream_data(input, 2, false) {
-    @pdfgenlex.Token::LexStream(@pdf.Stream::Got(bytes)) =>
+    LexStream(@pdf.Stream::Got(bytes)) =>
       assert_eq(@pdfio.string_of_bytes(bytes), "")
     _ => fail("expected stream bytes")
   }
@@ -55,8 +55,8 @@ test "lex_dictionary minus_one accepts preconsumed marker" {
   input.nudge()
   input.nudge()
   let tokens = @pdfsyntax.lex_dictionary(true, input)
-  let full = Array::new(capacity=tokens.length() + 1)
-  full.push(@pdfgenlex.Token::LexLeftDict)
+  let full : Array[Token] = Array::new(capacity=tokens.length() + 1)
+  full.push(LexLeftDict)
   for t in tokens {
     full.push(t)
   }
@@ -72,10 +72,7 @@ test "lex_dictionary errors on unexpected token" {
   let res : Result[Array[@pdfgenlex.Token], Error] = try? @pdfe.with_logger(
     _ => (),
     fn() {
-      @pdfsyntax.lex_dictionary(
-        false,
-        @pdfio.Input::of_string("<< @ >>"),
-      )
+      @pdfsyntax.lex_dictionary(false, @pdfio.Input::of_string("<< @ >>"))
     },
   )
   assert_true(res is Err(_))
@@ -89,5 +86,5 @@ test "lex_dictionary stops on stream without dict" {
       @pdfio.Input::of_string("stream\nendstreamXXXX"),
     )
   })
-  assert_true(tokens.exists(t => t is @pdfgenlex.Token::StopLexing))
+  assert_true(tokens.exists(t => t is StopLexing))
 }

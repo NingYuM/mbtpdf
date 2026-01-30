@@ -4,23 +4,19 @@ package "bobzhang/mbtpdf/syntax/pdfgenlex"
 import {
   "bobzhang/mbtpdf/core/pdf",
   "bobzhang/mbtpdf/core/pdfio",
+  "moonbitlang/core/debug",
 }
 
 // Values
+pub fn lex(@pdfio.Input) -> Array[Token]
+
+pub fn lex_single(@pdfio.Input) -> Token
+
+pub fn lex_string(String) -> Array[Token]
 
 // Errors
 
 // Types and methods
-pub struct PdfGenLex {
-  unit : Unit
-}
-pub fn PdfGenLex::lex(Self, @pdfio.Input) -> Array[Token]
-pub fn PdfGenLex::lex_single(Self, @pdfio.Input) -> Token
-pub fn PdfGenLex::lex_string(Self, String) -> Array[Token]
-pub fn PdfGenLex::new() -> Self
-pub fn PdfGenLex::string_of_token(Self, Token) -> String
-pub fn PdfGenLex::string_of_tokens(Self, Array[Token]) -> String
-
 pub(all) enum Token {
   LexNull
   LexBool(Bool)
@@ -41,6 +37,7 @@ pub(all) enum Token {
   StopLexing
   LexNone
 }
+pub impl @debug.Debug for Token
 
 // Type aliases
 

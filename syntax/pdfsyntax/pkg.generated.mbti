@@ -8,38 +8,57 @@ import {
 }
 
 // Values
+pub fn backline(@pdfio.Input) -> Unit raise
+
+pub fn dropwhite(@pdfio.Input) -> Unit raise
+
+pub fn find_eof(@pdfio.Input) -> Unit raise
+
+pub fn getuntil(Bool, (Char) -> Bool, @pdfio.Input) -> Array[Char] raise
+
+pub fn getuntil_string(Bool, (Char) -> Bool, @pdfio.Input) -> String raise
+
+pub fn getuntil_white_or_delimiter_string(@pdfio.Input) -> String raise
+
+pub fn ignoreuntil(Bool, (Char) -> Bool, @pdfio.Input) -> Unit raise
+
+pub fn input_line(@pdfio.Input) -> String
+
+pub fn is_whitespace_or_delimiter(Char) -> Bool
+
+pub fn lex_comment(@pdfio.Input) -> @pdfgenlex.Token raise
+
+pub fn lex_dictionary(Bool, @pdfio.Input) -> Array[@pdfgenlex.Token] raise
+
+pub fn lex_hexstring(@pdfio.Input) -> @pdfgenlex.Token raise
+
+pub fn lex_keyword(@pdfio.Input) -> @pdfgenlex.Token raise
+
+pub fn lex_name(@pdfio.Input) -> @pdfgenlex.Token raise
+
+pub fn lex_next(Ref[Int], Ref[Int], Bool, @pdfio.Input, Array[@pdfgenlex.Token], Bool, (Int) -> Array[@pdfgenlex.Token] raise) -> @pdfgenlex.Token
+
+pub fn lex_number(@pdfio.Input) -> @pdfgenlex.Token raise
+
+pub fn lex_object_at(Bool, @pdfio.Input, Bool, (Int) -> Array[@pdfgenlex.Token] raise) -> Array[@pdfgenlex.Token] raise
+
+pub fn lex_stream(@pdfio.Input, Array[@pdfgenlex.Token], (Int) -> Array[@pdfgenlex.Token] raise, Bool) -> @pdfgenlex.Token raise
+
+pub fn lex_stream_data(@pdfio.Input, Int, Bool) -> @pdfgenlex.Token raise
+
+pub fn lex_string(@pdfio.Input) -> @pdfgenlex.Token raise
+
+pub fn parse(Array[@pdfgenlex.Token], failure_is_ok? : Bool) -> (Int, @pdf.PdfObject) raise
+
+pub fn parse_single_object(String) -> @pdf.PdfObject raise
+
+pub fn read_chunk(Int, @pdfio.Input) -> String raise
+
+pub fn string_of_lexeme(@pdfgenlex.Token) -> String
 
 // Errors
 
 // Types and methods
-pub struct PdfSyntax {
-  unit : Unit
-}
-pub fn PdfSyntax::backline(Self, @pdfio.Input) -> Unit raise
-pub fn PdfSyntax::dropwhite(Self, @pdfio.Input) -> Unit raise
-pub fn PdfSyntax::find_eof(Self, @pdfio.Input) -> Unit raise
-pub fn PdfSyntax::getuntil(Self, Bool, (Char) -> Bool, @pdfio.Input) -> Array[Char] raise
-pub fn PdfSyntax::getuntil_string(Self, Bool, (Char) -> Bool, @pdfio.Input) -> String raise
-pub fn PdfSyntax::getuntil_white_or_delimiter_string(Self, @pdfio.Input) -> String raise
-pub fn PdfSyntax::ignoreuntil(Self, Bool, (Char) -> Bool, @pdfio.Input) -> Unit raise
-pub fn PdfSyntax::input_line(Self, @pdfio.Input) -> String
-pub fn PdfSyntax::is_whitespace_or_delimiter(Self, Char) -> Bool
-pub fn PdfSyntax::lex_comment(Self, @pdfio.Input) -> @pdfgenlex.Token raise
-pub fn PdfSyntax::lex_dictionary(Self, Bool, @pdfio.Input) -> Array[@pdfgenlex.Token] raise
-pub fn PdfSyntax::lex_hexstring(Self, @pdfio.Input) -> @pdfgenlex.Token raise
-pub fn PdfSyntax::lex_keyword(Self, @pdfio.Input) -> @pdfgenlex.Token raise
-pub fn PdfSyntax::lex_name(Self, @pdfio.Input) -> @pdfgenlex.Token raise
-pub fn PdfSyntax::lex_next(Self, Ref[Int], Ref[Int], Bool, @pdfio.Input, Array[@pdfgenlex.Token], Bool, (Int) -> Array[@pdfgenlex.Token] raise) -> @pdfgenlex.Token
-pub fn PdfSyntax::lex_number(Self, @pdfio.Input) -> @pdfgenlex.Token raise
-pub fn PdfSyntax::lex_object_at(Self, Bool, @pdfio.Input, Bool, (Int) -> Array[@pdfgenlex.Token] raise) -> Array[@pdfgenlex.Token] raise
-pub fn PdfSyntax::lex_stream(Self, @pdfio.Input, Array[@pdfgenlex.Token], (Int) -> Array[@pdfgenlex.Token] raise, Bool) -> @pdfgenlex.Token raise
-pub fn PdfSyntax::lex_stream_data(Self, @pdfio.Input, Int, Bool) -> @pdfgenlex.Token raise
-pub fn PdfSyntax::lex_string(Self, @pdfio.Input) -> @pdfgenlex.Token raise
-pub fn PdfSyntax::new() -> Self
-pub fn PdfSyntax::parse(Self, Array[@pdfgenlex.Token], failure_is_ok? : Bool) -> (Int, @pdf.PdfObject) raise
-pub fn PdfSyntax::parse_single_object(Self, String) -> @pdf.PdfObject raise
-pub fn PdfSyntax::read_chunk(Self, Int, @pdfio.Input) -> String raise
-pub fn PdfSyntax::string_of_lexeme(Self, @pdfgenlex.Token) -> String
 
 // Type aliases
 

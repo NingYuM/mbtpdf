@@ -1,8 +1,5 @@
 ///|
-fn assert_bytes_eq(
-  left : Array[Byte],
-  right : Array[Byte],
-) -> Unit raise {
+fn assert_bytes_eq(left : Array[Byte], right : Array[Byte]) -> Unit raise {
   assert_eq(left.length(), right.length())
   for i in 0..<left.length() {
     assert_eq(left[i], right[i])

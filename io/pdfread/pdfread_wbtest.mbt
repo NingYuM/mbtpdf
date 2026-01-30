@@ -3,11 +3,11 @@ test "@pdfsyntax.lex_keyword rewinds endobj suffix" {
   let input = @pdfio.Input::of_string("endobj123 0 obj")
   let token = @pdfsyntax.lex_keyword(input)
   match token {
-    @pdfgenlex.Token::LexEndObj => ()
+    LexEndObj => ()
     _ => fail("expected LexEndObj")
   }
   match @pdfsyntax.lex_number(input) {
-    @pdfgenlex.Token::LexInt(123) => ()
+    LexInt(123) => ()
     _ => fail("expected 123")
   }
 }
@@ -28,7 +28,7 @@ test "@pdfsyntax.lex_next returns LexNone for unknown uppercase" {
     _ => [],
   )
   match token {
-    @pdfgenlex.Token::LexNone => ()
+    LexNone => ()
     _ => fail("expected LexNone")
   }
 }
@@ -40,18 +40,10 @@ test "@pdfsyntax.lex_next recovers from lex errors" {
   let array_level : Ref[Int] = { val: 0 }
   let previous = Array::new()
   let token = @pdfe.with_logger(_ => (), fn() {
-    @pdfsyntax.lex_next(
-      dict_level,
-      array_level,
-      false,
-      input,
-      previous,
-      true,
-      _ => [],
-    )
+    @pdfsyntax.lex_next(dict_level, array_level, false, input, previous, true, _ => [])
   })
   match token {
-    @pdfgenlex.Token::StopLexing => ()
+    StopLexing => ()
     _ => fail("expected StopLexing")
   }
 }
@@ -73,7 +65,7 @@ test "@pdfsyntax.lex_hexstring pads odd nibble" {
   let input = @pdfio.Input::of_string("<F>")
   let token = @pdfsyntax.lex_hexstring(input)
   match token {
-    @pdfgenlex.Token::LexString(s) => {
+    LexString(s) => {
       let bytes = @pdfio.bytes_of_string(s)
       assert_eq(bytes.length(), 1)
       assert_eq(bytes[0].to_int(), 0xF0)
@@ -87,7 +79,7 @@ test "@pdfsyntax.lex_hexstring ignores whitespace" {
   let input = @pdfio.Input::of_string("<0F 0A>")
   let token = @pdfsyntax.lex_hexstring(input)
   match token {
-    @pdfgenlex.Token::LexString(s) => {
+    LexString(s) => {
       let bytes = @pdfio.bytes_of_string(s)
       assert_eq(bytes.length(), 2)
       assert_eq(bytes[0].to_int(), 0x0F)
@@ -106,7 +98,7 @@ test "@pdfsyntax.lex_dictionary minus_one stops after closing dict" {
   }
   let last = tokens[tokens.length() - 1]
   match last {
-    @pdfgenlex.Token::LexRightDict => ()
+    LexRightDict => ()
     _ => fail("expected closing dict")
   }
 }
@@ -114,9 +106,7 @@ test "@pdfsyntax.lex_dictionary minus_one stops after closing dict" {
 ///|
 test "@pdfsyntax.lex_name rejects invalid hex" {
   let input = @pdfio.Input::of_string("/#GZ")
-  let res : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.lex_name(
-    input,
-  )
+  let res : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.lex_name(input)
   match res {
     Err(_) => ()
     _ => fail("expected @pdfsyntax.lex_name failure")
@@ -126,9 +116,7 @@ test "@pdfsyntax.lex_name rejects invalid hex" {
 ///|
 test "@pdfsyntax.lex_name rejects truncated hex" {
   let input = @pdfio.Input::of_string("/#1")
-  let res : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.lex_name(
-    input,
-  )
+  let res : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.lex_name(input)
   match res {
     Err(_) => ()
     _ => fail("expected @pdfsyntax.lex_name failure")
