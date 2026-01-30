@@ -381,8 +381,8 @@ fn make_outline_ntree(
       while split < rest.length() && rest[split].level > head.level {
         split = split + 1
       }
-      let lower = rest.sub(start=0, end=split)
-      let remaining = rest.sub(start=split)
+      let lower = rest[:split]
+      let remaining = rest[split:]
       let node = node_of_line(
         pdf,
         head.text,

@@ -52,7 +52,7 @@ fn[T] slice(values : Array[T], start : Int, count : Int) -> Array[T] raise {
   if start < 0 || count < 0 || start + count > values.length() {
     raise @pdf.PdfError::Msg("slice: out of bounds")
   }
-  values[:].sub(start~, end=start + count).to_array()
+  values[start:start + count].to_array()
 }
 
 ///|

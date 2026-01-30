@@ -58,7 +58,7 @@ fn strip_outer_braces(tokens : Array[Token]) -> Array[Token] {
       _ => break
     }
   }
-  tokens.sub(start~, end~).to_array()
+  tokens[start:end].to_array()
 }
 
 ///|
@@ -75,7 +75,7 @@ fn group_operators(tokens : Array[Token]) -> Array[Array[Token]] {
             _ => j = j + 1
           }
         }
-        let group = tokens.sub(start=i + 1, end=j).to_array()
+        let group = tokens[i + 1:j].to_array()
         groups.push(group)
         i = if j < tokens.length() { j + 1 } else { j }
       }

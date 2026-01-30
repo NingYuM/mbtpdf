@@ -250,7 +250,7 @@ pub fn PdfCodec::decode_pdfstream_onestage(
                   new_dict.remove_entry(parms_key)
                 })
               } else {
-                let rest = arr.sub(start=1).to_array()
+                let rest = arr[1:].to_array()
                 if rest.length() == 0 {
                   map_pdf_error("remove decode parms", fn() raise {
                     new_dict.remove_entry(parms_key)

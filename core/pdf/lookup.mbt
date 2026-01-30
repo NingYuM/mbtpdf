@@ -172,7 +172,7 @@ pub fn Pdf::replace_chain(
       return obj
     }
     let key = chain[0]
-    let rest = chain.sub(start=1)
+    let rest = chain[1:]
     match array_index_from_key(key) {
       Some(index) =>
         match current {

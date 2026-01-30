@@ -63,7 +63,7 @@ fn bytes_slice_to_string(
   length : Int,
 ) -> String {
   @pdfio.string_of_int_array(
-    bytes[:].sub(start~, end=start + length).to_array(),
+    bytes[start:start + length].to_array(),
   )
 }
 
