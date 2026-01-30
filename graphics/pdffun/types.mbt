@@ -98,6 +98,3 @@ pub(all) suberror BadFunctionEvaluation {
 
 ///|
 type PdfObject = @pdf.PdfObject
-
-///|
-type Token = @pdfgenlex.Token

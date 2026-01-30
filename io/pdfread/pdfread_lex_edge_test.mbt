@@ -57,7 +57,7 @@ test "lex_hexstring handles odd and invalid digits" {
     }
     _ => fail("expected LexString")
   }
-  let bad : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.lex_hexstring(
+  let bad : Result[@pdftoken.Token, Error] = try? @pdfsyntax.lex_hexstring(
     @pdfio.Input::of_string("<GG>"),
   )
   assert_true(bad is Err(_))

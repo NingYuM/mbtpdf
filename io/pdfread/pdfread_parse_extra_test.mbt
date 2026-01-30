@@ -24,7 +24,7 @@ test "parse returns null for empty object" {
 }
 
 ///|
-using @pdfgenlex {type Token}
+using @pdftoken {type Token}
 
 ///|
 test "parse skips unmatched stream pattern" {

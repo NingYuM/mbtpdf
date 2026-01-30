@@ -40,7 +40,7 @@ Layer 2: Core model + geometry
 - Concern: Pdf object graph and pure geometric/unit helpers.
 
 Layer 3: Syntax + lexing
-- pdfgenlex, pdfsyntax
+- pdftoken, pdfsyntax
 - Concern: bytes <-> token/AST for PDF objects (no Pdf document logic).
 
 Layer 4: Codecs + crypto

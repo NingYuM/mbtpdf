@@ -59,6 +59,34 @@ test "parse_function defaults c0 c1" {
 }
 
 ///|
+test "parse_function calculator supports nested procedures" {
+  let pdf = @pdf.Pdf::empty()
+  let program = "{ false { true { 1 } if } { 0 } ifelse }"
+  let dict : @pdf.PdfObject = Dictionary([
+    ("/FunctionType", Integer(4)),
+    ("/Domain", Array([Real(0.0), Real(1.0)])),
+    ("/Length", Integer(program.length())),
+  ])
+  let data = @pdfio.bytes_of_string(program)
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let parsed = PdfFunction::parse(pdf, stream)
+  match parsed.func {
+    PdfFunctionKind::Calculator(ops) =>
+      match ops {
+        [
+          Calculator::Bool(false),
+          Calculator::IfElse(
+            [Calculator::Bool(true), Calculator::If([Calculator::Int(1)])],
+            [Calculator::Int(0)]
+          ),
+        ] => ()
+        _ => fail("unexpected calculator parse result")
+      }
+    _ => fail("expected calculator function")
+  }
+}
+
+///|
 test "parse_function rejects bad bits per sample" {
   let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([

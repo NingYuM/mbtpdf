@@ -20,7 +20,8 @@ the last path segment (so `bobzhang/mbtpdf/core/pdfio` is used as `@pdfio`).
 | `core/pdfio` | `pdfio` | Input/output abstractions, byte helpers |
 | `codec/pdfcodec` | `pdfcodec` | Stream decode/encode dispatch |
 | `codec/pdfflate` | `pdfflate` | Flate (zlib/deflate) codec, pure implementation |
-| `syntax/pdfgenlex` | `pdfgenlex` | PDF lexical scanner |
+| `syntax/pdftoken` | (new) | Shared PDF token vocabulary |
+| `syntax/pdfsyntax` | `pdfgenlex` | PDF lexical scanner + object parser |
 | `io/pdfread` | `pdfread` | Parser, xref, object streams |
 | `core/pdfe` | `pdfe` | Error logging hook |
 | `io/pdfwrite` | `pdfwrite` | Serialization and xref writing |
@@ -54,7 +55,7 @@ the last path segment (so `bobzhang/mbtpdf/core/pdfio` is used as `@pdfio`).
 
 ## Dependency notes (high level)
 - Almost everything depends on `core/pdfutil`, many depend on `core/pdfio`.
-- `io/pdfread` depends on `syntax/pdfgenlex` and codec packages.
+- `io/pdfread` depends on `syntax/pdftoken`, `syntax/pdfsyntax`, and codec packages.
 - `io/pdfwrite` depends on core + io + util + codec.
 - `crypto/pdfcrypt` depends on `core/pdfcryptprimitives` plus core/io/util.
 - Font/text packages are mostly independent once core object access is in place.

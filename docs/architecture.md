@@ -34,7 +34,7 @@ Package paths below are shown relative to the module root (for example,
 Input bytes (core/pdfio)
   <- io/pdfiofs (native file/channel adapters)
   -> io/pdfread (xref + object streams + encryption)
-    -> syntax/pdfsyntax + syntax/pdfgenlex (lex/parse)
+    -> syntax/pdfsyntax + syntax/pdftoken (lex/parse)
       -> Pdf object graph (core/pdf)
         -> operations (document/pdfpage, graphics/pdfops, text/pdftext, graphics/pdfimage, ...)
           -> io/pdfwrite (serialize + xref + filters + encryption)
@@ -57,7 +57,7 @@ Layer 2: Core model + geometry
   core/pdf, core/pdftransform, core/pdfunits, document/pdfpaper, core/pdfdate
 
 Layer 3: Syntax + lexing
-  syntax/pdfgenlex, syntax/pdfsyntax
+  syntax/pdftoken, syntax/pdfsyntax
 
 Layer 4: Codecs + crypto
   codec/pdfflate, codec/pdfcodec, codec/pdfjpeg, core/pdfcryptprimitives, crypto/pdfcrypt
@@ -107,7 +107,7 @@ scripts/deps_audit.sh --fail
 
 ```
 cmd/*
-  |-> io/pdfreadfs ---> io/pdfread -----> syntax/pdfsyntax + syntax/pdfgenlex
+  |-> io/pdfreadfs ---> io/pdfread -----> syntax/pdfsyntax + syntax/pdftoken
   |-> io/pdfwritefs --> io/pdfwrite ----> codec/pdfcodec + codec/pdfflate (+ crypto/pdfcrypt)
   |-> document/pdfmerge + document/pdfpage + graphics/pdfops + text/pdftext + graphics/pdfimage + ...
         |-> core/pdf (core object graph)
@@ -141,8 +141,8 @@ Base utilities used across most packages:
 
 ## Parsing and Reading
 
-- `syntax/pdfgenlex`: token stream definition and token helpers.
-- `syntax/pdfsyntax`: lexer/parser from bytes to `PdfObject`.
+- `syntax/pdftoken`: shared token vocabulary (`Token`) used by lexers/parsers.
+- `syntax/pdfsyntax`: PDF lexer/parser from bytes to `PdfObject` (produces `@pdftoken.Token`).
 - `io/pdfread`: orchestrates header/xref parsing, object streams, encryption,
   and lazy loading; entry points include `pdf_of_input` / `pdf_of_input_lazy`.
 - `io/pdfreadfs`: filesystem/channel helpers that adapt `@fs.File` and filenames

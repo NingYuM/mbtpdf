@@ -128,7 +128,7 @@ The main `parse` function converts a token array to a `PdfObject`:
 
 ```mbt nocheck
 pub fn parse(
-  tokens : Array[@pdfgenlex.Token],
+  tokens : Array[@pdftoken.Token],
   failure_is_ok? : Bool = false,
 ) -> (Int, @pdf.PdfObject) raise
 ```
@@ -140,9 +140,8 @@ Returns a tuple of (object number, parsed object). The object number is 0 for st
 ```mbt check
 ///|
 test "parse with object header" {
-  let tokens = @pdfgenlex.lex_string("1 0 obj << /Type /Page >> endobj")
-  // This simplified lexer doesn't handle obj/endobj
-  // Full parsing would use lex_object_at
+  let input = @pdfio.Input::of_string("1 0 obj << /Type /Page >> endobj")
+  let tokens = @pdfsyntax.lex_object_at(false, input, true, _ => [])
   inspect(tokens.length() > 0, content="true")
 }
 ```
@@ -222,8 +221,8 @@ pub fn lex_object_at(
   oneonly : Bool,                             // Stop after one object?
   input : @pdfio.Input,                       // Input stream
   read_stream_data : Bool,                    // Load stream bytes?
-  lexobj : (Int) -> Array[@pdfgenlex.Token],  // Object lookup callback
-) -> Array[@pdfgenlex.Token]
+  lexobj : (Int) -> Array[@pdftoken.Token],  // Object lookup callback
+) -> Array[@pdftoken.Token]
 ```
 
 ### lex_next
@@ -236,10 +235,10 @@ pub fn lex_next(
   array_level : Ref[Int],                     // Array nesting depth
   end_on_stream : Bool,                       // Stop at stream?
   input : @pdfio.Input,                       // Input stream
-  previous_lexemes : Array[@pdfgenlex.Token], // Previous tokens
+  previous_lexemes : Array[@pdftoken.Token], // Previous tokens
   read_stream_data : Bool,                    // Load stream bytes?
-  lexobj : (Int) -> Array[@pdfgenlex.Token],  // Object lookup callback
-) -> @pdfgenlex.Token
+  lexobj : (Int) -> Array[@pdftoken.Token],  // Object lookup callback
+) -> @pdftoken.Token
 ```
 
 ### lex_dictionary
@@ -250,7 +249,7 @@ Lex a complete dictionary:
 pub fn lex_dictionary(
   minus_one : Bool,       // Adjust position by -1?
   input : @pdfio.Input,
-) -> Array[@pdfgenlex.Token]
+) -> Array[@pdftoken.Token]
 ```
 
 ## Error Handling

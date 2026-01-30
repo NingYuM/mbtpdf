@@ -270,7 +270,7 @@ fn read_xref_stream(
   fn lex_untilstream(
     input : @pdfio.Input,
     read_stream_data : Bool,
-  ) -> Array[@pdfgenlex.Token] {
+  ) -> Array[@pdftoken.Token] {
     let lexemes = Array::new()
     let dict_level : Ref[Int] = { val: 0 }
     let array_level : Ref[Int] = { val: 0 }

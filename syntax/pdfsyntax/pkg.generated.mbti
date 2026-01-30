@@ -4,7 +4,7 @@ package "bobzhang/mbtpdf/syntax/pdfsyntax"
 import {
   "bobzhang/mbtpdf/core/pdf",
   "bobzhang/mbtpdf/core/pdfio",
-  "bobzhang/mbtpdf/syntax/pdfgenlex",
+  "bobzhang/mbtpdf/syntax/pdftoken",
 }
 
 // Values
@@ -26,35 +26,35 @@ pub fn input_line(@pdfio.Input) -> String
 
 pub fn is_whitespace_or_delimiter(Char) -> Bool
 
-pub fn lex_comment(@pdfio.Input) -> @pdfgenlex.Token raise
+pub fn lex_comment(@pdfio.Input) -> @pdftoken.Token raise
 
-pub fn lex_dictionary(Bool, @pdfio.Input) -> Array[@pdfgenlex.Token] raise
+pub fn lex_dictionary(Bool, @pdfio.Input) -> Array[@pdftoken.Token] raise
 
-pub fn lex_hexstring(@pdfio.Input) -> @pdfgenlex.Token raise
+pub fn lex_hexstring(@pdfio.Input) -> @pdftoken.Token raise
 
-pub fn lex_keyword(@pdfio.Input) -> @pdfgenlex.Token raise
+pub fn lex_keyword(@pdfio.Input) -> @pdftoken.Token raise
 
-pub fn lex_name(@pdfio.Input) -> @pdfgenlex.Token raise
+pub fn lex_name(@pdfio.Input) -> @pdftoken.Token raise
 
-pub fn lex_next(Ref[Int], Ref[Int], Bool, @pdfio.Input, Array[@pdfgenlex.Token], Bool, (Int) -> Array[@pdfgenlex.Token] raise) -> @pdfgenlex.Token
+pub fn lex_next(Ref[Int], Ref[Int], Bool, @pdfio.Input, Array[@pdftoken.Token], Bool, (Int) -> Array[@pdftoken.Token] raise) -> @pdftoken.Token
 
-pub fn lex_number(@pdfio.Input) -> @pdfgenlex.Token raise
+pub fn lex_number(@pdfio.Input) -> @pdftoken.Token raise
 
-pub fn lex_object_at(Bool, @pdfio.Input, Bool, (Int) -> Array[@pdfgenlex.Token] raise) -> Array[@pdfgenlex.Token] raise
+pub fn lex_object_at(Bool, @pdfio.Input, Bool, (Int) -> Array[@pdftoken.Token] raise) -> Array[@pdftoken.Token] raise
 
-pub fn lex_stream(@pdfio.Input, Array[@pdfgenlex.Token], (Int) -> Array[@pdfgenlex.Token] raise, Bool) -> @pdfgenlex.Token raise
+pub fn lex_stream(@pdfio.Input, Array[@pdftoken.Token], (Int) -> Array[@pdftoken.Token] raise, Bool) -> @pdftoken.Token raise
 
-pub fn lex_stream_data(@pdfio.Input, Int, Bool) -> @pdfgenlex.Token raise
+pub fn lex_stream_data(@pdfio.Input, Int, Bool) -> @pdftoken.Token raise
 
-pub fn lex_string(@pdfio.Input) -> @pdfgenlex.Token raise
+pub fn lex_string(@pdfio.Input) -> @pdftoken.Token raise
 
-pub fn parse(Array[@pdfgenlex.Token], failure_is_ok? : Bool) -> (Int, @pdf.PdfObject) raise
+pub fn parse(Array[@pdftoken.Token], failure_is_ok? : Bool) -> (Int, @pdf.PdfObject) raise
 
 pub fn parse_single_object(String) -> @pdf.PdfObject raise
 
 pub fn read_chunk(Int, @pdfio.Input) -> String raise
 
-pub fn string_of_lexeme(@pdfgenlex.Token) -> String
+pub fn string_of_lexeme(@pdftoken.Token) -> String
 
 // Errors
 

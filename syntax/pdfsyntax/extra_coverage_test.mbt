@@ -151,7 +151,7 @@ test "lex_keyword covers R and unknown keywords" {
 
 ///|
 test "lex_stream errors when previous lexemes are not a dictionary" {
-  let res : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.lex_stream(
+  let res : Result[@pdftoken.Token, Error] = try? @pdfsyntax.lex_stream(
     @pdfio.Input::of_string("stream\nabc", source="stream-bad"),
     [LexInt(1)],
     _k => [],
@@ -213,7 +213,7 @@ test "lex_stream resolves indirect /Length via lexobj" {
 test "lex_next stops on short 's' sequences" {
   let dict_level : Ref[Int] = { val: 0 }
   let array_level : Ref[Int] = { val: 0 }
-  let prev : Array[@pdfgenlex.Token] = []
+  let prev : Array[@pdftoken.Token] = []
   let t1 = @pdfsyntax.lex_next(
     dict_level,
     array_level,

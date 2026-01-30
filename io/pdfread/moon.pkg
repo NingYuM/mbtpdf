@@ -7,7 +7,7 @@ import {
   "bobzhang/mbtpdf/crypto/pdfcrypt",
   "bobzhang/mbtpdf/document/pdfpage",
   "bobzhang/mbtpdf/io/pdfiofs",
-  "bobzhang/mbtpdf/syntax/pdfgenlex",
+  "bobzhang/mbtpdf/syntax/pdftoken",
   "bobzhang/mbtpdf/syntax/pdfsyntax",
   "moonbitlang/async",
 }

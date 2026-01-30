@@ -1,5 +1,5 @@
 ///|
-type Token = @pdfgenlex.Token
+type Token = @pdftoken.Token
 
 ///|
 test "string_of_lexeme renders tokens" {

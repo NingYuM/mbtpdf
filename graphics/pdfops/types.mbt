@@ -83,7 +83,7 @@ pub(all) enum Op {
 type PdfObject = @pdf.PdfObject
 
 ///|
-type Token = @pdfgenlex.Token
+type Token = @pdftoken.Token
 
 ///|
 priv enum Lexeme {

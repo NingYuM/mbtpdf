@@ -8,7 +8,7 @@ priv enum ParseItem {
 type PdfObject = @pdf.PdfObject
 
 ///|
-type Token = @pdfgenlex.Token
+type Token = @pdftoken.Token
 
 ///|
 fn parse_R(tokens : Array[Token]) -> Array[ParseItem] {

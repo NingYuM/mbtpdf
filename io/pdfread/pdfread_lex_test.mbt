@@ -44,7 +44,7 @@ test "lex_hexstring reads hex bytes" {
 
 ///|
 test "lex_name errors on truncated hex escape" {
-  let res : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.lex_name(
+  let res : Result[@pdftoken.Token, Error] = try? @pdfsyntax.lex_name(
     @pdfio.Input::of_string("/A#1"),
   )
   assert_true(res is Err(_))
@@ -52,7 +52,7 @@ test "lex_name errors on truncated hex escape" {
 
 ///|
 test "lex_name errors on invalid hex escape" {
-  let res : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.lex_name(
+  let res : Result[@pdftoken.Token, Error] = try? @pdfsyntax.lex_name(
     @pdfio.Input::of_string("/A#GG"),
   )
   assert_true(res is Err(_))
@@ -108,7 +108,7 @@ test "lex_hexstring handles odd nibble at EOF" {
 
 ///|
 test "lex_hexstring errors on invalid hex digit" {
-  let res : Result[@pdfgenlex.Token, Error] = try? @pdfsyntax.lex_hexstring(
+  let res : Result[@pdftoken.Token, Error] = try? @pdfsyntax.lex_hexstring(
     @pdfio.Input::of_string("<GG>"),
   )
   assert_true(res is Err(_))

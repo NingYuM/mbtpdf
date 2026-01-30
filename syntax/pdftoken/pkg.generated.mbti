@@ -1,18 +1,12 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "bobzhang/mbtpdf/syntax/pdfgenlex"
+package "bobzhang/mbtpdf/syntax/pdftoken"
 
 import {
   "bobzhang/mbtpdf/core/pdf",
-  "bobzhang/mbtpdf/core/pdfio",
   "moonbitlang/core/debug",
 }
 
 // Values
-pub fn lex(@pdfio.Input) -> Array[Token]
-
-pub fn lex_single(@pdfio.Input) -> Token
-
-pub fn lex_string(String) -> Array[Token]
 
 // Errors
 
