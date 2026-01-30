@@ -137,8 +137,8 @@ pub fn PdfRead::permissions(
 pub fn PdfRead::is_linearized(self : PdfRead, input : @pdfio.Input) -> Bool {
   try {
     let _ = read_header(self, input)
-    let lexemes = @pdfsyntax.PdfSyntax::new().lex_dictionary(false, input)
-    let (_, parsed) = @pdfsyntax.PdfSyntax::new().parse(
+    let lexemes = @pdfsyntax.lex_dictionary(false, input)
+    let (_, parsed) = @pdfsyntax.parse(
       lexemes,
       failure_is_ok=true,
     )

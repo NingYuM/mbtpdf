@@ -336,7 +336,7 @@ fn lexemelists_of_ops(ops : Array[Op]) -> Array[Array[Lexeme]] {
 fn string_of_lexeme(lexeme : Lexeme) -> String raise {
   match lexeme {
     Lexeme::LexComment => ""
-    Lexeme::Obj(token) => PdfSyntax::new().string_of_lexeme(token)
+    Lexeme::Obj(token) => @pdfsyntax.string_of_lexeme(token)
     Lexeme::Op(op) => op
     Lexeme::PdfObj(obj) => obj.to_string()
     Lexeme::LexInlineImage((dict, dp, data)) => {
@@ -411,9 +411,7 @@ pub fn Op::to_string(self : Op) -> String raise {
 
 ///|
 /// Concatenate byte streams with whitespace between them.
-pub fn Op::concat_bytess(
-  ss : Array[Array[Byte]],
-) -> Array[Byte] {
+pub fn Op::concat_bytess(ss : Array[Array[Byte]]) -> Array[Byte] {
   let mut total = 0
   for bytes in ss {
     total = total + @pdfio.bytes_size(bytes)
@@ -433,9 +431,7 @@ pub fn Op::concat_bytess(
 }
 
 ///|
-fn stream_of_lexemes(
-  oplists : Array[Array[Lexeme]],
-) -> Array[Byte] raise {
+fn stream_of_lexemes(oplists : Array[Array[Lexeme]]) -> Array[Byte] raise {
   let sb = StringBuilder::new()
   let mut prev : String = ""
   for oplist in oplists {

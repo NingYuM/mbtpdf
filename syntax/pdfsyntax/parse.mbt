@@ -168,8 +168,8 @@ fn parse_finish(
 
 ///|
 /// Parse a PDF object from tokens.
-pub fn PdfSyntax::parse(
-  _self : PdfSyntax,
+pub fn parse(
+  
   tokens : Array[Token],
   failure_is_ok? : Bool = false,
 ) -> (Int, PdfObject) raise {

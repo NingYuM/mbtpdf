@@ -17,7 +17,7 @@ The `pdfsyntax` package provides:
 ```mbt check
 ///|
 test "parse_single_object parses integer" {
-  guard @pdfsyntax.PdfSyntax::new().parse_single_object("42") is Integer(n) else {
+  guard @pdfsyntax.parse_single_object("42") is Integer(n) else {
     fail("expected integer")
   }
   inspect(n, content="42")
@@ -27,7 +27,7 @@ test "parse_single_object parses integer" {
 ```mbt check
 ///|
 test "parse_single_object parses array" {
-  guard @pdfsyntax.PdfSyntax::new().parse_single_object("[1 2 3]")
+  guard @pdfsyntax.parse_single_object("[1 2 3]")
     is Array(items) else {
     fail("expected array")
   }
@@ -38,7 +38,7 @@ test "parse_single_object parses array" {
 ```mbt check
 ///|
 test "parse_single_object parses dictionary" {
-  let obj = @pdfsyntax.PdfSyntax::new().parse_single_object(
+  let obj = @pdfsyntax.parse_single_object(
     "<< /Type /Page /Count 5 >>",
   )
   guard obj is Dictionary(entries) else { fail("expected dictionary") }
@@ -54,7 +54,7 @@ test "parse_single_object parses dictionary" {
 ///|
 test "lex_name reads PDF name" {
   let input = @pdfio.Input::of_string("/Type")
-  guard @pdfsyntax.PdfSyntax::new().lex_name(input) is LexName(name) else {
+  guard @pdfsyntax.lex_name(input) is LexName(name) else {
     fail("expected name")
   }
   inspect(name, content="/Type")
@@ -67,7 +67,7 @@ test "lex_name reads PDF name" {
 ///|
 test "lex_number reads integer" {
   let input = @pdfio.Input::of_string("123")
-  guard @pdfsyntax.PdfSyntax::new().lex_number(input) is LexInt(n) else {
+  guard @pdfsyntax.lex_number(input) is LexInt(n) else {
     fail("expected int")
   }
   inspect(n, content="123")
@@ -78,7 +78,7 @@ test "lex_number reads integer" {
 ///|
 test "lex_number reads float" {
   let input = @pdfio.Input::of_string("3.14159")
-  guard @pdfsyntax.PdfSyntax::new().lex_number(input) is LexReal(r) else {
+  guard @pdfsyntax.lex_number(input) is LexReal(r) else {
     fail("expected real")
   }
   assert_true(r > 3.14 && r < 3.15)
@@ -91,7 +91,7 @@ test "lex_number reads float" {
 ///|
 test "lex_string reads literal string" {
   let input = @pdfio.Input::of_string("(Hello World)")
-  guard @pdfsyntax.PdfSyntax::new().lex_string(input) is LexString(s) else {
+  guard @pdfsyntax.lex_string(input) is LexString(s) else {
     fail("expected string")
   }
   inspect(s, content="Hello World")
@@ -104,7 +104,7 @@ test "lex_string reads literal string" {
 ///|
 test "lex_hexstring reads hex" {
   let input = @pdfio.Input::of_string("<48656C6C6F>")
-  guard @pdfsyntax.PdfSyntax::new().lex_hexstring(input) is LexString(s) else {
+  guard @pdfsyntax.lex_hexstring(input) is LexString(s) else {
     fail("expected string")
   }
   inspect(s, content="Hello")
@@ -117,7 +117,7 @@ test "lex_hexstring reads hex" {
 ///|
 test "lex_comment skips comment" {
   let input = @pdfio.Input::of_string("%This is a comment\nnext")
-  guard @pdfsyntax.PdfSyntax::new().lex_comment(input) is LexComment(_) else {
+  guard @pdfsyntax.lex_comment(input) is LexComment(_) else {
     fail("expected comment")
   }
   // After lex_comment, input is at the newline
@@ -132,7 +132,7 @@ test "lex_comment skips comment" {
 The main `parse` function converts a token array to a `PdfObject`:
 
 ```mbt nocheck
-pub fn PdfSyntax::parse(
+pub fn parse(
   tokens : Array[@pdfgenlex.Token],
   failure_is_ok? : Bool = false,
 ) -> (Int, @pdf.PdfObject) raise
@@ -159,21 +159,21 @@ let tokens = @pdfgenlex.lex_string("1 0 obj << /Type /Page >> endobj")
 ```mbt check
 ///|
 test "string_of_lexeme" {
-  inspect(@pdfsyntax.PdfSyntax::new().string_of_lexeme(LexNull), content="null")
+  inspect(@pdfsyntax.string_of_lexeme(LexNull), content="null")
   inspect(
-    @pdfsyntax.PdfSyntax::new().string_of_lexeme(LexInt(42)),
+    @pdfsyntax.string_of_lexeme(LexInt(42)),
     content="42",
   )
   inspect(
-    @pdfsyntax.PdfSyntax::new().string_of_lexeme(LexName("/Type")),
+    @pdfsyntax.string_of_lexeme(LexName("/Type")),
     content="/Type",
   )
   inspect(
-    @pdfsyntax.PdfSyntax::new().string_of_lexeme(LexLeftSquare),
+    @pdfsyntax.string_of_lexeme(LexLeftSquare),
     content="[",
   )
   inspect(
-    @pdfsyntax.PdfSyntax::new().string_of_lexeme(LexLeftDict),
+    @pdfsyntax.string_of_lexeme(LexLeftDict),
     content="<<",
   )
 }
@@ -187,7 +187,7 @@ test "string_of_lexeme" {
 ///|
 test "dropwhite skips whitespace" {
   let input = @pdfio.Input::of_string("   hello")
-  @pdfsyntax.PdfSyntax::new().dropwhite(input)
+  @pdfsyntax.dropwhite(input)
   inspect((input.input_char)(), content="Some('h')")
 }
 ```
@@ -198,10 +198,10 @@ test "dropwhite skips whitespace" {
 ///|
 test "getuntil_string reads until delimiter" {
   let input = @pdfio.Input::of_string("name/next")
-  let syntax = @pdfsyntax.PdfSyntax::new()
-  let s = syntax.getuntil_string(
+  
+  let s = @pdfsyntax.getuntil_string(
     true,
-    c => syntax.is_whitespace_or_delimiter(c),
+    c => @pdfsyntax.is_whitespace_or_delimiter(c),
     input,
   )
   inspect(s, content="name")
@@ -214,7 +214,7 @@ test "getuntil_string reads until delimiter" {
 ///|
 test "input_line reads until newline" {
   let input = @pdfio.Input::of_string("first line\nsecond line")
-  inspect(@pdfsyntax.PdfSyntax::new().input_line(input), content="first line")
+  inspect(@pdfsyntax.input_line(input), content="first line")
 }
 ```
 
@@ -224,7 +224,7 @@ test "input_line reads until newline" {
 ///|
 test "find_eof locates %%EOF" {
   let input = @pdfio.Input::of_string("content\n%%EOF\n")
-  @pdfsyntax.PdfSyntax::new().find_eof(input)
+  @pdfsyntax.find_eof(input)
   // Input is now positioned at %%EOF
 }
 ```
@@ -236,7 +236,7 @@ test "find_eof locates %%EOF" {
 For parsing complete PDF objects from files:
 
 ```mbt nocheck
-pub fn PdfSyntax::lex_object_at(
+pub fn lex_object_at(
   oneonly : Bool,                             // Stop after one object?
   input : @pdfio.Input,                       // Input stream
   read_stream_data : Bool,                    // Load stream bytes?
@@ -249,7 +249,7 @@ pub fn PdfSyntax::lex_object_at(
 Low-level token-by-token lexing:
 
 ```mbt nocheck
-pub fn PdfSyntax::lex_next(
+pub fn lex_next(
   dict_level : Ref[Int],                      // Dictionary nesting depth
   array_level : Ref[Int],                     // Array nesting depth
   end_on_stream : Bool,                       // Stop at stream?
@@ -265,7 +265,7 @@ pub fn PdfSyntax::lex_next(
 Lex a complete dictionary:
 
 ```mbt nocheck
-pub fn PdfSyntax::lex_dictionary(
+pub fn lex_dictionary(
   minus_one : Bool,       // Adjust position by -1?
   input : @pdfio.Input,
 ) -> Array[@pdfgenlex.Token]
@@ -277,5 +277,5 @@ Parsing functions raise `@pdf.PdfError` on malformed input:
 
 ```mbt nocheck
 // With failure_is_ok=true, returns Null instead of raising
-let (_, obj) = @pdfsyntax.PdfSyntax::new().parse!(tokens, failure_is_ok=true)
+let (_, obj) = @pdfsyntax.parse!(tokens, failure_is_ok=true)
 ```

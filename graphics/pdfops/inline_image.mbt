@@ -43,9 +43,7 @@ fn inline_image_end_ahead(input : @pdfio.Input) -> Bool {
 }
 
 ///|
-fn read_inline_image_encoded_data(
-  input : @pdfio.Input,
-) -> Array[Byte] raise {
+fn read_inline_image_encoded_data(input : @pdfio.Input) -> Array[Byte] raise {
   let (output, data) = @pdfio.Output::of_bytes(4096)
   let mut done = false
   while !done {
@@ -103,7 +101,7 @@ fn lex_inline_image(
 ) -> (@pdf.PdfObject, @pdf.PdfObject?, Array[Byte]) raise {
   @pdfe.debug("lex_inline_image at \{(input.pos_in)()}\n")
   try {
-    let lexemes = PdfSyntax::new().lex_dictionary(true, input)
+    let lexemes = @pdfsyntax.lex_dictionary(true, input)
     let tokens : Array[Token] = Array::new(capacity=lexemes.length() + 2)
     tokens.push(Token::LexLeftDict)
     for token in lexemes {
@@ -113,9 +111,9 @@ fn lex_inline_image(
       }
     }
     tokens.push(Token::LexRightDict)
-    let dict = PdfSyntax::new().parse(tokens).1
+    let dict = @pdfsyntax.parse(tokens).1
     @pdfe.debug("dict was \{dict.to_string()}\n")
-    PdfSyntax::new().dropwhite(input)
+    @pdfsyntax.dropwhite(input)
     let c = (input.input_byte)()
     let c2 = (input.input_byte)()
     if c != 'I' || c2 != 'D' {
@@ -289,15 +287,15 @@ fn lex_inline_image(
         }
       }
     }
-    PdfSyntax::new().dropwhite(input)
+    @pdfsyntax.dropwhite(input)
     let end1 = (input.input_byte)()
     let end2 = (input.input_byte)()
     if end1 != 'E' || end2 != 'I' {
       @pdfe.warn("warning: bad end to inline image \{end1}, \{end2}")
-      PdfSyntax::new().ignoreuntil(true, chr => chr == 'E', input)
-      PdfSyntax::new().ignoreuntil(true, chr => chr == 'I', input)
+      @pdfsyntax.ignoreuntil(true, chr => chr == 'E', input)
+      @pdfsyntax.ignoreuntil(true, chr => chr == 'I', input)
       input.nudge()
-      PdfSyntax::new().dropwhite(input)
+      @pdfsyntax.dropwhite(input)
     }
     let dict_clean = match filter_opt {
       Some(Name(name)) =>
@@ -363,7 +361,7 @@ fn lex_keyword(
   resources : @pdf.PdfObject,
   input : @pdfio.Input,
 ) -> Lexeme raise {
-  match PdfSyntax::new().getuntil_white_or_delimiter_string(input) {
+  match @pdfsyntax.getuntil_white_or_delimiter_string(input) {
     "true" => Obj(Token::LexBool(true))
     "false" => Obj(Token::LexBool(false))
     "BI" => LexInlineImage(lex_inline_image(pdf, resources, input))

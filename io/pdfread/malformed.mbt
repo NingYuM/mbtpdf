@@ -55,7 +55,7 @@ fn read_malformed_pdf_objects(
       break
     }
     let start = (input.pos_in)()
-    let objnum_str = @pdfsyntax.PdfSyntax::new().getuntil_white_or_delimiter_string(
+    let objnum_str = @pdfsyntax.getuntil_white_or_delimiter_string(
       input,
     )
     let objnum = match parse_uint_string(objnum_str) {
@@ -65,8 +65,8 @@ fn read_malformed_pdf_objects(
         continue
       }
     }
-    @pdfsyntax.PdfSyntax::new().dropwhite(input)
-    let gen_str = @pdfsyntax.PdfSyntax::new().getuntil_white_or_delimiter_string(
+    @pdfsyntax.dropwhite(input)
+    let gen_str = @pdfsyntax.getuntil_white_or_delimiter_string(
       input,
     )
     let gen = match parse_uint_string(gen_str) {
@@ -76,8 +76,8 @@ fn read_malformed_pdf_objects(
         continue
       }
     }
-    @pdfsyntax.PdfSyntax::new().dropwhite(input)
-    let kw = @pdfsyntax.PdfSyntax::new().getuntil_white_or_delimiter_string(
+    @pdfsyntax.dropwhite(input)
+    let kw = @pdfsyntax.getuntil_white_or_delimiter_string(
       input,
     )
     if kw != "obj" {
@@ -86,13 +86,13 @@ fn read_malformed_pdf_objects(
     }
     let parsed = try {
       (input.seek_in)(start)
-      let lexemes = @pdfsyntax.PdfSyntax::new().lex_object_at(
+      let lexemes = @pdfsyntax.lex_object_at(
         false,
         input,
         read_stream_data,
         _ => [],
       )
-      let (_, obj) = @pdfsyntax.PdfSyntax::new().parse(
+      let (_, obj) = @pdfsyntax.parse(
         lexemes,
         failure_is_ok=true,
       )
@@ -123,7 +123,7 @@ fn trailer_boundary_ok(input : @pdfio.Input, pos : Int, len : Int) -> Bool {
     (input.seek_in)(pos)
     match c {
       None => true
-      Some(ch) => @pdfsyntax.PdfSyntax::new().is_whitespace_or_delimiter(ch)
+      Some(ch) => @pdfsyntax.is_whitespace_or_delimiter(ch)
     }
   }
   let after_ok = if pos + len >= input.in_channel_length {
@@ -134,7 +134,7 @@ fn trailer_boundary_ok(input : @pdfio.Input, pos : Int, len : Int) -> Bool {
     (input.seek_in)(pos)
     match c {
       None => true
-      Some(ch) => @pdfsyntax.PdfSyntax::new().is_whitespace_or_delimiter(ch)
+      Some(ch) => @pdfsyntax.is_whitespace_or_delimiter(ch)
     }
   }
   before_ok && after_ok
@@ -150,13 +150,13 @@ fn read_malformed_trailerdicts(
   let mut pos = 0
   while pos + len <= input.in_channel_length {
     (input.seek_in)(pos)
-    if @pdfsyntax.PdfSyntax::new().read_chunk(len, input) == target &&
+    if @pdfsyntax.read_chunk(len, input) == target &&
       trailer_boundary_ok(input, pos, len) {
       (input.seek_in)(pos + len)
       try {
-        @pdfsyntax.PdfSyntax::new().dropwhite(input)
-        let lexemes = @pdfsyntax.PdfSyntax::new().lex_dictionary(false, input)
-        let (_, parsed) = @pdfsyntax.PdfSyntax::new().parse(
+        @pdfsyntax.dropwhite(input)
+        let lexemes = @pdfsyntax.lex_dictionary(false, input)
+        let (_, parsed) = @pdfsyntax.parse(
           lexemes,
           failure_is_ok=true,
         )

@@ -1,9 +1,1 @@
-///|
-pub struct PdfSyntax {
-  unit : Unit
-}
-
-///|
-pub fn PdfSyntax::new() -> PdfSyntax {
-  { unit: () }
-}
+// This file intentionally left minimal after removing PdfSyntax type

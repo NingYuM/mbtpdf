@@ -86,9 +86,6 @@ type PdfObject = @pdf.PdfObject
 type Token = @pdfgenlex.Token
 
 ///|
-type PdfSyntax = @pdfsyntax.PdfSyntax
-
-///|
 priv enum Lexeme {
   Op(String)
   Obj(Token)

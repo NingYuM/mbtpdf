@@ -11,10 +11,10 @@ fn is_digit(c : Char) -> Bool {
 
 ///|
 fn read_startxref(input : @pdfio.Input) -> Int raise {
-  @pdfsyntax.PdfSyntax::new().find_eof(input)
-  @pdfsyntax.PdfSyntax::new().backline(input)
-  @pdfsyntax.PdfSyntax::new().ignoreuntil(false, is_digit, input)
-  let digits = @pdfsyntax.PdfSyntax::new().getuntil_string(
+  @pdfsyntax.find_eof(input)
+  @pdfsyntax.backline(input)
+  @pdfsyntax.ignoreuntil(false, is_digit, input)
+  let digits = @pdfsyntax.getuntil_string(
     false,
     c => !is_digit(c),
     input,
@@ -52,13 +52,13 @@ fn read_trailer_dict_from_table(
   input : @pdfio.Input,
   read_stream_data : Bool,
 ) -> @pdf.PdfObject raise {
-  let lexemes = @pdfsyntax.PdfSyntax::new().lex_object_at(
+  let lexemes = @pdfsyntax.lex_object_at(
     true,
     input,
     read_stream_data,
     _ => [],
   )
-  let (_, parsed) = @pdfsyntax.PdfSyntax::new().parse(lexemes)
+  let (_, parsed) = @pdfsyntax.parse(lexemes)
   extract_trailer_dict(parsed)
 }
 
@@ -150,7 +150,7 @@ fn read_pdf_internal(
     while !got_all_xref_sections {
       (input.seek_in)(xref_offset)
       current_revision = current_revision + 1
-      @pdfsyntax.PdfSyntax::new().dropwhite(input)
+      @pdfsyntax.dropwhite(input)
       let skip = match revision {
         None => false
         Some(r) => r > current_revision
@@ -180,7 +180,7 @@ fn read_pdf_internal(
       match trailerdict_current.lookup_immediate("/XRefStm") {
         Some(@pdf.PdfObject::Integer(n)) => {
           (input.seek_in)(n)
-          @pdfsyntax.PdfSyntax::new().dropwhite(input)
+          @pdfsyntax.dropwhite(input)
           let (entries, xref_objnum, _stream_obj) = read_xref_stream(ctx, input)
           if !skip {
             let filtered = entries.filter(pair => pair.0 != xref_objnum)

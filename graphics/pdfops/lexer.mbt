@@ -39,7 +39,7 @@ fn lex_name(input : @pdfio.Input) -> Lexeme raise {
   input.nudge()
   Lexeme::Obj(
     Token::LexName(
-      "/" + PdfSyntax::new().getuntil_white_or_delimiter_string(input),
+      "/" + @pdfsyntax.getuntil_white_or_delimiter_string(input),
     ),
   )
 }
@@ -55,7 +55,7 @@ fn nocontent(input : @pdfio.Input) -> Unit raise {
 
 ///|
 fn lex_number(input : @pdfio.Input) -> Lexeme raise {
-  match (PdfSyntax::new().lex_number(input) : Token) {
+  match (@pdfsyntax.lex_number(input) : Token) {
     LexReal(value) => Obj(Token::LexReal(value))
     LexInt(value) => Obj(Token::LexReal(Double::from_int(value)))
     _ => {
@@ -68,13 +68,13 @@ fn lex_number(input : @pdfio.Input) -> Lexeme raise {
 ///|
 fn get_dictionary(input : @pdfio.Input) -> Lexeme raise {
   Lexeme::PdfObj(
-    PdfSyntax::new().parse(PdfSyntax::new().lex_dictionary(false, input)).1,
+    @pdfsyntax.parse(@pdfsyntax.lex_dictionary(false, input)).1,
   )
 }
 
 ///|
 fn lex_string(input : @pdfio.Input) -> Lexeme raise {
-  match (PdfSyntax::new().lex_string(input) : Token) {
+  match (@pdfsyntax.lex_string(input) : Token) {
     LexString(text) => Obj(Token::LexString(text))
     _ => {
       nocontent(input)
@@ -85,7 +85,7 @@ fn lex_string(input : @pdfio.Input) -> Lexeme raise {
 
 ///|
 fn lex_hexstring(input : @pdfio.Input) -> Lexeme raise {
-  match (PdfSyntax::new().lex_hexstring(input) : Token) {
+  match (@pdfsyntax.lex_hexstring(input) : Token) {
     LexString(text) => Obj(Token::LexString(text))
     _ => {
       nocontent(input)
@@ -101,7 +101,7 @@ fn lex_next(
   input : @pdfio.Input,
 ) -> Lexeme raise {
   try {
-    PdfSyntax::new().dropwhite(input)
+    @pdfsyntax.dropwhite(input)
     let next = input.peek_byte()
     if next == @pdfio.no_more {
       raise LexingEnd
@@ -131,7 +131,7 @@ fn lex_next(
         }
       }
       Some('%') => {
-        ignore(PdfSyntax::new().lex_comment(input))
+        ignore(@pdfsyntax.lex_comment(input))
         LexComment
       }
       _ => raise @pdf.PdfError::Msg("Lexing failure in content stream")

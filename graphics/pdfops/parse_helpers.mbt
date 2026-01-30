@@ -53,7 +53,7 @@ fn lexeme_string(lexeme : Lexeme) -> String? {
 fn lexeme_pdfobj(lexeme : Lexeme) -> @pdf.PdfObject? raise {
   match lexeme {
     Lexeme::PdfObj(obj) => Some(obj)
-    Lexeme::Obj(token) => Some(PdfSyntax::new().parse([token]).1)
+    Lexeme::Obj(token) => Some(@pdfsyntax.parse([token]).1)
     _ => None
   }
 }
