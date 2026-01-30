@@ -8,23 +8,7 @@ import {
 }
 
 // Values
-pub fn backline(@pdfio.Input) -> Unit raise
-
-pub fn dropwhite(@pdfio.Input) -> Unit raise
-
 pub fn find_eof(@pdfio.Input) -> Unit raise
-
-pub fn getuntil(Bool, (Char) -> Bool, @pdfio.Input) -> Array[Char] raise
-
-pub fn getuntil_string(Bool, (Char) -> Bool, @pdfio.Input) -> String raise
-
-pub fn getuntil_white_or_delimiter_string(@pdfio.Input) -> String raise
-
-pub fn ignoreuntil(Bool, (Char) -> Bool, @pdfio.Input) -> Unit raise
-
-pub fn input_line(@pdfio.Input) -> String
-
-pub fn is_whitespace_or_delimiter(Char) -> Bool
 
 pub fn lex_comment(@pdfio.Input) -> @pdftoken.Token raise
 
@@ -51,8 +35,6 @@ pub fn lex_string(@pdfio.Input) -> @pdftoken.Token raise
 pub fn parse(Array[@pdftoken.Token], failure_is_ok? : Bool) -> (Int, @pdf.PdfObject) raise
 
 pub fn parse_single_object(String) -> @pdf.PdfObject raise
-
-pub fn read_chunk(Int, @pdfio.Input) -> String raise
 
 pub fn string_of_lexeme(@pdftoken.Token) -> String
 

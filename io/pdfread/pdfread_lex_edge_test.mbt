@@ -1,14 +1,14 @@
 ///|
 test "getuntil functions error on EOF when delimiter required" {
   let input = @pdfio.Input::of_string("abc")
-  let res_chars : Result[Array[Char], Error] = try? @pdfsyntax.getuntil(
+  let res_chars : Result[Array[Char], Error] = try? @pdfio.getuntil(
     false,
     c => c == 'z',
     input,
   )
   assert_true(res_chars is Err(_))
   let input2 = @pdfio.Input::of_string("q")
-  let res_ignore : Result[Unit, Error] = try? @pdfsyntax.ignoreuntil(
+  let res_ignore : Result[Unit, Error] = try? @pdfio.ignoreuntil(
     false,
     c => c == 'z',
     input2,
@@ -19,7 +19,7 @@ test "getuntil functions error on EOF when delimiter required" {
 ///|
 test "getuntil_white_or_delimiter stops at delimiter" {
   let input = @pdfio.Input::of_string("abc/def")
-  let out = @pdfsyntax.getuntil_white_or_delimiter_string(input)
+  let out = @pdfio.getuntil_white_or_delimiter_string(input)
   assert_eq(out, "abc")
 }
 

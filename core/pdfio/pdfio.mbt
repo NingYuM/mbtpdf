@@ -3,10 +3,6 @@
 pub let no_more : Int = -1
 
 ///|
-/// Immutable core bytes type.
-type CoreBytes = Bytes
-
-///|
 /// Input abstraction (seekable stream of bytes).
 pub struct Input {
   pos_in : () -> Int
@@ -78,7 +74,7 @@ pub fn bytes_of_string(s : String) -> Array[Byte] {
 
 ///|
 /// Make bytes from core bytes.
-pub fn bytes_of_caml_bytes(bytes : CoreBytes) -> Array[Byte] {
+pub fn bytes_of_caml_bytes(bytes : Bytes) -> Array[Byte] {
   bytes.to_array()
 }
 

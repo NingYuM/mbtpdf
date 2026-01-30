@@ -18,9 +18,6 @@ The `pdfio` package provides the fundamental I/O abstractions used throughout th
 pub type Array[Byte] = Array[Byte]
 
 ///|
-pub type CoreBytes = Bytes
-
-///|
 pub type RawBytes = Array[Byte]
 ```
 

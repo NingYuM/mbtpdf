@@ -86,8 +86,8 @@ fn parse_uint_string(s : String) -> Int? {
 ///|
 fn read_xref_line(input : @pdfio.Input) -> XRefLine raise {
   let pos = (input.pos_in)()
-  @pdfsyntax.dropwhite(input)
-  let line = @pdfsyntax.input_line(input)
+  @pdfio.dropwhite(input)
+  let line = @pdfio.input_line(input)
   if line == "xref" || line == "xref " {
     return read_xref_line(input)
   }
@@ -404,7 +404,7 @@ fn read_xref_stream(
 
 ///|
 fn read_int_from_stream(input : @pdfio.Input) -> Int raise {
-  @pdfsyntax.dropwhite(input)
+  @pdfio.dropwhite(input)
   match @pdfsyntax.lex_number(input) {
     LexInt(i) => i
     _ => {

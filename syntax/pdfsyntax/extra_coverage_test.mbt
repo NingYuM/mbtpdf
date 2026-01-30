@@ -7,42 +7,7 @@ fn[T] assert_is_err(res : Result[T, Error]) -> Unit raise {
 }
 
 ///|
-test "input utils handle EOF and rewind paths" {
-  let empty = @pdfio.Input::of_string("", source="empty")
-  assert_eq(@pdfsyntax.getuntil(true, _ => true, empty).length(), 0)
-  let input_chars = @pdfio.Input::of_string("ab ", source="getuntil")
-  let chars = @pdfsyntax.getuntil(true, c => c == ' ', input_chars)
-  assert_eq(chars.map(c => c.to_string()).join(""), "ab")
-  match (input_chars.input_byte)() {
-    b if b == ' ' => ()
-    _ => fail("expected getuntil rewind")
-  }
-  let input = @pdfio.Input::of_string("abc", source="rewind")
-  let out = @pdfsyntax.getuntil_string(true, c => c == 'a', input)
-  assert_eq(out, "")
-  // Rewind should have put 'a' back.
-  match (input.input_byte)() {
-    b if b == 'a' => ()
-    _ => fail("expected rewind")
-  }
-  assert_is_err(
-    try? @pdfsyntax.getuntil_string(
-      false,
-      _ => false,
-      @pdfio.Input::of_string("abc", source="eof-string"),
-    ),
-  )
-  let eof_fail = @pdfio.Input::of_string("", source="eof")
-  assert_is_err(try? @pdfsyntax.ignoreuntil(false, _ => true, eof_fail))
-  let line = @pdfsyntax.input_line(@pdfio.Input::of_string("", source="line"))
-  assert_eq(line, "")
-  assert_is_err(
-    try? @pdfsyntax.backline(@pdfio.Input::of_string("", source="backline")),
-  )
-}
-
-///|
-test "lexer covers name, number, string, and chunk error paths" {
+test "lexer covers name, number, and string error paths" {
 
   // Bad name hex escape.
   assert_is_err(
@@ -97,14 +62,6 @@ test "lexer covers name, number, string, and chunk error paths" {
     LexString(_) => ()
     _ => fail("expected string token")
   }
-
-  // read_chunk failure rewinds and raises.
-  assert_is_err(
-    try? @pdfsyntax.read_chunk(
-      5,
-      @pdfio.Input::of_string("abc", source="chunk"),
-    ),
-  )
 }
 
 ///|

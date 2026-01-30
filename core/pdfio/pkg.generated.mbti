@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn backline(Input) -> Unit raise
+
 pub fn bget(Array[Byte], Int) -> Int
 
 pub fn bget_unsafe(Array[Byte], Int) -> Int
@@ -34,13 +36,35 @@ pub fn copybytes(Array[Byte]) -> Array[Byte]
 
 pub fn debug_next_n_chars(Int, Input) -> Unit
 
+pub fn dropwhite(Input) -> Unit raise
+
+pub fn getuntil(Bool, (Char) -> Bool, Input) -> Array[Char] raise
+
+pub fn getuntil_string(Bool, (Char) -> Bool, Input) -> String raise
+
+pub fn getuntil_white_or_delimiter_string(Input) -> String raise
+
+pub fn ignoreuntil(Bool, (Char) -> Bool, Input) -> Unit raise
+
+pub fn input_line(Input) -> String
+
 pub fn int_array_of_bytes(Array[Byte]) -> Array[Int]
 
 pub fn int_array_of_string(String) -> Array[Int]
 
+pub fn is_delimiter(Char) -> Bool
+
+pub fn is_newline(Char) -> Bool
+
+pub fn is_whitespace(Char) -> Bool
+
+pub fn is_whitespace_or_delimiter(Char) -> Bool
+
 pub fn mkbytes(Int) -> Array[Byte]
 
 pub let no_more : Int
+
+pub fn read_chunk(Int, Input) -> String raise
 
 pub fn string_of_bytes(Array[Byte]) -> String
 

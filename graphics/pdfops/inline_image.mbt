@@ -113,7 +113,7 @@ fn lex_inline_image(
     tokens.push(Token::LexRightDict)
     let dict = @pdfsyntax.parse(tokens).1
     @pdfe.debug("dict was \{dict.to_string()}\n")
-    @pdfsyntax.dropwhite(input)
+    @pdfio.dropwhite(input)
     let c = (input.input_byte)()
     let c2 = (input.input_byte)()
     if c != 'I' || c2 != 'D' {
@@ -287,15 +287,15 @@ fn lex_inline_image(
         }
       }
     }
-    @pdfsyntax.dropwhite(input)
+    @pdfio.dropwhite(input)
     let end1 = (input.input_byte)()
     let end2 = (input.input_byte)()
     if end1 != 'E' || end2 != 'I' {
       @pdfe.warn("warning: bad end to inline image \{end1}, \{end2}")
-      @pdfsyntax.ignoreuntil(true, chr => chr == 'E', input)
-      @pdfsyntax.ignoreuntil(true, chr => chr == 'I', input)
+      @pdfio.ignoreuntil(true, chr => chr == 'E', input)
+      @pdfio.ignoreuntil(true, chr => chr == 'I', input)
       input.nudge()
-      @pdfsyntax.dropwhite(input)
+      @pdfio.dropwhite(input)
     }
     let dict_clean = match filter_opt {
       Some(Name(name)) =>
@@ -361,7 +361,7 @@ fn lex_keyword(
   resources : @pdf.PdfObject,
   input : @pdfio.Input,
 ) -> Lexeme raise {
-  match @pdfsyntax.getuntil_white_or_delimiter_string(input) {
+  match @pdfio.getuntil_white_or_delimiter_string(input) {
     "true" => Obj(Token::LexBool(true))
     "false" => Obj(Token::LexBool(false))
     "BI" => LexInlineImage(lex_inline_image(pdf, resources, input))

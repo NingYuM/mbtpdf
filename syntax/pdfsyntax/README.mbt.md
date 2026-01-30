@@ -169,7 +169,7 @@ test "string_of_lexeme" {
 ///|
 test "dropwhite skips whitespace" {
   let input = @pdfio.Input::of_string("   hello")
-  @pdfsyntax.dropwhite(input)
+  @pdfio.dropwhite(input)
   inspect((input.input_char)(), content="Some('h')")
 }
 ```
@@ -180,9 +180,9 @@ test "dropwhite skips whitespace" {
 ///|
 test "getuntil_string reads until delimiter" {
   let input = @pdfio.Input::of_string("name/next")
-  let s = @pdfsyntax.getuntil_string(
+  let s = @pdfio.getuntil_string(
     true,
-    c => @pdfsyntax.is_whitespace_or_delimiter(c),
+    c => @pdfio.is_whitespace_or_delimiter(c),
     input,
   )
   inspect(s, content="name")
@@ -195,7 +195,7 @@ test "getuntil_string reads until delimiter" {
 ///|
 test "input_line reads until newline" {
   let input = @pdfio.Input::of_string("first line\nsecond line")
-  inspect(@pdfsyntax.input_line(input), content="first line")
+  inspect(@pdfio.input_line(input), content="first line")
 }
 ```
 
