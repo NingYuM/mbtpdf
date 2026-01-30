@@ -27,7 +27,7 @@ fn parse_digits(chars : StringView, start : Int, len : Int) -> Int? {
     if c < '0' || c > '9' {
       return None
     }
-    value = value * 10 + (c.to_int() - '0'.to_int())
+    value = value * 10 + (c.to_int() - '0')
   }
   Some(value)
 }
@@ -78,7 +78,7 @@ fn parse_uint_string(s : String) -> Int? {
     if c < '0' || c > '9' {
       return None
     }
-    value = value * 10 + (c.to_int() - '0'.to_int())
+    value = value * 10 + (c.to_int() - '0')
   }
   Some(value)
 }

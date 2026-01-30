@@ -15,7 +15,7 @@ test "input utils handle EOF and rewind paths" {
   let chars = syn.getuntil(true, c => c == ' ', input_chars)
   assert_eq(chars.map(c => c.to_string()).join(""), "ab")
   match (input_chars.input_byte)() {
-    b if b == ' '.to_int() => ()
+    b if b == ' ' => ()
     _ => fail("expected getuntil rewind")
   }
   let input = @pdfio.Input::of_string("abc", source="rewind")
@@ -23,7 +23,7 @@ test "input utils handle EOF and rewind paths" {
   assert_eq(out, "")
   // Rewind should have put 'a' back.
   match (input.input_byte)() {
-    b if b == 'a'.to_int() => ()
+    b if b == 'a' => ()
     _ => fail("expected rewind")
   }
   assert_is_err(

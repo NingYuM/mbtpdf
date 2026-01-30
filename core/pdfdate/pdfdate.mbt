@@ -76,7 +76,7 @@ fn parse_digits(
     if !is_digit(ch) {
       raise BadDate
     }
-    value = value * 10 + (ch.to_int() - '0'.to_int())
+    value = value * 10 + (ch.to_int() - '0')
   }
   (value, pos + count)
 }
@@ -90,8 +90,8 @@ fn optional_twochar_no_tz(
   if pos + 1 < chars.length() &&
     is_digit(chars[pos]) &&
     is_digit(chars[pos + 1]) {
-    let value = (chars[pos].to_int() - '0'.to_int()) * 10 +
-      (chars[pos + 1].to_int() - '0'.to_int())
+    let value = (chars[pos].to_int() - '0') * 10 +
+      (chars[pos + 1].to_int() - '0')
     (value, pos + 2)
   } else {
     (def, chars.length())
@@ -153,8 +153,8 @@ fn optional_twochar(
   if pos + 1 < chars.length() &&
     is_digit(chars[pos]) &&
     is_digit(chars[pos + 1]) {
-    let value = (chars[pos].to_int() - '0'.to_int()) * 10 +
-      (chars[pos + 1].to_int() - '0'.to_int())
+    let value = (chars[pos].to_int() - '0') * 10 +
+      (chars[pos + 1].to_int() - '0')
     (value, pos + 2)
   } else {
     (def, chars.length())

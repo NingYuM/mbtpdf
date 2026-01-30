@@ -15,11 +15,11 @@ fn get_streamchar(input : @pdfio.Input) -> Char raise {
 ///|
 fn hex_value(c : Char) -> Int? {
   if c >= '0' && c <= '9' {
-    Some(c.to_int() - '0'.to_int())
+    Some(c.to_int() - '0')
   } else if c >= 'a' && c <= 'f' {
-    Some(c.to_int() - 'a'.to_int() + 10)
+    Some(c.to_int() - 'a' + 10)
   } else if c >= 'A' && c <= 'F' {
-    Some(c.to_int() - 'A'.to_int() + 10)
+    Some(c.to_int() - 'A' + 10)
   } else {
     None
   }

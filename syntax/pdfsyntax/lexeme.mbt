@@ -141,7 +141,7 @@ fn parse_signed_int(value : String) -> Int {
         if c < '0' || c > '9' {
           break
         }
-        result = result * 10 + (c.to_int() - '0'.to_int())
+        result = result * 10 + (c.to_int() - '0')
       }
       None => break
     }

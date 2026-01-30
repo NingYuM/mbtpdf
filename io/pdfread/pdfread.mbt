@@ -175,7 +175,7 @@ fn read_header(ctx : PdfRead, input : @pdfio.Input) -> (Int, Int) raise {
   fn digits_to_int(digits : Array[Char]) -> Int {
     let mut value = 0
     for d in digits {
-      value = value * 10 + (d.to_int() - '0'.to_int())
+      value = value * 10 + (d.to_int() - '0')
     }
     value
   }
@@ -214,7 +214,7 @@ fn read_header(ctx : PdfRead, input : @pdfio.Input) -> (Int, Int) raise {
         (ctx.logger)("setting offset to \{pos}\n")
       }
       (input.set_offset)(pos)
-      return (major_char.to_int() - '0'.to_int(), digits_to_int(minor_digits))
+      return (major_char.to_int() - '0', digits_to_int(minor_digits))
     }
     pos = pos + 1
   }

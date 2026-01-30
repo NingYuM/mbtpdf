@@ -30,7 +30,7 @@ fn inline_image_end_ahead(input : @pdfio.Input) -> Bool {
   if b1 == @pdfio.no_more || b2 == @pdfio.no_more {
     return false
   }
-  if b1 != 'E'.to_int() || b2 != 'I'.to_int() {
+  if b1 != 'E' || b2 != 'I' {
     return false
   }
   if b3 == @pdfio.no_more {
@@ -118,7 +118,7 @@ fn lex_inline_image(
     PdfSyntax::new().dropwhite(input)
     let c = (input.input_byte)()
     let c2 = (input.input_byte)()
-    if c != 'I'.to_int() || c2 != 'D'.to_int() {
+    if c != 'I' || c2 != 'D' {
       @pdfe.debug("Did not recognise beginning of inline image ID\n")
       nocontent(input)
     }
@@ -292,7 +292,7 @@ fn lex_inline_image(
     PdfSyntax::new().dropwhite(input)
     let end1 = (input.input_byte)()
     let end2 = (input.input_byte)()
-    if end1 != 'E'.to_int() || end2 != 'I'.to_int() {
+    if end1 != 'E' || end2 != 'I' {
       @pdfe.warn("warning: bad end to inline image \{end1}, \{end2}")
       PdfSyntax::new().ignoreuntil(true, chr => chr == 'E', input)
       PdfSyntax::new().ignoreuntil(true, chr => chr == 'I', input)

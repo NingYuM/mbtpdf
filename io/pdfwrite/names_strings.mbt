@@ -1,16 +1,16 @@
 ///|
 fn is_delimiter_byte(b : Int) -> Bool {
   match b {
-    b if b == '('.to_int() => true
-    b if b == ')'.to_int() => true
-    b if b == '<'.to_int() => true
-    b if b == '>'.to_int() => true
-    b if b == '['.to_int() => true
-    b if b == ']'.to_int() => true
-    b if b == '{'.to_int() => true
-    b if b == '}'.to_int() => true
-    b if b == '/'.to_int() => true
-    b if b == '%'.to_int() => true
+    b if b == '(' => true
+    b if b == ')' => true
+    b if b == '<' => true
+    b if b == '>' => true
+    b if b == '[' => true
+    b if b == ']' => true
+    b if b == '{' => true
+    b if b == '}' => true
+    b if b == '/' => true
+    b if b == '%' => true
     _ => false
   }
 }
@@ -45,7 +45,7 @@ fn needs_processing_name(bytes : @pdfio.MutableBytes) -> Bool {
   }
   for i in 1..<bytes.length() {
     let b = bytes[i].to_int()
-    if b < 33 || b > 126 || is_delimiter_byte(b) || b == '#'.to_int() {
+    if b < 33 || b > 126 || is_delimiter_byte(b) || b == '#' {
       return true
     }
   }
@@ -69,7 +69,7 @@ fn make_pdf_name(ctx : PdfWrite, name : String) -> String {
   sb.write_char('/')
   for i in 1..<bytes.length() {
     let b = bytes[i].to_int()
-    if b < 33 || b > 126 || is_delimiter_byte(b) || b == '#'.to_int() {
+    if b < 33 || b > 126 || is_delimiter_byte(b) || b == '#' {
       sb.write_char('#')
       sb.write_char(hex_digit(b / 16))
       sb.write_char(hex_digit(b % 16))

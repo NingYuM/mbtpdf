@@ -1,9 +1,9 @@
 ///|
 fn hex_value(c : Char) -> Int? {
   match c {
-    '0'..='9' => Some(c.to_int() - '0'.to_int())
-    'a'..='f' => Some(10 + c.to_int() - 'a'.to_int())
-    'A'..='F' => Some(10 + c.to_int() - 'A'.to_int())
+    '0'..='9' => Some(c.to_int() - '0')
+    'a'..='f' => Some(10 + c.to_int() - 'a')
+    'A'..='F' => Some(10 + c.to_int() - 'A')
     _ => None
   }
 }
@@ -118,7 +118,7 @@ pub fn PdfSyntax::lex_string(
   let bytes : @pdfio.MutableBytes = Array::new()
   let mut paren = 1
   let first = (input.input_byte)()
-  if first != '('.to_int() {
+  if first != '(' {
     raise @pdf.PdfError::Msg("lex_string: expected '('")
   }
   while paren > 0 {
@@ -180,7 +180,7 @@ pub fn PdfSyntax::lex_string(
             let octal = digits.map(c => c.to_string()).join("")
             let mut value = 0
             for ch in octal {
-              value = value * 8 + (ch.to_int() - '0'.to_int())
+              value = value * 8 + (ch.to_int() - '0')
             }
             bytes.push(value.to_byte())
           }
@@ -534,7 +534,7 @@ pub fn PdfSyntax::lex_next(
       '<' => {
         input.nudge()
         match input.peek_byte() {
-          b2 if b2 == '<'.to_int() => {
+          b2 if b2 == '<' => {
             input.nudge()
             dict_level.val = dict_level.val + 1
             LexLeftDict
@@ -548,7 +548,7 @@ pub fn PdfSyntax::lex_next(
       '>' => {
         input.nudge()
         match input.peek_byte() {
-          b2 if b2 == '>'.to_int() => {
+          b2 if b2 == '>' => {
             input.nudge()
             dict_level.val = dict_level.val - 1
             LexRightDict

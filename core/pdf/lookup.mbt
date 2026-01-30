@@ -108,7 +108,7 @@ fn array_index_from_key(key : String) -> Int? {
   let mut seen = false
   for ch in rest {
     if ch >= '0' && ch <= '9' {
-      value = value * 10 + (ch.to_int() - '0'.to_int())
+      value = value * 10 + (ch.to_int() - '0')
       seen = true
     } else {
       break

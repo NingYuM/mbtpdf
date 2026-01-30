@@ -220,9 +220,7 @@ fn p_of_perms(key : @pdfio.MutableBytes, perms : String) -> Int? raise {
     remove_padding=false,
   )
   let ints = @pdfio.int_array_of_bytes(ps)
-  if ints[9] != 'a'.to_int() ||
-    ints[10] != 'd'.to_int() ||
-    ints[11] != 'b'.to_int() {
+  if ints[9] != 'a' || ints[10] != 'd' || ints[11] != 'b' {
     None
   } else {
     let p = (ints[0] & 0xff) |
@@ -254,10 +252,10 @@ fn perms_of_p(
     let v = (extendedp >> (n * 8)).to_int()
     b[n] = Int::land(v, 0xff)
   }
-  b[8] = if encrypt_metadata { 'T'.to_int() } else { 'F'.to_int() }
-  b[9] = 'a'.to_int()
-  b[10] = 'd'.to_int()
-  b[11] = 'b'.to_int()
+  b[8] = if encrypt_metadata { 'T' } else { 'F' }
+  b[9] = 'a'
+  b[10] = 'd'
+  b[11] = 'b'
   let key = @pdfio.int_array_of_bytes(
     file_encryption_key_aesv3(iso, utf8pw, o, oe, u, digest~),
   )

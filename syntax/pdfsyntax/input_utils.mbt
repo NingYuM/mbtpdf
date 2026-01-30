@@ -225,11 +225,7 @@ pub fn PdfSyntax::find_eof(
     let c = (input.input_byte)()
     let d = (input.input_byte)()
     let e = (input.input_byte)()
-    if a == '%'.to_int() &&
-      b == '%'.to_int() &&
-      c == 'E'.to_int() &&
-      d == 'O'.to_int() &&
-      e == 'F'.to_int() {
+    if a == '%' && b == '%' && c == 'E' && d == 'O' && e == 'F' {
       found = true
     }
   }

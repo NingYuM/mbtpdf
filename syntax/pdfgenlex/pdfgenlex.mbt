@@ -123,17 +123,17 @@ fn get_string(input : @pdfio.Input) -> String {
     let b = (input.input_byte)()
     if b == @pdfio.no_more {
       done = true
-    } else if b == '\\'.to_int() {
+    } else if b == '\\' {
       let next = (input.input_byte)()
       if next == @pdfio.no_more {
         done = true
-      } else if next == '"'.to_int() {
+      } else if next == '"' {
         bytes.push('"'.to_int().to_byte())
       } else {
         bytes.push('\\'.to_int().to_byte())
         bytes.push(next.to_byte())
       }
-    } else if b == '"'.to_int() {
+    } else if b == '"' {
       bytes.push(b.to_byte())
       done = true
     } else {

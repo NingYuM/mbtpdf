@@ -11,7 +11,7 @@ test "bytes_of_charlist and bytes_of_arraylist" {
 test "copybytes returns an independent buffer" {
   let bytes = bytes_of_string("ab")
   let copied = copybytes(bytes)
-  bset(copied, 0, 'z'.to_int())
+  bset(copied, 0, 'z')
   assert_eq(string_of_bytes(copied), "zb")
   assert_eq(string_of_bytes(bytes), "ab")
 }

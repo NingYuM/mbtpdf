@@ -101,7 +101,7 @@ fn decode_ascii85(input : @pdfio.Input) -> @pdfio.MutableBytes raise CodecError 
           flush_group(digits)
           digits = Array::new(capacity=5)
         }
-        digits.push(c.to_int() - '!'.to_int())
+        digits.push(c.to_int() - '!')
       } else {
         raise Failure::Failure("ASCII85")
       }

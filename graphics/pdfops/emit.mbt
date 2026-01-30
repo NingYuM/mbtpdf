@@ -426,7 +426,7 @@ pub fn Op::concat_bytess(
       @pdfio.bset_unsafe(out, pos, @pdfio.bget_unsafe(bytes, i))
       pos = pos + 1
     }
-    @pdfio.bset_unsafe(out, pos, ' '.to_int())
+    @pdfio.bset_unsafe(out, pos, ' ')
     pos = pos + 1
   }
   out

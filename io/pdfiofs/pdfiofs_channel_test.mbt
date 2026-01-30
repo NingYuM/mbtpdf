@@ -26,7 +26,7 @@ async test "channel io helpers roundtrip" {
   let big = "a".repeat(5000)
   (output.output_string)(big)
   (output.seek_out)(0)
-  (output.output_byte)('b'.to_int())
+  (output.output_byte)('b')
   let out_len = (output.out_channel_length)()
   assert_true(out_len >= 1)
   (output.flush)()

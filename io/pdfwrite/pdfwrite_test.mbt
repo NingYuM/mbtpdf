@@ -28,22 +28,8 @@ test "pdf_to_output writes binary header" {
   let (output, buffer) = @pdfio.Output::of_bytes(128)
   @pdfwrite.PdfWrite::new().pdf_to_output(None, false, pdf, output)
   let bytes = output.extract_bytes(buffer)
-  let expected = [
-    '%'.to_int(),
-    'P'.to_int(),
-    'D'.to_int(),
-    'F'.to_int(),
-    '-'.to_int(),
-    '2'.to_int(),
-    '.'.to_int(),
-    '0'.to_int(),
-    '\n'.to_int(),
-    '%'.to_int(),
-    128,
-    129,
-    130,
-    131,
-    '\n'.to_int(),
+  let expected : Array[Int] = [
+    '%', 'P', 'D', 'F', '-', '2', '.', '0', '\n', '%', 128, 129, 130, 131, '\n',
   ]
   if bytes.length() < expected.length() {
     fail("expected header length \{expected.length()}")
