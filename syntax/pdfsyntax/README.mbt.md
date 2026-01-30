@@ -145,9 +145,7 @@ Returns a tuple of (object number, parsed object). The object number is 0 for st
 ```mbt check
 ///|
 test "parse with object header" {
-  let tokens = @pdfgenlex.PdfGenLex::new().lex_string(
-    "1 0 obj << /Type /Page >> endobj",
-  )
+let tokens = @pdfgenlex.lex_string("1 0 obj << /Type /Page >> endobj")
   // This simplified lexer doesn't handle obj/endobj
   // Full parsing would use lex_object_at
   inspect(tokens.length() > 0, content="true")
