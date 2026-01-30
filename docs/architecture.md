@@ -4,6 +4,26 @@ This module implements a PDF toolchain in MoonBit, centered on an in-memory
 PDF object model with packages for parsing, writing, content manipulation, and
 document-level features (merge, text extraction, encryption, etc.).
 
+## Repository Layout (Top Level)
+
+- `mbtpdf.mbt`: root facade package (re-exports a small set of common entry
+  points like `read_file`/`write_file` and key types).
+- `core/`: foundational types and pure utilities (PDF object model, bytes I/O,
+  transforms, dates, logging, etc.).
+- `syntax/`: lexing/parsing for PDF object syntax.
+- `codec/`: stream filters/codecs (flate, JPEG, etc.).
+- `crypto/`: PDF encryption/decryption helpers.
+- `font/`: font types + AFM/CMap parsing + built-in data tables.
+- `graphics/`: content stream operators, color spaces, functions, images.
+- `document/`: page tree + document structures (bookmarks, annotations, OCG, …).
+- `text/`: text extraction and text-related helpers.
+- `io/`: in-memory read/write services plus filesystem adapters (`*fs`).
+- `cmd/`: CLI entry points (small binaries built on the library packages).
+- `e2e/`: end-to-end tests and fixtures.
+- `scripts/`: repo tooling (coverage gate, dependency audit, dev checks, …).
+- `camlpdf/`: upstream/reference material (not required to use the MoonBit
+  library; kept for comparison/porting context).
+
 ## High-level Flow
 
 Package paths below are shown relative to the module root (for example,
@@ -49,7 +69,7 @@ Layer 6: Content stream + functions
   graphics/pdfops, graphics/pdffun, graphics/pdfspace
 
 Layer 7: Read/Write services
-  io/pdfread, io/pdfwrite
+  io/pdfread, io/pdfreadfs, io/pdfwrite, io/pdfwritefs
 
 Layer 8: Document structure
   document/pdftree, document/pdfpage, document/pdfpagelabels, document/pdfdest,
@@ -63,15 +83,17 @@ Layer 10: CLI
 ```
 
 Key design principles:
-- Mid-layer packages (graphics/pdfops, document/pdfpage, etc.) do not depend on IO services (io/pdfread/io/pdfwrite)
+- Mid-layer packages (graphics/pdfops, document/pdfpage, etc.) do not depend on IO services (`io/pdfread`/`io/pdfwrite`) or filesystem adapters (`io/*fs`)
 - Font types live in `font/pdffont`, allowing `font/pdfstandard14` to avoid depending on `text/pdftext`
 
-Notes / current exceptions:
-- Some higher-level feature packages may include IO convenience dependencies. If stricter layering becomes desirable, consider splitting such packages into a pure “core” package plus an optional IO adapter package.
+Notes:
+- `io/pdfiofs`, `io/pdfreadfs`, and `io/pdfwritefs` are the intended boundary for native filesystem access (`@fs.File`).
+- The root facade package (`mbtpdf.mbt`) depends on `io/*` for convenience; library packages generally avoid `io/*` and should be kept usable with in-memory `@pdfio.Input`/`@pdfio.Output`.
 
 ## Dependency audits
 
-This repo includes a small helper to audit package dependencies declared in `moon.pkg`:
+MoonBit package dependencies are declared in per-package `moon.pkg` files. This
+repo includes a small helper to audit those dependencies:
 
 ```sh
 scripts/deps_audit.sh
@@ -85,8 +107,8 @@ scripts/deps_audit.sh --fail
 
 ```
 cmd/*
-  |-> io/pdfread -----> syntax/pdfsyntax + syntax/pdfgenlex
-  |-> io/pdfwrite ----> codec/pdfcodec + codec/pdfflate (+ crypto/pdfcrypt)
+  |-> io/pdfreadfs ---> io/pdfread -----> syntax/pdfsyntax + syntax/pdfgenlex
+  |-> io/pdfwritefs --> io/pdfwrite ----> codec/pdfcodec + codec/pdfflate (+ crypto/pdfcrypt)
   |-> document/pdfmerge + document/pdfpage + graphics/pdfops + text/pdftext + graphics/pdfimage + ...
         |-> core/pdf (core object graph)
         |-> core/pdftransform + graphics/pdfspace + core/pdfunits + document/pdfpaper
@@ -122,13 +144,15 @@ Base utilities used across most packages:
 - `syntax/pdfgenlex`: token stream definition and token helpers.
 - `syntax/pdfsyntax`: lexer/parser from bytes to `PdfObject`.
 - `io/pdfread`: orchestrates header/xref parsing, object streams, encryption,
-  and lazy loading; entry point for `pdf_of_file`, `pdf_of_input`, etc.
+  and lazy loading; entry points include `pdf_of_input` / `pdf_of_input_lazy`.
+- `io/pdfreadfs`: filesystem/channel helpers that adapt `@fs.File` and filenames
+  into `@pdfio.Input` for `@pdfread`.
 - `codec/pdfcodec` + `codec/pdfflate` + `codec/pdfjpeg`: stream filter decoding and compression.
 - `crypto/pdfcrypt` + `core/pdfcryptprimitives`: decryption and encryption primitives.
   - Example:
     ```mbt
     async fn load() -> @pdf.Pdf {
-      let pdf = @pdfreadfs.PdfReadFs::new().pdf_of_file(None, None, "input.pdf")
+      let pdf = @pdfreadfs.PdfReadFs::new().pdf_of_file(None, None, None, "input.pdf")
       let _ = @pdfread.PdfRead::new().what_encryption(pdf)
       pdf
     }
@@ -138,6 +162,8 @@ Base utilities used across most packages:
 
 - `io/pdfwrite`: serializes `Pdf` to bytes, builds xref tables/streams, optional
   object stream generation, and encryption.
+- `io/pdfwritefs`: filesystem/channel helpers that adapt `@fs.File` and filenames
+  into `@pdfio.Output` for `@pdfwrite`.
 - `codec/pdfcodec`/`codec/pdfflate`: stream encoding for compressed output.
 - `crypto/pdfcrypt`: encryption settings for output.
   - Example:
@@ -201,6 +227,17 @@ Base utilities used across most packages:
 
 See `docs/logging-hygiene.md` for the repo-wide conventions used to keep test output quiet (scoped `@pdfe` helpers, `PdfRead` logger injection, and `@pdfutil` printing suppression).
 
+### Root facade (`mbtpdf`)
+
+If you want a single import for common flows, use the root package:
+
+```mbt
+async fn roundtrip() -> Unit {
+  let pdf = @mbtpdf.read_file("input.pdf")
+  @mbtpdf.write_file(pdf, "output.pdf")
+}
+```
+
 ## Traits Used For Refactoring
 
 MoonBit traits are used as "typeclass-style" abstractions to remove duplicated
@@ -254,7 +291,7 @@ duplicating `match Encryption` logic across packages:
 | Tool | Description |
 |------|-------------|
 | `main` | General-purpose PDF utility |
-| `pdftext` | Extract text content from PDFs |
+| `pdfextracttext` | Extract text content from PDFs |
 | `pdfmergeexample` | Merge multiple PDF documents |
 | `pdfencrypt` | Encrypt PDFs with password protection |
 | `pdfdraft` | Create draft/preview versions of PDFs |
