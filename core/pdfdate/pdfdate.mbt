@@ -202,12 +202,7 @@ pub fn Date::of_pdf_string(s : String) -> Date raise BadDate {
     ['D', ':', ..] => pos = 2
     _ => ()
   }
-  let year = if pos + 5 <= chars.length() &&
-    chars[pos] == '1' &&
-    chars[pos + 1] == '9' &&
-    chars[pos + 2] == '1' &&
-    chars[pos + 3] == '0' &&
-    chars[pos + 4] == '0' {
+  let year = if chars[pos:] is ['1', '9', '1', '0', '0', ..] {
     pos = pos + 5
     2000
   } else {
