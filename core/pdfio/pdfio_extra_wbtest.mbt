@@ -27,32 +27,28 @@ fn[T] assert_is_err(res : Result[T, Error]) -> Unit raise {
 ///|
 test "input utils handle EOF and rewind paths" {
   let empty = Input::of_string("", source="empty")
-  assert_eq(getuntil(true, _ => true, empty).length(), 0)
+  assert_eq(empty.getuntil(true, _ => true).length(), 0)
   let input_chars = Input::of_string("ab ", source="getuntil")
-  let chars = getuntil(true, c => c == ' ', input_chars)
+  let chars = input_chars.getuntil(true, c => c == ' ')
   assert_eq(chars.map(c => c.to_string()).join(""), "ab")
   match (input_chars.input_byte)() {
     b if b == ' ' => ()
     _ => fail("expected getuntil rewind")
   }
   let input = Input::of_string("abc", source="rewind")
-  let out = getuntil_string(true, c => c == 'a', input)
+  let out = input.getuntil_string(true, c => c == 'a')
   assert_eq(out, "")
   match (input.input_byte)() {
     b if b == 'a' => ()
     _ => fail("expected rewind")
   }
   assert_is_err(
-    try? getuntil_string(
-      false,
-      _ => false,
-      Input::of_string("abc", source="eof-string"),
-    ),
+    try? Input::of_string("abc", source="eof-string").getuntil_string(false, _ => false),
   )
   let eof_fail = Input::of_string("", source="eof")
-  assert_is_err(try? ignoreuntil(false, _ => true, eof_fail))
-  let line = input_line(Input::of_string("", source="line"))
+  assert_is_err(try? eof_fail.ignoreuntil(false, _ => true))
+  let line = Input::of_string("", source="line").input_line()
   assert_eq(line, "")
-  assert_is_err(try? backline(Input::of_string("", source="backline")))
-  assert_is_err(try? read_chunk(5, Input::of_string("abc", source="chunk")))
+  assert_is_err(try? Input::of_string("", source="backline").backline())
+  assert_is_err(try? Input::of_string("abc", source="chunk").read_chunk(5))
 }

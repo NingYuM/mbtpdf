@@ -88,7 +88,7 @@ pub fn PdfTextUtil::parse_charset(
   let out = Array::new()
   while true {
     try {
-      @pdfio.dropwhite(input)
+      input.dropwhite()
       match @pdfsyntax.lex_name(input) {
         LexName(name) => if name == "/" { break } else { out.push(name) }
         _ => break

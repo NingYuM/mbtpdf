@@ -1,7 +1,7 @@
 ///|
 test "getuntil_white_or_delimiter_string stops before delimiter" {
   let input = @pdfio.Input::of_string("abc/def")
-  let token = @pdfio.getuntil_white_or_delimiter_string(input)
+  let token = input.getuntil_white_or_delimiter_string()
   assert_eq(token, "abc")
   match (input.input_char)() {
     Some('/') => ()
@@ -12,7 +12,7 @@ test "getuntil_white_or_delimiter_string stops before delimiter" {
 ///|
 test "dropwhite skips whitespace" {
   let input = @pdfio.Input::of_string(" \t\nabc")
-  @pdfio.dropwhite(input)
+  input.dropwhite()
   match (input.input_char)() {
     Some('a') => ()
     _ => fail("expected first non-whitespace char")
@@ -22,7 +22,7 @@ test "dropwhite skips whitespace" {
 ///|
 test "ignoreuntil leaves delimiter" {
   let input = @pdfio.Input::of_string("xx#yy")
-  @pdfio.ignoreuntil(true, c => c == '#', input)
+  input.ignoreuntil(true, c => c == '#')
   match (input.input_char)() {
     Some('#') => ()
     _ => fail("expected # delimiter")
@@ -32,10 +32,7 @@ test "ignoreuntil leaves delimiter" {
 ///|
 test "getuntil fails on eof when required" {
   let input = @pdfio.Input::of_string("abc")
-  let res : Result[Array[Char], Error] = try? @pdfio.getuntil(
-    false,
-    c => c == '/',
-    input,
-  )
+  let res : Result[Array[Char], Error] = try? input.getuntil(false, c => c ==
+    '/')
   assert_true(res is Err(_))
 }

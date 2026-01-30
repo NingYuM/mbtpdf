@@ -55,7 +55,7 @@ fn read_malformed_pdf_objects(
       break
     }
     let start = (input.pos_in)()
-    let objnum_str = @pdfio.getuntil_white_or_delimiter_string(input)
+    let objnum_str = input.getuntil_white_or_delimiter_string()
     let objnum = match parse_uint_string(objnum_str) {
       Some(v) => v
       None => {
@@ -63,8 +63,8 @@ fn read_malformed_pdf_objects(
         continue
       }
     }
-    @pdfio.dropwhite(input)
-    let gen_str = @pdfio.getuntil_white_or_delimiter_string(input)
+    input.dropwhite()
+    let gen_str = input.getuntil_white_or_delimiter_string()
     let gen = match parse_uint_string(gen_str) {
       Some(v) => v
       None => {
@@ -72,8 +72,8 @@ fn read_malformed_pdf_objects(
         continue
       }
     }
-    @pdfio.dropwhite(input)
-    let kw = @pdfio.getuntil_white_or_delimiter_string(input)
+    input.dropwhite()
+    let kw = input.getuntil_white_or_delimiter_string()
     if kw != "obj" {
       (input.seek_in)(start + 1)
       continue
@@ -136,11 +136,10 @@ fn read_malformed_trailerdicts(
   let mut pos = 0
   while pos + len <= input.in_channel_length {
     (input.seek_in)(pos)
-    if @pdfio.read_chunk(len, input) == target &&
-      trailer_boundary_ok(input, pos, len) {
+    if input.read_chunk(len) == target && trailer_boundary_ok(input, pos, len) {
       (input.seek_in)(pos + len)
       try {
-        @pdfio.dropwhite(input)
+        input.dropwhite()
         let lexemes = @pdfsyntax.lex_dictionary(false, input)
         let (_, parsed) = @pdfsyntax.parse(lexemes, failure_is_ok=true)
         let dict = extract_trailer_dict(parsed)

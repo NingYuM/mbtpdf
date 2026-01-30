@@ -71,7 +71,7 @@ pub fn lex_name(input : @pdfio.Input) -> Token raise {
 ///|
 /// Lex a number.
 pub fn lex_number(input : @pdfio.Input) -> Token raise {
-  let s = @pdfio.getuntil_white_or_delimiter_string(input)
+  let s = input.getuntil_white_or_delimiter_string()
   let mut number = s
   if number.length() > 1 {
     match (number.get_char(0), number.get_char(1)) {
@@ -228,24 +228,24 @@ pub fn lex_hexstring(input : @pdfio.Input) -> Token raise {
 ///|
 /// Lex a comment.
 pub fn lex_comment(input : @pdfio.Input) -> Token raise {
-  @pdfio.ignoreuntil(false, @pdfio.is_newline, input)
+  input.ignoreuntil(false, @pdfio.is_newline)
   LexComment("")
 }
 
 ///|
 fn ignoreuntilwhite(input : @pdfio.Input) -> Unit raise {
-  @pdfio.ignoreuntil(true, @pdfio.is_whitespace, input)
+  input.ignoreuntil(true, @pdfio.is_whitespace)
 }
 
 ///|
 fn is_malformed(input : @pdfio.Input) -> Bool {
   try {
-    if @pdfio.read_chunk(9, input) == "endstream" {
+    if input.read_chunk(9) == "endstream" {
       false
-    } else if @pdfio.read_chunk(10, input) == "\nendstream" ||
-      @pdfio.read_chunk(10, input) == "\rendstream" {
+    } else if input.read_chunk(10) == "\nendstream" ||
+      input.read_chunk(10) == "\rendstream" {
       false
-    } else if @pdfio.read_chunk(11, input) == "\r\nendstream" {
+    } else if input.read_chunk(11) == "\r\nendstream" {
       false
     } else {
       true
@@ -258,14 +258,10 @@ fn is_malformed(input : @pdfio.Input) -> Bool {
 ///|
 fn skip_stream_beginning(input : @pdfio.Input) -> Unit raise {
   ignoreuntilwhite(input)
-  @pdfio.ignoreuntil(
-    true,
-    c => {
-      let v = c.to_int()
-      v != 32 && v != 0 && v != 12 && v != 9
-    },
-    input,
-  )
+  input.ignoreuntil(true, c => {
+    let v = c.to_int()
+    v != 32 && v != 0 && v != 12 && v != 9
+  })
   let first = (input.input_byte)()
   if first == '\r'.to_int() {
     let second = (input.input_byte)()
@@ -283,7 +279,7 @@ fn skip_stream_beginning(input : @pdfio.Input) -> Unit raise {
 fn find_endstream(input : @pdfio.Input) -> Int {
   fn match_chunk(s : String, input : @pdfio.Input) -> Bool {
     let pos = (input.pos_in)()
-    let ok = try @pdfio.read_chunk(s.length(), input) == s catch {
+    let ok = try input.read_chunk(s.length()) == s catch {
       _ => false
     }
     (input.seek_in)(pos)
@@ -312,7 +308,7 @@ fn find_endstream(input : @pdfio.Input) -> Int {
 
 ///|
 pub fn lex_keyword(input : @pdfio.Input) -> Token raise {
-  let kw = @pdfio.getuntil_white_or_delimiter_string(input)
+  let kw = input.getuntil_white_or_delimiter_string()
   match kw {
     "obj" => LexObj
     "endobj" => LexEndObj
@@ -465,7 +461,7 @@ pub fn lex_next(
   lexobj : (Int) -> Array[Token] raise,
 ) -> Token {
   try {
-    @pdfio.dropwhite(input)
+    input.dropwhite()
     let raw = (input.input_byte)()
     if raw == @pdfio.no_more {
       return StopLexing

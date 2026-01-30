@@ -37,9 +37,7 @@ fn strip_dict_markers(value : String) -> String {
 ///|
 fn lex_name(input : @pdfio.Input) -> Lexeme raise {
   input.nudge()
-  Lexeme::Obj(
-    Token::LexName("/" + @pdfio.getuntil_white_or_delimiter_string(input)),
-  )
+  Lexeme::Obj(Token::LexName("/" + input.getuntil_white_or_delimiter_string()))
 }
 
 ///|
@@ -97,7 +95,7 @@ fn lex_next(
   input : @pdfio.Input,
 ) -> Lexeme raise {
   try {
-    @pdfio.dropwhite(input)
+    input.dropwhite()
     let next = input.peek_byte()
     if next == @pdfio.no_more {
       raise LexingEnd

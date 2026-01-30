@@ -6,8 +6,6 @@ import {
 }
 
 // Values
-pub fn backline(Input) -> Unit raise
-
 pub fn bget(Array[Byte], Int) -> Int
 
 pub fn bget_unsafe(Array[Byte], Int) -> Int
@@ -36,18 +34,6 @@ pub fn copybytes(Array[Byte]) -> Array[Byte]
 
 pub fn debug_next_n_chars(Int, Input) -> Unit
 
-pub fn dropwhite(Input) -> Unit raise
-
-pub fn getuntil(Bool, (Char) -> Bool, Input) -> Array[Char] raise
-
-pub fn getuntil_string(Bool, (Char) -> Bool, Input) -> String raise
-
-pub fn getuntil_white_or_delimiter_string(Input) -> String raise
-
-pub fn ignoreuntil(Bool, (Char) -> Bool, Input) -> Unit raise
-
-pub fn input_line(Input) -> String
-
 pub fn int_array_of_bytes(Array[Byte]) -> Array[Int]
 
 pub fn int_array_of_string(String) -> Array[Int]
@@ -63,8 +49,6 @@ pub fn is_whitespace_or_delimiter(Char) -> Bool
 pub fn mkbytes(Int) -> Array[Byte]
 
 pub let no_more : Int
-
-pub fn read_chunk(Int, Input) -> String raise
 
 pub fn string_of_bytes(Array[Byte]) -> String
 
@@ -116,13 +100,21 @@ pub struct Input {
   set_offset : (Int) -> Unit
   source : String
 }
+pub fn Input::backline(Self) -> Unit raise
 pub fn Input::bytes_of_input(Self, Int, Int) -> Array[Byte] raise
+pub fn Input::dropwhite(Self) -> Unit raise
+pub fn Input::getuntil(Self, Bool, (Char) -> Bool) -> Array[Char] raise
+pub fn Input::getuntil_string(Self, Bool, (Char) -> Bool) -> String raise
+pub fn Input::getuntil_white_or_delimiter_string(Self) -> String raise
+pub fn Input::ignoreuntil(Self, Bool, (Char) -> Bool) -> Unit raise
+pub fn Input::input_line(Self) -> String
 pub fn Input::nudge(Self) -> Unit
 pub fn Input::of_bytes(Array[Byte], source? : String) -> Self
 pub fn Input::of_string(String, source? : String) -> Self
 pub fn Input::peek_byte(Self) -> Int
 pub fn Input::peek_char(Self) -> Char?
 pub fn Input::read_char_back(Self) -> Char?
+pub fn Input::read_chunk(Self, Int) -> String raise
 pub fn Input::read_line(Self) -> String raise
 pub fn Input::read_lines(Self) -> Array[String] raise
 pub fn Input::rewind(Self) -> Unit
