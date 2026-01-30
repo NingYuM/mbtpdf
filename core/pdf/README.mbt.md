@@ -62,7 +62,7 @@ Stream data can be loaded or deferred:
 ```mbt nocheck
 ///|
 pub(all) enum Stream {
-  Got(@pdfio.MutableBytes) // Data in memory
+  Got(Array[Byte]) // Data in memory
   ToGet(ToGet) // Data still on disk
 }
 ```

@@ -20,7 +20,7 @@ pub fn Op::parse_operators(
   resources : @pdf.PdfObject,
   streams : Array[@pdf.PdfObject],
 ) -> Array[Op] raise {
-  let rawstreams : Array[@pdfio.MutableBytes] = Array::new()
+  let rawstreams : Array[Array[Byte]] = Array::new()
   for stream in streams {
     let direct = pdf.direct(stream)
     let r = match direct {

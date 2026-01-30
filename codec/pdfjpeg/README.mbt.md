@@ -27,7 +27,7 @@ Read JPEG data from an input stream, scanning for the JPEG end-of-image marker (
 pub fn PdfJpeg::get_jpeg_data(
   self : PdfJpeg,
   input : @pdfio.Input
-) -> @pdfio.MutableBytes raise
+) -> Array[Byte] raise
 ```
 
 The function:

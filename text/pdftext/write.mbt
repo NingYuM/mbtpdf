@@ -136,7 +136,7 @@ pub fn PdfTextUtil::tounicode_map(
   self : PdfTextUtil,
   start_code : Int,
   us : Array[String],
-) -> @pdfio.MutableBytes {
+) -> Array[Byte] {
   let sb = StringBuilder::new()
   let mut code = start_code
   sb

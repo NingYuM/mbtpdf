@@ -6,7 +6,7 @@ Low-level I/O primitives for reading and writing PDF byte streams.
 
 The `pdfio` package provides the fundamental I/O abstractions used throughout the PDF library. It defines:
 
-- **MutableBytes**: The primary byte buffer type
+- **Array[Byte]**: The primary byte buffer type
 - **Input**: Seekable input stream abstraction
 - **Output**: Seekable output stream abstraction
 - **Bitstream**: MSB-first bit-level reading and writing
@@ -15,13 +15,13 @@ The `pdfio` package provides the fundamental I/O abstractions used throughout th
 
 ```mbt nocheck
 ///|
-pub type MutableBytes = Array[Byte]
+pub type Array[Byte] = Array[Byte]
 
 ///|
 pub type CoreBytes = Bytes
 
 ///|
-pub type RawBytes = MutableBytes
+pub type RawBytes = Array[Byte]
 ```
 
 ### Creating Buffers

@@ -17,7 +17,7 @@ pub fn PdfJpeg::new() -> PdfJpeg {
 pub fn PdfJpeg::get_jpeg_data(
   _self : PdfJpeg,
   input : @pdfio.Input,
-) -> @pdfio.MutableBytes raise {
+) -> Array[Byte] raise {
   let (output, data) = @pdfio.Output::of_bytes(4096)
   let mut fin = false
   let mut last = 0

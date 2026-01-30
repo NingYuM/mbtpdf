@@ -55,8 +55,8 @@ fn build_minimal_pdf_for_encrypt() -> @pdf.Pdf {
 
 ///|
 fn find_subslice(
-  haystack : @pdfio.MutableBytes,
-  needle : @pdfio.MutableBytes,
+  haystack : Array[Byte],
+  needle : Array[Byte],
   start? : Int = 0,
 ) -> Int? {
   if needle.length() == 0 {

@@ -222,11 +222,11 @@ test "aesv3 helpers cover iso branch and length errors" {
   }
 
   // Length error branches.
-  let short_owner_res : Result[@pdfio.MutableBytes, Error] = try? file_encryption_key_aesv3(
+  let short_owner_res : Result[Array[Byte], Error] = try? file_encryption_key_aesv3(
     true, pw, "short", oe, u48,
   )
   assert_true(short_owner_res is Err(_))
-  let short_user_res : Result[@pdfio.MutableBytes, Error] = try? file_encryption_key_aesv3_user(
+  let short_user_res : Result[Array[Byte], Error] = try? file_encryption_key_aesv3_user(
     true, pw, "short", ue,
   )
   assert_true(short_user_res is Err(_))

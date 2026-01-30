@@ -375,7 +375,7 @@ Streams are represented specially to support **lazy loading**:
 
 ```mbt
 pub(all) enum Stream {
-  Got(@pdfio.MutableBytes)  // Data loaded in memory
+  Got(Array[Byte])  // Data loaded in memory
   ToGet(ToGet)              // Data still on disk (deferred)
 }
 

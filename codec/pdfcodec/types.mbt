@@ -67,19 +67,19 @@ pub trait PdfFilterNameDecode {
     ctx : PdfCodec,
     pdf : @pdf.Pdf,
     parms : @pdf.PdfObject?,
-    data : @pdfio.MutableBytes,
+    data : Array[Byte],
     jbig2dec : String?,
-  ) -> @pdfio.MutableBytes raise CodecError
+  ) -> Array[Byte] raise CodecError
 }
 
 ///|
 /// Encode data in FlateDecode.
 pub fn PdfCodec::encode_flate(
   self : PdfCodec,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes {
+  data : Array[Byte],
+) -> Array[Byte] {
   let mut pos = 0
-  let input = (buf : @pdfio.MutableBytes) => {
+  let input = (buf : Array[Byte]) => {
     let remaining = data.length() - pos
     if remaining <= 0 {
       0
@@ -90,8 +90,8 @@ pub fn PdfCodec::encode_flate(
       n
     }
   }
-  let out : @pdfio.MutableBytes = Array::new()
-  let output = (buf : @pdfio.MutableBytes, length : Int) => out.append(
+  let out : Array[Byte] = Array::new()
+  let output = (buf : Array[Byte], length : Int) => out.append(
     buf[:length],
   )
   @pdfflate.PdfFlate::new().compress(

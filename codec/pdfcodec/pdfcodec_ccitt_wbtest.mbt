@@ -5,7 +5,7 @@ let ccitt_ctx : PdfCodec = PdfCodec::new()
 fn bitmap_bytes(
   rows_bits : Array[Array[Int]],
   columns : Int,
-) -> @pdfio.MutableBytes raise {
+) -> Array[Byte] raise {
   let output = @pdfio.BitstreamWrite::new()
   for row in rows_bits {
     assert_eq(row.length(), columns)
@@ -19,8 +19,8 @@ fn bitmap_bytes(
 
 ///|
 fn assert_bytes_eq(
-  left : @pdfio.MutableBytes,
-  right : @pdfio.MutableBytes,
+  left : Array[Byte],
+  right : Array[Byte],
 ) -> Unit raise {
   assert_eq(left.length(), right.length())
   for i in 0..<left.length() {

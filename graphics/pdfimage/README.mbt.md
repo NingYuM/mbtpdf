@@ -15,10 +15,10 @@ Extracted image data.
 ```moonbit nocheck
 ///|
 pub(all) enum Image {
-  JPEG(@pdfio.MutableBytes, Array[Double]?)
-  JPEG2000(@pdfio.MutableBytes, Array[Double]?)
-  JBIG2(@pdfio.MutableBytes, Array[Double]?, Int?)
-  Raw(Int, Int, PixelLayout, @pdfio.MutableBytes)
+  JPEG(Array[Byte], Array[Double]?)
+  JPEG2000(Array[Byte], Array[Double]?)
+  JBIG2(Array[Byte], Array[Double]?, Int?)
+  Raw(Int, Int, PixelLayout, Array[Byte])
 }
 ```
 

@@ -2,7 +2,7 @@
 fn decode_lzw(
   early : Int,
   input : @pdfio.Input,
-) -> @pdfio.MutableBytes raise CodecError {
+) -> Array[Byte] raise CodecError {
   let prefix_code : Array[Int] = Array::make(8192, 0)
   let append_character : Array[Int] = Array::make(8192, 0)
   let mut bit_count = 0
@@ -147,8 +147,8 @@ fn decode_lzw(
 ///|
 fn encode_lzw(
   early : Int,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise CodecError {
+  data : Array[Byte],
+) -> Array[Byte] raise CodecError {
   let clear_code = 256
   let eod_code = 257
   let mut code_length = 9

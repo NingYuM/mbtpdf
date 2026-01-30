@@ -1,6 +1,6 @@
 ///|
 fn read_samples(
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
   count : Int,
   bits_per_sample : Int,
 ) -> Array[Int] {
@@ -13,7 +13,7 @@ fn read_samples(
 }
 
 ///|
-fn read_bits(data : @pdfio.MutableBytes, bit_pos : Ref[Int], bits : Int) -> Int {
+fn read_bits(data : Array[Byte], bit_pos : Ref[Int], bits : Int) -> Int {
   let mut value = 0
   for _ in 0..<bits {
     let byte_index = bit_pos.val / 8

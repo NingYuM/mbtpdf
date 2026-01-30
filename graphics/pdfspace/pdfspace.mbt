@@ -82,7 +82,7 @@ fn get_basic_table_colourspace(space : ColourSpace) -> ColourSpace {
 
 ///|
 fn build_table(
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
   hival : Int,
   components : Int,
 ) -> Map[Int, Array[Int]] raise {
@@ -405,7 +405,7 @@ fn table_bytes(
   table : Map[Int, Array[Int]],
   hival : Int,
   components : Int,
-) -> @pdfio.MutableBytes {
+) -> Array[Byte] {
   let total = if hival >= 0 { (hival + 1) * components } else { 0 }
   let data = @pdfio.mkbytes(total)
   let mut offset = 0

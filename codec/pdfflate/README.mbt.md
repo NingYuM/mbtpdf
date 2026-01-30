@@ -41,8 +41,8 @@ pub fn PdfFlate::compress(
   self : PdfFlate,
   level? : Int,
   header? : Bool,
-  input : (@pdfio.MutableBytes) -> Int,
-  output : (@pdfio.MutableBytes, Int) -> Unit
+  input : (Array[Byte]) -> Int,
+  output : (Array[Byte], Int) -> Unit
 ) -> Unit
 ```
 
@@ -59,8 +59,8 @@ Decompress DEFLATE data using a streaming interface. Supports all DEFLATE block 
 pub fn PdfFlate::uncompress(
   self : PdfFlate,
   header? : Bool,
-  input : (@pdfio.MutableBytes) -> Int,
-  output : (@pdfio.MutableBytes, Int) -> Unit
+  input : (Array[Byte]) -> Int,
+  output : (Array[Byte], Int) -> Unit
 ) -> Unit raise FlateError
 ```
 

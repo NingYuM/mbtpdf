@@ -1,7 +1,7 @@
 ///|
 fn assert_bytes_eq(
-  left : @pdfio.MutableBytes,
-  right : @pdfio.MutableBytes,
+  left : Array[Byte],
+  right : Array[Byte],
 ) -> Unit raise {
   assert_eq(left.length(), right.length())
   for i in 0..<left.length() {
@@ -13,7 +13,7 @@ fn assert_bytes_eq(
 fn bitmap_bytes_from_row_runs(
   rows : Array[Array[Int]],
   start_bit : Int,
-) -> @pdfio.MutableBytes {
+) -> Array[Byte] {
   let output = @pdfio.BitstreamWrite::new()
   for row in rows {
     let mut bit = start_bit
@@ -34,7 +34,7 @@ fn ccitt_roundtrip(
   k : Int,
   columns : Int,
   rows : Int,
-  raw : @pdfio.MutableBytes,
+  raw : Array[Byte],
 ) -> Unit raise {
   let pdf = @pdf.Pdf::empty()
   let decodeparms : @pdf.PdfObject = Dictionary([

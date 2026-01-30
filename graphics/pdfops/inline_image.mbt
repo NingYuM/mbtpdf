@@ -45,7 +45,7 @@ fn inline_image_end_ahead(input : @pdfio.Input) -> Bool {
 ///|
 fn read_inline_image_encoded_data(
   input : @pdfio.Input,
-) -> @pdfio.MutableBytes raise {
+) -> Array[Byte] raise {
   let (output, data) = @pdfio.Output::of_bytes(4096)
   let mut done = false
   while !done {
@@ -71,7 +71,7 @@ fn read_inline_image_encoded_data(
 }
 
 ///|
-fn get_jpeg_data(input : @pdfio.Input) -> @pdfio.MutableBytes raise {
+fn get_jpeg_data(input : @pdfio.Input) -> Array[Byte] raise {
   let (output, data) = @pdfio.Output::of_bytes(4096)
   let mut finished = false
   let mut last = 0
@@ -100,7 +100,7 @@ fn lex_inline_image(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,
   input : @pdfio.Input,
-) -> (@pdf.PdfObject, @pdf.PdfObject?, @pdfio.MutableBytes) raise {
+) -> (@pdf.PdfObject, @pdf.PdfObject?, Array[Byte]) raise {
   @pdfe.debug("lex_inline_image at \{(input.pos_in)()}\n")
   try {
     let lexemes = PdfSyntax::new().lex_dictionary(true, input)

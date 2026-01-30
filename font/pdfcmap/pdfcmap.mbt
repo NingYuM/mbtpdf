@@ -351,7 +351,7 @@ fn pairs_of_section(section : Section) -> Array[(String, String)] {
 }
 
 ///|
-fn extract_specifics(data : @pdfio.MutableBytes) -> Int? {
+fn extract_specifics(data : Array[Byte]) -> Int? {
   let chars = @pdfio.charlist_of_bytes(data)
   let mut i = 0
   while i + wmode_token.length() <= chars.length() {

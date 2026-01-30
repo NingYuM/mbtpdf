@@ -187,7 +187,7 @@ fn hex_digit(value : Int) -> Char {
 }
 
 ///|
-fn needs_processing_name(bytes : @pdfio.MutableBytes) -> Bool {
+fn needs_processing_name(bytes : Array[Byte]) -> Bool {
   if bytes.length() < 2 {
     return false
   }

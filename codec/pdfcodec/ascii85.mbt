@@ -16,7 +16,7 @@ fn ascii85_byte(value : Int64, shift : Int) -> Byte {
 }
 
 ///|
-fn encode_ascii85(stream : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
+fn encode_ascii85(stream : Array[Byte]) -> Array[Byte] {
   let pow85 = ascii85_pow85()
   let size = @pdfio.bytes_size(stream)
   let groups = (size + 3) / 4
@@ -57,7 +57,7 @@ fn encode_ascii85(stream : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
 }
 
 ///|
-fn decode_ascii85(input : @pdfio.Input) -> @pdfio.MutableBytes raise CodecError {
+fn decode_ascii85(input : @pdfio.Input) -> Array[Byte] raise CodecError {
   let pow85 = ascii85_pow85()
   let output = Array::new()
   let mut digits : Array[Int] = Array::new(capacity=5)

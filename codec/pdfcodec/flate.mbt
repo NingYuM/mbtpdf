@@ -2,10 +2,10 @@
 /// Decode data in FlateDecode.
 pub fn PdfCodec::decode_flate(
   _self : PdfCodec,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise CodecError {
+  data : Array[Byte],
+) -> Array[Byte] raise CodecError {
   let mut pos = 0
-  let input = (buf : @pdfio.MutableBytes) => {
+  let input = (buf : Array[Byte]) => {
     let remaining = data.length() - pos
     if remaining <= 0 {
       0
@@ -16,8 +16,8 @@ pub fn PdfCodec::decode_flate(
       n
     }
   }
-  let out : @pdfio.MutableBytes = Array::new()
-  let output = (buf : @pdfio.MutableBytes, length : Int) => out.append(
+  let out : Array[Byte] = Array::new()
+  let output = (buf : Array[Byte], length : Int) => out.append(
     buf[:length],
   )
   try {
@@ -78,8 +78,8 @@ pub fn PdfCodec::encode_pdfstream(
 
   fn process_prediction(
     dict : @pdf.PdfObject,
-    data : @pdfio.MutableBytes,
-  ) -> (@pdf.PdfObject, @pdfio.MutableBytes) raise CodecError {
+    data : Array[Byte],
+  ) -> (@pdf.PdfObject, Array[Byte]) raise CodecError {
     match predictor {
       Some(pred) => {
         let (pred_value, colors, bpc) = match pred {
@@ -109,8 +109,8 @@ pub fn PdfCodec::encode_pdfstream(
 
   fn encode_stream(
     dict : @pdf.PdfObject,
-    data : @pdfio.MutableBytes,
-  ) -> (@pdf.PdfObject, @pdfio.MutableBytes) raise CodecError {
+    data : Array[Byte],
+  ) -> (@pdf.PdfObject, Array[Byte]) raise CodecError {
     let (predicted_dict, predicted_data) = process_prediction(dict, data)
     let encoded = match encoding {
       Encoding::ASCIIHex => encode_asciihex(predicted_data)
@@ -293,9 +293,9 @@ pub impl PdfFilterNameDecode for @pdf.PdfName with decode_stage(
   ctx : PdfCodec,
   pdf : @pdf.Pdf,
   parms : @pdf.PdfObject?,
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
   jbig2dec : String?,
-) -> @pdfio.MutableBytes raise CodecError {
+) -> Array[Byte] raise CodecError {
   if filter_name is PdfName("/FlateDecode" | "/Fl") {
     let mut decoded = ctx.decode_flate(data)
     match parms {
@@ -358,9 +358,9 @@ pub impl PdfFilterNameDecode for @pdf.PdfName with decode_stage(
 /// Decode bytes using filters in dict; returns None when decoder unsupported.
 pub fn PdfCodec::decode_from_bytes(
   self : PdfCodec,
-  bytes : @pdfio.MutableBytes,
+  bytes : Array[Byte],
   dict : @pdf.PdfObject,
-) -> @pdfio.MutableBytes? {
+) -> Array[Byte]? {
   let pdf = @pdf.Pdf::empty()
   let filter_opt = pdf.lookup_direct_orelse("/F", "/Filter", dict)
   let parms_opt = pdf.lookup_direct_orelse("/DP", "/DecodeParms", dict)
@@ -379,11 +379,11 @@ pub fn PdfCodec::decode_from_bytes(
   }
 
   fn decode_stage(
-    bytes : @pdfio.MutableBytes,
+    bytes : Array[Byte],
     filter_name : @pdf.PdfName,
     parms : @pdf.PdfObject?,
-  ) -> @pdfio.MutableBytes? {
-    let decoded_result : Result[@pdfio.MutableBytes, Error] = try? PdfFilterNameDecode::decode_stage(
+  ) -> Array[Byte]? {
+    let decoded_result : Result[Array[Byte], Error] = try? PdfFilterNameDecode::decode_stage(
       filter_name,
       self,
       pdf,

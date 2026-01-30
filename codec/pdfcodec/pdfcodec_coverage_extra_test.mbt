@@ -1,7 +1,7 @@
 ///|
 fn assert_bytes_equal(
-  a : @pdfio.MutableBytes,
-  b : @pdfio.MutableBytes,
+  a : Array[Byte],
+  b : Array[Byte],
 ) -> Unit raise {
   let alen = @pdfio.bytes_size(a)
   let blen = @pdfio.bytes_size(b)
@@ -13,7 +13,7 @@ fn assert_bytes_equal(
 
 ///|
 fn mk_stream(
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
   dict_entries : Array[(String, @pdf.PdfObject)],
 ) -> (@pdf.Pdf, Ref[(@pdf.PdfObject, @pdf.Stream)], @pdf.PdfObject) {
   let pdf = @pdf.Pdf::empty()
@@ -41,7 +41,7 @@ test "decode_from_bytes handles LZW clear codes mid-stream" {
   match
     (
       @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) :
-      @pdfio.MutableBytes?) {
+      Array[Byte]?) {
     Some(decoded) => assert_eq(@pdfio.string_of_bytes(decoded), "AB")
     None => fail("expected LZW decode to succeed")
   }
@@ -62,7 +62,7 @@ test "decode_from_bytes finishes when clear code is followed by EOD" {
   match
     (
       @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) :
-      @pdfio.MutableBytes?) {
+      Array[Byte]?) {
     Some(decoded) => assert_eq(@pdfio.string_of_bytes(decoded), "A")
     None => fail("expected LZW decode to succeed")
   }
@@ -85,7 +85,7 @@ test "decode_from_bytes LZW handles code == next_code (KwKwK)" {
   match
     (
       @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) :
-      @pdfio.MutableBytes?) {
+      Array[Byte]?) {
     Some(decoded) => assert_eq(@pdfio.string_of_bytes(decoded), "AAA")
     None => fail("expected LZW decode to succeed")
   }
@@ -118,7 +118,7 @@ test "decode_from_bytes LZW bumps code length past 9 bits (literal-only stream)"
   match
     (
       @pdfcodec.PdfCodec::new().decode_from_bytes(encoded, dict) :
-      @pdfio.MutableBytes?) {
+      Array[Byte]?) {
     Some(decoded) => assert_eq(@pdfio.string_of_bytes(decoded), "A".repeat(254))
     None => fail("expected LZW decode to succeed")
   }
@@ -358,7 +358,7 @@ test "decode_from_bytes handles non-array DecodeParms for multi-stage filters" {
       @pdfcodec.PdfCodec::new().decode_from_bytes(
         @pdfio.bytes_of_string("abc"),
         dict,
-      ) : @pdfio.MutableBytes?) {
+      ) : Array[Byte]?) {
     Some(bytes) => assert_eq(@pdfio.string_of_bytes(bytes), "abc")
     None => fail("expected Crypt decode to succeed")
   }
@@ -378,7 +378,7 @@ test "decode_from_bytes trims DecodeParms arrays shorter than Filter arrays" {
       @pdfcodec.PdfCodec::new().decode_from_bytes(
         @pdfio.bytes_of_string("xyz"),
         dict,
-      ) : @pdfio.MutableBytes?) {
+      ) : Array[Byte]?) {
     Some(bytes) => assert_eq(@pdfio.string_of_bytes(bytes), "xyz")
     None => fail("expected Crypt decode to succeed")
   }
@@ -659,7 +659,7 @@ test "decode_from_bytes treats null DecodeParms as missing" {
       @pdfcodec.PdfCodec::new().decode_from_bytes(
         @pdfio.bytes_of_string("x"),
         dict,
-      ) : @pdfio.MutableBytes?) {
+      ) : Array[Byte]?) {
     Some(bytes) => assert_eq(@pdfio.string_of_bytes(bytes), "x")
     None => fail("expected Crypt decode to succeed")
   }

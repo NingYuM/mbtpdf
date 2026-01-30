@@ -55,7 +55,7 @@ fn rotr64(x : UInt64, n : Int) -> UInt64 {
 }
 
 ///|
-fn be_u32(bytes : @pdfio.MutableBytes, offset : Int) -> UInt {
+fn be_u32(bytes : Array[Byte], offset : Int) -> UInt {
   let b0 = @pdfio.bget(bytes, offset).reinterpret_as_uint()
   let b1 = @pdfio.bget(bytes, offset + 1).reinterpret_as_uint()
   let b2 = @pdfio.bget(bytes, offset + 2).reinterpret_as_uint()
@@ -64,7 +64,7 @@ fn be_u32(bytes : @pdfio.MutableBytes, offset : Int) -> UInt {
 }
 
 ///|
-fn be_u64(bytes : @pdfio.MutableBytes, offset : Int) -> UInt64 {
+fn be_u64(bytes : Array[Byte], offset : Int) -> UInt64 {
   let mut out : UInt64 = 0
   let mut i = 0
   while i < 8 {
@@ -76,7 +76,7 @@ fn be_u64(bytes : @pdfio.MutableBytes, offset : Int) -> UInt64 {
 }
 
 ///|
-fn sha256_pad(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
+fn sha256_pad(data : Array[Byte]) -> Array[Byte] {
   let len = @pdfio.bytes_size(data)
   let bit_len = UInt64::mul(UInt64::extend_uint(len.reinterpret_as_uint()), 8)
   let pad_len = (56 - (len + 1) % 64 + 64) % 64
@@ -99,7 +99,7 @@ fn sha256_pad(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
 }
 
 ///|
-fn sha512_pad(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
+fn sha512_pad(data : Array[Byte]) -> Array[Byte] {
   let len = @pdfio.bytes_size(data)
   let bit_len = UInt64::mul(UInt64::extend_uint(len.reinterpret_as_uint()), 8)
   let pad_len = (112 - (len + 1) % 128 + 128) % 128
@@ -122,7 +122,7 @@ fn sha512_pad(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
 }
 
 ///|
-fn sha256_bytes(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
+fn sha256_bytes(data : Array[Byte]) -> Array[Byte] {
   let padded = sha256_pad(data)
   let mut h0 : UInt = 0x6a09e667
   let mut h1 : UInt = 0xbb67ae85
@@ -222,10 +222,10 @@ fn sha256_bytes(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
 
 ///|
 fn sha512_bytes(
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
   initial : Array[UInt64],
   out_len : Int,
-) -> @pdfio.MutableBytes {
+) -> Array[Byte] {
   let padded = sha512_pad(data)
   let h = initial.copy()
   let mut offset = 0

@@ -9,9 +9,9 @@ fn name_obj(value : String) -> @pdf.PdfObject {
 ///|
 fn decode_stream(
   filter : @pdf.PdfObject,
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
   parms? : @pdf.PdfObject,
-) -> @pdfio.MutableBytes raise {
+) -> Array[Byte] raise {
   let pdf = @pdf.Pdf::empty()
   let entries : Array[(String, @pdf.PdfObject)] = [
     ("/Length", Integer(@pdfio.bytes_size(data))),
@@ -48,7 +48,7 @@ test "decode ASCIIHex stream skips whitespace" {
 ///|
 test "decode ASCIIHex stream rejects invalid char" {
   let data = @pdfio.bytes_of_string("GG>")
-  let res : Result[@pdfio.MutableBytes, Error] = try? decode_stream(
+  let res : Result[Array[Byte], Error] = try? decode_stream(
     name_obj("/ASCIIHexDecode"),
     data,
   )
@@ -58,7 +58,7 @@ test "decode ASCIIHex stream rejects invalid char" {
 ///|
 test "decode ASCIIHex stream rejects invalid second char" {
   let data = @pdfio.bytes_of_string("4G>")
-  let res : Result[@pdfio.MutableBytes, Error] = try? decode_stream(
+  let res : Result[Array[Byte], Error] = try? decode_stream(
     name_obj("/ASCIIHexDecode"),
     data,
   )
@@ -84,7 +84,7 @@ test "decode ASCII85 stream" {
 ///|
 test "decode ASCII85 stream rejects invalid char" {
   let data = @pdfio.bytes_of_string("v~>")
-  let res : Result[@pdfio.MutableBytes, Error] = try? decode_stream(
+  let res : Result[Array[Byte], Error] = try? decode_stream(
     name_obj("/ASCII85Decode"),
     data,
   )

@@ -273,7 +273,7 @@ fn aes_decrypt_block(
 }
 
 ///|
-fn get_padding(data : @pdfio.MutableBytes) -> Int? {
+fn get_padding(data : Array[Byte]) -> Int? {
   let l = @pdfio.bytes_size(data)
   if l < 16 {
     None
@@ -300,7 +300,7 @@ fn get_padding(data : @pdfio.MutableBytes) -> Int? {
 }
 
 ///|
-fn cutshort(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
+fn cutshort(data : Array[Byte]) -> Array[Byte] {
   let l = @pdfio.bytes_size(data)
   if l == 0 || l < 16 {
     data
@@ -321,7 +321,7 @@ fn cutshort(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
 }
 
 ///|
-fn get_blocks(data : @pdfio.MutableBytes) -> Array[Array[Int]] {
+fn get_blocks(data : Array[Byte]) -> Array[Array[Int]] {
   let l = @pdfio.bytes_size(data)
   let blocks = Array::new()
   let full = if l < 16 { 0 } else { l / 16 }
@@ -355,7 +355,7 @@ fn get_blocks(data : @pdfio.MutableBytes) -> Array[Array[Int]] {
 }
 
 ///|
-fn bytes_of_blocks(blocks : Array[Array[Int]]) -> @pdfio.MutableBytes {
+fn bytes_of_blocks(blocks : Array[Array[Int]]) -> Array[Byte] {
   let out = @pdfio.mkbytes(blocks.length() * 16)
   let mut p = 0
   for block in blocks {
@@ -390,9 +390,9 @@ pub fn PdfCryptPrimitives::aes_decrypt_data(
   _self : PdfCryptPrimitives,
   nk : Int,
   key : Array[Int],
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
   remove_padding? : Bool = true,
-) -> @pdfio.MutableBytes {
+) -> Array[Byte] {
   let (key_schedule, nr) = expand_key(key, nk)
   let len = @pdfio.bytes_size(data)
   if len <= 16 {
@@ -436,9 +436,9 @@ pub fn PdfCryptPrimitives::aes_decrypt_data_ecb(
   _self : PdfCryptPrimitives,
   nk : Int,
   key : Array[Int],
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
   remove_padding? : Bool = true,
-) -> @pdfio.MutableBytes {
+) -> Array[Byte] {
   let (key_schedule, nr) = expand_key(key, nk)
   let size = @pdfio.bytes_size(data)
   if size == 0 {
@@ -475,9 +475,9 @@ pub fn PdfCryptPrimitives::aes_encrypt_data(
   _self : PdfCryptPrimitives,
   nk : Int,
   key : Array[Int],
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
   firstblock? : Array[Int],
-) -> @pdfio.MutableBytes {
+) -> Array[Byte] {
   let (key_schedule, nr) = expand_key(key, nk)
   let iv = match firstblock {
     Some(block) => block
@@ -509,8 +509,8 @@ pub fn PdfCryptPrimitives::aes_encrypt_data_ecb(
   _self : PdfCryptPrimitives,
   nk : Int,
   key : Array[Int],
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes {
+  data : Array[Byte],
+) -> Array[Byte] {
   let (key_schedule, nr) = expand_key(key, nk)
   let size = @pdfio.bytes_size(data)
   if size == 0 {

@@ -25,7 +25,7 @@ pub fn ToGet::length(self : ToGet) -> Int {
 ///|
 /// Stream payload, either in memory or deferred.
 pub(all) enum Stream {
-  Got(@pdfio.MutableBytes)
+  Got(Array[Byte])
   ToGet(ToGet)
 }
 
@@ -33,8 +33,8 @@ pub(all) enum Stream {
 /// Get a stream from disk if it hasn't already been got.
 fn process_deferred_cryption(
   crypt : ToGetCrypt,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise {
+  data : Array[Byte],
+) -> Array[Byte] raise {
   match crypt {
     ToGetCrypt::NoChange => data
     ToGetCrypt::ToDecrypt(saved) =>
@@ -82,7 +82,7 @@ pub fn PdfObject::getstream(self : PdfObject) -> Unit raise {
 /// Find the contents of a stream as bytes.
 pub fn PdfObject::bigarray_of_stream(
   self : PdfObject,
-) -> @pdfio.MutableBytes raise {
+) -> Array[Byte] raise {
   self.getstream()
   match self {
     Stream(r) =>

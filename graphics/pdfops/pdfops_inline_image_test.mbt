@@ -471,7 +471,7 @@ test "parse inline image handles bad filters" {
 }
 
 ///|
-fn concat_bytes(parts : Array[@pdfio.MutableBytes]) -> @pdfio.MutableBytes {
+fn concat_bytes(parts : Array[Array[Byte]]) -> Array[Byte] {
   let mut total = 0
   for part in parts {
     total = total + @pdfio.bytes_size(part)

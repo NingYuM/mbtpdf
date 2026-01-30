@@ -26,7 +26,7 @@ fn hex_value(c : Char) -> Int? {
 }
 
 ///|
-fn encode_asciihex(stream : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
+fn encode_asciihex(stream : Array[Byte]) -> Array[Byte] {
   let hex : Array[Byte] = [
     b'0', b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9', b'A', b'B', b'C',
     b'D', b'E', b'F',
@@ -45,7 +45,7 @@ fn encode_asciihex(stream : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
 ///|
 fn decode_asciihex(
   input : @pdfio.Input,
-) -> @pdfio.MutableBytes raise CodecError {
+) -> Array[Byte] raise CodecError {
   let output = Array::new()
   let mut enddata = false
   try {

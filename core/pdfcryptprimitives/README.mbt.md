@@ -50,8 +50,8 @@ ARC4 stream cipher encryption/decryption. The same function performs both operat
 pub fn PdfCryptPrimitives::crypt(
   self : PdfCryptPrimitives,
   key : Array[Int],
-  data : @pdfio.MutableBytes
-) -> @pdfio.MutableBytes
+  data : Array[Byte]
+) -> Array[Byte]
 ```
 
 ### PdfCryptPrimitives::md5
@@ -61,8 +61,8 @@ MD5 message digest, returning 16 raw bytes.
 ```moonbit nocheck
 pub fn PdfCryptPrimitives::md5(
   self : PdfCryptPrimitives,
-  data : @pdfio.MutableBytes
-) -> @pdfio.MutableBytes
+  data : Array[Byte]
+) -> Array[Byte]
 ```
 
 ### PdfCryptPrimitives::sha256
@@ -107,9 +107,9 @@ pub fn PdfCryptPrimitives::aes_encrypt_data(
   self : PdfCryptPrimitives,
   nk : Int,
   key : Array[Int],
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
   firstblock? : Array[Int]
-) -> @pdfio.MutableBytes
+) -> Array[Byte]
 ```
 
 - `nk`: Key length (4 for AES-128, 8 for AES-256)
@@ -124,9 +124,9 @@ pub fn PdfCryptPrimitives::aes_decrypt_data(
   self : PdfCryptPrimitives,
   nk : Int,
   key : Array[Int],
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
   remove_padding? : Bool
-) -> @pdfio.MutableBytes
+) -> Array[Byte]
 ```
 
 - `nk`: Key length (4 for AES-128, 8 for AES-256)
@@ -167,8 +167,8 @@ pub fn PdfCryptPrimitives::decrypt_stream_data(
   key : Array[Int],
   keylength : Int,
   r : Int,
-  data : @pdfio.MutableBytes
-) -> @pdfio.MutableBytes raise
+  data : Array[Byte]
+) -> Array[Byte] raise
 ```
 
 - `encrypt`: true for encryption, false for decryption

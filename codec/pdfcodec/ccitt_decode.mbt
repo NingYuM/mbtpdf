@@ -796,7 +796,7 @@ fn decode_ccittfax(
   bone : Bool,
   dra : Int,
   input : @pdfio.Input,
-) -> @pdfio.MutableBytes raise CodecError {
+) -> Array[Byte] raise CodecError {
   let _ = eol
   let _ = eob
   let _ = dra

@@ -594,8 +594,8 @@ fn read_run(maxcols : Int, input : @pdfio.Bitstream) -> (Bool, Int) raise {
 fn encode_ccitt(
   _columns : Int,
   _rows : Int,
-  _data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise CodecError {
+  _data : Array[Byte],
+) -> Array[Byte] raise CodecError {
   let columns = _columns
   let rows = _rows
   let data = _data
@@ -745,8 +745,8 @@ fn encode_ccittg4_line(
 fn encode_ccittg4_pure(
   columns : Int,
   rows : Int,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise CodecError {
+  data : Array[Byte],
+) -> Array[Byte] raise CodecError {
   let input = @pdfio.Bitstream::of_input(@pdfio.Input::of_bytes(data))
   let output = @pdfio.BitstreamWrite::new()
   try {
@@ -778,9 +778,9 @@ fn encode_ccittg4_pure(
 fn encode_ccittg4(
   _columns : Int,
   _rows : Int,
-  _data : @pdfio.MutableBytes,
+  _data : Array[Byte],
   im? : String,
-) -> @pdfio.MutableBytes raise CodecError {
+) -> Array[Byte] raise CodecError {
   let columns = _columns
   let rows = _rows
   let data = _data

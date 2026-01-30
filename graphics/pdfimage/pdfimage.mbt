@@ -11,10 +11,10 @@ pub(all) enum PixelLayout {
 
 ///|
 pub(all) enum Image {
-  JPEG(@pdfio.MutableBytes, Array[Double]?)
-  JPEG2000(@pdfio.MutableBytes, Array[Double]?)
-  JBIG2(@pdfio.MutableBytes, Array[Double]?, Int?)
-  Raw(Int, Int, PixelLayout, @pdfio.MutableBytes)
+  JPEG(Array[Byte], Array[Double]?)
+  JPEG2000(Array[Byte], Array[Double]?)
+  JBIG2(Array[Byte], Array[Double]?, Int?)
+  Raw(Int, Int, PixelLayout, Array[Byte])
 } derive(Debug)
 
 ///|
@@ -40,7 +40,7 @@ fn toint(f : Double) -> Int {
 }
 
 ///|
-fn invert_bits(bytes : @pdfio.MutableBytes) -> Unit {
+fn invert_bits(bytes : Array[Byte]) -> Unit {
   for i in 0..<@pdfio.bytes_size(bytes) {
     @pdfio.bset(bytes, i, @pdfio.bget(bytes, i) ^ 255)
   }
@@ -50,7 +50,7 @@ fn invert_bits(bytes : @pdfio.MutableBytes) -> Unit {
 fn decode(
   fs : Array[Double],
   bpc : Int,
-  image : @pdfio.MutableBytes,
+  image : Array[Byte],
 ) -> Unit raise {
   if fs.length() == 0 {
     return
@@ -227,8 +227,8 @@ fn rgb_of_cmyk(c : Int, m : Int, y : Int, k : Int) -> (Int, Int, Int) {
 fn read_cmyk_8bpp_as_rgb24(
   width : Int,
   height : Int,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes {
+  data : Array[Byte],
+) -> Array[Byte] {
   let out = @pdfio.mkbytes(width * height * 3)
   for p in 0..<(width * height) {
     let c = @pdfio.bget(data, p * 4)
@@ -247,8 +247,8 @@ fn read_cmyk_8bpp_as_rgb24(
 fn read_gray_8bpp_as_rgb24(
   width : Int,
   height : Int,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes {
+  data : Array[Byte],
+) -> Array[Byte] {
   let out = @pdfio.mkbytes(width * height * 3)
   for p in 0..<(width * height) {
     let v = @pdfio.bget(data, p)
@@ -263,8 +263,8 @@ fn read_gray_8bpp_as_rgb24(
 fn read_1bpp_as_rgb24(
   width : Int,
   height : Int,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes {
+  data : Array[Byte],
+) -> Array[Byte] {
   let out = @pdfio.mkbytes(width * height * 3)
   let row_bytes = (width + 7) / 8
   let mut out_pos = 0
@@ -287,8 +287,8 @@ fn read_1bpp_as_rgb24(
 fn read_4bpp_gray_as_rgb24(
   width : Int,
   height : Int,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes {
+  data : Array[Byte],
+) -> Array[Byte] {
   let out = @pdfio.mkbytes(width * height * 3)
   let row_bytes = (width + 1) / 2
   let mut out_pos = 0
@@ -312,8 +312,8 @@ fn read_8bpp_indexed_as_rgb24(
   table : Map[Int, Array[Int]],
   width : Int,
   height : Int,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise {
+  data : Array[Byte],
+) -> Array[Byte] raise {
   let out = @pdfio.mkbytes(width * height * 3)
   for x in 0..<(width * height) {
     let key = @pdfio.bget(data, x)
@@ -376,7 +376,7 @@ fn convert_lab_to_rgb(
   p : (Double, Double, Double),
   _q : (Double, Double, Double),
   _rs : Array[Double],
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
 ) -> Unit {
   let (xw, yw, zw) = p
   for idx in 0..<(width * height) {
@@ -405,8 +405,8 @@ fn read_8bpp_lab_indexed_as_rgb24(
   p : (Double, Double, Double),
   q : (Double, Double, Double),
   rs : Array[Double],
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise {
+  data : Array[Byte],
+) -> Array[Byte] raise {
   let out = read_8bpp_indexed_as_rgb24(table, width, height, data)
   convert_lab_to_rgb(width, height, p, q, rs, out)
   out
@@ -417,8 +417,8 @@ fn read_8bpp_cmyk_indexed_as_rgb24(
   table : Map[Int, Array[Int]],
   width : Int,
   height : Int,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise {
+  data : Array[Byte],
+) -> Array[Byte] raise {
   let out = @pdfio.mkbytes(width * height * 3)
   for x in 0..<(width * height) {
     let key = @pdfio.bget(data, x)
@@ -440,8 +440,8 @@ fn read_4bpp_indexed_as_rgb24(
   table : Map[Int, Array[Int]],
   width : Int,
   height : Int,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise {
+  data : Array[Byte],
+) -> Array[Byte] raise {
   let out = @pdfio.mkbytes(width * height * 3)
   let mut pos_in = 0
   let mut pos_out = 0
@@ -490,8 +490,8 @@ fn read_4bpp_cmyk_indexed_as_rgb24(
   table : Map[Int, Array[Int]],
   width : Int,
   height : Int,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise {
+  data : Array[Byte],
+) -> Array[Byte] raise {
   let out = @pdfio.mkbytes(width * height * 3)
   let mut pos_in = 0
   let mut pos_out = 0
@@ -542,8 +542,8 @@ fn read_separation_cmyk_as_rgb24(
   fnn : @pdffun.PdfFunction,
   width : Int,
   height : Int,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise {
+  data : Array[Byte],
+) -> Array[Byte] raise {
   let out = @pdfio.mkbytes(width * height * 3)
   for p in 0..<(width * height) {
     let v = @pdfio.bget(data, p)
@@ -627,7 +627,7 @@ pub fn Image::from_raw(
   bpc : @pdf.PdfObject?,
   width : Int,
   height : Int,
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
 ) -> Image raise {
   let bpc_val = bpc_value(bpc)
   if bpc_val is Some(8) {
@@ -804,7 +804,7 @@ pub fn Image::from_stream_data(
   width : Int,
   height : Int,
   dict : @pdf.PdfObject,
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
 ) -> Image raise {
   let size = @pdfio.bytes_size(data)
   let space = Image::colspace(pdf, dict, resources)

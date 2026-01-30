@@ -1,9 +1,9 @@
 ///|
 fn bytes_slice(
-  bytes : @pdfio.MutableBytes,
+  bytes : Array[Byte],
   start : Int,
   len : Int,
-) -> @pdfio.MutableBytes {
+) -> Array[Byte] {
   let out = @pdfio.mkbytes(len)
   for i in 0..<len {
     out[i] = bytes[start + i]
@@ -12,7 +12,7 @@ fn bytes_slice(
 }
 
 ///|
-fn bytes_concat(parts : Array[@pdfio.MutableBytes]) -> @pdfio.MutableBytes {
+fn bytes_concat(parts : Array[Array[Byte]]) -> Array[Byte] {
   let mut total = 0
   for part in parts {
     total = total + part.length()
@@ -29,7 +29,7 @@ fn bytes_concat(parts : Array[@pdfio.MutableBytes]) -> @pdfio.MutableBytes {
 }
 
 ///|
-fn mod3_bytes(bytes : @pdfio.MutableBytes) -> Int {
+fn mod3_bytes(bytes : Array[Byte]) -> Int {
   let mut x = 0
   for i in 0..<16 {
     x = x + @pdfio.bget(bytes, i)
@@ -95,7 +95,7 @@ fn file_encryption_key_aesv3(
   oe : String,
   u : String,
   digest? : Array[Int],
-) -> @pdfio.MutableBytes raise {
+) -> Array[Byte] raise {
   let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   if o.length() < 48 || u.length() < 48 {
     raise @pdf.PdfError::Msg(
@@ -133,7 +133,7 @@ fn file_encryption_key_aesv3_user(
   utf8pw : String,
   u : String,
   ue : String,
-) -> @pdfio.MutableBytes raise {
+) -> Array[Byte] raise {
   let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   if u.length() < 48 {
     raise @pdf.PdfError::Msg("/U too short in file_encryption_key_aesv3_user")
@@ -208,7 +208,7 @@ fn authenticate_user_password_aesv3(
 }
 
 ///|
-fn p_of_perms(key : @pdfio.MutableBytes, perms : String) -> Int? raise {
+fn p_of_perms(key : Array[Byte], perms : String) -> Int? raise {
   let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   if perms.length() < 16 {
     raise @pdf.PdfError::Msg("Wrong length in /Perms")
@@ -241,7 +241,7 @@ fn perms_of_p(
   oe : String,
   u : String,
   digest : Array[Int],
-) -> @pdfio.MutableBytes raise {
+) -> Array[Byte] raise {
   let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
   let extendedp = UInt64::lor(
     0xffff_ffff_0000_0000,
@@ -265,7 +265,7 @@ fn perms_of_p(
 ///|
 fn make_ue(
   iso : Bool,
-  file_encryption_key : @pdfio.MutableBytes,
+  file_encryption_key : Array[Byte],
   user_pw : String,
   user_validation_salt : String,
   user_key_salt : String,
@@ -294,7 +294,7 @@ fn make_ue(
 ///|
 fn make_oe(
   iso : Bool,
-  file_encryption_key : @pdfio.MutableBytes,
+  file_encryption_key : Array[Byte],
   owner_pw : String,
   owner_validation_salt : String,
   owner_key_salt : String,

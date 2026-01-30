@@ -318,7 +318,7 @@ fn merge_content_streams(pdf : @pdf.Pdf) -> Unit raise {
                         @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, stream)
                         stream.getstream()
                       }
-                      let rawstreams : Array[@pdfio.MutableBytes] = Array::new()
+                      let rawstreams : Array[Array[Byte]] = Array::new()
                       for stream in direct_streams {
                         match stream {
                           @pdf.PdfObject::Stream(r) =>

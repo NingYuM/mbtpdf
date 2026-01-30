@@ -17,7 +17,7 @@ pub fn PdfSyntax::lex_name(
   _self : PdfSyntax,
   input : @pdfio.Input,
 ) -> Token raise {
-  let bytes : @pdfio.MutableBytes = Array::new()
+  let bytes : Array[Byte] = Array::new()
   let _ = (input.input_byte)()
   bytes.push('/'.to_int().to_byte())
   let mut done = false
@@ -115,7 +115,7 @@ pub fn PdfSyntax::lex_string(
   _self : PdfSyntax,
   input : @pdfio.Input,
 ) -> Token raise {
-  let bytes : @pdfio.MutableBytes = Array::new()
+  let bytes : Array[Byte] = Array::new()
   let mut paren = 1
   let first = (input.input_byte)()
   if first != '(' {
@@ -200,7 +200,7 @@ pub fn PdfSyntax::lex_hexstring(
   input : @pdfio.Input,
 ) -> Token raise {
   let _ = (input.input_byte)()
-  let bytes : @pdfio.MutableBytes = Array::new()
+  let bytes : Array[Byte] = Array::new()
   let mut pending : Int? = None
   let mut done = false
   while !done {

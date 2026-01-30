@@ -3,10 +3,6 @@
 pub let no_more : Int = -1
 
 ///|
-/// Mutable byte buffer used throughout the port.
-pub type MutableBytes = Array[Byte]
-
-///|
 /// Immutable core bytes type.
 type CoreBytes = Bytes
 
@@ -36,43 +32,43 @@ pub struct Output {
 
 ///|
 /// Build bytes with the given size, filled with zero.
-pub fn mkbytes(size : Int) -> MutableBytes {
+pub fn mkbytes(size : Int) -> Array[Byte] {
   Array::make(size, (0).to_byte())
 }
 
 ///|
 /// Size of bytes.
-pub fn bytes_size(bytes : MutableBytes) -> Int {
+pub fn bytes_size(bytes : Array[Byte]) -> Int {
   bytes.length()
 }
 
 ///|
 /// Get the value at a position in bytes.
-pub fn bget(bytes : MutableBytes, index : Int) -> Int {
+pub fn bget(bytes : Array[Byte], index : Int) -> Int {
   bytes[index].to_int()
 }
 
 ///|
 /// Like bget, but without bounds checking.
-pub fn bget_unsafe(bytes : MutableBytes, index : Int) -> Int {
+pub fn bget_unsafe(bytes : Array[Byte], index : Int) -> Int {
   bytes.unsafe_get(index).to_int()
 }
 
 ///|
 /// Set the value at a position in bytes.
-pub fn bset(bytes : MutableBytes, index : Int, value : Int) -> Unit {
+pub fn bset(bytes : Array[Byte], index : Int, value : Int) -> Unit {
   bytes[index] = value.to_byte()
 }
 
 ///|
 /// Like bset, but without bounds checking.
-pub fn bset_unsafe(bytes : MutableBytes, index : Int, value : Int) -> Unit {
+pub fn bset_unsafe(bytes : Array[Byte], index : Int, value : Int) -> Unit {
   bytes.unsafe_set(index, value.to_byte())
 }
 
 ///|
 /// Make bytes from a string by taking the low 8 bits of each character.
-pub fn bytes_of_string(s : String) -> MutableBytes {
+pub fn bytes_of_string(s : String) -> Array[Byte] {
   let out = Array::new(capacity=s.length())
   for ch in s {
     out.push(ch.to_int().to_byte())
@@ -82,13 +78,13 @@ pub fn bytes_of_string(s : String) -> MutableBytes {
 
 ///|
 /// Make bytes from core bytes.
-pub fn bytes_of_caml_bytes(bytes : CoreBytes) -> MutableBytes {
+pub fn bytes_of_caml_bytes(bytes : CoreBytes) -> Array[Byte] {
   bytes.to_array()
 }
 
 ///|
 /// Make bytes from an array of integers (each 0..255).
-pub fn bytes_of_list(values : Array[Int]) -> MutableBytes {
+pub fn bytes_of_list(values : Array[Int]) -> Array[Byte] {
   let out = Array::new(capacity=values.length())
   for v in values {
     out.push(v.to_byte())
@@ -98,7 +94,7 @@ pub fn bytes_of_list(values : Array[Int]) -> MutableBytes {
 
 ///|
 /// Make bytes from a character array.
-pub fn bytes_of_charlist(values : Array[Char]) -> MutableBytes {
+pub fn bytes_of_charlist(values : Array[Char]) -> Array[Byte] {
   let out = Array::new(capacity=values.length())
   for v in values {
     out.push(v.to_int().to_byte())
@@ -108,7 +104,7 @@ pub fn bytes_of_charlist(values : Array[Char]) -> MutableBytes {
 
 ///|
 /// Make bytes from a list of integer arrays.
-pub fn bytes_of_arraylist(values : Array[Array[Int]]) -> MutableBytes {
+pub fn bytes_of_arraylist(values : Array[Array[Int]]) -> Array[Byte] {
   let mut total = 0
   for v in values {
     total = total + v.length()
@@ -124,13 +120,13 @@ pub fn bytes_of_arraylist(values : Array[Array[Int]]) -> MutableBytes {
 
 ///|
 /// Make bytes from an integer array.
-pub fn bytes_of_int_array(values : Array[Int]) -> MutableBytes {
+pub fn bytes_of_int_array(values : Array[Int]) -> Array[Byte] {
   bytes_of_list(values)
 }
 
 ///|
 /// Integer array from bytes.
-pub fn int_array_of_bytes(bytes : MutableBytes) -> Array[Int] {
+pub fn int_array_of_bytes(bytes : Array[Byte]) -> Array[Int] {
   bytes.map(b => b.to_int())
 }
 
@@ -154,7 +150,7 @@ pub fn string_of_int_array(values : Array[Int]) -> String {
 
 ///|
 /// Make a string by mapping each byte to a single character.
-pub fn string_of_bytes(bytes : MutableBytes) -> String {
+pub fn string_of_bytes(bytes : Array[Byte]) -> String {
   let chars = Array::new(capacity=bytes.length())
   for b in bytes {
     chars.push(b.to_char())
@@ -164,20 +160,20 @@ pub fn string_of_bytes(bytes : MutableBytes) -> String {
 
 ///|
 /// Make a character array from bytes.
-pub fn charlist_of_bytes(bytes : MutableBytes) -> Array[Char] {
+pub fn charlist_of_bytes(bytes : Array[Byte]) -> Array[Char] {
   bytes.map(b => b.to_char())
 }
 
 ///|
 /// Copy bytes.
-pub fn copybytes(bytes : MutableBytes) -> MutableBytes {
+pub fn copybytes(bytes : Array[Byte]) -> Array[Byte] {
   bytes.copy()
 }
 
 ///|
 /// Build an input from bytes.
 pub fn Input::of_bytes(
-  bytes : MutableBytes,
+  bytes : Array[Byte],
   source? : String = "bytes",
 ) -> Input {
   let mut pos = 0
@@ -222,8 +218,8 @@ pub fn Output::of_write_at(
 ) -> Output {
   let mut pos = 0
   let mut highest_written = -1
-  let single : MutableBytes = mkbytes(1)
-  let buffer : Ref[MutableBytes] = { val: mkbytes(4096) }
+  let single : Array[Byte] = mkbytes(1)
+  let buffer : Ref[Array[Byte]] = { val: mkbytes(4096) }
   let output_bytes = (bytes : Bytes) => {
     for b in bytes {
       if pos > buffer.val.length() - 1 {
@@ -268,8 +264,8 @@ pub fn Output::of_write_at(
 
 ///|
 /// Build an input-output, with an initial buffer size.
-pub fn Output::of_bytes(size : Int) -> (Output, Ref[MutableBytes]) {
-  let data : Ref[MutableBytes] = { val: mkbytes(size) }
+pub fn Output::of_bytes(size : Int) -> (Output, Ref[Array[Byte]]) {
+  let data : Ref[Array[Byte]] = { val: mkbytes(size) }
   (output_of_bytes(data), data)
 }
 
@@ -277,8 +273,8 @@ pub fn Output::of_bytes(size : Int) -> (Output, Ref[MutableBytes]) {
 /// Extract the contents of an input-output in bytes.
 pub fn Output::extract_bytes(
   self : Output,
-  data : Ref[MutableBytes],
-) -> MutableBytes {
+  data : Ref[Array[Byte]],
+) -> Array[Byte] {
   let len = (self.pos_out)()
   let out = mkbytes(len)
   for i in 0..<len {
@@ -376,7 +372,7 @@ pub fn Input::read_lines(self : Input) -> Array[String] raise {
 /// Set bytes o..o+l-1 from input.
 pub fn Input::setinit(
   self : Input,
-  bytes : MutableBytes,
+  bytes : Array[Byte],
   offset : Int,
   length : Int,
 ) -> Unit raise {
@@ -399,7 +395,7 @@ pub fn Input::bytes_of_input(
   self : Input,
   offset : Int,
   length : Int,
-) -> MutableBytes raise {
+) -> Array[Byte] raise {
   (self.seek_in)(offset)
   let out = mkbytes(length)
   self.setinit(out, 0, length)
@@ -416,7 +412,7 @@ pub fn Input::to_string(self : Input) -> String raise {
 /// Write bytes o..o+l-1 to output.
 pub fn Output::getinit(
   self : Output,
-  bytes : MutableBytes,
+  bytes : Array[Byte],
   offset : Int,
   length : Int,
 ) -> Unit raise {
@@ -454,7 +450,7 @@ pub struct BitstreamPosition {
 ///|
 /// Most-significant-bit-first write bitstream (placeholder).
 pub struct BitstreamWrite {
-  bytes : MutableBytes
+  bytes : Array[Byte]
   mut bit : Int
 } derive(Debug)
 
@@ -574,14 +570,14 @@ pub fn BitstreamWrite::align(self : BitstreamWrite) -> Unit {
 
 ///|
 /// Extract bytes from a write bitstream, padding with zeros.
-pub fn BitstreamWrite::bytes(self : BitstreamWrite) -> MutableBytes {
+pub fn BitstreamWrite::bytes(self : BitstreamWrite) -> Array[Byte] {
   self.align()
   self.bytes.copy()
 }
 
 ///|
 /// Internal output builder over bytes.
-fn output_of_bytes(data : Ref[MutableBytes]) -> Output {
+fn output_of_bytes(data : Ref[Array[Byte]]) -> Output {
   let mut pos = 0
   let mut highest_written = -1
   let output_int = (value : Int) => if pos > data.val.length() - 1 {

@@ -35,7 +35,7 @@ pub fn PdfCryptPrimitives::new() -> PdfCryptPrimitives {
 }
 
 ///|
-fn bytes_of_int_arrays(values : Array[Array[Int]]) -> @pdfio.MutableBytes {
+fn bytes_of_int_arrays(values : Array[Array[Int]]) -> Array[Byte] {
   let mut total = 0
   for v in values {
     total = total + v.length()
@@ -94,8 +94,8 @@ pub fn PdfCryptPrimitives::decrypt_stream_data(
   key : Array[Int],
   keylength : Int,
   r : Int,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise {
+  data : Array[Byte],
+) -> Array[Byte] raise {
   if r == 5 || r == 6 {
     let key_bytes = match file_encryption_key {
       Some(k) => @pdfio.int_array_of_string(k)

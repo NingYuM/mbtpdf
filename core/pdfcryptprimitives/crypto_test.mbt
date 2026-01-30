@@ -177,7 +177,7 @@ test "decrypt_stream_data uses file key for r=5 AESV2 and ARC4" {
 ///|
 test "decrypt_stream_data rejects AESV3 when r!=5/6" {
   let ctx = @pdfcryptprimitives.PdfCryptPrimitives::new()
-  let res : Result[@pdfio.MutableBytes, Error] = try? ctx.decrypt_stream_data(
+  let res : Result[Array[Byte], Error] = try? ctx.decrypt_stream_data(
     @pdfcryptprimitives.Encryption::AESV3(false),
     true,
     None,

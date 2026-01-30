@@ -9,7 +9,7 @@
 ///|
 async fn read_data_to_bytes(
   load : async () -> &@io.Data,
-) -> @pdfio.MutableBytes {
+) -> Array[Byte] {
   let data = load()
   data.binary().to_array()
 }
@@ -45,14 +45,14 @@ pub fn output_of_channel(ch : @fs.File) -> @pdfio.Output {
 }
 
 ///|
-pub async fn bytes_of_input_channel(ch : @fs.File) -> @pdfio.MutableBytes {
+pub async fn bytes_of_input_channel(ch : @fs.File) -> Array[Byte] {
   read_data_to_bytes(() => ch.read_all())
 }
 
 ///|
 pub async fn bytes_to_output_channel(
   ch : @fs.File,
-  bytes : @pdfio.MutableBytes,
+  bytes : Array[Byte],
 ) -> Unit {
   let payload = Bytes::from_array(bytes)
   run_async_unit(() => ch.write(payload))

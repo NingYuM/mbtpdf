@@ -48,8 +48,8 @@ test "encode/decode flate stream" {
 ///|
 fn roundtrip_encoding(
   encoding : Encoding,
-  original : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise {
+  original : Array[Byte],
+) -> Array[Byte] raise {
   let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(original))),
@@ -82,7 +82,7 @@ test "encode/decode ASCII85 stream" {
 test "encode/decode ASCII85 roundtrips short chunks (1..3 bytes)" {
   let ctx = @pdfcodec.PdfCodec::new()
   let pdf = @pdf.Pdf::empty()
-  fn roundtrip(original : @pdfio.MutableBytes) -> Unit raise {
+  fn roundtrip(original : Array[Byte]) -> Unit raise {
     let dict : @pdf.PdfObject = Dictionary([
       ("/Length", Integer(@pdfio.bytes_size(original))),
     ])

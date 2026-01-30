@@ -2,7 +2,7 @@
 fn bytes_from_runs(
   start_white : Bool,
   runs : Array[Int],
-) -> @pdfio.MutableBytes {
+) -> Array[Byte] {
   let writer = @pdfio.BitstreamWrite::new()
   let mut white = start_white
   for run in runs {
@@ -28,7 +28,7 @@ fn build_runs() -> Array[Int] {
 }
 
 ///|
-fn bytes_from_rows(rows : Array[Array[Int]]) -> @pdfio.MutableBytes {
+fn bytes_from_rows(rows : Array[Array[Int]]) -> Array[Byte] {
   let writer = @pdfio.BitstreamWrite::new()
   for row in rows {
     let mut white = true
@@ -107,7 +107,7 @@ test "encode_ccitt handles shifted runs" {
 ///|
 test "encode_ccittg4 rejects imagemagick path" {
   let raw = @pdfio.bytes_of_list([0xFF])
-  let res : Result[@pdfio.MutableBytes, Error] = try? encode_ccittg4(
+  let res : Result[Array[Byte], Error] = try? encode_ccittg4(
     8,
     1,
     raw,

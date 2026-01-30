@@ -66,7 +66,7 @@ pub(all) enum Op {
   OpK(Double, Double, Double, Double)
   Opk(Double, Double, Double, Double)
   Opsh(String)
-  InlineImage((@pdf.PdfObject, @pdf.PdfObject?, @pdfio.MutableBytes))
+  InlineImage((@pdf.PdfObject, @pdf.PdfObject?, Array[Byte]))
   OpDo(String)
   OpMP(String)
   OpDP(String, @pdf.PdfObject)
@@ -93,7 +93,7 @@ priv enum Lexeme {
   Op(String)
   Obj(Token)
   PdfObj(PdfObject)
-  LexInlineImage((PdfObject, PdfObject?, @pdfio.MutableBytes))
+  LexInlineImage((PdfObject, PdfObject?, Array[Byte]))
   LexComment
 }
 

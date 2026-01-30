@@ -171,7 +171,7 @@ fn lex_stream(
 pub fn Op::parse_single_stream(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,
-  stream : @pdfio.MutableBytes,
+  stream : Array[Byte],
 ) -> Array[Op] raise {
   let input = @pdfio.Input::of_bytes(stream)
   let lexemes = lex_stream(pdf, resources, input)

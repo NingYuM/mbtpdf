@@ -16,7 +16,7 @@ pub fn PdfFlate::new() -> PdfFlate {
 
 ///|
 priv struct BitReader {
-  data : @pdfio.MutableBytes
+  data : Array[Byte]
   mut byte_pos : Int
   mut bit_pos : Int
 }
@@ -179,7 +179,7 @@ let dist_extra : Array[Int] = [
 
 ///|
 fn copy_from_output(
-  out : @pdfio.MutableBytes,
+  out : Array[Byte],
   distance : Int,
   length : Int,
 ) -> Unit raise FlateError {
@@ -198,7 +198,7 @@ fn copy_from_output(
 ///|
 fn inflate_stored(
   reader : BitReader,
-  out : @pdfio.MutableBytes,
+  out : Array[Byte],
 ) -> Unit raise FlateError {
   reader.align_byte()
   let len = reader.read_u16_le()
@@ -215,11 +215,11 @@ fn inflate_stored(
 ///|
 fn inflate_fixed(
   reader : BitReader,
-  out : @pdfio.MutableBytes,
+  out : Array[Byte],
 ) -> Unit raise FlateError {
   fn decode_loop(
     reader : BitReader,
-    out : @pdfio.MutableBytes,
+    out : Array[Byte],
   ) -> Unit raise FlateError {
     let symbol = decode_symbol(reader, fixed_literal_huffman)
     if symbol < 256 {
@@ -255,7 +255,7 @@ fn inflate_fixed(
 ///|
 fn inflate_dynamic(
   reader : BitReader,
-  out : @pdfio.MutableBytes,
+  out : Array[Byte],
 ) -> Unit raise FlateError {
   let hlit = reader.read_bits(5) + 257
   let hdist = reader.read_bits(5) + 1
@@ -324,7 +324,7 @@ fn inflate_dynamic(
   let dist_huff = build_huffman(dist_lengths)
   fn decode_loop(
     reader : BitReader,
-    out : @pdfio.MutableBytes,
+    out : Array[Byte],
   ) -> Unit raise FlateError {
     let symbol = decode_symbol(reader, lit_huff)
     if symbol < 256 {
@@ -358,13 +358,13 @@ fn inflate_dynamic(
 }
 
 ///|
-fn read_all_input(input : (@pdfio.MutableBytes) -> Int) -> @pdfio.MutableBytes {
+fn read_all_input(input : (Array[Byte]) -> Int) -> Array[Byte] {
   let out = Array::new()
   let buf = @pdfio.mkbytes(4096)
   fn read_more(
-    out : @pdfio.MutableBytes,
-    buf : @pdfio.MutableBytes,
-    input : (@pdfio.MutableBytes) -> Int,
+    out : Array[Byte],
+    buf : Array[Byte],
+    input : (Array[Byte]) -> Int,
   ) -> Unit {
     let n = input(buf)
     if n <= 0 {
@@ -379,7 +379,7 @@ fn read_all_input(input : (@pdfio.MutableBytes) -> Int) -> @pdfio.MutableBytes {
 }
 
 ///|
-fn zlib_start_offset(data : @pdfio.MutableBytes) -> Int raise FlateError {
+fn zlib_start_offset(data : Array[Byte]) -> Int raise FlateError {
   if data.length() < 2 {
     raise FlateError::Error("uncompress", "zlib header too short")
   }
@@ -403,8 +403,8 @@ pub fn PdfFlate::compress(
   _self : PdfFlate,
   level? : Int = 6,
   header? : Bool = true,
-  input : (@pdfio.MutableBytes) -> Int,
-  output : (@pdfio.MutableBytes, Int) -> Unit,
+  input : (Array[Byte]) -> Int,
+  output : (Array[Byte], Int) -> Unit,
 ) -> Unit {
   let _ = level
   let data = read_all_input(input)
@@ -420,7 +420,7 @@ pub fn PdfFlate::compress(
   }
 
   fn write_bytes(
-    data : @pdfio.MutableBytes,
+    data : Array[Byte],
     offset : Int,
     length : Int,
   ) -> Unit {
@@ -434,7 +434,7 @@ pub fn PdfFlate::compress(
     output(chunk, length)
   }
 
-  fn adler32(data : @pdfio.MutableBytes) -> Int {
+  fn adler32(data : Array[Byte]) -> Int {
     let mod_adler = 65521
     let mut s1 = 1
     let mut s2 = 0
@@ -446,7 +446,7 @@ pub fn PdfFlate::compress(
   }
 
   fn write_stored_block(
-    data : @pdfio.MutableBytes,
+    data : Array[Byte],
     offset : Int,
     length : Int,
     is_final : Bool,
@@ -493,16 +493,16 @@ pub fn PdfFlate::compress(
 pub fn PdfFlate::uncompress(
   _self : PdfFlate,
   header? : Bool = true,
-  input : (@pdfio.MutableBytes) -> Int,
-  output : (@pdfio.MutableBytes, Int) -> Unit,
+  input : (Array[Byte]) -> Int,
+  output : (Array[Byte], Int) -> Unit,
 ) -> Unit raise FlateError {
   let data = read_all_input(input)
   let start = if header { zlib_start_offset(data) } else { 0 }
   let reader = { data, byte_pos: start, bit_pos: 0 }
-  let out : @pdfio.MutableBytes = Array::new()
+  let out : Array[Byte] = Array::new()
   fn read_blocks(
     reader : BitReader,
-    out : @pdfio.MutableBytes,
+    out : Array[Byte],
   ) -> Unit raise FlateError {
     let bfinal = reader.read_bits(1)
     let btype = reader.read_bits(2)

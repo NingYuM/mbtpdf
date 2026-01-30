@@ -20,7 +20,7 @@ test "objmap basics" {
 }
 
 ///|
-fn make_stream(dict : PdfObject, data : @pdfio.MutableBytes) -> PdfObject {
+fn make_stream(dict : PdfObject, data : Array[Byte]) -> PdfObject {
   PdfObject::Stream(Ref::new((dict, Stream::Got(data))))
 }
 

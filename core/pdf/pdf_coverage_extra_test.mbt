@@ -37,7 +37,7 @@ test "serialization includes stream data when requested" {
 
 ///|
 test "bigarray_of_stream rejects non-stream objects" {
-  let res : Result[@pdfio.MutableBytes, Error] = try? PdfObject::Integer(0).bigarray_of_stream()
+  let res : Result[Array[Byte], Error] = try? PdfObject::Integer(0).bigarray_of_stream()
   assert_true(res is Err(_))
 }
 

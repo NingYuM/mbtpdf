@@ -1,5 +1,5 @@
 ///|
-fn copy_bytes(bytes : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
+fn copy_bytes(bytes : Array[Byte]) -> Array[Byte] {
   let out = Array::new(capacity=bytes.length())
   out.append(bytes[:])
   out

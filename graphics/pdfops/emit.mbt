@@ -412,8 +412,8 @@ pub fn Op::to_string(self : Op) -> String raise {
 ///|
 /// Concatenate byte streams with whitespace between them.
 pub fn Op::concat_bytess(
-  ss : Array[@pdfio.MutableBytes],
-) -> @pdfio.MutableBytes {
+  ss : Array[Array[Byte]],
+) -> Array[Byte] {
   let mut total = 0
   for bytes in ss {
     total = total + @pdfio.bytes_size(bytes)
@@ -435,7 +435,7 @@ pub fn Op::concat_bytess(
 ///|
 fn stream_of_lexemes(
   oplists : Array[Array[Lexeme]],
-) -> @pdfio.MutableBytes raise {
+) -> Array[Byte] raise {
   let sb = StringBuilder::new()
   let mut prev : String = ""
   for oplist in oplists {
@@ -1034,7 +1034,7 @@ fn parse_operator(
 pub fn Op::parse_stream(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,
-  streams : Array[@pdfio.MutableBytes],
+  streams : Array[Array[Byte]],
 ) -> Array[Op] raise {
   let stream = if streams.length() == 1 {
     streams[0]

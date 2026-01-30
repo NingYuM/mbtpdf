@@ -9,7 +9,7 @@ fn[T] assert_is_err(result : Result[T, Error]) -> Unit raise {
 ///|
 fn make_stream(
   dict : @pdf.PdfObject,
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
 ) -> @pdf.PdfObject {
   @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
 }

@@ -5,8 +5,8 @@ fn decode_predictor(
   _colors : Int,
   _bpc : Int,
   _columns : Int,
-  _stream : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise CodecError {
+  _stream : Array[Byte],
+) -> Array[Byte] raise CodecError {
   let pred = _pred
   let colors = _colors
   let bpc = _bpc
@@ -24,8 +24,8 @@ fn decode_tiff_predictor(
   colors : Int,
   bpc : Int,
   columns : Int,
-  stream : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise CodecError {
+  stream : Array[Byte],
+) -> Array[Byte] raise CodecError {
   if bpc != 8 {
     raise CodecError::DecodeNotSupported("TIFF predictor only supports 8bpc")
   }
@@ -54,8 +54,8 @@ fn decode_png_predictor(
   colors : Int,
   bpc : Int,
   columns : Int,
-  stream : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes raise CodecError {
+  stream : Array[Byte],
+) -> Array[Byte] raise CodecError {
   if bpc != 8 {
     raise CodecError::DecodeNotSupported("PNG predictor only supports 8bpc")
   }
@@ -64,7 +64,7 @@ fn decode_png_predictor(
   let mut pos = 0
   let prev_decoded = Array::make(scanline_width, 0)
   // Output is always <= input length (predictor bytes are dropped).
-  let output : @pdfio.MutableBytes = Array::new(capacity=stream.length())
+  let output : Array[Byte] = Array::new(capacity=stream.length())
   while pos < stream.length() {
     let predictor = stream[pos].to_int()
     pos = pos + 1

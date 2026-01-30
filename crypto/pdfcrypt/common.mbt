@@ -7,7 +7,7 @@ let paddings : Array[Int] = [
 ]
 
 ///|
-fn bytes_of_int_arrays(values : Array[Array[Int]]) -> @pdfio.MutableBytes {
+fn bytes_of_int_arrays(values : Array[Array[Int]]) -> Array[Byte] {
   let mut total = 0
   for v in values {
     total = total + v.length()
@@ -29,7 +29,7 @@ fn int_array_prefix(values : Array[Int], len : Int) -> Array[Int] {
 }
 
 ///|
-fn bytes_prefix(values : @pdfio.MutableBytes, len : Int) -> @pdfio.MutableBytes {
+fn bytes_prefix(values : Array[Byte], len : Int) -> Array[Byte] {
   values[:len].to_array()
 }
 
@@ -39,7 +39,7 @@ fn array_equal(a : Array[Int], b : Array[Int]) -> Bool {
 }
 
 ///|
-fn bytes_equal(a : @pdfio.MutableBytes, b : @pdfio.MutableBytes) -> Bool {
+fn bytes_equal(a : Array[Byte], b : Array[Byte]) -> Bool {
   a[:].equal(b[:])
 }
 

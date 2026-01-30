@@ -30,7 +30,7 @@ fn rotl32(x : UInt, n : Int) -> UInt {
 }
 
 ///|
-fn le_u32(bytes : @pdfio.MutableBytes, offset : Int) -> UInt {
+fn le_u32(bytes : Array[Byte], offset : Int) -> UInt {
   let b0 = @pdfio.bget(bytes, offset).reinterpret_as_uint()
   let b1 = @pdfio.bget(bytes, offset + 1).reinterpret_as_uint()
   let b2 = @pdfio.bget(bytes, offset + 2).reinterpret_as_uint()
@@ -44,7 +44,7 @@ fn add_u32(a : UInt, b : UInt) -> UInt {
 }
 
 ///|
-fn md5_pad(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
+fn md5_pad(data : Array[Byte]) -> Array[Byte] {
   let len = @pdfio.bytes_size(data)
   let bit_len = UInt64::mul(UInt64::extend_uint(len.reinterpret_as_uint()), 8)
   let pad_len = (56 - (len + 1) % 64 + 64) % 64
@@ -70,8 +70,8 @@ fn md5_pad(data : @pdfio.MutableBytes) -> @pdfio.MutableBytes {
 /// MD5 digest of bytes, returning 16 raw bytes.
 pub fn PdfCryptPrimitives::md5(
   _self : PdfCryptPrimitives,
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes {
+  data : Array[Byte],
+) -> Array[Byte] {
   let padded = md5_pad(data)
   let mut a0 : UInt = 0x67452301
   let mut b0 : UInt = 0xefcdab89

@@ -32,8 +32,8 @@ fn prga(s : Array[Int], pi : Ref[Int], pj : Ref[Int]) -> Int {
 pub fn PdfCryptPrimitives::crypt(
   _self : PdfCryptPrimitives,
   key : Array[Int],
-  data : @pdfio.MutableBytes,
-) -> @pdfio.MutableBytes {
+  data : Array[Byte],
+) -> Array[Byte] {
   if key.length() == 0 {
     return @pdfio.copybytes(data)
   }

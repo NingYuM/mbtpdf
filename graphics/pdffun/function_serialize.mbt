@@ -19,7 +19,7 @@ fn max_value_for_bits(bits : Int) -> Int {
 
 ///|
 fn write_bits(
-  data : @pdfio.MutableBytes,
+  data : Array[Byte],
   bit_pos : Ref[Int],
   bits : Int,
   value : Int,
@@ -45,7 +45,7 @@ fn write_bits(
 }
 
 ///|
-fn sampled_bytes(samples : Array[Int], bits : Int) -> @pdfio.MutableBytes {
+fn sampled_bytes(samples : Array[Int], bits : Int) -> Array[Byte] {
   if bits <= 0 {
     return @pdfio.mkbytes(0)
   }
