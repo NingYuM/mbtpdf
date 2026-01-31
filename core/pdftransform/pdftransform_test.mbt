@@ -280,14 +280,7 @@ test "to_matrix and to_string include rotate and shear" {
 ///|
 test "matrix_invert fails when determinant is NaN" {
   let nan = 0.0 / 0.0
-  let m : @pdftransform.TransformMatrix = {
-    a: nan,
-    b: 0.0,
-    c: 0.0,
-    d: 1.0,
-    e: 0.0,
-    f: 0.0,
-  }
+  let m : @pdftransform.TransformMatrix = TransformMatrix(a=nan, b=0.0, c=0.0, d=1.0, e=0.0, f=0.0)  
   let res : Result[@pdftransform.TransformMatrix, Error] = try? m.invert()
   match res {
     Err(_) => ()

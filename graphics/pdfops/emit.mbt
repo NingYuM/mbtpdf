@@ -702,7 +702,7 @@ fn parse_operator(
               e is Some(ev) &&
               f is Some(fv) {
               return (
-                Opcm({ a: av, b: bv, c: cv, d: dv, e: ev, f: fv }),
+                Opcm(TransformMatrix(a=av, b=bv, c=cv, d=dv, e=ev, f=fv)),
                 next_index,
               )
             }
@@ -722,7 +722,7 @@ fn parse_operator(
               e is Some(ev) &&
               f is Some(fv) {
               return (
-                OpTm({ a: av, b: bv, c: cv, d: dv, e: ev, f: fv }),
+                OpTm(TransformMatrix(a=av, b=bv, c=cv, d=dv, e=ev, f=fv)),
                 next_index,
               )
             }

@@ -12,23 +12,49 @@ pub(all) enum TransformOp {
 /// A list of transformations, stored with the most recent op at the head.
 pub struct Transform {
   ops : Array[TransformOp]
+  fn new(ops : Array[TransformOp]) -> Transform
 } derive(Debug)
 
 ///|
 /// A transformation matrix (a c e / b d f / 0 0 1).
-pub(all) struct TransformMatrix {
+pub struct TransformMatrix {
   a : Double
   b : Double
   c : Double
   d : Double
   e : Double
   f : Double
+  fn new(
+    a~ : Double,
+    b~ : Double,
+    c~ : Double,
+    d~ : Double,
+    e~ : Double,
+    f~ : Double,
+  ) -> TransformMatrix
 } derive(Debug)
 
+fn TransformMatrix::new(
+  a~ : Double,
+  b~ : Double,
+  c~ : Double,
+  d~ : Double,
+  e~ : Double,
+  f~ : Double,
+) -> TransformMatrix {
+  {
+    a: a,
+    b: b,
+    c: c,
+    d: d,
+    e: e,
+    f: f,
+  }
+}
 ///|
 /// The identity transform.
 pub fn Transform::identity() -> Transform {
-  { ops: [] }
+  Transform([])
 }
 
 ///|
@@ -40,7 +66,7 @@ pub fn Transform::new(ops : Array[TransformOp]) -> Transform {
 ///|
 /// The identity matrix.
 pub fn TransformMatrix::identity() -> TransformMatrix {
-  { a: 1.0, b: 0.0, c: 0.0, d: 1.0, e: 0.0, f: 0.0 }
+  TransformMatrix(a=1.0, b=0.0, c=0.0, d=1.0, e=0.0, f=0.0)
 }
 
 ///|
@@ -124,44 +150,44 @@ pub fn TransformMatrix::to_string(self : TransformMatrix) -> String {
 /// Compose a transformation operation onto an existing transform.
 pub fn Transform::compose(self : Transform, op : TransformOp) -> Transform {
   if self.ops.length() == 0 {
-    return { ops: [op] }
+    return Transform([op])
   }
   let head = self.ops[0]
   match (head, op) {
     (Translate(dx, dy), Translate(dx2, dy2)) =>
-      { ops: concat_ops([Translate(dx + dx2, dy + dy2)], tail_ops(self.ops)) }
+      Transform(concat_ops([Translate(dx + dx2, dy + dy2)], tail_ops(self.ops)))
     (Scale(p, sx, sy), Scale(p2, sx2, sy2)) =>
       if point_eq(p, p2) {
-        { ops: concat_ops([Scale(p, sx * sx2, sy * sy2)], tail_ops(self.ops)) }
+        Transform(concat_ops([Scale(p, sx * sx2, sy * sy2)], tail_ops(self.ops)))
       } else {
-        { ops: concat_ops([op], self.ops) }
+        Transform(concat_ops([op], self.ops))
       }
     (Rotate(p, a), Rotate(p2, a2)) =>
       if point_eq(p, p2) {
-        { ops: concat_ops([Rotate(p, a + a2)], tail_ops(self.ops)) }
+        Transform(concat_ops([Rotate(p, a + a2)], tail_ops(self.ops)))
       } else {
-        { ops: concat_ops([op], self.ops) }
+        Transform(concat_ops([op], self.ops))
       }
     (ShearX(p, a), ShearX(p2, a2)) =>
       if point_eq(p, p2) {
-        { ops: concat_ops([ShearX(p, a + a2)], tail_ops(self.ops)) }
+        Transform(concat_ops([ShearX(p, a + a2)], tail_ops(self.ops)))
       } else {
-        { ops: concat_ops([op], self.ops) }
+        Transform(concat_ops([op], self.ops))
       }
     (ShearY(p, a), ShearY(p2, a2)) =>
       if point_eq(p, p2) {
-        { ops: concat_ops([ShearY(p, a + a2)], tail_ops(self.ops)) }
+        Transform(concat_ops([ShearY(p, a + a2)], tail_ops(self.ops)))
       } else {
-        { ops: concat_ops([op], self.ops) }
+        Transform(concat_ops([op], self.ops))
       }
-    _ => { ops: concat_ops([op], self.ops) }
+    _ => Transform(concat_ops([op], self.ops))
   }
 }
 
 ///|
 /// Append two transforms (perform b then a).
 pub fn Transform::append(self : Transform, other : Transform) -> Transform {
-  { ops: concat_ops(self.ops, other.ops) }
+  Transform(concat_ops(self.ops, other.ops))
 }
 
 ///|
@@ -170,14 +196,14 @@ pub fn TransformMatrix::compose(
   self : TransformMatrix,
   m : TransformMatrix,
 ) -> TransformMatrix {
-  {
-    a: self.a * m.a + self.c * m.b,
-    c: self.a * m.c + self.c * m.d,
-    e: self.a * m.e + self.c * m.f + self.e,
-    b: self.b * m.a + self.d * m.b,
-    d: self.b * m.c + self.d * m.d,
-    f: self.b * m.e + self.d * m.f + self.f,
-  }
+  TransformMatrix(
+    a=self.a * m.a + self.c * m.b,
+    b=self.b * m.a + self.d * m.b,
+    c=self.a * m.c + self.c * m.d,
+    d=self.b * m.c + self.d * m.d,
+    e=self.a * m.e + self.c * m.f + self.e,
+    f=self.b * m.e + self.d * m.f + self.f,
+  )
 }
 
 ///|
@@ -193,20 +219,20 @@ pub fn TransformMatrix::invert(
   if det == 0.0 || det.is_nan() || det.is_inf() {
     raise NonInvertable
   }
-  {
-    a: det * self.d,
-    b: det * -self.b,
-    c: det * -self.c,
-    d: det * self.a,
-    e: det * (self.c * self.f - self.d * self.e),
-    f: det * (self.b * self.e - self.a * self.f),
-  }
+  TransformMatrix(
+    a=det * self.d,
+    b=det * -self.b,
+    c=det * -self.c,
+    d=det * self.a,
+    e=det * (self.c * self.f - self.d * self.e),
+    f=det * (self.b * self.e - self.a * self.f),
+  )
 }
 
 ///|
 /// Make a translation matrix.
 pub fn TransformMatrix::translate(tx : Double, ty : Double) -> TransformMatrix {
-  { a: 1.0, b: 0.0, c: 0.0, d: 1.0, e: tx, f: ty }
+  TransformMatrix(a=1.0, b=0.0, c=0.0, d=1.0, e=tx, f=ty)
 }
 
 ///|
@@ -218,7 +244,7 @@ pub fn TransformMatrix::scale(
 ) -> TransformMatrix {
   let translate = TransformMatrix::translate(-center.0, -center.1)
   let translate_back = TransformMatrix::translate(center.0, center.1)
-  let scale_matrix = { a: sx, b: 0.0, c: 0.0, d: sy, e: 0.0, f: 0.0 }
+  let scale_matrix = TransformMatrix(a=sx, b=0.0, c=0.0, d=sy, e=0.0, f=0.0)
   translate_back.compose(scale_matrix.compose(translate))
 }
 
@@ -230,14 +256,14 @@ pub fn TransformMatrix::rotate(
 ) -> TransformMatrix {
   let translate = TransformMatrix::translate(-center.0, -center.1)
   let translate_back = TransformMatrix::translate(center.0, center.1)
-  let rotation_matrix = {
-    a: @math.cos(angle),
-    b: @math.sin(angle),
-    c: -@math.sin(angle),
-    d: @math.cos(angle),
-    e: 0.0,
-    f: 0.0,
-  }
+  let rotation_matrix = TransformMatrix(
+    a=@math.cos(angle),
+    b=@math.sin(angle),
+    c=-@math.sin(angle),
+    d=@math.cos(angle),
+    e=0.0,
+    f=0.0,
+  )
   translate_back.compose(rotation_matrix.compose(translate))
 }
 
@@ -249,7 +275,7 @@ pub fn TransformMatrix::shear_x(
 ) -> TransformMatrix {
   let translate = TransformMatrix::translate(-center.0, -center.1)
   let translate_back = TransformMatrix::translate(center.0, center.1)
-  let shear_matrix = { a: 1.0, b: 0.0, c: factor, d: 1.0, e: 0.0, f: 0.0 }
+  let shear_matrix = TransformMatrix(a=1.0, b=0.0, c=factor, d=1.0, e=0.0, f=0.0)
   translate_back.compose(shear_matrix.compose(translate))
 }
 
@@ -261,7 +287,7 @@ pub fn TransformMatrix::shear_y(
 ) -> TransformMatrix {
   let translate = TransformMatrix::translate(-center.0, -center.1)
   let translate_back = TransformMatrix::translate(center.0, center.1)
-  let shear_matrix = { a: 1.0, b: factor, c: 0.0, d: 1.0, e: 0.0, f: 0.0 }
+  let shear_matrix = TransformMatrix(a=1.0, b=factor, c=0.0, d=1.0, e=0.0, f=0.0)
   translate_back.compose(shear_matrix.compose(translate))
 }
 
@@ -384,14 +410,14 @@ pub fn TransformMatrix::recompose(
   tx : Double,
   ty : Double,
 ) -> TransformMatrix {
-  let scale_aspect_shear = {
-    a: scale.abs() * aspect,
-    b: 0.0,
-    c: scale * @math.tan(shear),
-    d: scale,
-    e: 0.0,
-    f: 0.0,
-  }
+  let scale_aspect_shear = TransformMatrix(
+    a=scale.abs() * aspect,
+    b=0.0,
+    c=scale * @math.tan(shear),
+    d=scale,
+    e=0.0,
+    f=0.0,
+  )
   let rotated = TransformMatrix::rotate((0.0, 0.0), rotation).compose(
     scale_aspect_shear,
   )

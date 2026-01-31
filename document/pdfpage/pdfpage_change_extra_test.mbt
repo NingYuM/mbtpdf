@@ -157,14 +157,14 @@ test "change_pages rewrites bookmarks annotations and openaction" {
     "/OpenAction",
     action_for_dest(xyz_dest_for_page(page1)),
   )
-  let scale : @pdftransform.TransformMatrix = {
-    a: 2.0,
-    b: 0.0,
-    c: 0.0,
-    d: 2.0,
-    e: 0.0,
-    f: 0.0,
-  }
+  let scale = @pdftransform.TransformMatrix(
+    a=2.0,
+    b=0.0,
+    c=0.0,
+    d=2.0,
+    e=0.0,
+    f=0.0,
+  )
   let matrices = [(1, scale), (2, @pdftransform.TransformMatrix::identity())]
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let updated = @pdfe.with_logger(_ => (), fn() {
@@ -247,14 +247,14 @@ test "change_pages tolerates missing matrix entries" {
   let page1 = page_objnum(pdf, 1)
   let page2 = page_objnum(pdf, 2)
   pdf = add_bookmarks_for_pages(pdf, page1, page2)
-  let scale : @pdftransform.TransformMatrix = {
-    a: 2.0,
-    b: 0.0,
-    c: 0.0,
-    d: 2.0,
-    e: 0.0,
-    f: 0.0,
-  }
+  let scale = @pdftransform.TransformMatrix(
+    a=2.0,
+    b=0.0,
+    c=0.0,
+    d=2.0,
+    e=0.0,
+    f=0.0,
+  )
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   // Provide a matrix only for the first page; the second should default to identity.
   let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices=[
@@ -352,14 +352,14 @@ test "change_pages processes bookmark targets with missing matrices and tables" 
   ]
   pdf = @pdfmarks.PdfMarks::new(pdf).add_bookmarks(marks)
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
-  let scale : @pdftransform.TransformMatrix = {
-    a: 2.0,
-    b: 0.0,
-    c: 0.0,
-    d: 2.0,
-    e: 0.0,
-    f: 0.0,
-  }
+  let scale = @pdftransform.TransformMatrix(
+    a=2.0,
+    b=0.0,
+    c=0.0,
+    d=2.0,
+    e=0.0,
+    f=0.0,
+  )
   let updated = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages, matrices=[
     (1, scale),
   ])

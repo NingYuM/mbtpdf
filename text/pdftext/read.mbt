@@ -29,7 +29,7 @@ fn PdfText::parse_matrix(
       let d = self.pdf.getnum(vals[3])
       let e = self.pdf.getnum(vals[4])
       let f = self.pdf.getnum(vals[5])
-      { a, b, c, d, e, f }
+      TransformMatrix(a~, b~, c~, d~, e~, f~)
     }
     _ => raise @pdf.PdfError::Msg("Bad matrix")
   }
