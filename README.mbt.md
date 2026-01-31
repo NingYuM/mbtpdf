@@ -42,6 +42,9 @@ moon run cmd/pdfboardgame
 
 # Run a tiny printable coloring book (COLOR + ANSWERS layers).
 moon run cmd/pdfcoloring
+
+# Run interactive printable recipe cards (links + bookmarks + SWAPS layer).
+moon run cmd/pdfrecipe
 ```
 
 ## Testing
