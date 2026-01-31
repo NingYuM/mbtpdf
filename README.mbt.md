@@ -21,6 +21,12 @@ PDF toolchain implemented in [MoonBit](https://docs.moonbitlang.com), centered o
 ```sh
 # Run the "hello world" PDF generator.
 moon run cmd/pdfhello
+
+# Run a multi-page interactive showcase PDF (art + layers + links).
+moon run cmd/pdfshowcase
+
+# Run a clickable "escape maze" PDF (links + layers + map).
+moon run cmd/pdfmaze
 ```
 
 ## Testing

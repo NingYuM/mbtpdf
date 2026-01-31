@@ -15,6 +15,8 @@ pub suberror NonInvertable {
 // Types and methods
 pub struct Transform {
   ops : Array[TransformOp]
+
+  fn new(Array[TransformOp]) -> Transform
 }
 pub fn Transform::append(Self, Self) -> Self
 pub fn Transform::apply(Self, (Double, Double)) -> (Double, Double)
@@ -25,13 +27,15 @@ pub fn Transform::to_matrix(Self) -> TransformMatrix
 pub fn Transform::to_string(Self) -> String
 pub impl @debug.Debug for Transform
 
-pub(all) struct TransformMatrix {
+pub struct TransformMatrix {
   a : Double
   b : Double
   c : Double
   d : Double
   e : Double
   f : Double
+
+  fn new(a~ : Double, b~ : Double, c~ : Double, d~ : Double, e~ : Double, f~ : Double) -> TransformMatrix
 }
 pub fn TransformMatrix::apply(Self, (Double, Double)) -> (Double, Double)
 pub fn TransformMatrix::compose(Self, Self) -> Self

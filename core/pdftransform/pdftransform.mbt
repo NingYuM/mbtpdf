@@ -12,6 +12,7 @@ pub(all) enum TransformOp {
 /// A list of transformations, stored with the most recent op at the head.
 pub struct Transform {
   ops : Array[TransformOp]
+
   fn new(ops : Array[TransformOp]) -> Transform
 } derive(Debug)
 
@@ -24,6 +25,7 @@ pub struct TransformMatrix {
   d : Double
   e : Double
   f : Double
+
   fn new(
     a~ : Double,
     b~ : Double,
@@ -34,6 +36,7 @@ pub struct TransformMatrix {
   ) -> TransformMatrix
 } derive(Debug)
 
+///|
 fn TransformMatrix::new(
   a~ : Double,
   b~ : Double,
@@ -42,15 +45,9 @@ fn TransformMatrix::new(
   e~ : Double,
   f~ : Double,
 ) -> TransformMatrix {
-  {
-    a: a,
-    b: b,
-    c: c,
-    d: d,
-    e: e,
-    f: f,
-  }
+  { a, b, c, d, e, f }
 }
+
 ///|
 /// The identity transform.
 pub fn Transform::identity() -> Transform {
@@ -158,7 +155,9 @@ pub fn Transform::compose(self : Transform, op : TransformOp) -> Transform {
       Transform(concat_ops([Translate(dx + dx2, dy + dy2)], tail_ops(self.ops)))
     (Scale(p, sx, sy), Scale(p2, sx2, sy2)) =>
       if point_eq(p, p2) {
-        Transform(concat_ops([Scale(p, sx * sx2, sy * sy2)], tail_ops(self.ops)))
+        Transform(
+          concat_ops([Scale(p, sx * sx2, sy * sy2)], tail_ops(self.ops)),
+        )
       } else {
         Transform(concat_ops([op], self.ops))
       }
@@ -275,7 +274,14 @@ pub fn TransformMatrix::shear_x(
 ) -> TransformMatrix {
   let translate = TransformMatrix::translate(-center.0, -center.1)
   let translate_back = TransformMatrix::translate(center.0, center.1)
-  let shear_matrix = TransformMatrix(a=1.0, b=0.0, c=factor, d=1.0, e=0.0, f=0.0)
+  let shear_matrix = TransformMatrix(
+    a=1.0,
+    b=0.0,
+    c=factor,
+    d=1.0,
+    e=0.0,
+    f=0.0,
+  )
   translate_back.compose(shear_matrix.compose(translate))
 }
 
@@ -287,7 +293,14 @@ pub fn TransformMatrix::shear_y(
 ) -> TransformMatrix {
   let translate = TransformMatrix::translate(-center.0, -center.1)
   let translate_back = TransformMatrix::translate(center.0, center.1)
-  let shear_matrix = TransformMatrix(a=1.0, b=factor, c=0.0, d=1.0, e=0.0, f=0.0)
+  let shear_matrix = TransformMatrix(
+    a=1.0,
+    b=factor,
+    c=0.0,
+    d=1.0,
+    e=0.0,
+    f=0.0,
+  )
   translate_back.compose(shear_matrix.compose(translate))
 }
 
