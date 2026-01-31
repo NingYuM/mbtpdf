@@ -45,6 +45,9 @@ moon run cmd/pdfcoloring
 
 # Run interactive printable recipe cards (links + bookmarks + SWAPS layer).
 moon run cmd/pdfrecipe
+
+# Run an interactive travel brochure (tabs + coupons + optional layers).
+moon run cmd/pdftravel
 ```
 
 ## Testing
