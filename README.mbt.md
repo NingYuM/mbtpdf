@@ -27,6 +27,9 @@ moon run cmd/pdfshowcase
 
 # Run a clickable "escape maze" PDF (links + layers + map).
 moon run cmd/pdfmaze
+
+# Run a beamer-ish slide deck generator (links + bookmarks + speaker notes layer).
+moon run cmd/pdfbeamer
 ```
 
 ## Testing

@@ -23,6 +23,7 @@ pub struct Page {
   rotate : Rotation
   /// Additional page dictionary entries not captured by other fields.
   rest : PdfObject
+
   fn new(
     content~ : Array[PdfObject],
     mediabox~ : PdfObject,
@@ -32,6 +33,7 @@ pub struct Page {
   ) -> Page
 }
 
+///|
 fn Page::new(
   content~ : Array[PdfObject],
   mediabox~ : PdfObject,

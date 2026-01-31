@@ -16,12 +16,14 @@ pub fn[A, B, C] ppstub((A, B) -> C raise?, A, B) -> (C, A, @pdftransform.Transfo
 // Errors
 
 // Types and methods
-pub(all) struct Page {
+pub struct Page {
   content : Array[@pdf.PdfObject]
   mediabox : @pdf.PdfObject
   resources : @pdf.PdfObject
   rotate : Rotation
   rest : @pdf.PdfObject
+
+  fn new(content~ : Array[@pdf.PdfObject], mediabox~ : @pdf.PdfObject, resources~ : @pdf.PdfObject, rotate~ : Rotation, rest~ : @pdf.PdfObject) -> Page
 }
 pub fn Page::blank(@pdfpaper.Paper) -> Self
 pub fn Page::custom(@pdf.PdfObject) -> Self
