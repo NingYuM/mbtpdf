@@ -4,7 +4,7 @@ fn new_dests(pdf : @pdf.Pdf, pdfs : Array[@pdf.Pdf]) -> Int? raise {
   for src in pdfs {
     let catalog = src.catalog_of_pdf()
     match src.lookup_direct("/Dests", catalog) {
-      Some(PdfObject::Dictionary(d)) => dests.push(d)
+      Some(Dictionary(d)) => dests.push(d)
       _ => ()
     }
   }

@@ -12,23 +12,23 @@ test "read_ocg parses ocproperties" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let ocg_obj : @pdf.PdfObject = Dictionary([
     ("/Name", String("Layer 1")),
-    ("/Intent", Array([Name(@pdf.PdfName("/View")), Integer(0)])),
+    ("/Intent", Array([Name(PdfName("/View")), Integer(0)])),
   ])
   let ocg_ref = pdf.addobj(ocg_obj)
   let default_config : @pdf.PdfObject = Dictionary([
     ("/Name", String("Default")),
     ("/Creator", String("tester")),
-    ("/BaseState", Name(@pdf.PdfName("/OFF"))),
+    ("/BaseState", Name(PdfName("/OFF"))),
     ("/ON", Array([Indirect(ocg_ref), Integer(99)])),
     ("/OFF", Array([Indirect(ocg_ref)])),
-    ("/Intent", Array([Name(@pdf.PdfName("/View")), Integer(0)])),
+    ("/Intent", Array([Name(PdfName("/View")), Integer(0)])),
     ("/AS", Array([Dictionary([])])),
-    ("/ListMode", Name(@pdf.PdfName("/VisiblePages"))),
+    ("/ListMode", Name(PdfName("/VisiblePages"))),
     ("/Locked", Array([Indirect(ocg_ref), Integer(0)])),
   ])
   let alt_config : @pdf.PdfObject = Dictionary([
-    ("/BaseState", Name(@pdf.PdfName("/Unchanged"))),
-    ("/Intent", Name(@pdf.PdfName("/Design"))),
+    ("/BaseState", Name(PdfName("/Unchanged"))),
+    ("/Intent", Name(PdfName("/Design"))),
   ])
   let ocprops : @pdf.PdfObject = Dictionary([
     ("/OCGs", Array([Indirect(ocg_ref)])),
@@ -51,7 +51,7 @@ test "read_ocg parses ocproperties" {
   assert_eq(props.ocg_default_config.ocgconfig_name, Some("Default"))
   assert_eq(props.ocg_default_config.ocgconfig_creator, Some("tester"))
   match props.ocg_default_config.ocgconfig_basestate {
-    OcgState::Off => ()
+    Off => ()
     _ => fail("expected Off basestate")
   }
   match props.ocg_default_config.ocgconfig_on {
@@ -77,7 +77,7 @@ test "read_ocg parses ocproperties" {
     None => fail("expected AS list")
   }
   match props.ocg_default_config.ocgconfig_listmode {
-    OcgListMode::VisiblePages => ()
+    VisiblePages => ()
     _ => fail("expected VisiblePages list mode")
   }
   assert_eq(props.ocg_default_config.ocgconfig_locked.length(), 2)
@@ -85,7 +85,7 @@ test "read_ocg parses ocproperties" {
   assert_eq(props.ocg_default_config.ocgconfig_locked[1], 0)
   assert_eq(props.ocg_configs.length(), 1)
   match props.ocg_configs[0].ocgconfig_basestate {
-    OcgState::Unchanged => ()
+    Unchanged => ()
     _ => fail("expected Unchanged basestate")
   }
   assert_eq(props.ocg_configs[0].ocgconfig_intent.length(), 1)
@@ -130,7 +130,7 @@ test "read_ocg uses config defaults" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let ocg_obj : @pdf.PdfObject = Dictionary([
     ("/Name", String("Layer 2")),
-    ("/Intent", Name(@pdf.PdfName("/Design"))),
+    ("/Intent", Name(PdfName("/Design"))),
   ])
   let ocg_ref = pdf.addobj(ocg_obj)
   let default_config : @pdf.PdfObject = Dictionary([])
@@ -148,7 +148,7 @@ test "read_ocg uses config defaults" {
   assert_eq(props.ocg_default_config.ocgconfig_intent.length(), 1)
   assert_eq(props.ocg_default_config.ocgconfig_intent[0], "/View")
   match props.ocg_default_config.ocgconfig_listmode {
-    OcgListMode::AllPages => ()
+    AllPages => ()
     _ => fail("expected AllPages list mode")
   }
   assert_true(props.ocg_default_config.ocgconfig_on is None)
@@ -161,7 +161,7 @@ test "read_ocg parses ocg intent name" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let ocg_obj : @pdf.PdfObject = Dictionary([
     ("/Name", String("Layer 3")),
-    ("/Intent", Name(@pdf.PdfName("/Design"))),
+    ("/Intent", Name(PdfName("/Design"))),
   ])
   let ocg_ref = pdf.addobj(ocg_obj)
   let ocprops : @pdf.PdfObject = Dictionary([
@@ -192,16 +192,16 @@ test "print_document_ocg prints ocgs and configs" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let ocg_obj : @pdf.PdfObject = Dictionary([
     ("/Name", String("Layer Print")),
-    ("/Intent", Name(@pdf.PdfName("/View"))),
+    ("/Intent", Name(PdfName("/View"))),
   ])
   let ocg_ref = pdf.addobj(ocg_obj)
   let default_config : @pdf.PdfObject = Dictionary([
     ("/Name", String("Default")),
     ("/Locked", Array([Indirect(ocg_ref)])),
-    ("/Intent", Array([Name(@pdf.PdfName("/View"))])),
+    ("/Intent", Array([Name(PdfName("/View"))])),
   ])
   let alt_config : @pdf.PdfObject = Dictionary([
-    ("/BaseState", Name(@pdf.PdfName("/ON"))),
+    ("/BaseState", Name(PdfName("/ON"))),
   ])
   let ocprops : @pdf.PdfObject = Dictionary([
     ("/OCGs", Array([Indirect(ocg_ref)])),
@@ -227,8 +227,8 @@ test "read_ocg handles direct ocgs and usage defaults" {
     ("/Usage", Dictionary([])),
   ])
   let default_config : @pdf.PdfObject = Dictionary([
-    ("/BaseState", Name(@pdf.PdfName("/ON"))),
-    ("/OFF", Array([Integer(12), Name(@pdf.PdfName("/Bad"))])),
+    ("/BaseState", Name(PdfName("/ON"))),
+    ("/OFF", Array([Integer(12), Name(PdfName("/Bad"))])),
     ("/Locked", Array([Integer(1)])),
   ])
   let ocprops : @pdf.PdfObject = Dictionary([
@@ -250,7 +250,7 @@ test "read_ocg handles direct ocgs and usage defaults" {
   assert_eq(ocg.ocg_intent[0], "/View")
   assert_true(ocg.ocg_usage is None)
   match props.ocg_default_config.ocgconfig_basestate {
-    OcgState::On => ()
+    On => ()
     _ => fail("expected On basestate")
   }
   match props.ocg_default_config.ocgconfig_off {
@@ -267,7 +267,7 @@ test "read_ocg handles direct ocgs and usage defaults" {
 test "read_ocg raises without default config" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let ocprops : @pdf.PdfObject = Dictionary([
-    ("/OCGs", Name(@pdf.PdfName("/NotArray"))),
+    ("/OCGs", Name(PdfName("/NotArray"))),
   ])
   let root = pdf.lookup_obj(pdf.root)
   let updated_root = root.add_entry("/OCProperties", ocprops)

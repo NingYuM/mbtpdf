@@ -30,13 +30,13 @@ fn set_catalog_entry(
 
 ///|
 fn dest_for_page(page_objnum : Int) -> @pdf.PdfObject {
-  Array([Indirect(page_objnum), Name(@pdf.PdfName("/Fit"))])
+  Array([Indirect(page_objnum), Name(PdfName("/Fit"))])
 }
 
 ///|
 fn xyz_dest_for_page(page_objnum : Int) -> @pdf.PdfObject {
   @pdfdest.Destination::XYZ(
-    @pdfdest.TargetPage::PageObject(page_objnum),
+    PageObject(page_objnum),
     Some(0.0),
     Some(0.0),
     Some(1.0),
@@ -45,7 +45,7 @@ fn xyz_dest_for_page(page_objnum : Int) -> @pdf.PdfObject {
 
 ///|
 fn action_for_dest(dest : @pdf.PdfObject) -> @pdf.PdfObject {
-  Dictionary([("/S", Name(@pdf.PdfName("/GoTo"))), ("/D", dest)])
+  Dictionary([("/S", Name(PdfName("/GoTo"))), ("/D", dest)])
 }
 
 ///|
@@ -74,12 +74,7 @@ fn add_bookmarks_for_pages(
     {
       level: 1,
       text: "Page 1",
-      target: @pdfdest.Destination::XYZ(
-        @pdfdest.TargetPage::PageObject(page1),
-        Some(0.0),
-        Some(0.0),
-        Some(1.0),
-      ),
+      target: XYZ(PageObject(page1), Some(0.0), Some(0.0), Some(1.0)),
       isopen: true,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -87,7 +82,7 @@ fn add_bookmarks_for_pages(
     {
       level: 1,
       text: "Page 2",
-      target: @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(page2)),
+      target: Fit(PageObject(page2)),
       isopen: true,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -131,22 +126,22 @@ test "change_pages rewrites bookmarks annotations and openaction" {
   pdf = add_bookmarks_for_pages(pdf, page1, page2)
   let dest_page2 = dest_for_page(page2)
   let annot_dest : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
+    ("/Subtype", Name(PdfName("/Link"))),
     ("/Dest", dest_page2),
   ])
   let annot_dest_num = pdf.addobj(annot_dest)
   let annot_action : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
+    ("/Subtype", Name(PdfName("/Link"))),
     ("/A", action_for_dest(dest_page2)),
   ])
   let annot_action_num = pdf.addobj(annot_action)
   let annot_action_invalid : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
+    ("/Subtype", Name(PdfName("/Link"))),
     ("/A", Null),
   ])
   let annot_action_invalid_num = pdf.addobj(annot_action_invalid)
   let annot_not_link : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Text"))),
+    ("/Subtype", Name(PdfName("/Text"))),
   ])
   let annot_not_link_num = pdf.addobj(annot_not_link)
   let annots : Array[@pdf.PdfObject] = [
@@ -241,7 +236,7 @@ test "target_of_pagenumber returns fit destination" {
   let pdf = build_two_page_pdf()
   let dest = @pdfpage.PdfPageDoc::new(pdf).target_of_pagenumber(1)
   match dest {
-    @pdfdest.Destination::Fit(_) => ()
+    Fit(_) => ()
     _ => fail("expected Fit destination")
   }
 }
@@ -298,7 +293,7 @@ test "change_pages ignores unsupported openaction dictionaries" {
   set_catalog_entry(
     pdf,
     "/OpenAction",
-    Dictionary([("/S", Name(@pdf.PdfName("/URI"))), ("/URI", String("x"))]),
+    Dictionary([("/S", Name(PdfName("/URI"))), ("/URI", String("x"))]),
   )
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let matrices = [
@@ -333,12 +328,7 @@ test "change_pages processes bookmark targets with missing matrices and tables" 
     {
       level: 1,
       text: "Missing matrix",
-      target: @pdfdest.Destination::XYZ(
-        @pdfdest.TargetPage::PageObject(page2),
-        Some(0.0),
-        Some(0.0),
-        Some(1.0),
-      ),
+      target: XYZ(PageObject(page2), Some(0.0), Some(0.0), Some(1.0)),
       isopen: true,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -346,12 +336,7 @@ test "change_pages processes bookmark targets with missing matrices and tables" 
     {
       level: 1,
       text: "Missing refnum",
-      target: @pdfdest.Destination::XYZ(
-        @pdfdest.TargetPage::PageObject(999999),
-        Some(0.0),
-        Some(0.0),
-        Some(1.0),
-      ),
+      target: XYZ(PageObject(999999), Some(0.0), Some(0.0), Some(1.0)),
       isopen: true,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -359,10 +344,7 @@ test "change_pages processes bookmark targets with missing matrices and tables" 
     {
       level: 1,
       text: "Other doc page",
-      target: @pdfdest.Destination::FitH(
-        @pdfdest.TargetPage::OtherDocPageNumber(0),
-        Some(0.0),
-      ),
+      target: FitH(OtherDocPageNumber(0), Some(0.0)),
       isopen: true,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -392,13 +374,13 @@ test "change_pages catches failures in annotations and openaction rewriting" {
   let page1 = page_objnum(pdf, 1)
   let bad_dest : @pdf.PdfObject = Array([
     Indirect(page1),
-    Name(@pdf.PdfName("/XYZ")),
-    Name(@pdf.PdfName("/BadNumber")),
+    Name(PdfName("/XYZ")),
+    Name(PdfName("/BadNumber")),
     Null,
     Null,
   ])
   let bad_dest_annot : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
+    ("/Subtype", Name(PdfName("/Link"))),
     ("/Dest", bad_dest),
   ])
   let bad_annot_num = pdf.addobj(bad_dest_annot)
@@ -406,7 +388,7 @@ test "change_pages catches failures in annotations and openaction rewriting" {
   set_catalog_entry(
     pdf,
     "/OpenAction",
-    Dictionary([("/S", Name(@pdf.PdfName("/GoTo"))), ("/D", bad_dest)]),
+    Dictionary([("/S", Name(PdfName("/GoTo"))), ("/D", bad_dest)]),
   )
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let matrices = [
@@ -429,7 +411,7 @@ test "change_pages catches failures in annotations and openaction rewriting" {
 ///|
 test "change_pages tolerates non-dictionary base root" {
   let base = @pdf.Pdf::empty()
-  base.addobj_given_num((1, @pdf.PdfObject::Integer(0)))
+  base.addobj_given_num((1, Integer(0)))
   let pdf : @pdf.Pdf = {
     major: base.major,
     minor: base.minor,

@@ -12,7 +12,7 @@ async test "pdfe.with_logger_async restores logger on error" {
   }
   let res : Result[Unit, Error] = try? @pdfe.with_logger_async(
     s => inner.push(s),
-    async fn() {
+    fn() {
       @pdfe.log("inner")
       fail("boom")
     },
@@ -42,7 +42,7 @@ async test "pdfutil.with_printer_async restores printer on error" {
   }
   let res : Result[Unit, Error] = try? @pdfutil.with_printer_async(
     s => inner.push(s),
-    async fn() {
+    fn() {
       @pdfutil.PdfUtil::new().flprint("inner\n")
       fail("boom")
     },

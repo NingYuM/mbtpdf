@@ -311,7 +311,7 @@ fn read_xref_stream(
   tokens.push(LexEndObj)
   let (_, parsed) = @pdfsyntax.parse(tokens)
   let stream_obj = match parsed {
-    @pdf.PdfObject::Stream(_) => parsed
+    Stream(_) => parsed
     _ => raise err
   }
   @pdfcodec.PdfCodec::new().decode_pdfstream(@pdf.Pdf::empty(), stream_obj)
@@ -323,7 +323,7 @@ fn read_xref_stream(
   let raw_input = match stream_obj {
     Stream(r) =>
       match r.val {
-        (_, @pdf.Stream::Got(bytes)) => @pdfio.Input::of_bytes(bytes)
+        (_, Got(bytes)) => @pdfio.Input::of_bytes(bytes)
         _ => raise err
       }
     _ => raise err
@@ -359,7 +359,7 @@ fn read_xref_stream(
       raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Unknown /Index"))
     None => {
       let size = match @pdf.Pdf::empty().lookup_direct("/Size", stream_obj) {
-        Some(@pdf.PdfObject::Integer(s)) => s
+        Some(Integer(s)) => s
         _ =>
           raise @pdf.PdfError::Msg(
             @pdf.input_pdferror(input, "Missing /Size in xref dict"),
@@ -383,7 +383,7 @@ fn read_xref_stream(
         Some(Valid(offset, gen)) =>
           xrefs.push((objnumber, XRef::Plain(offset, gen)))
         Some(InObjectStream(stream, index)) =>
-          xrefs.push((objnumber, XRef::Stream(stream, index)))
+          xrefs.push((objnumber, Stream(stream, index)))
         Some(StreamFree(offset, gen)) => {
           ignore(offset)
           ignore(gen)
@@ -427,14 +427,14 @@ fn parse_object_stream(
   let lexemes = lex_object_for_xref(input, xrefs, true, objstm)
   let (_, stmobj) = @pdfsyntax.parse(lexemes)
   let gen = match xrefs.get(objstm) {
-    Some(XRef::Plain(_, g)) => g
+    Some(Plain(_, g)) => g
     _ => 0
   }
   let stmobj = @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
     user_password, owner_password, partial_pdf, objstm, gen, stmobj,
   )
   match stmobj {
-    @pdf.PdfObject::Stream(_) => ()
+    Stream(_) => ()
     _ => {
       let message = @pdf.input_pdferror(
         input, "lex_stream_object: not a stream",
@@ -445,20 +445,20 @@ fn parse_object_stream(
   @pdfcodec.PdfCodec::new().decode_pdfstream(partial_pdf, stmobj)
   stmobj.getstream()
   let (dict, stream_bytes) = match stmobj {
-    @pdf.PdfObject::Stream(r) => r.val
+    Stream(r) => r.val
     _ => raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "Bad objstm"))
   }
   let n = match @pdf.Pdf::empty().lookup_direct("/N", dict) {
-    Some(@pdf.PdfObject::Integer(v)) => v
+    Some(Integer(v)) => v
     _ => raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "malformed /N"))
   }
   let first = match @pdf.Pdf::empty().lookup_direct("/First", dict) {
-    Some(@pdf.PdfObject::Integer(v)) => v
+    Some(Integer(v)) => v
     _ =>
       raise @pdf.PdfError::Msg(@pdf.input_pdferror(input, "malformed /First"))
   }
   let raw = match stream_bytes {
-    @pdf.Stream::Got(bytes) => bytes
+    Got(bytes) => bytes
     _ =>
       raise @pdf.PdfError::Msg(
         @pdf.input_pdferror(input, "couldn't decode objstream"),
@@ -548,9 +548,8 @@ fn build_pdf_objects(
       max_obj = objnum
     }
     match xref {
-      XRef::Plain(_, gen) =>
-        objects.set(objnum, ({ val: @pdf.ObjectData::ToParse }, gen))
-      XRef::Stream(stream_id, _index) => {
+      Plain(_, gen) => objects.set(objnum, ({ val: ToParse }, gen))
+      Stream(stream_id, _index) => {
         if stream_id_seen.get(stream_id) is None {
           stream_id_seen.set(stream_id, true)
           stream_ids.push(stream_id)
@@ -578,7 +577,7 @@ fn build_pdf_objects(
         if ctx.read_debug {
           (ctx.logger)("parse_obj failed for object \{num}\n")
         }
-        @pdf.PdfObject::Null
+        Null
       }
     }
   }
@@ -610,10 +609,7 @@ fn build_pdf_objects(
       for pair in parsed {
         let objnum = pair.0
         let obj = pair.1
-        objects.set(
-          objnum,
-          ({ val: @pdf.ObjectData::ParsedAlreadyDecrypted(obj) }, 0),
-        )
+        objects.set(objnum, ({ val: ParsedAlreadyDecrypted(obj) }, 0))
         object_stream_ids.set(objnum, stream_id)
       }
     }
@@ -674,7 +670,7 @@ fn build_pdf_objects(
           objnum,
           (
             {
-              val: @pdf.ObjectData::ToParseFromObjectStream(
+              val: ToParseFromObjectStream(
                 themap, stream_id, index, parse_stream,
               ),
             },

@@ -23,7 +23,7 @@ test "annotation border dash array" {
   ])
   let page = @pdfpage.Page::custom(rect)
   let border = @pdfannot.Border::new(1.0, dasharray=[2, 3])
-  let annot = @pdfannot.Annotation::new(@pdfannot.Subtype::Text, border~)
+  let annot = @pdfannot.Annotation::new(Text, border~)
   let updated = @pdfannot.PdfAnnot::new(pdf).add_annotation(page, annot)
   match (pdf.lookup_direct("/Annots", updated.rest) : @pdf.PdfObject?) {
     Some(Array([annot_obj, ..])) =>
@@ -53,7 +53,7 @@ test "add_annotation and read back" {
   let page = @pdfpage.Page::custom(rect)
   let border = @pdfannot.Border::new(2.0)
   let annot = @pdfannot.Annotation::new(
-    @pdfannot.Subtype::Link,
+    Link,
     content="Go",
     border~,
     rectangle=(1.0, 2.0, 3.0, 4.0),
@@ -86,7 +86,7 @@ test "add_annotation and read back" {
 test "transform_annotations updates rect and quadpoints" {
   let pdf = @pdf.Pdf::empty()
   let annot_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
+    ("/Subtype", Name(PdfName("/Link"))),
     ("/Rect", Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)])),
     (
       "/QuadPoints",
@@ -149,12 +149,12 @@ test "annotations_of_page skips popup parent" {
     Real(10.0),
   ])
   let parent_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Text"))),
+    ("/Subtype", Name(PdfName("/Text"))),
     ("/Rect", rect),
   ])
   let parent_num = pdf.addobj(parent_dict)
   let popup_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Popup"))),
+    ("/Subtype", Name(PdfName("/Popup"))),
     ("/Rect", rect),
     ("/Parent", Indirect(parent_num)),
   ])
@@ -192,13 +192,13 @@ test "read_annotation uses /BS style" {
     Real(10.0),
   ])
   let annot_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
+    ("/Subtype", Name(PdfName("/Link"))),
     ("/Rect", rect),
     (
       "/BS",
       Dictionary([
         ("/W", Real(2.0)),
-        ("/S", Name(@pdf.PdfName("/D"))),
+        ("/S", Name(PdfName("/D"))),
         ("/D", Array([Integer(2), Integer(1)])),
       ]),
     ),
@@ -234,29 +234,29 @@ test "read_annotation parses styles and extras" {
     Real(10.0),
   ])
   let solid : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Highlight"))),
+    ("/Subtype", Name(PdfName("/Highlight"))),
     ("/Rect", rect),
     (
       "/BS",
       Dictionary([
-        ("/S", Name(@pdf.PdfName("/S"))),
+        ("/S", Name(PdfName("/S"))),
         ("/W", Real(3.0)),
         ("/D", Array([Integer(1), Integer(2)])),
       ]),
     ),
   ])
   let underline : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Underline"))),
+    ("/Subtype", Name(PdfName("/Underline"))),
     ("/Rect", rect),
-    ("/BS", Dictionary([("/S", Name(@pdf.PdfName("/U")))])),
+    ("/BS", Dictionary([("/S", Name(PdfName("/U")))])),
   ])
   let border : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
+    ("/Subtype", Name(PdfName("/Link"))),
     ("/Rect", rect),
     ("/Border", Array([Real(1.0), Real(2.0), Real(3.0)])),
   ])
   let extras : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Text"))),
+    ("/Subtype", Name(PdfName("/Text"))),
     ("/Rect", rect),
     ("/Contents", String("Note")),
     ("/Subj", String("Subject")),
@@ -322,10 +322,10 @@ test "read_annotation handles unknown subtype and missing strings" {
     Real(10.0),
   ])
   let annot_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Weird"))),
+    ("/Subtype", Name(PdfName("/Weird"))),
     ("/Rect", rect),
-    ("/Contents", Name(@pdf.PdfName("/Nope"))),
-    ("/Subj", Name(@pdf.PdfName("/Nope"))),
+    ("/Contents", Name(PdfName("/Nope"))),
+    ("/Subj", Name(PdfName("/Nope"))),
   ])
   let objnum = pdf.addobj(annot_dict)
   let rest : @pdf.PdfObject = Dictionary([
@@ -373,7 +373,7 @@ test "annotations_of_page handles non-array and add_annotation rejects" {
   let pdf = @pdf.Pdf::empty()
   let annots = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   assert_eq(annots.length(), 0)
-  let annot = @pdfannot.Annotation::new(@pdfannot.Subtype::Text)
+  let annot = @pdfannot.Annotation::new(Text)
   assert_is_err(try? @pdfannot.PdfAnnot::new(pdf).add_annotation(page, annot))
 }
 
@@ -381,7 +381,7 @@ test "annotations_of_page handles non-array and add_annotation rejects" {
 test "transform_annotations keeps malformed quadpoints" {
   let pdf = @pdf.Pdf::empty()
   let annot_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
+    ("/Subtype", Name(PdfName("/Link"))),
     ("/Rect", Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)])),
     ("/QuadPoints", Array([Real(0.0), Real(0.0), Real(10.0), Real(0.0)])),
   ])
@@ -425,12 +425,12 @@ test "read_annotation handles more subtypes and popup fallback" {
     Real(10.0),
   ])
   let annots : Array[@pdf.PdfObject] = [
-    Dictionary([("/Subtype", Name(@pdf.PdfName("/FreeText"))), ("/Rect", rect)]),
-    Dictionary([("/Subtype", Name(@pdf.PdfName("/Stamp"))), ("/Rect", rect)]),
-    Dictionary([("/Subtype", Name(@pdf.PdfName("/Line"))), ("/Rect", rect)]),
-    Dictionary([("/Subtype", Name(@pdf.PdfName("/Squiggly"))), ("/Rect", rect)]),
+    Dictionary([("/Subtype", Name(PdfName("/FreeText"))), ("/Rect", rect)]),
+    Dictionary([("/Subtype", Name(PdfName("/Stamp"))), ("/Rect", rect)]),
+    Dictionary([("/Subtype", Name(PdfName("/Line"))), ("/Rect", rect)]),
+    Dictionary([("/Subtype", Name(PdfName("/Squiggly"))), ("/Rect", rect)]),
     Dictionary([
-      ("/Subtype", Name(@pdf.PdfName("/Popup"))),
+      ("/Subtype", Name(PdfName("/Popup"))),
       ("/Rect", rect),
       ("/Parent", String("nope")),
     ]),
@@ -487,17 +487,17 @@ test "read_annotation covers border styles and dash array" {
   ])
   let annots : Array[@pdf.PdfObject] = [
     Dictionary([
-      ("/Subtype", Name(@pdf.PdfName("/Text"))),
+      ("/Subtype", Name(PdfName("/Text"))),
       ("/Rect", rect),
-      ("/BS", Dictionary([("/S", Name(@pdf.PdfName("/B")))])),
+      ("/BS", Dictionary([("/S", Name(PdfName("/B")))])),
     ]),
     Dictionary([
-      ("/Subtype", Name(@pdf.PdfName("/Text"))),
+      ("/Subtype", Name(PdfName("/Text"))),
       ("/Rect", rect),
-      ("/BS", Dictionary([("/S", Name(@pdf.PdfName("/X")))])),
+      ("/BS", Dictionary([("/S", Name(PdfName("/X")))])),
     ]),
     Dictionary([
-      ("/Subtype", Name(@pdf.PdfName("/Text"))),
+      ("/Subtype", Name(PdfName("/Text"))),
       ("/Rect", rect),
       (
         "/Border",
@@ -542,7 +542,7 @@ test "add_annotation merges existing annots and extras" {
     Real(10.0),
   ])
   let existing : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Text"))),
+    ("/Subtype", Name(PdfName("/Text"))),
     ("/Rect", rect),
   ])
   let base = @pdfpage.Page::custom(rect)
@@ -553,7 +553,7 @@ test "add_annotation merges existing annots and extras" {
     rotate: base.rotate,
     rest: Dictionary([("/Annots", Array([existing]))]),
   }
-  let base_annot = @pdfannot.Annotation::new(@pdfannot.Subtype::FreeText)
+  let base_annot = @pdfannot.Annotation::new(FreeText)
   let annot : @pdfannot.Annotation = {
     subtype: base_annot.subtype,
     annot_contents: base_annot.annot_contents,
@@ -567,7 +567,7 @@ test "add_annotation merges existing annots and extras" {
   match (pdf.lookup_direct("/Annots", updated.rest) : @pdf.PdfObject?) {
     Some(Array([first, second])) => {
       match (pdf.lookup_direct("/Subtype", first) : @pdf.PdfObject?) {
-        Some(Name(@pdf.PdfName("/FreeText"))) => ()
+        Some(Name(PdfName("/FreeText"))) => ()
         _ => fail("expected freetext subtype")
       }
       match (pdf.lookup_direct("/Foo", first) : @pdf.PdfObject?) {
@@ -575,7 +575,7 @@ test "add_annotation merges existing annots and extras" {
         _ => fail("expected extra field")
       }
       match (pdf.lookup_direct("/Subtype", second) : @pdf.PdfObject?) {
-        Some(Name(@pdf.PdfName("/Text"))) => ()
+        Some(Name(PdfName("/Text"))) => ()
         _ => fail("expected existing annotation")
       }
     }
@@ -607,9 +607,9 @@ test "annotations_of_page errors on non-dictionary annots" {
 test "transform_annotations leaves non-array quadpoints" {
   let pdf = @pdf.Pdf::empty()
   let annot_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
+    ("/Subtype", Name(PdfName("/Link"))),
     ("/Rect", Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)])),
-    ("/QuadPoints", Name(@pdf.PdfName("/Bad"))),
+    ("/QuadPoints", Name(PdfName("/Bad"))),
   ])
   let objnum = pdf.addobj(annot_dict)
   let rest : @pdf.PdfObject = Dictionary([
@@ -621,7 +621,7 @@ test "transform_annotations leaves non-array quadpoints" {
   })
   let updated = pdf.lookup_obj(objnum)
   match (pdf.lookup_direct("/QuadPoints", updated) : @pdf.PdfObject?) {
-    Some(Name(@pdf.PdfName("/Bad"))) => ()
+    Some(Name(PdfName("/Bad"))) => ()
     _ => fail("expected non-array quadpoints")
   }
 }
@@ -738,12 +738,12 @@ test "read_annotation handles inset style and non-name /S" {
   ])
   let annots : Array[@pdf.PdfObject] = [
     Dictionary([
-      ("/Subtype", Name(@pdf.PdfName("/Text"))),
+      ("/Subtype", Name(PdfName("/Text"))),
       ("/Rect", rect),
-      ("/BS", Dictionary([("/S", Name(@pdf.PdfName("/I")))])),
+      ("/BS", Dictionary([("/S", Name(PdfName("/I")))])),
     ]),
     Dictionary([
-      ("/Subtype", Name(@pdf.PdfName("/Text"))),
+      ("/Subtype", Name(PdfName("/Text"))),
       ("/Rect", rect),
       ("/BS", Dictionary([("/S", Integer(1))])),
     ]),
@@ -781,7 +781,7 @@ test "read_annotation errors on popup stream and add_annotation requires diction
     Real(10.0),
   ])
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Popup"))),
+    ("/Subtype", Name(PdfName("/Popup"))),
     ("/Rect", rect),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(['x'.to_int().to_byte()])))
@@ -806,7 +806,7 @@ test "read_annotation errors on popup stream and add_annotation requires diction
     rotate: base.rotate,
     rest: Integer(1),
   }
-  let annot = @pdfannot.Annotation::new(@pdfannot.Subtype::Text)
+  let annot = @pdfannot.Annotation::new(Text)
   assert_is_err(
     try? @pdfannot.PdfAnnot::new(pdf).add_annotation(bad_page, annot),
   )
@@ -823,35 +823,30 @@ test "add_annotation covers remaining subtype variants" {
   ])
   let page = @pdfpage.Page::custom(rect)
   let variants : Array[(@pdfannot.Subtype, String)] = [
-    (@pdfannot.Subtype::FreeText, "/FreeText"),
-    (@pdfannot.Subtype::Line, "/Line"),
-    (@pdfannot.Subtype::Square, "/Square"),
-    (@pdfannot.Subtype::Circle, "/Circle"),
-    (@pdfannot.Subtype::Polygon, "/Polygon"),
-    (@pdfannot.Subtype::PolyLine, "/PolyLine"),
-    (@pdfannot.Subtype::Highlight, "/Highlight"),
-    (@pdfannot.Subtype::Underline, "/Underline"),
-    (@pdfannot.Subtype::Squiggly, "/Squiggly"),
-    (@pdfannot.Subtype::StrikeOut, "/StrikeOut"),
-    (@pdfannot.Subtype::Stamp, "/Stamp"),
-    (@pdfannot.Subtype::Caret, "/Caret"),
-    (@pdfannot.Subtype::Ink, "/Ink"),
-    (@pdfannot.Subtype::FileAttachment, "/FileAttachment"),
-    (@pdfannot.Subtype::Sound, "/Sound"),
-    (@pdfannot.Subtype::Movie, "/Movie"),
-    (@pdfannot.Subtype::Widget, "/Widget"),
-    (@pdfannot.Subtype::Screen, "/Screen"),
-    (@pdfannot.Subtype::PrinterMark, "/PrinterMark"),
-    (@pdfannot.Subtype::TrapNet, "/TrapNet"),
-    (@pdfannot.Subtype::Watermark, "/Watermark"),
-    (@pdfannot.Subtype::ThreeDee, "/3D"),
-    (
-      @pdfannot.Subtype::Popup(
-        @pdfannot.Annotation::new(@pdfannot.Subtype::Text),
-      ),
-      "/Popup",
-    ),
-    (@pdfannot.Subtype::Unknown("x"), "/Unknown"),
+    (FreeText, "/FreeText"),
+    (Line, "/Line"),
+    (Square, "/Square"),
+    (Circle, "/Circle"),
+    (Polygon, "/Polygon"),
+    (PolyLine, "/PolyLine"),
+    (Highlight, "/Highlight"),
+    (Underline, "/Underline"),
+    (Squiggly, "/Squiggly"),
+    (StrikeOut, "/StrikeOut"),
+    (Stamp, "/Stamp"),
+    (Caret, "/Caret"),
+    (Ink, "/Ink"),
+    (FileAttachment, "/FileAttachment"),
+    (Sound, "/Sound"),
+    (Movie, "/Movie"),
+    (Widget, "/Widget"),
+    (Screen, "/Screen"),
+    (PrinterMark, "/PrinterMark"),
+    (TrapNet, "/TrapNet"),
+    (Watermark, "/Watermark"),
+    (ThreeDee, "/3D"),
+    (Popup(@pdfannot.Annotation::new(Text)), "/Popup"),
+    (Unknown("x"), "/Unknown"),
   ]
   for pair in variants {
     let (subtype, expected) = pair
@@ -874,7 +869,7 @@ test "add_annotation covers remaining subtype variants" {
 test "transform_annotations leaves missing keys untouched" {
   let pdf = @pdf.Pdf::empty()
   let annot_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Text"))),
+    ("/Subtype", Name(PdfName("/Text"))),
   ])
   let objnum = pdf.addobj(annot_dict)
   let rest : @pdf.PdfObject = Dictionary([

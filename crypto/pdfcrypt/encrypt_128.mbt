@@ -8,20 +8,20 @@ fn encrypt_pdf_128bit_inner(
   pdf : @pdf.Pdf,
 ) -> @pdf.Pdf raise {
   let crypt_dict = @pdf.PdfObject::Dictionary([
-    ("/Filter", @pdf.PdfObject::Name(@pdf.PdfName("/Standard"))),
-    ("/V", @pdf.PdfObject::Integer(2)),
-    ("/R", @pdf.PdfObject::Integer(3)),
-    ("/O", @pdf.PdfObject::String(owner)),
-    ("/U", @pdf.PdfObject::String(user)),
-    ("/Length", @pdf.PdfObject::Integer(128)),
-    ("/P", @pdf.PdfObject::Integer(p)),
+    ("/Filter", Name(PdfName("/Standard"))),
+    ("/V", Integer(2)),
+    ("/R", Integer(3)),
+    ("/O", String(owner)),
+    ("/U", String(user)),
+    ("/Length", Integer(128)),
+    ("/P", Integer(p)),
   ])
   match
     process_cryption(
       false,
       true,
       pdf,
-      @pdfcryptprimitives.Encryption::ARC4(128, 3),
+      ARC4(128, 3),
       user_pw,
       3,
       user,
@@ -35,7 +35,7 @@ fn encrypt_pdf_128bit_inner(
       let crypt_dict_num = pdf_val.addobj(crypt_dict)
       pdf_val.trailerdict = pdf_val.trailerdict.add_entry(
         "/Encrypt",
-        @pdf.PdfObject::Indirect(crypt_dict_num),
+        Indirect(crypt_dict_num),
       )
       pdf_val
     }
@@ -54,36 +54,36 @@ fn encrypt_pdf_128bit_inner_r4(
   encrypt_metadata : Bool,
 ) -> @pdf.Pdf raise {
   let crypt_dict = @pdf.PdfObject::Dictionary([
-    ("/Filter", @pdf.PdfObject::Name(@pdf.PdfName("/Standard"))),
-    ("/V", @pdf.PdfObject::Integer(4)),
+    ("/Filter", Name(PdfName("/Standard"))),
+    ("/V", Integer(4)),
     (
       "/CF",
-      @pdf.PdfObject::Dictionary([
+      Dictionary([
         (
           "/StdCF",
-          @pdf.PdfObject::Dictionary([
-            ("/Length", @pdf.PdfObject::Integer(16)),
-            ("/AuthEvent", @pdf.PdfObject::Name(@pdf.PdfName("/DocOpen"))),
-            ("/CFM", @pdf.PdfObject::Name(@pdf.PdfName("/V2"))),
+          Dictionary([
+            ("/Length", Integer(16)),
+            ("/AuthEvent", Name(PdfName("/DocOpen"))),
+            ("/CFM", Name(PdfName("/V2"))),
           ]),
         ),
       ]),
     ),
-    ("/EncryptMetadata", @pdf.PdfObject::Boolean(encrypt_metadata)),
-    ("/Length", @pdf.PdfObject::Integer(128)),
-    ("/R", @pdf.PdfObject::Integer(4)),
-    ("/O", @pdf.PdfObject::String(owner)),
-    ("/U", @pdf.PdfObject::String(user)),
-    ("/P", @pdf.PdfObject::Integer(p)),
-    ("/StrF", @pdf.PdfObject::Name(@pdf.PdfName("/StdCF"))),
-    ("/StmF", @pdf.PdfObject::Name(@pdf.PdfName("/StdCF"))),
+    ("/EncryptMetadata", Boolean(encrypt_metadata)),
+    ("/Length", Integer(128)),
+    ("/R", Integer(4)),
+    ("/O", String(owner)),
+    ("/U", String(user)),
+    ("/P", Integer(p)),
+    ("/StrF", Name(PdfName("/StdCF"))),
+    ("/StmF", Name(PdfName("/StdCF"))),
   ])
   match
     process_cryption(
       !encrypt_metadata,
       true,
       pdf,
-      @pdfcryptprimitives.Encryption::ARC4(128, 4),
+      ARC4(128, 4),
       user_pw,
       4,
       user,
@@ -97,7 +97,7 @@ fn encrypt_pdf_128bit_inner_r4(
       let crypt_dict_num = pdf_val.addobj(crypt_dict)
       pdf_val.trailerdict = pdf_val.trailerdict.add_entry(
         "/Encrypt",
-        @pdf.PdfObject::Indirect(crypt_dict_num),
+        Indirect(crypt_dict_num),
       )
       pdf_val
     }

@@ -9,6 +9,6 @@ test "check_object_contains_renumbering detects indirects" {
   let dict = Dictionary([("/A", Integer(1)), ("/B", Indirect(2))])
   assert_true(check_object_contains_renumbering(changes, dict))
   let stream_dict = Dictionary([("/Length", Integer(0)), ("/B", Indirect(2))])
-  let stream = Stream(Ref::new((stream_dict, Stream::Got([]))))
+  let stream = Stream(Ref::new((stream_dict, Got([]))))
   assert_true(check_object_contains_renumbering(changes, stream))
 }

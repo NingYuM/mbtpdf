@@ -10,7 +10,7 @@ fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
   // Create placeholder /Pages root so pages can reference it as /Parent.
   let pages_root_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName("/Pages"))),
+      ("/Type", Name(PdfName("/Pages"))),
       ("/Kids", Array([])),
       ("/Count", Integer(count)),
     ]),
@@ -19,7 +19,7 @@ fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
   let mut i = 0
   while i < count {
     let page_obj : @pdf.PdfObject = Dictionary([
-      ("/Type", Name(@pdf.PdfName("/Page"))),
+      ("/Type", Name(PdfName("/Page"))),
       ("/Parent", Indirect(pages_root_num)),
       ("/MediaBox", sample_rect()),
     ])
@@ -33,7 +33,7 @@ fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
     (
       pages_root_num,
       Dictionary([
-        ("/Type", Name(@pdf.PdfName("/Pages"))),
+        ("/Type", Name(PdfName("/Pages"))),
         ("/Kids", Array(kids)),
         ("/Count", Integer(count)),
       ]),
@@ -41,7 +41,7 @@ fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
   )
   let catalog_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName("/Catalog"))),
+      ("/Type", Name(PdfName("/Catalog"))),
       ("/Pages", Indirect(pages_root_num)),
     ]),
   )
@@ -158,7 +158,7 @@ test "trim_structure_tree updates nested k arrays" {
   let root_num = install_struct_root(pdf, root_dict)
   let stream_dict : @pdf.PdfObject = Dictionary([("/Length", Integer(0))])
   let stream_obj : @pdf.PdfObject = Stream(
-    Ref::new((stream_dict, @pdf.Stream::Got(([] : Array[Byte])))),
+    Ref::new((stream_dict, Got(([] : Array[Byte])))),
   )
   ignore(pdf.addobj(stream_obj))
   PdfStructTree::new(pdf).trim_structure_tree([1])
@@ -209,7 +209,7 @@ test "renumber_parent_trees remaps struct parents" {
     ("/StructParent", Integer(0)),
   ])
   let stream : @pdf.PdfObject = Stream(
-    Ref::new((stream_dict, @pdf.Stream::Got(([] : Array[Byte])))),
+    Ref::new((stream_dict, Got(([] : Array[Byte])))),
   )
   let stream_num = pdf2.addobj(stream)
   let tree1 = @pdftree.PdfTree::new(pdf1).build_name_tree(true, [("0", Null)])
@@ -293,7 +293,7 @@ test "merge_structure_trees merges roots" {
     ("/K", Indirect(kid1)),
     ("/IDTree", idtree1),
     ("/ParentTree", parenttree1),
-    ("/RoleMap", Dictionary([("/Sect", Name(@pdf.PdfName("/Div")))])),
+    ("/RoleMap", Dictionary([("/Sect", Name(PdfName("/Div")))])),
     ("/Namespaces", Array([Dictionary([("/NS", String("ns1"))])])),
     ("/PronunciationLexicon", Array([])),
   ])
@@ -307,10 +307,10 @@ test "merge_structure_trees merges roots" {
     ("/K", Array([kid2, Integer(3)])),
     ("/IDTree", idtree2),
     ("/ParentTree", parenttree2),
-    ("/RoleMap", Name(@pdf.PdfName("/NotADict"))),
-    ("/ClassMap", Dictionary([("/Class", Name(@pdf.PdfName("/Span")))])),
+    ("/RoleMap", Name(PdfName("/NotADict"))),
+    ("/ClassMap", Dictionary([("/Class", Name(PdfName("/Span")))])),
     ("/Namespaces", Dictionary([])),
-    ("/AF", Array([Name(@pdf.PdfName("/File"))])),
+    ("/AF", Array([Name(PdfName("/File"))])),
   ])
   ignore(install_struct_root(pdf2, root2))
   let merged = @pdfe.with_logger(_ => (), fn() {
@@ -324,7 +324,7 @@ test "merge_structure_trees merges roots" {
       match (pdf_out.lookup_obj(root_num) : @pdf.PdfObject) {
         Dictionary(_) as dict =>
           match (pdf_out.lookup_direct("/Type", dict) : @pdf.PdfObject?) {
-            Some(Name(@pdf.PdfName("/StructTreeRoot"))) => ()
+            Some(Name(PdfName("/StructTreeRoot"))) => ()
             _ => fail("expected StructTreeRoot type")
           }
         _ => fail("expected merged root dict")

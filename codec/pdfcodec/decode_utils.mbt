@@ -4,9 +4,8 @@ fn[T] map_pdf_error(
   action : () -> T raise,
 ) -> T raise CodecError {
   action() catch {
-    @pdf.PdfError::Msg(msg) =>
-      raise CodecError::CouldntDecodeStream("\{context}: \{msg}")
-    _ => raise CodecError::CouldntDecodeStream("\{context}: unknown error")
+    @pdf.PdfError::Msg(msg) => raise CouldntDecodeStream("\{context}: \{msg}")
+    _ => raise CouldntDecodeStream("\{context}: unknown error")
   }
 }
 

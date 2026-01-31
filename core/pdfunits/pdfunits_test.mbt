@@ -10,10 +10,10 @@ fn assert_close(a : Double, b : Double) -> Unit raise {
 test "points conversions" {
   // Test cases: (value, unit, expected_points)
   let cases : Array[(Double, @pdfunits.LengthUnit, Double)] = [
-    (1.0, @pdfunits.LengthUnit::PdfPoint, 1.0),
-    (1.0, @pdfunits.LengthUnit::Inch, 72.0),
-    (2.54, @pdfunits.LengthUnit::Centimetre, 72.0), // 1 inch in cm
-    (25.4, @pdfunits.LengthUnit::Millimetre, 72.0), // 1 inch in mm
+    (1.0, PdfPoint, 1.0),
+    (1.0, Inch, 72.0),
+    (2.54, Centimetre, 72.0), // 1 inch in cm
+    (25.4, Millimetre, 72.0), // 1 inch in mm
   ]
   for case_ in cases {
     let (value, unit, expected) = case_
@@ -25,10 +25,10 @@ test "points conversions" {
 test "inches conversions" {
   // Test cases: (value, unit, expected_inches)
   let cases : Array[(Double, @pdfunits.LengthUnit, Double)] = [
-    (1.0, @pdfunits.LengthUnit::Inch, 1.0),
-    (72.0, @pdfunits.LengthUnit::PdfPoint, 1.0),
-    (2.54, @pdfunits.LengthUnit::Centimetre, 1.0),
-    (25.4, @pdfunits.LengthUnit::Millimetre, 1.0),
+    (1.0, Inch, 1.0),
+    (72.0, PdfPoint, 1.0),
+    (2.54, Centimetre, 1.0),
+    (25.4, Millimetre, 1.0),
   ]
   for case_ in cases {
     let (value, unit, expected) = case_
@@ -40,10 +40,10 @@ test "inches conversions" {
 test "centimetres conversions" {
   // Test cases: (value, unit, expected_cm)
   let cases : Array[(Double, @pdfunits.LengthUnit, Double)] = [
-    (1.0, @pdfunits.LengthUnit::Centimetre, 1.0),
-    (1.0, @pdfunits.LengthUnit::Inch, 2.54),
-    (10.0, @pdfunits.LengthUnit::Millimetre, 1.0),
-    (28.3456, @pdfunits.LengthUnit::PdfPoint, 1.0),
+    (1.0, Centimetre, 1.0),
+    (1.0, Inch, 2.54),
+    (10.0, Millimetre, 1.0),
+    (28.3456, PdfPoint, 1.0),
   ]
   for case_ in cases {
     let (value, unit, expected) = case_
@@ -55,9 +55,9 @@ test "centimetres conversions" {
 test "millimetres conversions" {
   // Test cases: (value, unit, expected_mm)
   let cases : Array[(Double, @pdfunits.LengthUnit, Double)] = [
-    (1.0, @pdfunits.LengthUnit::Millimetre, 1.0),
-    (1.0, @pdfunits.LengthUnit::Centimetre, 10.0),
-    (1.0, @pdfunits.LengthUnit::Inch, 25.4),
+    (1.0, Millimetre, 1.0),
+    (1.0, Centimetre, 10.0),
+    (1.0, Inch, 25.4),
   ]
   for case_ in cases {
     let (value, unit, expected) = case_

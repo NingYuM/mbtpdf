@@ -92,20 +92,20 @@ pub(all) enum StandardFont {
 ///|
 pub fn StandardFont::to_string(self : StandardFont) -> String {
   match self {
-    StandardFont::TimesRoman => "Times-Roman"
-    StandardFont::TimesBold => "Times-Bold"
-    StandardFont::TimesItalic => "Times-Italic"
-    StandardFont::TimesBoldItalic => "Times-BoldItalic"
-    StandardFont::Helvetica => "Helvetica"
-    StandardFont::HelveticaBold => "Helvetica-Bold"
-    StandardFont::HelveticaOblique => "Helvetica-Oblique"
-    StandardFont::HelveticaBoldOblique => "Helvetica-BoldOblique"
-    StandardFont::Courier => "Courier"
-    StandardFont::CourierBold => "Courier-Bold"
-    StandardFont::CourierOblique => "Courier-Oblique"
-    StandardFont::CourierBoldOblique => "Courier-BoldOblique"
-    StandardFont::Symbol => "Symbol"
-    StandardFont::ZapfDingbats => "ZapfDingbats"
+    TimesRoman => "Times-Roman"
+    TimesBold => "Times-Bold"
+    TimesItalic => "Times-Italic"
+    TimesBoldItalic => "Times-BoldItalic"
+    Helvetica => "Helvetica"
+    HelveticaBold => "Helvetica-Bold"
+    HelveticaOblique => "Helvetica-Oblique"
+    HelveticaBoldOblique => "Helvetica-BoldOblique"
+    Courier => "Courier"
+    CourierBold => "Courier-Bold"
+    CourierOblique => "Courier-Oblique"
+    CourierBoldOblique => "Courier-BoldOblique"
+    Symbol => "Symbol"
+    ZapfDingbats => "ZapfDingbats"
   }
 }
 
@@ -141,28 +141,28 @@ pub(all) enum Font {
 ///|
 pub fn SimpleFontType::to_string(self : SimpleFontType) -> String {
   match self {
-    SimpleFontType::Type1 => "Type 1"
-    SimpleFontType::MMType1 => "MM Type 1"
-    SimpleFontType::Type3(glyphs) =>
+    Type1 => "Type 1"
+    MMType1 => "MM Type 1"
+    Type3(glyphs) =>
       "Type 3: charprocs for" + glyphs.charprocs.map(pair => pair.0).join("")
-    SimpleFontType::Truetype => "Truetype"
+    Truetype => "Truetype"
   }
 }
 
 ///|
 pub fn Encoding::to_string(self : Encoding) -> String {
   match self {
-    Encoding::ImplicitInFontFile => "ImplicitInFontFile"
-    Encoding::StandardEncoding => "StandardEncoding"
-    Encoding::MacRomanEncoding => "MacRomanEncoding"
-    Encoding::WinAnsiEncoding => "WinAnsiEncoding"
-    Encoding::MacExpertEncoding => "MacExpertEncoding"
-    Encoding::CustomEncoding(enc, diff) =>
+    ImplicitInFontFile => "ImplicitInFontFile"
+    StandardEncoding => "StandardEncoding"
+    MacRomanEncoding => "MacRomanEncoding"
+    WinAnsiEncoding => "WinAnsiEncoding"
+    MacExpertEncoding => "MacExpertEncoding"
+    CustomEncoding(enc, diff) =>
       "CustomEncoding with base " +
       enc.to_string() +
       " and differences " +
       diff.map(pair => "\{pair.1} -> \{pair.0}, ").join("")
-    Encoding::FillUndefinedWithStandard(enc) =>
+    FillUndefinedWithStandard(enc) =>
       "FillUndefinedWithStandard " + enc.to_string()
   }
 }
@@ -181,8 +181,8 @@ pub fn SimpleFont::to_string(self : SimpleFont) -> String {
 ///|
 pub fn Font::to_string(self : Font) -> String {
   match self {
-    Font::StandardFont(standard, _) => "StandardFont " + standard.to_string()
-    Font::SimpleFont(simple) => "SimpleFont " + simple.to_string()
-    Font::CIDKeyedFont(name, _, _) => "CIDKeyedFont " + name
+    StandardFont(standard, _) => "StandardFont " + standard.to_string()
+    SimpleFont(simple) => "SimpleFont " + simple.to_string()
+    CIDKeyedFont(name, _, _) => "CIDKeyedFont " + name
   }
 }

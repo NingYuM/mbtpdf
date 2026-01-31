@@ -108,6 +108,6 @@ fn decode_ascii85(input : @pdfio.Input) -> Array[Byte] raise CodecError {
     }
     output
   } catch {
-    _ => raise CodecError::CouldntDecodeStream("ASCII85")
+    _ => raise CouldntDecodeStream("ASCII85")
   }
 }

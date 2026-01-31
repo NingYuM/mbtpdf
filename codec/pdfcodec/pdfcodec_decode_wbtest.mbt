@@ -26,7 +26,7 @@ fn decode_stream(
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
   decode_ctx.decode_pdfstream_onestage(pdf, stream_obj)
   match stream_ref.val {
-    (_, @pdf.Stream::Got(bytes)) => bytes
+    (_, Got(bytes)) => bytes
     _ => fail("expected decoded bytes")
   }
 }
@@ -248,7 +248,7 @@ test "decode_pdfstream_onestage handles Crypt filter" {
   let (updated_dict, stream_data) = stream_ref.val
   assert_true(pdf.lookup_direct("/Filter", updated_dict) is None)
   match stream_data {
-    @pdf.Stream::Got(bytes) => assert_eq(@pdfio.string_of_bytes(bytes), "plain")
+    Got(bytes) => assert_eq(@pdfio.string_of_bytes(bytes), "plain")
     _ => fail("expected got bytes")
   }
 }

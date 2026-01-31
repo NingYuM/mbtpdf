@@ -15,8 +15,8 @@ fn deep_copy_pdfobject(obj : PdfObject) -> PdfObject {
       let (dict, stream) = r.val
       let dict_copy = deep_copy_pdfobject(dict)
       let stream_copy = match stream {
-        Stream::Got(bytes) => Stream::Got(copy_bytes(bytes))
-        Stream::ToGet(toget) => Stream::ToGet(toget)
+        Got(bytes) => Stream::Got(copy_bytes(bytes))
+        ToGet(toget) => ToGet(toget)
       }
       Stream(Ref::new((dict_copy, stream_copy)))
     }

@@ -37,10 +37,10 @@ fn generate_object_stream_hints(
     let objnum = pair.0
     let obj = pdf.lookup_obj(objnum)
     match obj {
-      PdfObject::Stream(r) => {
+      Stream(r) => {
         let (dict, _) = r.val
         match pdf.lookup_direct("/Length", dict) {
-          Some(PdfObject::Indirect(i)) => indirect_lengths.set(i, true)
+          Some(Indirect(i)) => indirect_lengths.set(i, true)
           _ => ()
         }
       }
@@ -61,7 +61,7 @@ fn generate_object_stream_hints(
     }
     let obj = pdf.lookup_obj(objnum)
     match obj {
-      PdfObject::Stream(_) => ()
+      Stream(_) => ()
       _ => candidates.push(objnum)
     }
   }
@@ -91,7 +91,7 @@ fn build_object_stream_groups(pdf : @pdf.Pdf) -> Array[(Int, Array[Int])] {
     }
     let obj = pdf.lookup_obj(objnum)
     match obj {
-      PdfObject::Stream(_) => {
+      Stream(_) => {
         pdf.objects.object_stream_ids.remove(objnum)
         continue
       }
@@ -163,28 +163,24 @@ fn bake_object_streams(
     }
     let data = @pdfio.bytes_of_string(data_sb.to_string())
     let dict = PdfObject::Dictionary([
-      ("/Type", PdfObject::Name(@pdf.PdfName("/ObjStm"))),
-      ("/Length", PdfObject::Integer(@pdfio.bytes_size(data))),
-      ("/N", PdfObject::Integer(objs.length())),
-      ("/First", PdfObject::Integer(first)),
+      ("/Type", Name(PdfName("/ObjStm"))),
+      ("/Length", Integer(@pdfio.bytes_size(data))),
+      ("/N", Integer(objs.length())),
+      ("/First", Integer(first)),
     ])
-    let mut stream_obj = PdfObject::Stream(
-      Ref::new((dict, @pdf.Stream::Got(data))),
-    )
+    let mut stream_obj = PdfObject::Stream(Ref::new((dict, Got(data))))
     if compress {
       let encoded = @pdfcodec.PdfCodec::new().encode_flate(data)
       if @pdfio.bytes_size(encoded) + 20 < @pdfio.bytes_size(data) {
         let dict_with_filter = dict.add_entry(
           "/Filter",
-          PdfObject::Name(@pdf.PdfName("/FlateDecode")),
+          Name(PdfName("/FlateDecode")),
         )
         let dict_with_length = dict_with_filter.add_entry(
           "/Length",
-          PdfObject::Integer(@pdfio.bytes_size(encoded)),
+          Integer(@pdfio.bytes_size(encoded)),
         )
-        stream_obj = PdfObject::Stream(
-          Ref::new((dict_with_length, @pdf.Stream::Got(encoded))),
-        )
+        stream_obj = Stream(Ref::new((dict_with_length, Got(encoded))))
       }
     }
     pdf.addobj_given_num((stream_id, stream_obj))

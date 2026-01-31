@@ -14,11 +14,7 @@ fn[T] assert_is_err(res : Result[T, Error]) -> Unit raise {
 
 ///|
 fn eval_calc(ops : Array[Calculator]) -> Array[Double] raise {
-  let fun : PdfFunction = {
-    func: PdfFunctionKind::Calculator(ops),
-    domain: [],
-    range: None,
-  }
+  let fun : PdfFunction = { func: Calculator(ops), domain: [], range: None }
   PdfFunction::eval(fun, [])
 }
 
@@ -41,7 +37,7 @@ test "eval calculator function" {
 ///|
 test "eval interpolation function" {
   let fun : PdfFunction = {
-    func: PdfFunctionKind::Interpolation({ c0: [0.0], c1: [1.0], n: 1.0 }),
+    func: Interpolation({ c0: [0.0], c1: [1.0], n: 1.0 }),
     domain: [0.0, 1.0],
     range: Some([0.0, 1.0]),
   }
@@ -106,7 +102,7 @@ test "parse sampled function stream" {
     ("/BitsPerSample", Integer(8)),
   ])
   let data = @pdfio.bytes_of_list([0, 255])
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, Got(data))))
   let fun = PdfFunction::parse(pdf, stream)
   match (fun.func : PdfFunctionKind) {
     Sampled(sample) => {
@@ -122,7 +118,7 @@ test "parse sampled function stream" {
 ///|
 test "serialize interpolation function" {
   let fun : PdfFunction = {
-    func: PdfFunctionKind::Interpolation({ c0: [0.0], c1: [2.0], n: 1.0 }),
+    func: Interpolation({ c0: [0.0], c1: [2.0], n: 1.0 }),
     domain: [0.0, 1.0],
     range: Some([0.0, 2.0]),
   }
@@ -137,17 +133,17 @@ test "serialize interpolation function" {
 ///|
 test "serialize stitching function" {
   let f1 : PdfFunction = {
-    func: PdfFunctionKind::Interpolation({ c0: [0.0], c1: [1.0], n: 1.0 }),
+    func: Interpolation({ c0: [0.0], c1: [1.0], n: 1.0 }),
     domain: [0.0, 1.0],
     range: Some([0.0, 1.0]),
   }
   let f2 : PdfFunction = {
-    func: PdfFunctionKind::Interpolation({ c0: [1.0], c1: [2.0], n: 1.0 }),
+    func: Interpolation({ c0: [1.0], c1: [2.0], n: 1.0 }),
     domain: [0.0, 1.0],
     range: Some([1.0, 2.0]),
   }
   let fun : PdfFunction = {
-    func: PdfFunctionKind::Stitching({
+    func: Stitching({
       functions: [f1, f2],
       bounds: [0.5],
       stitch_encode: [0.0, 1.0, 0.0, 1.0],
@@ -207,7 +203,7 @@ test "serialize calculator covers opcode strings" {
   match (obj : @pdf.PdfObject) {
     Stream(r) =>
       match r.val.1 {
-        @pdf.Stream::Got(bytes) => {
+        Got(bytes) => {
           let text = @pdfio.string_of_bytes(bytes)
           assert_true(text.contains("cvi"))
           assert_true(text.contains("bitshift"))
@@ -260,7 +256,7 @@ test "PdfFunction::print covers kinds and array sizes" {
     let empty_ints : Array[Int] = []
     let some_ints : Array[Int] = [1, 2]
     let sampled_empty : PdfFunction = {
-      func: PdfFunctionKind::Sampled({
+      func: Sampled({
         size: empty_ints,
         order: 1,
         encode: empty_doubles,
@@ -272,7 +268,7 @@ test "PdfFunction::print covers kinds and array sizes" {
       range: None,
     }
     let sampled_full : PdfFunction = {
-      func: PdfFunctionKind::Sampled({
+      func: Sampled({
         size: some_ints,
         order: 1,
         encode: some_doubles,
@@ -284,16 +280,12 @@ test "PdfFunction::print covers kinds and array sizes" {
       range: Some(some_doubles),
     }
     let interpolation : PdfFunction = {
-      func: PdfFunctionKind::Interpolation({
-        c0: empty_doubles,
-        c1: empty_doubles,
-        n: 1.0,
-      }),
+      func: Interpolation({ c0: empty_doubles, c1: empty_doubles, n: 1.0 }),
       domain: empty_doubles,
       range: None,
     }
     let stitching : PdfFunction = {
-      func: PdfFunctionKind::Stitching({
+      func: Stitching({
         functions: [interpolation],
         bounds: empty_doubles,
         stitch_encode: empty_doubles,
@@ -302,22 +294,22 @@ test "PdfFunction::print covers kinds and array sizes" {
       range: None,
     }
     let calculator : PdfFunction = {
-      func: PdfFunctionKind::Calculator([
-        Calculator::Bool(true),
-        Calculator::Bool(false),
-        Calculator::Add,
-        Calculator::Atan,
-        Calculator::Ceiling,
-        Calculator::Cos,
-        Calculator::If([Calculator::Int(1)]),
-        Calculator::IfElse([Calculator::Int(0)], [Calculator::Int(1)]),
-        Calculator::Neg,
-        Calculator::Index,
-        Calculator::Round,
-        Calculator::Sin,
-        Calculator::Sqrt,
-        Calculator::Sub,
-        Calculator::Roll,
+      func: Calculator([
+        Bool(true),
+        Bool(false),
+        Add,
+        Atan,
+        Ceiling,
+        Cos,
+        If([Int(1)]),
+        IfElse([Int(0)], [Int(1)]),
+        Neg,
+        Index,
+        Round,
+        Sin,
+        Sqrt,
+        Sub,
+        Roll,
       ]),
       domain: empty_doubles,
       range: None,
@@ -340,7 +332,7 @@ test "parse calculator keywords from stream" {
   let data = @pdfio.bytes_of_string(
     "{ true 1.5 add 2 round 3 1 roll 2 atan 30 sin ceiling sqrt cos sub 2 abs 1 neg 0 index { 1 } if { 0 } { 1 } ifelse }",
   )
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, Got(data))))
   @pdfe.with_logger(_ => (), fn() {
     let fun = PdfFunction::parse(pdf, stream)
     match (fun.func : PdfFunctionKind) {
@@ -393,124 +385,93 @@ test "parse calculator rejects multi-token group" {
     ("/Domain", Array([Real(0.0), Real(1.0)])),
   ])
   let data = @pdfio.bytes_of_string("{ 0 { 1 2 } }")
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, Got(data))))
   let res : Result[PdfFunction, Error] = try? PdfFunction::parse(pdf, stream)
   assert_true(res is Err(_))
 }
 
 ///|
 test "calculator arithmetic ops" {
-  let add = eval_calc([Calculator::Int(2), Calculator::Int(3), Calculator::Add])
+  let add = eval_calc([Int(2), Int(3), Add])
   assert_eq(add.length(), 1)
   assert_close(add[0], 5.0)
-  let sub = eval_calc([Calculator::Int(10), Calculator::Int(3), Calculator::Sub])
+  let sub = eval_calc([Int(10), Int(3), Sub])
   assert_close(sub[0], 7.0)
-  let mul = eval_calc([Calculator::Int(4), Calculator::Int(5), Calculator::Mul])
+  let mul = eval_calc([Int(4), Int(5), Mul])
   assert_close(mul[0], 20.0)
-  let div = eval_calc([Calculator::Int(8), Calculator::Int(2), Calculator::Div])
+  let div = eval_calc([Int(8), Int(2), Div])
   assert_close(div[0], 0.25)
-  let exp = eval_calc([Calculator::Int(3), Calculator::Int(2), Calculator::Exp])
+  let exp = eval_calc([Int(3), Int(2), Exp])
   assert_close(exp[0], 8.0)
-  let idiv = eval_calc([
-    Calculator::Int(3),
-    Calculator::Int(10),
-    Calculator::Idiv,
-  ])
+  let idiv = eval_calc([Int(3), Int(10), Idiv])
   assert_close(idiv[0], 3.0)
-  let mod = eval_calc([Calculator::Int(3), Calculator::Int(10), Calculator::Mod])
+  let mod = eval_calc([Int(3), Int(10), Mod])
   assert_close(mod[0], 1.0)
 }
 
 ///|
 test "calculator rounding and conversion ops" {
-  let abs = eval_calc([Calculator::Float(-1.4), Calculator::Abs])
+  let abs = eval_calc([Float(-1.4), Abs])
   assert_close(abs[0], 1.4)
-  let neg = eval_calc([Calculator::Int(5), Calculator::Neg])
+  let neg = eval_calc([Int(5), Neg])
   assert_close(neg[0], -5.0)
-  let ceil = eval_calc([Calculator::Float(1.1), Calculator::Ceiling])
+  let ceil = eval_calc([Float(1.1), Ceiling])
   assert_close(ceil[0], 2.0)
-  let floor = eval_calc([Calculator::Float(1.9), Calculator::Floor])
+  let floor = eval_calc([Float(1.9), Floor])
   assert_close(floor[0], 1.0)
-  let round = eval_calc([Calculator::Float(1.6), Calculator::Round])
+  let round = eval_calc([Float(1.6), Round])
   assert_close(round[0], 2.0)
-  let trunc = eval_calc([Calculator::Float(1.9), Calculator::Truncate])
+  let trunc = eval_calc([Float(1.9), Truncate])
   assert_close(trunc[0], 1.0)
-  let cvi = eval_calc([Calculator::Float(2.9), Calculator::Cvi])
+  let cvi = eval_calc([Float(2.9), Cvi])
   assert_close(cvi[0], 2.0)
-  let cvr = eval_calc([Calculator::Int(5), Calculator::Cvr])
+  let cvr = eval_calc([Int(5), Cvr])
   assert_close(cvr[0], 5.0)
 }
 
 ///|
 test "calculator trig and log ops" {
-  let sin = eval_calc([Calculator::Float(90.0), Calculator::Sin])
+  let sin = eval_calc([Float(90.0), Sin])
   assert_close(sin[0], 1.0)
-  let cos = eval_calc([Calculator::Float(0.0), Calculator::Cos])
+  let cos = eval_calc([Float(0.0), Cos])
   assert_close(cos[0], 1.0)
-  let atan = eval_calc([
-    Calculator::Int(1),
-    Calculator::Int(0),
-    Calculator::Atan,
-  ])
+  let atan = eval_calc([Int(1), Int(0), Atan])
   assert_close(atan[0], 0.0)
-  let ln = eval_calc([Calculator::Float(1.0), Calculator::Ln])
+  let ln = eval_calc([Float(1.0), Ln])
   assert_close(ln[0], 0.0)
-  let log = eval_calc([Calculator::Float(1.0), Calculator::Log])
+  let log = eval_calc([Float(1.0), Log])
   assert_close(log[0], 0.0)
-  let sqrt = eval_calc([Calculator::Int(9), Calculator::Sqrt])
+  let sqrt = eval_calc([Int(9), Sqrt])
   assert_close(sqrt[0], 3.0)
 }
 
 ///|
 test "calculator stack ops" {
-  let dup = eval_calc([Calculator::Int(3), Calculator::Dup])
+  let dup = eval_calc([Int(3), Dup])
   assert_eq(dup.length(), 2)
   assert_close(dup[0], 3.0)
   assert_close(dup[1], 3.0)
-  let exch = eval_calc([
-    Calculator::Int(1),
-    Calculator::Int(2),
-    Calculator::Exch,
-  ])
+  let exch = eval_calc([Int(1), Int(2), Exch])
   assert_eq(exch.length(), 2)
   assert_close(exch[0], 1.0)
   assert_close(exch[1], 2.0)
-  let pop = eval_calc([Calculator::Int(1), Calculator::Int(2), Calculator::Pop])
+  let pop = eval_calc([Int(1), Int(2), Pop])
   assert_eq(pop.length(), 1)
   assert_close(pop[0], 1.0)
-  let copy = eval_calc([
-    Calculator::Int(1),
-    Calculator::Int(2),
-    Calculator::Int(3),
-    Calculator::Int(2),
-    Calculator::Copy,
-  ])
+  let copy = eval_calc([Int(1), Int(2), Int(3), Int(2), Copy])
   assert_eq(copy.length(), 5)
   assert_close(copy[0], 3.0)
   assert_close(copy[1], 2.0)
   assert_close(copy[2], 3.0)
   assert_close(copy[3], 2.0)
   assert_close(copy[4], 1.0)
-  let index = eval_calc([
-    Calculator::Int(7),
-    Calculator::Int(8),
-    Calculator::Int(9),
-    Calculator::Int(1),
-    Calculator::Index,
-  ])
+  let index = eval_calc([Int(7), Int(8), Int(9), Int(1), Index])
   assert_eq(index.length(), 4)
   assert_close(index[0], 8.0)
   assert_close(index[1], 9.0)
   assert_close(index[2], 8.0)
   assert_close(index[3], 7.0)
-  let roll = eval_calc([
-    Calculator::Int(1),
-    Calculator::Int(2),
-    Calculator::Int(3),
-    Calculator::Int(3),
-    Calculator::Int(1),
-    Calculator::Roll,
-  ])
+  let roll = eval_calc([Int(1), Int(2), Int(3), Int(3), Int(1), Roll])
   assert_eq(roll.length(), 3)
   assert_close(roll[0], 1.0)
   assert_close(roll[1], 3.0)
@@ -519,121 +480,61 @@ test "calculator stack ops" {
 
 ///|
 test "calculator boolean and comparison ops" {
-  let and_int = eval_calc([
-    Calculator::Int(6),
-    Calculator::Int(3),
-    Calculator::And,
-  ])
+  let and_int = eval_calc([Int(6), Int(3), And])
   assert_close(and_int[0], 2.0)
-  let or_int = eval_calc([
-    Calculator::Int(2),
-    Calculator::Int(1),
-    Calculator::Or,
-  ])
+  let or_int = eval_calc([Int(2), Int(1), Or])
   assert_close(or_int[0], 3.0)
-  let xor_int = eval_calc([
-    Calculator::Int(6),
-    Calculator::Int(3),
-    Calculator::Xor,
-  ])
+  let xor_int = eval_calc([Int(6), Int(3), Xor])
   assert_close(xor_int[0], 5.0)
-  let not_int = eval_calc([Calculator::Int(0), Calculator::Not])
+  let not_int = eval_calc([Int(0), Not])
   assert_close(not_int[0], -1.0)
-  let bitshift = eval_calc([
-    Calculator::Int(1),
-    Calculator::Int(2),
-    Calculator::Bitshift,
-  ])
+  let bitshift = eval_calc([Int(1), Int(2), Bitshift])
   assert_close(bitshift[0], 1.0)
-  let bitshift_neg = eval_calc([
-    Calculator::Int(-1),
-    Calculator::Int(4),
-    Calculator::Bitshift,
-  ])
+  let bitshift_neg = eval_calc([Int(-1), Int(4), Bitshift])
   assert_close(bitshift_neg[0], 2.0)
   let and_bool = eval_calc([
-    Calculator::Bool(true),
-    Calculator::Bool(false),
-    Calculator::And,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+    Bool(true),
+    Bool(false),
+    And,
+    IfElse([Int(1)], [Int(0)]),
   ])
   assert_close(and_bool[0], 0.0)
   let or_bool = eval_calc([
-    Calculator::Bool(false),
-    Calculator::Bool(true),
-    Calculator::Or,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+    Bool(false),
+    Bool(true),
+    Or,
+    IfElse([Int(1)], [Int(0)]),
   ])
   assert_close(or_bool[0], 1.0)
   let xor_bool = eval_calc([
-    Calculator::Bool(true),
-    Calculator::Bool(true),
-    Calculator::Xor,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+    Bool(true),
+    Bool(true),
+    Xor,
+    IfElse([Int(1)], [Int(0)]),
   ])
   assert_close(xor_bool[0], 0.0)
   let not_bool = eval_calc([
-    Calculator::Bool(false),
-    Calculator::Bool(true),
-    Calculator::Not,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+    Bool(false),
+    Bool(true),
+    Not,
+    IfElse([Int(1)], [Int(0)]),
   ])
   assert_close(not_bool[0], 0.0)
-  let eq_true = eval_calc([
-    Calculator::Int(2),
-    Calculator::Int(2),
-    Calculator::Eq,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
-  ])
+  let eq_true = eval_calc([Int(2), Int(2), Eq, IfElse([Int(1)], [Int(0)])])
   assert_close(eq_true[0], 1.0)
-  let eq_false = eval_calc([
-    Calculator::Int(1),
-    Calculator::Float(1.0),
-    Calculator::Eq,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
-  ])
+  let eq_false = eval_calc([Int(1), Float(1.0), Eq, IfElse([Int(1)], [Int(0)])])
   assert_close(eq_false[0], 0.0)
-  let gt = eval_calc([
-    Calculator::Int(1),
-    Calculator::Int(2),
-    Calculator::Gt,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
-  ])
+  let gt = eval_calc([Int(1), Int(2), Gt, IfElse([Int(1)], [Int(0)])])
   assert_close(gt[0], 1.0)
-  let ge = eval_calc([
-    Calculator::Int(2),
-    Calculator::Int(2),
-    Calculator::Ge,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
-  ])
+  let ge = eval_calc([Int(2), Int(2), Ge, IfElse([Int(1)], [Int(0)])])
   assert_close(ge[0], 1.0)
-  let lt = eval_calc([
-    Calculator::Int(3),
-    Calculator::Int(2),
-    Calculator::Lt,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
-  ])
+  let lt = eval_calc([Int(3), Int(2), Lt, IfElse([Int(1)], [Int(0)])])
   assert_close(lt[0], 1.0)
-  let le = eval_calc([
-    Calculator::Int(2),
-    Calculator::Int(2),
-    Calculator::Le,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
-  ])
+  let le = eval_calc([Int(2), Int(2), Le, IfElse([Int(1)], [Int(0)])])
   assert_close(le[0], 1.0)
-  let ne = eval_calc([
-    Calculator::Int(1),
-    Calculator::Int(2),
-    Calculator::Ne,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
-  ])
+  let ne = eval_calc([Int(1), Int(2), Ne, IfElse([Int(1)], [Int(0)])])
   assert_close(ne[0], 1.0)
-  let gt_cross = eval_calc([
-    Calculator::Int(2),
-    Calculator::Float(1.0),
-    Calculator::Gt,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
-  ])
+  let gt_cross = eval_calc([Int(2), Float(1.0), Gt, IfElse([Int(1)], [Int(0)])])
   assert_close(gt_cross[0], 0.0)
 }
 
@@ -645,9 +546,7 @@ test "calculator if and ifelse parse" {
     ("/Domain", Array([])),
   ])
   let data_if = @pdfio.bytes_of_string("{ true { 5 } if }")
-  let if_stream : @pdf.PdfObject = Stream(
-    Ref::new((dict_if, @pdf.Stream::Got(data_if))),
-  )
+  let if_stream : @pdf.PdfObject = Stream(Ref::new((dict_if, Got(data_if))))
   let fun_if = PdfFunction::parse(pdf, if_stream)
   let out_if = PdfFunction::eval(fun_if, [])
   assert_eq(out_if.length(), 1)
@@ -658,7 +557,7 @@ test "calculator if and ifelse parse" {
   ])
   let data_ifelse = @pdfio.bytes_of_string("{ false { 1 } { 2 } ifelse }")
   let ifelse_stream : @pdf.PdfObject = Stream(
-    Ref::new((dict_ifelse, @pdf.Stream::Got(data_ifelse))),
+    Ref::new((dict_ifelse, Got(data_ifelse))),
   )
   let fun_ifelse = PdfFunction::parse(pdf, ifelse_stream)
   let out_ifelse = PdfFunction::eval(fun_ifelse, [])
@@ -669,23 +568,23 @@ test "calculator if and ifelse parse" {
 ///|
 test "calculator errors on bad stack usage" {
   let bad_copy : Result[Array[Double], Error] = try? eval_calc([
-    Calculator::Int(1),
-    Calculator::Int(2),
-    Calculator::Int(3),
-    Calculator::Int(5),
-    Calculator::Copy,
+    Int(1),
+    Int(2),
+    Int(3),
+    Int(5),
+    Copy,
   ])
   assert_true(bad_copy is Err(_))
   let bad_index : Result[Array[Double], Error] = try? eval_calc([
-    Calculator::Int(1),
-    Calculator::Int(1),
-    Calculator::Index,
+    Int(1),
+    Int(1),
+    Index,
   ])
   assert_true(bad_index is Err(_))
   let bad_roll : Result[Array[Double], Error] = try? eval_calc([
-    Calculator::Int(0),
-    Calculator::Int(1),
-    Calculator::Roll,
+    Int(0),
+    Int(1),
+    Roll,
   ])
   assert_true(bad_roll is Err(_))
 }
@@ -693,7 +592,7 @@ test "calculator errors on bad stack usage" {
 ///|
 test "eval_function clamps range and rejects bad domain" {
   let clamped_fun : PdfFunction = {
-    func: PdfFunctionKind::Calculator([Calculator::Int(2)]),
+    func: Calculator([Int(2)]),
     domain: [],
     range: Some([0.0, 1.0]),
   }
@@ -701,7 +600,7 @@ test "eval_function clamps range and rejects bad domain" {
   assert_eq(clamped.length(), 1)
   assert_close(clamped[0], 1.0)
   let bad_domain : PdfFunction = {
-    func: PdfFunctionKind::Calculator([Calculator::Int(1)]),
+    func: Calculator([Int(1)]),
     domain: [0.0],
     range: None,
   }
@@ -730,7 +629,7 @@ test "parse function rejects bad inputs" {
     ])
     let bad_calc_data = @pdfio.bytes_of_string("{ nope }")
     let bad_calc_stream : @pdf.PdfObject = Stream(
-      Ref::new((bad_calc_dict, @pdf.Stream::Got(bad_calc_data))),
+      Ref::new((bad_calc_dict, Got(bad_calc_data))),
     )
     let bad_calc_result : Result[PdfFunction, Error] = try? PdfFunction::parse(
       pdf, bad_calc_stream,
@@ -744,7 +643,7 @@ test "parse function rejects bad inputs" {
     ])
     let sampled_data = @pdfio.bytes_of_list([0, 1])
     let sampled_stream : @pdf.PdfObject = Stream(
-      Ref::new((sampled_dict, @pdf.Stream::Got(sampled_data))),
+      Ref::new((sampled_dict, Got(sampled_data))),
     )
     let sampled_result : Result[PdfFunction, Error] = try? PdfFunction::parse(
       pdf, sampled_stream,
@@ -757,33 +656,33 @@ test "parse function rejects bad inputs" {
 test "PdfFunction::print covers extra calculator strings" {
   @pdfe.with_logger(_ => (), fn() {
     let fun : PdfFunction = {
-      func: PdfFunctionKind::Calculator([
-        Calculator::Cvi,
-        Calculator::Cvr,
-        Calculator::Div,
-        Calculator::Exp,
-        Calculator::Floor,
-        Calculator::Idiv,
-        Calculator::Ln,
-        Calculator::Log,
-        Calculator::Mod,
-        Calculator::Mul,
-        Calculator::Truncate,
-        Calculator::And,
-        Calculator::Bitshift,
-        Calculator::Eq,
-        Calculator::Ge,
-        Calculator::Gt,
-        Calculator::Le,
-        Calculator::Lt,
-        Calculator::Ne,
-        Calculator::Not,
-        Calculator::Or,
-        Calculator::Xor,
-        Calculator::Copy,
-        Calculator::Exch,
-        Calculator::Pop,
-        Calculator::Dup,
+      func: Calculator([
+        Cvi,
+        Cvr,
+        Div,
+        Exp,
+        Floor,
+        Idiv,
+        Ln,
+        Log,
+        Mod,
+        Mul,
+        Truncate,
+        And,
+        Bitshift,
+        Eq,
+        Ge,
+        Gt,
+        Le,
+        Lt,
+        Ne,
+        Not,
+        Or,
+        Xor,
+        Copy,
+        Exch,
+        Pop,
+        Dup,
       ]),
       domain: [],
       range: None,
@@ -802,7 +701,7 @@ test "parse calculator keywords covers remaining ops" {
   let data = @pdfio.bytes_of_string(
     "{ cvi cvr div exp floor idiv ln log mod mul truncate and bitshift eq ge gt le lt ne not or xor copy exch pop dup index roll }",
   )
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, Got(data))))
   let fun = PdfFunction::parse(pdf, stream)
   match (fun.func : PdfFunctionKind) {
     Calculator(ops) => assert_true(ops.length() > 0)
@@ -813,7 +712,7 @@ test "parse calculator keywords covers remaining ops" {
 ///|
 test "sampled function covers size multiplication" {
   let fun : PdfFunction = {
-    func: PdfFunctionKind::Sampled({
+    func: Sampled({
       size: [2, 2],
       order: 1,
       encode: [0.0, 1.0, 0.0, 1.0],
@@ -831,7 +730,7 @@ test "sampled function covers size multiplication" {
 ///|
 test "sampled function errors on incompatible size" {
   let fun : PdfFunction = {
-    func: PdfFunctionKind::Sampled({
+    func: Sampled({
       size: [2, 2],
       order: 1,
       encode: [0.0, 1.0, 0.0, 1.0],
@@ -848,7 +747,7 @@ test "sampled function errors on incompatible size" {
 ///|
 test "sampled function errors on missing range" {
   let fun : PdfFunction = {
-    func: PdfFunctionKind::Sampled({
+    func: Sampled({
       size: [2],
       order: 1,
       encode: [0.0, 1.0],
@@ -865,7 +764,7 @@ test "sampled function errors on missing range" {
 ///|
 test "sampled function errors on bad encode length" {
   let fun : PdfFunction = {
-    func: PdfFunctionKind::Sampled({
+    func: Sampled({
       size: [2],
       order: 1,
       encode: [0.0, 1.0, 2.0],
@@ -882,7 +781,7 @@ test "sampled function errors on bad encode length" {
 ///|
 test "eval_function rejects bad domain length" {
   let fun : PdfFunction = {
-    func: PdfFunctionKind::Calculator([Calculator::Int(1)]),
+    func: Calculator([Int(1)]),
     domain: [0.0, 1.0],
     range: None,
   }
@@ -892,7 +791,7 @@ test "eval_function rejects bad domain length" {
 ///|
 test "clamp_double clamps to min" {
   let fun : PdfFunction = {
-    func: PdfFunctionKind::Calculator([Calculator::Int(-1)]),
+    func: Calculator([Int(-1)]),
     domain: [],
     range: Some([0.0, 1.0]),
   }
@@ -902,121 +801,86 @@ test "clamp_double clamps to min" {
 
 ///|
 test "calculator type error cases" {
-  assert_is_err(try? eval_calc([Calculator::Add]))
-  assert_is_err(
-    try? eval_calc([Calculator::Int(1), Calculator::If([Calculator::Int(1)])]),
-  )
-  assert_is_err(try? eval_calc([Calculator::Bool(true), Calculator::Sin]))
-  assert_is_err(
-    try? eval_calc([
-      Calculator::Float(1.0),
-      Calculator::Int(2),
-      Calculator::Idiv,
-    ]),
-  )
+  assert_is_err(try? eval_calc([Add]))
+  assert_is_err(try? eval_calc([Int(1), If([Int(1)])]))
+  assert_is_err(try? eval_calc([Bool(true), Sin]))
+  assert_is_err(try? eval_calc([Float(1.0), Int(2), Idiv]))
 }
 
 ///|
 test "calculator abs/add branches and ceiling int" {
-  let abs_int = eval_calc([Calculator::Int(-3), Calculator::Abs])
+  let abs_int = eval_calc([Int(-3), Abs])
   assert_close(abs_int[0], 3.0)
-  let add_ff = eval_calc([
-    Calculator::Float(1.0),
-    Calculator::Float(2.0),
-    Calculator::Add,
-  ])
+  let add_ff = eval_calc([Float(1.0), Float(2.0), Add])
   assert_close(add_ff[0], 3.0)
-  let add_if = eval_calc([
-    Calculator::Int(1),
-    Calculator::Float(2.0),
-    Calculator::Add,
-  ])
+  let add_if = eval_calc([Int(1), Float(2.0), Add])
   assert_close(add_if[0], 3.0)
-  let add_fi = eval_calc([
-    Calculator::Float(1.0),
-    Calculator::Int(2),
-    Calculator::Add,
-  ])
+  let add_fi = eval_calc([Float(1.0), Int(2), Add])
   assert_close(add_fi[0], 3.0)
-  let ceil_int = eval_calc([Calculator::Int(3), Calculator::Ceiling])
+  let ceil_int = eval_calc([Int(3), Ceiling])
   assert_close(ceil_int[0], 3.0)
 }
 
 ///|
 test "calculator comparisons over bool and floats" {
   let bool_eq = eval_calc([
-    Calculator::Bool(true),
-    Calculator::Bool(true),
-    Calculator::Eq,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+    Bool(true),
+    Bool(true),
+    Eq,
+    IfElse([Int(1)], [Int(0)]),
   ])
   assert_close(bool_eq[0], 1.0)
   let bool_gt = eval_calc([
-    Calculator::Bool(false),
-    Calculator::Bool(true),
-    Calculator::Gt,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+    Bool(false),
+    Bool(true),
+    Gt,
+    IfElse([Int(1)], [Int(0)]),
   ])
   assert_close(bool_gt[0], 1.0)
   let bool_lt = eval_calc([
-    Calculator::Bool(true),
-    Calculator::Bool(false),
-    Calculator::Lt,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+    Bool(true),
+    Bool(false),
+    Lt,
+    IfElse([Int(1)], [Int(0)]),
   ])
   assert_close(bool_lt[0], 1.0)
   let float_lt = eval_calc([
-    Calculator::Float(2.0),
-    Calculator::Float(1.0),
-    Calculator::Lt,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+    Float(2.0),
+    Float(1.0),
+    Lt,
+    IfElse([Int(1)], [Int(0)]),
   ])
   assert_close(float_lt[0], 1.0)
   let float_gt = eval_calc([
-    Calculator::Float(1.0),
-    Calculator::Float(2.0),
-    Calculator::Gt,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+    Float(1.0),
+    Float(2.0),
+    Gt,
+    IfElse([Int(1)], [Int(0)]),
   ])
   assert_close(float_gt[0], 1.0)
   let float_eq = eval_calc([
-    Calculator::Float(1.0),
-    Calculator::Float(1.0),
-    Calculator::Ge,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+    Float(1.0),
+    Float(1.0),
+    Ge,
+    IfElse([Int(1)], [Int(0)]),
   ])
   assert_close(float_eq[0], 1.0)
 }
 
 ///|
 test "calculator comparisons across types" {
-  let bool_int = eval_calc([
-    Calculator::Int(1),
-    Calculator::Bool(false),
-    Calculator::Lt,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
-  ])
+  let bool_int = eval_calc([Int(1), Bool(false), Lt, IfElse([Int(1)], [Int(0)])])
   assert_close(bool_int[0], 1.0)
-  let float_int = eval_calc([
-    Calculator::Int(2),
-    Calculator::Float(1.0),
-    Calculator::Lt,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
-  ])
+  let float_int = eval_calc([Int(2), Float(1.0), Lt, IfElse([Int(1)], [Int(0)])])
   assert_close(float_int[0], 1.0)
   let float_bool = eval_calc([
-    Calculator::Bool(false),
-    Calculator::Float(1.0),
-    Calculator::Gt,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+    Bool(false),
+    Float(1.0),
+    Gt,
+    IfElse([Int(1)], [Int(0)]),
   ])
   assert_close(float_bool[0], 1.0)
-  let int_bool = eval_calc([
-    Calculator::Bool(false),
-    Calculator::Int(1),
-    Calculator::Gt,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
-  ])
+  let int_bool = eval_calc([Bool(false), Int(1), Gt, IfElse([Int(1)], [Int(0)])])
   assert_close(int_bool[0], 1.0)
 }
 
@@ -1047,7 +911,7 @@ test "parse_function hits error branches" {
     ("/FunctionType", Integer(0)),
     ("/Domain", Array([])),
     ("/Size", Array([Integer(2)])),
-    ("/BitsPerSample", Name(@pdf.PdfName("/Bad"))),
+    ("/BitsPerSample", Name(PdfName("/Bad"))),
   ])
   assert_is_err(try? PdfFunction::parse(pdf, bad_bps))
   let to_get = @pdf.ToGet::new(@pdfio.Input::of_string("x"), 0, 1)
@@ -1059,7 +923,7 @@ test "parse_function hits error branches" {
     ("/Decode", Array([Real(0.0)])),
   ])
   let sample_stream : @pdf.PdfObject = Stream(
-    Ref::new((sample_dict, @pdf.Stream::ToGet(to_get))),
+    Ref::new((sample_dict, ToGet(to_get))),
   )
   assert_is_err(try? PdfFunction::parse(pdf, sample_stream))
   let calc_dict : @pdf.PdfObject = Dictionary([
@@ -1067,7 +931,7 @@ test "parse_function hits error branches" {
     ("/Domain", Array([])),
   ])
   let calc_stream : @pdf.PdfObject = Stream(
-    Ref::new((calc_dict, @pdf.Stream::ToGet(to_get))),
+    Ref::new((calc_dict, ToGet(to_get))),
   )
   assert_is_err(try? PdfFunction::parse(pdf, calc_stream))
   let bad_functions : @pdf.PdfObject = Dictionary([
@@ -1099,16 +963,12 @@ test "parse_function hits error branches" {
 ///|
 test "stitching eval errors on encode length" {
   let f : PdfFunction = {
-    func: PdfFunctionKind::Calculator([Calculator::Int(1)]),
+    func: Calculator([Int(1)]),
     domain: [0.0, 1.0],
     range: None,
   }
   let fun : PdfFunction = {
-    func: PdfFunctionKind::Stitching({
-      functions: [f],
-      bounds: [0.5],
-      stitch_encode: [],
-    }),
+    func: Stitching({ functions: [f], bounds: [0.5], stitch_encode: [] }),
     domain: [0.0, 1.0],
     range: None,
   }

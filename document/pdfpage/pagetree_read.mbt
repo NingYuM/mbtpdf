@@ -16,12 +16,7 @@ fn remove_dict_entries(
 
 ///|
 let last_mediabox_seen : Ref[PdfObject] = {
-  val: PdfObject::Array([
-    PdfObject::Integer(0),
-    PdfObject::Integer(0),
-    PdfObject::Integer(612),
-    PdfObject::Integer(792),
-  ]),
+  val: Array([Integer(0), Integer(0), Integer(612), Integer(792)]),
 }
 
 ///|
@@ -65,7 +60,7 @@ fn find_pages(
                   _ => obj
                 }
               }
-              Dictionary(d) => PdfObject::Dictionary(d)
+              Dictionary(d) => Dictionary(d)
               _ => raise @pdf.PdfError::Msg("malformed kid")
             }
             out.append(find_pages(kid_obj, pdf, resources, mediabox, rotate)[:])
@@ -100,7 +95,7 @@ fn find_pages(
                   _ => obj
                 }
               }
-              Dictionary(d) => PdfObject::Dictionary(d)
+              Dictionary(d) => Dictionary(d)
               _ => raise @pdf.PdfError::Msg("malformed kid")
             }
             out.append(find_pages(kid_obj, pdf, resources, mediabox, rotate)[:])
@@ -122,7 +117,7 @@ fn find_pages(
                 Some(Indirect(i)) =>
                   match pdf.lookup_obj(i) {
                     Array(a) => Some(PdfObject::Array(a))
-                    _ => Some(PdfObject::Array([PdfObject::Indirect(i)]))
+                    _ => Some(Array([Indirect(i)]))
                   }
                 _ => pdf.lookup_direct("/Contents", pages)
               }
@@ -165,7 +160,7 @@ fn find_pages(
           }
           let resources = match resources {
             Some(r) => r
-            None => PdfObject::Dictionary([])
+            None => Dictionary([])
           }
           let rest = match pages {
             Dictionary(d) => PdfObject::Dictionary(remove_dict_entries(d))

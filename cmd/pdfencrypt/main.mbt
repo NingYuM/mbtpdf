@@ -16,7 +16,7 @@ pub async fn run(args : Array[String], quiet? : Bool = false) -> Unit {
   let owner_pw = args[3]
   try {
     let pdf = @pdfreadfs.PdfReadFs::new().pdf_of_file(None, None, in_file)
-    let banlist = [@pdfcrypt.Permission::NoEdit, @pdfcrypt.Permission::NoPrint]
+    let banlist = [@pdfcrypt.Permission::NoEdit, NoPrint]
     let encrypted = @pdfcrypt.PdfCrypt::new().encrypt_pdf_AES(
       false, "", owner_pw, banlist, pdf,
     )

@@ -102,7 +102,7 @@ fn encode_png_predictor(
   stream : Array[Byte],
 ) -> Array[Byte] raise CodecError {
   if bpc != 8 {
-    raise CodecError::DecodeNotSupported("PNG predictor only supports 8bpc")
+    raise DecodeNotSupported("PNG predictor only supports 8bpc")
   }
   let scanline_width = (colors * bpc * columns + 7) / 8
   let bytes_per_pixel = (bpc * colors + 7) / 8
@@ -140,7 +140,7 @@ fn encode_tiff_predictor(
   stream : Array[Byte],
 ) -> Array[Byte] raise CodecError {
   if bpc != 8 {
-    raise CodecError::DecodeNotSupported("TIFF predictor only supports 8bpc")
+    raise DecodeNotSupported("TIFF predictor only supports 8bpc")
   }
   let bytes_per_pixel = (bpc * colors + 7) / 8
   let scanline_width = (colors * bpc * columns + 7) / 8
@@ -178,10 +178,7 @@ fn encode_predictor(
     2 => encode_tiff_predictor(colors, bpc, columns, stream)
     10 | 11 | 12 | 13 | 14 | 15 =>
       encode_png_predictor(pred, colors, bpc, columns, stream)
-    _ =>
-      raise CodecError::DecodeNotSupported(
-        "encode_predictor: not supported - \{pred}",
-      )
+    _ => raise DecodeNotSupported("encode_predictor: not supported - \{pred}")
   }
 }
 
@@ -232,7 +229,7 @@ fn decode_scanline_pair(
         output[i] = (curr + paeth(left, up, up_left)) % 256
       }
     }
-    _ => raise CodecError::DecodeNotSupported("unknown PNG predictor")
+    _ => raise DecodeNotSupported("unknown PNG predictor")
   }
   output
 }

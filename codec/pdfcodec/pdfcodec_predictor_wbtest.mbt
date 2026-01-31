@@ -9,8 +9,8 @@ fn lookup_int_entry(
   match entries.search_by(pair => pair.0 == key) {
     Some(idx) =>
       match entries[idx].1 {
-        @pdf.PdfObject::Integer(value) => Some(value)
-        @pdf.PdfObject::Real(value) => Some(value.to_int())
+        Integer(value) => Some(value)
+        Real(value) => Some(value.to_int())
         _ => None
       }
     None => None
@@ -27,7 +27,7 @@ fn assert_decode_parms(
   bpc : Int,
 ) -> Unit raise {
   match pdf.lookup_direct("/DecodeParms", dict) {
-    Some(@pdf.PdfObject::Dictionary(entries)) => {
+    Some(Dictionary(entries)) => {
       let got_pred = lookup_int_entry(entries, "/Predictor")
       let got_cols = lookup_int_entry(entries, "/Columns")
       let got_colors = lookup_int_entry(entries, "/Colors")
@@ -51,13 +51,13 @@ fn roundtrip_predictor(pred : Predictor, pred_value : Int) -> Unit raise {
   let pdf = @pdf.Pdf::empty()
   let original = @pdfio.bytes_of_string("abcdefghi")
   let dict = @pdf.PdfObject::Dictionary([
-    ("/Length", @pdf.PdfObject::Integer(@pdfio.bytes_size(original))),
+    ("/Length", Integer(@pdfio.bytes_size(original))),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(original)))
   let stream_obj = @pdf.PdfObject::Stream(stream_ref)
   predictor_ctx.encode_pdfstream(
     pdf,
-    Encoding::Flate,
+    Flate,
     stream_obj,
     predictor=pred,
     predictor_columns=3,
@@ -67,7 +67,7 @@ fn roundtrip_predictor(pred : Predictor, pred_value : Int) -> Unit raise {
   predictor_ctx.decode_pdfstream_onestage(pdf, stream_obj)
   let (_decoded_dict, decoded_stream) = stream_ref.val
   let decoded_bytes = match decoded_stream {
-    @pdf.Stream::Got(bytes) => bytes
+    Got(bytes) => bytes
     _ => fail("expected decoded stream bytes")
   }
   assert_eq(
@@ -80,12 +80,12 @@ fn roundtrip_predictor(pred : Predictor, pred_value : Int) -> Unit raise {
 test "encode/decode flate stream with predictors" {
   let cases = [
     (Predictor::TIFF2, 2),
-    (Predictor::PNGNone, 10),
-    (Predictor::PNGSub, 11),
-    (Predictor::PNGUp, 12),
-    (Predictor::PNGAverage, 13),
-    (Predictor::PNGPaeth, 14),
-    (Predictor::PNGOptimum, 15),
+    (PNGNone, 10),
+    (PNGSub, 11),
+    (PNGUp, 12),
+    (PNGAverage, 13),
+    (PNGPaeth, 14),
+    (PNGOptimum, 15),
   ]
   for case in cases {
     let (pred, pred_value) = case

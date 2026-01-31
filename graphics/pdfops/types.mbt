@@ -110,7 +110,7 @@ let whitespace : Ref[String] = { val: " " }
 let always_add_whitespace : Ref[Bool] = { val: false }
 
 ///|
-pub let begin_artifact : Op = Op::OpBMC("/Artifact")
+pub let begin_artifact : Op = OpBMC("/Artifact")
 
 ///|
-pub let end_artifact : Op = Op::OpEMC
+pub let end_artifact : Op = OpEMC

@@ -20,7 +20,7 @@ fn make_changes(
     page : Page,
   ) -> Array[(String, Int, String, String)] {
     let entries = match pdf.lookup_direct(entry, page.resources) {
-      Some(@pdf.PdfObject::Dictionary(es)) => es
+      Some(Dictionary(es)) => es
       _ => []
     }
     entries.map(pair => (entry, pageseq, pair.0, freshname(src)))
@@ -68,27 +68,27 @@ fn change_operator(
     OpscnName(s, ns) => OpscnName(lookup("/Pattern", seqnum, s), ns)
     Opsh(s) => Opsh(lookup("/Shading", seqnum, s))
     OpDo(x) => OpDo(lookup("/XObject", seqnum, x))
-    OpDP(n, @pdf.PdfObject::Name(p)) =>
+    OpDP(n, Name(p)) =>
       OpDP(
         n,
-        @pdf.PdfObject::Name(
+        Name(
           @pdf.PdfName::of_string(
             lookup("/Properties", seqnum, p.to_string_bytes()),
           ),
         ),
       )
-    OpBDC(n, @pdf.PdfObject::Name(p)) =>
+    OpBDC(n, Name(p)) =>
       match lookup_option("/Properties", seqnum, p.to_string_bytes()) {
-        Some(x) => OpBDC(n, @pdf.PdfObject::Name(@pdf.PdfName::of_string(x)))
+        Some(x) => OpBDC(n, Name(@pdf.PdfName::of_string(x)))
         None => {
           @pdfe.warn("Warning: Missing OpBDC /Properties entry")
-          OpBDC(n, @pdf.PdfObject::Name(p))
+          OpBDC(n, Name(p))
         }
       }
     InlineImage((dict, dp, bytes)) => {
       let dict_updated = match
         pdf.lookup_direct_orelse("/CS", "/ColorSpace", dict) {
-        Some(@pdf.PdfObject::Name(n)) =>
+        Some(Name(n)) =>
           if n
             is PdfName(
               "/DeviceGray"
@@ -103,7 +103,7 @@ fn change_operator(
             let stripped = dict.remove_entry("/ColorSpace").remove_entry("/CS")
             stripped.add_entry(
               "/CS",
-              @pdf.PdfObject::Name(
+              Name(
                 @pdf.PdfName::of_string(
                   lookup("/ColorSpace", seqnum, n.to_string_bytes()),
                 ),
@@ -158,11 +158,11 @@ pub fn PdfPageDoc::renumber_pages(
   ) -> @pdf.PdfObject raise {
     fn newdict(name : String) -> @pdf.PdfObject raise {
       match pdf.lookup_direct(name, resources) {
-        Some(@pdf.PdfObject::Dictionary(entries)) =>
-          @pdf.PdfObject::Dictionary(
+        Some(Dictionary(entries)) =>
+          Dictionary(
             entries.map(pair => (lookup(name, seqnum, pair.0), pair.1)),
           )
-        _ => @pdf.PdfObject::Dictionary([])
+        _ => Dictionary([])
       }
     }
 

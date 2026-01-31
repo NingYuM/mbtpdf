@@ -90,9 +90,7 @@ fn add_named_destination(
   name : String,
   page_obj : Int,
 ) -> Unit raise {
-  let dest = @pdfdest.Destination::Fit(
-    @pdfdest.TargetPage::PageObject(page_obj),
-  )
+  let dest = @pdfdest.Destination::Fit(PageObject(page_obj))
   let tree_builder = @pdftree.PdfTree::new(pdf)
   let tree = tree_builder.build_name_tree(false, [(name, dest.to_pdf_object())])
   let tree_num = pdf.addobj(tree)
@@ -158,15 +156,13 @@ fn add_embedded_file(
 ) -> Unit raise {
   let bytes = @pdfio.bytes_of_string(payload)
   let stream_dict : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/EmbeddedFile"))),
+    ("/Type", Name(PdfName("/EmbeddedFile"))),
     ("/Length", Integer(@pdfio.bytes_size(bytes))),
   ])
-  let stream_obj : @pdf.PdfObject = Stream(
-    Ref::new((stream_dict, @pdf.Stream::Got(bytes))),
-  )
+  let stream_obj : @pdf.PdfObject = Stream(Ref::new((stream_dict, Got(bytes))))
   let stream_num = pdf.addobj(stream_obj)
   let filespec : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Filespec"))),
+    ("/Type", Name(PdfName("/Filespec"))),
     ("/F", String(filename)),
     ("/UF", String(filename)),
     ("/EF", Dictionary([("/F", Indirect(stream_num))])),
@@ -178,13 +174,13 @@ fn add_embedded_file(
 fn make_ap_stream(payload : String) -> @pdf.PdfObject {
   let bytes = @pdfio.bytes_of_string(payload)
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/XObject"))),
-    ("/Subtype", Name(@pdf.PdfName("/Form"))),
+    ("/Type", Name(PdfName("/XObject"))),
+    ("/Subtype", Name(PdfName("/Form"))),
     ("/BBox", Array([Integer(0), Integer(0), Integer(10), Integer(10)])),
     ("/Resources", Dictionary([])),
     ("/Length", Integer(@pdfio.bytes_size(bytes))),
   ])
-  Stream(Ref::new((dict, @pdf.Stream::Got(bytes))))
+  Stream(Ref::new((dict, Got(bytes))))
 }
 
 ///|
@@ -201,7 +197,7 @@ fn make_ap_entry(
 ///|
 fn make_rendition_dict(name : String, tag : String) -> @pdf.PdfObject {
   Dictionary([
-    ("/S", Name(@pdf.PdfName("/MR"))),
+    ("/S", Name(PdfName("/MR"))),
     ("/N", String(name)),
     ("/T", String(tag)),
   ])
@@ -210,7 +206,7 @@ fn make_rendition_dict(name : String, tag : String) -> @pdf.PdfObject {
 ///|
 fn make_alt_presentation_dict(name : String, tag : String) -> @pdf.PdfObject {
   Dictionary([
-    ("/Type", Name(@pdf.PdfName("/AlternatePresentations"))),
+    ("/Type", Name(PdfName("/AlternatePresentations"))),
     ("/Title", String(name)),
     ("/T", String(tag)),
   ])
@@ -229,9 +225,7 @@ fn make_bulk_named_dest_entries(
   let entries = Array::new(capacity=count)
   for i in 0..<count {
     let name = prefix + i.to_string()
-    let dest = @pdfdest.Destination::Fit(
-      @pdfdest.TargetPage::PageObject(page_obj),
-    )
+    let dest = @pdfdest.Destination::Fit(PageObject(page_obj))
     entries.push((name, dest.to_pdf_object()))
   }
   entries
@@ -253,19 +247,19 @@ fn make_bulk_url_entries(
 
 ///|
 fn make_url_action(uri : String) -> @pdf.PdfObject {
-  Dictionary([("/S", Name(@pdf.PdfName("/URI"))), ("/URI", String(uri))])
+  Dictionary([("/S", Name(PdfName("/URI"))), ("/URI", String(uri))])
 }
 
 ///|
 fn add_ocg_properties(pdf : @pdf.Pdf, ocg_name : String) -> Unit raise {
   let ocg : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/OCG"))),
+    ("/Type", Name(PdfName("/OCG"))),
     ("/Name", String(ocg_name)),
   ])
   let ocg_num = pdf.addobj(ocg)
   let default_dict : @pdf.PdfObject = Dictionary([
-    ("/BaseState", Name(@pdf.PdfName("/ON"))),
-    ("/Intent", Name(@pdf.PdfName("/View"))),
+    ("/BaseState", Name(PdfName("/ON"))),
+    ("/Intent", Name(PdfName("/View"))),
     ("/Name", String("Default")),
     ("/ON", Array([Indirect(ocg_num)])),
   ])
@@ -284,20 +278,20 @@ fn add_ocg_properties_with_config(
   config_name : String,
 ) -> Unit raise {
   let ocg : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/OCG"))),
+    ("/Type", Name(PdfName("/OCG"))),
     ("/Name", String(ocg_name)),
   ])
   let ocg_num = pdf.addobj(ocg)
   let default_dict : @pdf.PdfObject = Dictionary([
-    ("/BaseState", Name(@pdf.PdfName("/ON"))),
-    ("/Intent", Name(@pdf.PdfName("/View"))),
+    ("/BaseState", Name(PdfName("/ON"))),
+    ("/Intent", Name(PdfName("/View"))),
     ("/Name", String("Default")),
     ("/ON", Array([Indirect(ocg_num)])),
   ])
   let config_dict : @pdf.PdfObject = Dictionary([
     ("/Name", String(config_name)),
-    ("/BaseState", Name(@pdf.PdfName("/OFF"))),
-    ("/Intent", Name(@pdf.PdfName("/View"))),
+    ("/BaseState", Name(PdfName("/OFF"))),
+    ("/Intent", Name(PdfName("/View"))),
     ("/ON", Array([Indirect(ocg_num)])),
   ])
   let ocprops : @pdf.PdfObject = Dictionary([
@@ -383,8 +377,8 @@ fn add_struct_tree_root(
   parent_key : Int,
 ) -> Unit raise {
   let struct_elem : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/StructElem"))),
-    ("/S", Name(@pdf.PdfName("/P"))),
+    ("/Type", Name(PdfName("/StructElem"))),
+    ("/S", Name(PdfName("/P"))),
     ("/Pg", Indirect(page_ref)),
   ])
   let struct_elem_num = pdf.addobj(struct_elem)
@@ -392,7 +386,7 @@ fn add_struct_tree_root(
     (parent_key.to_string(), Indirect(struct_elem_num)),
   ])
   let struct_root : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/StructTreeRoot"))),
+    ("/Type", Name(PdfName("/StructTreeRoot"))),
     ("/K", Indirect(struct_elem_num)),
     ("/ParentTree", parent_tree),
   ])
@@ -425,7 +419,7 @@ fn assert_url_action(
 ) -> Unit raise {
   let action = pdf.direct(action_obj)
   match (pdf.lookup_direct("/S", action) : @pdf.PdfObject?) {
-    Some(Name(@pdf.PdfName("/URI"))) => ()
+    Some(Name(PdfName("/URI"))) => ()
     _ => fail("expected /S /URI")
   }
   match (pdf.lookup_direct("/URI", action) : @pdf.PdfObject?) {
@@ -442,11 +436,11 @@ fn assert_ap_stream(
 ) -> Unit raise {
   let stream = pdf.direct(stream_obj)
   match (pdf.lookup_direct("/Type", stream) : @pdf.PdfObject?) {
-    Some(Name(@pdf.PdfName("/XObject"))) => ()
+    Some(Name(PdfName("/XObject"))) => ()
     _ => fail("expected /Type /XObject")
   }
   match (pdf.lookup_direct("/Subtype", stream) : @pdf.PdfObject?) {
-    Some(Name(@pdf.PdfName("/Form"))) => ()
+    Some(Name(PdfName("/Form"))) => ()
     _ => fail("expected /Subtype /Form")
   }
   let bytes = stream.bigarray_of_stream()
@@ -504,7 +498,7 @@ fn assert_embedded_file_stream(
   expected_payload : String,
 ) -> Unit raise {
   match (pdf.lookup_direct("/Type", stream_obj) : @pdf.PdfObject?) {
-    Some(Name(@pdf.PdfName("/EmbeddedFile"))) => ()
+    Some(Name(PdfName("/EmbeddedFile"))) => ()
     _ => fail("expected /Type /EmbeddedFile")
   }
   let bytes = stream_obj.bigarray_of_stream()
@@ -525,7 +519,7 @@ fn assert_embedded_file_spec(
 ) -> Unit raise {
   let spec = pdf.direct(filespec_obj)
   match (pdf.lookup_direct("/Type", spec) : @pdf.PdfObject?) {
-    Some(Name(@pdf.PdfName("/Filespec"))) => ()
+    Some(Name(PdfName("/Filespec"))) => ()
     _ => fail("expected /Type /Filespec")
   }
   match (pdf.lookup_direct("/F", spec) : @pdf.PdfObject?) {
@@ -597,7 +591,7 @@ fn assert_rendition_entry(
   }
   let dict = pdf.direct(entry)
   match (pdf.lookup_direct("/S", dict) : @pdf.PdfObject?) {
-    Some(Name(@pdf.PdfName("/MR"))) => ()
+    Some(Name(PdfName("/MR"))) => ()
     _ => fail("expected /S /MR")
   }
   match (pdf.lookup_direct("/N", dict) : @pdf.PdfObject?) {
@@ -623,7 +617,7 @@ fn assert_alt_presentation_entry(
   }
   let dict = pdf.direct(entry)
   match (pdf.lookup_direct("/Type", dict) : @pdf.PdfObject?) {
-    Some(Name(@pdf.PdfName("/AlternatePresentations"))) => ()
+    Some(Name(PdfName("/AlternatePresentations"))) => ()
     _ => fail("expected /Type /AlternatePresentations")
   }
   match (pdf.lookup_direct("/Title", dict) : @pdf.PdfObject?) {
@@ -642,21 +636,14 @@ fn assert_destination_page(
   expected_obj : Int,
 ) -> Unit raise {
   match dest {
-    @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(obj))
-    | @pdfdest.Destination::FitH(@pdfdest.TargetPage::PageObject(obj), _)
-    | @pdfdest.Destination::FitV(@pdfdest.TargetPage::PageObject(obj), _)
-    | @pdfdest.Destination::FitR(
-      @pdfdest.TargetPage::PageObject(obj),
-      _,
-      _,
-      _,
-      _
-    )
-    | @pdfdest.Destination::FitB(@pdfdest.TargetPage::PageObject(obj))
-    | @pdfdest.Destination::FitBH(@pdfdest.TargetPage::PageObject(obj), _)
-    | @pdfdest.Destination::FitBV(@pdfdest.TargetPage::PageObject(obj), _)
-    | @pdfdest.Destination::XYZ(@pdfdest.TargetPage::PageObject(obj), _, _, _) =>
-      assert_eq(obj, expected_obj)
+    Fit(PageObject(obj))
+    | FitH(PageObject(obj), _)
+    | FitV(PageObject(obj), _)
+    | FitR(PageObject(obj), _, _, _, _)
+    | FitB(PageObject(obj))
+    | FitBH(PageObject(obj), _)
+    | FitBV(PageObject(obj), _)
+    | XYZ(PageObject(obj), _, _, _) => assert_eq(obj, expected_obj)
     _ => fail("unexpected destination target")
   }
 }
@@ -775,7 +762,7 @@ async test "e2e split then bookmark" {
     {
       level: 0,
       text: "Split bookmark",
-      target: @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(page1)),
+      target: Fit(PageObject(page1)),
       isopen: true,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -802,7 +789,7 @@ async test "e2e annotation roundtrip" {
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   assert_true(pages.length() > 0)
   let annot = @pdfannot.Annotation::new(
-    @pdfannot.Subtype::Text,
+    Text,
     content="E2E note",
     rectangle=(10.0, 20.0, 30.0, 40.0),
   )
@@ -836,7 +823,7 @@ async test "e2e merge preserves annotations" {
   let left_pages = @pdfpage.PdfPageDoc::new(left).pages_of_pagetree()
   assert_true(left_pages.length() > 0)
   let annot = @pdfannot.Annotation::new(
-    @pdfannot.Subtype::Text,
+    Text,
     content="Merged note",
     rectangle=(15.0, 25.0, 35.0, 45.0),
   )
@@ -887,7 +874,7 @@ async test "e2e merge preserves page labels" {
   assert_true(right_count > 0)
   let left_labels = [
     @pdfpagelabels.PageLabel::{
-      labelstyle: @pdfpagelabels.LabelStyle::DecimalArabic,
+      labelstyle: DecimalArabic,
       labelprefix: Some("L-"),
       startpage: 1,
       startvalue: 1,
@@ -895,7 +882,7 @@ async test "e2e merge preserves page labels" {
   ]
   let right_labels = [
     @pdfpagelabels.PageLabel::{
-      labelstyle: @pdfpagelabels.LabelStyle::DecimalArabic,
+      labelstyle: DecimalArabic,
       labelprefix: Some("R-"),
       startpage: 1,
       startvalue: 1,
@@ -1014,12 +1001,8 @@ async test "e2e merge preserves /Dests dictionary" {
     Some(objnum) => objnum
     None => fail("missing right page")
   }
-  let left_dest = @pdfdest.Destination::Fit(
-    @pdfdest.TargetPage::PageObject(left_page),
-  ).to_pdf_object()
-  let right_dest = @pdfdest.Destination::Fit(
-    @pdfdest.TargetPage::PageObject(right_page),
-  ).to_pdf_object()
+  let left_dest = @pdfdest.Destination::Fit(PageObject(left_page)).to_pdf_object()
+  let right_dest = @pdfdest.Destination::Fit(PageObject(right_page)).to_pdf_object()
   add_dests_dictionary(left, [("/LeftDest", left_dest)])
   add_dests_dictionary(right, [("/RightDest", right_dest)])
   let merged = @pdfmerge.PdfMerger::new(
@@ -1035,13 +1018,10 @@ async test "e2e merge preserves /Dests dictionary" {
   let merged_pages = merged.page_reference_numbers()
   let left_expected = merged_pages[0]
   let right_expected = merged_pages[left_count]
-  let left_read = @pdfdest.Destination::read(
-    merged,
-    Name(@pdf.PdfName("/LeftDest")),
-  )
+  let left_read = @pdfdest.Destination::read(merged, Name(PdfName("/LeftDest")))
   let right_read = @pdfdest.Destination::read(
     merged,
-    Name(@pdf.PdfName("/RightDest")),
+    Name(PdfName("/RightDest")),
   )
   assert_destination_page(left_read, left_expected)
   assert_destination_page(right_read, right_expected)
@@ -1054,11 +1034,11 @@ async test "e2e merge preserves /Dests dictionary" {
   let parsed_right = parsed_pages[left_count]
   let parsed_left_read = @pdfdest.Destination::read(
     parsed,
-    Name(@pdf.PdfName("/LeftDest")),
+    Name(PdfName("/LeftDest")),
   )
   let parsed_right_read = @pdfdest.Destination::read(
     parsed,
-    Name(@pdf.PdfName("/RightDest")),
+    Name(PdfName("/RightDest")),
   )
   assert_destination_page(parsed_left_read, parsed_left)
   assert_destination_page(parsed_right_read, parsed_right)
@@ -1300,11 +1280,11 @@ async test "e2e merge preserves /Names JavaScript" {
   let left = @pdfpage.PdfPageDoc::minimum_valid()
   let right = @pdfpage.PdfPageDoc::minimum_valid()
   let left_action : @pdf.PdfObject = Dictionary([
-    ("/S", Name(@pdf.PdfName("/JavaScript"))),
+    ("/S", Name(PdfName("/JavaScript"))),
     ("/JS", String("app.alert('left')")),
   ])
   let right_action : @pdf.PdfObject = Dictionary([
-    ("/S", Name(@pdf.PdfName("/JavaScript"))),
+    ("/S", Name(PdfName("/JavaScript"))),
     ("/JS", String("app.alert('right')")),
   ])
   add_names_tree(left, "/JavaScript", [("LeftScript", left_action)])
@@ -1595,7 +1575,7 @@ async test "e2e merge mixed feature pipeline" {
   let left0 = @pdfpage.PdfPageDoc::minimum_valid()
   let pages = @pdfpage.PdfPageDoc::new(left0).pages_of_pagetree()
   let annot = @pdfannot.Annotation::new(
-    @pdfannot.Subtype::Text,
+    Text,
     content="Mixed note",
     rectangle=(12.0, 18.0, 40.0, 52.0),
   )
@@ -1613,7 +1593,7 @@ async test "e2e merge mixed feature pipeline" {
     {
       level: 0,
       text: "Mixed bookmark",
-      target: @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(page1)),
+      target: Fit(PageObject(page1)),
       isopen: true,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -1698,7 +1678,7 @@ async test "e2e merge multi-copy mixed stress" {
     let base = @pdfpage.PdfPageDoc::minimum_valid()
     let pages = @pdfpage.PdfPageDoc::new(base).pages_of_pagetree()
     let annot = @pdfannot.Annotation::new(
-      @pdfannot.Subtype::Text,
+      Text,
       content="Stress note " + i.to_string(),
       rectangle=(10.0 + i.to_double(), 10.0, 30.0, 40.0),
     )
@@ -1716,9 +1696,7 @@ async test "e2e merge multi-copy mixed stress" {
       {
         level: 0,
         text: "Stress bookmark " + i.to_string(),
-        target: @pdfdest.Destination::Fit(
-          @pdfdest.TargetPage::PageObject(page1),
-        ),
+        target: Fit(PageObject(page1)),
         isopen: true,
         colour: (0.0, 0.0, 0.0),
         flags: 0,
@@ -1846,7 +1824,7 @@ async test "e2e merge preserves bookmark targets" {
     {
       level: 0,
       text: "Merged bookmark",
-      target: @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(page1)),
+      target: Fit(PageObject(page1)),
       isopen: true,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -1894,7 +1872,7 @@ async test "e2e bookmarks roundtrip" {
     {
       level: 0,
       text: "E2E Intro",
-      target: @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(page1)),
+      target: Fit(PageObject(page1)),
       isopen: true,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -1902,7 +1880,7 @@ async test "e2e bookmarks roundtrip" {
     {
       level: 1,
       text: "E2E Details",
-      target: @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(page2)),
+      target: Fit(PageObject(page2)),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -1946,7 +1924,7 @@ async test "e2e write object streams and read back" {
 async test "e2e encrypt pdf and require password" {
   let pdf = read_pdf(MERGE_LEFT_PATH)
   let enc = @pdfwrite.Encryption::new(
-    @pdfwrite.EncryptionMethod::AES256bit(true),
+    AES256bit(true),
     "owner-pass",
     "user-pass",
     [],
@@ -2024,13 +2002,13 @@ async test "e2e page labels roundtrip" {
   assert_true(count >= 3)
   let labels = [
     @pdfpagelabels.PageLabel::{
-      labelstyle: @pdfpagelabels.LabelStyle::DecimalArabic,
+      labelstyle: DecimalArabic,
       labelprefix: Some("E2E-"),
       startpage: 1,
       startvalue: 1,
     },
-    @pdfpagelabels.PageLabel::{
-      labelstyle: @pdfpagelabels.LabelStyle::LowercaseRoman,
+    {
+      labelstyle: LowercaseRoman,
       labelprefix: None,
       startpage: 3,
       startvalue: 1,
@@ -2067,10 +2045,10 @@ async test "e2e page ops roundtrip" {
     Real(100.0),
   ])
   let page : @pdfpage.Page = {
-    content: [@pdfops.Op::stream_of_ops([@pdfops.Op::Opq, @pdfops.Op::OpQ])],
+    content: [@pdfops.Op::stream_of_ops([Opq, OpQ])],
     mediabox: rect,
     resources: Dictionary([]),
-    rotate: @pdfpage.Rotation::Rotate0,
+    rotate: Rotate0,
     rest: Dictionary([]),
   }
   let (pdf0, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([
@@ -2079,11 +2057,7 @@ async test "e2e page ops roundtrip" {
   )
   let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(pageroot, [])
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
-  let updated = pages[0].postpend_operators(
-    pdf,
-    [@pdfops.Op::Opw(5.0)],
-    fast=true,
-  )
+  let updated = pages[0].postpend_operators(pdf, [Opw(5.0)], fast=true)
   pages[0] = updated
   let updated_pdf = @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages)
   ensure_dir(OUTPUT_DIR)
@@ -2099,7 +2073,7 @@ async test "e2e page ops roundtrip" {
   let mut found = false
   for op in parsed_ops {
     match op {
-      @pdfops.Op::Opw(5.0) => found = true
+      Opw(5.0) => found = true
       _ => ()
     }
   }

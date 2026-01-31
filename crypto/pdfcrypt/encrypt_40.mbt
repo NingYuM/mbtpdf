@@ -8,19 +8,19 @@ fn encrypt_pdf_40bit_inner(
   pdf : @pdf.Pdf,
 ) -> @pdf.Pdf raise {
   let crypt_dict = @pdf.PdfObject::Dictionary([
-    ("/Filter", @pdf.PdfObject::Name(@pdf.PdfName("/Standard"))),
-    ("/V", @pdf.PdfObject::Integer(1)),
-    ("/R", @pdf.PdfObject::Integer(2)),
-    ("/O", @pdf.PdfObject::String(owner)),
-    ("/U", @pdf.PdfObject::String(user)),
-    ("/P", @pdf.PdfObject::Integer(p)),
+    ("/Filter", Name(PdfName("/Standard"))),
+    ("/V", Integer(1)),
+    ("/R", Integer(2)),
+    ("/O", String(owner)),
+    ("/U", String(user)),
+    ("/P", Integer(p)),
   ])
   match
     process_cryption(
       false,
       true,
       pdf,
-      @pdfcryptprimitives.Encryption::ARC4(40, 2),
+      ARC4(40, 2),
       user_pw,
       2,
       user,
@@ -34,7 +34,7 @@ fn encrypt_pdf_40bit_inner(
       let crypt_dict_num = pdf_val.addobj(crypt_dict)
       pdf_val.trailerdict = pdf_val.trailerdict.add_entry(
         "/Encrypt",
-        @pdf.PdfObject::Indirect(crypt_dict_num),
+        Indirect(crypt_dict_num),
       )
       pdf_val
     }

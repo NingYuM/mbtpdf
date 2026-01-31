@@ -104,38 +104,32 @@ test "change_pages rewrites bookmarks and mixed annotations" {
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree(pages_in)
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   let refs = pdf.page_reference_numbers()
-  let dest1 : @pdf.PdfObject = Array([
-    Indirect(refs[0]),
-    Name(@pdf.PdfName("/Fit")),
-  ])
-  let dest2 : @pdf.PdfObject = Array([
-    Indirect(refs[1]),
-    Name(@pdf.PdfName("/Fit")),
-  ])
+  let dest1 : @pdf.PdfObject = Array([Indirect(refs[0]), Name(PdfName("/Fit"))])
+  let dest2 : @pdf.PdfObject = Array([Indirect(refs[1]), Name(PdfName("/Fit"))])
   let annot_dest1 : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
+    ("/Subtype", Name(PdfName("/Link"))),
     ("/Rect", rect),
     ("/Dest", dest1),
   ])
   let annot_dest2 : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
+    ("/Subtype", Name(PdfName("/Link"))),
     ("/Rect", rect),
     ("/Dest", dest2),
   ])
   let annot_action_missing : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
+    ("/Subtype", Name(PdfName("/Link"))),
     ("/Rect", rect),
-    ("/A", Dictionary([("/S", Name(@pdf.PdfName("/GoTo")))])),
+    ("/A", Dictionary([("/S", Name(PdfName("/GoTo")))])),
   ])
   let annot_action_other : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
+    ("/Subtype", Name(PdfName("/Link"))),
     ("/Rect", rect),
-    ("/A", Dictionary([("/S", Name(@pdf.PdfName("/URI")))])),
+    ("/A", Dictionary([("/S", Name(PdfName("/URI")))])),
   ])
   let annot_action_none : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
+    ("/Subtype", Name(PdfName("/Link"))),
     ("/Rect", rect),
-    ("/A", Dictionary([("/S", Name(@pdf.PdfName("/GoTo"))), ("/D", dest2)])),
+    ("/A", Dictionary([("/S", Name(PdfName("/GoTo"))), ("/D", dest2)])),
   ])
   let annot_nums = [
     pdf.addobj(annot_dest1),
@@ -152,9 +146,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
     {
       level: 0,
       text: "P1",
-      target: @pdfdest.Destination::Fit(
-        @pdfdest.TargetPage::PageObject(refs[0]),
-      ),
+      target: Fit(PageObject(refs[0])),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -162,9 +154,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
     {
       level: 0,
       text: "P2",
-      target: @pdfdest.Destination::Fit(
-        @pdfdest.TargetPage::PageObject(refs[1]),
-      ),
+      target: Fit(PageObject(refs[1])),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -172,7 +162,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
     {
       level: 0,
       text: "Missing",
-      target: @pdfdest.Destination::Fit(@pdfdest.TargetPage::PageObject(9999)),
+      target: Fit(PageObject(9999)),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -180,9 +170,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
     {
       level: 0,
       text: "Other",
-      target: @pdfdest.Destination::Fit(
-        @pdfdest.TargetPage::OtherDocPageNumber(2),
-      ),
+      target: Fit(OtherDocPageNumber(2)),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -190,7 +178,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
     {
       level: 0,
       text: "Named",
-      target: @pdfdest.Destination::NamedDestination(@pdf.PdfName("/Named")),
+      target: NamedDestination(PdfName("/Named")),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -289,12 +277,12 @@ test "fixup_duplicate_pages creates unique refs" {
     Real(100.0),
   ])
   let page : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Page"))),
+    ("/Type", Name(PdfName("/Page"))),
     ("/MediaBox", rect),
     ("/Parent", Indirect(2)),
   ])
   let pages : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Pages"))),
+    ("/Type", Name(PdfName("/Pages"))),
     ("/Kids", Array([Indirect(1), Indirect(1)])),
     ("/Count", Integer(2)),
   ])
@@ -317,11 +305,11 @@ test "replace_inherit fills mediabox" {
     Real(100.0),
   ])
   let page : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Page"))),
+    ("/Type", Name(PdfName("/Page"))),
     ("/Parent", Indirect(2)),
   ])
   let pages : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Pages"))),
+    ("/Type", Name(PdfName("/Pages"))),
     ("/Kids", Array([Indirect(1)])),
     ("/Count", Integer(1)),
     ("/MediaBox", rect),
@@ -348,7 +336,7 @@ test "renumber_pages updates resources and operators" {
     content: [@pdfops.Op::stream_of_ops(ops)],
     mediabox: Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
     resources,
-    rotate: @pdfpage.Rotation::Rotate0,
+    rotate: Rotate0,
     rest: Dictionary([]),
   }
   let updated = @pdfpage.PdfPageDoc::new(pdf).renumber_pages([page])
@@ -382,7 +370,7 @@ test "add_prefix rewrites resources and content" {
     content: [@pdfops.Op::stream_of_ops(ops)],
     mediabox: Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
     resources,
-    rotate: @pdfpage.Rotation::Rotate0,
+    rotate: Rotate0,
     rest: Dictionary([]),
   }
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
@@ -418,7 +406,7 @@ test "shortest_unused_prefix skips used names" {
     content: [],
     mediabox: Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
     resources,
-    rotate: @pdfpage.Rotation::Rotate0,
+    rotate: Rotate0,
     rest: Dictionary([]),
   }
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
@@ -441,21 +429,18 @@ test "change_pages rewrites annotation and openaction" {
   let refs = pdf.page_reference_numbers()
   let dest_array : @pdf.PdfObject = Array([
     Indirect(refs[0]),
-    Name(@pdf.PdfName("/XYZ")),
+    Name(PdfName("/XYZ")),
     Real(10.0),
     Real(20.0),
     Real(1.0),
   ])
   let annot_dest : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
+    ("/Subtype", Name(PdfName("/Link"))),
     ("/Dest", dest_array),
   ])
   let annot_action : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Link"))),
-    (
-      "/A",
-      Dictionary([("/S", Name(@pdf.PdfName("/GoTo"))), ("/D", dest_array)]),
-    ),
+    ("/Subtype", Name(PdfName("/Link"))),
+    ("/A", Dictionary([("/S", Name(PdfName("/GoTo"))), ("/D", dest_array)])),
   ])
   let annot1 = pdf.addobj(annot_dest)
   let annot2 = pdf.addobj(annot_action)
@@ -476,7 +461,7 @@ test "change_pages rewrites annotation and openaction" {
     None => fail("expected OpenAction")
   }
   match @pdfdest.Destination::read(translated, openaction) {
-    @pdfdest.Destination::XYZ(_, Some(left), Some(top), _) => {
+    XYZ(_, Some(left), Some(top), _) => {
       assert_close(left, 15.0)
       assert_close(top, 17.0)
     }
@@ -505,7 +490,7 @@ test "change_pages rewrites annotation and openaction" {
             }
         }
         match @pdfdest.Destination::read(translated, dest) {
-          @pdfdest.Destination::XYZ(_, Some(left), Some(top), _) => {
+          XYZ(_, Some(left), Some(top), _) => {
             assert_close(left, 15.0)
             assert_close(top, 17.0)
           }

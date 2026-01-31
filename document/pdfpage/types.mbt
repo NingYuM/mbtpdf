@@ -36,9 +36,9 @@ pub fn Page::custom(rectangle : PdfObject) -> Page {
   {
     content: [],
     mediabox: rectangle,
-    resources: PdfObject::Dictionary([]),
+    resources: Dictionary([]),
     rotate: Rotate0,
-    rest: PdfObject::Dictionary([]),
+    rest: Dictionary([]),
   }
 }
 

@@ -1,20 +1,20 @@
 ///|
 fn all_standard_fonts() -> Array[@pdffont.StandardFont] {
   [
-    @pdffont.StandardFont::TimesRoman,
-    @pdffont.StandardFont::TimesBold,
-    @pdffont.StandardFont::TimesItalic,
-    @pdffont.StandardFont::TimesBoldItalic,
-    @pdffont.StandardFont::Helvetica,
-    @pdffont.StandardFont::HelveticaBold,
-    @pdffont.StandardFont::HelveticaOblique,
-    @pdffont.StandardFont::HelveticaBoldOblique,
-    @pdffont.StandardFont::Courier,
-    @pdffont.StandardFont::CourierBold,
-    @pdffont.StandardFont::CourierOblique,
-    @pdffont.StandardFont::CourierBoldOblique,
-    @pdffont.StandardFont::Symbol,
-    @pdffont.StandardFont::ZapfDingbats,
+    TimesRoman,
+    TimesBold,
+    TimesItalic,
+    TimesBoldItalic,
+    Helvetica,
+    HelveticaBold,
+    HelveticaOblique,
+    HelveticaBoldOblique,
+    Courier,
+    CourierBold,
+    CourierOblique,
+    CourierBoldOblique,
+    Symbol,
+    ZapfDingbats,
   ]
 }
 
@@ -37,15 +37,11 @@ test "baseline_adjustment covers all fonts" {
   ))
   assert_eq(values.length(), all_standard_fonts().length())
   assert_eq(
-    @pdfstandard14.PdfStandard14::new().baseline_adjustment(
-      @pdffont.StandardFont::TimesBold,
-    ),
+    @pdfstandard14.PdfStandard14::new().baseline_adjustment(TimesBold),
     338,
   )
   assert_eq(
-    @pdfstandard14.PdfStandard14::new().baseline_adjustment(
-      @pdffont.StandardFont::HelveticaBold,
-    ),
+    @pdfstandard14.PdfStandard14::new().baseline_adjustment(HelveticaBold),
     359,
   )
 }
@@ -57,15 +53,11 @@ test "stemv_of_standard_font covers all fonts" {
   ))
   assert_eq(values.length(), all_standard_fonts().length())
   assert_eq(
-    @pdfstandard14.PdfStandard14::new().stemv_of_standard_font(
-      @pdffont.StandardFont::TimesBold,
-    ),
+    @pdfstandard14.PdfStandard14::new().stemv_of_standard_font(TimesBold),
     122,
   )
   assert_eq(
-    @pdfstandard14.PdfStandard14::new().stemv_of_standard_font(
-      @pdffont.StandardFont::ZapfDingbats,
-    ),
+    @pdfstandard14.PdfStandard14::new().stemv_of_standard_font(ZapfDingbats),
     125,
   )
 }
@@ -85,7 +77,7 @@ test "textwidth handles missing widths and kerning" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let implicit_font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/Subtype", Name(PdfName("/Type1"))),
   ])
   let implicit_encoding = ctx.read_encoding(implicit_font)
   let implicit_width = @pdfstandard14.PdfStandard14::new().textwidth(
@@ -97,11 +89,11 @@ test "textwidth handles missing widths and kerning" {
     @pdf.PdfName::of_string("NoSlash")
   })
   let custom_font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/Subtype", Name(PdfName("/Type1"))),
     (
       "/Encoding",
       Dictionary([
-        ("/BaseEncoding", Name(@pdf.PdfName("/WinAnsiEncoding"))),
+        ("/BaseEncoding", Name(PdfName("/WinAnsiEncoding"))),
         ("/Differences", Array([Integer(65), Name(no_slash)])),
       ]),
     ),
@@ -119,8 +111,8 @@ test "textwidth handles empty string and unicode fallback" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let winansi_font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
-    ("/Encoding", Name(@pdf.PdfName("/WinAnsiEncoding"))),
+    ("/Subtype", Name(PdfName("/Type1"))),
+    ("/Encoding", Name(PdfName("/WinAnsiEncoding"))),
   ])
   let encoding = ctx.read_encoding(winansi_font)
   let width_empty = @pdfstandard14.PdfStandard14::new().textwidth(
@@ -140,7 +132,7 @@ test "textwidth applies kerning for standard fonts" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let implicit_font : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
+    ("/Subtype", Name(PdfName("/Type1"))),
   ])
   let encoding = ctx.read_encoding(implicit_font)
   let kerned = @pdfstandard14.PdfStandard14::new().textwidth(
@@ -159,21 +151,17 @@ test "textwidth applies kerning for standard fonts" {
 ///|
 test "flags_of_standard_font covers branches" {
   assert_eq(
-    @pdfstandard14.PdfStandard14::new().flags_of_standard_font(
-      @pdffont.StandardFont::Symbol,
-    ),
+    @pdfstandard14.PdfStandard14::new().flags_of_standard_font(Symbol),
     65541,
   )
   assert_eq(
     @pdfstandard14.PdfStandard14::new().flags_of_standard_font(
-      @pdffont.StandardFont::CourierBoldOblique,
+      CourierBoldOblique,
     ),
     33,
   )
   assert_eq(
-    @pdfstandard14.PdfStandard14::new().flags_of_standard_font(
-      @pdffont.StandardFont::Helvetica,
-    ),
+    @pdfstandard14.PdfStandard14::new().flags_of_standard_font(Helvetica),
     32,
   )
 }

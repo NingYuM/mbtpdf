@@ -1,11 +1,11 @@
 ///|
 fn unit_pdf_point() -> LengthUnit {
-  LengthUnit::PdfPoint
+  PdfPoint
 }
 
 ///|
 fn unit_inch() -> LengthUnit {
-  LengthUnit::Inch
+  Inch
 }
 
 ///|

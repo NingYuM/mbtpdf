@@ -24,7 +24,7 @@ priv struct BitReader {
 ///|
 fn BitReader::read_bit(self : BitReader) -> Int raise FlateError {
   if self.byte_pos >= self.data.length() {
-    raise FlateError::Error("uncompress", "unexpected end of input")
+    raise Error("uncompress", "unexpected end of input")
   }
   let byte = self.data[self.byte_pos].to_int()
   let bit = (byte >> self.bit_pos) & 1
@@ -121,7 +121,7 @@ fn decode_symbol(reader : BitReader, huff : Huffman) -> Int raise FlateError {
       None => ()
     }
   }
-  raise FlateError::Error("uncompress", "invalid huffman code")
+  raise Error("uncompress", "invalid huffman code")
 }
 
 ///|
@@ -184,12 +184,12 @@ fn copy_from_output(
   length : Int,
 ) -> Unit raise FlateError {
   if distance <= 0 {
-    raise FlateError::Error("uncompress", "invalid distance")
+    raise Error("uncompress", "invalid distance")
   }
   for _ in 0..<length {
     let src = out.length() - distance
     if src < 0 {
-      raise FlateError::Error("uncompress", "distance beyond output")
+      raise Error("uncompress", "distance beyond output")
     }
     out.push(out[src])
   }
@@ -204,7 +204,7 @@ fn inflate_stored(
   let len = reader.read_u16_le()
   let nlen = reader.read_u16_le()
   if ((len ^ 0xFFFF) & 0xFFFF) != nlen {
-    raise FlateError::Error("uncompress", "stored block length mismatch")
+    raise Error("uncompress", "stored block length mismatch")
   }
   for _ in 0..<len {
     let b = reader.read_bits(8)
@@ -234,7 +234,7 @@ fn inflate_fixed(
       let length = base + (if extra > 0 { reader.read_bits(extra) } else { 0 })
       let dist_symbol = decode_symbol(reader, fixed_distance_huffman)
       if dist_symbol < 0 || dist_symbol >= dist_base.length() {
-        raise FlateError::Error("uncompress", "invalid distance symbol")
+        raise Error("uncompress", "invalid distance symbol")
       }
       let dist = dist_base[dist_symbol] +
         (if dist_extra[dist_symbol] > 0 {
@@ -245,7 +245,7 @@ fn inflate_fixed(
       copy_from_output(out, dist, length)
       decode_loop(reader, out)
     } else {
-      raise FlateError::Error("uncompress", "invalid literal/length symbol")
+      raise Error("uncompress", "invalid literal/length symbol")
     }
   }
 
@@ -279,14 +279,12 @@ fn inflate_dynamic(
       prev = sym
     } else if sym == 16 {
       if lengths.length() == 0 {
-        raise FlateError::Error(
-          "uncompress", "repeat with no previous code length",
-        )
+        raise Error("uncompress", "repeat with no previous code length")
       }
       let repeat = 3 + reader.read_bits(2)
       for _ in 0..<repeat {
         if lengths.length() >= total {
-          raise FlateError::Error("uncompress", "code length overflow")
+          raise Error("uncompress", "code length overflow")
         }
         lengths.push(prev)
       }
@@ -294,7 +292,7 @@ fn inflate_dynamic(
       let repeat = 3 + reader.read_bits(3)
       for _ in 0..<repeat {
         if lengths.length() >= total {
-          raise FlateError::Error("uncompress", "code length overflow")
+          raise Error("uncompress", "code length overflow")
         }
         lengths.push(0)
       }
@@ -303,13 +301,13 @@ fn inflate_dynamic(
       let repeat = 11 + reader.read_bits(7)
       for _ in 0..<repeat {
         if lengths.length() >= total {
-          raise FlateError::Error("uncompress", "code length overflow")
+          raise Error("uncompress", "code length overflow")
         }
         lengths.push(0)
       }
       prev = 0
     } else {
-      raise FlateError::Error("uncompress", "invalid code length symbol")
+      raise Error("uncompress", "invalid code length symbol")
     }
   }
   let lit_lengths = Array::new(capacity=hlit)
@@ -339,7 +337,7 @@ fn inflate_dynamic(
       let length = base + (if extra > 0 { reader.read_bits(extra) } else { 0 })
       let dist_symbol = decode_symbol(reader, dist_huff)
       if dist_symbol < 0 || dist_symbol >= dist_base.length() {
-        raise FlateError::Error("uncompress", "invalid distance symbol")
+        raise Error("uncompress", "invalid distance symbol")
       }
       let dist = dist_base[dist_symbol] +
         (if dist_extra[dist_symbol] > 0 {
@@ -350,7 +348,7 @@ fn inflate_dynamic(
       copy_from_output(out, dist, length)
       decode_loop(reader, out)
     } else {
-      raise FlateError::Error("uncompress", "invalid literal/length symbol")
+      raise Error("uncompress", "invalid literal/length symbol")
     }
   }
 
@@ -381,18 +379,18 @@ fn read_all_input(input : (Array[Byte]) -> Int) -> Array[Byte] {
 ///|
 fn zlib_start_offset(data : Array[Byte]) -> Int raise FlateError {
   if data.length() < 2 {
-    raise FlateError::Error("uncompress", "zlib header too short")
+    raise Error("uncompress", "zlib header too short")
   }
   let cmf = data[0].to_int()
   let flg = data[1].to_int()
   if (cmf & 0x0F) != 8 {
-    raise FlateError::Error("uncompress", "unsupported compression method")
+    raise Error("uncompress", "unsupported compression method")
   }
   if ((cmf << 8) + flg) % 31 != 0 {
-    raise FlateError::Error("uncompress", "invalid zlib header")
+    raise Error("uncompress", "invalid zlib header")
   }
   if (flg & 0x20) != 0 {
-    raise FlateError::Error("uncompress", "preset dictionary not supported")
+    raise Error("uncompress", "preset dictionary not supported")
   }
   2
 }
@@ -506,7 +504,7 @@ pub fn PdfFlate::uncompress(
       0 => inflate_stored(reader, out)
       1 => inflate_fixed(reader, out)
       2 => inflate_dynamic(reader, out)
-      _ => raise FlateError::Error("uncompress", "invalid block type")
+      _ => raise Error("uncompress", "invalid block type")
     }
     if bfinal == 1 {
       return

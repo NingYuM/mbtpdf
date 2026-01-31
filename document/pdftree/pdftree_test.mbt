@@ -20,9 +20,9 @@ test "build and read number tree" {
   let pdf = @pdf.Pdf::empty()
   let tree_ctx = @pdftree.PdfTree::new(pdf)
   let entries : Array[(String, @pdf.PdfObject)] = [
-    ("1", Name(@pdf.PdfName("/One"))),
-    ("3", Name(@pdf.PdfName("/Three"))),
-    ("2", Name(@pdf.PdfName("/Two"))),
+    ("1", Name(PdfName("/One"))),
+    ("3", Name(PdfName("/Three"))),
+    ("2", Name(PdfName("/Two"))),
   ]
   let tree = tree_ctx.build_name_tree(true, entries)
   let read = tree_ctx.read_number_tree(tree)
@@ -100,9 +100,9 @@ test "read_name_tree skips malformed keys" {
       "/Names",
       Array([
         Integer(1),
-        Name(@pdf.PdfName("/One")),
+        Name(PdfName("/One")),
         String("B"),
-        Name(@pdf.PdfName("/Two")),
+        Name(PdfName("/Two")),
       ]),
     ),
   ])
@@ -120,11 +120,11 @@ test "read_number_tree handles duplicate keys" {
       "/Nums",
       Array([
         Integer(1),
-        Name(@pdf.PdfName("/One")),
+        Name(PdfName("/One")),
         Integer(1),
-        Name(@pdf.PdfName("/Uno")),
+        Name(PdfName("/Uno")),
         Integer(2),
-        Name(@pdf.PdfName("/Two")),
+        Name(PdfName("/Two")),
       ]),
     ),
   ])
@@ -147,8 +147,8 @@ test "build_number_tree parses non-integer keys as 0" {
   let pdf = @pdf.Pdf::empty()
   let tree_ctx = @pdftree.PdfTree::new(pdf)
   let entries : Array[(String, @pdf.PdfObject)] = [
-    ("x", Name(@pdf.PdfName("/X"))),
-    ("2", Name(@pdf.PdfName("/Two"))),
+    ("x", Name(PdfName("/X"))),
+    ("2", Name(PdfName("/Two"))),
   ]
   let tree = tree_ctx.build_name_tree(true, entries)
   let read = tree_ctx.read_number_tree(tree)
@@ -165,9 +165,9 @@ test "read_number_tree returns empty on non-integer keys" {
       "/Nums",
       Array([
         String("x"),
-        Name(@pdf.PdfName("/X")),
+        Name(PdfName("/X")),
         Integer(2),
-        Name(@pdf.PdfName("/Two")),
+        Name(PdfName("/Two")),
       ]),
     ),
   ])

@@ -22,19 +22,19 @@ pub fn PdfPageDoc::process_xobject(
   let xobj = pdf.lookup_obj(objnum)
   match pdf.lookup_direct("/Subtype", xobj) {
     None => raise @pdf.PdfError::Msg("No /Subtype in Xobject")
-    Some(@pdf.PdfObject::Name(PdfName("/Form"))) => {
+    Some(Name(PdfName("/Form"))) => {
       xobj.getstream()
       match xobj {
-        @pdf.PdfObject::Stream(r) =>
+        Stream(r) =>
           match r.val {
-            (@pdf.PdfObject::Dictionary(dict), @pdf.Stream::Got(_bytes)) =>
+            (Dictionary(dict), Got(_bytes)) =>
               match f(pdf, resources, [xobj]) {
-                [@pdf.PdfObject::Stream(updated)] => {
+                [Stream(updated)] => {
                   let (dict_updated, data) = updated.val
                   let merged = merge_dict_entries(
-                    @pdf.PdfObject::Dictionary(dict),
+                    Dictionary(dict),
                     match dict_updated {
-                      @pdf.PdfObject::Dictionary(d) => d
+                      Dictionary(d) => d
                       _ => []
                     },
                   ).remove_entry("/Filter")
@@ -59,10 +59,10 @@ pub fn Page::process_xobjects(
   f : (@pdf.Pdf, @pdf.PdfObject, Array[@pdf.PdfObject]) -> Array[@pdf.PdfObject],
 ) -> Unit raise {
   match pdf.lookup_direct("/XObject", self.resources) {
-    Some(@pdf.PdfObject::Dictionary(elts)) =>
+    Some(Dictionary(elts)) =>
       for entry in elts {
         match entry.1 {
-          @pdf.PdfObject::Indirect(i) =>
+          Indirect(i) =>
             PdfPageDoc::new(pdf).process_xobject(f, self.resources, i)
           _ => raise @pdf.PdfError::Msg("process_xobject")
         }
@@ -80,26 +80,26 @@ pub fn PdfPageDoc::combine_pdf_resources(
 ) -> @pdf.PdfObject raise {
   let pdf = self.pdf
   let a_entries = match a {
-    @pdf.PdfObject::Dictionary(entries) => entries
+    Dictionary(entries) => entries
     _ => []
   }
   let b_entries = match b {
-    @pdf.PdfObject::Dictionary(entries) => entries
+    Dictionary(entries) => entries
     _ => []
   }
   fn combine_entries(key : String) -> (String, @pdf.PdfObject)? {
     let a_entries = match pdf.lookup_direct(key, a) {
-      Some(@pdf.PdfObject::Dictionary(d)) => d
+      Some(Dictionary(d)) => d
       _ => []
     }
     let b_entries = match pdf.lookup_direct(key, b) {
-      Some(@pdf.PdfObject::Dictionary(d)) => d
+      Some(Dictionary(d)) => d
       _ => []
     }
     if a_entries.length() == 0 && b_entries.length() == 0 {
       None
     } else {
-      Some((key, @pdf.PdfObject::Dictionary(a_entries + b_entries)))
+      Some((key, Dictionary(a_entries + b_entries)))
     }
   }
 

@@ -93,14 +93,13 @@ fn pi() -> Double {
 ///|
 fn string_of_op(op : TransformOp) -> String {
   match op {
-    TransformOp::Scale((x, y), sx, sy) =>
+    Scale((x, y), sx, sy) =>
       "Scale about (\{x}, \{y}) by \{sx} in x and \{sy} in y\n"
-    TransformOp::Rotate((x, y), angle) =>
-      "Rotate by \{angle} about (\{x}, \{y})\n"
-    TransformOp::Translate(dx, dy) => "Translate by \{dx}, \{dy}\n"
-    TransformOp::ShearX((x, y), factor) =>
+    Rotate((x, y), angle) => "Rotate by \{angle} about (\{x}, \{y})\n"
+    Translate(dx, dy) => "Translate by \{dx}, \{dy}\n"
+    ShearX((x, y), factor) =>
       "Shear in X about (\{x}, \{y}), proportionality constant \{factor}\n"
-    TransformOp::ShearY((x, y), factor) =>
+    ShearY((x, y), factor) =>
       "Shear in Y about (\{x}, \{y}), proportionality constant \{factor}\n"
   }
 }
@@ -129,45 +128,29 @@ pub fn Transform::compose(self : Transform, op : TransformOp) -> Transform {
   }
   let head = self.ops[0]
   match (head, op) {
-    (TransformOp::Translate(dx, dy), TransformOp::Translate(dx2, dy2)) =>
-      {
-        ops: concat_ops(
-          [TransformOp::Translate(dx + dx2, dy + dy2)],
-          tail_ops(self.ops),
-        ),
-      }
-    (TransformOp::Scale(p, sx, sy), TransformOp::Scale(p2, sx2, sy2)) =>
+    (Translate(dx, dy), Translate(dx2, dy2)) =>
+      { ops: concat_ops([Translate(dx + dx2, dy + dy2)], tail_ops(self.ops)) }
+    (Scale(p, sx, sy), Scale(p2, sx2, sy2)) =>
       if point_eq(p, p2) {
-        {
-          ops: concat_ops(
-            [TransformOp::Scale(p, sx * sx2, sy * sy2)],
-            tail_ops(self.ops),
-          ),
-        }
+        { ops: concat_ops([Scale(p, sx * sx2, sy * sy2)], tail_ops(self.ops)) }
       } else {
         { ops: concat_ops([op], self.ops) }
       }
-    (TransformOp::Rotate(p, a), TransformOp::Rotate(p2, a2)) =>
+    (Rotate(p, a), Rotate(p2, a2)) =>
       if point_eq(p, p2) {
-        {
-          ops: concat_ops([TransformOp::Rotate(p, a + a2)], tail_ops(self.ops)),
-        }
+        { ops: concat_ops([Rotate(p, a + a2)], tail_ops(self.ops)) }
       } else {
         { ops: concat_ops([op], self.ops) }
       }
-    (TransformOp::ShearX(p, a), TransformOp::ShearX(p2, a2)) =>
+    (ShearX(p, a), ShearX(p2, a2)) =>
       if point_eq(p, p2) {
-        {
-          ops: concat_ops([TransformOp::ShearX(p, a + a2)], tail_ops(self.ops)),
-        }
+        { ops: concat_ops([ShearX(p, a + a2)], tail_ops(self.ops)) }
       } else {
         { ops: concat_ops([op], self.ops) }
       }
-    (TransformOp::ShearY(p, a), TransformOp::ShearY(p2, a2)) =>
+    (ShearY(p, a), ShearY(p2, a2)) =>
       if point_eq(p, p2) {
-        {
-          ops: concat_ops([TransformOp::ShearY(p, a + a2)], tail_ops(self.ops)),
-        }
+        { ops: concat_ops([ShearY(p, a + a2)], tail_ops(self.ops)) }
       } else {
         { ops: concat_ops([op], self.ops) }
       }
@@ -204,11 +187,11 @@ pub fn TransformMatrix::invert(
 ) -> TransformMatrix raise NonInvertable {
   let divisor = self.a * self.d - self.b * self.c
   if divisor == 0.0 {
-    raise NonInvertable::NonInvertable
+    raise NonInvertable
   }
   let det = 1.0 / divisor
   if det == 0.0 || det.is_nan() || det.is_inf() {
-    raise NonInvertable::NonInvertable
+    raise NonInvertable
   }
   {
     a: det * self.d,
@@ -286,13 +269,11 @@ pub fn TransformMatrix::shear_y(
 /// Make a matrix from a single transformation operation.
 pub fn TransformOp::to_matrix(self : TransformOp) -> TransformMatrix {
   match self {
-    TransformOp::Scale(center, sx, sy) => TransformMatrix::scale(center, sx, sy)
-    TransformOp::Rotate(center, angle) => TransformMatrix::rotate(center, angle)
-    TransformOp::Translate(dx, dy) => TransformMatrix::translate(dx, dy)
-    TransformOp::ShearX(center, factor) =>
-      TransformMatrix::shear_x(center, factor)
-    TransformOp::ShearY(center, factor) =>
-      TransformMatrix::shear_y(center, factor)
+    Scale(center, sx, sy) => TransformMatrix::scale(center, sx, sy)
+    Rotate(center, angle) => TransformMatrix::rotate(center, angle)
+    Translate(dx, dy) => TransformMatrix::translate(dx, dy)
+    ShearX(center, factor) => TransformMatrix::shear_x(center, factor)
+    ShearY(center, factor) => TransformMatrix::shear_y(center, factor)
   }
 }
 
@@ -327,13 +308,13 @@ pub fn Transform::apply(
   let mut y = point.1
   for op in self.ops[:].rev_iter() {
     match op {
-      TransformOp::Scale((cx, cy), sx, sy) => {
+      Scale((cx, cy), sx, sy) => {
         let dx = x - cx
         let dy = y - cy
         x = dx * sx + cx
         y = dy * sy + cy
       }
-      TransformOp::Rotate((cx, cy), angle) => {
+      Rotate((cx, cy), angle) => {
         let cosine = @math.cos(angle)
         let sine = @math.sin(angle)
         let dx = x - cx
@@ -343,17 +324,17 @@ pub fn Transform::apply(
         x = nx + cx
         y = ny + cy
       }
-      TransformOp::Translate(dx, dy) => {
+      Translate(dx, dy) => {
         x = x + dx
         y = y + dy
       }
-      TransformOp::ShearX((cx, cy), factor) => {
+      ShearX((cx, cy), factor) => {
         let dx = x - cx
         let dy = y - cy
         x = dx + dy * factor + cx
         y = dy + cy
       }
-      TransformOp::ShearY((cx, cy), factor) => {
+      ShearY((cx, cy), factor) => {
         let dx = x - cx
         let dy = y - cy
         x = dx + cx

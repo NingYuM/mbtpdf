@@ -46,12 +46,10 @@ test "pages_of_pagetree treats stream /Contents as singleton array" {
   let stream_dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
   ])
-  let stream_num = pdf0.addobj(
-    Stream(Ref::new((stream_dict, @pdf.Stream::Got(data)))),
-  )
+  let stream_num = pdf0.addobj(Stream(Ref::new((stream_dict, Got(data)))))
   let page_num = pdf0.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName("/Page"))),
+      ("/Type", Name(PdfName("/Page"))),
       ("/MediaBox", coverage_rect()),
       ("/Rotate", Integer(180)),
       ("/Contents", Indirect(stream_num)),
@@ -60,7 +58,7 @@ test "pages_of_pagetree treats stream /Contents as singleton array" {
   )
   let pages_root_num = pdf0.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName("/Pages"))),
+      ("/Type", Name(PdfName("/Pages"))),
       ("/Kids", Array([Indirect(page_num)])),
       ("/Count", Integer(1)),
     ]),
@@ -100,7 +98,7 @@ test "pdf_of_pages drops page labels when retain_numbering is false" {
   let pdf = make_pdf_with_pages(3)
   let labels = [
     @pdfpagelabels.PageLabel::{
-      labelstyle: @pdfpagelabels.LabelStyle::DecimalArabic,
+      labelstyle: DecimalArabic,
       labelprefix: Some("A"),
       startpage: 1,
       startvalue: 1,

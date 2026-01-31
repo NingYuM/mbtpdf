@@ -24,9 +24,7 @@ fn pdf_of_pages_with_bookmarks(count : Int) -> @pdf.Pdf raise {
     {
       level: 0,
       text: "Root",
-      target: @pdfdest.Destination::Fit(
-        @pdfdest.TargetPage::PageObject(refs[0]),
-      ),
+      target: Fit(PageObject(refs[0])),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -34,9 +32,7 @@ fn pdf_of_pages_with_bookmarks(count : Int) -> @pdf.Pdf raise {
     {
       level: 1,
       text: "Child",
-      target: @pdfdest.Destination::Fit(
-        @pdfdest.TargetPage::PageObject(refs[1]),
-      ),
+      target: Fit(PageObject(refs[1])),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -44,9 +40,7 @@ fn pdf_of_pages_with_bookmarks(count : Int) -> @pdf.Pdf raise {
     {
       level: 1,
       text: "Other",
-      target: @pdfdest.Destination::Fit(
-        @pdfdest.TargetPage::PageObject(refs[2]),
-      ),
+      target: Fit(PageObject(refs[2])),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -126,7 +120,7 @@ test "pdf_of_pages retains page labels when requested" {
   let pdf = pdf_of_pages_make_pdf(3)
   let labels = [
     @pdfpagelabels.PageLabel::{
-      labelstyle: @pdfpagelabels.LabelStyle::DecimalArabic,
+      labelstyle: DecimalArabic,
       labelprefix: Some("A"),
       startpage: 1,
       startvalue: 1,
@@ -145,7 +139,7 @@ test "pdf_of_pages retains page labels when requested" {
 test "pdf_of_pages trims structure tree" {
   let pdf = pdf_of_pages_make_pdf(2)
   let struct_tree : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/StructTreeRoot"))),
+    ("/Type", Name(PdfName("/StructTreeRoot"))),
   ])
   let struct_num = pdf.addobj(struct_tree)
   let root = pdf.catalog_of_pdf()
@@ -180,12 +174,12 @@ test "endpage_fast handles missing count" {
   let pdf0 = @pdf.Pdf::empty()
   let rect = pdf_of_pages_rect()
   let page : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Page"))),
+    ("/Type", Name(PdfName("/Page"))),
     ("/MediaBox", rect),
   ])
   let page_num = pdf0.addobj(page)
   let pages : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Pages"))),
+    ("/Type", Name(PdfName("/Pages"))),
     ("/Kids", Array([Indirect(page_num)])),
   ])
   let pages_num = pdf0.addobj(pages)

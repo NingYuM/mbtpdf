@@ -1,10 +1,10 @@
 ///|
 fn funtype_of_function(fun : PdfFunction) -> Int {
   match fun.func {
-    PdfFunctionKind::Interpolation(_) => 2
-    PdfFunctionKind::Stitching(_) => 3
-    PdfFunctionKind::Sampled(_) => 0
-    PdfFunctionKind::Calculator(_) => 4
+    Interpolation(_) => 2
+    Stitching(_) => 3
+    Sampled(_) => 0
+    Calculator(_) => 4
   }
 }
 
@@ -70,8 +70,8 @@ fn sampled_bytes(samples : Array[Int], bits : Int) -> Array[Byte] {
 ///|
 fn entries_of_interpolation(i : Interpolation) -> Array[(String, PdfObject)] {
   [
-    ("/C0", PdfObject::Array(i.c0.map(x => @pdf.ToPdfNumber::to_pdf_number(x)))),
-    ("/C1", PdfObject::Array(i.c1.map(x => @pdf.ToPdfNumber::to_pdf_number(x)))),
+    ("/C0", Array(i.c0.map(x => @pdf.ToPdfNumber::to_pdf_number(x)))),
+    ("/C1", Array(i.c1.map(x => @pdf.ToPdfNumber::to_pdf_number(x)))),
     ("/N", @pdf.ToPdfNumber::to_pdf_number(i.n)),
   ]
 }
@@ -85,16 +85,11 @@ fn entries_of_stitching(
     pdf.addobj(fun.to_pdf_object(pdf)),
   ))
   [
-    ("/Functions", PdfObject::Array(numbers)),
-    (
-      "/Bounds",
-      PdfObject::Array(s.bounds.map(x => @pdf.ToPdfNumber::to_pdf_number(x))),
-    ),
+    ("/Functions", Array(numbers)),
+    ("/Bounds", Array(s.bounds.map(x => @pdf.ToPdfNumber::to_pdf_number(x)))),
     (
       "/Encode",
-      PdfObject::Array(
-        s.stitch_encode.map(x => @pdf.ToPdfNumber::to_pdf_number(x)),
-      ),
+      Array(s.stitch_encode.map(x => @pdf.ToPdfNumber::to_pdf_number(x))),
     ),
   ]
 }
@@ -105,9 +100,9 @@ fn extra_entries_of_function(
   fun : PdfFunction,
 ) -> Array[(String, PdfObject)] {
   match fun.func {
-    PdfFunctionKind::Interpolation(i) => entries_of_interpolation(i)
-    PdfFunctionKind::Stitching(s) => entries_of_stitching(pdf, s)
-    PdfFunctionKind::Sampled(_) => []
-    PdfFunctionKind::Calculator(_) => []
+    Interpolation(i) => entries_of_interpolation(i)
+    Stitching(s) => entries_of_stitching(pdf, s)
+    Sampled(_) => []
+    Calculator(_) => []
   }
 }

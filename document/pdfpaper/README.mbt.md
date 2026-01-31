@@ -67,7 +67,7 @@ test "paper accessors" {
   // Get unit (millimeters for ISO sizes)
   let u = paper.unit()
   match u {
-    @pdfunits.LengthUnit::Millimetre => ()
+    Millimetre => ()
     _ => fail("expected millimetre unit")
   }
   // Get dimensions

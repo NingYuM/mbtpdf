@@ -76,8 +76,8 @@ fn decode_asciihex(input : @pdfio.Input) -> Array[Byte] raise CodecError {
       if msg == "End_of_file" {
         output
       } else {
-        raise CodecError::CouldntDecodeStream("ASCIIHex")
+        raise CouldntDecodeStream("ASCIIHex")
       }
-    _ => raise CodecError::CouldntDecodeStream("ASCIIHex")
+    _ => raise CouldntDecodeStream("ASCIIHex")
   }
 }

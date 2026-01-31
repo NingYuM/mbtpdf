@@ -250,12 +250,12 @@ test "parse_single_stream parses inline image with leading operands" {
 
 ///|
 test "stream_of_ops inserts whitespace around empty operator text" {
-  let stream = @pdfops.Op::stream_of_ops([@pdfops.Op::Opq, OpUnknown(""), OpQ])
+  let stream = @pdfops.Op::stream_of_ops([Opq, OpUnknown(""), OpQ])
   match (stream : @pdf.PdfObject) {
     Stream(r) => {
       let (_, contents) = r.val
       match contents {
-        @pdf.Stream::Got(bytes) => {
+        Got(bytes) => {
           let text = @pdfio.string_of_bytes(bytes)
           assert_true(text.contains("q  Q"))
         }
@@ -467,9 +467,9 @@ test "Op::components handles Cal* colourspaces in array form" {
   @pdfe.with_silenced_logs(fn() {
     let pdf = @pdf.Pdf::empty()
     let resources : @pdf.PdfObject = Dictionary([])
-    let calrgb : @pdf.PdfObject = Array([Name(@pdf.PdfName("/CalRGB")), Null])
-    let calgray : @pdf.PdfObject = Array([Name(@pdf.PdfName("/CalGray")), Null])
-    let calcmky : @pdf.PdfObject = Array([Name(@pdf.PdfName("/CalCMYK")), Null])
+    let calrgb : @pdf.PdfObject = Array([Name(PdfName("/CalRGB")), Null])
+    let calgray : @pdf.PdfObject = Array([Name(PdfName("/CalGray")), Null])
+    let calcmky : @pdf.PdfObject = Array([Name(PdfName("/CalCMYK")), Null])
     assert_eq(@pdfops.Op::components(pdf, resources, calrgb), 3)
     assert_eq(@pdfops.Op::components(pdf, resources, calgray), 1)
     assert_eq(@pdfops.Op::components(pdf, resources, calcmky), 4)
@@ -529,10 +529,7 @@ test "Op::components errors on unknown colourspace array" {
   @pdfe.with_silenced_logs(fn() {
     let pdf = @pdf.Pdf::empty()
     let resources : @pdf.PdfObject = Dictionary([])
-    let bad : @pdf.PdfObject = Array([
-      Name(@pdf.PdfName("/NotAColourSpace")),
-      Null,
-    ])
+    let bad : @pdf.PdfObject = Array([Name(PdfName("/NotAColourSpace")), Null])
     let res : Result[Int, Error] = try? @pdfops.Op::components(
       pdf, resources, bad,
     )

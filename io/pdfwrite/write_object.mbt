@@ -11,11 +11,11 @@ fn write_pdf_object_to_output(
   }
 
   match obj {
-    PdfObject::Null => write_str("null")
-    PdfObject::Boolean(b) => write_str(if b { "true" } else { "false" })
-    PdfObject::Integer(i) => write_str(i.to_string())
-    PdfObject::Real(r) => write_str(format_real(r))
-    PdfObject::String(s) =>
+    Null => write_str("null")
+    Boolean(b) => write_str(if b { "true" } else { "false" })
+    Integer(i) => write_str(i.to_string())
+    Real(r) => write_str(format_real(r))
+    String(s) =>
       write_str(
         if hex_strings {
           make_hex_pdf_string(s)
@@ -23,8 +23,8 @@ fn write_pdf_object_to_output(
           make_pdf_string(s)
         },
       )
-    PdfObject::Name(n) => write_str(make_pdf_name(ctx, n.to_string_bytes()))
-    PdfObject::Array(values) => {
+    Name(n) => write_str(make_pdf_name(ctx, n.to_string_bytes()))
+    Array(values) => {
       write_str("[")
       for i in 0..<values.length() {
         if i > 0 {
@@ -40,7 +40,7 @@ fn write_pdf_object_to_output(
       }
       write_str("]")
     }
-    PdfObject::Dictionary(entries) => {
+    Dictionary(entries) => {
       write_str("<<")
       for i in 0..<entries.length() {
         let (key, value) = entries[i]
@@ -56,7 +56,7 @@ fn write_pdf_object_to_output(
       }
       write_str(">>")
     }
-    PdfObject::Stream(r) => {
+    Stream(r) => {
       if include_stream_data {
         let _ = obj.getstream() catch { _ => () }
 
@@ -68,14 +68,13 @@ fn write_pdf_object_to_output(
       write_str("\nstream\n")
       if include_stream_data {
         match stream_data {
-          @pdf.Stream::Got(bytes) =>
-            output.getinit(bytes, 0, @pdfio.bytes_size(bytes))
+          Got(bytes) => output.getinit(bytes, 0, @pdfio.bytes_size(bytes))
           _ => ()
         }
       }
       write_str("\nendstream")
     }
-    PdfObject::Indirect(n) => write_str("\{n} 0 R")
+    Indirect(n) => write_str("\{n} 0 R")
   }
 }
 
@@ -88,14 +87,13 @@ fn write_pdf_object(
   sb : StringBuilder,
 ) -> Unit {
   match obj {
-    PdfObject::Null => sb.write_string("null")
-    PdfObject::Boolean(b) => sb.write_string(if b { "true" } else { "false" })
-    PdfObject::Integer(i) => sb.write_string(i.to_string())
-    PdfObject::Real(r) => sb.write_string(format_real(r))
-    PdfObject::String(s) => sb.write_string(make_pdf_string(s))
-    PdfObject::Name(n) =>
-      sb.write_string(make_pdf_name(ctx, n.to_string_bytes()))
-    PdfObject::Array(values) => {
+    Null => sb.write_string("null")
+    Boolean(b) => sb.write_string(if b { "true" } else { "false" })
+    Integer(i) => sb.write_string(i.to_string())
+    Real(r) => sb.write_string(format_real(r))
+    String(s) => sb.write_string(make_pdf_string(s))
+    Name(n) => sb.write_string(make_pdf_name(ctx, n.to_string_bytes()))
+    Array(values) => {
       sb.write_char('[')
       for i in 0..<values.length() {
         if i > 0 {
@@ -105,7 +103,7 @@ fn write_pdf_object(
       }
       sb.write_char(']')
     }
-    PdfObject::Dictionary(entries) => {
+    Dictionary(entries) => {
       sb.write_string("<<")
       for i in 0..<entries.length() {
         let (key, value) = entries[i]
@@ -118,15 +116,14 @@ fn write_pdf_object(
       }
       sb.write_string(">>")
     }
-    PdfObject::Stream(r) => {
+    Stream(r) => {
       let (dict, _) = r.val
       write_pdf_object(ctx, dict, include_stream_data, warn_on_toget, sb)
       sb.write_string("\nstream\n")
       if include_stream_data {
         let _ = obj.getstream() catch { _ => () }
         match r.val {
-          (_, @pdf.Stream::Got(bytes)) =>
-            sb.write_string(@pdfio.string_of_bytes(bytes))
+          (_, Got(bytes)) => sb.write_string(@pdfio.string_of_bytes(bytes))
           _ =>
             if warn_on_toget {
               (ctx.logger)(
@@ -137,7 +134,7 @@ fn write_pdf_object(
       }
       sb.write_string("\nendstream")
     }
-    PdfObject::Indirect(n) => sb.write_string("\{n} 0 R")
+    Indirect(n) => sb.write_string("\{n} 0 R")
   }
 }
 

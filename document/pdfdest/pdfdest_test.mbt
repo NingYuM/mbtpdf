@@ -14,7 +14,7 @@ fn pdf_with_pages(count : Int, mediabox : @pdf.PdfObject) -> @pdf.Pdf raise {
   let pdf = @pdf.Pdf::empty()
   let pages_root_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName("/Pages"))),
+      ("/Type", Name(PdfName("/Pages"))),
       ("/Kids", Array([])),
       ("/Count", Integer(count)),
     ]),
@@ -24,7 +24,7 @@ fn pdf_with_pages(count : Int, mediabox : @pdf.PdfObject) -> @pdf.Pdf raise {
   while i < count {
     let page_num = pdf.addobj(
       Dictionary([
-        ("/Type", Name(@pdf.PdfName("/Page"))),
+        ("/Type", Name(PdfName("/Page"))),
         ("/Parent", Indirect(pages_root_num)),
         ("/MediaBox", mediabox),
       ]),
@@ -36,7 +36,7 @@ fn pdf_with_pages(count : Int, mediabox : @pdf.PdfObject) -> @pdf.Pdf raise {
     (
       pages_root_num,
       Dictionary([
-        ("/Type", Name(@pdf.PdfName("/Pages"))),
+        ("/Type", Name(PdfName("/Pages"))),
         ("/Kids", Array(kids)),
         ("/Count", Integer(count)),
       ]),
@@ -44,7 +44,7 @@ fn pdf_with_pages(count : Int, mediabox : @pdf.PdfObject) -> @pdf.Pdf raise {
   )
   let catalog_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName("/Catalog"))),
+      ("/Type", Name(PdfName("/Catalog"))),
       ("/Pages", Indirect(pages_root_num)),
     ]),
   )
@@ -70,13 +70,12 @@ test "read_destination array" {
   let pdf = @pdf.Pdf::empty()
   let obj : @pdf.PdfObject = Array([
     Indirect(7),
-    Name(@pdf.PdfName("/FitH")),
+    Name(PdfName("/FitH")),
     Real(200.0),
   ])
   let dest = Destination::read(pdf, obj)
   match dest {
-    Destination::FitH(TargetPage::PageObject(7), Some(top)) =>
-      assert_close(top, 200.0)
+    FitH(PageObject(7), Some(top)) => assert_close(top, 200.0)
     _ => fail("expected FitH destination")
   }
 }
@@ -84,26 +83,16 @@ test "read_destination array" {
 ///|
 test "read_destination shallow name" {
   let pdf = @pdf.Pdf::empty()
-  let dest = Destination::read(
-    pdf,
-    Name(@pdf.PdfName("/Chapter1")),
-    shallow=true,
-  )
+  let dest = Destination::read(pdf, Name(PdfName("/Chapter1")), shallow=true)
   match dest {
-    Destination::NamedDestination(PdfName("/Chapter1")) => ()
+    NamedDestination(PdfName("/Chapter1")) => ()
     _ => fail("expected NamedDestination")
   }
 }
 
 ///|
 test "destination to_pdf_object" {
-  let dest = Destination::FitR(
-    TargetPage::OtherDocPageNumber(3),
-    10.0,
-    20.0,
-    30.0,
-    40.0,
-  )
+  let dest = Destination::FitR(OtherDocPageNumber(3), 10.0, 20.0, 30.0, 40.0)
   let obj = dest.to_pdf_object()
   match (obj : @pdf.PdfObject) {
     Array(
@@ -116,21 +105,11 @@ test "destination to_pdf_object" {
 ///|
 test "transform_destination translate" {
   let pdf = @pdf.Pdf::empty()
-  let dest = Destination::XYZ(
-    TargetPage::PageObject(1),
-    Some(10.0),
-    Some(20.0),
-    Some(1.0),
-  )
+  let dest = Destination::XYZ(PageObject(1), Some(10.0), Some(20.0), Some(1.0))
   let tr = @pdftransform.TransformMatrix::translate(5.0, -3.0)
   let transformed = dest.transform(pdf, tr)
   match transformed {
-    Destination::XYZ(
-      TargetPage::PageObject(1),
-      Some(left),
-      Some(top),
-      Some(zoom)
-    ) => {
+    XYZ(PageObject(1), Some(left), Some(top), Some(zoom)) => {
       assert_close(left, 15.0)
       assert_close(top, 17.0)
       assert_close(zoom, 1.0)
@@ -143,18 +122,16 @@ test "transform_destination translate" {
 test "transform_destination clips FitV/FitBH" {
   let pdf = @pdf.Pdf::empty()
   let tr = @pdftransform.TransformMatrix::identity()
-  let fitv = Destination::FitV(TargetPage::PageObject(1), Some(40000.0)).transform(
-    pdf, tr,
-  )
+  let fitv = Destination::FitV(PageObject(1), Some(40000.0)).transform(pdf, tr)
   match fitv {
-    Destination::FitV(_, Some(left)) => assert_close(left, 32768.0)
+    FitV(_, Some(left)) => assert_close(left, 32768.0)
     _ => fail("expected FitV clipped")
   }
-  let fitbh = Destination::FitBH(TargetPage::PageObject(1), Some(-40000.0)).transform(
+  let fitbh = Destination::FitBH(PageObject(1), Some(-40000.0)).transform(
     pdf, tr,
   )
   match fitbh {
-    Destination::FitBH(_, Some(top)) => assert_close(top, -32768.0)
+    FitBH(_, Some(top)) => assert_close(top, -32768.0)
     _ => fail("expected FitBH clipped")
   }
 }
@@ -164,12 +141,12 @@ test "transform_destination updates GoTo action" {
   let pdf = minimum_valid_pdf()
   let refs = pdf.page_reference_numbers()
   let action : @pdf.PdfObject = Dictionary([
-    ("/S", Name(@pdf.PdfName("/GoTo"))),
+    ("/S", Name(PdfName("/GoTo"))),
     (
       "/D",
       Array([
         Indirect(refs[0]),
-        Name(@pdf.PdfName("/XYZ")),
+        Name(PdfName("/XYZ")),
         Real(10.0),
         Real(20.0),
         Null,
@@ -179,7 +156,7 @@ test "transform_destination updates GoTo action" {
   let tr = @pdftransform.TransformMatrix::translate(5.0, -3.0)
   let updated = Destination::Action(action).transform(pdf, tr)
   match updated {
-    Destination::Action(dict) =>
+    Action(dict) =>
       match pdf.lookup_direct("/D", dict) {
         Some(Array([_, Name(PdfName("/XYZ")), left, top, _])) => {
           assert_close(pdf.getnum(left), 15.0)
@@ -196,7 +173,7 @@ test "read_destination from dictionary /D" {
   let pdf = @pdf.Pdf::empty()
   let inner : @pdf.PdfObject = Array([
     Integer(0),
-    Name(@pdf.PdfName("/XYZ")),
+    Name(PdfName("/XYZ")),
     Real(10.0),
     Real(20.0),
     Real(1.0),
@@ -204,12 +181,7 @@ test "read_destination from dictionary /D" {
   let obj : @pdf.PdfObject = Dictionary([("/D", inner)])
   let dest = Destination::read(pdf, obj)
   match dest {
-    Destination::XYZ(
-      TargetPage::OtherDocPageNumber(0),
-      Some(left),
-      Some(top),
-      Some(zoom)
-    ) => {
+    XYZ(OtherDocPageNumber(0), Some(left), Some(top), Some(zoom)) => {
       assert_close(left, 10.0)
       assert_close(top, 20.0)
       assert_close(zoom, 1.0)
@@ -221,21 +193,21 @@ test "read_destination from dictionary /D" {
 ///|
 test "read_destination array Fit and FitR" {
   let pdf = @pdf.Pdf::empty()
-  let fit : @pdf.PdfObject = Array([Indirect(5), Name(@pdf.PdfName("/Fit"))])
+  let fit : @pdf.PdfObject = Array([Indirect(5), Name(PdfName("/Fit"))])
   match Destination::read(pdf, fit) {
-    Destination::Fit(TargetPage::PageObject(5)) => ()
+    Fit(PageObject(5)) => ()
     _ => fail("expected Fit destination")
   }
   let fitr : @pdf.PdfObject = Array([
     Indirect(7),
-    Name(@pdf.PdfName("/FitR")),
+    Name(PdfName("/FitR")),
     Real(1.0),
     Real(2.0),
     Real(3.0),
     Real(4.0),
   ])
   match Destination::read(pdf, fitr) {
-    Destination::FitR(TargetPage::PageObject(7), left, top, right, bottom) => {
+    FitR(PageObject(7), left, top, right, bottom) => {
       assert_close(left, 1.0)
       assert_close(top, 2.0)
       assert_close(right, 3.0)
@@ -250,67 +222,59 @@ test "read_destination array variants" {
   let pdf = @pdf.Pdf::empty()
   let xyz4 : @pdf.PdfObject = Array([
     Indirect(1),
-    Name(@pdf.PdfName("/XYZ")),
+    Name(PdfName("/XYZ")),
     Real(10.0),
     Null,
   ])
   match Destination::read(pdf, xyz4) {
-    Destination::XYZ(TargetPage::PageObject(1), Some(left), None, None) =>
-      assert_close(left, 10.0)
+    XYZ(PageObject(1), Some(left), None, None) => assert_close(left, 10.0)
     _ => fail("expected XYZ destination")
   }
-  let xyz3 : @pdf.PdfObject = Array([
-    Indirect(2),
-    Name(@pdf.PdfName("/XYZ")),
-    Null,
-  ])
+  let xyz3 : @pdf.PdfObject = Array([Indirect(2), Name(PdfName("/XYZ")), Null])
   match Destination::read(pdf, xyz3) {
-    Destination::XYZ(TargetPage::PageObject(2), None, None, None) => ()
+    XYZ(PageObject(2), None, None, None) => ()
     _ => fail("expected XYZ destination")
   }
   let fitv : @pdf.PdfObject = Array([
     Indirect(3),
-    Name(@pdf.PdfName("/FitV")),
+    Name(PdfName("/FitV")),
     Real(12.0),
   ])
   match Destination::read(pdf, fitv) {
-    Destination::FitV(TargetPage::PageObject(3), Some(left)) =>
-      assert_close(left, 12.0)
+    FitV(PageObject(3), Some(left)) => assert_close(left, 12.0)
     _ => fail("expected FitV destination")
   }
   let fitbh : @pdf.PdfObject = Array([
     Indirect(4),
-    Name(@pdf.PdfName("/FitBH")),
+    Name(PdfName("/FitBH")),
     Real(9.0),
   ])
   match Destination::read(pdf, fitbh) {
-    Destination::FitBH(TargetPage::PageObject(4), Some(top)) =>
-      assert_close(top, 9.0)
+    FitBH(PageObject(4), Some(top)) => assert_close(top, 9.0)
     _ => fail("expected FitBH destination")
   }
   let fitbv : @pdf.PdfObject = Array([
     Indirect(5),
-    Name(@pdf.PdfName("/FitBV")),
+    Name(PdfName("/FitBV")),
     Real(8.0),
   ])
   match Destination::read(pdf, fitbv) {
-    Destination::FitBV(TargetPage::PageObject(5), Some(left)) =>
-      assert_close(left, 8.0)
+    FitBV(PageObject(5), Some(left)) => assert_close(left, 8.0)
     _ => fail("expected FitBV destination")
   }
-  let fitb : @pdf.PdfObject = Array([Indirect(6), Name(@pdf.PdfName("/FitB"))])
+  let fitb : @pdf.PdfObject = Array([Indirect(6), Name(PdfName("/FitB"))])
   match Destination::read(pdf, fitb) {
-    Destination::FitB(TargetPage::PageObject(6)) => ()
+    FitB(PageObject(6)) => ()
     _ => fail("expected FitB destination")
   }
   let bad_target : @pdf.PdfObject = Array([
-    Name(@pdf.PdfName("/NotPage")),
-    Name(@pdf.PdfName("/FitH")),
+    Name(PdfName("/NotPage")),
+    Name(PdfName("/FitH")),
     Real(1.0),
   ])
   match
     @pdfe.with_logger(_ => (), fn() { Destination::read(pdf, bad_target) }) {
-    Destination::NullDestination => ()
+    NullDestination => ()
     _ => fail("expected NullDestination for bad target")
   }
 }
@@ -318,30 +282,30 @@ test "read_destination array variants" {
 ///|
 test "read_destination returns NullDestination for invalid page targets" {
   let pdf = @pdf.Pdf::empty()
-  let not_a_page : @pdf.PdfObject = Name(@pdf.PdfName("/NotPage"))
+  let not_a_page : @pdf.PdfObject = Name(PdfName("/NotPage"))
   let objs : Array[@pdf.PdfObject] = [
-    Array([not_a_page, Name(@pdf.PdfName("/XYZ")), Null, Null, Null]),
-    Array([not_a_page, Name(@pdf.PdfName("/XYZ")), Null, Null]),
-    Array([not_a_page, Name(@pdf.PdfName("/XYZ")), Null]),
-    Array([not_a_page, Name(@pdf.PdfName("/FitH")), Null]),
-    Array([not_a_page, Name(@pdf.PdfName("/FitV")), Null]),
-    Array([not_a_page, Name(@pdf.PdfName("/FitBH")), Null]),
-    Array([not_a_page, Name(@pdf.PdfName("/FitBV")), Null]),
-    Array([not_a_page, Name(@pdf.PdfName("/Fit"))]),
-    Array([not_a_page, Name(@pdf.PdfName("/FitB"))]),
+    Array([not_a_page, Name(PdfName("/XYZ")), Null, Null, Null]),
+    Array([not_a_page, Name(PdfName("/XYZ")), Null, Null]),
+    Array([not_a_page, Name(PdfName("/XYZ")), Null]),
+    Array([not_a_page, Name(PdfName("/FitH")), Null]),
+    Array([not_a_page, Name(PdfName("/FitV")), Null]),
+    Array([not_a_page, Name(PdfName("/FitBH")), Null]),
+    Array([not_a_page, Name(PdfName("/FitBV")), Null]),
+    Array([not_a_page, Name(PdfName("/Fit"))]),
+    Array([not_a_page, Name(PdfName("/FitB"))]),
     Array([
       not_a_page,
-      Name(@pdf.PdfName("/FitR")),
+      Name(PdfName("/FitR")),
       Real(1.0),
       Real(2.0),
       Real(3.0),
       Real(4.0),
     ]),
-    Array([Indirect(1), Name(@pdf.PdfName("/NotADest"))]),
+    Array([Indirect(1), Name(PdfName("/NotADest"))]),
   ]
   for obj in objs {
     match @pdfe.with_logger(_ => (), fn() { Destination::read(pdf, obj) }) {
-      Destination::NullDestination => ()
+      NullDestination => ()
       _ => fail("expected NullDestination for invalid destination array")
     }
   }
@@ -352,12 +316,12 @@ test "read_destination handles missing and invalid objects" {
   let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([])
   match Destination::read(pdf, dict) {
-    Destination::NullDestination => ()
+    NullDestination => ()
     _ => fail("expected NullDestination for missing /D")
   }
   match
     @pdfe.with_logger(_ => (), fn() { Destination::read(pdf, Integer(1)) }) {
-    Destination::NullDestination => ()
+    NullDestination => ()
     _ => fail("expected NullDestination for invalid object")
   }
 }
@@ -368,12 +332,12 @@ test "read_destination name resolution" {
   pdf_no_root.trailerdict = Dictionary([])
   let no_root : Result[Destination, Error] = try? Destination::read(
     pdf_no_root,
-    Name(@pdf.PdfName("/Missing")),
+    Name(PdfName("/Missing")),
   )
   assert_true(no_root is Err(_))
   let pdf_missing_dests = minimum_valid_pdf()
-  match Destination::read(pdf_missing_dests, Name(@pdf.PdfName("/Missing"))) {
-    Destination::NamedDestination(PdfName("/Missing")) => ()
+  match Destination::read(pdf_missing_dests, Name(PdfName("/Missing"))) {
+    NamedDestination(PdfName("/Missing")) => ()
     _ => fail("expected NamedDestination with no /Dests")
   }
   let pdf_missing_entry = minimum_valid_pdf()
@@ -381,8 +345,8 @@ test "read_destination name resolution" {
   let dests : @pdf.PdfObject = Dictionary([("/Other", Null)])
   let root = root.add_entry("/Dests", dests)
   pdf_missing_entry.addobj_given_num((pdf_missing_entry.root, root))
-  match Destination::read(pdf_missing_entry, Name(@pdf.PdfName("/Missing"))) {
-    Destination::NamedDestination(PdfName("/Missing")) => ()
+  match Destination::read(pdf_missing_entry, Name(PdfName("/Missing"))) {
+    NamedDestination(PdfName("/Missing")) => ()
     _ => fail("expected NamedDestination for missing entry")
   }
 }
@@ -391,11 +355,11 @@ test "read_destination name resolution" {
 test "read_destination string resolution" {
   let pdf = minimum_valid_pdf()
   match Destination::read(pdf, String("Shallow"), shallow=true) {
-    Destination::StringDestination("Shallow") => ()
+    StringDestination("Shallow") => ()
     _ => fail("expected shallow StringDestination")
   }
   match Destination::read(pdf, String("Missing")) {
-    Destination::StringDestination("Missing") => ()
+    StringDestination("Missing") => ()
     _ => fail("expected StringDestination with no /Names")
   }
   let pdf_no_dests = minimum_valid_pdf()
@@ -403,11 +367,11 @@ test "read_destination string resolution" {
   let root = root.add_entry("/Names", Dictionary([]))
   pdf_no_dests.addobj_given_num((pdf_no_dests.root, root))
   match Destination::read(pdf_no_dests, String("Missing")) {
-    Destination::StringDestination("Missing") => ()
+    StringDestination("Missing") => ()
     _ => fail("expected StringDestination with missing /Dests")
   }
   let pdf_with_tree = minimum_valid_pdf()
-  let dest : @pdf.PdfObject = Array([Integer(0), Name(@pdf.PdfName("/Fit"))])
+  let dest : @pdf.PdfObject = Array([Integer(0), Name(PdfName("/Fit"))])
   let dests : @pdf.PdfObject = Dictionary([
     ("/Names", Array([String("Anchor"), dest])),
   ])
@@ -416,7 +380,7 @@ test "read_destination string resolution" {
   let root = root.add_entry("/Names", names)
   pdf_with_tree.addobj_given_num((pdf_with_tree.root, root))
   match Destination::read(pdf_with_tree, String("Anchor")) {
-    Destination::Fit(TargetPage::OtherDocPageNumber(0)) => ()
+    Fit(OtherDocPageNumber(0)) => ()
     _ => fail("expected resolved StringDestination")
   }
   let pdf_no_match = minimum_valid_pdf()
@@ -428,49 +392,49 @@ test "read_destination string resolution" {
   let root = root.add_entry("/Names", names)
   pdf_no_match.addobj_given_num((pdf_no_match.root, root))
   match Destination::read(pdf_no_match, String("Missing")) {
-    Destination::StringDestination("Missing") => ()
+    StringDestination("Missing") => ()
     _ => fail("expected StringDestination for missing name")
   }
 }
 
 ///|
 test "destination to_pdf_object variants" {
-  let action = Destination::Action(Name(@pdf.PdfName("/GoTo")))
+  let action = Destination::Action(Name(PdfName("/GoTo")))
   match (action.to_pdf_object() : @pdf.PdfObject) {
     Name(PdfName("/GoTo")) => ()
     _ => fail("expected action to passthrough")
   }
-  let named = Destination::NamedDestination(@pdf.PdfName("/Dest"))
+  let named = Destination::NamedDestination(PdfName("/Dest"))
   match (named.to_pdf_object() : @pdf.PdfObject) {
     Name(PdfName("/Dest")) => ()
     _ => fail("expected named destination name")
   }
-  let fit = Destination::Fit(TargetPage::PageObject(1))
+  let fit = Destination::Fit(PageObject(1))
   match (fit.to_pdf_object() : @pdf.PdfObject) {
     Array([Indirect(1), Name(PdfName("/Fit"))]) => ()
     _ => fail("expected Fit object")
   }
-  let fith = Destination::FitH(TargetPage::OtherDocPageNumber(2), None)
+  let fith = Destination::FitH(OtherDocPageNumber(2), None)
   match (fith.to_pdf_object() : @pdf.PdfObject) {
     Array([Integer(2), Name(PdfName("/FitH")), Null]) => ()
     _ => fail("expected FitH object")
   }
-  let fitv = Destination::FitV(TargetPage::PageObject(3), Some(12.0))
+  let fitv = Destination::FitV(PageObject(3), Some(12.0))
   match (fitv.to_pdf_object() : @pdf.PdfObject) {
     Array([Indirect(3), Name(PdfName("/FitV")), Real(12.0)]) => ()
     _ => fail("expected FitV object")
   }
-  let fitb = Destination::FitB(TargetPage::PageObject(4))
+  let fitb = Destination::FitB(PageObject(4))
   match (fitb.to_pdf_object() : @pdf.PdfObject) {
     Array([Indirect(4), Name(PdfName("/FitB"))]) => ()
     _ => fail("expected FitB object")
   }
-  let fitbh = Destination::FitBH(TargetPage::OtherDocPageNumber(5), Some(1.5))
+  let fitbh = Destination::FitBH(OtherDocPageNumber(5), Some(1.5))
   match (fitbh.to_pdf_object() : @pdf.PdfObject) {
     Array([Integer(5), Name(PdfName("/FitBH")), Real(1.5)]) => ()
     _ => fail("expected FitBH object")
   }
-  let fitbv = Destination::FitBV(TargetPage::OtherDocPageNumber(6), None)
+  let fitbv = Destination::FitBV(OtherDocPageNumber(6), None)
   match (fitbv.to_pdf_object() : @pdf.PdfObject) {
     Array([Integer(6), Name(PdfName("/FitBV")), Null]) => ()
     _ => fail("expected FitBV object")
@@ -481,49 +445,35 @@ test "destination to_pdf_object variants" {
 test "transform_destination variants" {
   let pdf = @pdf.Pdf::empty()
   let tr = @pdftransform.TransformMatrix::translate(5.0, -3.0)
-  let fith = Destination::FitH(TargetPage::PageObject(1), Some(10.0)).transform(
-    pdf, tr,
-  )
+  let fith = Destination::FitH(PageObject(1), Some(10.0)).transform(pdf, tr)
   match fith {
-    Destination::FitH(TargetPage::PageObject(1), Some(top)) =>
-      assert_close(top, 7.0)
+    FitH(PageObject(1), Some(top)) => assert_close(top, 7.0)
     _ => fail("expected FitH transform")
   }
-  let fitbv = Destination::FitBV(TargetPage::PageObject(2), Some(10.0)).transform(
-    pdf, tr,
-  )
+  let fitbv = Destination::FitBV(PageObject(2), Some(10.0)).transform(pdf, tr)
   match fitbv {
-    Destination::FitBV(TargetPage::PageObject(2), Some(left)) =>
-      assert_close(left, 15.0)
+    FitBV(PageObject(2), Some(left)) => assert_close(left, 15.0)
     _ => fail("expected FitBV transform")
   }
-  let xyz_top = Destination::XYZ(
-    TargetPage::PageObject(3),
-    None,
-    Some(10.0),
-    None,
-  ).transform(pdf, tr)
+  let xyz_top = Destination::XYZ(PageObject(3), None, Some(10.0), None).transform(
+    pdf, tr,
+  )
   match xyz_top {
-    Destination::XYZ(TargetPage::PageObject(3), None, Some(top), _) =>
-      assert_close(top, 7.0)
+    XYZ(PageObject(3), None, Some(top), _) => assert_close(top, 7.0)
     _ => fail("expected XYZ top transform")
   }
-  let xyz_left = Destination::XYZ(
-    TargetPage::PageObject(4),
-    Some(10.0),
-    None,
-    None,
-  ).transform(pdf, tr)
+  let xyz_left = Destination::XYZ(PageObject(4), Some(10.0), None, None).transform(
+    pdf, tr,
+  )
   match xyz_left {
-    Destination::XYZ(TargetPage::PageObject(4), Some(left), None, _) =>
-      assert_close(left, 15.0)
+    XYZ(PageObject(4), Some(left), None, _) => assert_close(left, 15.0)
     _ => fail("expected XYZ left transform")
   }
-  let fitr = Destination::FitR(TargetPage::PageObject(5), 0.0, 0.0, 10.0, 20.0).transform(
+  let fitr = Destination::FitR(PageObject(5), 0.0, 0.0, 10.0, 20.0).transform(
     pdf, tr,
   )
   match fitr {
-    Destination::FitR(TargetPage::PageObject(5), left, bottom, right, top) => {
+    FitR(PageObject(5), left, bottom, right, top) => {
       assert_close(left, 5.0)
       assert_close(top, 17.0)
       assert_close(right, 15.0)
@@ -531,20 +481,18 @@ test "transform_destination variants" {
     }
     _ => fail("expected FitR transform")
   }
-  let action = Destination::Action(
-    Dictionary([("/S", Name(@pdf.PdfName("/URI")))]),
-  )
+  let action = Destination::Action(Dictionary([("/S", Name(PdfName("/URI")))]))
   match action.transform(pdf, tr) {
-    Destination::Action(dict) =>
+    Action(dict) =>
       match pdf.lookup_direct("/S", dict) {
         Some(Name(PdfName("/URI"))) => ()
         _ => fail("expected unchanged action")
       }
     _ => fail("expected action destination")
   }
-  let named = Destination::NamedDestination(@pdf.PdfName("/Name"))
+  let named = Destination::NamedDestination(PdfName("/Name"))
   match named.transform(pdf, tr) {
-    Destination::NamedDestination(PdfName("/Name")) => ()
+    NamedDestination(PdfName("/Name")) => ()
     _ => fail("expected NamedDestination passthrough")
   }
 }
@@ -559,17 +507,14 @@ test "read_destination resolves named dests in catalog" {
   ])
   let pdf = pdf_with_pages(1, rect)
   let refs = pdf.page_reference_numbers()
-  let dest : @pdf.PdfObject = Array([
-    Indirect(refs[0]),
-    Name(@pdf.PdfName("/Fit")),
-  ])
+  let dest : @pdf.PdfObject = Array([Indirect(refs[0]), Name(PdfName("/Fit"))])
   let dests : @pdf.PdfObject = Dictionary([("/Chapter1", dest)])
   let root_obj = pdf.lookup_obj(pdf.root)
   let updated_root = root_obj.add_entry("/Dests", dests)
   pdf.addobj_given_num((pdf.root, updated_root))
-  let resolved = Destination::read(pdf, Name(@pdf.PdfName("/Chapter1")))
+  let resolved = Destination::read(pdf, Name(PdfName("/Chapter1")))
   match resolved {
-    Destination::Fit(TargetPage::PageObject(n)) => assert_eq(n, refs[0])
+    Fit(PageObject(n)) => assert_eq(n, refs[0])
     _ => fail("expected Fit destination")
   }
 }

@@ -770,10 +770,10 @@ fn build_unicode_pdf() -> @pdf.Pdf raise {
   let pdf = @pdf.Pdf::empty()
   let text = @pdftext.PdfTextUtil::new().utf16be_of_codepoints(codepoints)
   let font : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Font"))),
-    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
-    ("/BaseFont", Name(@pdf.PdfName("/CustomUnicodeFont"))),
-    ("/Encoding", Name(@pdf.PdfName("/WinAnsiEncoding"))),
+    ("/Type", Name(PdfName("/Font"))),
+    ("/Subtype", Name(PdfName("/Type1"))),
+    ("/BaseFont", Name(PdfName("/CustomUnicodeFont"))),
+    ("/Encoding", Name(PdfName("/WinAnsiEncoding"))),
   ])
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F0", 24.0), OpTj(text), OpET]
   let stream = @pdfops.Op::stream_of_ops(ops)
@@ -787,7 +787,7 @@ fn build_unicode_pdf() -> @pdf.Pdf raise {
     content: [stream],
     mediabox,
     resources: Dictionary([("/Font", Dictionary([("/F0", font)]))]),
-    rotate: @pdfpage.Rotation::Rotate0,
+    rotate: Rotate0,
     rest: Dictionary([]),
   }
   let (pdf, pageroot) = @pdfpage.PdfPageDoc::new(pdf).add_pagetree([page])
@@ -815,7 +815,7 @@ fn extract_test_page(
     content: [stream],
     mediabox: extract_test_mediabox(),
     resources,
-    rotate: @pdfpage.Rotation::Rotate0,
+    rotate: Rotate0,
     rest: Dictionary([]),
   }
 }
@@ -833,8 +833,8 @@ fn add_pages_to_pdf(
 fn form_xobject_stream(text : String) -> @pdf.PdfObject raise {
   let ops : Array[@pdfops.Op] = [OpBT, OpTj(text), OpET]
   let stream = @pdfops.Op::stream_of_ops(ops)
-  let stream = stream.add_entry("/Type", Name(@pdf.PdfName("/XObject")))
-  stream.add_entry("/Subtype", Name(@pdf.PdfName("/Form")))
+  let stream = stream.add_entry("/Type", Name(PdfName("/XObject")))
+  stream.add_entry("/Subtype", Name(PdfName("/Form")))
 }
 
 ///|
@@ -848,12 +848,12 @@ fn cid_font_dict(encoding_name : String) -> @pdf.PdfObject {
         ("/Supplement", Integer(0)),
       ]),
     ),
-    ("/BaseFont", Name(@pdf.PdfName("/CIDFont"))),
+    ("/BaseFont", Name(PdfName("/CIDFont"))),
     ("/FontDescriptor", Dictionary([])),
   ])
   Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Type0"))),
-    ("/BaseFont", Name(@pdf.PdfName("/CIDFontType0"))),
+    ("/Subtype", Name(PdfName("/Type0"))),
+    ("/BaseFont", Name(PdfName("/CIDFontType0"))),
     ("/DescendantFonts", Array([descendant])),
     ("/Encoding", Name(@pdf.PdfName::of_string(encoding_name))),
   ])
@@ -917,7 +917,7 @@ test "extract text visits xobjects once" {
   let xobjects : @pdf.PdfObject = Dictionary([
     ("/X1", Indirect(form_indirect_id)),
     ("/X2", form_direct),
-    ("/X3", Dictionary([("/Subtype", Name(@pdf.PdfName("/Image")))])),
+    ("/X3", Dictionary([("/Subtype", Name(PdfName("/Image")))])),
   ])
   let resources : @pdf.PdfObject = Dictionary([("/XObject", xobjects)])
   let ops : Array[@pdfops.Op] = [

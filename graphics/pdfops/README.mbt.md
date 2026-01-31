@@ -149,7 +149,7 @@ test "string_of_op" {
 ```mbt check
 ///|
 test "string_of_ops" {
-  let ops = [@pdfops.Op::Opq, @pdfops.Op::Opm(10.0, 20.0), @pdfops.Op::OpQ]
+  let ops = [@pdfops.Op::Opq, Opm(10.0, 20.0), OpQ]
   let s = @pdfops.Op::string_of_ops(ops)
   assert_true(s.contains("q"))
   assert_true(s.contains("Q"))

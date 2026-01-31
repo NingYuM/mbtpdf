@@ -109,7 +109,7 @@ test "uncompress stored zlib" {
     100, 26, 11, 4, 93,
   ]
   let out = run_uncompress(data, true) catch {
-    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+    Error(stage, msg) => fail("\{stage}: \{msg}")
   }
   let ints = out.map(b => b.to_int())
   inspect(
@@ -124,7 +124,7 @@ test "uncompress fixed huffman" {
     203, 72, 205, 201, 201, 87, 40, 207, 47, 202, 73, 1, 0,
   ]
   let out = run_uncompress(data, false) catch {
-    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+    Error(stage, msg) => fail("\{stage}: \{msg}")
   }
   let ints = out.map(b => b.to_int())
   inspect(
@@ -141,7 +141,7 @@ test "uncompress fixed huffman with length/distance pairs" {
     0x73, 0x74, 0x72, 0x76, 0x71, 0x75, 0x43, 0x22, 0x80, 0x00, 0x00,
   ]
   let out = run_uncompress(data, false) catch {
-    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+    Error(stage, msg) => fail("\{stage}: \{msg}")
   }
   assert_eq(@pdfio.string_of_bytes(out), "ABCDEFBCDEFBCDEFBBBB")
 }
@@ -154,7 +154,7 @@ test "uncompress dynamic huffman" {
     2,
   ]
   let out = run_uncompress(data, true) catch {
-    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+    Error(stage, msg) => fail("\{stage}: \{msg}")
   }
   let expected = @pdfio.bytes_of_string("abcde".repeat(1000))
   assert_eq(out, expected)
@@ -165,7 +165,7 @@ test "compress/uncompress roundtrip zlib" {
   let input = @pdfio.bytes_of_string("hello flate")
   let encoded = run_compress(input, true)
   let decoded = run_uncompress(encoded, true) catch {
-    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+    Error(stage, msg) => fail("\{stage}: \{msg}")
   }
   assert_eq(@pdfio.string_of_bytes(decoded), "hello flate")
 }
@@ -175,7 +175,7 @@ test "compress/uncompress roundtrip raw" {
   let input = @pdfio.bytes_of_string("hello flate raw")
   let encoded = run_compress(input, false)
   let decoded = run_uncompress(encoded, false) catch {
-    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+    Error(stage, msg) => fail("\{stage}: \{msg}")
   }
   assert_eq(@pdfio.string_of_bytes(decoded), "hello flate raw")
 }
@@ -188,7 +188,7 @@ test "compress/uncompress roundtrip raw multi-block stored" {
   }
   let encoded = run_compress(input, false)
   let decoded = run_uncompress(encoded, false) catch {
-    FlateError::Error(stage, msg) => fail("\{stage}: \{msg}")
+    Error(stage, msg) => fail("\{stage}: \{msg}")
   }
   assert_eq(decoded, input)
 }

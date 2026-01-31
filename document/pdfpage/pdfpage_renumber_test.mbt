@@ -3,7 +3,7 @@ fn renumber_resources() -> @pdf.PdfObject {
   Dictionary([
     ("/Font", Dictionary([("/F1", Null)])),
     ("/ExtGState", Dictionary([("/GS1", Null)])),
-    ("/ColorSpace", Dictionary([("/CS1", Name(@pdf.PdfName("/DeviceRGB")))])),
+    ("/ColorSpace", Dictionary([("/CS1", Name(PdfName("/DeviceRGB")))])),
     ("/Pattern", Dictionary([("/P1", Null)])),
     ("/Shading", Dictionary([("/Sh1", Null)])),
     ("/XObject", Dictionary([("/X1", Null)])),
@@ -24,15 +24,15 @@ fn renumber_page(rect : @pdf.PdfObject) -> @pdfpage.Page raise {
     OpscnName("/P1", [0.2]),
     Opsh("/Sh1"),
     OpDo("/X1"),
-    OpDP("/Span", Name(@pdf.PdfName("/Prop1"))),
-    OpBDC("/Span", Name(@pdf.PdfName("/Prop1"))),
-    OpBDC("/Span", Name(@pdf.PdfName("/PropMissing"))),
+    OpDP("/Span", Name(PdfName("/Prop1"))),
+    OpBDC("/Span", Name(PdfName("/Prop1"))),
+    OpBDC("/Span", Name(PdfName("/PropMissing"))),
   ]
   {
     content: [@pdfops.Op::stream_of_ops(ops)],
     mediabox: rect,
     resources: renumber_resources(),
-    rotate: @pdfpage.Rotation::Rotate0,
+    rotate: Rotate0,
     rest: Dictionary([]),
   }
 }
@@ -123,13 +123,13 @@ test "renumber_pages rewrites inline image colorspace names" {
     Real(100.0),
   ])
   let resources : @pdf.PdfObject = Dictionary([
-    ("/ColorSpace", Dictionary([("/CS1", Name(@pdf.PdfName("/DeviceRGB")))])),
+    ("/ColorSpace", Dictionary([("/CS1", Name(PdfName("/DeviceRGB")))])),
   ])
   let img1_dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name(@pdf.PdfName("/CS1"))),
+    ("/CS", Name(PdfName("/CS1"))),
   ])
   let img2_dict : @pdf.PdfObject = Dictionary([
     ("/W", Integer(1)),
@@ -138,8 +138,8 @@ test "renumber_pages rewrites inline image colorspace names" {
     (
       "/CS",
       Array([
-        Name(@pdf.PdfName("/Indexed")),
-        Name(@pdf.PdfName("/DeviceRGB")),
+        Name(PdfName("/Indexed")),
+        Name(PdfName("/DeviceRGB")),
         Integer(0),
         String(@pdfio.string_of_bytes(@pdfio.bytes_of_list([255, 0, 0]))),
       ]),
@@ -149,7 +149,7 @@ test "renumber_pages rewrites inline image colorspace names" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name(@pdf.PdfName("/DeviceRGB"))),
+    ("/CS", Name(PdfName("/DeviceRGB"))),
   ])
   let ops : Array[@pdfops.Op] = [
     InlineImage((img1_dict, None, @pdfio.bytes_of_string("RGB"))),
@@ -160,7 +160,7 @@ test "renumber_pages rewrites inline image colorspace names" {
     content: [@pdfops.Op::stream_of_ops(ops)],
     mediabox: rect,
     resources,
-    rotate: @pdfpage.Rotation::Rotate0,
+    rotate: Rotate0,
     rest: Dictionary([]),
   }
   let updated = @pdfpage.PdfPageDoc::new(pdf).renumber_pages([page])
@@ -208,7 +208,7 @@ test "renumber_pages errors on missing resource key references" {
     content: [@pdfops.Op::stream_of_ops([OpTf("/MissingFont", 12.0)])],
     mediabox: rect,
     resources: Dictionary([]),
-    rotate: @pdfpage.Rotation::Rotate0,
+    rotate: Rotate0,
     rest: Dictionary([]),
   }
   let res : Result[Array[@pdfpage.Page], Error] = try? @pdfpage.PdfPageDoc::new(

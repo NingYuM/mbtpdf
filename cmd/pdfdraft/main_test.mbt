@@ -19,10 +19,10 @@ async test "run removes image xobjects and writes output" {
       cleanup(in_file)
       cleanup(out_file)
       let img_xobj : @pdf.PdfObject = Dictionary([
-        ("/Subtype", Name(@pdf.PdfName("/Image"))),
+        ("/Subtype", Name(PdfName("/Image"))),
       ])
       let form_xobj : @pdf.PdfObject = Dictionary([
-        ("/Subtype", Name(@pdf.PdfName("/Form"))),
+        ("/Subtype", Name(PdfName("/Form"))),
       ])
       let resources : @pdf.PdfObject = Dictionary([
         ("/XObject", Dictionary([("/Im0", img_xobj), ("/Form0", form_xobj)])),
@@ -31,24 +31,24 @@ async test "run removes image xobjects and writes output" {
         ("/W", Integer(1)),
         ("/H", Integer(1)),
         ("/BPC", Integer(8)),
-        ("/CS", Name(@pdf.PdfName("/DeviceGray"))),
+        ("/CS", Name(PdfName("/DeviceGray"))),
       ])
       let inline_data = @pdfops.Op::InlineImage(
         (inline_dict, None, [(0).to_byte()]),
       )
       let ops : Array[@pdfops.Op] = [
-        @pdfops.Op::Opq,
-        @pdfops.Op::OpDo("/Im0"),
+        Opq,
+        OpDo("/Im0"),
         inline_data,
-        @pdfops.Op::OpDo("/Form0"),
-        @pdfops.Op::OpQ,
+        OpDo("/Form0"),
+        OpQ,
       ]
       let stream = @pdfops.Op::stream_of_ops(ops)
       let page : @pdfpage.Page = {
         content: [stream],
         mediabox: sample_rect(),
         resources,
-        rotate: @pdfpage.Rotation::Rotate0,
+        rotate: Rotate0,
         rest: Dictionary([]),
       }
       let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([

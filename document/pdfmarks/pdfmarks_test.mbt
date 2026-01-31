@@ -3,14 +3,14 @@ fn minimum_valid_pdf() -> @pdf.Pdf raise {
   let pdf = @pdf.Pdf::empty()
   let pages_root_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName("/Pages"))),
+      ("/Type", Name(PdfName("/Pages"))),
       ("/Kids", Array([])),
       ("/Count", Integer(1)),
     ]),
   )
   let page_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName("/Page"))),
+      ("/Type", Name(PdfName("/Page"))),
       ("/Parent", Indirect(pages_root_num)),
       ("/MediaBox", Array([Integer(0), Integer(0), Integer(100), Integer(100)])),
     ]),
@@ -19,7 +19,7 @@ fn minimum_valid_pdf() -> @pdf.Pdf raise {
     (
       pages_root_num,
       Dictionary([
-        ("/Type", Name(@pdf.PdfName("/Pages"))),
+        ("/Type", Name(PdfName("/Pages"))),
         ("/Kids", Array([Indirect(page_num)])),
         ("/Count", Integer(1)),
       ]),
@@ -27,7 +27,7 @@ fn minimum_valid_pdf() -> @pdf.Pdf raise {
   )
   let catalog_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName("/Catalog"))),
+      ("/Type", Name(PdfName("/Catalog"))),
       ("/Pages", Indirect(pages_root_num)),
     ]),
   )
@@ -63,7 +63,7 @@ test "string_of_bookmark includes text" {
   let mark : @pdfmarks.Bookmark = {
     level: 1,
     text: "Chapter",
-    target: @pdfdest.Destination::NullDestination,
+    target: NullDestination,
     isopen: true,
     colour: (0.1, 0.2, 0.3),
     flags: 0,
@@ -80,7 +80,7 @@ test "remove_bookmarks clears outlines" {
     {
       level: 0,
       text: "Intro",
-      target: @pdfdest.Destination::NullDestination,
+      target: NullDestination,
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -98,12 +98,7 @@ test "transform_bookmark translates destination" {
   let mark : @pdfmarks.Bookmark = {
     level: 0,
     text: "Move",
-    target: @pdfdest.Destination::XYZ(
-      @pdfdest.TargetPage::PageObject(1),
-      Some(10.0),
-      Some(20.0),
-      Some(1.0),
-    ),
+    target: XYZ(PageObject(1), Some(10.0), Some(20.0), Some(1.0)),
     isopen: false,
     colour: (0.0, 0.0, 0.0),
     flags: 0,
@@ -111,7 +106,7 @@ test "transform_bookmark translates destination" {
   let tr = @pdftransform.TransformMatrix::translate(5.0, -3.0)
   let moved = mark.transform(pdf, tr)
   match moved.target {
-    @pdfdest.Destination::XYZ(_, Some(left), Some(top), Some(zoom)) => {
+    XYZ(_, Some(left), Some(top), Some(zoom)) => {
       assert_close(left, 15.0)
       assert_close(top, 17.0)
       assert_close(zoom, 1.0)
@@ -127,7 +122,7 @@ test "add_bookmarks links siblings and counts" {
     {
       level: 0,
       text: "A",
-      target: @pdfdest.Destination::NullDestination,
+      target: NullDestination,
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -135,7 +130,7 @@ test "add_bookmarks links siblings and counts" {
     {
       level: 1,
       text: "A1",
-      target: @pdfdest.Destination::NullDestination,
+      target: NullDestination,
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -143,7 +138,7 @@ test "add_bookmarks links siblings and counts" {
     {
       level: 0,
       text: "B",
-      target: @pdfdest.Destination::NullDestination,
+      target: NullDestination,
       isopen: true,
       colour: (0.1, 0.2, 0.3),
       flags: 2,
@@ -151,7 +146,7 @@ test "add_bookmarks links siblings and counts" {
     {
       level: 1,
       text: "B1",
-      target: @pdfdest.Destination::NullDestination,
+      target: NullDestination,
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -159,7 +154,7 @@ test "add_bookmarks links siblings and counts" {
     {
       level: 1,
       text: "B2",
-      target: @pdfdest.Destination::NullDestination,
+      target: NullDestination,
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -231,14 +226,14 @@ test "add_bookmarks links siblings and counts" {
 test "read_bookmarks toggles action preservation" {
   let pdf = minimum_valid_pdf()
   let action : @pdf.PdfObject = Dictionary([
-    ("/S", Name(@pdf.PdfName("/GoTo"))),
+    ("/S", Name(PdfName("/GoTo"))),
     ("/D", String("dest")),
   ])
   let marks : Array[@pdfmarks.Bookmark] = [
     {
       level: 0,
       text: "Action",
-      target: @pdfdest.Destination::Action(action),
+      target: Action(action),
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,
@@ -249,14 +244,14 @@ test "read_bookmarks toggles action preservation" {
     preserve_actions=true,
   )
   match preserved[0].target {
-    @pdfdest.Destination::Action(_) => ()
+    Action(_) => ()
     _ => fail("expected action preserved")
   }
   let resolved = @pdfmarks.PdfMarks::new(pdf_with).read_bookmarks(
     preserve_actions=false,
   )
   match resolved[0].target {
-    @pdfdest.Destination::StringDestination("dest") => ()
+    StringDestination("dest") => ()
     _ => fail("expected string destination")
   }
 }

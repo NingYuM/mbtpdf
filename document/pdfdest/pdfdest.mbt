@@ -213,30 +213,30 @@ pub fn Destination::to_pdf_object(self : Destination) -> PdfObject {
     XYZ(p, left, top, zoom) =>
       Array([
         p.to_pdf_object(),
-        Name(@pdf.PdfName("/XYZ")),
+        Name(PdfName("/XYZ")),
         pos_null(left),
         pos_null(top),
         pos_null(zoom),
       ])
-    Fit(p) => Array([p.to_pdf_object(), Name(@pdf.PdfName("/Fit"))])
+    Fit(p) => Array([p.to_pdf_object(), Name(PdfName("/Fit"))])
     FitH(p, top) =>
-      Array([p.to_pdf_object(), Name(@pdf.PdfName("/FitH")), pos_null(top)])
+      Array([p.to_pdf_object(), Name(PdfName("/FitH")), pos_null(top)])
     FitV(p, left) =>
-      Array([p.to_pdf_object(), Name(@pdf.PdfName("/FitV")), pos_null(left)])
+      Array([p.to_pdf_object(), Name(PdfName("/FitV")), pos_null(left)])
     FitR(p, left, bottom, right, top) =>
       Array([
         p.to_pdf_object(),
-        Name(@pdf.PdfName("/FitR")),
+        Name(PdfName("/FitR")),
         Real(left),
         Real(bottom),
         Real(right),
         Real(top),
       ])
-    FitB(p) => Array([p.to_pdf_object(), Name(@pdf.PdfName("/FitB"))])
+    FitB(p) => Array([p.to_pdf_object(), Name(PdfName("/FitB"))])
     FitBH(p, top) =>
-      Array([p.to_pdf_object(), Name(@pdf.PdfName("/FitBH")), pos_null(top)])
+      Array([p.to_pdf_object(), Name(PdfName("/FitBH")), pos_null(top)])
     FitBV(p, left) =>
-      Array([p.to_pdf_object(), Name(@pdf.PdfName("/FitBV")), pos_null(left)])
+      Array([p.to_pdf_object(), Name(PdfName("/FitBV")), pos_null(left)])
   }
 }
 

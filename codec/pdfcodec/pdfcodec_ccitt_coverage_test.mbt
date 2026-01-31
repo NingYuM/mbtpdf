@@ -50,7 +50,7 @@ fn ccitt_roundtrip(
   ctx.decode_pdfstream_onestage(pdf, stream_obj)
   let (_decoded_dict, decoded_stream) = stream_ref.val
   let decoded_bytes = match decoded_stream {
-    @pdf.Stream::Got(bytes) => bytes
+    Got(bytes) => bytes
     _ => fail("expected decoded stream bytes")
   }
   assert_bytes_eq(decoded_bytes, raw)
@@ -64,7 +64,7 @@ test "ccitt g3 roundtrip covers many terminating codes" {
     rows.push([i, columns - i])
   }
   let raw = bitmap_bytes_from_row_runs(rows, 0)
-  ccitt_roundtrip(Encoding::CCITT(columns, 64), 0, columns, 64, raw)
+  ccitt_roundtrip(CCITT(columns, 64), 0, columns, 64, raw)
 }
 
 ///|
@@ -75,7 +75,7 @@ test "ccitt g4 roundtrip covers many terminating codes" {
     [[1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1]],
     1,
   )
-  ccitt_roundtrip(Encoding::CCITTG4(columns, rows), -1, columns, rows, raw)
+  ccitt_roundtrip(CCITTG4(columns, rows), -1, columns, rows, raw)
 }
 
 ///|
@@ -83,7 +83,7 @@ test "ccitt g4 roundtrip covers pass mode" {
   let columns = 16
   let rows = 2
   let raw = bitmap_bytes_from_row_runs([[4, 2, 10], [8, 2, 6]], 1)
-  ccitt_roundtrip(Encoding::CCITTG4(columns, rows), -1, columns, rows, raw)
+  ccitt_roundtrip(CCITTG4(columns, rows), -1, columns, rows, raw)
 }
 
 ///|
@@ -94,7 +94,7 @@ test "ccitt g4 roundtrip covers vertical modes" {
     [[5, 5, 6], [7, 3, 6], [10, 1, 5], [7, 3, 6]],
     1,
   )
-  ccitt_roundtrip(Encoding::CCITTG4(columns, rows), -1, columns, rows, raw)
+  ccitt_roundtrip(CCITTG4(columns, rows), -1, columns, rows, raw)
 }
 
 ///|
@@ -106,7 +106,7 @@ test "ccitt g3 roundtrip covers many makeup codes" {
     rows.push([n, columns - n])
   }
   let raw = bitmap_bytes_from_row_runs(rows, 0)
-  ccitt_roundtrip(Encoding::CCITT(columns, 40), 0, columns, 40, raw)
+  ccitt_roundtrip(CCITT(columns, 40), 0, columns, 40, raw)
 }
 
 ///|
@@ -114,7 +114,7 @@ test "ccitt g4 roundtrip covers many makeup codes" {
   let columns = 256
   let rows = 1
   let raw = bitmap_bytes_from_row_runs([[64, 64, 64, 64]], 1)
-  ccitt_roundtrip(Encoding::CCITTG4(columns, rows), -1, columns, rows, raw)
+  ccitt_roundtrip(CCITTG4(columns, rows), -1, columns, rows, raw)
 }
 
 ///|
@@ -132,7 +132,7 @@ test "ccitt g4 roundtrip covers varied run lengths (single-row)" {
   columns = 256
   let rows = 2
   let raw = bitmap_bytes_from_row_runs([runs, runs], 1)
-  ccitt_roundtrip(Encoding::CCITTG4(columns, rows), -1, columns, rows, raw)
+  ccitt_roundtrip(CCITTG4(columns, rows), -1, columns, rows, raw)
 }
 
 ///|
@@ -145,7 +145,7 @@ test "ccitt g4 roundtrip covers 1..=64 run lengths starting black" {
   }
   let rows = 1
   let raw = bitmap_bytes_from_row_runs([runs], 0)
-  ccitt_roundtrip(Encoding::CCITTG4(columns, rows), -1, columns, rows, raw)
+  ccitt_roundtrip(CCITTG4(columns, rows), -1, columns, rows, raw)
 }
 
 ///|
@@ -158,7 +158,7 @@ test "encode_pdfstream CCITT errors on insufficient data" {
   let ctx : PdfCodec = PdfCodec::new()
   let res : Result[Unit, Error] = try? ctx.encode_pdfstream(
     pdf,
-    Encoding::CCITT(16, 1),
+    CCITT(16, 1),
     stream_obj,
     only_if_smaller=false,
   )
@@ -175,7 +175,7 @@ test "encode_pdfstream CCITTG4 errors on insufficient data" {
   let ctx : PdfCodec = PdfCodec::new()
   let res : Result[Unit, Error] = try? ctx.encode_pdfstream(
     pdf,
-    Encoding::CCITTG4(16, 1),
+    CCITTG4(16, 1),
     stream_obj,
     only_if_smaller=false,
   )

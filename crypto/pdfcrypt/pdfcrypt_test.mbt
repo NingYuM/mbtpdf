@@ -59,7 +59,7 @@ test "encrypt/decrypt 128bit roundtrip" {
     enc,
   )
   match crypt_type {
-    @pdfcryptprimitives.Encryption::ARC4(128, 3) => ()
+    ARC4(128, 3) => ()
     _ => fail("expected ARC4 128 r3")
   }
 }
@@ -97,7 +97,7 @@ test "encrypt/decrypt AES V2 roundtrip" {
     enc,
   )
   match crypt_type {
-    @pdfcryptprimitives.Encryption::AESV2 => ()
+    AESV2 => ()
     _ => fail("expected AESV2")
   }
 }

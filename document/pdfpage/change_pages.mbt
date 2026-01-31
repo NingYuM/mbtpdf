@@ -27,7 +27,7 @@ pub fn PdfPageDoc::pagenumber_of_target(
     NullDestination | NamedDestination(_) | StringDestination(_) => 0
     Action(a) =>
       match pdf.lookup_direct("/S", a) {
-        Some(@pdf.PdfObject::Name(PdfName("/GoTo"))) =>
+        Some(Name(PdfName("/GoTo"))) =>
           match pdf.lookup_direct("/D", a) {
             Some(dest) =>
               match fastrefnums {
@@ -157,12 +157,11 @@ fn rewrite_action(
   action : @pdf.PdfObject,
 ) -> @pdf.PdfObject? raise {
   match pdf.lookup_direct("/S", action) {
-    Some(@pdf.PdfObject::Name(PdfName("/GoTo"))) =>
+    Some(Name(PdfName("/GoTo"))) =>
       match pdf.lookup_direct("/D", action) {
         Some(dest) =>
           match rewrite_dest(pdf, mattable, refnumstable, dest) {
-            Some(objnum) =>
-              Some(action.add_entry("/D", @pdf.PdfObject::Indirect(objnum)))
+            Some(objnum) => Some(action.add_entry("/D", Indirect(objnum)))
             None => None
           }
         None => None
@@ -182,20 +181,20 @@ fn change_pages_process_annotations(
   for page in pages {
     pnum = pnum + 1
     match pdf.lookup_direct("/Annots", page.rest) {
-      Some(@pdf.PdfObject::Array(annots)) =>
+      Some(Array(annots)) =>
         for annotobj in annots {
           match annotobj {
-            @pdf.PdfObject::Indirect(i) => {
+            Indirect(i) => {
               let annot = pdf.lookup_obj(i)
               match pdf.lookup_direct("/Subtype", annot) {
-                Some(@pdf.PdfObject::Name(PdfName("/Link"))) =>
+                Some(Name(PdfName("/Link"))) =>
                   match pdf.lookup_direct("/Dest", annot) {
                     Some(dest) =>
                       match rewrite_dest(pdf, mattable, refnumstable, dest) {
                         Some(objnum) => {
                           let new_annot = annot.add_entry(
                             "/Dest",
-                            @pdf.PdfObject::Indirect(objnum),
+                            Indirect(objnum),
                           )
                           pdf.addobj_given_num((i, new_annot))
                         }
@@ -203,7 +202,7 @@ fn change_pages_process_annotations(
                       }
                     None =>
                       match pdf.lookup_direct("/A", annot) {
-                        Some(@pdf.PdfObject::Dictionary(_) as action) =>
+                        Some(Dictionary(_) as action) =>
                           match
                             rewrite_action(pdf, mattable, refnumstable, action) {
                             Some(updated_action) => {
@@ -244,14 +243,13 @@ fn change_pages_process_openaction(
   pdf : @pdf.Pdf,
 ) -> Unit raise {
   match pdf.lookup_direct("/OpenAction", pdf.catalog_of_pdf()) {
-    Some(@pdf.PdfObject::Array(dest)) =>
-      match
-        rewrite_dest(pdf, mattable, refnumstable, @pdf.PdfObject::Array(dest)) {
+    Some(Array(dest)) =>
+      match rewrite_dest(pdf, mattable, refnumstable, Array(dest)) {
         Some(new_dest_objnum) =>
-          rewrite_openaction(pdf, @pdf.PdfObject::Indirect(new_dest_objnum))
+          rewrite_openaction(pdf, Indirect(new_dest_objnum))
         None => ()
       }
-    Some(@pdf.PdfObject::Dictionary(_) as action) =>
+    Some(Dictionary(_) as action) =>
       match rewrite_action(pdf, mattable, refnumstable, action) {
         Some(updated_action) => rewrite_openaction(pdf, updated_action)
         None => ()
@@ -309,7 +307,7 @@ pub fn PdfPageDoc::change_pages(
     saved_encryption: basepdf.saved_encryption,
   }
   let existing_root_entries = match basepdf.lookup_obj(basepdf.root) {
-    @pdf.PdfObject::Dictionary(d) => d
+    Dictionary(d) => d
     _ => []
   }
   let pdf = PdfPageDoc::new(pdf).add_root(pagetree_num, existing_root_entries)

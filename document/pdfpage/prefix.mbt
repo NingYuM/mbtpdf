@@ -46,14 +46,14 @@ fn names_used(pdf : @pdf.Pdf) -> Array[String] {
   }
 
   pdf.objiter((_, obj) => match obj {
-    @pdf.PdfObject::Dictionary(_) | @pdf.PdfObject::Stream(_) =>
+    Dictionary(_) | Stream(_) =>
       match pdf.lookup_direct("/Type", obj) {
-        Some(@pdf.PdfObject::Name(PdfName("/Page" | "/Pages"))) =>
+        Some(Name(PdfName("/Page" | "/Pages"))) =>
           match pdf.lookup_direct("/Resources", obj) {
             Some(resources) =>
               for key in resource_keys {
                 match pdf.lookup_direct(key, resources) {
-                  Some(@pdf.PdfObject::Dictionary(d)) =>
+                  Some(Dictionary(d)) =>
                     for entry in d {
                       names.push(unslash(entry.0))
                     }
@@ -121,33 +121,21 @@ fn prefix_operator(
     OpscnName(s, ns) => OpscnName(addp(prefix, s), ns)
     Opsh(s) => Opsh(addp(prefix, s))
     OpDo(x) => OpDo(addp(prefix, x))
-    OpDP(n, @pdf.PdfObject::Name(x)) =>
-      OpDP(
-        n,
-        @pdf.PdfObject::Name(
-          @pdf.PdfName::of_string(addp(prefix, x.to_string_bytes())),
-        ),
-      )
-    OpBDC(n, @pdf.PdfObject::Name(x)) =>
-      OpBDC(
-        n,
-        @pdf.PdfObject::Name(
-          @pdf.PdfName::of_string(addp(prefix, x.to_string_bytes())),
-        ),
-      )
+    OpDP(n, Name(x)) =>
+      OpDP(n, Name(@pdf.PdfName::of_string(addp(prefix, x.to_string_bytes()))))
+    OpBDC(n, Name(x)) =>
+      OpBDC(n, Name(@pdf.PdfName::of_string(addp(prefix, x.to_string_bytes()))))
     InlineImage((dict, dp, bytes)) => {
       let dict_updated = match
         pdf.lookup_direct_orelse("/CS", "/ColorSpace", dict) {
-        Some(@pdf.PdfObject::Name(n)) =>
+        Some(Name(n)) =>
           if direct_cs_names_inline.contains(n.to_string_bytes()) {
             dict
           } else {
             let stripped = dict.remove_entry("/ColorSpace").remove_entry("/CS")
             stripped.add_entry(
               "/CS",
-              @pdf.PdfObject::Name(
-                @pdf.PdfName::of_string(addp(prefix, n.to_string_bytes())),
-              ),
+              Name(@pdf.PdfName::of_string(addp(prefix, n.to_string_bytes()))),
             )
           }
         _ => dict
@@ -166,11 +154,9 @@ fn change_resources(
 ) -> @pdf.PdfObject raise {
   fn newdict(name : String) -> @pdf.PdfObject raise {
     match pdf.lookup_direct(name, resources) {
-      Some(@pdf.PdfObject::Dictionary(dict)) =>
-        @pdf.PdfObject::Dictionary(
-          dict.map(pair => (addp(prefix, pair.0), pair.1)),
-        )
-      _ => @pdf.PdfObject::Dictionary([])
+      Some(Dictionary(dict)) =>
+        Dictionary(dict.map(pair => (addp(prefix, pair.0), pair.1)))
+      _ => Dictionary([])
     }
   }
 
@@ -191,7 +177,7 @@ fn fix_stream(
   obj : @pdf.PdfObject,
 ) -> Unit raise {
   match obj {
-    @pdf.PdfObject::Indirect(i) =>
+    Indirect(i) =>
       if fixed_streams.get(i) is None {
         let operators = @pdfops.Op::parse_operators(pdf, resources, [obj])
         let operators_updated = operators.map(op => prefix_operator(
@@ -199,9 +185,9 @@ fn fix_stream(
         ))
         let stream_obj = pdf.lookup_obj(i)
         match stream_obj {
-          @pdf.PdfObject::Stream(r) =>
+          Stream(r) =>
             match @pdfops.Op::stream_of_ops(operators_updated) {
-              @pdf.PdfObject::Stream(updated) => {
+              Stream(updated) => {
                 r.val = updated.val
                 fixed_streams.set(i, ())
               }
@@ -219,9 +205,9 @@ fn add_prefix_impl(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
   let fixed_streams : Map[Int, Unit] = Map::new()
   pdf.objselfmap(fn(obj : @pdf.PdfObject) -> @pdf.PdfObject raise {
     match obj {
-      @pdf.PdfObject::Dictionary(dict) =>
+      Dictionary(dict) =>
         match pdf.lookup_direct("/Type", obj) {
-          Some(@pdf.PdfObject::Name(PdfName("/Page" | "/Pages"))) => {
+          Some(Name(PdfName("/Page" | "/Pages"))) => {
             let (resources, resources_updated) = match
               pdf.lookup_direct("/Resources", obj) {
               Some(res) => (Some(res), Some(change_resources(pdf, prefix, res)))
@@ -229,12 +215,12 @@ fn add_prefix_impl(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
             }
             let resources_obj = match resources {
               Some(res) => res
-              None => @pdf.PdfObject::Dictionary([])
+              None => Dictionary([])
             }
             match dict.search_by(pair => pair.0 == "/Contents") {
               Some(index) =>
                 match dict[index].1 {
-                  @pdf.PdfObject::Indirect(_) =>
+                  Indirect(_) =>
                     fix_stream(
                       pdf,
                       resources_obj,
@@ -242,7 +228,7 @@ fn add_prefix_impl(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
                       fixed_streams,
                       dict[index].1,
                     )
-                  @pdf.PdfObject::Array(a) => {
+                  Array(a) => {
                     if a.length() > 1 {
                       try {
                         for c in a {
@@ -252,9 +238,9 @@ fn add_prefix_impl(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
                           )
                           direct.getstream()
                           let bytes = match direct {
-                            @pdf.PdfObject::Stream(r) =>
+                            Stream(r) =>
                               match r.val {
-                                (_, @pdf.Stream::Got(data)) => data
+                                (_, Got(data)) => data
                                 _ =>
                                   raise @pdf.PdfError::Msg(
                                     "add_prefix: bad stream",
@@ -302,14 +288,14 @@ fn add_prefix_impl(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
 fn merge_content_streams(pdf : @pdf.Pdf) -> Unit raise {
   pdf.objselfmap(fn(obj : @pdf.PdfObject) -> @pdf.PdfObject raise {
     match obj {
-      @pdf.PdfObject::Dictionary(dict) =>
+      Dictionary(dict) =>
         match pdf.lookup_direct("/Type", obj) {
-          Some(@pdf.PdfObject::Name(PdfName("/Page" | "/Pages"))) =>
+          Some(Name(PdfName("/Page" | "/Pages"))) =>
             match dict.search_by(pair => pair.0 == "/Contents") {
               Some(index) =>
                 match dict[index].1 {
-                  @pdf.PdfObject::Indirect(_) => obj
-                  @pdf.PdfObject::Array(a) =>
+                  Indirect(_) => obj
+                  Array(a) =>
                     if a.length() <= 1 {
                       obj
                     } else {
@@ -321,10 +307,9 @@ fn merge_content_streams(pdf : @pdf.Pdf) -> Unit raise {
                       let rawstreams : Array[Array[Byte]] = Array::new()
                       for stream in direct_streams {
                         match stream {
-                          @pdf.PdfObject::Stream(r) =>
+                          Stream(r) =>
                             match r.val {
-                              (_, @pdf.Stream::Got(data)) =>
-                                rawstreams.push(data)
+                              (_, Got(data)) => rawstreams.push(data)
                               _ =>
                                 raise @pdf.PdfError::Msg(
                                   "merge_content_streams: bad stream",
@@ -340,23 +325,15 @@ fn merge_content_streams(pdf : @pdf.Pdf) -> Unit raise {
                       let stream = @pdf.PdfObject::Stream(
                         Ref::new(
                           (
-                            @pdf.PdfObject::Dictionary([
-                              (
-                                "/Length",
-                                @pdf.PdfObject::Integer(
-                                  @pdfio.bytes_size(merged),
-                                ),
-                              ),
+                            Dictionary([
+                              ("/Length", Integer(@pdfio.bytes_size(merged))),
                             ]),
-                            @pdf.Stream::Got(merged),
+                            Got(merged),
                           ),
                         ),
                       )
                       let objnum = pdf.addobj(stream)
-                      obj.add_entry(
-                        "/Contents",
-                        @pdf.PdfObject::Indirect(objnum),
-                      )
+                      obj.add_entry("/Contents", Indirect(objnum))
                     }
                   _ => obj
                 }

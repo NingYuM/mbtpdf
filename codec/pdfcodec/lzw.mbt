@@ -138,9 +138,8 @@ fn decode_lzw(
     }
     output
   } catch {
-    Failure::Failure(msg) =>
-      raise CodecError::CouldntDecodeStream("LZW: \{msg}")
-    _ => raise CodecError::CouldntDecodeStream("LZW")
+    Failure::Failure(msg) => raise CouldntDecodeStream("LZW: \{msg}")
+    _ => raise CouldntDecodeStream("LZW")
   }
 }
 
@@ -193,8 +192,7 @@ fn encode_lzw(early : Int, data : Array[Byte]) -> Array[Byte] raise CodecError {
     out.putval(code_length, eod_code)
     out.bytes()
   } catch {
-    Failure::Failure(msg) =>
-      raise CodecError::CouldntDecodeStream("LZW: \{msg}")
-    _ => raise CodecError::CouldntDecodeStream("LZW")
+    Failure::Failure(msg) => raise CouldntDecodeStream("LZW: \{msg}")
+    _ => raise CouldntDecodeStream("LZW")
   }
 }

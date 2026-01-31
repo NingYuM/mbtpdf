@@ -6,11 +6,9 @@ pub fn PdfFunction::eval(
 ) -> Array[Double] raise BadFunctionEvaluation {
   let clamped_inputs = clampvals(inputs, self.domain)
   let outputs = match self.func {
-    PdfFunctionKind::Calculator(ops) =>
-      eval_function_calculator(clamped_inputs, ops)
-    PdfFunctionKind::Sampled(s) =>
-      eval_function_sampled(self, s, clamped_inputs)
-    PdfFunctionKind::Interpolation(i) => {
+    Calculator(ops) => eval_function_calculator(clamped_inputs, ops)
+    Sampled(s) => eval_function_sampled(self, s, clamped_inputs)
+    Interpolation(i) => {
       let interp = fn(
         n : Double,
         c0 : Array[Double],
@@ -22,7 +20,7 @@ pub fn PdfFunction::eval(
       let mapped = clamped_inputs.map(v => interp(i.n, i.c0, i.c1, v))
       flatten(mapped)
     }
-    PdfFunctionKind::Stitching(s) =>
+    Stitching(s) =>
       match (clamped_inputs, self.domain) {
         ([i], [d0, d1]) => {
           let points = concat_arrays([d0], concat_arrays(s.bounds, [d1]))
@@ -38,7 +36,7 @@ pub fn PdfFunction::eval(
             idx = idx + 1
           }
           match subfun {
-            None => raise BadFunctionEvaluation::Msg("stitching: funs")
+            None => raise Msg("stitching: funs")
             Some(f) => {
               let a = select(idx + 1, points)
               let b = select(idx + 2, points)
@@ -49,7 +47,7 @@ pub fn PdfFunction::eval(
             }
           }
         }
-        _ => raise BadFunctionEvaluation::Msg("stitching: Bad arity")
+        _ => raise Msg("stitching: Bad arity")
       }
   }
   match self.range {

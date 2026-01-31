@@ -31,7 +31,7 @@ pub fn PdfFunction::print(self : PdfFunction) -> Unit {
     Some(values) => print_doubles(values)
   }
   match self.func {
-    PdfFunctionKind::Sampled(s) => {
+    Sampled(s) => {
       log_line("Sampled")
       log_line("size: ")
       print_ints(s.size)
@@ -42,7 +42,7 @@ pub fn PdfFunction::print(self : PdfFunction) -> Unit {
       print_doubles(s.decode)
       log_line("original bits per sample: \{s.bps}")
     }
-    PdfFunctionKind::Interpolation(i) => {
+    Interpolation(i) => {
       log_line("Interpolation")
       log_line("C0:")
       print_doubles(i.c0)
@@ -50,7 +50,7 @@ pub fn PdfFunction::print(self : PdfFunction) -> Unit {
       print_doubles(i.c1)
       log_line("n = \{i.n}")
     }
-    PdfFunctionKind::Stitching(s) => {
+    Stitching(s) => {
       log_line("Stitching")
       for fun in s.functions {
         fun.print()
@@ -60,7 +60,7 @@ pub fn PdfFunction::print(self : PdfFunction) -> Unit {
       log_line("Encode:")
       print_doubles(s.stitch_encode)
     }
-    PdfFunctionKind::Calculator(c) => {
+    Calculator(c) => {
       log_line("Calculator:")
       log_line(Calculator::to_string(c))
     }

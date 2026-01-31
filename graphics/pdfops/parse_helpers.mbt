@@ -7,7 +7,7 @@ fn split_lexemes(lexemes : Array[Lexeme], start : Int) -> (Array[Lexeme], Int) {
     let lexeme = lexemes[i]
     section.push(lexeme)
     match lexeme {
-      Lexeme::Op(_) | Lexeme::LexInlineImage(_) => return (section, i + 1)
+      Op(_) | LexInlineImage(_) => return (section, i + 1)
       _ => ()
     }
     i = i + 1
@@ -52,8 +52,8 @@ fn lexeme_string(lexeme : Lexeme) -> String? {
 ///|
 fn lexeme_pdfobj(lexeme : Lexeme) -> @pdf.PdfObject? raise {
   match lexeme {
-    Lexeme::PdfObj(obj) => Some(obj)
-    Lexeme::Obj(token) => Some(@pdfsyntax.parse([token]).1)
+    PdfObj(obj) => Some(obj)
+    Obj(token) => Some(@pdfsyntax.parse([token]).1)
     _ => None
   }
 }
@@ -82,7 +82,7 @@ fn parse_dash_op(section : Array[Lexeme]) -> Op raise {
     raise @pdf.PdfError::Msg("malformed 'd' op")
   }
   let op = section[section.length() - 1]
-  if op is Lexeme::Op("d") {
+  if op is Op("d") {
     let phase = match lexeme_real(section[section.length() - 2]) {
       Some(value) => value
       None => raise @pdf.PdfError::Msg("malformed 'd' op")
@@ -106,7 +106,7 @@ fn parse_dash_op(section : Array[Lexeme]) -> Op raise {
           None => raise @pdf.PdfError::Msg("malformed 'd' op")
         }
       }
-      return Op::Opd(values, phase)
+      return Opd(values, phase)
     }
   }
   raise @pdf.PdfError::Msg("malformed 'd' op")
@@ -115,7 +115,7 @@ fn parse_dash_op(section : Array[Lexeme]) -> Op raise {
 ///|
 fn parse_tj_op(section : Array[Lexeme]) -> Op raise {
   let op = section[section.length() - 1]
-  if op is Lexeme::Op("TJ") {
+  if op is Op("TJ") {
     if section.length() < 3 {
       raise @pdf.PdfError::Msg("malformed TJ op")
     }
@@ -134,14 +134,13 @@ fn parse_tj_op(section : Array[Lexeme]) -> Op raise {
       let elements : Array[@pdf.PdfObject] = Array::new()
       for idx in (left_index + 1)..<(section.length() - 2) {
         match section[idx] {
-          Obj(LexReal(value)) => elements.push(PdfObject::Real(value))
-          Obj(LexInt(value)) =>
-            elements.push(PdfObject::Real(Double::from_int(value)))
-          Obj(LexString(text)) => elements.push(PdfObject::String(text))
+          Obj(LexReal(value)) => elements.push(Real(value))
+          Obj(LexInt(value)) => elements.push(Real(Double::from_int(value)))
+          Obj(LexString(text)) => elements.push(String(text))
           _ => @pdfe.warn("Warning: malformed TJ element; skipping")
         }
       }
-      return Op::OpTJ(PdfObject::Array(elements))
+      return OpTJ(Array(elements))
     }
   }
   raise @pdf.PdfError::Msg("malformed TJ op")
@@ -151,7 +150,7 @@ fn parse_tj_op(section : Array[Lexeme]) -> Op raise {
 test "parse helpers cover int/real conversion paths" {
   assert_eq(lexeme_real(Obj(LexInt(2))).unwrap(), 2.0)
   assert_eq(lexeme_int(Obj(LexInt(2))).unwrap(), 2)
-  match lexeme_pdfobj(Lexeme::Op("q")) {
+  match lexeme_pdfobj(Op("q")) {
     None => ()
     Some(_) => fail("expected non-object lexeme to return None")
   }
@@ -161,13 +160,13 @@ test "parse helpers cover int/real conversion paths" {
     Obj(LexInt(120)),
     Obj(LexString("B")),
     Obj(LexRightSquare),
-    Lexeme::Op("TJ"),
+    Op("TJ"),
   ])
   match op {
-    OpTJ(PdfObject::Array(values)) => {
+    OpTJ(Array(values)) => {
       assert_eq(values.length(), 3)
       match values[1] {
-        PdfObject::Real(v) => assert_eq(v, 120.0)
+        Real(v) => assert_eq(v, 120.0)
         _ => fail("expected int TJ element to be converted to Real")
       }
     }

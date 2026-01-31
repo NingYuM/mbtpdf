@@ -34,17 +34,16 @@ fn apply_namechanges_to_destination_nametree(
 
   fn rewrite(dict : PdfObject) -> PdfObject {
     let entries = match dict {
-      PdfObject::Dictionary(e) => e
+      Dictionary(e) => e
       _ => return dict
     }
     let mut updated = entries
     match lookup("/Names", updated) {
-      Some(PdfObject::Array(values)) =>
+      Some(Array(values)) =>
         match pairs_of_array(values) {
           Some(pairs) => {
             let updated_pairs = pairs.map(pair => match pair {
-              (PdfObject::String(s), obj) =>
-                (PdfObject::String(rewrite_string(s)), obj)
+              (String(s), obj) => (PdfObject::String(rewrite_string(s)), obj)
               _ => pair
             })
             let rebuilt = Array::new(capacity=values.length())
@@ -52,51 +51,46 @@ fn apply_namechanges_to_destination_nametree(
               rebuilt.push(pair.0)
               rebuilt.push(pair.1)
             }
-            updated = add_entry(updated, "/Names", PdfObject::Array(rebuilt))
+            updated = add_entry(updated, "/Names", Array(rebuilt))
           }
           None => @pdfe.warn("Warning: malformed /Names")
         }
       _ => ()
     }
     match lookup("/Limits", updated) {
-      Some(PdfObject::Array([PdfObject::String(a), PdfObject::String(b)])) =>
+      Some(Array([String(a), String(b)])) =>
         updated = add_entry(
           updated,
           "/Limits",
-          PdfObject::Array([
-            PdfObject::String(rewrite_string(a)),
-            PdfObject::String(rewrite_string(b)),
-          ]),
+          Array([String(rewrite_string(a)), String(rewrite_string(b))]),
         )
       _ => ()
     }
     match lookup("/Kids", updated) {
-      Some(PdfObject::Array(kids)) =>
+      Some(Array(kids)) =>
         for kid in kids {
           match kid {
-            PdfObject::Indirect(i) =>
-              pdf.addobj_given_num(
-                (i, rewrite(pdf.direct(PdfObject::Indirect(i)))),
-              )
+            Indirect(i) =>
+              pdf.addobj_given_num((i, rewrite(pdf.direct(Indirect(i)))))
             _ => ()
           }
         }
       _ => ()
     }
-    PdfObject::Dictionary(updated)
+    Dictionary(updated)
   }
 
   let catalog = pdf.catalog_of_pdf()
   match pdf.lookup_direct("/Names", catalog) {
-    Some(PdfObject::Dictionary(d)) =>
+    Some(Dictionary(d)) =>
       match lookup("/Dests", d) {
-        Some(PdfObject::Dictionary(dest_dict)) => {
-          let newdest = rewrite(PdfObject::Dictionary(dest_dict))
+        Some(Dictionary(dest_dict)) => {
+          let newdest = rewrite(Dictionary(dest_dict))
           let newcatalog = catalog.add_entry("/Dests", newdest)
           pdf.addobj_given_num((pdf.root, newcatalog))
         }
-        Some(PdfObject::Indirect(i)) =>
-          pdf.addobj_given_num((i, rewrite(pdf.direct(PdfObject::Indirect(i)))))
+        Some(Indirect(i)) =>
+          pdf.addobj_given_num((i, rewrite(pdf.direct(Indirect(i)))))
         _ => ()
       }
     _ => ()
@@ -133,29 +127,27 @@ fn apply_namechanges_at_destination_callsites(
 
   fn f(obj : PdfObject) -> PdfObject {
     match obj {
-      PdfObject::Dictionary(entries) => {
+      Dictionary(entries) => {
         let updated = Array::new(capacity=entries.length())
         for entry in entries {
           updated.push((entry.0, f(entry.1)))
         }
         let updated = match lookup("/S", updated) {
-          Some(PdfObject::Name(PdfName("/GoTo"))) =>
+          Some(Name(PdfName("/GoTo"))) =>
             match lookup("/D", updated) {
-              Some(PdfObject::String(s)) =>
-                add_entry(updated, "/D", PdfObject::String(rewrite_string(s)))
+              Some(String(s)) =>
+                add_entry(updated, "/D", String(rewrite_string(s)))
               _ => updated
             }
           _ => updated
         }
         match lookup("/Dest", updated) {
-          Some(PdfObject::String(s)) =>
-            PdfObject::Dictionary(
-              add_entry(updated, "/Dest", PdfObject::String(rewrite_string(s))),
-            )
-          _ => PdfObject::Dictionary(updated)
+          Some(String(s)) =>
+            Dictionary(add_entry(updated, "/Dest", String(rewrite_string(s))))
+          _ => Dictionary(updated)
         }
       }
-      PdfObject::Array(values) => @pdf.recurse_array(f, values)
+      Array(values) => @pdf.recurse_array(f, values)
       _ => obj
     }
   }
@@ -181,8 +173,7 @@ fn merge_pdfs_rename_name_trees(
     match pdf.lookup_direct("/Names", catalog) {
       Some(d) =>
         match pdf.lookup_direct("/Dests", d) {
-          Some(PdfObject::Dictionary(dict)) =>
-            (pdf, Some(PdfObject::Dictionary(dict)))
+          Some(Dictionary(dict)) => (pdf, Some(PdfObject::Dictionary(dict)))
           _ => (pdf, None)
         }
       _ => (pdf, None)

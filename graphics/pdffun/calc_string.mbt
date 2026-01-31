@@ -1,51 +1,51 @@
 ///|
 fn calculator_to_string_inner(op : Calculator) -> String {
   match op {
-    Calculator::If(ops) => "\{calculator_ops_to_string(ops)} if"
-    Calculator::IfElse(a, b) =>
+    If(ops) => "\{calculator_ops_to_string(ops)} if"
+    IfElse(a, b) =>
       "\{calculator_ops_to_string(a)} \{calculator_ops_to_string(b)} ifelse"
-    Calculator::Bool(true) => "true"
-    Calculator::Bool(false) => "false"
-    Calculator::Float(f) => f.to_string()
-    Calculator::Int(i) => i.to_string()
-    Calculator::Abs => "abs"
-    Calculator::Add => "add"
-    Calculator::Atan => "atan"
-    Calculator::Ceiling => "ceiling"
-    Calculator::Cos => "cos"
-    Calculator::Cvi => "cvi"
-    Calculator::Cvr => "cvr"
-    Calculator::Div => "div"
-    Calculator::Exp => "exp"
-    Calculator::Floor => "floor"
-    Calculator::Idiv => "idiv"
-    Calculator::Ln => "ln"
-    Calculator::Log => "log"
-    Calculator::Mod => "mod"
-    Calculator::Mul => "mul"
-    Calculator::Neg => "neg"
-    Calculator::Round => "round"
-    Calculator::Sin => "sin"
-    Calculator::Sqrt => "sqrt"
-    Calculator::Sub => "sub"
-    Calculator::Truncate => "truncate"
-    Calculator::And => "and"
-    Calculator::Bitshift => "bitshift"
-    Calculator::Eq => "eq"
-    Calculator::Ge => "ge"
-    Calculator::Gt => "gt"
-    Calculator::Le => "le"
-    Calculator::Lt => "lt"
-    Calculator::Ne => "ne"
-    Calculator::Not => "not"
-    Calculator::Or => "or"
-    Calculator::Xor => "xor"
-    Calculator::Copy => "copy"
-    Calculator::Exch => "exch"
-    Calculator::Pop => "pop"
-    Calculator::Dup => "dup"
-    Calculator::Index => "index"
-    Calculator::Roll => "roll"
+    Bool(true) => "true"
+    Bool(false) => "false"
+    Float(f) => f.to_string()
+    Int(i) => i.to_string()
+    Abs => "abs"
+    Add => "add"
+    Atan => "atan"
+    Ceiling => "ceiling"
+    Cos => "cos"
+    Cvi => "cvi"
+    Cvr => "cvr"
+    Div => "div"
+    Exp => "exp"
+    Floor => "floor"
+    Idiv => "idiv"
+    Ln => "ln"
+    Log => "log"
+    Mod => "mod"
+    Mul => "mul"
+    Neg => "neg"
+    Round => "round"
+    Sin => "sin"
+    Sqrt => "sqrt"
+    Sub => "sub"
+    Truncate => "truncate"
+    And => "and"
+    Bitshift => "bitshift"
+    Eq => "eq"
+    Ge => "ge"
+    Gt => "gt"
+    Le => "le"
+    Lt => "lt"
+    Ne => "ne"
+    Not => "not"
+    Or => "or"
+    Xor => "xor"
+    Copy => "copy"
+    Exch => "exch"
+    Pop => "pop"
+    Dup => "dup"
+    Index => "index"
+    Roll => "roll"
   }
 }
 
@@ -84,7 +84,7 @@ pub fn PdfFunction::to_pdf_object(
     ("/Domain", domain),
   ]
   match self.func {
-    PdfFunctionKind::Sampled(s) => {
+    Sampled(s) => {
       let encode_vals = if s.encode.length() == 0 {
         interleave_lists(
           many(0.0, s.size.length()),
@@ -106,21 +106,17 @@ pub fn PdfFunction::to_pdf_object(
           "/Size",
           PdfObject::Array(s.size.map(x => @pdf.ToPdfNumber::to_pdf_number(x))),
         ),
-        ("/BitsPerSample", PdfObject::Integer(s.bps)),
+        ("/BitsPerSample", Integer(s.bps)),
         (
           "/Encode",
-          PdfObject::Array(
-            encode_vals.map(x => @pdf.ToPdfNumber::to_pdf_number(x)),
-          ),
+          Array(encode_vals.map(x => @pdf.ToPdfNumber::to_pdf_number(x))),
         ),
       ]
       let sampled_entries = if decode_vals.length() > 0 {
         concat_arrays(sampled_entries, [
           (
             "/Decode",
-            PdfObject::Array(
-              decode_vals.map(x => @pdf.ToPdfNumber::to_pdf_number(x)),
-            ),
+            Array(decode_vals.map(x => @pdf.ToPdfNumber::to_pdf_number(x))),
           ),
         ])
       } else {
@@ -131,37 +127,27 @@ pub fn PdfFunction::to_pdf_object(
         sampled_entries,
       )
       let entries_with_order = if s.order != 1 {
-        concat_arrays(entries, [("/Order", PdfObject::Integer(s.order))])
+        concat_arrays(entries, [("/Order", Integer(s.order))])
       } else {
         entries
       }
       let data = sampled_bytes(s.samples, s.bps)
       let entries_with_length = concat_arrays(entries_with_order, [
-        ("/Length", PdfObject::Integer(@pdfio.bytes_size(data))),
+        ("/Length", Integer(@pdfio.bytes_size(data))),
       ])
-      PdfObject::Stream(
-        Ref::new(
-          (PdfObject::Dictionary(entries_with_length), @pdf.Stream::Got(data)),
-        ),
-      )
+      Stream(Ref::new((Dictionary(entries_with_length), Got(data))))
     }
-    PdfFunctionKind::Calculator(ops) => {
+    Calculator(ops) => {
       let entries = concat_arrays(base, range_entry)
       let data = @pdfio.bytes_of_string(calculator_ops_to_string(ops))
       let entries_with_length = concat_arrays(entries, [
-        ("/Length", PdfObject::Integer(@pdfio.bytes_size(data))),
+        ("/Length", Integer(@pdfio.bytes_size(data))),
       ])
-      PdfObject::Stream(
-        Ref::new(
-          (PdfObject::Dictionary(entries_with_length), @pdf.Stream::Got(data)),
-        ),
-      )
+      Stream(Ref::new((Dictionary(entries_with_length), Got(data))))
     }
     _ => {
       let extras = extra_entries_of_function(pdf, self)
-      PdfObject::Dictionary(
-        concat_arrays(concat_arrays(base, range_entry), extras),
-      )
+      Dictionary(concat_arrays(concat_arrays(base, range_entry), extras))
     }
   }
 }

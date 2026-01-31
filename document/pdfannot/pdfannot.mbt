@@ -314,44 +314,36 @@ fn Subtype::to_string(self : Subtype) -> String {
 ///|
 fn Annotation::to_pdf_object(self : Annotation) -> PdfObject raise {
   let dict_entries : Array[(String, PdfObject)] = [
-    (
-      "/Subtype",
-      PdfObject::Name(@pdf.PdfName::of_string(self.subtype.to_string())),
-    ),
+    ("/Subtype", Name(@pdf.PdfName::of_string(self.subtype.to_string()))),
     (
       "/Contents",
       match self.annot_contents {
-        None => PdfObject::Null
-        Some(s) => PdfObject::String(s)
+        None => Null
+        Some(s) => String(s)
       },
     ),
     (
       "/Rect",
       {
         let (a, b, c, d) = self.rectangle
-        PdfObject::Array([
-          PdfObject::Real(a),
-          PdfObject::Real(b),
-          PdfObject::Real(c),
-          PdfObject::Real(d),
-        ])
+        Array([Real(a), Real(b), Real(c), Real(d)])
       },
     ),
     (
       "/Border",
       match self.border.dasharray {
         [] =>
-          PdfObject::Array([
-            PdfObject::Real(self.border.hradius),
-            PdfObject::Real(self.border.vradius),
-            PdfObject::Real(self.border.width),
+          Array([
+            Real(self.border.hradius),
+            Real(self.border.vradius),
+            Real(self.border.width),
           ])
         dash =>
-          PdfObject::Array([
-            PdfObject::Real(self.border.hradius),
-            PdfObject::Real(self.border.vradius),
-            PdfObject::Real(self.border.width),
-            PdfObject::Array(dash.map(value => PdfObject::Integer(value))),
+          Array([
+            Real(self.border.hradius),
+            Real(self.border.vradius),
+            Real(self.border.width),
+            Array(dash.map(value => Integer(value))),
           ])
       },
     ),
@@ -364,23 +356,13 @@ fn Annotation::to_pdf_object(self : Annotation) -> PdfObject raise {
   let dict_entries = match self.colour {
     None => dict_entries
     Some((r, g, b)) =>
-      [
-        (
-          "/C",
-          PdfObject::Array([
-            PdfObject::Integer(r),
-            PdfObject::Integer(g),
-            PdfObject::Integer(b),
-          ]),
-        ),
-      ] +
-      dict_entries
+      [("/C", Array([Integer(r), Integer(g), Integer(b)]))] + dict_entries
   }
   let dict_entries = match self.subject {
     None => dict_entries
-    Some(s) => [("/Subj", PdfObject::String(s))] + dict_entries
+    Some(s) => [("/Subj", String(s))] + dict_entries
   }
-  PdfObject::Dictionary(dict_entries)
+  Dictionary(dict_entries)
 }
 
 ///|
@@ -389,7 +371,7 @@ pub fn Border::new(
   width : Double,
   vradius? : Double = 0.0,
   hradius? : Double = 0.0,
-  style? : Style = Style::NoStyle,
+  style? : Style = NoStyle,
   dasharray? : Array[Int] = [],
 ) -> Border {
   { width, vradius, hradius, style, dasharray }
@@ -412,7 +394,7 @@ pub fn Annotation::new(
     colour,
     subject,
     subtype,
-    annotrest: PdfObject::Null,
+    annotrest: Null,
   }
 }
 
@@ -426,9 +408,9 @@ pub fn PdfAnnot::add_annotation(
   let obj = anno.to_pdf_object()
   let new_rest = match self.pdf.lookup_direct("/Annots", page.rest) {
     Some(Array(annotations)) =>
-      page.rest.add_entry("/Annots", PdfObject::Array([obj] + annotations))
+      page.rest.add_entry("/Annots", Array([obj] + annotations))
     Some(_) => raise @pdf.PdfError::Msg("Bad annotation dictionary")
-    None => page.rest.add_entry("/Annots", PdfObject::Array([obj]))
+    None => page.rest.add_entry("/Annots", Array([obj]))
   }
   {
     content: page.content,

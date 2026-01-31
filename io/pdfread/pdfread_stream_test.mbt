@@ -2,8 +2,7 @@
 test "lex_stream_data reads stream bytes" {
   let input = @pdfio.Input::of_string("stream\nABCendstream")
   match @pdfsyntax.lex_stream_data(input, 3, true) {
-    LexStream(@pdf.Stream::Got(bytes)) =>
-      assert_eq(@pdfio.string_of_bytes(bytes), "ABC")
+    LexStream(Got(bytes)) => assert_eq(@pdfio.string_of_bytes(bytes), "ABC")
     _ => fail("expected stream bytes")
   }
 }
@@ -12,8 +11,7 @@ test "lex_stream_data reads stream bytes" {
 test "lex_stream_data returns ToGet for unread stream" {
   let input = @pdfio.Input::of_string("stream\nXYZendstream")
   match @pdfsyntax.lex_stream_data(input, 3, false) {
-    LexStream(@pdf.Stream::ToGet(toget)) =>
-      assert_eq(@pdf.ToGet::length(toget), 3)
+    LexStream(ToGet(toget)) => assert_eq(@pdf.ToGet::length(toget), 3)
     _ => fail("expected ToGet stream")
   }
 }
@@ -22,8 +20,7 @@ test "lex_stream_data returns ToGet for unread stream" {
 test "lex_stream_data falls back for malformed length" {
   let input = @pdfio.Input::of_string("stream\nendstreamXXXX")
   match @pdfsyntax.lex_stream_data(input, 2, true) {
-    LexStream(@pdf.Stream::Got(bytes)) =>
-      assert_eq(@pdfio.string_of_bytes(bytes), "")
+    LexStream(Got(bytes)) => assert_eq(@pdfio.string_of_bytes(bytes), "")
     _ => fail("expected stream bytes")
   }
 }
@@ -32,8 +29,7 @@ test "lex_stream_data falls back for malformed length" {
 test "lex_stream_data fallback ignores read_data flag" {
   let input = @pdfio.Input::of_string("stream\nendstreamXXXX")
   match @pdfsyntax.lex_stream_data(input, 2, false) {
-    LexStream(@pdf.Stream::Got(bytes)) =>
-      assert_eq(@pdfio.string_of_bytes(bytes), "")
+    LexStream(Got(bytes)) => assert_eq(@pdfio.string_of_bytes(bytes), "")
     _ => fail("expected stream bytes")
   }
 }

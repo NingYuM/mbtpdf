@@ -1,7 +1,7 @@
 ///|
 fn isimage(pdf : @pdf.Pdf, xobj : @pdf.PdfObject) -> Bool {
   match pdf.lookup_direct("/Subtype", xobj) {
-    Some(@pdf.PdfObject::Name(@pdf.PdfName("/Image"))) => true
+    Some(Name(PdfName("/Image"))) => true
     _ => false
   }
 }
@@ -102,11 +102,7 @@ fn remove_images_page(
     @pdfops.Op::parse_operators(pdf, page.resources, page.content),
   )
   let stream = @pdfops.Op::stream_of_ops(content)
-  @pdfcodec.PdfCodec::new().encode_pdfstream(
-    pdf,
-    @pdfcodec.Encoding::Flate,
-    stream,
-  )
+  @pdfcodec.PdfCodec::new().encode_pdfstream(pdf, Flate, stream)
   {
     content: [stream],
     mediabox: page.mediabox,

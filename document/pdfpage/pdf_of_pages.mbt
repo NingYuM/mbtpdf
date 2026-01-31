@@ -14,7 +14,7 @@ fn pagetree_with_objnumbers(
 ) -> PtreeObjnumbers raise {
   if objnumbers.length() < 10 {
     let this_num = if toplevel { old_pagetree_root_num } else { objnumsource() }
-    PtreeObjnumbers::OLf(objnumbers, parent, this_num)
+    OLf(objnumbers, parent, this_num)
   } else {
     let (left, this, right) = split3(5, objnumbers)
     let this_num = if toplevel { old_pagetree_root_num } else { objnumsource() }
@@ -24,7 +24,7 @@ fn pagetree_with_objnumbers(
     let right_tree = pagetree_with_objnumbers(
       false, old_pagetree_root_num, objnumsource, right, this_num,
     )
-    PtreeObjnumbers::OBr(this, left_tree, right_tree, parent, this_num)
+    OBr(this, left_tree, right_tree, parent, this_num)
   }
 }
 
@@ -35,29 +35,29 @@ fn buildnode(kids : ArrayView[Int], parent : Int, count : Int) -> PdfObject {
     kid_refs.push(PdfObject::Indirect(kid))
   }
   let entries : Array[(String, PdfObject)] = [
-    ("/Type", PdfObject::Name(@pdf.PdfName("/Pages"))),
-    ("/Kids", PdfObject::Array(kid_refs)),
-    ("/Count", PdfObject::Integer(count)),
+    ("/Type", Name(PdfName("/Pages"))),
+    ("/Kids", Array(kid_refs)),
+    ("/Count", Integer(count)),
   ]
   if parent != 0 {
-    entries.push(("/Parent", PdfObject::Indirect(parent)))
+    entries.push(("/Parent", Indirect(parent)))
   }
-  PdfObject::Dictionary(entries)
+  Dictionary(entries)
 }
 
 ///|
 fn objnumfrom(node : PtreeObjnumbers) -> Int {
   match node {
-    PtreeObjnumbers::OLf(_, _, o) => o
-    PtreeObjnumbers::OBr(_, _, _, _, o) => o
+    OLf(_, _, o) => o
+    OBr(_, _, _, _, o) => o
   }
 }
 
 ///|
 fn countof(node : PtreeObjnumbers) -> Int {
   match node {
-    PtreeObjnumbers::OLf(objnumbers, _, _) => objnumbers.length()
-    PtreeObjnumbers::OBr(objnumbers, left, right, _, _) =>
+    OLf(objnumbers, _, _) => objnumbers.length()
+    OBr(objnumbers, left, right, _, _) =>
       objnumbers.length() + countof(left) + countof(right)
   }
 }
@@ -65,11 +65,11 @@ fn countof(node : PtreeObjnumbers) -> Int {
 ///|
 fn objects_of_ptree_objnumbers(pdf : @pdf.Pdf, node : PtreeObjnumbers) -> Unit {
   match node {
-    PtreeObjnumbers::OLf(objnumbers, parent, objnum_leaf) =>
+    OLf(objnumbers, parent, objnum_leaf) =>
       pdf.addobj_given_num(
         (objnum_leaf, buildnode(objnumbers, parent, countof(node))),
       )
-    PtreeObjnumbers::OBr(objnumbers, left, right, parent, objnum_branch) => {
+    OBr(objnumbers, left, right, parent, objnum_branch) => {
       let kids = Array::new()
       kids.push(objnumfrom(left))
       kids.append(objnumbers[:])
@@ -90,9 +90,8 @@ fn pdf_of_pages_build_pagetree(
   pdf : @pdf.Pdf,
 ) -> PdfObject {
   match tree {
-    PtreeObjnumbers::OLf(_, parent, _) =>
-      buildnode(objnumbers, parent, countof(tree))
-    PtreeObjnumbers::OBr(_, left, right, parent, _) => {
+    OLf(_, parent, _) => buildnode(objnumbers, parent, countof(tree))
+    OBr(_, left, right, parent, _) => {
       objects_of_ptree_objnumbers(pdf, left)
       objects_of_ptree_objnumbers(pdf, right)
       let kids = Array::new()

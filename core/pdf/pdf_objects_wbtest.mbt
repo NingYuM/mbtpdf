@@ -2,25 +2,23 @@
 fn make_basic_pdf() -> Pdf {
   let base = Pdf::empty()
   let pages = PdfObject::Dictionary([
-    ("/Type", PdfObject::Name(PdfName("/Pages"))),
-    ("/Kids", PdfObject::Array([PdfObject::Indirect(2)])),
+    ("/Type", Name(PdfName("/Pages"))),
+    ("/Kids", Array([Indirect(2)])),
   ])
-  let page = PdfObject::Dictionary([
-    ("/Type", PdfObject::Name(PdfName("/Page"))),
-  ])
+  let page = PdfObject::Dictionary([("/Type", Name(PdfName("/Page")))])
   let catalog = PdfObject::Dictionary([
-    ("/Type", PdfObject::Name(PdfName("/Catalog"))),
-    ("/Pages", PdfObject::Indirect(1)),
+    ("/Type", Name(PdfName("/Catalog"))),
+    ("/Pages", Indirect(1)),
   ])
   base.addobj_given_num((1, pages))
   base.addobj_given_num((2, page))
   base.addobj_given_num((3, catalog))
-  Pdf::{
+  {
     major: base.major,
     minor: base.minor,
     root: 3,
     objects: base.objects,
-    trailerdict: PdfObject::Dictionary([("/Root", PdfObject::Indirect(3))]),
+    trailerdict: Dictionary([("/Root", Indirect(3))]),
     was_linearized: base.was_linearized,
     saved_encryption: base.saved_encryption,
   }
@@ -29,17 +27,17 @@ fn make_basic_pdf() -> Pdf {
 ///|
 test "lookup helpers and catalog" {
   let pdf = Pdf::empty()
-  let dict = PdfObject::Dictionary([("/A", PdfObject::Integer(1))])
+  let dict = PdfObject::Dictionary([("/A", Integer(1))])
   assert_integer(pdf.lookup_fail("err", "/A", dict), 1)
   assert_is_err(try? pdf.lookup_fail("err", "/B", dict))
-  let dict_indirect = PdfObject::Dictionary([("/A", PdfObject::Indirect(5))])
+  let dict_indirect = PdfObject::Dictionary([("/A", Indirect(5))])
   assert_eq(dict_indirect.find_indirect("/A"), Some(5))
-  let dict_non_indirect = PdfObject::Dictionary([("/A", PdfObject::Integer(7))])
+  let dict_non_indirect = PdfObject::Dictionary([("/A", Integer(7))])
   assert_eq(dict_non_indirect.find_indirect("/A"), None)
   assert_is_err(try? PdfObject::Integer(1).find_indirect("/A"))
   let catalog_pdf = make_basic_pdf()
   match catalog_pdf.catalog_of_pdf() {
-    PdfObject::Dictionary(_) => ()
+    Dictionary(_) => ()
     _ => fail("expected catalog")
   }
   let missing = Pdf::empty()
@@ -49,17 +47,17 @@ test "lookup helpers and catalog" {
 ///|
 test "recurse and iterators" {
   let pdf = Pdf::empty()
-  pdf.addobj_given_num((2, PdfObject::Integer(2)))
-  pdf.addobj_given_num((1, PdfObject::Integer(1)))
+  pdf.addobj_given_num((2, Integer(2)))
+  pdf.addobj_given_num((1, Integer(1)))
   match
     recurse_array(
       obj => match obj {
-        PdfObject::Integer(v) => PdfObject::Integer(v + 1)
+        Integer(v) => Integer(v + 1)
         _ => obj
       },
-      [PdfObject::Integer(1), PdfObject::Integer(2)],
+      [Integer(1), Integer(2)],
     ) {
-    PdfObject::Array(values) => assert_eq(values.length(), 2)
+    Array(values) => assert_eq(values.length(), 2)
     _ => fail("expected array")
   }
   let seen = Ref::new(([] : Array[Int]))
@@ -71,22 +69,16 @@ test "recurse and iterators" {
   let seen_inorder = Ref::new(([] : Array[Int]))
   pdf.objiter_inorder((num, _) => seen_inorder.val.push(num))
   assert_eq(seen_inorder.val, [1, 2])
-  pdf.objects.objects.set(
-    3,
-    ({ val: ObjectData::ParsedAlreadyDecrypted(PdfObject::Integer(5)) }, 0),
-  )
+  pdf.objects.objects.set(3, ({ val: ParsedAlreadyDecrypted(Integer(5)) }, 0))
   pdf.objselfmap(obj => match obj {
-    PdfObject::Integer(v) => PdfObject::Integer(v + 1)
+    Integer(v) => Integer(v + 1)
     _ => obj
   })
   assert_integer(pdf.lookup_obj(3), 6)
-  let stream = make_stream(
-    PdfObject::Dictionary([]),
-    @pdfio.bytes_of_string("x"),
-  )
+  let stream = make_stream(Dictionary([]), @pdfio.bytes_of_string("x"))
   pdf.addobj_given_num((4, stream))
   let selected = pdf.objselect(obj => match obj {
-    PdfObject::Integer(_) => true
+    Integer(_) => true
     _ => false
   })
   assert_true(selected.contains(1))
@@ -95,8 +87,8 @@ test "recurse and iterators" {
 ///|
 test "references and renumbering" {
   let pdf = make_basic_pdf()
-  pdf.addobj_given_num((4, PdfObject::Integer(99)))
-  let referenced = pdf.objects_referenced([], [], PdfObject::Indirect(2))
+  pdf.addobj_given_num((4, Integer(99)))
+  let referenced = pdf.objects_referenced([], [], Indirect(2))
   assert_true(referenced.contains(2))
   pdf.remove_unreferenced()
   let nums = pdf.objnumbers()
@@ -119,16 +111,16 @@ test "references and renumbering" {
   assert_true(second_nums.length() > 0)
   assert_true(first_nums.last().unwrap() < second_nums[0])
   let copied = pdf.deep_copy()
-  pdf.trailerdict = PdfObject::Dictionary([])
+  pdf.trailerdict = Dictionary([])
   match copied.trailerdict {
-    PdfObject::Dictionary(entries) => assert_true(entries.length() > 0)
+    Dictionary(entries) => assert_true(entries.length() > 0)
     _ => fail("expected dictionary")
   }
   match pdf.generate_id("path", () => 1.0) {
-    PdfObject::Array(values) => {
+    Array(values) => {
       assert_eq(values.length(), 2)
       match (values[0], values[1]) {
-        (PdfObject::String(a), PdfObject::String(b)) => assert_eq(a, b)
+        (String(a), String(b)) => assert_eq(a, b)
         _ => fail("expected id strings")
       }
     }
@@ -136,10 +128,10 @@ test "references and renumbering" {
   }
   pdf.change_id("path-")
   match pdf.trailerdict.lookup_immediate("/ID") {
-    Some(PdfObject::Array(values)) => assert_eq(values.length(), 2)
+    Some(Array(values)) => assert_eq(values.length(), 2)
     _ => fail("expected id entry")
   }
   let bad = Pdf::empty()
-  bad.trailerdict = PdfObject::Integer(1)
+  bad.trailerdict = Integer(1)
   assert_is_err(try? bad.change_id("path-"))
 }

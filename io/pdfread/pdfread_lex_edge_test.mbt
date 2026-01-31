@@ -71,8 +71,7 @@ test "lex_stream_data handles well-formed and malformed streams" {
   let ok_input = @pdfio.Input::of_string("\nABCendstream")
   let ok = @pdfsyntax.lex_stream_data(ok_input, 3, true)
   match ok {
-    LexStream(@pdf.Stream::Got(bytes)) =>
-      assert_eq(@pdfio.string_of_bytes(bytes), "ABC")
+    LexStream(Got(bytes)) => assert_eq(@pdfio.string_of_bytes(bytes), "ABC")
     _ => fail("expected LexStream Got")
   }
   let malformed_input = @pdfio.Input::of_string("\nABCXYZendstreamXXXXXXXXXXX")
@@ -88,7 +87,7 @@ test "lex_stream_data returns ToGet when read_data is false" {
   let input = @pdfio.Input::of_string("\nABCendstream")
   let token = @pdfsyntax.lex_stream_data(input, 3, false)
   match token {
-    LexStream(@pdf.Stream::ToGet(_)) => ()
+    LexStream(ToGet(_)) => ()
     _ => fail("expected LexStream ToGet")
   }
 }

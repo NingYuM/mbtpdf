@@ -79,25 +79,24 @@ pub fn PdfRead::what_encryption(
       let metadata = match pdf.lookup_direct("/Encrypt", pdf.trailerdict) {
         Some(encrypt_dict) =>
           match pdf.lookup_direct("/EncryptMetadata", encrypt_dict) {
-            Some(@pdf.PdfObject::Boolean(false)) => false
+            Some(Boolean(false)) => false
             _ => true
           }
         None => true
       }
       match crypt {
-        @pdfcryptprimitives.Encryption::ARC4(bits, _) =>
+        ARC4(bits, _) =>
           match bits {
-            40 => Some(@pdfcrypt.EncryptionMethod::PDF40bit)
-            128 => Some(@pdfcrypt.EncryptionMethod::PDF128bit)
+            40 => Some(PDF40bit)
+            128 => Some(PDF128bit)
             _ => None
           }
-        @pdfcryptprimitives.Encryption::AESV2 =>
-          Some(@pdfcrypt.EncryptionMethod::AES128bit(metadata))
-        @pdfcryptprimitives.Encryption::AESV3(is_iso) =>
+        AESV2 => Some(AES128bit(metadata))
+        AESV3(is_iso) =>
           if is_iso {
-            Some(@pdfcrypt.EncryptionMethod::AES256bitISO(metadata))
+            Some(AES256bitISO(metadata))
           } else {
-            Some(@pdfcrypt.EncryptionMethod::AES256bit(metadata))
+            Some(AES256bit(metadata))
           }
       }
     }
@@ -140,7 +139,7 @@ pub fn PdfRead::is_linearized(self : PdfRead, input : @pdfio.Input) -> Bool {
     let lexemes = @pdfsyntax.lex_dictionary(false, input)
     let (_, parsed) = @pdfsyntax.parse(lexemes, failure_is_ok=true)
     match @pdf.Pdf::empty().lookup_direct("/Linearized", parsed) {
-      Some(@pdf.PdfObject::Integer(_)) | Some(@pdf.PdfObject::Real(_)) => true
+      Some(Integer(_)) | Some(Real(_)) => true
       _ => false
     }
   } catch {

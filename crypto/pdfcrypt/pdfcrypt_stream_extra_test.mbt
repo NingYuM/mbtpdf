@@ -32,11 +32,11 @@ test "decrypt_single_stream skips metadata when EncryptMetadata is false" {
     pdf,
   )
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Metadata"))),
+    ("/Type", Name(PdfName("/Metadata"))),
     ("/Length", Integer(4)),
   ])
   let data = @pdfio.bytes_of_string("meta")
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, Got(data))))
   let out = @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
     Some("user"),
     None,
@@ -48,7 +48,7 @@ test "decrypt_single_stream skips metadata when EncryptMetadata is false" {
   match (out : @pdf.PdfObject) {
     Stream(r) =>
       match r.val {
-        (_, @pdf.Stream::Got(bytes)) => assert_eq(@pdfio.bytes_size(bytes), 4)
+        (_, Got(bytes)) => assert_eq(@pdfio.bytes_size(bytes), 4)
         _ => fail("expected stream bytes")
       }
     _ => fail("expected stream")
@@ -66,12 +66,12 @@ test "decrypt_single_stream skips identity crypt filters" {
     pdf,
   )
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/Crypt"))),
-    ("/DecodeParms", Dictionary([("/Name", Name(@pdf.PdfName("/Identity")))])),
+    ("/Filter", Name(PdfName("/Crypt"))),
+    ("/DecodeParms", Dictionary([("/Name", Name(PdfName("/Identity")))])),
     ("/Length", Integer(3)),
   ])
   let data = @pdfio.bytes_of_string("abc")
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, Got(data))))
   let out = @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
     Some("user"),
     None,
@@ -83,21 +83,21 @@ test "decrypt_single_stream skips identity crypt filters" {
   match (out : @pdf.PdfObject) {
     Stream(r) =>
       match r.val {
-        (_, @pdf.Stream::Got(bytes)) => assert_eq(@pdfio.bytes_size(bytes), 3)
+        (_, Got(bytes)) => assert_eq(@pdfio.bytes_size(bytes), 3)
         _ => fail("expected stream bytes")
       }
     _ => fail("expected stream")
   }
   let dict_array : @pdf.PdfObject = Dictionary([
-    ("/Filter", Array([Name(@pdf.PdfName("/Crypt"))])),
+    ("/Filter", Array([Name(PdfName("/Crypt"))])),
     (
       "/DecodeParms",
-      Array([Dictionary([("/Name", Name(@pdf.PdfName("/Identity")))])]),
+      Array([Dictionary([("/Name", Name(PdfName("/Identity")))])]),
     ),
     ("/Length", Integer(3)),
   ])
   let stream_array : @pdf.PdfObject = Stream(
-    Ref::new((dict_array, @pdf.Stream::Got(@pdfio.bytes_of_string("abc")))),
+    Ref::new((dict_array, Got(@pdfio.bytes_of_string("abc")))),
   )
   let out_array = @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
     Some("user"),
@@ -110,7 +110,7 @@ test "decrypt_single_stream skips identity crypt filters" {
   match (out_array : @pdf.PdfObject) {
     Stream(r) =>
       match r.val {
-        (_, @pdf.Stream::Got(bytes)) => assert_eq(@pdfio.bytes_size(bytes), 3)
+        (_, Got(bytes)) => assert_eq(@pdfio.bytes_size(bytes), 3)
         _ => fail("expected stream bytes")
       }
     _ => fail("expected stream")
@@ -129,7 +129,7 @@ test "decrypt_single_stream handles AES256 streams" {
   )
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(4))])
   let got_stream : @pdf.PdfObject = Stream(
-    Ref::new((dict, @pdf.Stream::Got(@pdfio.bytes_of_string("data")))),
+    Ref::new((dict, Got(@pdfio.bytes_of_string("data")))),
   )
   let got_out = @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
     Some("user"),
@@ -142,16 +142,14 @@ test "decrypt_single_stream handles AES256 streams" {
   match (got_out : @pdf.PdfObject) {
     Stream(r) =>
       match r.val {
-        (_, @pdf.Stream::Got(_)) => ()
+        (_, Got(_)) => ()
         _ => fail("expected stream bytes")
       }
     _ => fail("expected stream")
   }
   let input = @pdfio.Input::of_string("data", source="stream")
   let toget = @pdf.ToGet::new(input, 0, 4)
-  let toget_stream : @pdf.PdfObject = Stream(
-    Ref::new((dict, @pdf.Stream::ToGet(toget))),
-  )
+  let toget_stream : @pdf.PdfObject = Stream(Ref::new((dict, ToGet(toget))))
   let toget_out = @pdfcrypt.PdfCrypt::new().decrypt_single_stream(
     Some("user"),
     None,
@@ -163,7 +161,7 @@ test "decrypt_single_stream handles AES256 streams" {
   match (toget_out : @pdf.PdfObject) {
     Stream(r) =>
       match r.val {
-        (_, @pdf.Stream::ToGet(_)) => ()
+        (_, ToGet(_)) => ()
         _ => fail("expected ToGet stream")
       }
     _ => fail("expected stream")

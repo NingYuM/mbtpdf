@@ -25,11 +25,11 @@ pub fn PdfCodec::decode_pdfstream(
               decode_one_stage(pdf, obj)
             }
           }
-          Some(_) => raise CodecError::CouldntDecodeStream("malformed /Filter")
+          Some(_) => raise CouldntDecodeStream("malformed /Filter")
         }
       }
       Indirect(i) => decode_one_stage(pdf, pdf.direct(Indirect(i)))
-      _ => raise CodecError::CouldntDecodeStream("malformed stream")
+      _ => raise CouldntDecodeStream("malformed stream")
     }
   }
 
@@ -45,8 +45,7 @@ pub fn PdfCodec::decode_pdfstream_until_unknown(
   jbig2dec? : String,
 ) -> Unit raise CodecError {
   self.decode_pdfstream(_pdf, _obj, jbig2dec?) catch {
-    CodecError::DecodeNotSupported(_) => ()
-    CodecError::CouldntDecodeStream(msg) =>
-      raise CodecError::CouldntDecodeStream(msg)
+    DecodeNotSupported(_) => ()
+    CouldntDecodeStream(msg) => raise CouldntDecodeStream(msg)
   }
 }

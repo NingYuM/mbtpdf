@@ -12,7 +12,7 @@ pub fn ToGet::new(
   input : @pdfio.Input,
   position : Int,
   length : Int,
-  crypt? : ToGetCrypt = ToGetCrypt::NoChange,
+  crypt? : ToGetCrypt = NoChange,
 ) -> ToGet {
   { input, position, length, crypt }
 }
@@ -36,8 +36,8 @@ fn process_deferred_cryption(
   data : Array[Byte],
 ) -> Array[Byte] raise {
   match crypt {
-    ToGetCrypt::NoChange => data
-    ToGetCrypt::ToDecrypt(saved) =>
+    NoChange => data
+    ToDecrypt(saved) =>
       @pdfcryptprimitives.PdfCryptPrimitives::new().decrypt_stream_data(
         saved.crypt_type,
         false,
@@ -58,7 +58,7 @@ pub fn PdfObject::getstream(self : PdfObject) -> Unit raise {
   match self {
     Stream(r) =>
       match r.val {
-        (dict, Stream::ToGet(toget)) => {
+        (dict, ToGet(toget)) => {
           let data = try {
             let raw = toget.input.bytes_of_input(toget.position, toget.length)
             process_deferred_cryption(toget.crypt, raw)
@@ -70,7 +70,7 @@ pub fn PdfObject::getstream(self : PdfObject) -> Unit raise {
               dict.replace_entry("/Length", Integer(@pdfio.bytes_size(data)))
             _ => dict
           }
-          r.val = (dict_updated, Stream::Got(data))
+          r.val = (dict_updated, Got(data))
         }
         _ => ()
       }
@@ -85,7 +85,7 @@ pub fn PdfObject::bigarray_of_stream(self : PdfObject) -> Array[Byte] raise {
   match self {
     Stream(r) =>
       match r.val {
-        (_, Stream::Got(bytes)) => bytes
+        (_, Got(bytes)) => bytes
         _ => raise PdfError::Msg("couldn't extract raw stream")
       }
     _ => raise PdfError::Msg("couldn't extract raw stream")

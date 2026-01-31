@@ -20,30 +20,30 @@ fn build_minimal_pdf_for_encrypt() -> @pdf.Pdf {
     ("/Length", Integer(@pdfio.bytes_size(stream_bytes))),
   ])
   let stream_obj : @pdf.PdfObject = Stream(
-    Ref::new((stream_dict, @pdf.Stream::Got(stream_bytes))),
+    Ref::new((stream_dict, Got(stream_bytes))),
   )
   let font_dict : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Font"))),
-    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
-    ("/BaseFont", Name(@pdf.PdfName("/Times-Roman"))),
+    ("/Type", Name(PdfName("/Font"))),
+    ("/Subtype", Name(PdfName("/Type1"))),
+    ("/BaseFont", Name(PdfName("/Times-Roman"))),
   ])
   let resources : @pdf.PdfObject = Dictionary([
     ("/Font", Dictionary([("/F0", font_dict)])),
   ])
   let page : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Page"))),
+    ("/Type", Name(PdfName("/Page"))),
     ("/Parent", Indirect(1)),
     ("/Resources", resources),
     ("/MediaBox", Array([Integer(0), Integer(0), Integer(300), Integer(300)])),
     ("/Contents", Indirect(2)),
   ])
   let pages : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Pages"))),
+    ("/Type", Name(PdfName("/Pages"))),
     ("/Kids", Array([Indirect(3)])),
     ("/Count", Integer(1)),
   ])
   let catalog : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Catalog"))),
+    ("/Type", Name(PdfName("/Catalog"))),
     ("/Pages", Indirect(1)),
   ])
   pdf.addobj_given_num((1, pages))
@@ -81,12 +81,7 @@ fn find_subslice(
 test "pdf_to_output encrypts and reads with user password" {
   let pdf = build_minimal_pdf_for_encrypt()
   let permissions : Array[@pdfcrypt.Permission] = []
-  let enc = @pdfwrite.Encryption::new(
-    @pdfwrite.EncryptionMethod::PDF128bit,
-    "owner",
-    "user",
-    permissions,
-  )
+  let enc = @pdfwrite.Encryption::new(PDF128bit, "owner", "user", permissions)
   let (output, buffer) = @pdfio.Output::of_bytes(512)
   @pdfwrite.PdfWrite::new().pdf_to_output(Some(enc), false, pdf, output)
   let pdf_bytes = output.extract_bytes(buffer)
@@ -100,12 +95,7 @@ test "pdf_to_output encrypts and reads with user password" {
 test "pdf_to_output recrypt uses saved encryption" {
   let pdf = build_minimal_pdf_for_encrypt()
   let permissions : Array[@pdfcrypt.Permission] = []
-  let enc = @pdfwrite.Encryption::new(
-    @pdfwrite.EncryptionMethod::PDF40bit,
-    "owner",
-    "user",
-    permissions,
-  )
+  let enc = @pdfwrite.Encryption::new(PDF40bit, "owner", "user", permissions)
   let (output1, buffer1) = @pdfio.Output::of_bytes(512)
   @pdfwrite.PdfWrite::new().pdf_to_output(Some(enc), false, pdf, output1)
   let bytes1 = output1.extract_bytes(buffer1)
@@ -142,12 +132,7 @@ test "pdf_to_output recrypt uses saved encryption" {
 test "pdf_to_output encrypts object streams and reads with user password" {
   let pdf = build_minimal_pdf_for_encrypt()
   let permissions : Array[@pdfcrypt.Permission] = []
-  let enc = @pdfwrite.Encryption::new(
-    @pdfwrite.EncryptionMethod::PDF128bit,
-    "owner",
-    "user",
-    permissions,
-  )
+  let enc = @pdfwrite.Encryption::new(PDF128bit, "owner", "user", permissions)
   let (output, buffer) = @pdfio.Output::of_bytes(1024)
   @pdfwrite.PdfWrite::new().pdf_to_output(
     generate_objstm=true,
@@ -167,12 +152,7 @@ test "pdf_to_output encrypts object streams and reads with user password" {
 test "pdfread lazy decrypts object streams for encrypted PDFs" {
   let pdf = build_minimal_pdf_for_encrypt()
   let permissions : Array[@pdfcrypt.Permission] = []
-  let enc = @pdfwrite.Encryption::new(
-    @pdfwrite.EncryptionMethod::PDF128bit,
-    "owner",
-    "user",
-    permissions,
-  )
+  let enc = @pdfwrite.Encryption::new(PDF128bit, "owner", "user", permissions)
   let (output, buffer) = @pdfio.Output::of_bytes(1024)
   @pdfwrite.PdfWrite::new().pdf_to_output(
     generate_objstm=true,
@@ -205,12 +185,7 @@ test "pdfread lazy decrypts object streams for encrypted PDFs" {
 test "pdfread returns pdf for encrypted objstm without password" {
   let pdf = build_minimal_pdf_for_encrypt()
   let permissions : Array[@pdfcrypt.Permission] = []
-  let enc = @pdfwrite.Encryption::new(
-    @pdfwrite.EncryptionMethod::PDF128bit,
-    "owner",
-    "user",
-    permissions,
-  )
+  let enc = @pdfwrite.Encryption::new(PDF128bit, "owner", "user", permissions)
   let (output, buffer) = @pdfio.Output::of_bytes(1024)
   @pdfwrite.PdfWrite::new().pdf_to_output(
     generate_objstm=true,
@@ -239,7 +214,7 @@ test "pdfread skips malformed object stream" {
   let pdf = build_minimal_pdf_for_encrypt()
   let permissions : Array[@pdfcrypt.Permission] = []
   let enc = @pdfwrite.Encryption::new(
-    @pdfwrite.EncryptionMethod::AES128bit(true),
+    AES128bit(true),
     "owner",
     "user",
     permissions,
@@ -285,7 +260,7 @@ test "pdf_to_output encrypts with AES256" {
   let pdf = build_minimal_pdf_for_encrypt()
   let permissions : Array[@pdfcrypt.Permission] = []
   let enc = @pdfwrite.Encryption::new(
-    @pdfwrite.EncryptionMethod::AES256bit(true),
+    AES256bit(true),
     "owner",
     "user",
     permissions,
@@ -304,7 +279,7 @@ test "pdf_to_output encrypts with AES256 ISO" {
   let pdf = build_minimal_pdf_for_encrypt()
   let permissions : Array[@pdfcrypt.Permission] = []
   let enc = @pdfwrite.Encryption::new(
-    @pdfwrite.EncryptionMethod::AES256bitISO(true),
+    AES256bitISO(true),
     "owner",
     "user",
     permissions,

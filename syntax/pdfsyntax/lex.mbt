@@ -343,7 +343,7 @@ fn lex_malformed_stream_data(input : @pdfio.Input) -> Token raise {
   for i in 0..<len {
     bytes[i] = (input.input_byte)().to_byte()
   }
-  LexStream(@pdf.Stream::Got(bytes))
+  LexStream(Got(bytes))
 }
 
 ///|
@@ -366,7 +366,7 @@ pub fn lex_stream_data(
       lex_malformed_stream_data(input)
     } else {
       (input.seek_in)(pos + length)
-      LexStream(@pdf.Stream::Got(bytes))
+      LexStream(Got(bytes))
     }
   } else {
     (input.seek_in)(pos + length)
@@ -374,13 +374,8 @@ pub fn lex_stream_data(
       (input.seek_in)(original_pos)
       lex_malformed_stream_data(input)
     } else {
-      let toget : @pdf.ToGet = {
-        input,
-        position: pos,
-        length,
-        crypt: @pdf.ToGetCrypt::NoChange,
-      }
-      LexStream(@pdf.Stream::ToGet(toget))
+      let toget : @pdf.ToGet = { input, position: pos, length, crypt: NoChange }
+      LexStream(ToGet(toget))
     }
   }
 }

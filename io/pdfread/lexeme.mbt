@@ -7,7 +7,7 @@ fn lex_object_for_xref(
 ) -> Array[@pdftoken.Token] raise {
   let current_pos = (input.pos_in)()
   match xrefs.get(objnum) {
-    Some(XRef::Plain(offset, _gen)) => {
+    Some(Plain(offset, _gen)) => {
       (input.seek_in)(offset)
       let tokens = @pdfsyntax.lex_object_at(false, input, read_stream_data, fn(
         k : Int,
@@ -17,7 +17,7 @@ fn lex_object_for_xref(
       (input.seek_in)(current_pos)
       tokens
     }
-    Some(XRef::Stream(_, _)) => {
+    Some(Stream(_, _)) => {
       let message = @pdf.input_pdferror(input, "Object in object stream")
       raise @pdf.PdfError::Msg(message)
     }

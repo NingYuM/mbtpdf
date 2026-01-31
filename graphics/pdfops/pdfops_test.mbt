@@ -1,10 +1,6 @@
 ///|
 test "string_of_ops renders basic operators" {
-  let rendered = @pdfops.Op::string_of_ops([
-    @pdfops.Op::Opw(2.0),
-    @pdfops.Op::Opq,
-    @pdfops.Op::OpQ,
-  ])
+  let rendered = @pdfops.Op::string_of_ops([Opw(2.0), Opq, OpQ])
   assert_true(rendered.contains("w"))
   assert_true(rendered.contains("q"))
   assert_true(rendered.contains("Q"))
@@ -12,7 +8,7 @@ test "string_of_ops renders basic operators" {
 
 ///|
 test "stream_of_ops builds a stream" {
-  let stream = @pdfops.Op::stream_of_ops([@pdfops.Op::Opq, @pdfops.Op::OpQ])
+  let stream = @pdfops.Op::stream_of_ops([Opq, OpQ])
   match (stream : @pdf.PdfObject) {
     Stream(r) => {
       let (dict, contents) = r.val
@@ -22,7 +18,7 @@ test "stream_of_ops builds a stream" {
         _ => fail("expected /Length")
       }
       match contents {
-        @pdf.Stream::Got(bytes) => {
+        Got(bytes) => {
           let text = @pdfio.string_of_bytes(bytes)
           assert_true(text.contains("q"))
           assert_true(text.contains("Q"))
@@ -38,21 +34,18 @@ test "stream_of_ops builds a stream" {
 test "components resolves color spaces" {
   let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([
-    ("/ColorSpace", Dictionary([("/MyCS", Name(@pdf.PdfName("/DeviceGray")))])),
+    ("/ColorSpace", Dictionary([("/MyCS", Name(PdfName("/DeviceGray")))])),
   ])
   assert_eq(
-    @pdfops.Op::components(pdf, resources, Name(@pdf.PdfName("/DeviceRGB"))),
+    @pdfops.Op::components(pdf, resources, Name(PdfName("/DeviceRGB"))),
     3,
   )
-  assert_eq(
-    @pdfops.Op::components(pdf, resources, Name(@pdf.PdfName("/MyCS"))),
-    1,
-  )
+  assert_eq(@pdfops.Op::components(pdf, resources, Name(PdfName("/MyCS"))), 1)
   assert_eq(
     @pdfops.Op::components(
       pdf,
       resources,
-      Array([Name(@pdf.PdfName("/Pattern")), Name(@pdf.PdfName("/DeviceRGB"))]),
+      Array([Name(PdfName("/Pattern")), Name(PdfName("/DeviceRGB"))]),
     ),
     3,
   )
@@ -60,7 +53,7 @@ test "components resolves color spaces" {
     @pdfops.Op::components(
       pdf,
       resources,
-      Array([Name(@pdf.PdfName("/ICCBased")), Dictionary([("/N", Integer(4))])]),
+      Array([Name(PdfName("/ICCBased")), Dictionary([("/N", Integer(4))])]),
     ),
     4,
   )
@@ -69,8 +62,8 @@ test "components resolves color spaces" {
       pdf,
       resources,
       Array([
-        Name(@pdf.PdfName("/DeviceN")),
-        Array([Name(@pdf.PdfName("/A")), Name(@pdf.PdfName("/B"))]),
+        Name(PdfName("/DeviceN")),
+        Array([Name(PdfName("/A")), Name(PdfName("/B"))]),
       ]),
     ),
     2,
@@ -80,9 +73,9 @@ test "components resolves color spaces" {
       pdf,
       resources,
       Array([
-        Name(@pdf.PdfName("/Separation")),
-        Name(@pdf.PdfName("/Spot")),
-        Name(@pdf.PdfName("/DeviceRGB")),
+        Name(PdfName("/Separation")),
+        Name(PdfName("/Spot")),
+        Name(PdfName("/DeviceRGB")),
         Dictionary([]),
       ]),
     ),
@@ -91,7 +84,7 @@ test "components resolves color spaces" {
   let pattern_err : Result[Int, Error] = try? @pdfops.Op::components(
     pdf,
     resources,
-    Name(@pdf.PdfName("/Pattern")),
+    Name(PdfName("/Pattern")),
   )
   assert_true(pattern_err is Err(_))
 }
@@ -169,14 +162,7 @@ test "parse_operators handles diverse ops" {
     Opgs("/GS1"),
     Opq,
     OpQ,
-    Opcm(@pdftransform.TransformMatrix::{
-      a: 1.0,
-      b: 0.0,
-      c: 0.0,
-      d: 1.0,
-      e: 10.0,
-      f: 20.0,
-    }),
+    Opcm({ a: 1.0, b: 0.0, c: 0.0, d: 1.0, e: 10.0, f: 20.0 }),
     Opm(10.0, 20.0),
     Opl(30.0, 40.0),
     Opc(1.0, 2.0, 3.0, 4.0, 5.0, 6.0),
@@ -207,14 +193,7 @@ test "parse_operators handles diverse ops" {
     OpTs(3.0),
     OpTd(10.0, 20.0),
     OpTD(10.0, 20.0),
-    OpTm(@pdftransform.TransformMatrix::{
-      a: 1.0,
-      b: 0.0,
-      c: 0.0,
-      d: 1.0,
-      e: 0.0,
-      f: 0.0,
-    }),
+    OpTm({ a: 1.0, b: 0.0, c: 0.0, d: 1.0, e: 0.0, f: 0.0 }),
     OpTStar,
     OpTj("Hello"),
     OpTJ(Array([String("A"), Integer(-120), String("B")])),
@@ -262,11 +241,11 @@ test "string_of_ops renders inline image" {
     ("/W", Integer(1)),
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
-    ("/CS", Name(@pdf.PdfName("/DeviceGray"))),
+    ("/CS", Name(PdfName("/DeviceGray"))),
   ])
   let inline_data = @pdfio.bytes_of_list([128])
   let rendered = @pdfops.Op::string_of_ops([
-    @pdfops.Op::InlineImage((inline_dict, None, inline_data)),
+    InlineImage((inline_dict, None, inline_data)),
   ])
   assert_true(rendered.contains("BI"))
   assert_true(rendered.contains("ID"))

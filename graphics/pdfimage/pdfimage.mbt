@@ -103,7 +103,7 @@ fn repeat_decode_pairs(count : Int) -> Array[PdfObject] {
   let out = Array::new(capacity=count * 2)
   for _ in 0..<count {
     out.push(PdfObject::Real(0.0))
-    out.push(PdfObject::Real(1.0))
+    out.push(Real(1.0))
   }
   out
 }
@@ -121,54 +121,44 @@ fn decode_defaults(
         None => None
         Some(cspace) =>
           match @pdfspace.ColourSpace::read(pdf, resources, cspace) {
-            @pdfspace.ColourSpace::DeviceGray
-            | @pdfspace.ColourSpace::CalGray(_, _, _)
-            | @pdfspace.ColourSpace::Separation(_, _, _) =>
+            DeviceGray | CalGray(_, _, _) | Separation(_, _, _) =>
+              Some(Array([Real(0.0), Real(1.0)]))
+            DeviceRGB | CalRGB(_, _, _, _) =>
               Some(
-                PdfObject::Array([PdfObject::Real(0.0), PdfObject::Real(1.0)]),
-              )
-            @pdfspace.ColourSpace::DeviceRGB
-            | @pdfspace.ColourSpace::CalRGB(_, _, _, _) =>
-              Some(
-                PdfObject::Array([
-                  PdfObject::Real(0.0),
-                  PdfObject::Real(1.0),
-                  PdfObject::Real(0.0),
-                  PdfObject::Real(1.0),
-                  PdfObject::Real(0.0),
-                  PdfObject::Real(1.0),
+                Array([
+                  Real(0.0),
+                  Real(1.0),
+                  Real(0.0),
+                  Real(1.0),
+                  Real(0.0),
+                  Real(1.0),
                 ]),
               )
-            @pdfspace.ColourSpace::DeviceCMYK =>
+            DeviceCMYK =>
               Some(
-                PdfObject::Array([
-                  PdfObject::Real(0.0),
-                  PdfObject::Real(1.0),
-                  PdfObject::Real(0.0),
-                  PdfObject::Real(1.0),
-                  PdfObject::Real(0.0),
-                  PdfObject::Real(1.0),
-                  PdfObject::Real(0.0),
-                  PdfObject::Real(1.0),
+                Array([
+                  Real(0.0),
+                  Real(1.0),
+                  Real(0.0),
+                  Real(1.0),
+                  Real(0.0),
+                  Real(1.0),
+                  Real(0.0),
+                  Real(1.0),
                 ]),
               )
-            @pdfspace.ColourSpace::Lab(_, _, range) => {
+            Lab(_, _, range) => {
               let values = Array::new(capacity=range.length() + 2)
               values.push(PdfObject::Real(0.0))
-              values.push(PdfObject::Real(1.0))
+              values.push(Real(1.0))
               values.append(real_array(range))
-              Some(PdfObject::Array(values))
+              Some(Array(values))
             }
-            @pdfspace.ColourSpace::ICCBased(icc) =>
-              Some(PdfObject::Array(real_array(icc.icc_range)))
-            @pdfspace.ColourSpace::Indexed(_, _) =>
-              Some(
-                PdfObject::Array([PdfObject::Real(0.0), PdfObject::Real(1.0)]),
-              )
-            @pdfspace.ColourSpace::Pattern
-            | @pdfspace.ColourSpace::PatternWithBaseColourspace(_) => None
-            @pdfspace.ColourSpace::DeviceN(names, _, _, _) =>
-              Some(PdfObject::Array(repeat_decode_pairs(names.length())))
+            ICCBased(icc) => Some(Array(real_array(icc.icc_range)))
+            Indexed(_, _) => Some(Array([Real(0.0), Real(1.0)]))
+            Pattern | PatternWithBaseColourspace(_) => None
+            DeviceN(names, _, _, _) =>
+              Some(Array(repeat_decode_pairs(names.length())))
           }
       }
     Some(_) =>
@@ -176,7 +166,7 @@ fn decode_defaults(
         None => entry
         Some(cspace) =>
           match @pdfspace.ColourSpace::read(pdf, resources, cspace) {
-            @pdfspace.ColourSpace::Indexed(_, _) => None
+            Indexed(_, _) => None
             _ => entry
           }
       }
@@ -569,20 +559,12 @@ fn read_separation_cmyk_as_rgb24(
 ///|
 fn is_rgb_base(space : @pdfspace.ColourSpace) -> Bool {
   match space {
-    @pdfspace.ColourSpace::DeviceRGB
-    | @pdfspace.ColourSpace::CalRGB(_, _, _, _) => true
-    @pdfspace.ColourSpace::ICCBased(icc) =>
-      icc.icc_alternate
-      is (@pdfspace.ColourSpace::DeviceRGB
-      | @pdfspace.ColourSpace::CalRGB(_, _, _, _))
-    @pdfspace.ColourSpace::DeviceN(_, base, _, _) =>
+    DeviceRGB | CalRGB(_, _, _, _) => true
+    ICCBased(icc) => icc.icc_alternate is (DeviceRGB | CalRGB(_, _, _, _))
+    DeviceN(_, base, _, _) =>
       match base {
-        @pdfspace.ColourSpace::DeviceRGB
-        | @pdfspace.ColourSpace::CalRGB(_, _, _, _) => true
-        @pdfspace.ColourSpace::ICCBased(icc) =>
-          icc.icc_alternate
-          is (@pdfspace.ColourSpace::DeviceRGB
-          | @pdfspace.ColourSpace::CalRGB(_, _, _, _))
+        DeviceRGB | CalRGB(_, _, _, _) => true
+        ICCBased(icc) => icc.icc_alternate is (DeviceRGB | CalRGB(_, _, _, _))
         _ => false
       }
     _ => false
@@ -592,14 +574,12 @@ fn is_rgb_base(space : @pdfspace.ColourSpace) -> Bool {
 ///|
 fn is_cmyk_base(space : @pdfspace.ColourSpace) -> Bool {
   match space {
-    @pdfspace.ColourSpace::DeviceCMYK => true
-    @pdfspace.ColourSpace::ICCBased(icc) =>
-      icc.icc_alternate is @pdfspace.ColourSpace::DeviceCMYK
-    @pdfspace.ColourSpace::DeviceN(_, base, _, _) =>
+    DeviceCMYK => true
+    ICCBased(icc) => icc.icc_alternate is DeviceCMYK
+    DeviceN(_, base, _, _) =>
       match base {
-        @pdfspace.ColourSpace::DeviceCMYK => true
-        @pdfspace.ColourSpace::ICCBased(icc) =>
-          icc.icc_alternate is @pdfspace.ColourSpace::DeviceCMYK
+        DeviceCMYK => true
+        ICCBased(icc) => icc.icc_alternate is DeviceCMYK
         _ => false
       }
     _ => false
@@ -628,54 +608,52 @@ pub fn Image::from_raw(
   let bpc_val = bpc_value(bpc)
   if bpc_val is Some(8) {
     match colspace {
-      @pdfspace.ColourSpace::DeviceRGB
-      | @pdfspace.ColourSpace::CalRGB(_, _, _, _) =>
+      DeviceRGB | CalRGB(_, _, _, _) =>
         if size >= width * height * 3 {
-          return Image::Raw(width, height, PixelLayout::BPP24, data)
+          return Raw(width, height, BPP24, data)
         }
-      @pdfspace.ColourSpace::DeviceCMYK =>
+      DeviceCMYK =>
         if size >= width * height * 4 {
-          return Image::Raw(
+          return Raw(
             width,
             height,
-            PixelLayout::BPP24,
+            BPP24,
             read_cmyk_8bpp_as_rgb24(width, height, data),
           )
         }
-      @pdfspace.ColourSpace::DeviceGray
-      | @pdfspace.ColourSpace::CalGray(_, _, _) =>
+      DeviceGray | CalGray(_, _, _) =>
         if size >= width * height {
-          return Image::Raw(
+          return Raw(
             width,
             height,
-            PixelLayout::BPP24,
+            BPP24,
             read_gray_8bpp_as_rgb24(width, height, data),
           )
         }
-      @pdfspace.ColourSpace::Indexed(base, table) => {
+      Indexed(base, table) => {
         if size >= width * height && is_rgb_base(base) {
-          return Image::Raw(
+          return Raw(
             width,
             height,
-            PixelLayout::BPP24,
+            BPP24,
             read_8bpp_indexed_as_rgb24(table, width, height, data),
           )
         }
         if size >= width * height && is_cmyk_base(base) {
-          return Image::Raw(
+          return Raw(
             width,
             height,
-            PixelLayout::BPP24,
+            BPP24,
             read_8bpp_cmyk_indexed_as_rgb24(table, width, height, data),
           )
         }
         match base {
-          @pdfspace.ColourSpace::Lab(p, q, rs) =>
+          Lab(p, q, rs) =>
             if size >= width * height / 2 {
-              return Image::Raw(
+              return Raw(
                 width,
                 height,
-                PixelLayout::BPP24,
+                BPP24,
                 read_8bpp_lab_indexed_as_rgb24(
                   table, width, height, p, q, rs, data,
                 ),
@@ -684,16 +662,12 @@ pub fn Image::from_raw(
           _ => ()
         }
       }
-      @pdfspace.ColourSpace::Separation(
-        _,
-        @pdfspace.ColourSpace::DeviceCMYK,
-        fnn
-      ) =>
+      Separation(_, DeviceCMYK, fnn) =>
         if size >= width * height {
-          return Image::Raw(
+          return Raw(
             width,
             height,
-            PixelLayout::BPP24,
+            BPP24,
             read_separation_cmyk_as_rgb24(fnn, width, height, data),
           )
         }
@@ -701,38 +675,33 @@ pub fn Image::from_raw(
     }
   }
   if bpc_val is Some(1) && size >= width * height / 8 {
-    return Image::Raw(
-      width,
-      height,
-      PixelLayout::BPP24,
-      read_1bpp_as_rgb24(width, height, data),
-    )
+    return Raw(width, height, BPP24, read_1bpp_as_rgb24(width, height, data))
   }
   if bpc_val is Some(4) {
     match colspace {
-      @pdfspace.ColourSpace::DeviceGray =>
+      DeviceGray =>
         if size >= width * height / 2 {
-          return Image::Raw(
+          return Raw(
             width,
             height,
-            PixelLayout::BPP24,
+            BPP24,
             read_4bpp_gray_as_rgb24(width, height, data),
           )
         }
-      @pdfspace.ColourSpace::Indexed(base, table) => {
+      Indexed(base, table) => {
         if size >= width * height / 2 && is_rgb_base(base) {
-          return Image::Raw(
+          return Raw(
             width,
             height,
-            PixelLayout::BPP24,
+            BPP24,
             read_4bpp_indexed_as_rgb24(table, width, height, data),
           )
         }
         if size >= width * height / 2 && is_cmyk_base(base) {
-          return Image::Raw(
+          return Raw(
             width,
             height,
-            PixelLayout::BPP24,
+            BPP24,
             read_4bpp_cmyk_indexed_as_rgb24(table, width, height, data),
           )
         }
@@ -741,7 +710,7 @@ pub fn Image::from_raw(
     }
   }
   match colspace {
-    @pdfspace.ColourSpace::ICCBased(icc) =>
+    ICCBased(icc) =>
       Image::from_raw(size, icc.icc_alternate, bpc, width, height, data)
     _ => raise @pdf.PdfError::Msg("No image")
   }
@@ -754,7 +723,7 @@ pub fn Image::colspace(
   resources : @pdf.PdfObject,
 ) -> @pdfspace.ColourSpace raise {
   match pdf.lookup_direct_orelse("/ImageMask", "/IM", dict) {
-    Some(Boolean(true)) => @pdfspace.ColourSpace::DeviceGray
+    Some(Boolean(true)) => DeviceGray
     _ => {
       let colspace = pdf.lookup_direct_orelse("/ColorSpace", "/CS", dict)
       let space = match pdf.lookup_direct("/ColorSpace", resources) {
@@ -763,7 +732,7 @@ pub fn Image::colspace(
             Some(Name(name)) =>
               match pdf.lookup_direct(name.to_string_bytes(), dict_obj) {
                 Some(found) => found
-                None => PdfObject::Name(name)
+                None => Name(name)
               }
             Some(c) => c
             None => raise @pdf.PdfError::Msg("Pdf image: no colourspace")
@@ -785,7 +754,7 @@ pub fn Image::bpc(pdf : @pdf.Pdf, dict : @pdf.PdfObject) -> @pdf.PdfObject? {
     Some(bpc) => Some(bpc)
     None =>
       match pdf.lookup_direct("/ImageMask", dict) {
-        Some(Boolean(true)) => Some(PdfObject::Integer(1))
+        Some(Boolean(true)) => Some(Integer(1))
         _ => None
       }
   }
@@ -875,7 +844,7 @@ pub fn Image::get_image_24bpp(
         _ => raise @pdf.PdfError::Msg("Bad /Decode")
       }
       match raw {
-        Image::Raw(_, _, _, img) =>
+        Raw(_, _, _, img) =>
           if floats.length() > 0 {
             decode(floats, bpc_val, img)
           }
@@ -883,9 +852,8 @@ pub fn Image::get_image_24bpp(
       }
       raw
     }
-    Some(Name(n)) if is_dct_filter(n) => Image::JPEG(data, get_decode())
-    Some(Array([Name(n)])) if is_dct_filter(n) =>
-      Image::JPEG(data, get_decode())
+    Some(Name(n)) if is_dct_filter(n) => JPEG(data, get_decode())
+    Some(Array([Name(n)])) if is_dct_filter(n) => JPEG(data, get_decode())
     Some(Name(n)) if is_jbig2_filter(n) => {
       let globals = match pdf.lookup_direct("/DecodeParms", streamdict) {
         Some(Dictionary(parms)) =>
@@ -895,7 +863,7 @@ pub fn Image::get_image_24bpp(
           }
         _ => None
       }
-      Image::JBIG2(data, get_decode(), globals)
+      JBIG2(data, get_decode(), globals)
     }
     Some(Array([Name(n)])) if is_jbig2_filter(n) => {
       let globals = match pdf.lookup_direct("/DecodeParms", streamdict) {
@@ -906,11 +874,10 @@ pub fn Image::get_image_24bpp(
           }
         _ => None
       }
-      Image::JBIG2(data, get_decode(), globals)
+      JBIG2(data, get_decode(), globals)
     }
-    Some(Name(n)) if is_jpx_filter(n) => Image::JPEG2000(data, get_decode())
-    Some(Array([Name(n)])) if is_jpx_filter(n) =>
-      Image::JPEG2000(data, get_decode())
+    Some(Name(n)) if is_jpx_filter(n) => JPEG2000(data, get_decode())
+    Some(Array([Name(n)])) if is_jpx_filter(n) => JPEG2000(data, get_decode())
     _ => raise @pdf.PdfError::Msg("decode_to_image")
   }
 }

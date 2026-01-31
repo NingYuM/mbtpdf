@@ -5,7 +5,7 @@ test "PdfName compare, bytes, and show" {
   assert_eq(a.to_bytes().length(), 2)
   let names = [b, a]
   names.sort()
-  assert_true(names[0] is @pdf.PdfName("/A"))
+  assert_true(names[0] is PdfName("/A"))
   assert_eq(a.to_string(), "/A")
 }
 
@@ -23,10 +23,7 @@ test "pdfobjmap_find fails on missing key" {
 
 ///|
 test "lookup_immediate_all works on stream dictionaries" {
-  let dict = PdfObject::Dictionary([
-    ("/A", PdfObject::Integer(1)),
-    ("/A", PdfObject::Integer(2)),
-  ])
+  let dict = PdfObject::Dictionary([("/A", Integer(1)), ("/A", Integer(2))])
   let stream_ref = Ref::new((dict, Stream::Got(@pdfio.bytes_of_string("x"))))
   let stream_obj = PdfObject::Stream(stream_ref)
   let values = stream_obj.lookup_immediate_all("/A")
@@ -45,8 +42,8 @@ test "PdfObject::to_string escapes strings and normalizes names" {
   let messages : Array[String] = []
   let rendered = @pdfe.with_logger(fn(msg) { messages.push(msg) }, fn() {
     let obj = PdfObject::Dictionary([
-      ("Type", PdfObject::Name(PdfName::of_string("NoSlash"))),
-      ("/Needs Escape", PdfObject::String("a(b)\\c\n")),
+      ("Type", Name(PdfName::of_string("NoSlash"))),
+      ("/Needs Escape", String("a(b)\\c\n")),
     ])
     obj.to_string()
   })
@@ -63,8 +60,8 @@ test "PdfObject::to_string escapes strings and normalizes names" {
 ///|
 test "to_string_including_data warns when stream cannot be got" {
   let input = @pdfio.Input::of_string("abc", source="crypt")
-  let crypt = ToGetCrypt::ToDecrypt(DeferredEncryption::{
-    crypt_type: @pdfcryptprimitives.Encryption::AESV2,
+  let crypt = ToGetCrypt::ToDecrypt({
+    crypt_type: AESV2,
     file_encryption_key: None,
     obj: 1,
     gen: 0,
@@ -74,10 +71,7 @@ test "to_string_including_data warns when stream cannot be got" {
   })
   let toget = ToGet::new(input, 0, 3, crypt~)
   let stream_ref = Ref::new(
-    (
-      PdfObject::Dictionary([("/Length", PdfObject::Integer(3))]),
-      Stream::ToGet(toget),
-    ),
+    (PdfObject::Dictionary([("/Length", Integer(3))]), Stream::ToGet(toget)),
   )
   let stream_obj = PdfObject::Stream(stream_ref)
   let messages : Array[String] = []

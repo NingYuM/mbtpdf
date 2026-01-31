@@ -350,9 +350,9 @@ pub fn PdfText::read_encoding(
   font : @pdf.PdfObject,
 ) -> @pdffont.Encoding raise {
   match self.pdf.lookup_direct("/Encoding", font) {
-    Some(Name(PdfName("/MacRomanEncoding"))) => Encoding::MacRomanEncoding
-    Some(Name(PdfName("/MacExpertEncoding"))) => Encoding::MacExpertEncoding
-    Some(Name(PdfName("/WinAnsiEncoding"))) => Encoding::WinAnsiEncoding
+    Some(Name(PdfName("/MacRomanEncoding"))) => MacRomanEncoding
+    Some(Name(PdfName("/MacExpertEncoding"))) => MacExpertEncoding
+    Some(Name(PdfName("/WinAnsiEncoding"))) => WinAnsiEncoding
     Some(encdict) =>
       match encdict {
         Dictionary(_) =>
@@ -367,17 +367,15 @@ pub fn PdfText::read_encoding(
                   self.pdf.lookup_direct("/BaseEncoding", encdict) {
                   Some(Name(PdfName("/MacRomanEncoding"))) =>
                     Encoding::MacRomanEncoding
-                  Some(Name(PdfName("/MacExpertEncoding"))) =>
-                    Encoding::MacExpertEncoding
-                  Some(Name(PdfName("/WinAnsiEncoding"))) =>
-                    Encoding::WinAnsiEncoding
+                  Some(Name(PdfName("/MacExpertEncoding"))) => MacExpertEncoding
+                  Some(Name(PdfName("/WinAnsiEncoding"))) => WinAnsiEncoding
                   None =>
                     if self.is_embedded(font) {
-                      Encoding::ImplicitInFontFile
+                      ImplicitInFontFile
                     } else if self.is_symbolic(font) {
-                      Encoding::ImplicitInFontFile
+                      ImplicitInFontFile
                     } else {
-                      Encoding::StandardEncoding
+                      StandardEncoding
                     }
                   _ => raise @pdf.PdfError::Msg("unknown /BaseEncoding")
                 }
@@ -391,7 +389,7 @@ pub fn PdfText::read_encoding(
                   _ => base_encoding
                 }
                 if fonttype == "/TrueType" {
-                  Encoding::FillUndefinedWithStandard(encoding)
+                  FillUndefinedWithStandard(encoding)
                 } else {
                   encoding
                 }
@@ -401,9 +399,9 @@ pub fn PdfText::read_encoding(
             }
             _ => raise @pdf.PdfError::Msg("Bad font /Subtype")
           }
-        _ => Encoding::ImplicitInFontFile
+        _ => ImplicitInFontFile
       }
-    _ => Encoding::ImplicitInFontFile
+    _ => ImplicitInFontFile
   }
 }
 
@@ -603,7 +601,7 @@ pub fn PdfText::read_cidkeyed_font(
     Some(Name(e)) => CMapEncoding::Predefined(e.to_string_bytes())
     Some(Stream(_)) =>
       match self.find_indirect("/Encoding", font) {
-        Some(n) => CMapEncoding::CMap(n)
+        Some(n) => CMap(n)
         None => raise @pdf.PdfError::Msg("malformed /Encoding")
       }
     _ => raise @pdf.PdfError::Msg("malformed or missing /Encoding")

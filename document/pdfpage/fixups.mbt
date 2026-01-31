@@ -54,7 +54,7 @@ fn rewrite_first_indirect(
       }
       if found {
         let updated_kids = rewrite_first_kid(old_num, new_num, kids)
-        let updated = obj.add_entry("/Kids", PdfObject::Array(updated_kids))
+        let updated = obj.add_entry("/Kids", Array(updated_kids))
         pdf.addobj_given_num((objnum, updated))
         true
       } else {
@@ -214,7 +214,7 @@ fn fixup_parents_inner(
   let obj = pdf.lookup_obj(objnum)
   match pdf.indirect_number("/Parent", obj) {
     Some(_) => {
-      let updated = obj.add_entry("/Parent", PdfObject::Indirect(parent_objnum))
+      let updated = obj.add_entry("/Parent", Indirect(parent_objnum))
       pdf.addobj_given_num((objnum, updated))
     }
     None => ()
@@ -251,7 +251,7 @@ fn fixup_link(
   match obj.lookup_immediate(key) {
     Some(Indirect(i)) =>
       match assoc.get(i) {
-        Some(t) => obj.add_entry(key, PdfObject::Indirect(t))
+        Some(t) => obj.add_entry(key, Indirect(t))
         None => obj
       }
     _ => obj
@@ -318,10 +318,7 @@ pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
       match page_obj {
         Dictionary(_) => {
           let indirects = annots.map(n => PdfObject::Indirect(n))
-          let updated = page_obj.add_entry(
-            "/Annots",
-            PdfObject::Array(indirects),
-          )
+          let updated = page_obj.add_entry("/Annots", Array(indirects))
           pdf.addobj_given_num((pagerefnum, updated))
         }
         _ => ()
@@ -374,7 +371,7 @@ fn replace_inherit_entry(
           Some(Dictionary(parent)) =>
             match PdfObject::Dictionary(parent).lookup_immediate(entry) {
               Some(value) => Some(value)
-              None => find_attribute(PdfObject::Dictionary(parent))
+              None => find_attribute(Dictionary(parent))
             }
           Some(parent) => find_attribute(parent)
           None => None

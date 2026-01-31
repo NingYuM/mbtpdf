@@ -728,32 +728,32 @@ priv enum CcittMode {
 fn read_ccitt_mode(input : @pdfio.Bitstream) -> CcittMode raise {
   let a = input.getbitint()
   if a == 1 {
-    return CcittMode::Vertical(0)
+    return Vertical(0)
   }
   let b = input.getbitint()
   let c = input.getbitint()
   match (a, b, c) {
-    (0, 1, 1) => return CcittMode::Vertical(-1)
-    (0, 1, 0) => return CcittMode::Vertical(1)
-    (0, 0, 1) => return CcittMode::Horizontal
+    (0, 1, 1) => return Vertical(-1)
+    (0, 1, 0) => return Vertical(1)
+    (0, 0, 1) => return Horizontal
     _ => ()
   }
   let d = input.getbitint()
   match (a, b, c, d) {
-    (0, 0, 0, 1) => return CcittMode::Pass
+    (0, 0, 0, 1) => return Pass
     _ => ()
   }
   let e = input.getbitint()
   let f = input.getbitint()
   match (a, b, c, d, e, f) {
-    (0, 0, 0, 0, 1, 1) => return CcittMode::Vertical(-2)
-    (0, 0, 0, 0, 1, 0) => return CcittMode::Vertical(2)
+    (0, 0, 0, 0, 1, 1) => return Vertical(-2)
+    (0, 0, 0, 0, 1, 0) => return Vertical(2)
     _ => ()
   }
   let g = input.getbitint()
   match (a, b, c, d, e, f, g) {
-    (0, 0, 0, 0, 0, 1, 1) => return CcittMode::Vertical(-3)
-    (0, 0, 0, 0, 0, 1, 0) => return CcittMode::Vertical(3)
+    (0, 0, 0, 0, 0, 1, 1) => return Vertical(-3)
+    (0, 0, 0, 0, 0, 1, 0) => return Vertical(3)
     _ => ()
   }
   let h = input.getbitint()
@@ -762,7 +762,7 @@ fn read_ccitt_mode(input : @pdfio.Bitstream) -> CcittMode raise {
   let l = input.getbitint()
   let m = input.getbitint()
   match (a, b, c, d, e, f, g, h, j, k, l, m) {
-    (0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1) => CcittMode::Uncompressed
+    (0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1) => Uncompressed
     (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1) => {
       let a = input.getbitint()
       let b = input.getbitint()
@@ -777,7 +777,7 @@ fn read_ccitt_mode(input : @pdfio.Bitstream) -> CcittMode raise {
       let l = input.getbitint()
       let m = input.getbitint()
       match (a, b, c, d, e, f, g, h, j, k, l, m) {
-        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1) => CcittMode::EOFB
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1) => EOFB
         _ => raise Failure::Failure("Not a valid code on EOFB")
       }
     }
@@ -801,7 +801,7 @@ fn decode_ccittfax(
   let _ = eob
   let _ = dra
   if k > 0 {
-    raise CodecError::DecodeNotSupported("CCITTFax k > 0")
+    raise DecodeNotSupported("CCITTFax k > 0")
   }
   let (whiteval, blackval) = if bone { (0, 1) } else { (1, 0) }
   let output = @pdfio.BitstreamWrite::new()
@@ -882,7 +882,7 @@ fn decode_ccittfax(
         }
       } else if k < 0 {
         match read_ccitt_mode(bitstream) {
-          CcittMode::Pass =>
+          Pass =>
             output_span(
               find_b2() - column,
               if white {
@@ -891,7 +891,7 @@ fn decode_ccittfax(
                 blackval
               },
             )
-          CcittMode::Horizontal =>
+          Horizontal =>
             if white {
               let wlen = read_white_code(bitstream)
               let blen = read_black_code(bitstream)
@@ -903,7 +903,7 @@ fn decode_ccittfax(
               output_span(blen, blackval)
               output_span(wlen, whiteval)
             }
-          CcittMode::Vertical(n) => {
+          Vertical(n) => {
             output_span(
               find_b1() + n - column,
               if white {
@@ -914,8 +914,8 @@ fn decode_ccittfax(
             )
             white = !white
           }
-          CcittMode::EOFB => raise Failure::Failure("End_of_file")
-          CcittMode::Uncompressed =>
+          EOFB => raise Failure::Failure("End_of_file")
+          Uncompressed =>
             raise CodecError::DecodeNotSupported("CCITT Uncompressed")
         }
       } else if k == 0 {
@@ -942,8 +942,8 @@ fn decode_ccittfax(
       if msg == "End_of_file" {
         output.bytes()
       } else {
-        raise CodecError::CouldntDecodeStream("Bad CCITT Stream")
+        raise CouldntDecodeStream("Bad CCITT Stream")
       }
-    _ => raise CodecError::CouldntDecodeStream("Bad CCITT Stream")
+    _ => raise CouldntDecodeStream("Bad CCITT Stream")
   }
 }

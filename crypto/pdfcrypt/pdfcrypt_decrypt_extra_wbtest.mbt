@@ -16,25 +16,21 @@ test "already_decrypted returns false for missing objnum" {
 ///|
 test "already_decrypted returns true for ParsedAlreadyDecrypted" {
   let pdf = @pdf.Pdf::empty()
-  let objnum = pdf.addobj(@pdf.PdfObject::String("x"))
+  let objnum = pdf.addobj(String("x"))
   let entry = @pdf.pdfobjmap_find(objnum, pdf.objects.objects)
-  entry.0.val = @pdf.ObjectData::ParsedAlreadyDecrypted(
-    @pdf.PdfObject::String("x"),
-  )
+  entry.0.val = ParsedAlreadyDecrypted(String("x"))
   assert_true(already_decrypted(pdf, objnum))
 }
 
 ///|
 test "is_identity handles decodeparms shapes" {
   let pdf = @pdf.Pdf::empty()
-  let base : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/Crypt"))),
-  ])
+  let base : @pdf.PdfObject = Dictionary([("/Filter", Name(PdfName("/Crypt")))])
   let dict_none_name = base.add_entry("/DecodeParms", Dictionary([]))
   assert_true(is_identity(false, pdf, dict_none_name))
   let dict_bad_name = base.add_entry(
     "/DecodeParms",
-    Dictionary([("/Name", Name(@pdf.PdfName("/NotIdentity")))]),
+    Dictionary([("/Name", Name(PdfName("/NotIdentity")))]),
   )
   assert_false(is_identity(false, pdf, dict_bad_name))
   let dict_array_first = base.add_entry("/DecodeParms", Array([Dictionary([])]))
@@ -48,27 +44,13 @@ test "is_identity handles decodeparms shapes" {
 ///|
 test "decrypt returns unchanged values when already_decrypted is set" {
   let pdf = @pdf.Pdf::empty()
-  let objnum = pdf.addobj(@pdf.PdfObject::String("x"))
+  let objnum = pdf.addobj(String("x"))
   let entry = @pdf.pdfobjmap_find(objnum, pdf.objects.objects)
-  entry.0.val = @pdf.ObjectData::ParsedAlreadyDecrypted(
-    @pdf.PdfObject::String("x"),
-  )
+  entry.0.val = ParsedAlreadyDecrypted(String("x"))
   let ct = @pdfcryptprimitives.Encryption::AESV2
   match
-    decrypt(
-      ct,
-      pdf,
-      false,
-      false,
-      objnum,
-      0,
-      [1],
-      40,
-      2,
-      None,
-      @pdf.PdfObject::String("s"),
-    ) {
-    @pdf.PdfObject::String("s") => ()
+    decrypt(ct, pdf, false, false, objnum, 0, [1], 40, 2, None, String("s")) {
+    String("s") => ()
     _ => fail("expected string passthrough")
   }
   match
@@ -83,26 +65,14 @@ test "decrypt returns unchanged values when already_decrypted is set" {
       40,
       2,
       None,
-      @pdf.PdfObject::Array([@pdf.PdfObject::Integer(1)]),
+      Array([Integer(1)]),
     ) {
-    @pdf.PdfObject::Array(_) => ()
+    Array(_) => ()
     _ => fail("expected array passthrough")
   }
   match
-    decrypt(
-      ct,
-      pdf,
-      false,
-      false,
-      objnum,
-      0,
-      [1],
-      40,
-      2,
-      None,
-      @pdf.PdfObject::Dictionary([]),
-    ) {
-    @pdf.PdfObject::Dictionary(_) => ()
+    decrypt(ct, pdf, false, false, objnum, 0, [1], 40, 2, None, Dictionary([])) {
+    Dictionary(_) => ()
     _ => fail("expected dict passthrough")
   }
 }
@@ -122,7 +92,7 @@ test "decrypt raises when AESV3 key is missing" {
     256,
     5,
     None,
-    @pdf.PdfObject::String("x"),
+    String("x"),
   )
   assert_true(res is Err(_))
   let stream_ref = Ref::new(
@@ -165,10 +135,10 @@ test "decrypt_stream handles non-stream and non-dictionary stream dict cases" {
     40,
     2,
     None,
-    @pdf.PdfObject::Integer(0),
+    Integer(0),
   )
   match passthrough {
-    @pdf.PdfObject::Integer(0) => ()
+    Integer(0) => ()
     _ => fail("expected passthrough")
   }
   let toget = @pdf.ToGet::new(@pdfio.Input::of_string("", source="toget"), 0, 0)
@@ -187,7 +157,7 @@ test "decrypt_stream handles non-stream and non-dictionary stream dict cases" {
     40,
     2,
     None,
-    @pdf.PdfObject::Stream(stream_ref),
+    Stream(stream_ref),
   )
   match out {
     Stream(_) => ()

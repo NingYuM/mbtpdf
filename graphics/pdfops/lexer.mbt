@@ -37,7 +37,7 @@ fn strip_dict_markers(value : String) -> String {
 ///|
 fn lex_name(input : @pdfio.Input) -> Lexeme raise {
   input.nudge()
-  Lexeme::Obj(Token::LexName("/" + input.getuntil_white_or_delimiter_string()))
+  Obj(LexName("/" + input.getuntil_white_or_delimiter_string()))
 }
 
 ///|
@@ -52,27 +52,27 @@ fn nocontent(input : @pdfio.Input) -> Unit raise {
 ///|
 fn lex_number(input : @pdfio.Input) -> Lexeme raise {
   match (@pdfsyntax.lex_number(input) : Token) {
-    LexReal(value) => Obj(Token::LexReal(value))
-    LexInt(value) => Obj(Token::LexReal(Double::from_int(value)))
+    LexReal(value) => Obj(LexReal(value))
+    LexInt(value) => Obj(LexReal(Double::from_int(value)))
     _ => {
       nocontent(input)
-      Obj(Token::LexReal(0.0))
+      Obj(LexReal(0.0))
     }
   }
 }
 
 ///|
 fn get_dictionary(input : @pdfio.Input) -> Lexeme raise {
-  Lexeme::PdfObj(@pdfsyntax.parse(@pdfsyntax.lex_dictionary(false, input)).1)
+  PdfObj(@pdfsyntax.parse(@pdfsyntax.lex_dictionary(false, input)).1)
 }
 
 ///|
 fn lex_string(input : @pdfio.Input) -> Lexeme raise {
   match (@pdfsyntax.lex_string(input) : Token) {
-    LexString(text) => Obj(Token::LexString(text))
+    LexString(text) => Obj(LexString(text))
     _ => {
       nocontent(input)
-      Obj(Token::LexString(""))
+      Obj(LexString(""))
     }
   }
 }
@@ -80,10 +80,10 @@ fn lex_string(input : @pdfio.Input) -> Lexeme raise {
 ///|
 fn lex_hexstring(input : @pdfio.Input) -> Lexeme raise {
   match (@pdfsyntax.lex_hexstring(input) : Token) {
-    LexString(text) => Obj(Token::LexString(text))
+    LexString(text) => Obj(LexString(text))
     _ => {
       nocontent(input)
-      Obj(Token::LexString(""))
+      Obj(LexString(""))
     }
   }
 }
@@ -109,11 +109,11 @@ fn lex_next(
       Some('(') => lex_string(input)
       Some('[') => {
         input.nudge()
-        Obj(Token::LexLeftSquare)
+        Obj(LexLeftSquare)
       }
       Some(']') => {
         input.nudge()
-        Obj(Token::LexRightSquare)
+        Obj(LexRightSquare)
       }
       Some('<') => {
         input.nudge()
@@ -149,7 +149,7 @@ fn lex_stream(
     while true {
       let lexeme = lex_next(pdf, resources, input)
       match lexeme {
-        Lexeme::LexComment => ()
+        LexComment => ()
         _ => lexemes.push(lexeme)
       }
     }

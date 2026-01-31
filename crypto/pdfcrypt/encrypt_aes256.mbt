@@ -13,39 +13,39 @@ fn encrypt_pdf_AES256_inner(
   pdf : @pdf.Pdf,
 ) -> @pdf.Pdf raise {
   let crypt_dict = @pdf.PdfObject::Dictionary([
-    ("/Filter", @pdf.PdfObject::Name(@pdf.PdfName("/Standard"))),
-    ("/V", @pdf.PdfObject::Integer(5)),
+    ("/Filter", Name(PdfName("/Standard"))),
+    ("/V", Integer(5)),
     (
       "/CF",
-      @pdf.PdfObject::Dictionary([
+      Dictionary([
         (
           "/StdCF",
-          @pdf.PdfObject::Dictionary([
-            ("/Length", @pdf.PdfObject::Integer(32)),
-            ("/AuthEvent", @pdf.PdfObject::Name(@pdf.PdfName("/DocOpen"))),
-            ("/CFM", @pdf.PdfObject::Name(@pdf.PdfName("/AESV3"))),
+          Dictionary([
+            ("/Length", Integer(32)),
+            ("/AuthEvent", Name(PdfName("/DocOpen"))),
+            ("/CFM", Name(PdfName("/AESV3"))),
           ]),
         ),
       ]),
     ),
-    ("/EncryptMetadata", @pdf.PdfObject::Boolean(encrypt_metadata)),
-    ("/Length", @pdf.PdfObject::Integer(256)),
-    ("/R", @pdf.PdfObject::Integer(if iso { 6 } else { 5 })),
-    ("/O", @pdf.PdfObject::String(owner)),
-    ("/U", @pdf.PdfObject::String(user)),
-    ("/P", @pdf.PdfObject::Integer(p)),
-    ("/StrF", @pdf.PdfObject::Name(@pdf.PdfName("/StdCF"))),
-    ("/StmF", @pdf.PdfObject::Name(@pdf.PdfName("/StdCF"))),
-    ("/Perms", @pdf.PdfObject::String(perms)),
-    ("/OE", @pdf.PdfObject::String(oe)),
-    ("/UE", @pdf.PdfObject::String(ue)),
+    ("/EncryptMetadata", Boolean(encrypt_metadata)),
+    ("/Length", Integer(256)),
+    ("/R", Integer(if iso { 6 } else { 5 })),
+    ("/O", String(owner)),
+    ("/U", String(user)),
+    ("/P", Integer(p)),
+    ("/StrF", Name(PdfName("/StdCF"))),
+    ("/StmF", Name(PdfName("/StdCF"))),
+    ("/Perms", String(perms)),
+    ("/OE", String(oe)),
+    ("/UE", String(ue)),
   ])
   match
     process_cryption(
       !encrypt_metadata,
       true,
       pdf,
-      @pdfcryptprimitives.Encryption::AESV3(iso),
+      AESV3(iso),
       "",
       if iso {
         6
@@ -63,7 +63,7 @@ fn encrypt_pdf_AES256_inner(
       let crypt_dict_num = pdf_val.addobj(crypt_dict)
       pdf_val.trailerdict = pdf_val.trailerdict.add_entry(
         "/Encrypt",
-        @pdf.PdfObject::Indirect(crypt_dict_num),
+        Indirect(crypt_dict_num),
       )
       pdf_val
     }

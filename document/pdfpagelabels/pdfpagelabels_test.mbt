@@ -5,7 +5,7 @@ let ctx : @pdfpagelabels.PdfPageLabels = PdfPageLabels::new()
 test "pagelabeltext roman" {
   let labels = [
     PageLabel::{
-      labelstyle: LabelStyle::LowercaseRoman,
+      labelstyle: LowercaseRoman,
       labelprefix: None,
       startpage: 1,
       startvalue: 1,
@@ -19,7 +19,7 @@ test "pagelabeltext roman" {
 test "pagelabel_of_pagenumber" {
   let labels = [
     PageLabel::{
-      labelstyle: LabelStyle::DecimalArabic,
+      labelstyle: DecimalArabic,
       labelprefix: None,
       startpage: 1,
       startvalue: 1,
@@ -41,7 +41,7 @@ fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
   let pdf = @pdf.Pdf::empty()
   let pages_root_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName("/Pages"))),
+      ("/Type", Name(PdfName("/Pages"))),
       ("/Kids", Array([])),
       ("/Count", Integer(count)),
     ]),
@@ -50,7 +50,7 @@ fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
   for _ in 0..<count {
     let page_num = pdf.addobj(
       Dictionary([
-        ("/Type", Name(@pdf.PdfName("/Page"))),
+        ("/Type", Name(PdfName("/Page"))),
         ("/Parent", Indirect(pages_root_num)),
         ("/MediaBox", rect),
       ]),
@@ -61,7 +61,7 @@ fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
     (
       pages_root_num,
       Dictionary([
-        ("/Type", Name(@pdf.PdfName("/Pages"))),
+        ("/Type", Name(PdfName("/Pages"))),
         ("/Kids", Array(kids)),
         ("/Count", Integer(count)),
       ]),
@@ -69,7 +69,7 @@ fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
   )
   let catalog_num = pdf.addobj(
     Dictionary([
-      ("/Type", Name(@pdf.PdfName("/Catalog"))),
+      ("/Type", Name(PdfName("/Catalog"))),
       ("/Pages", Indirect(pages_root_num)),
     ]),
   )
@@ -89,19 +89,19 @@ fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
 test "coalesce labels" {
   let labels = [
     PageLabel::{
-      labelstyle: LabelStyle::DecimalArabic,
+      labelstyle: DecimalArabic,
       labelprefix: None,
       startpage: 1,
       startvalue: 1,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::DecimalArabic,
+    {
+      labelstyle: DecimalArabic,
       labelprefix: None,
       startpage: 3,
       startvalue: 3,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::DecimalArabic,
+    {
+      labelstyle: DecimalArabic,
       labelprefix: Some("A"),
       startpage: 5,
       startvalue: 5,
@@ -120,7 +120,7 @@ test "coalesce labels" {
 test "complete labels" {
   let labels = [
     PageLabel::{
-      labelstyle: LabelStyle::DecimalArabic,
+      labelstyle: DecimalArabic,
       labelprefix: None,
       startpage: 3,
       startvalue: 1,
@@ -135,7 +135,7 @@ test "complete labels" {
 test "string_of_labelstyle and pagelabel string" {
   assert_eq(LabelStyle::UppercaseLetters.to_string(), "UppercaseLetters")
   let label = PageLabel::{
-    labelstyle: LabelStyle::LowercaseRoman,
+    labelstyle: LowercaseRoman,
     labelprefix: Some("P"),
     startpage: 2,
     startvalue: 5,
@@ -149,7 +149,7 @@ test "string_of_labelstyle and pagelabel string" {
 test "pagelabeltext with prefix and letters" {
   let labels = [
     PageLabel::{
-      labelstyle: LabelStyle::UppercaseLetters,
+      labelstyle: UppercaseLetters,
       labelprefix: Some("Sec-"),
       startpage: 1,
       startvalue: 1,
@@ -163,7 +163,7 @@ test "pagelabeltext with prefix and letters" {
 test "add_label inserts replica" {
   let labels = [
     PageLabel::{
-      labelstyle: LabelStyle::DecimalArabic,
+      labelstyle: DecimalArabic,
       labelprefix: None,
       startpage: 1,
       startvalue: 1,
@@ -172,8 +172,8 @@ test "add_label inserts replica" {
   let inserted = ctx.add_label(
     6,
     labels,
-    PageLabel::{
-      labelstyle: LabelStyle::UppercaseRoman,
+    {
+      labelstyle: UppercaseRoman,
       labelprefix: None,
       startpage: 3,
       startvalue: 1,
@@ -192,7 +192,7 @@ test "merge_pagelabels combines ranges" {
   let pdf2 = make_pdf_with_pages(1)
   let labels1 = [
     PageLabel::{
-      labelstyle: LabelStyle::DecimalArabic,
+      labelstyle: DecimalArabic,
       labelprefix: Some("A"),
       startpage: 1,
       startvalue: 1,
@@ -200,7 +200,7 @@ test "merge_pagelabels combines ranges" {
   ]
   let labels2 = [
     PageLabel::{
-      labelstyle: LabelStyle::DecimalArabic,
+      labelstyle: DecimalArabic,
       labelprefix: Some("B"),
       startpage: 1,
       startvalue: 1,
@@ -227,13 +227,13 @@ test "write/read pagelabels roundtrip" {
   let pdf = make_pdf_with_pages(3)
   let labels = [
     PageLabel::{
-      labelstyle: LabelStyle::DecimalArabic,
+      labelstyle: DecimalArabic,
       labelprefix: Some("A"),
       startpage: 1,
       startvalue: 1,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::LowercaseRoman,
+    {
+      labelstyle: LowercaseRoman,
       labelprefix: None,
       startpage: 3,
       startvalue: 1,
@@ -275,16 +275,16 @@ fn set_page_labels(pdf : @pdf.Pdf, nums : Array[@pdf.PdfObject]) -> Unit raise {
 test "read handles label styles and bad startpage" {
   let pdf = make_pdf_with_pages(1)
   let nums : Array[@pdf.PdfObject] = [
-    Name(@pdf.PdfName("/Bad")),
-    Dictionary([("/S", Name(@pdf.PdfName("/R")))]),
+    Name(PdfName("/Bad")),
+    Dictionary([("/S", Name(PdfName("/R")))]),
     Integer(0),
-    Dictionary([("/S", Name(@pdf.PdfName("/r")))]),
+    Dictionary([("/S", Name(PdfName("/r")))]),
     Integer(1),
-    Dictionary([("/S", Name(@pdf.PdfName("/A")))]),
+    Dictionary([("/S", Name(PdfName("/A")))]),
     Integer(2),
-    Dictionary([("/S", Name(@pdf.PdfName("/a")))]),
+    Dictionary([("/S", Name(PdfName("/a")))]),
     Integer(3),
-    Dictionary([("/S", Name(@pdf.PdfName("/D")))]),
+    Dictionary([("/S", Name(PdfName("/D")))]),
     Integer(4),
     Dictionary([("/P", String("P"))]),
   ]
@@ -295,27 +295,27 @@ test "read handles label styles and bad startpage" {
   assert_eq(labels.length(), 6)
   assert_eq(labels[0].startpage, 1)
   match labels[0].labelstyle {
-    LabelStyle::UppercaseRoman => ()
+    UppercaseRoman => ()
     _ => fail("expected UppercaseRoman")
   }
   match labels[1].labelstyle {
-    LabelStyle::LowercaseRoman => ()
+    LowercaseRoman => ()
     _ => fail("expected LowercaseRoman")
   }
   match labels[2].labelstyle {
-    LabelStyle::UppercaseLetters => ()
+    UppercaseLetters => ()
     _ => fail("expected UppercaseLetters")
   }
   match labels[3].labelstyle {
-    LabelStyle::LowercaseLetters => ()
+    LowercaseLetters => ()
     _ => fail("expected LowercaseLetters")
   }
   match labels[4].labelstyle {
-    LabelStyle::DecimalArabic => ()
+    DecimalArabic => ()
     _ => fail("expected DecimalArabic")
   }
   match labels[5].labelstyle {
-    LabelStyle::NoLabelPrefixOnly => ()
+    NoLabelPrefixOnly => ()
     _ => fail("expected NoLabelPrefixOnly")
   }
 }
@@ -337,7 +337,7 @@ test "pagelabeltext and pagelabel_of_pagenumber error on missing labels" {
 test "pagelabeltext handles empty roman and letter values" {
   let labels = [
     PageLabel::{
-      labelstyle: LabelStyle::UppercaseRoman,
+      labelstyle: UppercaseRoman,
       labelprefix: Some("R-"),
       startpage: 5,
       startvalue: 1,
@@ -346,7 +346,7 @@ test "pagelabeltext handles empty roman and letter values" {
   assert_eq(ctx.pagelabeltext_of_pagenumber(1, labels), "R-")
   let letter_labels = [
     PageLabel::{
-      labelstyle: LabelStyle::LowercaseLetters,
+      labelstyle: LowercaseLetters,
       labelprefix: Some("L-"),
       startpage: 4,
       startvalue: 1,
@@ -359,7 +359,7 @@ test "pagelabeltext handles empty roman and letter values" {
 test "pagelabeltext supports NoLabelPrefixOnly" {
   let labels = [
     PageLabel::{
-      labelstyle: LabelStyle::NoLabelPrefixOnly,
+      labelstyle: NoLabelPrefixOnly,
       labelprefix: Some("P-"),
       startpage: 1,
       startvalue: 1,
@@ -372,73 +372,73 @@ test "pagelabeltext supports NoLabelPrefixOnly" {
 test "coalesce covers all labelstyle equality branches" {
   let labels = [
     PageLabel::{
-      labelstyle: LabelStyle::DecimalArabic,
+      labelstyle: DecimalArabic,
       labelprefix: None,
       startpage: 1,
       startvalue: 1,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::DecimalArabic,
+    {
+      labelstyle: DecimalArabic,
       labelprefix: Some("D"),
       startpage: 2,
       startvalue: 2,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::UppercaseRoman,
+    {
+      labelstyle: UppercaseRoman,
       labelprefix: None,
       startpage: 3,
       startvalue: 3,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::UppercaseRoman,
+    {
+      labelstyle: UppercaseRoman,
       labelprefix: None,
       startpage: 4,
       startvalue: 4,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::LowercaseRoman,
+    {
+      labelstyle: LowercaseRoman,
       labelprefix: None,
       startpage: 5,
       startvalue: 5,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::LowercaseRoman,
+    {
+      labelstyle: LowercaseRoman,
       labelprefix: None,
       startpage: 6,
       startvalue: 6,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::UppercaseLetters,
+    {
+      labelstyle: UppercaseLetters,
       labelprefix: None,
       startpage: 7,
       startvalue: 7,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::UppercaseLetters,
+    {
+      labelstyle: UppercaseLetters,
       labelprefix: None,
       startpage: 8,
       startvalue: 8,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::LowercaseLetters,
+    {
+      labelstyle: LowercaseLetters,
       labelprefix: None,
       startpage: 9,
       startvalue: 9,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::LowercaseLetters,
+    {
+      labelstyle: LowercaseLetters,
       labelprefix: None,
       startpage: 10,
       startvalue: 10,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::NoLabelPrefixOnly,
+    {
+      labelstyle: NoLabelPrefixOnly,
       labelprefix: Some("N"),
       startpage: 11,
       startvalue: 11,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::NoLabelPrefixOnly,
+    {
+      labelstyle: NoLabelPrefixOnly,
       labelprefix: Some("N"),
       startpage: 12,
       startvalue: 12,
@@ -447,11 +447,11 @@ test "coalesce covers all labelstyle equality branches" {
   let merged = ctx.coalesce(labels)
   assert_eq(merged.length(), 7)
   match merged[2].labelstyle {
-    LabelStyle::UppercaseRoman => ()
+    UppercaseRoman => ()
     _ => fail("expected UppercaseRoman")
   }
   match merged[3].labelstyle {
-    LabelStyle::LowercaseRoman => ()
+    LowercaseRoman => ()
     _ => fail("expected LowercaseRoman")
   }
 }
@@ -460,7 +460,7 @@ test "coalesce covers all labelstyle equality branches" {
 test "add_label replica branches" {
   let base = [
     PageLabel::{
-      labelstyle: LabelStyle::DecimalArabic,
+      labelstyle: DecimalArabic,
       labelprefix: None,
       startpage: 1,
       startvalue: 1,
@@ -469,8 +469,8 @@ test "add_label replica branches" {
   let no_replica = ctx.add_label(
     3,
     base,
-    PageLabel::{
-      labelstyle: LabelStyle::UppercaseRoman,
+    {
+      labelstyle: UppercaseRoman,
       labelprefix: None,
       startpage: 2,
       startvalue: 1,
@@ -481,21 +481,21 @@ test "add_label replica branches" {
   let with_after = ctx.add_label(
     10,
     [
-      PageLabel::{
-        labelstyle: LabelStyle::DecimalArabic,
+      {
+        labelstyle: DecimalArabic,
         labelprefix: None,
         startpage: 1,
         startvalue: 1,
       },
-      PageLabel::{
-        labelstyle: LabelStyle::DecimalArabic,
+      {
+        labelstyle: DecimalArabic,
         labelprefix: None,
         startpage: 5,
         startvalue: 5,
       },
     ],
-    PageLabel::{
-      labelstyle: LabelStyle::UppercaseRoman,
+    {
+      labelstyle: UppercaseRoman,
       labelprefix: None,
       startpage: 2,
       startvalue: 1,
@@ -506,15 +506,15 @@ test "add_label replica branches" {
   let empty_before = ctx.add_label(
     5,
     [
-      PageLabel::{
-        labelstyle: LabelStyle::DecimalArabic,
+      {
+        labelstyle: DecimalArabic,
         labelprefix: None,
         startpage: 5,
         startvalue: 5,
       },
     ],
-    PageLabel::{
-      labelstyle: LabelStyle::UppercaseRoman,
+    {
+      labelstyle: UppercaseRoman,
       labelprefix: None,
       startpage: 1,
       startvalue: 1,
@@ -528,7 +528,7 @@ test "add_label replica branches" {
 test "coalesce handles single label" {
   let labels = [
     PageLabel::{
-      labelstyle: LabelStyle::DecimalArabic,
+      labelstyle: DecimalArabic,
       labelprefix: None,
       startpage: 1,
       startvalue: 1,
@@ -543,25 +543,25 @@ test "write handles all labelstyle variants" {
   let pdf = make_pdf_with_pages(4)
   let labels = [
     PageLabel::{
-      labelstyle: LabelStyle::NoLabelPrefixOnly,
+      labelstyle: NoLabelPrefixOnly,
       labelprefix: None,
       startpage: 1,
       startvalue: 1,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::UppercaseRoman,
+    {
+      labelstyle: UppercaseRoman,
       labelprefix: None,
       startpage: 2,
       startvalue: 1,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::LowercaseLetters,
+    {
+      labelstyle: LowercaseLetters,
       labelprefix: Some("P"),
       startpage: 3,
       startvalue: 2,
     },
-    PageLabel::{
-      labelstyle: LabelStyle::UppercaseLetters,
+    {
+      labelstyle: UppercaseLetters,
       labelprefix: Some("S-"),
       startpage: 4,
       startvalue: 1,
@@ -571,19 +571,19 @@ test "write handles all labelstyle variants" {
   let read_back = @pdfpagelabels.PageLabel::read_all(pdf)
   assert_eq(read_back.length(), 4)
   match read_back[0].labelstyle {
-    LabelStyle::NoLabelPrefixOnly => ()
+    NoLabelPrefixOnly => ()
     _ => fail("expected NoLabelPrefixOnly")
   }
   match read_back[1].labelstyle {
-    LabelStyle::UppercaseRoman => ()
+    UppercaseRoman => ()
     _ => fail("expected UppercaseRoman")
   }
   match read_back[2].labelstyle {
-    LabelStyle::LowercaseLetters => ()
+    LowercaseLetters => ()
     _ => fail("expected LowercaseLetters")
   }
   match read_back[3].labelstyle {
-    LabelStyle::UppercaseLetters => ()
+    UppercaseLetters => ()
     _ => fail("expected UppercaseLetters")
   }
 }
@@ -591,7 +591,7 @@ test "write handles all labelstyle variants" {
 ///|
 test "pagelabel to_string prints None prefix" {
   let label = PageLabel::{
-    labelstyle: LabelStyle::DecimalArabic,
+    labelstyle: DecimalArabic,
     labelprefix: None,
     startpage: 1,
     startvalue: 1,

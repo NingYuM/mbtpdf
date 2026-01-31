@@ -103,14 +103,14 @@ fn lex_inline_image(
   try {
     let lexemes = @pdfsyntax.lex_dictionary(true, input)
     let tokens : Array[Token] = Array::new(capacity=lexemes.length() + 2)
-    tokens.push(Token::LexLeftDict)
+    tokens.push(LexLeftDict)
     for token in lexemes {
       match token {
-        Token::StopLexing => ()
+        StopLexing => ()
         _ => tokens.push(token)
       }
     }
-    tokens.push(Token::LexRightDict)
+    tokens.push(LexRightDict)
     let dict = @pdfsyntax.parse(tokens).1
     @pdfe.debug("dict was \{dict.to_string()}\n")
     input.dropwhite()
@@ -122,7 +122,7 @@ fn lex_inline_image(
     }
     let filters = match pdf.lookup_direct_orelse("/F", "/Filter", dict) {
       Some(Array(items)) => items
-      Some(Name(name)) => [PdfObject::Name(name)]
+      Some(Name(name)) => [Name(name)]
       _ => []
     }
     let toskip = !filterspecial(filters)
@@ -160,30 +160,30 @@ fn lex_inline_image(
                 None => {
                   @pdfe.debug("no colourspace A\n")
                   nocontent(input)
-                  PdfObject::Null
+                  Null
                 }
               }
             _ => {
               @pdfe.debug("no colourspace B\n")
               nocontent(input)
-              PdfObject::Null
+              Null
             }
           }
         }
       Some(Array(_) as n) => n
       None =>
         match pdf.lookup_direct_orelse("/IM", "/ImageMask", dict) {
-          Some(Boolean(true)) => PdfObject::Name(@pdf.PdfName("/DeviceGray"))
+          Some(Boolean(true)) => Name(PdfName("/DeviceGray"))
           _ => {
             @pdfe.debug("no colourspace C\n")
             nocontent(input)
-            PdfObject::Null
+            Null
           }
         }
       _ => {
         @pdfe.debug("no colourspace D\n")
         nocontent(input)
-        PdfObject::Null
+        Null
       }
     }
     let width = match pdf.lookup_direct_orelse("/W", "/Width", dict) {
@@ -350,7 +350,7 @@ fn lex_inline_image(
     err => {
       @pdfe.debug("inline image reading failed: \{err}\n")
       nocontent(input)
-      (PdfObject::Null, None, @pdfio.mkbytes(0))
+      (Null, None, @pdfio.mkbytes(0))
     }
   }
 }
@@ -362,8 +362,8 @@ fn lex_keyword(
   input : @pdfio.Input,
 ) -> Lexeme raise {
   match input.getuntil_white_or_delimiter_string() {
-    "true" => Obj(Token::LexBool(true))
-    "false" => Obj(Token::LexBool(false))
+    "true" => Obj(LexBool(true))
+    "false" => Obj(LexBool(false))
     "BI" => LexInlineImage(lex_inline_image(pdf, resources, input))
     "ID" | "EI" | "" => {
       nocontent(input)

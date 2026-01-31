@@ -16,7 +16,7 @@ test "write/read CalGray" {
   let resources : @pdf.PdfObject = Dictionary([])
   let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
-    @pdfspace.ColourSpace::CalGray(white, black, gamma) => {
+    CalGray(white, black, gamma) => {
       assert_close(white.0, 1.0)
       assert_close(black.0, 0.0)
       assert_close(gamma, 2.2)
@@ -31,17 +31,14 @@ test "write/read Indexed" {
   let table : Map[Int, Array[Int]] = Map::new()
   table.set(0, [0, 0, 0])
   table.set(1, [255, 255, 255])
-  let space = @pdfspace.ColourSpace::Indexed(
-    @pdfspace.ColourSpace::DeviceRGB,
-    table,
-  )
+  let space = @pdfspace.ColourSpace::Indexed(DeviceRGB, table)
   let obj = space.to_pdf_object(pdf)
   let resources : @pdf.PdfObject = Dictionary([])
   let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
-    @pdfspace.ColourSpace::Indexed(base, read_table) => {
+    Indexed(base, read_table) => {
       match base {
-        @pdfspace.ColourSpace::DeviceRGB => ()
+        DeviceRGB => ()
         _ => fail("expected DeviceRGB base")
       }
       match read_table.get(1) {
@@ -61,12 +58,10 @@ test "write/read ICCBased" {
   let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([])
   let data = @pdfio.bytes_of_string("ICC")
-  let stream_obj : @pdf.PdfObject = Stream(
-    Ref::new((dict, @pdf.Stream::Got(data))),
-  )
+  let stream_obj : @pdf.PdfObject = Stream(Ref::new((dict, Got(data))))
   let icc = @pdfspace.ICCBased::{
     icc_n: 3,
-    icc_alternate: @pdfspace.ColourSpace::DeviceRGB,
+    icc_alternate: DeviceRGB,
     icc_range: [0.0, 1.0, 0.0, 1.0, 0.0, 1.0],
     icc_metadata: None,
     icc_stream: stream_obj,
@@ -76,10 +71,10 @@ test "write/read ICCBased" {
   let resources : @pdf.PdfObject = Dictionary([])
   let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
-    @pdfspace.ColourSpace::ICCBased(read_icc) => {
+    ICCBased(read_icc) => {
       assert_eq(read_icc.icc_n, 3)
       match read_icc.icc_alternate {
-        @pdfspace.ColourSpace::DeviceRGB => ()
+        DeviceRGB => ()
         _ => fail("expected DeviceRGB alternate")
       }
     }
@@ -90,11 +85,7 @@ test "write/read ICCBased" {
 ///|
 fn sample_tint_function() -> @pdffun.PdfFunction {
   {
-    func: @pdffun.PdfFunctionKind::Interpolation({
-      c0: [0.0],
-      c1: [1.0],
-      n: 1.0,
-    }),
+    func: Interpolation({ c0: [0.0], c1: [1.0], n: 1.0 }),
     domain: [0.0, 1.0],
     range: Some([0.0, 1.0]),
   }
@@ -113,7 +104,7 @@ test "write/read CalRGB" {
   let resources : @pdf.PdfObject = Dictionary([])
   let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
-    @pdfspace.ColourSpace::CalRGB(_, _, gamma, matrix) => {
+    CalRGB(_, _, gamma, matrix) => {
       assert_eq(gamma.length(), 3)
       assert_eq(matrix.length(), 9)
     }
@@ -131,7 +122,7 @@ test "write/read Lab" {
   let resources : @pdf.PdfObject = Dictionary([])
   let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
-    @pdfspace.ColourSpace::Lab(_, _, range) => assert_eq(range.length(), 4)
+    Lab(_, _, range) => assert_eq(range.length(), 4)
     _ => fail("expected Lab")
   }
 }
@@ -139,16 +130,12 @@ test "write/read Lab" {
 ///|
 test "write/read PatternWithBaseColourspace" {
   let pdf = @pdf.Pdf::empty()
-  let space = @pdfspace.ColourSpace::PatternWithBaseColourspace(
-    @pdfspace.ColourSpace::DeviceRGB,
-  )
+  let space = @pdfspace.ColourSpace::PatternWithBaseColourspace(DeviceRGB)
   let obj = space.to_pdf_object(pdf)
   let resources : @pdf.PdfObject = Dictionary([])
   let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
-    @pdfspace.ColourSpace::PatternWithBaseColourspace(
-      @pdfspace.ColourSpace::DeviceRGB
-    ) => ()
+    PatternWithBaseColourspace(DeviceRGB) => ()
     _ => fail("expected PatternWithBaseColourspace")
   }
 }
@@ -157,19 +144,15 @@ test "write/read PatternWithBaseColourspace" {
 test "write/read Separation and name lookup" {
   let pdf = @pdf.Pdf::empty()
   let tint = sample_tint_function()
-  let space = @pdfspace.ColourSpace::Separation(
-    "Spot",
-    @pdfspace.ColourSpace::DeviceRGB,
-    tint,
-  )
+  let space = @pdfspace.ColourSpace::Separation("Spot", DeviceRGB, tint)
   let obj = space.to_pdf_object(pdf)
   let resources : @pdf.PdfObject = Dictionary([])
   let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
-    @pdfspace.ColourSpace::Separation(name, base, _) => {
+    Separation(name, base, _) => {
       assert_eq(name, "/Spot")
       match base {
-        @pdfspace.ColourSpace::DeviceRGB => ()
+        DeviceRGB => ()
         _ => fail("expected DeviceRGB base")
       }
     }
@@ -186,11 +169,11 @@ test "write/read DeviceN with attributes" {
   let pdf = @pdf.Pdf::empty()
   let tint = sample_tint_function()
   let attrs : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/NChannel"))),
+    ("/Subtype", Name(PdfName("/NChannel"))),
   ])
   let space = @pdfspace.ColourSpace::DeviceN(
     ["C1", "C2"],
-    @pdfspace.ColourSpace::DeviceCMYK,
+    DeviceCMYK,
     tint,
     attrs,
   )
@@ -198,11 +181,11 @@ test "write/read DeviceN with attributes" {
   let resources : @pdf.PdfObject = Dictionary([])
   let read = @pdfspace.ColourSpace::read(pdf, resources, obj)
   match read {
-    @pdfspace.ColourSpace::DeviceN(names, base, _, attributes) => {
+    DeviceN(names, base, _, attributes) => {
       assert_eq(names.length(), 2)
       assert_eq(names[0], "/C1")
       match base {
-        @pdfspace.ColourSpace::DeviceCMYK => ()
+        DeviceCMYK => ()
         _ => fail("expected DeviceCMYK base")
       }
       match (attributes : @pdf.PdfObject) {

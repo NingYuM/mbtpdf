@@ -46,12 +46,7 @@ pub fn Paper::rectangle(self : Paper) -> @pdf.PdfObject {
   let unit = self.unit()
   let width = unit.to_points(self.width())
   let height = unit.to_points(self.height())
-  @pdf.PdfObject::Array([
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(width),
-    @pdf.PdfObject::Real(height),
-  ])
+  Array([Real(0.0), Real(0.0), Real(width), Real(height)])
 }
 
 ///|
@@ -62,12 +57,12 @@ pub fn Paper::landscape(self : Paper) -> Paper {
 
 ///|
 fn mm_paper(width : Double, height : Double) -> Paper {
-  { unit: @pdfunits.LengthUnit::Millimetre, width, height }
+  { unit: Millimetre, width, height }
 }
 
 ///|
 fn inch_paper(width : Double, height : Double) -> Paper {
-  { unit: @pdfunits.LengthUnit::Inch, width, height }
+  { unit: Inch, width, height }
 }
 
 ///|

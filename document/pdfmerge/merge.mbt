@@ -63,7 +63,7 @@ pub fn PdfMerger::merge_pdfs(
   extra_catalog_entries = add_entry(
     extra_catalog_entries,
     "/Names",
-    PdfObject::Indirect(namedict),
+    Indirect(namedict),
   )
   match dests {
     None => ()
@@ -71,18 +71,14 @@ pub fn PdfMerger::merge_pdfs(
       extra_catalog_entries = add_entry(
         extra_catalog_entries,
         "/Dests",
-        PdfObject::Indirect(num),
+        Indirect(num),
       )
   }
   extra_catalog_entries = try {
     match merge_optional_content_groups(pdf, pdfs) {
       None => extra_catalog_entries
       Some(ocgnum) =>
-        add_entry(
-          extra_catalog_entries,
-          "/OCProperties",
-          PdfObject::Indirect(ocgnum),
-        )
+        add_entry(extra_catalog_entries, "/OCProperties", Indirect(ocgnum))
     }
   } catch {
     _ => {
@@ -94,11 +90,7 @@ pub fn PdfMerger::merge_pdfs(
     match merge_acroforms(pdf, pdfs) {
       None => extra_catalog_entries
       Some(formnum) =>
-        add_entry(
-          extra_catalog_entries,
-          "/AcroForm",
-          PdfObject::Indirect(formnum),
-        )
+        add_entry(extra_catalog_entries, "/AcroForm", Indirect(formnum))
     }
   } catch {
     _ => {
@@ -120,7 +112,7 @@ pub fn PdfMerger::merge_pdfs(
           add_entry(
             extra_catalog_entries,
             "/StructTreeRoot",
-            PdfObject::Indirect(structnum),
+            Indirect(structnum),
           )
       }
     } catch {
@@ -136,9 +128,7 @@ pub fn PdfMerger::merge_pdfs(
       match first.lookup_direct("/Info", first.trailerdict) {
         None => ()
         Some(info) =>
-          pdf.trailerdict = PdfObject::Dictionary([
-            ("/Info", PdfObject::Indirect(pdf.addobj(info))),
-          ])
+          pdf.trailerdict = Dictionary([("/Info", Indirect(pdf.addobj(info)))])
       }
     [] => ()
   }

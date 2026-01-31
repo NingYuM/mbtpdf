@@ -1,6 +1,6 @@
 ///|
 fn calc_fun(ops : Array[Calculator]) -> PdfFunction {
-  { func: PdfFunctionKind::Calculator(ops), domain: [0.0, 1.0], range: None }
+  { func: Calculator(ops), domain: [0.0, 1.0], range: None }
 }
 
 ///|
@@ -30,10 +30,10 @@ test "parse_function sampled order" {
     ("/Length", Integer(1)),
   ])
   let data = @pdfio.bytes_of_list([0x80])
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, Got(data))))
   let parsed = PdfFunction::parse(pdf, stream)
   match parsed.func {
-    PdfFunctionKind::Sampled(s) => assert_eq(s.order, 3)
+    Sampled(s) => assert_eq(s.order, 3)
     _ => fail("expected sampled function")
   }
 }
@@ -48,7 +48,7 @@ test "parse_function defaults c0 c1" {
   ])
   let parsed = PdfFunction::parse(pdf, dict)
   match parsed.func {
-    PdfFunctionKind::Interpolation(i) => {
+    Interpolation(i) => {
       assert_eq(i.c0.length(), 1)
       assert_eq(i.c1.length(), 1)
       assert_eq(i.c0[0], 0.0)
@@ -68,18 +68,12 @@ test "parse_function calculator supports nested procedures" {
     ("/Length", Integer(program.length())),
   ])
   let data = @pdfio.bytes_of_string(program)
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, Got(data))))
   let parsed = PdfFunction::parse(pdf, stream)
   match parsed.func {
-    PdfFunctionKind::Calculator(ops) =>
+    Calculator(ops) =>
       match ops {
-        [
-          Calculator::Bool(false),
-          Calculator::IfElse(
-            [Calculator::Bool(true), Calculator::If([Calculator::Int(1)])],
-            [Calculator::Int(0)]
-          ),
-        ] => ()
+        [Bool(false), IfElse([Bool(true), If([Int(1)])], [Int(0)])] => ()
         _ => fail("unexpected calculator parse result")
       }
     _ => fail("expected calculator function")
@@ -94,7 +88,7 @@ test "parse_function rejects bad bits per sample" {
     ("/Domain", Array([Real(0.0), Real(1.0)])),
     ("/Range", Array([Real(0.0), Real(1.0)])),
     ("/Size", Array([Integer(1)])),
-    ("/BitsPerSample", Name(@pdf.PdfName("/Bad"))),
+    ("/BitsPerSample", Name(PdfName("/Bad"))),
   ])
   let res : Result[PdfFunction, Error] = try? PdfFunction::parse(pdf, dict)
   assert_true(res is Err(_))
@@ -102,7 +96,7 @@ test "parse_function rejects bad bits per sample" {
 
 ///|
 test "calculator bool output errors" {
-  let ops = [Calculator::Float(1.0), Calculator::Float(1.0), Calculator::Eq]
+  let ops = [Calculator::Float(1.0), Float(1.0), Eq]
   let res : Result[Array[Double], Error] = try? calc_fun(ops).eval([0.0])
   assert_true(res is Err(_))
 }
@@ -111,10 +105,10 @@ test "calculator bool output errors" {
 test "calculator compares bools" {
   let ops = [
     Calculator::Pop,
-    Calculator::Bool(true),
-    Calculator::Bool(true),
-    Calculator::Ge,
-    Calculator::IfElse([Calculator::Int(1)], [Calculator::Int(0)]),
+    Bool(true),
+    Bool(true),
+    Ge,
+    IfElse([Int(1)], [Int(0)]),
   ]
   let out = eval_calc_inputs(ops, [0.0])
   assert_eq(out.length(), 1)
@@ -125,16 +119,16 @@ test "calculator compares bools" {
 test "calculator conversions and rounding" {
   let ops = [
     Calculator::Pop,
-    Calculator::Int(2),
-    Calculator::Cvi,
-    Calculator::Cvr,
-    Calculator::Float(1.5),
-    Calculator::Cvr,
-    Calculator::Neg,
-    Calculator::Int(3),
-    Calculator::Round,
-    Calculator::Truncate,
-    Calculator::Floor,
+    Int(2),
+    Cvi,
+    Cvr,
+    Float(1.5),
+    Cvr,
+    Neg,
+    Int(3),
+    Round,
+    Truncate,
+    Floor,
   ]
   let out = eval_calc_inputs(ops, [0.0])
   assert_true(out.length() >= 2)
@@ -142,14 +136,7 @@ test "calculator conversions and rounding" {
 
 ///|
 test "calculator mul and sub mixed types" {
-  let ops = [
-    Calculator::Pop,
-    Calculator::Float(2.0),
-    Calculator::Int(3),
-    Calculator::Mul,
-    Calculator::Int(1),
-    Calculator::Sub,
-  ]
+  let ops = [Calculator::Pop, Float(2.0), Int(3), Mul, Int(1), Sub]
   let out = eval_calc_inputs(ops, [0.0])
   assert_eq(out.length(), 1)
   assert_eq(out[0], 5.0)
@@ -159,13 +146,13 @@ test "calculator mul and sub mixed types" {
 test "calculator mul and sub float int" {
   let ops = [
     Calculator::Pop,
-    Calculator::Int(4),
-    Calculator::Float(1.5),
-    Calculator::Mul,
-    Calculator::Int(2),
-    Calculator::Float(1.0),
-    Calculator::Sub,
-    Calculator::Sub,
+    Int(4),
+    Float(1.5),
+    Mul,
+    Int(2),
+    Float(1.0),
+    Sub,
+    Sub,
   ]
   let out = eval_calc_inputs(ops, [0.0])
   assert_true(out.length() >= 1)
@@ -173,12 +160,7 @@ test "calculator mul and sub float int" {
 
 ///|
 test "calculator bitshift with negative values" {
-  let ops = [
-    Calculator::Pop,
-    Calculator::Int(1),
-    Calculator::Int(-4),
-    Calculator::Bitshift,
-  ]
+  let ops = [Calculator::Pop, Int(1), Int(-4), Bitshift]
   let out = eval_calc_inputs(ops, [0.0])
   assert_eq(out.length(), 1)
 }
@@ -187,24 +169,16 @@ test "calculator bitshift with negative values" {
 test "calculator roll handles negative and zero shift" {
   let ops_negative = [
     Calculator::Pop,
-    Calculator::Int(10),
-    Calculator::Int(20),
-    Calculator::Int(30),
-    Calculator::Int(3),
-    Calculator::Int(-1),
-    Calculator::Roll,
+    Int(10),
+    Int(20),
+    Int(30),
+    Int(3),
+    Int(-1),
+    Roll,
   ]
   let out = eval_calc_inputs(ops_negative, [0.0])
   assert_eq(out.length(), 3)
-  let ops_zero = [
-    Calculator::Pop,
-    Calculator::Int(1),
-    Calculator::Int(2),
-    Calculator::Int(3),
-    Calculator::Int(3),
-    Calculator::Int(0),
-    Calculator::Roll,
-  ]
+  let ops_zero = [Calculator::Pop, Int(1), Int(2), Int(3), Int(3), Int(0), Roll]
   let out_zero = eval_calc_inputs(ops_zero, [0.0])
   assert_eq(out_zero.length(), 3)
 }
@@ -212,60 +186,24 @@ test "calculator roll handles negative and zero shift" {
 ///|
 test "calculator type errors" {
   let cases : Array[Array[Calculator]] = [
-    [Calculator::Pop, Calculator::Bool(true), Calculator::Abs],
-    [
-      Calculator::Pop,
-      Calculator::Bool(true),
-      Calculator::Int(1),
-      Calculator::Add,
-    ],
-    [Calculator::Pop, Calculator::Bool(true), Calculator::Ceiling],
-    [Calculator::Pop, Calculator::Bool(true), Calculator::Cvi],
-    [Calculator::Pop, Calculator::Bool(true), Calculator::Cvr],
-    [Calculator::Pop, Calculator::Bool(true), Calculator::Floor],
-    [
-      Calculator::Pop,
-      Calculator::Bool(true),
-      Calculator::Int(1),
-      Calculator::Mul,
-    ],
-    [Calculator::Pop, Calculator::Bool(true), Calculator::Neg],
-    [Calculator::Pop, Calculator::Bool(true), Calculator::Round],
-    [
-      Calculator::Pop,
-      Calculator::Bool(true),
-      Calculator::Int(1),
-      Calculator::Sub,
-    ],
-    [Calculator::Pop, Calculator::Bool(true), Calculator::Truncate],
-    [
-      Calculator::Pop,
-      Calculator::Bool(true),
-      Calculator::Int(1),
-      Calculator::And,
-    ],
-    [Calculator::Pop, Calculator::Float(1.0), Calculator::Not],
-    [
-      Calculator::Pop,
-      Calculator::Bool(true),
-      Calculator::Int(1),
-      Calculator::Or,
-    ],
-    [
-      Calculator::Pop,
-      Calculator::Bool(true),
-      Calculator::Int(1),
-      Calculator::Xor,
-    ],
-    [Calculator::Pop, Calculator::Float(1.0), Calculator::Copy],
-    [Calculator::Pop, Calculator::Float(1.0), Calculator::Index],
-    [
-      Calculator::Pop,
-      Calculator::Int(10),
-      Calculator::Int(2),
-      Calculator::Int(1),
-      Calculator::Roll,
-    ],
+    [Pop, Bool(true), Abs],
+    [Pop, Bool(true), Int(1), Add],
+    [Pop, Bool(true), Ceiling],
+    [Pop, Bool(true), Cvi],
+    [Pop, Bool(true), Cvr],
+    [Pop, Bool(true), Floor],
+    [Pop, Bool(true), Int(1), Mul],
+    [Pop, Bool(true), Neg],
+    [Pop, Bool(true), Round],
+    [Pop, Bool(true), Int(1), Sub],
+    [Pop, Bool(true), Truncate],
+    [Pop, Bool(true), Int(1), And],
+    [Pop, Float(1.0), Not],
+    [Pop, Bool(true), Int(1), Or],
+    [Pop, Bool(true), Int(1), Xor],
+    [Pop, Float(1.0), Copy],
+    [Pop, Float(1.0), Index],
+    [Pop, Int(10), Int(2), Int(1), Roll],
   ]
   for ops in cases {
     assert_calc_err(ops)
@@ -275,16 +213,12 @@ test "calculator type errors" {
 ///|
 test "stitching bad arity and NaN input" {
   let f1 : PdfFunction = {
-    func: PdfFunctionKind::Interpolation({ c0: [0.0], c1: [1.0], n: 1.0 }),
+    func: Interpolation({ c0: [0.0], c1: [1.0], n: 1.0 }),
     domain: [0.0, 1.0],
     range: Some([0.0, 1.0]),
   }
   let fun : PdfFunction = {
-    func: PdfFunctionKind::Stitching({
-      functions: [f1],
-      bounds: [],
-      stitch_encode: [0.0, 1.0],
-    }),
+    func: Stitching({ functions: [f1], bounds: [], stitch_encode: [0.0, 1.0] }),
     domain: [0.0, 1.0],
     range: Some([0.0, 1.0]),
   }
@@ -297,7 +231,7 @@ test "stitching bad arity and NaN input" {
 ///|
 test "pdfobject_of_function handles zero bps" {
   let fun : PdfFunction = {
-    func: PdfFunctionKind::Sampled({
+    func: Sampled({
       size: [1],
       order: 1,
       encode: [0.0, 0.0],

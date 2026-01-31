@@ -94,31 +94,19 @@ fn build_xref_stream(
   let data = output.extract_bytes(buffer)
   let dict_with_type = pdf.trailerdict.add_entry(
     "/Type",
-    PdfObject::Name(@pdf.PdfName("/XRef")),
+    Name(PdfName("/XRef")),
   )
-  let dict_with_size = dict_with_type.add_entry(
-    "/Size",
-    PdfObject::Integer(size),
-  )
-  let dict_with_root = dict_with_size.add_entry(
-    "/Root",
-    PdfObject::Indirect(pdf.root),
-  )
+  let dict_with_size = dict_with_type.add_entry("/Size", Integer(size))
+  let dict_with_root = dict_with_size.add_entry("/Root", Indirect(pdf.root))
   let dict_with_w = dict_with_root.add_entry(
     "/W",
-    PdfObject::Array([
-      PdfObject::Integer(w1),
-      PdfObject::Integer(w2),
-      PdfObject::Integer(w3),
-    ]),
+    Array([Integer(w1), Integer(w2), Integer(w3)]),
   )
   let dict_with_length = dict_with_w.add_entry(
     "/Length",
-    PdfObject::Integer(@pdfio.bytes_size(data)),
+    Integer(@pdfio.bytes_size(data)),
   )
-  let stream_obj = PdfObject::Stream(
-    Ref::new((dict_with_length, @pdf.Stream::Got(data))),
-  )
+  let stream_obj = PdfObject::Stream(Ref::new((dict_with_length, Got(data))))
   stream_obj
 }
 
@@ -193,7 +181,7 @@ pub fn PdfWrite::pdf_to_output_with_options(
     match encryption_value {
       Some(enc) =>
         match enc.encryption_method {
-          @pdfcrypt.EncryptionMethod::AlreadyEncrypted => ()
+          AlreadyEncrypted => ()
           _ => pdf = pdf.renumber(pdf.changes())
         }
       None => ()
@@ -264,8 +252,8 @@ pub fn PdfWrite::pdf_to_output_with_options(
     }
     (output.output_string)("trailer\n")
     let trailerdict = pdf.trailerdict
-      .add_entry("/Size", PdfObject::Integer(size))
-      .add_entry("/Root", PdfObject::Indirect(pdf.root))
+      .add_entry("/Size", Integer(size))
+      .add_entry("/Root", Indirect(pdf.root))
     write_pdf_object_to_output(self, trailerdict, output, false, true)
     (output.output_string)("\nstartxref\n")
     (output.output_string)("\{xref_start}\n%%EOF\n")

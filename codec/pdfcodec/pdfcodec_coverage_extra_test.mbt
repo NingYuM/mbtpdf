@@ -32,7 +32,7 @@ test "decode_from_bytes handles LZW clear codes mid-stream" {
   bw.putval(9, 257)
   let encoded = bw.bytes()
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/LZWDecode"))),
+    ("/Filter", Name(PdfName("/LZWDecode"))),
     ("/DecodeParms", Dictionary([("/EarlyChange", Integer(1))])),
   ])
   match
@@ -51,7 +51,7 @@ test "decode_from_bytes finishes when clear code is followed by EOD" {
   bw.putval(9, 257)
   let encoded = bw.bytes()
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/LZWDecode"))),
+    ("/Filter", Name(PdfName("/LZWDecode"))),
     ("/DecodeParms", Dictionary([("/EarlyChange", Integer(1))])),
   ])
   match
@@ -72,7 +72,7 @@ test "decode_from_bytes LZW handles code == next_code (KwKwK)" {
   bw.putval(9, 257)
   let encoded = bw.bytes()
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/LZWDecode"))),
+    ("/Filter", Name(PdfName("/LZWDecode"))),
     ("/DecodeParms", Dictionary([("/EarlyChange", Integer(1))])),
   ])
   match
@@ -103,7 +103,7 @@ test "decode_from_bytes LZW bumps code length past 9 bits (literal-only stream)"
   bw.putval(code_length, 257)
   let encoded = bw.bytes()
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/LZWDecode"))),
+    ("/Filter", Name(PdfName("/LZWDecode"))),
     ("/DecodeParms", Dictionary([("/EarlyChange", Integer(1))])),
   ])
   match
@@ -116,7 +116,7 @@ test "decode_from_bytes LZW bumps code length past 9 bits (literal-only stream)"
 ///|
 test "decode_from_bytes LZW returns None on truncated input" {
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/LZWDecode"))),
+    ("/Filter", Name(PdfName("/LZWDecode"))),
     ("/DecodeParms", Dictionary([("/EarlyChange", Integer(1))])),
   ])
   // One byte is too short to contain a full clear + data + EOD sequence.
@@ -136,7 +136,7 @@ test "encode/decode LZW roundtrips medium input" {
     @pdfio.bset_unsafe(original, i, i % 251)
   }
   let (pdf, stream_ref, stream_obj) = mk_stream(original, [])
-  ctx.encode_pdfstream(pdf, Encoding::LZW(1), stream_obj, only_if_smaller=false)
+  ctx.encode_pdfstream(pdf, LZW(1), stream_obj, only_if_smaller=false)
   ctx.decode_pdfstream_onestage(pdf, stream_obj)
   let decoded = match (stream_ref.val.1 : @pdf.Stream) {
     Got(bytes) => bytes
@@ -157,7 +157,7 @@ test "encode_pdfstream LZW clears dictionary when full" {
     @pdfio.bset_unsafe(original, i, (s & 0xff).reinterpret_as_int())
   }
   let (pdf, stream_ref, stream_obj) = mk_stream(original, [])
-  ctx.encode_pdfstream(pdf, Encoding::LZW(1), stream_obj, only_if_smaller=false)
+  ctx.encode_pdfstream(pdf, LZW(1), stream_obj, only_if_smaller=false)
   match (pdf.lookup_direct("/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
     Some(Name(PdfName("/LZWDecode"))) => ()
     Some(Array([Name(PdfName("/LZWDecode")), ..])) => ()
@@ -212,8 +212,7 @@ test "encode_pdfstream LZW clears dictionary when full" {
     }
   }
   ctx.decode_pdfstream_onestage(pdf, stream_obj) catch {
-    CodecError::CouldntDecodeStream(msg) =>
-      fail("expected decode to succeed, got: \{msg}")
+    CouldntDecodeStream(msg) => fail("expected decode to succeed, got: \{msg}")
     err => raise err
   }
   let decoded = match (stream_ref.val.1 : @pdf.Stream) {
@@ -231,7 +230,7 @@ test "encode_pdfstream LZW grows code length past 9 bits" {
     @pdfio.bset_unsafe(data, i, i)
   }
   let (pdf, stream_ref, stream_obj) = mk_stream(data, [])
-  ctx.encode_pdfstream(pdf, Encoding::LZW(1), stream_obj, only_if_smaller=false)
+  ctx.encode_pdfstream(pdf, LZW(1), stream_obj, only_if_smaller=false)
   match (pdf.lookup_direct("/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
     Some(Name(PdfName("/LZWDecode"))) => ()
     Some(Array([Name(PdfName("/LZWDecode")), ..])) => ()
@@ -242,7 +241,7 @@ test "encode_pdfstream LZW grows code length past 9 bits" {
 ///|
 test "decode_from_bytes RunLength returns empty output on EOF" {
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/RunLengthDecode"))),
+    ("/Filter", Name(PdfName("/RunLengthDecode"))),
   ])
   let out = @pdfcodec.PdfCodec::new().decode_from_bytes(@pdfio.mkbytes(0), dict)
   match out {
@@ -259,12 +258,7 @@ test "encode/decode RunLength flushes literal chunks over 128 bytes" {
     @pdfio.bset_unsafe(original, i, i)
   }
   let (pdf, stream_ref, stream_obj) = mk_stream(original, [])
-  ctx.encode_pdfstream(
-    pdf,
-    Encoding::RunLength,
-    stream_obj,
-    only_if_smaller=false,
-  )
+  ctx.encode_pdfstream(pdf, RunLength, stream_obj, only_if_smaller=false)
   ctx.decode_pdfstream_onestage(pdf, stream_obj)
   let decoded = match (stream_ref.val.1 : @pdf.Stream) {
     Got(bytes) => bytes
@@ -279,12 +273,7 @@ test "encode/decode RunLength flush_literal returns early when empty" {
   // Starts with a run, so encode_runlength will flush an empty literal buffer.
   let original = @pdfio.bytes_of_string("aaab")
   let (pdf, stream_ref, stream_obj) = mk_stream(original, [])
-  ctx.encode_pdfstream(
-    pdf,
-    Encoding::RunLength,
-    stream_obj,
-    only_if_smaller=false,
-  )
+  ctx.encode_pdfstream(pdf, RunLength, stream_obj, only_if_smaller=false)
   ctx.decode_pdfstream_onestage(pdf, stream_obj)
   let decoded = match (stream_ref.val.1 : @pdf.Stream) {
     Got(bytes) => bytes
@@ -296,7 +285,7 @@ test "encode/decode RunLength flush_literal returns early when empty" {
 ///|
 test "decode_from_bytes RunLength returns on truncated literal chunks" {
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/RunLengthDecode"))),
+    ("/Filter", Name(PdfName("/RunLengthDecode"))),
   ])
   let out = @pdfcodec.PdfCodec::new().decode_from_bytes(
     @pdfio.bytes_of_list([0]),
@@ -311,7 +300,7 @@ test "decode_from_bytes RunLength returns on truncated literal chunks" {
 ///|
 test "decode_from_bytes RunLength returns on truncated repeat chunks" {
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/RunLengthDecode"))),
+    ("/Filter", Name(PdfName("/RunLengthDecode"))),
   ])
   let out = @pdfcodec.PdfCodec::new().decode_from_bytes(
     @pdfio.bytes_of_list([129]),
@@ -336,10 +325,7 @@ test "decode_from_bytes returns None on empty filter arrays" {
 ///|
 test "decode_from_bytes handles non-array DecodeParms for multi-stage filters" {
   let dict : @pdf.PdfObject = Dictionary([
-    (
-      "/Filter",
-      Array([Name(@pdf.PdfName("/Crypt")), Name(@pdf.PdfName("/Crypt"))]),
-    ),
+    ("/Filter", Array([Name(PdfName("/Crypt")), Name(PdfName("/Crypt"))])),
     ("/DecodeParms", Dictionary([("/Columns", Integer(1))])),
   ])
   match
@@ -356,10 +342,7 @@ test "decode_from_bytes handles non-array DecodeParms for multi-stage filters" {
 ///|
 test "decode_from_bytes trims DecodeParms arrays shorter than Filter arrays" {
   let dict : @pdf.PdfObject = Dictionary([
-    (
-      "/Filter",
-      Array([Name(@pdf.PdfName("/Crypt")), Name(@pdf.PdfName("/Crypt"))]),
-    ),
+    ("/Filter", Array([Name(PdfName("/Crypt")), Name(PdfName("/Crypt"))])),
     ("/DecodeParms", Array([Dictionary([])])),
   ])
   match
@@ -380,10 +363,10 @@ test "encode/decode Flate with PNG Paeth predictor roundtrips" {
   let (pdf, stream_ref, stream_obj) = mk_stream(original, [])
   ctx.encode_pdfstream(
     pdf,
-    Encoding::Flate,
+    Flate,
     stream_obj,
     only_if_smaller=false,
-    predictor=Predictor::PNGPaeth,
+    predictor=PNGPaeth,
     predictor_columns=2,
   )
   ctx.decode_pdfstream_onestage(pdf, stream_obj)
@@ -401,10 +384,10 @@ test "encode/decode Flate with zero-column PNG predictor yields empty stream" {
   let (pdf, stream_ref, stream_obj) = mk_stream(original, [])
   ctx.encode_pdfstream(
     pdf,
-    Encoding::Flate,
+    Flate,
     stream_obj,
     only_if_smaller=false,
-    predictor=Predictor::PNGSub,
+    predictor=PNGSub,
     predictor_columns=0,
   )
   ctx.decode_pdfstream_onestage(pdf, stream_obj)
@@ -422,10 +405,10 @@ test "encode/decode Flate with zero-column TIFF predictor yields empty stream" {
   let (pdf, stream_ref, stream_obj) = mk_stream(original, [])
   ctx.encode_pdfstream(
     pdf,
-    Encoding::Flate,
+    Flate,
     stream_obj,
     only_if_smaller=false,
-    predictor=Predictor::TIFF2,
+    predictor=TIFF2,
     predictor_columns=0,
   )
   ctx.decode_pdfstream_onestage(pdf, stream_obj)
@@ -448,7 +431,7 @@ test "decode Flate errors on PNG predictor with unsupported bpc" {
     ("/Columns", Integer(2)),
   ])
   let (pdf, _stream_ref, stream_obj) = mk_stream(encoded, [
-    ("/Filter", Name(@pdf.PdfName("/FlateDecode"))),
+    ("/Filter", Name(PdfName("/FlateDecode"))),
     ("/DecodeParms", parms),
   ])
   let res : Result[Unit, Error] = try? ctx.decode_pdfstream_onestage(
@@ -469,7 +452,7 @@ test "decode Flate errors on TIFF predictor with unsupported bpc" {
     ("/Columns", Integer(1)),
   ])
   let (pdf, _stream_ref, stream_obj) = mk_stream(encoded, [
-    ("/Filter", Name(@pdf.PdfName("/FlateDecode"))),
+    ("/Filter", Name(PdfName("/FlateDecode"))),
     ("/DecodeParms", parms),
   ])
   let res : Result[Unit, Error] = try? ctx.decode_pdfstream_onestage(
@@ -492,7 +475,7 @@ test "decode Flate breaks when PNG predictor scanline is truncated" {
     ("/Columns", Real(2.0)),
   ])
   let (pdf, stream_ref, stream_obj) = mk_stream(encoded, [
-    ("/Filter", Name(@pdf.PdfName("/FlateDecode"))),
+    ("/Filter", Name(PdfName("/FlateDecode"))),
     ("/DecodeParms", parms),
   ])
   ctx.decode_pdfstream_onestage(pdf, stream_obj)
@@ -517,7 +500,7 @@ test "decode Flate TIFF predictor handles zero columns as empty scanlines" {
     ("/Columns", Integer(0)),
   ])
   let (pdf, stream_ref, stream_obj) = mk_stream(encoded, [
-    ("/Filter", Name(@pdf.PdfName("/FlateDecode"))),
+    ("/Filter", Name(PdfName("/FlateDecode"))),
     ("/DecodeParms", parms),
   ])
   ctx.decode_pdfstream_onestage(pdf, stream_obj)
@@ -541,7 +524,7 @@ test "decode Flate errors on unknown PNG predictor bytes" {
     ("/Columns", Integer(2)),
   ])
   let (pdf, _stream_ref, stream_obj) = mk_stream(encoded, [
-    ("/Filter", Name(@pdf.PdfName("/FlateDecode"))),
+    ("/Filter", Name(PdfName("/FlateDecode"))),
     ("/DecodeParms", parms),
   ])
   let res : Result[Unit, Error] = try? ctx.decode_pdfstream_onestage(
@@ -558,7 +541,7 @@ test "encode_pdfstream errors when existing /Filter has wrong type" {
   ])
   let res : Result[Unit, Error] = try? ctx.encode_pdfstream(
     pdf,
-    Encoding::Flate,
+    Flate,
     stream_obj,
   )
   assert_true(res is Err(_))
@@ -569,18 +552,14 @@ test "encode_pdfstream follows indirect streams" {
   let ctx = @pdfcodec.PdfCodec::new()
   let (pdf, _stream_ref, stream_obj) = mk_stream(@pdfio.bytes_of_string("x"), [])
   let objnum = pdf.addobj(stream_obj)
-  ctx.encode_pdfstream(pdf, Encoding::Flate, Indirect(objnum))
+  ctx.encode_pdfstream(pdf, Flate, Indirect(objnum))
 }
 
 ///|
 test "encode_pdfstream errors on malformed stream objects" {
   let ctx = @pdfcodec.PdfCodec::new()
   let pdf = @pdf.Pdf::empty()
-  let res : Result[Unit, Error] = try? ctx.encode_pdfstream(
-    pdf,
-    Encoding::Flate,
-    Null,
-  )
+  let res : Result[Unit, Error] = try? ctx.encode_pdfstream(pdf, Flate, Null)
   assert_true(res is Err(_))
 }
 
@@ -598,7 +577,7 @@ test "decode_pdfstream_onestage removes singleton filter and decode parms arrays
   let raw = @pdfio.bytes_of_string("x")
   let encoded = ctx.encode_flate(raw)
   let (pdf, stream_ref, stream_obj) = mk_stream(encoded, [
-    ("/Filter", Array([Name(@pdf.PdfName("/FlateDecode"))])),
+    ("/Filter", Array([Name(PdfName("/FlateDecode"))])),
     ("/DecodeParms", Array([Dictionary([("/Predictor", Integer(1))])])),
   ])
   ctx.decode_pdfstream_onestage(pdf, stream_obj)
@@ -611,7 +590,7 @@ test "decode_pdfstream_onestage removes singleton filter and decode parms arrays
 test "decode_pdfstream_onestage handles empty DecodeParms arrays" {
   let ctx = @pdfcodec.PdfCodec::new()
   let (pdf, stream_ref, stream_obj) = mk_stream(@pdfio.bytes_of_string("x"), [
-    ("/Filter", Name(@pdf.PdfName("/Crypt"))),
+    ("/Filter", Name(PdfName("/Crypt"))),
     ("/DecodeParms", Array([])),
   ])
   ctx.decode_pdfstream_onestage(pdf, stream_obj)
@@ -626,7 +605,7 @@ test "decode_pdfstream_onestage handles empty DecodeParms arrays" {
 test "decode_pdfstream_onestage handles null DecodeParms" {
   let ctx = @pdfcodec.PdfCodec::new()
   let (pdf, stream_ref, stream_obj) = mk_stream(@pdfio.bytes_of_string("x"), [
-    ("/Filter", Name(@pdf.PdfName("/Crypt"))),
+    ("/Filter", Name(PdfName("/Crypt"))),
     ("/DecodeParms", Null),
   ])
   ctx.decode_pdfstream_onestage(pdf, stream_obj)
@@ -640,7 +619,7 @@ test "decode_pdfstream_onestage handles null DecodeParms" {
 ///|
 test "decode_from_bytes treats null DecodeParms as missing" {
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/Crypt"))),
+    ("/Filter", Name(PdfName("/Crypt"))),
     ("/DecodeParms", Null),
   ])
   match
@@ -658,12 +637,12 @@ test "decode_from_bytes treats null DecodeParms as missing" {
 test "encode_pdfstream maps PdfError via map_pdf_error" {
   let ctx = @pdfcodec.PdfCodec::new()
   let stream_ref : Ref[(@pdf.PdfObject, @pdf.Stream)] = Ref::new(
-    (@pdf.PdfObject::Integer(1), @pdf.Stream::Got(@pdfio.bytes_of_string("x"))),
+    (Integer(1), Got(@pdfio.bytes_of_string("x"))),
   )
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
   let res : Result[Unit, Error] = try? ctx.encode_pdfstream(
     @pdf.Pdf::empty(),
-    Encoding::Flate,
+    Flate,
     stream_obj,
   )
   assert_true(res is Err(_))
@@ -672,7 +651,7 @@ test "encode_pdfstream maps PdfError via map_pdf_error" {
 ///|
 test "decode_from_bytes reads boolean decode parameters" {
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/CCITTFaxDecode"))),
+    ("/Filter", Name(PdfName("/CCITTFaxDecode"))),
     (
       "/DecodeParms",
       Dictionary([("/BlackIs1", Boolean(true)), ("/Columns", Integer(1))]),
@@ -709,7 +688,7 @@ test "decode_pdfstream follows indirect streams" {
   let ctx = @pdfcodec.PdfCodec::new()
   let (pdf, _stream_ref, stream_obj) = mk_stream(
     @pdfio.bytes_of_string("indirect"),
-    [("/Filter", Name(@pdf.PdfName("/Crypt")))],
+    [("/Filter", Name(PdfName("/Crypt")))],
   )
   let objnum = pdf.addobj(stream_obj)
   ctx.decode_pdfstream(pdf, Indirect(objnum))

@@ -26,13 +26,13 @@ fn clampvals(
   domain : Array[Double],
 ) -> Array[Double] raise BadFunctionEvaluation {
   if domain.length() % 2 == 1 {
-    raise BadFunctionEvaluation::Msg("Domain wrong")
+    raise Msg("Domain wrong")
   }
   let out = Array::new(capacity=values.length())
   for i in 0..<values.length() {
     let d = i * 2
     if d + 1 >= domain.length() {
-      raise BadFunctionEvaluation::Msg("Domain wrong")
+      raise Msg("Domain wrong")
     }
     out.push(clamp_double(values[i], domain[d], domain[d + 1]))
   }

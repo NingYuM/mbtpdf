@@ -30,7 +30,7 @@ pub fn Op::parse_operators(
     @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, direct)
     direct.getstream()
     match r.val {
-      (_, @pdf.Stream::Got(data)) => rawstreams.push(data)
+      (_, Got(data)) => rawstreams.push(data)
       _ => raise @pdf.PdfError::Msg("Malformed stream")
     }
   }

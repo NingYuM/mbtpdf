@@ -10,7 +10,7 @@ test "encode/decode flate stream" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(original)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  ctx.encode_pdfstream(pdf, Encoding::Flate, stream_obj)
+  ctx.encode_pdfstream(pdf, Flate, stream_obj)
   let (encoded_dict, encoded_stream) = stream_ref.val
   let encoded_bytes = match (encoded_stream : @pdf.Stream) {
     Got(bytes) => bytes
@@ -67,14 +67,14 @@ fn roundtrip_encoding(
 ///|
 test "encode/decode ASCIIHex stream" {
   let original = @pdfio.bytes_of_string("hello hex")
-  let decoded = roundtrip_encoding(Encoding::ASCIIHex, original)
+  let decoded = roundtrip_encoding(ASCIIHex, original)
   assert_eq(@pdfio.string_of_bytes(decoded), "hello hex")
 }
 
 ///|
 test "encode/decode ASCII85 stream" {
   let original = @pdfio.bytes_of_string("ascii85 data")
-  let decoded = roundtrip_encoding(Encoding::ASCII85, original)
+  let decoded = roundtrip_encoding(ASCII85, original)
   assert_eq(@pdfio.string_of_bytes(decoded), "ascii85 data")
 }
 
@@ -88,12 +88,7 @@ test "encode/decode ASCII85 roundtrips short chunks (1..3 bytes)" {
     ])
     let stream_ref = Ref::new((dict, @pdf.Stream::Got(original)))
     let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-    ctx.encode_pdfstream(
-      pdf,
-      Encoding::ASCII85,
-      stream_obj,
-      only_if_smaller=false,
-    )
+    ctx.encode_pdfstream(pdf, ASCII85, stream_obj, only_if_smaller=false)
     ctx.decode_pdfstream_onestage(pdf, stream_obj)
     match (stream_ref.val.1 : @pdf.Stream) {
       Got(decoded) => {
@@ -117,7 +112,7 @@ test "encode/decode ASCII85 roundtrips short chunks (1..3 bytes)" {
 ///|
 test "decode_from_bytes ASCIIHex handles odd nibble" {
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/ASCIIHexDecode"))),
+    ("/Filter", Name(PdfName("/ASCIIHexDecode"))),
   ])
   let out = @pdfcodec.PdfCodec::new().decode_from_bytes(
     @pdfio.bytes_of_string("F>"),
@@ -141,12 +136,7 @@ test "encode ASCII85 uses z for zero tuple" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(zeros)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  ctx.encode_pdfstream(
-    pdf,
-    Encoding::ASCII85,
-    stream_obj,
-    only_if_smaller=false,
-  )
+  ctx.encode_pdfstream(pdf, ASCII85, stream_obj, only_if_smaller=false)
   let encoded_bytes = match (stream_ref.val.1 : @pdf.Stream) {
     Got(bytes) => bytes
     _ => fail("expected encoded stream bytes")
@@ -157,7 +147,7 @@ test "encode ASCII85 uses z for zero tuple" {
 ///|
 test "decode_from_bytes ASCII85 handles z tuple" {
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/ASCII85Decode"))),
+    ("/Filter", Name(PdfName("/ASCII85Decode"))),
   ])
   let out = @pdfcodec.PdfCodec::new().decode_from_bytes(
     @pdfio.bytes_of_string("z~>"),
@@ -177,7 +167,7 @@ test "decode_from_bytes ASCII85 handles z tuple" {
 ///|
 test "decode_from_bytes ASCII85 flushes full groups and ignores 1-digit tail" {
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/ASCII85Decode"))),
+    ("/Filter", Name(PdfName("/ASCII85Decode"))),
   ])
   let out = @pdfcodec.PdfCodec::new().decode_from_bytes(
     @pdfio.bytes_of_string("!!!!!!~>"),
@@ -197,7 +187,7 @@ test "decode_from_bytes ASCII85 flushes full groups and ignores 1-digit tail" {
 ///|
 test "decode_from_bytes ASCII85 returns None on invalid characters" {
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Name(@pdf.PdfName("/ASCII85Decode"))),
+    ("/Filter", Name(PdfName("/ASCII85Decode"))),
   ])
   let out = @pdfcodec.PdfCodec::new().decode_from_bytes(
     @pdfio.bytes_of_string("v~>"),
@@ -209,14 +199,14 @@ test "decode_from_bytes ASCII85 returns None on invalid characters" {
 ///|
 test "encode/decode RunLength stream" {
   let original = @pdfio.bytes_of_string("runlength data")
-  let decoded = roundtrip_encoding(Encoding::RunLength, original)
+  let decoded = roundtrip_encoding(RunLength, original)
   assert_eq(@pdfio.string_of_bytes(decoded), "runlength data")
 }
 
 ///|
 test "encode/decode LZW stream" {
   let original = @pdfio.bytes_of_string("TOBEORNOTTOBEORTOBEORNOT")
-  let decoded = roundtrip_encoding(Encoding::LZW(1), original)
+  let decoded = roundtrip_encoding(LZW(1), original)
   assert_eq(@pdfio.string_of_bytes(decoded), "TOBEORNOTTOBEORTOBEORNOT")
 }
 
@@ -226,11 +216,11 @@ test "encode_pdfstream prepends filter when name already set" {
   let data = @pdfio.bytes_of_string("filter chain")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/Filter", Name(@pdf.PdfName("/ASCII85Decode"))),
+    ("/Filter", Name(PdfName("/ASCII85Decode"))),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  ctx.encode_pdfstream(pdf, Encoding::Flate, stream_obj)
+  ctx.encode_pdfstream(pdf, Flate, stream_obj)
   match (pdf.lookup_direct("/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
     Some(Array(filters)) => {
       assert_true(filters.length() >= 2)
@@ -249,11 +239,11 @@ test "encode_pdfstream prepends filter when array already set" {
   let data = @pdfio.bytes_of_string("array filter")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/Filter", Array([Name(@pdf.PdfName("/ASCIIHexDecode"))])),
+    ("/Filter", Array([Name(PdfName("/ASCIIHexDecode"))])),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  ctx.encode_pdfstream(pdf, Encoding::Flate, stream_obj)
+  ctx.encode_pdfstream(pdf, Flate, stream_obj)
   match (pdf.lookup_direct("/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
     Some(Array(filters)) =>
       match (filters[0] : @pdf.PdfObject) {
@@ -273,7 +263,7 @@ test "encode_pdfstream keeps data when only_if_smaller" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  ctx.encode_pdfstream(pdf, Encoding::Flate, stream_obj, only_if_smaller=true)
+  ctx.encode_pdfstream(pdf, Flate, stream_obj, only_if_smaller=true)
   match pdf.lookup_direct("/Filter", stream_ref.val.0) {
     None => ()
     _ => fail("expected no /Filter when not smaller")
@@ -289,18 +279,8 @@ test "decode_pdfstream handles filter arrays" {
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(original)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
-  ctx.encode_pdfstream(
-    pdf,
-    Encoding::ASCII85,
-    stream_obj,
-    only_if_smaller=false,
-  )
-  ctx.encode_pdfstream(
-    pdf,
-    Encoding::ASCIIHex,
-    stream_obj,
-    only_if_smaller=false,
-  )
+  ctx.encode_pdfstream(pdf, ASCII85, stream_obj, only_if_smaller=false)
+  ctx.encode_pdfstream(pdf, ASCIIHex, stream_obj, only_if_smaller=false)
   ctx.decode_pdfstream(pdf, stream_obj)
   match (stream_ref.val : (@pdf.PdfObject, @pdf.Stream)) {
     (decoded_dict, Got(bytes)) => {

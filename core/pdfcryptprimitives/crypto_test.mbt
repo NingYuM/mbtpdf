@@ -127,7 +127,7 @@ test "decrypt_stream_data uses file key for r=5 AESV2 and ARC4" {
   let file_key = "0123456789ABCDEF"
   let data = @pdfio.bytes_of_string("payload")
   let enc_aes = ctx.decrypt_stream_data(
-    @pdfcryptprimitives.Encryption::AESV2,
+    AESV2,
     true,
     Some(file_key),
     1,
@@ -138,7 +138,7 @@ test "decrypt_stream_data uses file key for r=5 AESV2 and ARC4" {
     data,
   )
   let dec_aes = ctx.decrypt_stream_data(
-    @pdfcryptprimitives.Encryption::AESV2,
+    AESV2,
     false,
     Some(file_key),
     1,
@@ -150,7 +150,7 @@ test "decrypt_stream_data uses file key for r=5 AESV2 and ARC4" {
   )
   assert_eq(@pdfio.string_of_bytes(dec_aes), "payload")
   let enc_arc4 = ctx.decrypt_stream_data(
-    @pdfcryptprimitives.Encryption::ARC4(40, 5),
+    ARC4(40, 5),
     true,
     Some(file_key),
     1,
@@ -161,7 +161,7 @@ test "decrypt_stream_data uses file key for r=5 AESV2 and ARC4" {
     data,
   )
   let dec_arc4 = ctx.decrypt_stream_data(
-    @pdfcryptprimitives.Encryption::ARC4(40, 5),
+    ARC4(40, 5),
     false,
     Some(file_key),
     1,
@@ -178,7 +178,7 @@ test "decrypt_stream_data uses file key for r=5 AESV2 and ARC4" {
 test "decrypt_stream_data rejects AESV3 when r!=5/6" {
   let ctx = @pdfcryptprimitives.PdfCryptPrimitives::new()
   let res : Result[Array[Byte], Error] = try? ctx.decrypt_stream_data(
-    @pdfcryptprimitives.Encryption::AESV3(false),
+    AESV3(false),
     true,
     None,
     1,

@@ -9,7 +9,7 @@ fn ops_page_with_ops(ops : Array[@pdfops.Op]) -> @pdfpage.Page raise {
     content: [@pdfops.Op::stream_of_ops(ops)],
     mediabox: ops_sample_rect(),
     resources: Dictionary([]),
-    rotate: @pdfpage.Rotation::Rotate0,
+    rotate: Rotate0,
     rest: Dictionary([]),
   }
 }

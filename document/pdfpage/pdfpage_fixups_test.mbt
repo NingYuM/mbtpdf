@@ -39,7 +39,7 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
   ])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   let annot_base : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Text"))),
+    ("/Subtype", Name(PdfName("/Text"))),
   ])
   let unrelated_num = pdf.addobj(annot_base)
   let annot_num = pdf.addobj(annot_base)
@@ -75,9 +75,7 @@ test "fixup_duplicate_annots tolerates missing popup/parent links" {
     page, page,
   ])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
-  let annot : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(@pdf.PdfName("/Text"))),
-  ])
+  let annot : @pdf.PdfObject = Dictionary([("/Subtype", Name(PdfName("/Text")))])
   let annot_num = pdf.addobj(annot)
   let refs = pdf.page_reference_numbers()
   for refnum in refs {
@@ -99,11 +97,11 @@ test "fixup_destinations removes nulled entries" {
   }
   let dead_dest : @pdf.PdfObject = Array([
     Indirect(null_num),
-    Name(@pdf.PdfName("/Fit")),
+    Name(PdfName("/Fit")),
   ])
   let live_dest : @pdf.PdfObject = Array([
     Indirect(live_page_num),
-    Name(@pdf.PdfName("/Fit")),
+    Name(PdfName("/Fit")),
   ])
   let tree_ctx = @pdftree.PdfTree::new(pdf)
   let tree = tree_ctx.build_name_tree(false, [
@@ -154,12 +152,12 @@ test "fixup_parents raises without page tree" {
 test "fixup_parents skips direct kids" {
   let pdf0 = @pdf.Pdf::empty()
   let page : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Page"))),
+    ("/Type", Name(PdfName("/Page"))),
     ("/Resources", Dictionary([])),
     ("/MediaBox", fixups_sample_rect()),
   ])
   let pages : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Pages"))),
+    ("/Type", Name(PdfName("/Pages"))),
     ("/Kids", Array([page])),
     ("/Count", Integer(1)),
   ])
@@ -172,7 +170,7 @@ test "fixup_parents skips direct kids" {
 test "fixup_duplicate_pages errors on malformed root entries" {
   let base = @pdf.Pdf::empty()
   // Root is not a dictionary.
-  base.addobj_given_num((1, @pdf.PdfObject::Integer(0)))
+  base.addobj_given_num((1, Integer(0)))
   let pdf_bad_root : @pdf.Pdf = {
     major: base.major,
     minor: base.minor,
@@ -189,7 +187,7 @@ test "fixup_duplicate_pages errors on malformed root entries" {
 
   // Root dictionary missing /Pages.
   let base2 = @pdf.Pdf::empty()
-  let root_num = base2.addobj(@pdf.PdfObject::Dictionary([]))
+  let root_num = base2.addobj(Dictionary([]))
   let pdf_missing_pages : @pdf.Pdf = {
     major: base2.major,
     minor: base2.minor,
@@ -206,9 +204,7 @@ test "fixup_duplicate_pages errors on malformed root entries" {
 
   // Root dictionary has /Pages but not an indirect reference.
   let base3 = @pdf.Pdf::empty()
-  let root_num3 = base3.addobj(
-    @pdf.PdfObject::Dictionary([("/Pages", @pdf.PdfObject::Integer(1))]),
-  )
+  let root_num3 = base3.addobj(Dictionary([("/Pages", Integer(1))]))
   let pdf_pages_not_indirect : @pdf.Pdf = {
     major: base3.major,
     minor: base3.minor,
@@ -229,15 +225,13 @@ test "fixup_duplicate_pages scans malformed page trees" {
   let base = @pdf.Pdf::empty()
   // Pages node with a non-indirect kid.
   let pages_num = base.addobj(
-    @pdf.PdfObject::Dictionary([
-      ("/Type", Name(@pdf.PdfName("/Pages"))),
-      ("/Kids", Array([@pdf.PdfObject::Integer(1)])),
+    Dictionary([
+      ("/Type", Name(PdfName("/Pages"))),
+      ("/Kids", Array([Integer(1)])),
       ("/Count", Integer(1)),
     ]),
   )
-  let root_num = base.addobj(
-    @pdf.PdfObject::Dictionary([("/Pages", Indirect(pages_num))]),
-  )
+  let root_num = base.addobj(Dictionary([("/Pages", Indirect(pages_num))]))
   let pdf : @pdf.Pdf = {
     major: base.major,
     minor: base.minor,
@@ -252,15 +246,13 @@ test "fixup_duplicate_pages scans malformed page trees" {
   // Pages node with /Kids not an array (forces unordered traversal fallback).
   let base2 = @pdf.Pdf::empty()
   let pages_num2 = base2.addobj(
-    @pdf.PdfObject::Dictionary([
-      ("/Type", Name(@pdf.PdfName("/Pages"))),
+    Dictionary([
+      ("/Type", Name(PdfName("/Pages"))),
       ("/Kids", Integer(1)),
       ("/Count", Integer(1)),
     ]),
   )
-  let root_num2 = base2.addobj(
-    @pdf.PdfObject::Dictionary([("/Pages", Indirect(pages_num2))]),
-  )
+  let root_num2 = base2.addobj(Dictionary([("/Pages", Indirect(pages_num2))]))
   let pdf2 : @pdf.Pdf = {
     major: base2.major,
     minor: base2.minor,

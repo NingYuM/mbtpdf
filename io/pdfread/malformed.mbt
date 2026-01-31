@@ -88,7 +88,7 @@ fn read_malformed_pdf_objects(
     }
     match parsed {
       Some(obj) => {
-        objects.set(objnum, ({ val: @pdf.ObjectData::Parsed(obj) }, gen))
+        objects.set(objnum, ({ val: Parsed(obj) }, gen))
         if objnum > max_obj {
           max_obj = objnum
         }
@@ -166,10 +166,9 @@ fn find_catalog_object(objects : @pdf.PdfObjMap) -> Int? {
     let objnum = entry.0
     let (obj_ref, _gen) = entry.1
     match obj_ref.val {
-      @pdf.ObjectData::Parsed(obj)
-      | @pdf.ObjectData::ParsedAlreadyDecrypted(obj) =>
+      Parsed(obj) | ParsedAlreadyDecrypted(obj) =>
         match obj.lookup_immediate("/Type") {
-          Some(@pdf.PdfObject::Name(PdfName("/Catalog"))) => return Some(objnum)
+          Some(Name(PdfName("/Catalog"))) => return Some(objnum)
           _ => ()
         }
       _ => ()
@@ -197,10 +196,10 @@ fn read_malformed_pdf(
   let mut trailerdict = if trailers.length() > 0 {
     trailers[trailers.length() - 1]
   } else {
-    @pdf.PdfObject::Dictionary([])
+    Dictionary([])
   }
   let root = match trailerdict.lookup_immediate("/Root") {
-    Some(@pdf.PdfObject::Indirect(i)) => i
+    Some(Indirect(i)) => i
     Some(_) => {
       let from_catalog = find_catalog_object(objects)
       match from_catalog {
@@ -217,7 +216,7 @@ fn read_malformed_pdf(
     }
   }
   if trailerdict.lookup_immediate("/Root") is None {
-    trailerdict = trailerdict.add_entry("/Root", @pdf.PdfObject::Indirect(root))
+    trailerdict = trailerdict.add_entry("/Root", Indirect(root))
   }
   let sanitized_trailer = sanitize_trailerdict(objects.length(), trailerdict)
   let pdf_objects : @pdf.PdfObjects = {
@@ -239,7 +238,7 @@ fn read_malformed_pdf(
     Some(pair) => pair
     None => (major_header, minor_header)
   }
-  @pdf.Pdf::{
+  {
     major,
     minor,
     root,

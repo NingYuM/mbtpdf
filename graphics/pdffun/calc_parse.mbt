@@ -1,44 +1,44 @@
 ///|
 fn keyword_of_string(value : String) -> Calculator? {
   match value {
-    "abs" => Some(Calculator::Abs)
-    "add" => Some(Calculator::Add)
-    "atan" => Some(Calculator::Atan)
-    "ceiling" => Some(Calculator::Ceiling)
-    "cos" => Some(Calculator::Cos)
-    "cvi" => Some(Calculator::Cvi)
-    "cvr" => Some(Calculator::Cvr)
-    "div" => Some(Calculator::Div)
-    "exp" => Some(Calculator::Exp)
-    "floor" => Some(Calculator::Floor)
-    "idiv" => Some(Calculator::Idiv)
-    "ln" => Some(Calculator::Ln)
-    "log" => Some(Calculator::Log)
-    "mod" => Some(Calculator::Mod)
-    "mul" => Some(Calculator::Mul)
-    "neg" => Some(Calculator::Neg)
-    "round" => Some(Calculator::Round)
-    "sin" => Some(Calculator::Sin)
-    "sqrt" => Some(Calculator::Sqrt)
-    "sub" => Some(Calculator::Sub)
-    "truncate" => Some(Calculator::Truncate)
-    "and" => Some(Calculator::And)
-    "bitshift" => Some(Calculator::Bitshift)
-    "eq" => Some(Calculator::Eq)
-    "ge" => Some(Calculator::Ge)
-    "gt" => Some(Calculator::Gt)
-    "le" => Some(Calculator::Le)
-    "lt" => Some(Calculator::Lt)
-    "ne" => Some(Calculator::Ne)
-    "not" => Some(Calculator::Not)
-    "or" => Some(Calculator::Or)
-    "xor" => Some(Calculator::Xor)
-    "copy" => Some(Calculator::Copy)
-    "exch" => Some(Calculator::Exch)
-    "pop" => Some(Calculator::Pop)
-    "dup" => Some(Calculator::Dup)
-    "index" => Some(Calculator::Index)
-    "roll" => Some(Calculator::Roll)
+    "abs" => Some(Abs)
+    "add" => Some(Add)
+    "atan" => Some(Atan)
+    "ceiling" => Some(Ceiling)
+    "cos" => Some(Cos)
+    "cvi" => Some(Cvi)
+    "cvr" => Some(Cvr)
+    "div" => Some(Div)
+    "exp" => Some(Exp)
+    "floor" => Some(Floor)
+    "idiv" => Some(Idiv)
+    "ln" => Some(Ln)
+    "log" => Some(Log)
+    "mod" => Some(Mod)
+    "mul" => Some(Mul)
+    "neg" => Some(Neg)
+    "round" => Some(Round)
+    "sin" => Some(Sin)
+    "sqrt" => Some(Sqrt)
+    "sub" => Some(Sub)
+    "truncate" => Some(Truncate)
+    "and" => Some(And)
+    "bitshift" => Some(Bitshift)
+    "eq" => Some(Eq)
+    "ge" => Some(Ge)
+    "gt" => Some(Gt)
+    "le" => Some(Le)
+    "lt" => Some(Lt)
+    "ne" => Some(Ne)
+    "not" => Some(Not)
+    "or" => Some(Or)
+    "xor" => Some(Xor)
+    "copy" => Some(Copy)
+    "exch" => Some(Exch)
+    "pop" => Some(Pop)
+    "dup" => Some(Dup)
+    "index" => Some(Index)
+    "roll" => Some(Roll)
     _ => None
   }
 }
@@ -116,18 +116,18 @@ fn calc_read_word(input : @pdfio.Input) -> String {
 ///|
 fn calc_token_of_word(word : String) -> CalcTok {
   match word {
-    "true" => CalcTok::Bool(true)
-    "false" => CalcTok::Bool(false)
+    "true" => Bool(true)
+    "false" => Bool(false)
     _ =>
       try @strconv.parse_int(word) catch {
         _ =>
           try @strconv.parse_double(word) catch {
-            _ => CalcTok::Name(word)
+            _ => Name(word)
           } noraise {
-            f => CalcTok::Real(f)
+            f => Real(f)
           }
       } noraise {
-        i => CalcTok::Int(i)
+        i => Int(i)
       }
   }
 }
@@ -151,7 +151,7 @@ fn calc_lex(text : String) -> Array[CalcTok] {
       }
       '}' => {
         input.nudge()
-        out.push(CalcTok::RBrace)
+        out.push(RBrace)
       }
       _ => {
         let word = calc_read_word(input)
@@ -176,19 +176,19 @@ fn calc_parse_seq(
   let mut i = start
   while i < toks.length() {
     match toks[i] {
-      CalcTok::RBrace =>
+      RBrace =>
         if stop_on_rbrace {
           return (out, i + 1)
         } else {
           raise @pdf.PdfError::Msg("Unexpected '}' in Type 4 function")
         }
-      CalcTok::LBrace => {
+      LBrace => {
         let (body, next_i) = calc_parse_seq(toks, i + 1, true)
-        out.push(CalcNode::Proc(body))
+        out.push(Proc(body))
         i = next_i
       }
       other => {
-        out.push(CalcNode::Atom(other))
+        out.push(Atom(other))
         i = i + 1
       }
     }
@@ -202,7 +202,7 @@ fn calc_parse_seq(
 ///|
 fn calc_parse_program(toks : Array[CalcTok]) -> Array[CalcNode] raise {
   match toks {
-    [CalcTok::LBrace, ..] => {
+    [LBrace, ..] => {
       let (nodes, next_i) = calc_parse_seq(toks, 1, true)
       if next_i != toks.length() {
         raise @pdf.PdfError::Msg("Trailing tokens after Type 4 program")
@@ -237,7 +237,7 @@ fn calc_compile(nodes : Array[CalcNode]) -> Array[Calculator] raise {
     if i + 1 < nodes.length() {
       match (nodes[i], nodes[i + 1]) {
         (Proc(body), Atom(Name("if"))) => {
-          out.push(Calculator::If(calc_compile(body)))
+          out.push(If(calc_compile(body)))
           i = i + 2
           continue
         }
@@ -247,9 +247,9 @@ fn calc_compile(nodes : Array[CalcNode]) -> Array[Calculator] raise {
     match nodes[i] {
       Proc(_) =>
         raise @pdf.PdfError::Msg("Unexpected '{...}' in Type 4 function")
-      Atom(Bool(b)) => out.push(Calculator::Bool(b))
-      Atom(Int(v)) => out.push(Calculator::Int(v))
-      Atom(Real(f)) => out.push(Calculator::Float(f))
+      Atom(Bool(b)) => out.push(Bool(b))
+      Atom(Int(v)) => out.push(Int(v))
+      Atom(Real(f)) => out.push(Float(f))
       Atom(Name(name)) =>
         match keyword_of_string(name) {
           Some(op) => out.push(op)
@@ -325,7 +325,7 @@ pub fn PdfFunction::parse(pdf : @pdf.Pdf, obj : PdfObject) -> PdfFunction raise 
       let data = match f {
         Stream(r) =>
           match r.val {
-            (_, @pdf.Stream::Got(bytes)) => bytes
+            (_, Got(bytes)) => bytes
             _ => raise @pdf.PdfError::Msg("No stream data")
           }
         _ => raise @pdf.PdfError::Msg("This is not a function")
@@ -350,7 +350,7 @@ pub fn PdfFunction::parse(pdf : @pdf.Pdf, obj : PdfObject) -> PdfFunction raise 
         _ => [1.0]
       }
       let n = getnum_direct(pdf.lookup_fail("No /N in Type 2 fun", "/N", f))
-      PdfFunctionKind::Interpolation({ c0, c1, n })
+      Interpolation({ c0, c1, n })
     }
     Integer(3) => {
       let functions = match pdf.lookup_fail("no /Functions", "/Functions", f) {
@@ -365,7 +365,7 @@ pub fn PdfFunction::parse(pdf : @pdf.Pdf, obj : PdfObject) -> PdfFunction raise 
         Array(values) => values.map(getnum_direct)
         _ => raise @pdf.PdfError::Msg("Bad /Bounds")
       }
-      PdfFunctionKind::Stitching({
+      Stitching({
         functions: functions.map(value => PdfFunction::parse(pdf, value)),
         bounds,
         stitch_encode: encode,
@@ -376,10 +376,8 @@ pub fn PdfFunction::parse(pdf : @pdf.Pdf, obj : PdfObject) -> PdfFunction raise 
       match f {
         Stream(r) =>
           match r.val {
-            (_, @pdf.Stream::Got(bytes)) =>
-              PdfFunctionKind::Calculator(
-                parse_calculator(@pdfio.string_of_bytes(bytes)),
-              )
+            (_, Got(bytes)) =>
+              Calculator(parse_calculator(@pdfio.string_of_bytes(bytes)))
             _ => raise @pdf.PdfError::Msg("This is not a function")
           }
         _ => raise @pdf.PdfError::Msg("This is not a function")

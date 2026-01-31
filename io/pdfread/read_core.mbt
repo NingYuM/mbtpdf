@@ -31,11 +31,11 @@ fn read_startxref(input : @pdfio.Input) -> Int raise {
 ///|
 fn extract_trailer_dict(obj : @pdf.PdfObject) -> @pdf.PdfObject raise {
   match obj {
-    @pdf.PdfObject::Dictionary(_) => obj
-    @pdf.PdfObject::Stream(r) => {
+    Dictionary(_) => obj
+    Stream(r) => {
       let (dict, _) = r.val
       match dict {
-        @pdf.PdfObject::Dictionary(_) => dict
+        Dictionary(_) => dict
         _ => raise @pdf.PdfError::Msg("Malformed trailer")
       }
     }
@@ -67,13 +67,13 @@ fn sanitize_trailerdict(
       cleaned = cleaned.remove_entry(key)
     }
   }
-  cleaned.add_entry("/Size", @pdf.PdfObject::Integer(object_count))
+  cleaned.add_entry("/Size", Integer(object_count))
 }
 
 ///|
 fn version_from_catalog(ctx : PdfRead, pdf : @pdf.Pdf) -> (Int, Int)? {
   match pdf.lookup_direct("/Version", pdf.lookup_obj(pdf.root)) {
-    Some(@pdf.PdfObject::Name(name)) => {
+    Some(Name(name)) => {
       let s = name.to_string_bytes()
       if s.length() < 2 {
         return None
@@ -169,7 +169,7 @@ fn read_pdf_internal(
         first_trailer = false
       }
       match trailerdict_current.lookup_immediate("/XRefStm") {
-        Some(@pdf.PdfObject::Integer(n)) => {
+        Some(Integer(n)) => {
           (input.seek_in)(n)
           input.dropwhite()
           let (entries, xref_objnum, _stream_obj) = read_xref_stream(ctx, input)
@@ -187,7 +187,7 @@ fn read_pdf_internal(
       }
       match trailerdict_current.lookup_immediate("/Prev") {
         None => got_all_xref_sections = true
-        Some(@pdf.PdfObject::Integer(n)) => {
+        Some(Integer(n)) => {
           revisions_count = revisions_count + 1
           xref_offset = n
         }
@@ -208,13 +208,13 @@ fn read_pdf_internal(
     if read_stream_data {
       for _key, xref in xrefs {
         match xref {
-          XRef::Stream(stream_id, _) => postdeletes.set(stream_id, true)
+          Stream(stream_id, _) => postdeletes.set(stream_id, true)
           _ => ()
         }
       }
     }
     let root = match trailerdict.lookup_immediate("/Root") {
-      Some(@pdf.PdfObject::Indirect(i)) => i
+      Some(Indirect(i)) => i
       None => {
         let message = @pdf.input_pdferror(input, "No /Root entry")
         raise @pdf.PdfError::Msg(message)
@@ -261,13 +261,11 @@ fn read_pdf_internal(
     }
     fn remove_postdelete(pdf : @pdf.Pdf, objnum : Int) -> Unit {
       match pdf.lookup_obj(objnum) {
-        @pdf.PdfObject::Stream(r) => {
+        Stream(r) => {
           let (dict, _) = r.val
           match pdf.lookup_direct("/Type", dict) {
-            Some(@pdf.PdfObject::Name(PdfName("/XRef"))) =>
-              pdf.removeobj(objnum)
-            Some(@pdf.PdfObject::Name(PdfName("/ObjStm"))) =>
-              pdf.removeobj(objnum)
+            Some(Name(PdfName("/XRef"))) => pdf.removeobj(objnum)
+            Some(Name(PdfName("/ObjStm"))) => pdf.removeobj(objnum)
             _ => ()
           }
         }

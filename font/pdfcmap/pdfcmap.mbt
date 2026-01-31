@@ -77,7 +77,7 @@ fn get_section(chars : ArrayView[Char], start : Int) -> (Section, Int)? {
         i + bfchar_token.length(),
         end_bfchar_token,
       )
-      return Some((Section::BfChar(numbers), next))
+      return Some((BfChar(numbers), next))
     }
     if match_at(chars, i, bfrange_token) {
       let (numbers, next) = get_until(
@@ -85,7 +85,7 @@ fn get_section(chars : ArrayView[Char], start : Int) -> (Section, Int)? {
         i + bfrange_token.length(),
         end_bfrange_token,
       )
-      return Some((Section::BfRange(numbers), next))
+      return Some((BfRange(numbers), next))
     }
     i = i + 1
   }
@@ -236,7 +236,7 @@ fn increment_code(code : String, delta : Int) -> String {
 ///|
 fn pairs_of_section(section : Section) -> Array[(String, String)] {
   match section {
-    Section::BfChar(numbers) => {
+    BfChar(numbers) => {
       let results = Array::new()
       let mut pos = 0
       while true {
@@ -254,7 +254,7 @@ fn pairs_of_section(section : Section) -> Array[(String, String)] {
       }
       results
     }
-    Section::BfRange(numbers) => {
+    BfRange(numbers) => {
       let results = Array::new()
       let mut pos = 0
       fn find_dest_marker(
@@ -381,13 +381,13 @@ fn extract_specifics(data : Array[Byte]) -> Int? {
 ///|
 pub fn CMap::parse(pdf : @pdf.Pdf, cmap : @pdf.PdfObject) -> CMap raise {
   match cmap {
-    @pdf.PdfObject::Stream(_) => {
+    Stream(_) => {
       @pdfcodec.PdfCodec::new().decode_pdfstream(pdf, cmap)
       match cmap {
-        @pdf.PdfObject::Stream(r) => {
+        Stream(r) => {
           let (_dict, contents) = r.val
           match contents {
-            @pdf.Stream::Got(data) => {
+            Got(data) => {
               let wmode = extract_specifics(data)
               let chars = @pdfio.charlist_of_bytes(data).filter(c => !is_whitespace(
                 c,
@@ -399,7 +399,7 @@ pub fn CMap::parse(pdf : @pdf.Pdf, cmap : @pdf.PdfObject) -> CMap raise {
               }
               { map: pairs, wmode }
             }
-            @pdf.Stream::ToGet(_) => {
+            ToGet(_) => {
               cmap.getstream()
               CMap::parse(pdf, cmap)
             }

@@ -17,7 +17,7 @@ fn pdf_with_stream() -> @pdf.Pdf raise {
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
   ])
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  let stream : @pdf.PdfObject = Stream(Ref::new((dict, Got(data))))
   let mediabox : @pdf.PdfObject = Array([
     Real(0.0),
     Real(0.0),
@@ -28,7 +28,7 @@ fn pdf_with_stream() -> @pdf.Pdf raise {
     content: [stream],
     mediabox,
     resources: Dictionary([]),
-    rotate: @pdfpage.Rotation::Rotate0,
+    rotate: Rotate0,
     rest: Dictionary([]),
   }
   let (pdf0, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([
@@ -64,7 +64,7 @@ test "decrypt_single_stream restores AES256 stream bytes" {
   let orig_bytes = match (orig_stream : @pdf.PdfObject) {
     Stream(r) =>
       match r.val.1 {
-        @pdf.Stream::Got(bytes) => bytes
+        Got(bytes) => bytes
         _ => fail("expected stream bytes")
       }
     _ => fail("expected stream object")
@@ -89,7 +89,7 @@ test "decrypt_single_stream restores AES256 stream bytes" {
   match (decrypted : @pdf.PdfObject) {
     Stream(r) =>
       match r.val.1 {
-        @pdf.Stream::Got(bytes) => {
+        Got(bytes) => {
           assert_eq(@pdfio.bytes_size(bytes), @pdfio.bytes_size(orig_bytes))
           assert_eq(
             @pdfio.int_array_of_bytes(bytes),
@@ -110,7 +110,7 @@ test "decrypt_single_stream restores ARC4 128 stream bytes via owner password" {
   let orig_bytes = match (orig_stream : @pdf.PdfObject) {
     Stream(r) =>
       match r.val.1 {
-        @pdf.Stream::Got(bytes) => bytes
+        Got(bytes) => bytes
         _ => fail("expected stream bytes")
       }
     _ => fail("expected stream object")
@@ -134,7 +134,7 @@ test "decrypt_single_stream restores ARC4 128 stream bytes via owner password" {
   match (decrypted : @pdf.PdfObject) {
     Stream(r) =>
       match r.val.1 {
-        @pdf.Stream::Got(bytes) => {
+        Got(bytes) => {
           assert_eq(@pdfio.bytes_size(bytes), @pdfio.bytes_size(orig_bytes))
           assert_eq(
             @pdfio.int_array_of_bytes(bytes),

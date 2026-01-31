@@ -1,9 +1,9 @@
 ///|
 fn value_equal(a : Calculator, b : Calculator) -> Bool {
   match (a, b) {
-    (Calculator::Bool(x), Calculator::Bool(y)) => x == y
-    (Calculator::Float(x), Calculator::Float(y)) => x == y
-    (Calculator::Int(x), Calculator::Int(y)) => x == y
+    (Bool(x), Bool(y)) => x == y
+    (Float(x), Float(y)) => x == y
+    (Int(x), Int(y)) => x == y
     _ => false
   }
 }
@@ -14,35 +14,14 @@ fn value_compare(
   b : Calculator,
 ) -> Int raise BadFunctionEvaluation {
   match (a, b) {
-    (Calculator::Bool(x), Calculator::Bool(y)) =>
-      if x == y {
-        0
-      } else if x {
-        1
-      } else {
-        -1
-      }
-    (Calculator::Float(x), Calculator::Float(y)) =>
-      if x < y {
-        -1
-      } else if x > y {
-        1
-      } else {
-        0
-      }
-    (Calculator::Int(x), Calculator::Int(y)) =>
-      if x < y {
-        -1
-      } else if x > y {
-        1
-      } else {
-        0
-      }
-    (Calculator::Bool(_), _) => -1
-    (Calculator::Float(_), Calculator::Int(_)) => -1
-    (Calculator::Float(_), Calculator::Bool(_)) => 1
-    (Calculator::Int(_), _) => 1
-    _ => raise BadFunctionEvaluation::Msg("Type error")
+    (Bool(x), Bool(y)) => if x == y { 0 } else if x { 1 } else { -1 }
+    (Float(x), Float(y)) => if x < y { -1 } else if x > y { 1 } else { 0 }
+    (Int(x), Int(y)) => if x < y { -1 } else if x > y { 1 } else { 0 }
+    (Bool(_), _) => -1
+    (Float(_), Int(_)) => -1
+    (Float(_), Bool(_)) => 1
+    (Int(_), _) => 1
+    _ => raise Msg("Type error")
   }
 }
 
@@ -52,32 +31,32 @@ fn pop_value(
 ) -> Calculator raise BadFunctionEvaluation {
   match stack.pop() {
     Some(value) => value
-    None => raise BadFunctionEvaluation::Msg("Type error")
+    None => raise Msg("Type error")
   }
 }
 
 ///|
 fn pop_float(stack : Array[Calculator]) -> Double raise BadFunctionEvaluation {
   match pop_value(stack) {
-    Calculator::Float(f) => f
-    Calculator::Int(i) => i.to_double()
-    _ => raise BadFunctionEvaluation::Msg("Type error")
+    Float(f) => f
+    Int(i) => i.to_double()
+    _ => raise Msg("Type error")
   }
 }
 
 ///|
 fn pop_int(stack : Array[Calculator]) -> Int raise BadFunctionEvaluation {
   match pop_value(stack) {
-    Calculator::Int(i) => i
-    _ => raise BadFunctionEvaluation::Msg("Type error")
+    Int(i) => i
+    _ => raise Msg("Type error")
   }
 }
 
 ///|
 fn pop_bool(stack : Array[Calculator]) -> Bool raise BadFunctionEvaluation {
   match pop_value(stack) {
-    Calculator::Bool(b) => b
-    _ => raise BadFunctionEvaluation::Msg("Type error")
+    Bool(b) => b
+    _ => raise Msg("Type error")
   }
 }
 
@@ -95,7 +74,7 @@ fn eval_function_calculator(
     stack : Array[Calculator],
   ) -> Unit raise BadFunctionEvaluation {
     match op {
-      Calculator::If(body) => {
+      If(body) => {
         let cond = pop_bool(stack)
         if cond {
           for inner in body {
@@ -103,168 +82,150 @@ fn eval_function_calculator(
           }
         }
       }
-      Calculator::IfElse(a, b) => {
+      IfElse(a, b) => {
         let cond = pop_bool(stack)
         let body = if cond { a } else { b }
         for inner in body {
           eval(inner, stack)
         }
       }
-      Calculator::Bool(_) | Calculator::Float(_) | Calculator::Int(_) =>
-        stack.push(op)
-      Calculator::Abs =>
+      Bool(_) | Float(_) | Int(_) => stack.push(op)
+      Abs =>
         match pop_value(stack) {
-          Calculator::Float(f) => stack.push(Calculator::Float(f.abs()))
-          Calculator::Int(i) => stack.push(Calculator::Int(i.abs()))
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          Float(f) => stack.push(Float(f.abs()))
+          Int(i) => stack.push(Int(i.abs()))
+          _ => raise Msg("Type error")
         }
-      Calculator::Add => {
+      Add => {
         let a = pop_value(stack)
         let b = pop_value(stack)
         match (a, b) {
-          (Calculator::Int(x), Calculator::Int(y)) =>
-            stack.push(Calculator::Int(x + y))
-          (Calculator::Float(x), Calculator::Float(y)) =>
-            stack.push(Calculator::Float(x + y))
-          (Calculator::Int(x), Calculator::Float(y)) =>
-            stack.push(Calculator::Float(x.to_double() + y))
-          (Calculator::Float(x), Calculator::Int(y)) =>
-            stack.push(Calculator::Float(x + y.to_double()))
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          (Int(x), Int(y)) => stack.push(Int(x + y))
+          (Float(x), Float(y)) => stack.push(Float(x + y))
+          (Int(x), Float(y)) => stack.push(Float(x.to_double() + y))
+          (Float(x), Int(y)) => stack.push(Float(x + y.to_double()))
+          _ => raise Msg("Type error")
         }
       }
-      Calculator::Atan => {
+      Atan => {
         let num = pop_float(stack)
         let den = pop_float(stack)
-        stack.push(Calculator::Float(@math.atan2(num, den)))
+        stack.push(Float(@math.atan2(num, den)))
       }
-      Calculator::Ceiling =>
+      Ceiling =>
         match pop_value(stack) {
-          Calculator::Float(f) => stack.push(Calculator::Float(f.ceil()))
-          Calculator::Int(i) => stack.push(Calculator::Int(i))
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          Float(f) => stack.push(Float(f.ceil()))
+          Int(i) => stack.push(Int(i))
+          _ => raise Msg("Type error")
         }
-      Calculator::Cos => {
+      Cos => {
         let f = pop_float(stack)
-        stack.push(Calculator::Float(@math.cos(rad_of_deg(f))))
+        stack.push(Float(@math.cos(rad_of_deg(f))))
       }
-      Calculator::Cvi =>
+      Cvi =>
         match pop_value(stack) {
-          Calculator::Float(f) =>
-            stack.push(Calculator::Int(f.floor().to_int()))
-          Calculator::Int(i) => stack.push(Calculator::Int(i))
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          Float(f) => stack.push(Int(f.floor().to_int()))
+          Int(i) => stack.push(Int(i))
+          _ => raise Msg("Type error")
         }
-      Calculator::Cvr =>
+      Cvr =>
         match pop_value(stack) {
-          Calculator::Int(i) => stack.push(Calculator::Float(i.to_double()))
-          Calculator::Float(f) => stack.push(Calculator::Float(f))
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          Int(i) => stack.push(Float(i.to_double()))
+          Float(f) => stack.push(Float(f))
+          _ => raise Msg("Type error")
         }
-      Calculator::Div => {
+      Div => {
         let n = pop_float(stack)
         let d = pop_float(stack)
-        stack.push(Calculator::Float(n / d))
+        stack.push(Float(n / d))
       }
-      Calculator::Exp => {
+      Exp => {
         let bse = pop_float(stack)
         let exp = pop_float(stack)
-        stack.push(Calculator::Float(@math.pow(bse, exp)))
+        stack.push(Float(@math.pow(bse, exp)))
       }
-      Calculator::Floor =>
+      Floor =>
         match pop_value(stack) {
-          Calculator::Float(f) =>
-            stack.push(Calculator::Int(f.floor().to_int()))
-          Calculator::Int(i) => stack.push(Calculator::Int(i))
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          Float(f) => stack.push(Int(f.floor().to_int()))
+          Int(i) => stack.push(Int(i))
+          _ => raise Msg("Type error")
         }
-      Calculator::Idiv => {
+      Idiv => {
         let a = pop_int(stack)
         let b = pop_int(stack)
-        stack.push(Calculator::Int(a / b))
+        stack.push(Int(a / b))
       }
-      Calculator::Ln => {
+      Ln => {
         let f = pop_float(stack)
-        stack.push(Calculator::Float(@math.ln(f)))
+        stack.push(Float(@math.ln(f)))
       }
-      Calculator::Log => {
+      Log => {
         let f = pop_float(stack)
-        stack.push(Calculator::Float(@math.log10(f)))
+        stack.push(Float(@math.log10(f)))
       }
-      Calculator::Mod => {
+      Mod => {
         let a = pop_int(stack)
         let b = pop_int(stack)
-        stack.push(Calculator::Int(a % b))
+        stack.push(Int(a % b))
       }
-      Calculator::Mul => {
+      Mul => {
         let a = pop_value(stack)
         let b = pop_value(stack)
         match (a, b) {
-          (Calculator::Int(x), Calculator::Int(y)) =>
-            stack.push(Calculator::Int(x * y))
-          (Calculator::Float(x), Calculator::Float(y)) =>
-            stack.push(Calculator::Float(x * y))
-          (Calculator::Int(x), Calculator::Float(y)) =>
-            stack.push(Calculator::Float(x.to_double() * y))
-          (Calculator::Float(x), Calculator::Int(y)) =>
-            stack.push(Calculator::Float(x * y.to_double()))
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          (Int(x), Int(y)) => stack.push(Int(x * y))
+          (Float(x), Float(y)) => stack.push(Float(x * y))
+          (Int(x), Float(y)) => stack.push(Float(x.to_double() * y))
+          (Float(x), Int(y)) => stack.push(Float(x * y.to_double()))
+          _ => raise Msg("Type error")
         }
       }
-      Calculator::Neg =>
+      Neg =>
         match pop_value(stack) {
-          Calculator::Float(f) => stack.push(Calculator::Float(-f))
-          Calculator::Int(i) => stack.push(Calculator::Int(-i))
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          Float(f) => stack.push(Float(-f))
+          Int(i) => stack.push(Int(-i))
+          _ => raise Msg("Type error")
         }
-      Calculator::Round =>
+      Round =>
         match pop_value(stack) {
-          Calculator::Float(f) =>
-            stack.push(Calculator::Int(f.round().to_int()))
-          Calculator::Int(i) => stack.push(Calculator::Int(i))
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          Float(f) => stack.push(Int(f.round().to_int()))
+          Int(i) => stack.push(Int(i))
+          _ => raise Msg("Type error")
         }
-      Calculator::Sin => {
+      Sin => {
         let f = pop_float(stack)
-        stack.push(Calculator::Float(@math.sin(rad_of_deg(f))))
+        stack.push(Float(@math.sin(rad_of_deg(f))))
       }
-      Calculator::Sqrt => {
+      Sqrt => {
         let f = pop_float(stack)
-        stack.push(Calculator::Float(f.sqrt()))
+        stack.push(Float(f.sqrt()))
       }
-      Calculator::Sub => {
+      Sub => {
         let a = pop_value(stack)
         let b = pop_value(stack)
         match (a, b) {
-          (Calculator::Int(x), Calculator::Int(y)) =>
-            stack.push(Calculator::Int(y - x))
-          (Calculator::Float(x), Calculator::Float(y)) =>
-            stack.push(Calculator::Float(y - x))
-          (Calculator::Int(x), Calculator::Float(y)) =>
-            stack.push(Calculator::Float(y - x.to_double()))
-          (Calculator::Float(x), Calculator::Int(y)) =>
-            stack.push(Calculator::Float(y.to_double() - x))
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          (Int(x), Int(y)) => stack.push(Int(y - x))
+          (Float(x), Float(y)) => stack.push(Float(y - x))
+          (Int(x), Float(y)) => stack.push(Float(y - x.to_double()))
+          (Float(x), Int(y)) => stack.push(Float(y.to_double() - x))
+          _ => raise Msg("Type error")
         }
       }
-      Calculator::Truncate =>
+      Truncate =>
         match pop_value(stack) {
-          Calculator::Float(f) => stack.push(Calculator::Int(f.to_int()))
-          Calculator::Int(i) => stack.push(Calculator::Int(i))
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          Float(f) => stack.push(Int(f.to_int()))
+          Int(i) => stack.push(Int(i))
+          _ => raise Msg("Type error")
         }
-      Calculator::And => {
+      And => {
         let a = pop_value(stack)
         let b = pop_value(stack)
         match (a, b) {
-          (Calculator::Int(x), Calculator::Int(y)) =>
-            stack.push(Calculator::Int(Int::land(x, y)))
-          (Calculator::Bool(x), Calculator::Bool(y)) =>
-            stack.push(Calculator::Bool(x && y))
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          (Int(x), Int(y)) => stack.push(Int(Int::land(x, y)))
+          (Bool(x), Bool(y)) => stack.push(Bool(x && y))
+          _ => raise Msg("Type error")
         }
       }
-      Calculator::Bitshift => {
+      Bitshift => {
         let i = pop_int(stack)
         let shift = pop_int(stack)
         let result = if i < 0 {
@@ -274,121 +235,117 @@ fn eval_function_calculator(
           let shifted = u >> (if shift < 0 { -shift } else { shift })
           shifted.reinterpret_as_int()
         }
-        stack.push(Calculator::Int(result))
+        stack.push(Int(result))
       }
-      Calculator::Eq => {
+      Eq => {
         let a = pop_value(stack)
         let b = pop_value(stack)
-        stack.push(Calculator::Bool(value_equal(a, b)))
+        stack.push(Bool(value_equal(a, b)))
       }
-      Calculator::Ge => {
+      Ge => {
         let a = pop_value(stack)
         let b = pop_value(stack)
-        stack.push(Calculator::Bool(value_compare(a, b) >= 0))
+        stack.push(Bool(value_compare(a, b) >= 0))
       }
-      Calculator::Gt => {
+      Gt => {
         let a = pop_value(stack)
         let b = pop_value(stack)
-        stack.push(Calculator::Bool(value_compare(a, b) > 0))
+        stack.push(Bool(value_compare(a, b) > 0))
       }
-      Calculator::Le => {
+      Le => {
         let a = pop_value(stack)
         let b = pop_value(stack)
-        stack.push(Calculator::Bool(value_compare(a, b) <= 0))
+        stack.push(Bool(value_compare(a, b) <= 0))
       }
-      Calculator::Lt => {
+      Lt => {
         let a = pop_value(stack)
         let b = pop_value(stack)
-        stack.push(Calculator::Bool(value_compare(a, b) < 0))
+        stack.push(Bool(value_compare(a, b) < 0))
       }
-      Calculator::Ne => {
+      Ne => {
         let a = pop_value(stack)
         let b = pop_value(stack)
-        stack.push(Calculator::Bool(!value_equal(a, b)))
+        stack.push(Bool(!value_equal(a, b)))
       }
-      Calculator::Not =>
+      Not =>
         match pop_value(stack) {
-          Calculator::Int(i) => stack.push(Calculator::Int(Int::lnot(i)))
-          Calculator::Bool(b) => {
+          Int(i) => stack.push(Int(Int::lnot(i)))
+          Bool(b) => {
             let _ = pop_bool(stack)
-            stack.push(Calculator::Bool(!b))
+            stack.push(Bool(!b))
           }
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          _ => raise Msg("Type error")
         }
-      Calculator::Or => {
+      Or => {
         let a = pop_value(stack)
         let b = pop_value(stack)
         match (a, b) {
-          (Calculator::Int(x), Calculator::Int(y)) =>
-            stack.push(Calculator::Int(Int::lor(x, y)))
-          (Calculator::Bool(x), Calculator::Bool(y)) =>
-            stack.push(Calculator::Bool(x || y))
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          (Int(x), Int(y)) => stack.push(Int(Int::lor(x, y)))
+          (Bool(x), Bool(y)) => stack.push(Bool(x || y))
+          _ => raise Msg("Type error")
         }
       }
-      Calculator::Xor => {
+      Xor => {
         let a = pop_value(stack)
         let b = pop_value(stack)
         match (a, b) {
-          (Calculator::Int(x), Calculator::Int(y)) =>
-            stack.push(Calculator::Int(Int::lxor(x, y)))
-          (Calculator::Bool(x), Calculator::Bool(y)) =>
-            stack.push(Calculator::Bool((x || y) && !(x && y)))
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          (Int(x), Int(y)) => stack.push(Int(Int::lxor(x, y)))
+          (Bool(x), Bool(y)) => stack.push(Bool((x || y) && !(x && y)))
+          _ => raise Msg("Type error")
         }
       }
-      Calculator::Copy =>
+      Copy =>
         match pop_value(stack) {
-          Calculator::Int(i) if i >= 0 => {
+          Int(i) if i >= 0 => {
             let count = i
             let original_len = stack.length()
             let start = original_len - count
             if start < 0 {
-              raise BadFunctionEvaluation::Msg("Type error")
+              raise Msg("Type error")
             }
             let slice = stack[start:original_len].to_array()
             for value in slice {
               stack.push(value)
             }
           }
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          _ => raise Msg("Type error")
         }
-      Calculator::Exch => {
+      Exch => {
         let a = pop_value(stack)
         let b = pop_value(stack)
         stack.push(a)
         stack.push(b)
       }
-      Calculator::Pop => {
+      Pop => {
         let _ = pop_value(stack)
 
       }
-      Calculator::Dup => {
+      Dup => {
         let a = pop_value(stack)
         stack.push(a)
         stack.push(a)
       }
-      Calculator::Index =>
+      Index =>
         match pop_value(stack) {
-          Calculator::Int(i) if i >= 0 => {
+          Int(i) if i >= 0 => {
             let idx = stack.length() - 1 - i
             if idx < 0 || idx >= stack.length() {
-              raise BadFunctionEvaluation::Msg("Type error")
+              raise Msg("Type error")
             }
             stack.push(stack[idx])
           }
-          _ => raise BadFunctionEvaluation::Msg("Type error")
+          _ => raise Msg("Type error")
         }
-      Calculator::Roll => {
+      Roll => {
         let j = pop_int(stack)
         let n = pop_int(stack)
         if n < 1 {
-          raise BadFunctionEvaluation::Msg("Type error")
+          raise Msg("Type error")
         }
         let count = n
         let start = stack.length() - count
         if start < 0 {
-          raise BadFunctionEvaluation::Msg("Type error")
+          raise Msg("Type error")
         }
         let slice = stack[start:].to_array()
         stack.truncate(start)
@@ -421,9 +378,9 @@ fn eval_function_calculator(
   let out = Array::new(capacity=stack.length())
   for i in (stack.length() - 1)>=..0 {
     match stack[i] {
-      Calculator::Float(x) => out.push(x)
-      Calculator::Int(i) => out.push(i.to_double())
-      _ => raise BadFunctionEvaluation::Msg("Type 4-a")
+      Float(x) => out.push(x)
+      Int(i) => out.push(i.to_double())
+      _ => raise Msg("Type 4-a")
     }
   }
   out

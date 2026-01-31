@@ -5,16 +5,12 @@ pub async fn run(
 ) -> Unit {
   try {
     let font = @pdf.PdfObject::Dictionary([
-      ("/Type", Name(@pdf.PdfName("/Font"))),
-      ("/Subtype", Name(@pdf.PdfName("/Type1"))),
-      ("/BaseFont", Name(@pdf.PdfName("/Times-Italic"))),
+      ("/Type", Name(PdfName("/Font"))),
+      ("/Subtype", Name(PdfName("/Type1"))),
+      ("/BaseFont", Name(PdfName("/Times-Italic"))),
     ])
     let ops : Array[@pdfops.Op] = [
-      Opcm(
-        @pdftransform.Transform::new([
-          @pdftransform.TransformOp::Translate(50.0, 770.0),
-        ]).to_matrix(),
-      ),
+      Opcm(@pdftransform.Transform::new([Translate(50.0, 770.0)]).to_matrix()),
       OpBT,
       OpTf("/F0", 36.0),
       OpTj("Hello, World!"),
@@ -25,7 +21,7 @@ pub async fn run(
       content: [stream],
       mediabox: @pdfpage.Page::blank(@pdfpaper.a4).mediabox,
       resources: Dictionary([("/Font", Dictionary([("/F0", font)]))]),
-      rotate: @pdfpage.Rotation::Rotate0,
+      rotate: Rotate0,
       rest: Dictionary([]),
     }
     let (pdf, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([

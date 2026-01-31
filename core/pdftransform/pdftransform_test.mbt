@@ -6,9 +6,7 @@ fn assert_close(a : Double, b : Double) -> Unit raise {
 
 ///|
 test "translate transform" {
-  let tr = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::Translate(1.0, 2.0),
-  ])
+  let tr = @pdftransform.Transform::new([Translate(1.0, 2.0)])
   let (x, y) = tr.apply((3.0, 4.0))
   assert_close(x, 4.0)
   assert_close(y, 6.0)
@@ -17,9 +15,7 @@ test "translate transform" {
 ///|
 test "rotate transform" {
   let half_pi = 2.0 * @math.atan(1.0)
-  let tr = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::Rotate((0.0, 0.0), half_pi),
-  ])
+  let tr = @pdftransform.Transform::new([Rotate((0.0, 0.0), half_pi)])
   let (x, y) = tr.apply((1.0, 0.0))
   assert_close(x, 0.0)
   assert_close(y, 1.0)
@@ -47,8 +43,8 @@ test "matrix_compose applies m then m_prime" {
 ///|
 test "matrix_of_transform composes in list order" {
   let tr = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::Translate(2.0, 3.0),
-    @pdftransform.TransformOp::Scale((0.0, 0.0), 2.0, 3.0),
+    Translate(2.0, 3.0),
+    Scale((0.0, 0.0), 2.0, 3.0),
   ])
   let expected = @pdftransform.TransformOp::Scale((0.0, 0.0), 2.0, 3.0)
     .to_matrix()
@@ -84,17 +80,12 @@ test "matrix_invert fails for zero scale" {
 ///|
 test "compose merges translation" {
   let tr = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::Translate(1.0, 2.0),
-    @pdftransform.TransformOp::Scale((0.0, 0.0), 2.0, 2.0),
+    Translate(1.0, 2.0),
+    Scale((0.0, 0.0), 2.0, 2.0),
   ])
-  let composed = tr.compose(@pdftransform.TransformOp::Translate(3.0, -1.0))
+  let composed = tr.compose(Translate(3.0, -1.0))
   match composed {
-    {
-      ops: [
-        @pdftransform.TransformOp::Translate(dx, dy),
-        @pdftransform.TransformOp::Scale(_, sx, sy),
-      ],
-    } => {
+    { ops: [Translate(dx, dy), Scale(_, sx, sy)] } => {
       assert_close(dx, 4.0)
       assert_close(dy, 1.0)
       assert_close(sx, 2.0)
@@ -106,14 +97,10 @@ test "compose merges translation" {
 
 ///|
 test "compose merges scale with same center" {
-  let tr = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::Scale((1.0, 1.0), 2.0, 3.0),
-  ])
-  let composed = tr.compose(
-    @pdftransform.TransformOp::Scale((1.0, 1.0), 4.0, 5.0),
-  )
+  let tr = @pdftransform.Transform::new([Scale((1.0, 1.0), 2.0, 3.0)])
+  let composed = tr.compose(Scale((1.0, 1.0), 4.0, 5.0))
   match composed {
-    { ops: [@pdftransform.TransformOp::Scale((cx, cy), sx, sy)] } => {
+    { ops: [Scale((cx, cy), sx, sy)] } => {
       assert_close(cx, 1.0)
       assert_close(cy, 1.0)
       assert_close(sx, 8.0)
@@ -125,19 +112,10 @@ test "compose merges scale with same center" {
 
 ///|
 test "compose keeps scale with different centers" {
-  let tr = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::Scale((0.0, 0.0), 2.0, 2.0),
-  ])
-  let composed = tr.compose(
-    @pdftransform.TransformOp::Scale((1.0, 0.0), 3.0, 3.0),
-  )
+  let tr = @pdftransform.Transform::new([Scale((0.0, 0.0), 2.0, 2.0)])
+  let composed = tr.compose(Scale((1.0, 0.0), 3.0, 3.0))
   match composed {
-    {
-      ops: [
-        @pdftransform.TransformOp::Scale((cx, _), _, _),
-        @pdftransform.TransformOp::Scale((cx2, _), _, _),
-      ],
-    } => {
+    { ops: [Scale((cx, _), _, _), Scale((cx2, _), _, _)] } => {
       assert_close(cx, 1.0)
       assert_close(cx2, 0.0)
     }
@@ -147,12 +125,8 @@ test "compose keeps scale with different centers" {
 
 ///|
 test "append applies second transform first" {
-  let a = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::Translate(1.0, 2.0),
-  ])
-  let b = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::Scale((0.0, 0.0), 2.0, 2.0),
-  ])
+  let a = @pdftransform.Transform::new([Translate(1.0, 2.0)])
+  let b = @pdftransform.Transform::new([Scale((0.0, 0.0), 2.0, 2.0)])
   let combined = a.append(b)
   let (x, y) = combined.apply((1.0, 1.0))
   assert_close(x, 3.0)
@@ -165,9 +139,7 @@ test "shear transforms via matrix and op" {
   let (x1, y1) = mx.apply((1.0, 1.0))
   assert_close(x1, 3.0)
   assert_close(y1, 1.0)
-  let tr_x = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::ShearX((0.0, 0.0), 2.0),
-  ])
+  let tr_x = @pdftransform.Transform::new([ShearX((0.0, 0.0), 2.0)])
   let (x2, y2) = tr_x.apply((1.0, 1.0))
   assert_close(x2, 3.0)
   assert_close(y2, 1.0)
@@ -175,9 +147,7 @@ test "shear transforms via matrix and op" {
   let (x3, y3) = my.apply((1.0, 1.0))
   assert_close(x3, 1.0)
   assert_close(y3, 3.0)
-  let tr_y = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::ShearY((0.0, 0.0), 2.0),
-  ])
+  let tr_y = @pdftransform.Transform::new([ShearY((0.0, 0.0), 2.0)])
   let (x4, y4) = tr_y.apply((1.0, 1.0))
   assert_close(x4, 1.0)
   assert_close(y4, 3.0)
@@ -186,8 +156,8 @@ test "shear transforms via matrix and op" {
 ///|
 test "string_of_transform orders operations" {
   let tr = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::Translate(1.0, 2.0),
-    @pdftransform.TransformOp::Scale((0.0, 0.0), 2.0, 2.0),
+    Translate(1.0, 2.0),
+    Scale((0.0, 0.0), 2.0, 2.0),
   ])
   let rendered = tr.to_string()
   let scale_idx = match rendered.find("Scale about") {
@@ -220,9 +190,9 @@ test "identity and empty compose" {
     id.to_matrix().to_string(),
     @pdftransform.TransformMatrix::identity().to_string(),
   )
-  let composed = id.compose(@pdftransform.TransformOp::Translate(1.0, 2.0))
+  let composed = id.compose(Translate(1.0, 2.0))
   match composed {
-    { ops: [@pdftransform.TransformOp::Translate(dx, dy)] } => {
+    { ops: [Translate(dx, dy)] } => {
       assert_close(dx, 1.0)
       assert_close(dy, 2.0)
     }
@@ -232,37 +202,26 @@ test "identity and empty compose" {
 
 ///|
 test "compose merges rotate and shear when compatible" {
-  let tr = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::Rotate((0.0, 0.0), 1.0),
-  ])
-  let merged = tr.compose(@pdftransform.TransformOp::Rotate((0.0, 0.0), 2.0))
+  let tr = @pdftransform.Transform::new([Rotate((0.0, 0.0), 1.0)])
+  let merged = tr.compose(Rotate((0.0, 0.0), 2.0))
   match merged {
-    { ops: [@pdftransform.TransformOp::Rotate((_, _), angle)] } =>
-      assert_close(angle, 3.0)
+    { ops: [Rotate((_, _), angle)] } => assert_close(angle, 3.0)
     _ => fail("expected merged rotate")
   }
-  let shearx = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::ShearX((1.0, 2.0), 1.0),
-  ])
-  let shearx2 = shearx.compose(
-    @pdftransform.TransformOp::ShearX((1.0, 2.0), 3.0),
-  )
+  let shearx = @pdftransform.Transform::new([ShearX((1.0, 2.0), 1.0)])
+  let shearx2 = shearx.compose(ShearX((1.0, 2.0), 3.0))
   match shearx2 {
-    { ops: [@pdftransform.TransformOp::ShearX((x, y), factor)] } => {
+    { ops: [ShearX((x, y), factor)] } => {
       assert_close(x, 1.0)
       assert_close(y, 2.0)
       assert_close(factor, 4.0)
     }
     _ => fail("expected merged shear-x")
   }
-  let sheary = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::ShearY((1.0, 2.0), 1.0),
-  ])
-  let sheary2 = sheary.compose(
-    @pdftransform.TransformOp::ShearY((1.0, 2.0), 3.0),
-  )
+  let sheary = @pdftransform.Transform::new([ShearY((1.0, 2.0), 1.0)])
+  let sheary2 = sheary.compose(ShearY((1.0, 2.0), 3.0))
   match sheary2 {
-    { ops: [@pdftransform.TransformOp::ShearY((x, y), factor)] } => {
+    { ops: [ShearY((x, y), factor)] } => {
       assert_close(x, 1.0)
       assert_close(y, 2.0)
       assert_close(factor, 4.0)
@@ -273,66 +232,32 @@ test "compose merges rotate and shear when compatible" {
 
 ///|
 test "compose keeps rotate/shear when centers differ" {
-  let rotate = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::Rotate((0.0, 0.0), 1.0),
-  ])
-  let rotate2 = rotate.compose(
-    @pdftransform.TransformOp::Rotate((1.0, 0.0), 2.0),
-  )
+  let rotate = @pdftransform.Transform::new([Rotate((0.0, 0.0), 1.0)])
+  let rotate2 = rotate.compose(Rotate((1.0, 0.0), 2.0))
   match rotate2 {
-    {
-      ops: [
-        @pdftransform.TransformOp::Rotate((1.0, 0.0), _),
-        @pdftransform.TransformOp::Rotate((0.0, 0.0), _),
-      ],
-    } => ()
+    { ops: [Rotate((1.0, 0.0), _), Rotate((0.0, 0.0), _)] } => ()
     _ => fail("expected two rotate ops")
   }
-  let shearx = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::ShearX((0.0, 0.0), 1.0),
-  ])
-  let shearx2 = shearx.compose(
-    @pdftransform.TransformOp::ShearX((1.0, 0.0), 2.0),
-  )
+  let shearx = @pdftransform.Transform::new([ShearX((0.0, 0.0), 1.0)])
+  let shearx2 = shearx.compose(ShearX((1.0, 0.0), 2.0))
   match shearx2 {
-    {
-      ops: [
-        @pdftransform.TransformOp::ShearX((1.0, 0.0), _),
-        @pdftransform.TransformOp::ShearX((0.0, 0.0), _),
-      ],
-    } => ()
+    { ops: [ShearX((1.0, 0.0), _), ShearX((0.0, 0.0), _)] } => ()
     _ => fail("expected two shear-x ops")
   }
-  let sheary = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::ShearY((0.0, 0.0), 1.0),
-  ])
-  let sheary2 = sheary.compose(
-    @pdftransform.TransformOp::ShearY((1.0, 0.0), 2.0),
-  )
+  let sheary = @pdftransform.Transform::new([ShearY((0.0, 0.0), 1.0)])
+  let sheary2 = sheary.compose(ShearY((1.0, 0.0), 2.0))
   match sheary2 {
-    {
-      ops: [
-        @pdftransform.TransformOp::ShearY((1.0, 0.0), _),
-        @pdftransform.TransformOp::ShearY((0.0, 0.0), _),
-      ],
-    } => ()
+    { ops: [ShearY((1.0, 0.0), _), ShearY((0.0, 0.0), _)] } => ()
     _ => fail("expected two shear-y ops")
   }
 }
 
 ///|
 test "compose preserves ops for incompatible kinds" {
-  let tr = @pdftransform.Transform::new([
-    @pdftransform.TransformOp::Translate(1.0, 2.0),
-  ])
-  let composed = tr.compose(@pdftransform.TransformOp::Rotate((0.0, 0.0), 1.0))
+  let tr = @pdftransform.Transform::new([Translate(1.0, 2.0)])
+  let composed = tr.compose(Rotate((0.0, 0.0), 1.0))
   match composed {
-    {
-      ops: [
-        @pdftransform.TransformOp::Rotate(_, _),
-        @pdftransform.TransformOp::Translate(_, _),
-      ],
-    } => ()
+    { ops: [Rotate(_, _), Translate(_, _)] } => ()
     _ => fail("expected rotate to be prepended")
   }
 }

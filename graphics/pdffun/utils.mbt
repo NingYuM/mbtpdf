@@ -3,7 +3,7 @@ fn pairs_of_list_eval(
   values : Array[Double],
 ) -> Array[(Double, Double)] raise BadFunctionEvaluation {
   if values.length() % 2 == 1 {
-    raise BadFunctionEvaluation::Msg("Bad list length")
+    raise Msg("Bad list length")
   }
   let out = Array::new(capacity=values.length() / 2)
   for i = 0; i + 1 < values.length(); i = i + 2 {
@@ -120,7 +120,7 @@ fn[T] flatten(lists : Array[Array[T]]) -> Array[T] {
 ///|
 fn[T] select(index : Int, items : Array[T]) -> T raise BadFunctionEvaluation {
   if index <= 0 || index > items.length() {
-    raise BadFunctionEvaluation::Msg("select")
+    raise Msg("select")
   }
   items[index - 1]
 }
@@ -138,7 +138,7 @@ fn eval_function_sampled(
 ) -> Array[Double] raise BadFunctionEvaluation {
   let range = match f.range {
     Some(r) => r
-    None => raise BadFunctionEvaluation::Msg("No Range")
+    None => raise Msg("No Range")
   }
   let (d, d2) = split_pairs(pairs_of_list_eval(f.domain))
   let (e, e2) = split_pairs(pairs_of_list_eval(s.encode))

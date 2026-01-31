@@ -20,30 +20,30 @@ fn build_minimal_pdf() -> @pdf.Pdf {
     ("/Length", Integer(@pdfio.bytes_size(stream_bytes))),
   ])
   let stream_obj : @pdf.PdfObject = Stream(
-    Ref::new((stream_dict, @pdf.Stream::Got(stream_bytes))),
+    Ref::new((stream_dict, Got(stream_bytes))),
   )
   let font_dict : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Font"))),
-    ("/Subtype", Name(@pdf.PdfName("/Type1"))),
-    ("/BaseFont", Name(@pdf.PdfName("/Times-Roman"))),
+    ("/Type", Name(PdfName("/Font"))),
+    ("/Subtype", Name(PdfName("/Type1"))),
+    ("/BaseFont", Name(PdfName("/Times-Roman"))),
   ])
   let resources : @pdf.PdfObject = Dictionary([
     ("/Font", Dictionary([("/F0", font_dict)])),
   ])
   let page : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Page"))),
+    ("/Type", Name(PdfName("/Page"))),
     ("/Parent", Indirect(1)),
     ("/Resources", resources),
     ("/MediaBox", Array([Integer(0), Integer(0), Integer(300), Integer(300)])),
     ("/Contents", Indirect(2)),
   ])
   let pages : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Pages"))),
+    ("/Type", Name(PdfName("/Pages"))),
     ("/Kids", Array([Indirect(3)])),
     ("/Count", Integer(1)),
   ])
   let catalog : @pdf.PdfObject = Dictionary([
-    ("/Type", Name(@pdf.PdfName("/Catalog"))),
+    ("/Type", Name(PdfName("/Catalog"))),
     ("/Pages", Indirect(1)),
   ])
   pdf.addobj_given_num((1, pages))

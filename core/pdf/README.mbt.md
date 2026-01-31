@@ -109,7 +109,7 @@ test "lookup_obj returns Null for missing objects" {
 ///|
 test "direct follows indirects" {
   let pdf = @pdf.Pdf::empty()
-  let objnum = pdf.addobj(@pdf.PdfObject::Integer(42))
+  let objnum = pdf.addobj(Integer(42))
   let indirect = @pdf.PdfObject::Indirect(objnum)
   guard pdf.direct(indirect) is Integer(n) else { fail("expected Integer") }
   inspect(n, content="42")
@@ -123,8 +123,8 @@ test "direct follows indirects" {
 test "lookup_direct finds keys" {
   let pdf = @pdf.Pdf::empty()
   let dict = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name(@pdf.PdfName("/Page"))),
-    ("/Count", @pdf.PdfObject::Integer(5)),
+    ("/Type", Name(PdfName("/Page"))),
+    ("/Count", Integer(5)),
   ])
   guard pdf.lookup_direct("/Type", dict) is Some(Name(name)) else {
     fail("expected Name")
@@ -142,9 +142,7 @@ For deeply nested dictionaries, use `lookup_chain`:
 ///|
 test "lookup_chain navigates nested dicts" {
   let pdf = @pdf.Pdf::empty()
-  let inner = @pdf.PdfObject::Dictionary([
-    ("/Value", @pdf.PdfObject::Integer(100)),
-  ])
+  let inner = @pdf.PdfObject::Dictionary([("/Value", Integer(100))])
   let outer = @pdf.PdfObject::Dictionary([("/Inner", inner)])
   guard pdf.lookup_chain(outer, ["/Inner", "/Value"][:]) is Some(Integer(n)) else {
     fail("expected Integer")
@@ -160,10 +158,8 @@ test "lookup_chain navigates nested dicts" {
 ```mbt check
 ///|
 test "add_dict_entry" {
-  let dict = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name(@pdf.PdfName("/Page"))),
-  ])
-  let updated = dict.add_entry("/Count", @pdf.PdfObject::Integer(1))
+  let dict = @pdf.PdfObject::Dictionary([("/Type", Name(PdfName("/Page")))])
+  let updated = dict.add_entry("/Count", Integer(1))
   match updated {
     Dictionary(entries) => inspect(entries.length(), content="2")
     _ => fail("expected dictionary")
@@ -195,8 +191,8 @@ test "ToPdfNumber converts Int/Double to PdfObject numbers" {
 ```mbt check
 ///|
 test "replace_dict_entry" {
-  let dict = @pdf.PdfObject::Dictionary([("/Count", @pdf.PdfObject::Integer(1))])
-  let updated = dict.replace_entry("/Count", @pdf.PdfObject::Integer(5))
+  let dict = @pdf.PdfObject::Dictionary([("/Count", Integer(1))])
+  let updated = dict.replace_entry("/Count", Integer(5))
   guard updated.lookup_immediate("/Count") is Some(Integer(n)) else {
     fail("expected Integer")
   }
@@ -210,8 +206,8 @@ test "replace_dict_entry" {
 ///|
 test "remove_dict_entry" {
   let dict = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name(@pdf.PdfName("/Page"))),
-    ("/Count", @pdf.PdfObject::Integer(1)),
+    ("/Type", Name(PdfName("/Page"))),
+    ("/Count", Integer(1)),
   ])
   let updated = dict.remove_entry("/Count")
   match updated {
@@ -285,10 +281,10 @@ match obj {
 test "parse_rectangle" {
   let pdf = @pdf.Pdf::empty()
   let rect = @pdf.PdfObject::Array([
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(0.0),
-    @pdf.PdfObject::Real(612.0),
-    @pdf.PdfObject::Real(792.0),
+    Real(0.0),
+    Real(0.0),
+    Real(612.0),
+    Real(792.0),
   ])
   let (minx, miny, maxx, maxy) = pdf.parse_rectangle(rect)
   inspect((minx, miny, maxx, maxy), content="(0, 0, 612, 792)")

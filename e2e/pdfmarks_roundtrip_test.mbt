@@ -5,7 +5,7 @@ async test "pdfmarks bookmark string roundtrip through file output" {
     {
       level: 0,
       text: "Café",
-      target: @pdfdest.Destination::NullDestination,
+      target: NullDestination,
       isopen: false,
       colour: (0.0, 0.0, 0.0),
       flags: 0,

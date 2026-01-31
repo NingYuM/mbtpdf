@@ -253,7 +253,7 @@ fn write_white_code(n : Int) -> Array[Int] raise CodecError {
   } else if n >= 64 {
     append_bits([1, 1, 0, 1, 1], write_white_code(n - 64))
   } else {
-    raise CodecError::DecodeNotSupported("write_white_code: unknown")
+    raise DecodeNotSupported("write_white_code: unknown")
   }
 }
 
@@ -560,7 +560,7 @@ fn write_black_code(n : Int) -> Array[Int] raise CodecError {
   } else if n >= 64 {
     append_bits([0, 0, 0, 0, 0, 0, 1, 1, 1, 1], write_black_code(n - 64))
   } else {
-    raise CodecError::DecodeNotSupported("write_black_code: unknown")
+    raise DecodeNotSupported("write_black_code: unknown")
   }
 }
 
@@ -628,8 +628,8 @@ fn encode_ccitt(
     output.bytes()
   } catch {
     Failure::Failure(_) =>
-      raise CodecError::CouldntDecodeStream("encode_ccitt: not enough data")
-    _ => raise CodecError::CouldntDecodeStream("encode_ccitt: not enough data")
+      raise CouldntDecodeStream("encode_ccitt: not enough data")
+    _ => raise CouldntDecodeStream("encode_ccitt: not enough data")
   }
 }
 
@@ -666,10 +666,7 @@ fn write_ccittg4_vertical(
     1 => write_bits(output, [0, 1, 0])
     2 => write_bits(output, [0, 0, 0, 0, 1, 0])
     3 => write_bits(output, [0, 0, 0, 0, 0, 1, 0])
-    _ =>
-      raise CodecError::DecodeNotSupported(
-        "bad vertical mode in CCITT G4 encoding",
-      )
+    _ => raise DecodeNotSupported("bad vertical mode in CCITT G4 encoding")
   }
 }
 
@@ -767,9 +764,8 @@ fn encode_ccittg4_pure(
     output.bytes()
   } catch {
     Failure::Failure(_) =>
-      raise CodecError::CouldntDecodeStream("encode_ccittg4: not enough data")
-    _ =>
-      raise CodecError::CouldntDecodeStream("encode_ccittg4: not enough data")
+      raise CouldntDecodeStream("encode_ccittg4: not enough data")
+    _ => raise CouldntDecodeStream("encode_ccittg4: not enough data")
   }
 }
 
@@ -787,7 +783,7 @@ fn encode_ccittg4(
   match im {
     None => encode_ccittg4_pure(columns, rows, data)
     Some(_) =>
-      raise CodecError::DecodeNotSupported(
+      raise DecodeNotSupported(
         "encode_ccittg4: use encode_ccittg4_async for imagemagick path",
       )
   }

@@ -42,7 +42,7 @@ pub fn PdfMarks::remove_bookmarks(self : PdfMarks) -> @pdf.Pdf raise {
       let newcatalognum = pdf.addobj(catalog_updated)
       let trailerdict = pdf.trailerdict.add_entry(
         "/Root",
-        PdfObject::Indirect(newcatalognum),
+        Indirect(newcatalognum),
       )
       {
         major: pdf.major,
@@ -142,10 +142,7 @@ fn total_visible(nodes : Array[Ntree]) -> Int {
 
 ///|
 fn add_root_parent(root_objnum : Int, node : Ntree) -> Ntree raise {
-  let obj = ntree_obj(node).add_entry(
-    "/Parent",
-    PdfObject::Indirect(root_objnum),
-  )
+  let obj = ntree_obj(node).add_entry("/Parent", Indirect(root_objnum))
   Br(ntree_objnum(node), obj, ntree_children(node), ntree_isopen(node))
 }
 
@@ -157,7 +154,7 @@ fn flatten_tree(
 ) -> (Array[(Int, PdfObject)], Int) raise {
   if tree.length() == 0 {
     let n = fresh(source, pdf)
-    return ([(n, PdfObject::Dictionary([]))], n)
+    return ([(n, Dictionary([]))], n)
   }
   let root_objnum = fresh(source, pdf)
   let tree = tree.map(node => add_root_parent(root_objnum, node))
@@ -174,11 +171,11 @@ fn flatten_tree(
   let all_but_top = flatten(tree.map(really_flatten))
   let (first_node, last_node) = extremes(tree)
   let entries : Array[(String, PdfObject)] = [
-    ("/First", PdfObject::Indirect(ntree_objnum(first_node))),
-    ("/Last", PdfObject::Indirect(ntree_objnum(last_node))),
+    ("/First", Indirect(ntree_objnum(first_node))),
+    ("/Last", Indirect(ntree_objnum(last_node))),
   ]
   if any_open_nodes(tree) {
-    entries.push(("/Count", PdfObject::Integer(total_visible(tree))))
+    entries.push(("/Count", Integer(total_visible(tree))))
   }
   let top = (root_objnum, PdfObject::Dictionary(entries))
   ([top] + all_but_top, root_objnum)
@@ -195,15 +192,9 @@ fn add_count(node : Ntree) -> Ntree raise {
   let obj = if children.length() == 0 {
     ntree_obj(node)
   } else if ntree_isopen(node) {
-    ntree_obj(node).add_entry(
-      "/Count",
-      PdfObject::Integer(total_visible(children)),
-    )
+    ntree_obj(node).add_entry("/Count", Integer(total_visible(children)))
   } else {
-    ntree_obj(node).add_entry(
-      "/Count",
-      PdfObject::Integer(-total_visible(children)),
-    )
+    ntree_obj(node).add_entry("/Count", Integer(-total_visible(children)))
   }
   Br(ntree_objnum(node), obj, add_counts(children), ntree_isopen(node))
 }
@@ -213,7 +204,7 @@ fn add_parent(parent : Int?, node : Ntree) -> Ntree raise {
   let obj = match parent {
     None => ntree_obj(node)
     Some(parent_num) =>
-      ntree_obj(node).add_entry("/Parent", PdfObject::Indirect(parent_num))
+      ntree_obj(node).add_entry("/Parent", Indirect(parent_num))
   }
   let children = ntree_children(node).map(child => add_parent(
     Some(ntree_objnum(node)),
@@ -229,8 +220,8 @@ fn add_firstlast(node : Ntree) -> Ntree raise {
     [] => node
     [only] => {
       let obj = ntree_obj(node)
-        .add_entry("/First", PdfObject::Indirect(ntree_objnum(only)))
-        .add_entry("/Last", PdfObject::Indirect(ntree_objnum(only)))
+        .add_entry("/First", Indirect(ntree_objnum(only)))
+        .add_entry("/Last", Indirect(ntree_objnum(only)))
       Br(
         ntree_objnum(node),
         obj,
@@ -240,8 +231,8 @@ fn add_firstlast(node : Ntree) -> Ntree raise {
     }
     [first, .., last] => {
       let obj = ntree_obj(node)
-        .add_entry("/First", PdfObject::Indirect(ntree_objnum(first)))
-        .add_entry("/Last", PdfObject::Indirect(ntree_objnum(last)))
+        .add_entry("/First", Indirect(ntree_objnum(first)))
+        .add_entry("/Last", Indirect(ntree_objnum(last)))
       Br(
         ntree_objnum(node),
         obj,
@@ -267,7 +258,7 @@ fn add_next(node : Ntree) -> Ntree raise {
           [next, .. tail] => {
             let obj = ntree_obj(current).add_entry(
               "/Next",
-              PdfObject::Indirect(ntree_objnum(next)),
+              Indirect(ntree_objnum(next)),
             )
             let updated = Br(
               ntree_objnum(current),
@@ -302,7 +293,7 @@ fn add_prev(node : Ntree) -> Ntree raise {
           Some(prev_node) => {
             let obj = ntree_obj(first).add_entry(
               "/Prev",
-              PdfObject::Indirect(ntree_objnum(prev_node)),
+              Indirect(ntree_objnum(prev_node)),
             )
             Br(
               ntree_objnum(first),
@@ -337,9 +328,7 @@ fn node_of_line(
   colour : (Double, Double, Double),
   flags : Int,
 ) -> PdfObject {
-  let entries : Array[(String, PdfObject)] = [
-    ("/Title", PdfObject::String(title)),
-  ]
+  let entries : Array[(String, PdfObject)] = [("/Title", String(title))]
   let dest = target.to_pdf_object()
   match (dest : PdfObject) {
     Null => ()
@@ -351,21 +340,12 @@ fn node_of_line(
   }
   let (r, g, b) = colour
   if !(r == 0.0 && g == 0.0 && b == 0.0) {
-    entries.push(
-      (
-        "/C",
-        PdfObject::Array([
-          PdfObject::Real(r),
-          PdfObject::Real(g),
-          PdfObject::Real(b),
-        ]),
-      ),
-    )
+    entries.push(("/C", Array([Real(r), Real(g), Real(b)])))
   }
   if flags != 0 {
-    entries.push(("/F", PdfObject::Integer(flags)))
+    entries.push(("/F", Integer(flags)))
   }
-  PdfObject::Dictionary(entries)
+  Dictionary(entries)
 }
 
 ///|
@@ -413,7 +393,7 @@ pub fn PdfMarks::add_bookmarks(
     let source = Ref::new(0)
     let tree = make_outline_ntree(source, pdf, parsed[:])
     let tree = tree.map(add_firstlast)
-    let tree = match add_next(add_prev(Br(0, PdfObject::Null, tree, false))) {
+    let tree = match add_next(add_prev(Br(0, Null, tree, false))) {
       Br(_, _, children, _) => children
     }
     let tree = add_counts(tree.map(node => add_parent(None, node)))
@@ -426,12 +406,12 @@ pub fn PdfMarks::add_bookmarks(
       Some(catalog) => {
         let catalog_updated = catalog.add_entry(
           "/Outlines",
-          PdfObject::Indirect(tree_root_num),
+          Indirect(tree_root_num),
         )
         let newcatalognum = pdf.addobj(catalog_updated)
         let trailerdict = pdf.trailerdict.add_entry(
           "/Root",
-          PdfObject::Indirect(newcatalognum),
+          Indirect(newcatalognum),
         )
         {
           major: pdf.major,
@@ -471,7 +451,7 @@ fn do_until_no_next_lb(
   out : Ref[Array[Bookmark]],
 ) -> Unit raise {
   let title = match pdf.lookup_direct("/Title", outline) {
-    Some(PdfObject::String(s)) => s
+    Some(String(s)) => s
     _ => {
       @pdfe.log(
         "/Title not a string or not present in document outline entry. Using the empty string.\n",
@@ -480,7 +460,7 @@ fn do_until_no_next_lb(
     }
   }
   let page : @pdfdest.Destination = match pdf.lookup_direct("/Dest", outline) {
-    Some(PdfObject::String(stringdest)) if preserve_actions =>
+    Some(String(stringdest)) if preserve_actions =>
       StringDestination(stringdest)
     Some(dest) =>
       @pdfdest.Destination::read(pdf, dest, shallow=preserve_actions)
@@ -490,7 +470,7 @@ fn do_until_no_next_lb(
         Some(action) =>
           if preserve_actions {
             match pdf.lookup_direct("/D", action) {
-              Some(PdfObject::Array(_) as dest) =>
+              Some(Array(_) as dest) =>
                 @pdfdest.Destination::read(pdf, dest, shallow=preserve_actions)
               _ => Action(pdf.direct(action))
             }
@@ -504,20 +484,19 @@ fn do_until_no_next_lb(
       }
   }
   let opn = match pdf.lookup_direct("/Count", outline) {
-    Some(PdfObject::Integer(i)) if i > 0 => true
+    Some(Integer(i)) if i > 0 => true
     _ => false
   }
   let colour = try {
     match pdf.lookup_direct("/C", outline) {
-      Some(PdfObject::Array([a, b, c])) =>
-        (pdf.getnum(a), pdf.getnum(b), pdf.getnum(c))
+      Some(Array([a, b, c])) => (pdf.getnum(a), pdf.getnum(b), pdf.getnum(c))
       _ => (0.0, 0.0, 0.0)
     }
   } catch {
     _ => (0.0, 0.0, 0.0)
   }
   let flags = match pdf.lookup_direct("/F", outline) {
-    Some(PdfObject::Integer(i)) => i
+    Some(Integer(i)) => i
     _ => 0
   }
   out.val.push({

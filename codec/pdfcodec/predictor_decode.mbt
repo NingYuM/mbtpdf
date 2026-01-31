@@ -27,7 +27,7 @@ fn decode_tiff_predictor(
   stream : Array[Byte],
 ) -> Array[Byte] raise CodecError {
   if bpc != 8 {
-    raise CodecError::DecodeNotSupported("TIFF predictor only supports 8bpc")
+    raise DecodeNotSupported("TIFF predictor only supports 8bpc")
   }
   let scanline_width = (colors * bpc * columns + 7) / 8
   let out = stream.copy()
@@ -57,7 +57,7 @@ fn decode_png_predictor(
   stream : Array[Byte],
 ) -> Array[Byte] raise CodecError {
   if bpc != 8 {
-    raise CodecError::DecodeNotSupported("PNG predictor only supports 8bpc")
+    raise DecodeNotSupported("PNG predictor only supports 8bpc")
   }
   let scanline_width = (colors * bpc * columns + 7) / 8
   let bytes_per_pixel = (bpc * colors + 7) / 8

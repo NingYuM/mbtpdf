@@ -8,13 +8,13 @@ fn[T] assert_is_err(result : Result[T, Error]) -> Unit raise {
 
 ///|
 fn make_stream(dict : @pdf.PdfObject, data : Array[Byte]) -> @pdf.PdfObject {
-  @pdf.PdfObject::Stream(Ref::new((dict, @pdf.Stream::Got(data))))
+  Stream(Ref::new((dict, Got(data))))
 }
 
 ///|
 fn assert_integer(obj : @pdf.PdfObject, expected : Int) -> Unit raise {
   match obj {
-    @pdf.PdfObject::Integer(value) => assert_eq(value, expected)
+    Integer(value) => assert_eq(value, expected)
     _ => fail("expected integer")
   }
 }
@@ -22,7 +22,7 @@ fn assert_integer(obj : @pdf.PdfObject, expected : Int) -> Unit raise {
 ///|
 fn assert_some_integer(obj : @pdf.PdfObject?, expected : Int) -> Unit raise {
   match obj {
-    Some(@pdf.PdfObject::Integer(value)) => assert_eq(value, expected)
+    Some(Integer(value)) => assert_eq(value, expected)
     Some(_) => fail("expected integer")
     None => fail("expected some")
   }
@@ -32,27 +32,23 @@ fn assert_some_integer(obj : @pdf.PdfObject?, expected : Int) -> Unit raise {
 fn make_basic_pdf() -> @pdf.Pdf {
   let base = @pdf.Pdf::empty()
   let pages = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name(@pdf.PdfName("/Pages"))),
-    ("/Kids", @pdf.PdfObject::Array([@pdf.PdfObject::Indirect(2)])),
+    ("/Type", Name(PdfName("/Pages"))),
+    ("/Kids", Array([Indirect(2)])),
   ])
-  let page = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name(@pdf.PdfName("/Page"))),
-  ])
+  let page = @pdf.PdfObject::Dictionary([("/Type", Name(PdfName("/Page")))])
   let catalog = @pdf.PdfObject::Dictionary([
-    ("/Type", @pdf.PdfObject::Name(@pdf.PdfName("/Catalog"))),
-    ("/Pages", @pdf.PdfObject::Indirect(1)),
+    ("/Type", Name(PdfName("/Catalog"))),
+    ("/Pages", Indirect(1)),
   ])
   base.addobj_given_num((1, pages))
   base.addobj_given_num((2, page))
   base.addobj_given_num((3, catalog))
-  @pdf.Pdf::{
+  {
     major: base.major,
     minor: base.minor,
     root: 3,
     objects: base.objects,
-    trailerdict: @pdf.PdfObject::Dictionary([
-      ("/Root", @pdf.PdfObject::Indirect(3)),
-    ]),
+    trailerdict: Dictionary([("/Root", Indirect(3))]),
     was_linearized: base.was_linearized,
     saved_encryption: base.saved_encryption,
   }

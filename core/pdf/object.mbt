@@ -30,12 +30,12 @@ pub trait ToPdfNumber {
 
 ///|
 pub impl ToPdfNumber for Int with to_pdf_number(self : Int) -> PdfObject {
-  PdfObject::Integer(self)
+  Integer(self)
 }
 
 ///|
 pub impl ToPdfNumber for Double with to_pdf_number(self : Double) -> PdfObject {
-  PdfObject::Real(self)
+  Real(self)
 }
 
 ///|

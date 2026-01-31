@@ -22,8 +22,7 @@ pub fn PdfCodec::decode_flate(
     @pdfflate.PdfFlate::new().uncompress(header=true, input, output)
     out
   } catch {
-    @pdfflate.FlateError::Error(stage, msg) =>
-      raise CodecError::CouldntDecodeStream("\{stage}: \{msg}")
+    Error(stage, msg) => raise CouldntDecodeStream("\{stage}: \{msg}")
   }
 }
 
@@ -45,22 +44,18 @@ pub fn PdfCodec::encode_pdfstream(
     None => 1
   }
   let encoding_name = match encoding {
-    Encoding::ASCIIHex => "/ASCIIHexDecode"
-    Encoding::ASCII85 => "/ASCII85Decode"
-    Encoding::RunLength => "/RunLengthDecode"
-    Encoding::LZW(_) => "/LZWDecode"
-    Encoding::Flate => "/FlateDecode"
-    Encoding::CCITT(_, _) | Encoding::CCITTG4(_, _) => "/CCITTFaxDecode"
+    ASCIIHex => "/ASCIIHexDecode"
+    ASCII85 => "/ASCII85Decode"
+    RunLength => "/RunLengthDecode"
+    LZW(_) => "/LZWDecode"
+    Flate => "/FlateDecode"
+    CCITT(_, _) | CCITTG4(_, _) => "/CCITTFaxDecode"
   }
   let encoding_pdf_name = @pdf.PdfName::of_string(encoding_name)
   fn update_filter(dict : @pdf.PdfObject) -> @pdf.PdfObject raise CodecError {
     let filter_obj : @pdf.PdfObject = match pdf.lookup_direct("/Filter", dict) {
       None => Name(encoding_pdf_name)
-      Some(Name(name)) =>
-        Array([
-          @pdf.PdfObject::Name(encoding_pdf_name),
-          @pdf.PdfObject::Name(name),
-        ])
+      Some(Name(name)) => Array([Name(encoding_pdf_name), Name(name)])
       Some(Array(filters)) => {
         let updated = Array::new(capacity=filters.length() + 1)
         updated.push(@pdf.PdfObject::Name(encoding_pdf_name))
@@ -69,7 +64,7 @@ pub fn PdfCodec::encode_pdfstream(
         }
         Array(updated)
       }
-      Some(_) => raise CodecError::CouldntDecodeStream("malformed /Filter")
+      Some(_) => raise CouldntDecodeStream("malformed /Filter")
     }
     set_dict_entry(dict, "/Filter", filter_obj)
   }
@@ -81,22 +76,22 @@ pub fn PdfCodec::encode_pdfstream(
     match predictor {
       Some(pred) => {
         let (pred_value, colors, bpc) = match pred {
-          Predictor::TIFF2 => (2, 1, 8)
-          Predictor::PNGNone => (10, 1, 8)
-          Predictor::PNGSub => (11, 1, 8)
-          Predictor::PNGUp => (12, 1, 8)
-          Predictor::PNGAverage => (13, 1, 8)
-          Predictor::PNGPaeth => (14, 1, 8)
-          Predictor::PNGOptimum => (15, 1, 8)
+          TIFF2 => (2, 1, 8)
+          PNGNone => (10, 1, 8)
+          PNGSub => (11, 1, 8)
+          PNGUp => (12, 1, 8)
+          PNGAverage => (13, 1, 8)
+          PNGPaeth => (14, 1, 8)
+          PNGOptimum => (15, 1, 8)
         }
         let predicted = encode_predictor(
           pred_value, colors, bpc, predictor_columns, data,
         )
         let decodeparms = @pdf.PdfObject::Dictionary([
-          ("/Columns", @pdf.PdfObject::Integer(predictor_columns)),
-          ("/Predictor", @pdf.PdfObject::Integer(pred_value)),
-          ("/Colors", @pdf.PdfObject::Integer(colors)),
-          ("/BitsPerComponent", @pdf.PdfObject::Integer(bpc)),
+          ("/Columns", Integer(predictor_columns)),
+          ("/Predictor", Integer(pred_value)),
+          ("/Colors", Integer(colors)),
+          ("/BitsPerComponent", Integer(bpc)),
         ])
         let dict_with_parms = set_dict_entry(dict, "/DecodeParms", decodeparms)
         (dict_with_parms, predicted)
@@ -111,21 +106,20 @@ pub fn PdfCodec::encode_pdfstream(
   ) -> (@pdf.PdfObject, Array[Byte]) raise CodecError {
     let (predicted_dict, predicted_data) = process_prediction(dict, data)
     let encoded = match encoding {
-      Encoding::ASCIIHex => encode_asciihex(predicted_data)
-      Encoding::ASCII85 => encode_ascii85(predicted_data)
-      Encoding::RunLength => encode_runlength(predicted_data)
-      Encoding::LZW(early) => encode_lzw(early, predicted_data)
-      Encoding::Flate => self.encode_flate(predicted_data)
-      Encoding::CCITT(columns, rows) =>
-        encode_ccitt(columns, rows, predicted_data)
-      Encoding::CCITTG4(columns, rows) =>
+      ASCIIHex => encode_asciihex(predicted_data)
+      ASCII85 => encode_ascii85(predicted_data)
+      RunLength => encode_runlength(predicted_data)
+      LZW(early) => encode_lzw(early, predicted_data)
+      Flate => self.encode_flate(predicted_data)
+      CCITT(columns, rows) => encode_ccitt(columns, rows, predicted_data)
+      CCITTG4(columns, rows) =>
         encode_ccittg4(columns, rows, predicted_data, im?)
     }
     let dict_with_filter = update_filter(predicted_dict)
     let dict_with_length = set_dict_entry(
       dict_with_filter,
       "/Length",
-      @pdf.PdfObject::Integer(@pdfio.bytes_size(encoded)),
+      Integer(@pdfio.bytes_size(encoded)),
     )
     (dict_with_length, encoded)
   }
@@ -136,12 +130,12 @@ pub fn PdfCodec::encode_pdfstream(
       let (dict, stream_data) = r.val
       let data = match (stream_data : @pdf.Stream) {
         Got(bytes) => bytes
-        _ => raise CodecError::CouldntDecodeStream("stream data not available")
+        _ => raise CouldntDecodeStream("stream data not available")
       }
       let (new_dict, new_data) = encode_stream(dict, data)
       if !only_if_smaller ||
         @pdfio.bytes_size(new_data) + 20 < @pdfio.bytes_size(data) {
-        r.val = (new_dict, @pdf.Stream::Got(new_data))
+        r.val = (new_dict, Got(new_data))
       }
     }
     Indirect(i) =>
@@ -154,7 +148,7 @@ pub fn PdfCodec::encode_pdfstream(
         predictor?,
         predictor_columns~,
       )
-    _ => raise CodecError::CouldntDecodeStream("malformed stream")
+    _ => raise CouldntDecodeStream("malformed stream")
   }
 }
 
@@ -186,25 +180,22 @@ pub fn PdfCodec::decode_pdfstream_onestage(
           }
       }
       match filter_opt {
-        None => raise CodecError::DecodeNotSupported("no filter")
+        None => raise DecodeNotSupported("no filter")
         Some(filter_obj) => {
           let (filter_name, remaining_filters) : (
             @pdf.PdfName,
             Array[@pdf.PdfObject]?,
           ) = match (filter_obj : @pdf.PdfObject) {
             Name(name) => (name, None)
-            Array([]) =>
-              raise CodecError::DecodeNotSupported("empty filter array")
+            Array([]) => raise DecodeNotSupported("empty filter array")
             Array([Name(name), .. rest]) => (name, Some(rest.to_array()))
-            Array(_) =>
-              raise CodecError::DecodeNotSupported("invalid filter entry")
-            _ => raise CodecError::DecodeNotSupported("invalid filter")
+            Array(_) => raise DecodeNotSupported("invalid filter entry")
+            _ => raise DecodeNotSupported("invalid filter")
           }
           map_pdf_error("getstream", fn() raise { obj.getstream() })
           let data = match r.val {
-            (_, @pdf.Stream::Got(bytes)) => bytes
-            _ =>
-              raise CodecError::CouldntDecodeStream("stream data not available")
+            (_, Got(bytes)) => bytes
+            _ => raise CouldntDecodeStream("stream data not available")
           }
           let parms_first = match parms {
             Some(Array(arr)) =>
@@ -233,10 +224,7 @@ pub fn PdfCodec::decode_pdfstream_onestage(
                 })
               } else {
                 map_pdf_error("replace filter", fn() raise {
-                  new_dict.replace_entry(
-                    filter_key,
-                    @pdf.PdfObject::Array(rest),
-                  )
+                  new_dict.replace_entry(filter_key, Array(rest))
                 })
               }
           }
@@ -255,10 +243,7 @@ pub fn PdfCodec::decode_pdfstream_onestage(
                   })
                 } else {
                   map_pdf_error("replace decode parms", fn() raise {
-                    new_dict.replace_entry(
-                      parms_key,
-                      @pdf.PdfObject::Array(rest),
-                    )
+                    new_dict.replace_entry(parms_key, Array(rest))
                   })
                 }
               }
@@ -270,13 +255,13 @@ pub fn PdfCodec::decode_pdfstream_onestage(
           new_dict = set_dict_entry(
             new_dict,
             "/Length",
-            @pdf.PdfObject::Integer(@pdfio.bytes_size(decoded)),
+            Integer(@pdfio.bytes_size(decoded)),
           )
-          r.val = (new_dict, @pdf.Stream::Got(decoded))
+          r.val = (new_dict, Got(decoded))
         }
       }
     }
-    _ => raise CodecError::DecodeNotSupported("not a stream")
+    _ => raise DecodeNotSupported("not a stream")
   }
 }
 
@@ -322,9 +307,7 @@ pub impl PdfFilterNameDecode for @pdf.PdfName with decode_stage(
     data
   } else if filter_name is PdfName("/JBIG2Decode") {
     let _ = jbig2dec
-    raise CodecError::DecodeNotSupported(
-      "JBIG2Decode requires decode_pdfstream_async",
-    )
+    raise DecodeNotSupported("JBIG2Decode requires decode_pdfstream_async")
   } else if filter_name is PdfName("/CCITTFaxDecode" | "/CCF") {
     let k = get_int_param(pdf, parms, "/K", 0)
     let eol = get_bool_param(pdf, parms, "/EndOfLine", false)
@@ -346,7 +329,7 @@ pub impl PdfFilterNameDecode for @pdf.PdfName with decode_stage(
       @pdfio.Input::of_bytes(data, source="ccitt"),
     )
   } else {
-    raise CodecError::DecodeNotSupported(
+    raise DecodeNotSupported(
       "filter not supported: \{filter_name.to_string_bytes()}",
     )
   }

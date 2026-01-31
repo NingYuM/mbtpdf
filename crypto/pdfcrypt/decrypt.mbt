@@ -3,7 +3,7 @@ fn already_decrypted(pdf : @pdf.Pdf, objnum : Int) -> Bool {
   try {
     let entry = @pdf.pdfobjmap_find(objnum, pdf.objects.objects)
     match entry.0.val {
-      @pdf.ObjectData::ParsedAlreadyDecrypted(_) => true
+      ParsedAlreadyDecrypted(_) => true
       _ => false
     }
   } catch {
@@ -25,15 +25,13 @@ fn is_identity(
   let identity_param = if identity_crypt_filter_present {
     match pdf.lookup_direct("/DecodeParms", dict) {
       Some(Dictionary(decodeparms)) =>
-        match
-          pdf.lookup_direct("/Name", @pdf.PdfObject::Dictionary(decodeparms)) {
+        match pdf.lookup_direct("/Name", Dictionary(decodeparms)) {
           Some(Name(PdfName("/Identity"))) => true
           None => true
           _ => false
         }
       Some(Array([Dictionary(decodeparms), ..])) =>
-        match
-          pdf.lookup_direct("/Name", @pdf.PdfObject::Dictionary(decodeparms)) {
+        match pdf.lookup_direct("/Name", Dictionary(decodeparms)) {
           Some(Name(PdfName("/Identity"))) => true
           None => true
           _ => false
@@ -78,7 +76,7 @@ fn decrypt_stream(
             stream
           } else {
             let prims = @pdfcryptprimitives.PdfCryptPrimitives::new()
-            let crypt = @pdf.ToGetCrypt::ToDecrypt(@pdf.DeferredEncryption::{
+            let crypt = @pdf.ToGetCrypt::ToDecrypt({
               crypt_type,
               file_encryption_key,
               obj,
@@ -117,7 +115,7 @@ fn decrypt_stream(
                     _ => data
                   }
                 } else {
-                  ToGet(@pdf.ToGet::{
+                  ToGet({
                     input: toget.input,
                     position: toget.position,
                     length: toget.length,
@@ -137,10 +135,7 @@ fn decrypt_stream(
             }
             let dict_updated = match data_out {
               Got(bytes) =>
-                dict_out.replace_entry(
-                  "/Length",
-                  @pdf.PdfObject::Integer(bytes.length()),
-                )
+                dict_out.replace_entry("/Length", Integer(bytes.length()))
               _ => dict_out
             }
             rf.val = (dict_updated, data_out)
@@ -297,58 +292,37 @@ pub fn PdfCrypt::get_encryption_values(
   let length_val = pdf.lookup_direct("/Length", encryptdict)
   let r_val = pdf.lookup_direct("/R", encryptdict)
   let crypt_type = match (filter, v_val, length_val, r_val) {
-    (
-      Some(@pdf.PdfObject::Name(name)),
-      Some(@pdf.PdfObject::Integer(1)),
-      _,
-      Some(@pdf.PdfObject::Integer(r)),
-    ) if name is PdfName("/Standard") =>
+    (Some(Name(name)), Some(Integer(1)), _, Some(Integer(r))) if name
+      is PdfName("/Standard") =>
       Some(@pdfcryptprimitives.Encryption::ARC4(40, r))
-    (
-      Some(@pdf.PdfObject::Name(name)),
-      Some(@pdf.PdfObject::Integer(2)),
-      None,
-      Some(@pdf.PdfObject::Integer(r)),
-    ) if name is PdfName("/Standard") =>
-      Some(@pdfcryptprimitives.Encryption::ARC4(40, r))
-    (
-      Some(@pdf.PdfObject::Name(name)),
-      Some(@pdf.PdfObject::Integer(2)),
-      Some(@pdf.PdfObject::Integer(n)),
-      _,
-    ) if name is PdfName("/Standard") =>
+    (Some(Name(name)), Some(Integer(2)), None, Some(Integer(r))) if name
+      is PdfName("/Standard") => Some(ARC4(40, r))
+    (Some(Name(name)), Some(Integer(2)), Some(Integer(n)), _) if name
+      is PdfName("/Standard") =>
       if n % 8 == 0 && n >= 40 && n <= 128 {
-        Some(@pdfcryptprimitives.Encryption::ARC4(n, 3))
+        Some(ARC4(n, 3))
       } else {
         None
       }
-    (
-      Some(@pdf.PdfObject::Name(name)),
-      Some(@pdf.PdfObject::Integer(v)),
-      length,
-      Some(@pdf.PdfObject::Integer(r)),
-    ) if name is PdfName("/Standard") =>
+    (Some(Name(name)), Some(Integer(v)), length, Some(Integer(r))) if name
+      is PdfName("/Standard") =>
       if v == 4 || v == 5 {
         match pdf.lookup_direct("/CF", encryptdict) {
           Some(cfdict) =>
             match pdf.lookup_direct("/StdCF", cfdict) {
               Some(stdcfdict) =>
                 match pdf.lookup_direct("/CFM", stdcfdict) {
-                  Some(@pdf.PdfObject::Name(PdfName("/V2"))) =>
+                  Some(Name(PdfName("/V2"))) =>
                     match length {
-                      Some(@pdf.PdfObject::Integer(i)) =>
-                        Some(@pdfcryptprimitives.Encryption::ARC4(i, 4))
+                      Some(Integer(i)) => Some(ARC4(i, 4))
                       _ =>
                         match pdf.lookup_direct("/Length", cfdict) {
-                          Some(@pdf.PdfObject::Integer(i)) =>
-                            Some(@pdfcryptprimitives.Encryption::ARC4(i, 4))
+                          Some(Integer(i)) => Some(ARC4(i, 4))
                           _ => None
                         }
                     }
-                  Some(@pdf.PdfObject::Name(PdfName("/AESV2"))) =>
-                    Some(@pdfcryptprimitives.Encryption::AESV2)
-                  Some(@pdf.PdfObject::Name(PdfName("/AESV3"))) =>
-                    Some(@pdfcryptprimitives.Encryption::AESV3(r == 6))
+                  Some(Name(PdfName("/AESV2"))) => Some(AESV2)
+                  Some(Name(PdfName("/AESV3"))) => Some(AESV3(r == 6))
                   _ => None
                 }
               _ => None
@@ -362,7 +336,7 @@ pub fn PdfCrypt::get_encryption_values(
   }
   let chop_string3248 = fn(name : String, s : String) -> String raise {
     let need = match crypt_type {
-      Some(@pdfcryptprimitives.Encryption::AESV3(_)) => 48
+      Some(AESV3(_)) => 48
       _ => 32
     }
     if s.length() < need {
@@ -473,7 +447,7 @@ pub fn PdfCrypt::decrypt_pdf(
         Some(String(s)) => s
         _ => ""
       }
-      pdf.saved_encryption = Some(@pdf.SavedEncryption::{
+      pdf.saved_encryption = Some({
         from_get_encryption_values: (crypt_type, u, o, p, id, ue, oe),
         encrypt_metadata,
         perms,
@@ -587,7 +561,7 @@ pub fn PdfCrypt::decrypt_single_stream(
       let (r, keylength) = crypt_type.r_and_keylength()
       let no_encrypt_metadata = match
         pdf.lookup_direct("/EncryptMetadata", encrypt_dict) {
-        Some(@pdf.PdfObject::Boolean(false)) => true
+        Some(Boolean(false)) => true
         _ => false
       }
       match (r, keylength, ue, oe) {
@@ -773,11 +747,11 @@ fn load_saved_encryption_from_pdf(pdf : @pdf.Pdf) -> @pdf.SavedEncryption raise 
   }
   let encrypt_metadata = match
     pdf.lookup_direct("/EncryptMetadata", encrypt_dict) {
-    Some(@pdf.PdfObject::Boolean(false)) => false
+    Some(Boolean(false)) => false
     _ => true
   }
   let perms = match pdf.lookup_direct("/Perms", encrypt_dict) {
-    Some(@pdf.PdfObject::String(s)) => s
+    Some(String(s)) => s
     _ => ""
   }
   {
@@ -801,7 +775,7 @@ fn recrypt_pdf_user(pdf : @pdf.Pdf, pw : String) -> @pdf.Pdf raise {
   let encrypt_metadata = saved.encrypt_metadata
   let perms = saved.perms
   match crypt_type {
-    @pdfcryptprimitives.Encryption::AESV3(iso) => {
+    AESV3(iso) => {
       let oe_val = match oe {
         Some(val) => val
         None => raise @pdf.PdfError::Msg("recrypt_pdf: bad /oe")
@@ -829,14 +803,11 @@ fn recrypt_pdf_user(pdf : @pdf.Pdf, pw : String) -> @pdf.Pdf raise {
         pdf,
       )
     }
-    @pdfcryptprimitives.Encryption::AESV2 =>
-      encrypt_pdf_AES_inner(o, u, p, pw, id, encrypt_metadata, pdf)
-    @pdfcryptprimitives.Encryption::ARC4(40, _) =>
-      encrypt_pdf_40bit_inner(o, u, p, pw, id, pdf)
-    @pdfcryptprimitives.Encryption::ARC4(128, 4) =>
+    AESV2 => encrypt_pdf_AES_inner(o, u, p, pw, id, encrypt_metadata, pdf)
+    ARC4(40, _) => encrypt_pdf_40bit_inner(o, u, p, pw, id, pdf)
+    ARC4(128, 4) =>
       encrypt_pdf_128bit_inner_r4(o, u, p, pw, id, pdf, encrypt_metadata)
-    @pdfcryptprimitives.Encryption::ARC4(128, _) =>
-      encrypt_pdf_128bit_inner(o, u, p, pw, id, pdf)
+    ARC4(128, _) => encrypt_pdf_128bit_inner(o, u, p, pw, id, pdf)
     _ => raise @pdf.PdfError::Msg("recrypt_pdf: bad encryption")
   }
 }
@@ -866,7 +837,7 @@ fn recrypt_pdf_owner(pdf : @pdf.Pdf, owner_pw : String) -> @pdf.Pdf raise {
   let key = key_and_pw.0
   let pw = key_and_pw.1
   match crypt_type {
-    @pdfcryptprimitives.Encryption::AESV3(iso) => {
+    AESV3(iso) => {
       let oe_val = match oe {
         Some(val) => val
         None => raise @pdf.PdfError::Msg("recrypt_pdf: bad /oe")
@@ -879,14 +850,11 @@ fn recrypt_pdf_owner(pdf : @pdf.Pdf, owner_pw : String) -> @pdf.Pdf raise {
         iso, encrypt_metadata, o, u, p, perms, oe_val, ue_val, id, key, pdf,
       )
     }
-    @pdfcryptprimitives.Encryption::AESV2 =>
-      encrypt_pdf_AES_inner(o, u, p, pw, id, encrypt_metadata, pdf)
-    @pdfcryptprimitives.Encryption::ARC4(40, _) =>
-      encrypt_pdf_40bit_inner(o, u, p, pw, id, pdf)
-    @pdfcryptprimitives.Encryption::ARC4(128, 4) =>
+    AESV2 => encrypt_pdf_AES_inner(o, u, p, pw, id, encrypt_metadata, pdf)
+    ARC4(40, _) => encrypt_pdf_40bit_inner(o, u, p, pw, id, pdf)
+    ARC4(128, 4) =>
       encrypt_pdf_128bit_inner_r4(o, u, p, pw, id, pdf, encrypt_metadata)
-    @pdfcryptprimitives.Encryption::ARC4(128, _) =>
-      encrypt_pdf_128bit_inner(o, u, p, pw, id, pdf)
+    ARC4(128, _) => encrypt_pdf_128bit_inner(o, u, p, pw, id, pdf)
     _ => raise @pdf.PdfError::Msg("recrypt_pdf_owner: bad encryption")
   }
 }

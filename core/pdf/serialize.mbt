@@ -258,13 +258,13 @@ fn write_pdf_object(
   sb : StringBuilder,
 ) -> Unit {
   match obj {
-    PdfObject::Null => sb.write_string("null")
-    PdfObject::Boolean(b) => sb.write_string(if b { "true" } else { "false" })
-    PdfObject::Integer(i) => sb.write_string(i.to_string())
-    PdfObject::Real(r) => sb.write_string(format_real(r))
-    PdfObject::String(s) => sb.write_string(make_pdf_string(s))
-    PdfObject::Name(n) => sb.write_string(make_pdf_name(n.to_string_bytes()))
-    PdfObject::Array(values) => {
+    Null => sb.write_string("null")
+    Boolean(b) => sb.write_string(if b { "true" } else { "false" })
+    Integer(i) => sb.write_string(i.to_string())
+    Real(r) => sb.write_string(format_real(r))
+    String(s) => sb.write_string(make_pdf_string(s))
+    Name(n) => sb.write_string(make_pdf_name(n.to_string_bytes()))
+    Array(values) => {
       sb.write_char('[')
       for i in 0..<values.length() {
         if i > 0 {
@@ -274,7 +274,7 @@ fn write_pdf_object(
       }
       sb.write_char(']')
     }
-    PdfObject::Dictionary(entries) => {
+    Dictionary(entries) => {
       sb.write_string("<<")
       for i in 0..<entries.length() {
         let (key, value) = entries[i]
@@ -287,15 +287,14 @@ fn write_pdf_object(
       }
       sb.write_string(">>")
     }
-    PdfObject::Stream(r) => {
+    Stream(r) => {
       let (dict, _) = r.val
       write_pdf_object(dict, include_stream_data, warn_on_toget, sb)
       sb.write_string("\nstream\n")
       if include_stream_data {
         let _ = obj.getstream() catch { _ => () }
         match r.val {
-          (_, Stream::Got(bytes)) =>
-            sb.write_string(@pdfio.string_of_bytes(bytes))
+          (_, Got(bytes)) => sb.write_string(@pdfio.string_of_bytes(bytes))
           _ =>
             if warn_on_toget {
               @pdfe.warn("WARNING: toget in string_of_pdfobj_including_data")
@@ -304,7 +303,7 @@ fn write_pdf_object(
       }
       sb.write_string("\nendstream")
     }
-    PdfObject::Indirect(n) => sb.write_string("\{n} 0 R")
+    Indirect(n) => sb.write_string("\{n} 0 R")
   }
 }
 
