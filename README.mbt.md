@@ -39,6 +39,9 @@ moon run cmd/pdfbirthday
 
 # Run a printable mini escape-room board game (clickable board + hint/solution layers).
 moon run cmd/pdfboardgame
+
+# Run a tiny printable coloring book (COLOR + ANSWERS layers).
+moon run cmd/pdfcoloring
 ```
 
 ## Testing
