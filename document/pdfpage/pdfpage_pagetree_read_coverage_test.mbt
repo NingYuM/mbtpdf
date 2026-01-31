@@ -221,13 +221,13 @@ test "add_pagetree errors on empty page list and bad rest" {
     Ok((_, root_num)) => assert_true(root_num > 0)
     Err(_) => fail("expected ok for empty page list")
   }
-  let bad_page : @pdfpage.Page = {
-    content: [],
-    mediabox: sample_rect(),
-    resources: Dictionary([]),
-    rotate: Rotate0,
-    rest: Integer(0),
-  }
+  let bad_page = @pdfpage.Page(
+    content=[],
+    mediabox=sample_rect(),
+    resources=Dictionary([]),
+    rotate=Rotate0,
+    rest=Integer(0),
+  )
   let res2 : Result[(@pdf.Pdf, Int), Error] = try? @pdfpage.PdfPageDoc::new(
     @pdf.Pdf::empty(),
   ).add_pagetree([bad_page])
@@ -256,13 +256,13 @@ test "add_pagetree writes rotate and builds nested trees" {
   for i in 0..<40 {
     let base = @pdfpage.Page::custom(sample_rect())
     let page : @pdfpage.Page = if i == 0 {
-      {
-        content: base.content,
-        mediabox: base.mediabox,
-        resources: base.resources,
-        rotate: Rotate90,
-        rest: base.rest,
-      }
+      Page(
+        content=base.content,
+        mediabox=base.mediabox,
+        resources=base.resources,
+        rotate=Rotate90,
+        rest=base.rest,
+      )
     } else {
       base
     }

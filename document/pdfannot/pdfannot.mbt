@@ -412,13 +412,13 @@ pub fn PdfAnnot::add_annotation(
     Some(_) => raise @pdf.PdfError::Msg("Bad annotation dictionary")
     None => page.rest.add_entry("/Annots", Array([obj]))
   }
-  {
-    content: page.content,
-    mediabox: page.mediabox,
-    resources: page.resources,
-    rotate: page.rotate,
-    rest: new_rest,
-  }
+  Page(
+    content=page.content,
+    mediabox=page.mediabox,
+    resources=page.resources,
+    rotate=page.rotate,
+    rest=new_rest,
+  )
 }
 
 ///|

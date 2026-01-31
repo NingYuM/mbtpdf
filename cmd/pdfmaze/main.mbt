@@ -494,13 +494,13 @@ fn add_layer_properties_to_pages(
       ("/SOLUTION", Indirect(sol_num)),
     ])
     let resources = page.resources.add_entry("/Properties", props)
-    pages[i] = {
-      content: page.content,
-      mediabox: page.mediabox,
-      resources,
-      rotate: page.rotate,
-      rest: page.rest,
-    }
+    pages[i] = Page(
+      content=page.content,
+      mediabox=page.mediabox,
+      resources~,
+      rotate=page.rotate,
+      rest=page.rest,
+    )
   }
   @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages)
 }
@@ -533,13 +533,13 @@ fn add_link(
 ///|
 fn page_of_ops(ops : Array[Op]) -> @pdfpage.Page raise {
   let stream = @pdfops.Op::stream_of_ops(ops)
-  {
-    content: [stream],
-    mediabox: a4_mediabox(),
-    resources: default_resources(),
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  Page(
+    content=[stream],
+    mediabox=a4_mediabox(),
+    resources=default_resources(),
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
 }
 
 ///|

@@ -11,13 +11,13 @@ test "process_xobjects updates form xobject stream" {
   let resources : @pdf.PdfObject = Dictionary([
     ("/XObject", Dictionary([("/X1", Indirect(xobj_num))])),
   ])
-  let page : @pdfpage.Page = {
-    content: [],
-    mediabox: Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[],
+    mediabox=Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let bbox : @pdf.PdfObject = Array([
     Real(0.0),
     Real(0.0),
@@ -92,13 +92,13 @@ test "process_xobjects errors when xobject subtype missing" {
   let resources : @pdf.PdfObject = Dictionary([
     ("/XObject", Dictionary([("/X1", Indirect(xobj_num))])),
   ])
-  let page : @pdfpage.Page = {
-    content: [],
-    mediabox: Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[],
+    mediabox=Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let update = fn(
     _ : @pdf.Pdf,
     _ : @pdf.PdfObject,
@@ -123,13 +123,13 @@ test "process_xobjects accepts updated stream with non-dict metadata" {
   let resources : @pdf.PdfObject = Dictionary([
     ("/XObject", Dictionary([("/X1", Indirect(xobj_num))])),
   ])
-  let page : @pdfpage.Page = {
-    content: [],
-    mediabox: Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[],
+    mediabox=Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let update = fn(
     _ : @pdf.Pdf,
     _ : @pdf.PdfObject,
@@ -155,13 +155,13 @@ test "process_xobjects errors on non-indirect xobject references" {
   let resources : @pdf.PdfObject = Dictionary([
     ("/XObject", Dictionary([("/X1", Integer(0))])),
   ])
-  let page : @pdfpage.Page = {
-    content: [],
-    mediabox: Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[],
+    mediabox=Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let update = fn(
     _ : @pdf.Pdf,
     _ : @pdf.PdfObject,
@@ -183,13 +183,13 @@ test "process_xobjects ignores non-form xobjects" {
   let resources : @pdf.PdfObject = Dictionary([
     ("/XObject", Dictionary([("/Im0", Indirect(xobj_num))])),
   ])
-  let page : @pdfpage.Page = {
-    content: [],
-    mediabox: Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[],
+    mediabox=Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let calls : Ref[Int] = { val: 0 }
   let update = fn(
     _ : @pdf.Pdf,
@@ -207,13 +207,13 @@ test "process_xobjects ignores non-form xobjects" {
 test "process_xobjects does nothing when /XObject is missing" {
   let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
-  let page : @pdfpage.Page = {
-    content: [],
-    mediabox: Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[],
+    mediabox=Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   page.process_xobjects(pdf, fn(_, _, _) { [] })
 }
 
@@ -267,13 +267,13 @@ test "process_xobjects errors when updater returns non-stream" {
   let resources : @pdf.PdfObject = Dictionary([
     ("/XObject", Dictionary([("/X1", Indirect(xobj_num))])),
   ])
-  let page : @pdfpage.Page = {
-    content: [],
-    mediabox: Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[],
+    mediabox=Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let update = fn(
     _ : @pdf.Pdf,
     _ : @pdf.PdfObject,

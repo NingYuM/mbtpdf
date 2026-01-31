@@ -28,13 +28,13 @@ fn renumber_page(rect : @pdf.PdfObject) -> @pdfpage.Page raise {
     OpBDC("/Span", Name(PdfName("/Prop1"))),
     OpBDC("/Span", Name(PdfName("/PropMissing"))),
   ]
-  {
-    content: [@pdfops.Op::stream_of_ops(ops)],
-    mediabox: rect,
-    resources: renumber_resources(),
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  Page(
+    content=[@pdfops.Op::stream_of_ops(ops)],
+    mediabox=rect,
+    resources=renumber_resources(),
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
 }
 
 ///|
@@ -156,13 +156,13 @@ test "renumber_pages rewrites inline image colorspace names" {
     InlineImage((img2_dict, None, @pdfio.bytes_of_list([0]))),
     InlineImage((img3_dict, None, @pdfio.bytes_of_string("RGB"))),
   ]
-  let page : @pdfpage.Page = {
-    content: [@pdfops.Op::stream_of_ops(ops)],
-    mediabox: rect,
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[@pdfops.Op::stream_of_ops(ops)],
+    mediabox=rect,
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let updated = @pdfpage.PdfPageDoc::new(pdf).renumber_pages([page])
   let renamed = updated[0]
   let ops_out = @pdfops.Op::parse_operators(
@@ -204,13 +204,13 @@ test "renumber_pages errors on missing resource key references" {
     Real(100.0),
     Real(100.0),
   ])
-  let page : @pdfpage.Page = {
-    content: [@pdfops.Op::stream_of_ops([OpTf("/MissingFont", 12.0)])],
-    mediabox: rect,
-    resources: Dictionary([]),
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[@pdfops.Op::stream_of_ops([OpTf("/MissingFont", 12.0)])],
+    mediabox=rect,
+    resources=Dictionary([]),
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let res : Result[Array[@pdfpage.Page], Error] = try? @pdfpage.PdfPageDoc::new(
     pdf,
   ).renumber_pages([page])

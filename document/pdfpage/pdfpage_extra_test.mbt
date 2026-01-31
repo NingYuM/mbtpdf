@@ -234,13 +234,13 @@ test "prepend/postpend operators update content" {
   ])
   let base_page = @pdfpage.Page::custom(rect)
   let base_ops : Array[@pdfops.Op] = [Opq, OpQ]
-  let page = Page::{
-    content: [@pdfops.Op::stream_of_ops(base_ops)],
-    mediabox: base_page.mediabox,
-    resources: base_page.resources,
-    rotate: base_page.rotate,
-    rest: base_page.rest,
-  }
+  let page = @pdfpage.Page(
+    content=[@pdfops.Op::stream_of_ops(base_ops)],
+    mediabox=base_page.mediabox,
+    resources=base_page.resources,
+    rotate=base_page.rotate,
+    rest=base_page.rest,
+  )
   let pre = page.prepend_operators(pdf, [Opw(2.0)])
   let ops_pre = @pdfops.Op::parse_operators(pdf, pre.resources, pre.content)
   match (ops_pre[0] : @pdfops.Op) {
@@ -332,13 +332,13 @@ test "renumber_pages updates resources and operators" {
     ("/Font", Dictionary([("/F1", Null)])),
   ])
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F1", 12.0), OpTj("Hi"), OpET]
-  let page : @pdfpage.Page = {
-    content: [@pdfops.Op::stream_of_ops(ops)],
-    mediabox: Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[@pdfops.Op::stream_of_ops(ops)],
+    mediabox=Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let updated = @pdfpage.PdfPageDoc::new(pdf).renumber_pages([page])
   let renamed = updated[0]
   match pdf.lookup_direct("/Font", renamed.resources) {
@@ -366,13 +366,13 @@ test "add_prefix rewrites resources and content" {
     ("/Font", Dictionary([("/F1", Null)])),
   ])
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F1", 12.0), OpTj("Hi"), OpET]
-  let page : @pdfpage.Page = {
-    content: [@pdfops.Op::stream_of_ops(ops)],
-    mediabox: Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[@pdfops.Op::stream_of_ops(ops)],
+    mediabox=Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
@@ -402,13 +402,13 @@ test "shortest_unused_prefix skips used names" {
   let resources : @pdf.PdfObject = Dictionary([
     ("/Font", Dictionary([("/a1", Null)])),
   ])
-  let page : @pdfpage.Page = {
-    content: [],
-    mediabox: Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[],
+    mediabox=Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   assert_eq(@pdfpage.PdfPageDoc::new(pdf).shortest_unused_prefix(), "b")

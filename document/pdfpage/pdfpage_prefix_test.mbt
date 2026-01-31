@@ -31,13 +31,13 @@ test "shortest_unused_prefix handles dense prefixes" {
   let resources : @pdf.PdfObject = Dictionary([
     ("/Font", Dictionary(font_entries)),
   ])
-  let page : @pdfpage.Page = {
-    content: [],
-    mediabox: prefix_sample_rect(),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[],
+    mediabox=prefix_sample_rect(),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   ignore(pdf.addobj(Integer(1)))
@@ -63,16 +63,16 @@ test "add_prefix rewrites resources and operators" {
     OpBDC("/Tag", Name(PdfName("/Prop1"))),
   ]
   let ops_secondary : Array[@pdfops.Op] = [Opq, OpQ]
-  let page : @pdfpage.Page = {
-    content: [
+  let page = @pdfpage.Page(
+    content=[
       @pdfops.Op::stream_of_ops(ops_primary),
       @pdfops.Op::stream_of_ops(ops_secondary),
     ],
-    mediabox: prefix_sample_rect(),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+    mediabox=prefix_sample_rect(),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
@@ -177,13 +177,13 @@ test "add_prefix rewrites inline image colorspace names" {
   let ops : Array[@pdfops.Op] = [
     InlineImage((dict, None, @pdfio.bytes_of_string("RGB"))),
   ]
-  let page : @pdfpage.Page = {
-    content: [@pdfops.Op::stream_of_ops(ops)],
-    mediabox: prefix_sample_rect(),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[@pdfops.Op::stream_of_ops(ops)],
+    mediabox=prefix_sample_rect(),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
@@ -226,13 +226,13 @@ test "add_prefix handles filtered inline images with trailing ops" {
     ("/Filter", Name(PdfName("/FlateDecode"))),
   ])
   let ops : Array[@pdfops.Op] = [InlineImage((dict, None, encoded)), Opq, OpQ]
-  let page : @pdfpage.Page = {
-    content: [@pdfops.Op::stream_of_ops(ops)],
-    mediabox: prefix_sample_rect(),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[@pdfops.Op::stream_of_ops(ops)],
+    mediabox=prefix_sample_rect(),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
@@ -267,13 +267,13 @@ test "add_prefix rejects blank resource names" {
   let resources : @pdf.PdfObject = Dictionary([
     ("/Font", Dictionary([("", Null)])),
   ])
-  let page : @pdfpage.Page = {
-    content: [],
-    mediabox: prefix_sample_rect(),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[],
+    mediabox=prefix_sample_rect(),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   let result : Result[Unit, Error] = try? @pdfpage.PdfPageDoc::new(pdf).add_prefix(
@@ -289,13 +289,13 @@ test "add_prefix handles single indirect contents" {
     ("/Font", Dictionary([("/F1", Null)])),
   ])
   let ops : Array[@pdfops.Op] = [OpTf("/F1", 9.0)]
-  let page : @pdfpage.Page = {
-    content: [@pdfops.Op::stream_of_ops(ops)],
-    mediabox: prefix_sample_rect(),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[@pdfops.Op::stream_of_ops(ops)],
+    mediabox=prefix_sample_rect(),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   let page_num = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(1) {
@@ -334,13 +334,13 @@ test "add_prefix keeps direct inline colorspace names" {
   let ops : Array[@pdfops.Op] = [
     InlineImage((dict, None, @pdfio.bytes_of_string("RGB"))),
   ]
-  let page : @pdfpage.Page = {
-    content: [@pdfops.Op::stream_of_ops(ops)],
-    mediabox: prefix_sample_rect(),
-    resources: Dictionary([]),
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[@pdfops.Op::stream_of_ops(ops)],
+    mediabox=prefix_sample_rect(),
+    resources=Dictionary([]),
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
@@ -387,13 +387,13 @@ test "add_prefix preserves inline colorspace arrays" {
   let ops : Array[@pdfops.Op] = [
     InlineImage((dict, None, @pdfio.bytes_of_list([0x12]))),
   ]
-  let page : @pdfpage.Page = {
-    content: [@pdfops.Op::stream_of_ops(ops)],
-    mediabox: prefix_sample_rect(),
-    resources: Dictionary([]),
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[@pdfops.Op::stream_of_ops(ops)],
+    mediabox=prefix_sample_rect(),
+    resources=Dictionary([]),
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   @pdfpage.PdfPageDoc::new(pdf).add_prefix("p")
@@ -445,13 +445,13 @@ test "add_prefix merges non-iso content streams" {
       ),
     ),
   )
-  let page : @pdfpage.Page = {
-    content: [stream1, stream2],
-    mediabox: prefix_sample_rect(),
-    resources: Dictionary([]),
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[stream1, stream2],
+    mediabox=prefix_sample_rect(),
+    resources=Dictionary([]),
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([
       page,
     ],
@@ -494,20 +494,20 @@ test "add_prefix merge_content_streams tolerates varied /Contents shapes" {
       ),
     ),
   )
-  let non_iso_page : @pdfpage.Page = {
-    content: [stream1, stream2],
-    mediabox: prefix_sample_rect(),
-    resources: Dictionary([]),
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
-  let base_page : @pdfpage.Page = {
-    content: [@pdfops.Op::stream_of_ops([Opq, OpQ])],
-    mediabox: prefix_sample_rect(),
-    resources: Dictionary([]),
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let non_iso_page = @pdfpage.Page(
+    content=[stream1, stream2],
+    mediabox=prefix_sample_rect(),
+    resources=Dictionary([]),
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
+  let base_page = @pdfpage.Page(
+    content=[@pdfops.Op::stream_of_ops([Opq, OpQ])],
+    mediabox=prefix_sample_rect(),
+    resources=Dictionary([]),
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([
     non_iso_page, base_page, base_page, base_page,
   ])
@@ -556,13 +556,13 @@ test "add_prefix merge_content_streams tolerates varied /Contents shapes" {
 ///|
 test "add_prefix errors on /Contents arrays containing non-indirect objects" {
   let pdf0 = @pdf.Pdf::empty()
-  let page : @pdfpage.Page = {
-    content: [@pdfops.Op::stream_of_ops([Opq])],
-    mediabox: prefix_sample_rect(),
-    resources: Dictionary([]),
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[@pdfops.Op::stream_of_ops([Opq])],
+    mediabox=prefix_sample_rect(),
+    resources=Dictionary([]),
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   let page_num = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(1) {
@@ -582,13 +582,13 @@ test "add_prefix errors on /Contents arrays containing non-indirect objects" {
 ///|
 test "add_prefix errors when /Contents indirect points to non-stream object" {
   let pdf0 = @pdf.Pdf::empty()
-  let page : @pdfpage.Page = {
-    content: [@pdfops.Op::stream_of_ops([Opq])],
-    mediabox: prefix_sample_rect(),
-    resources: Dictionary([]),
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[@pdfops.Op::stream_of_ops([Opq])],
+    mediabox=prefix_sample_rect(),
+    resources=Dictionary([]),
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   let page_num = match @pdfpage.PdfPageDoc::new(pdf).page_object_number(1) {

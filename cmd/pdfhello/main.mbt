@@ -35,13 +35,13 @@ pub async fn run(
     let stream = @pdfops.Op::stream_of_ops(ops)
 
     // Create a page with A4 dimensions, the content stream, and font resources
-    let page : @pdfpage.Page = {
-      content: [stream],
-      mediabox: @pdfpage.Page::blank(@pdfpaper.a4).mediabox,
-      resources: Dictionary([("/Font", Dictionary([("/F0", font)]))]),
-      rotate: Rotate0,
-      rest: Dictionary([]),
-    }
+    let page = @pdfpage.Page(
+      content=[stream],
+      mediabox=@pdfpage.Page::blank(@pdfpaper.a4).mediabox,
+      resources=Dictionary([("/Font", Dictionary([("/F0", font)]))]),
+      rotate=Rotate0,
+      rest=Dictionary([]),
+    )
 
     // Build the PDF: create empty document, add page tree, then add document root
     let (pdf, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([

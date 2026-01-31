@@ -163,13 +163,13 @@ test "annotations_of_page skips popup parent" {
     ("/Annots", Array([Indirect(parent_num), Indirect(popup_num)])),
   ])
   let base = @pdfpage.Page::custom(rect)
-  let page : @pdfpage.Page = {
-    content: base.content,
-    mediabox: base.mediabox,
-    resources: base.resources,
-    rotate: base.rotate,
-    rest,
-  }
+  let page = @pdfpage.Page(
+    content=base.content,
+    mediabox=base.mediabox,
+    resources=base.resources,
+    rotate=base.rotate,
+    rest~,
+  )
   let annots = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   assert_eq(annots.length(), 1)
   match (annots[0].subtype : @pdfannot.Subtype) {
@@ -208,13 +208,13 @@ test "read_annotation uses /BS style" {
     ("/Annots", Array([Indirect(objnum)])),
   ])
   let base = @pdfpage.Page::custom(rect)
-  let page : @pdfpage.Page = {
-    content: base.content,
-    mediabox: base.mediabox,
-    resources: base.resources,
-    rotate: base.rotate,
-    rest,
-  }
+  let page = @pdfpage.Page(
+    content=base.content,
+    mediabox=base.mediabox,
+    resources=base.resources,
+    rotate=base.rotate,
+    rest~,
+  )
   let annots = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   assert_eq(annots.length(), 1)
   match (annots[0].border.style : @pdfannot.Style) {
@@ -273,13 +273,13 @@ test "read_annotation parses styles and extras" {
     ("/Annots", Array(nums.map(fn(n) { Indirect(n) }))),
   ])
   let base = @pdfpage.Page::custom(rect)
-  let page : @pdfpage.Page = {
-    content: base.content,
-    mediabox: base.mediabox,
-    resources: base.resources,
-    rotate: base.rotate,
-    rest,
-  }
+  let page = @pdfpage.Page(
+    content=base.content,
+    mediabox=base.mediabox,
+    resources=base.resources,
+    rotate=base.rotate,
+    rest~,
+  )
   let annots = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   assert_eq(annots.length(), 4)
   match (annots[0].border.style : @pdfannot.Style) {
@@ -332,13 +332,13 @@ test "read_annotation handles unknown subtype and missing strings" {
     ("/Annots", Array([Indirect(objnum)])),
   ])
   let base = @pdfpage.Page::custom(rect)
-  let page : @pdfpage.Page = {
-    content: base.content,
-    mediabox: base.mediabox,
-    resources: base.resources,
-    rotate: base.rotate,
-    rest,
-  }
+  let page = @pdfpage.Page(
+    content=base.content,
+    mediabox=base.mediabox,
+    resources=base.resources,
+    rotate=base.rotate,
+    rest~,
+  )
   let annots = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   match (annots[0].subtype : @pdfannot.Subtype) {
     Unknown("/Weird") => ()
@@ -363,13 +363,13 @@ test "annotations_of_page handles non-array and add_annotation rejects" {
     Real(10.0),
   ])
   let base = @pdfpage.Page::custom(rect)
-  let page : @pdfpage.Page = {
-    content: base.content,
-    mediabox: base.mediabox,
-    resources: base.resources,
-    rotate: base.rotate,
-    rest: Dictionary([("/Annots", Null)]),
-  }
+  let page = @pdfpage.Page(
+    content=base.content,
+    mediabox=base.mediabox,
+    resources=base.resources,
+    rotate=base.rotate,
+    rest=Dictionary([("/Annots", Null)]),
+  )
   let pdf = @pdf.Pdf::empty()
   let annots = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   assert_eq(annots.length(), 0)
@@ -441,13 +441,13 @@ test "read_annotation handles more subtypes and popup fallback" {
     ("/Annots", Array(nums.map(fn(n) { Indirect(n) }))),
   ])
   let base = @pdfpage.Page::custom(rect)
-  let page : @pdfpage.Page = {
-    content: base.content,
-    mediabox: base.mediabox,
-    resources: base.resources,
-    rotate: base.rotate,
-    rest,
-  }
+  let page = @pdfpage.Page(
+    content=base.content,
+    mediabox=base.mediabox,
+    resources=base.resources,
+    rotate=base.rotate,
+    rest~,
+  )
   let parsed = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   assert_eq(parsed.length(), 6)
   match (parsed[0].subtype : @pdfannot.Subtype) {
@@ -510,13 +510,13 @@ test "read_annotation covers border styles and dash array" {
     ("/Annots", Array(nums.map(fn(n) { Indirect(n) }))),
   ])
   let base = @pdfpage.Page::custom(rect)
-  let page : @pdfpage.Page = {
-    content: base.content,
-    mediabox: base.mediabox,
-    resources: base.resources,
-    rotate: base.rotate,
-    rest,
-  }
+  let page = @pdfpage.Page(
+    content=base.content,
+    mediabox=base.mediabox,
+    resources=base.resources,
+    rotate=base.rotate,
+    rest~,
+  )
   let parsed = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   assert_eq(parsed.length(), 3)
   match (parsed[0].border.style : @pdfannot.Style) {
@@ -546,13 +546,13 @@ test "add_annotation merges existing annots and extras" {
     ("/Rect", rect),
   ])
   let base = @pdfpage.Page::custom(rect)
-  let page : @pdfpage.Page = {
-    content: base.content,
-    mediabox: base.mediabox,
-    resources: base.resources,
-    rotate: base.rotate,
-    rest: Dictionary([("/Annots", Array([existing]))]),
-  }
+  let page = @pdfpage.Page(
+    content=base.content,
+    mediabox=base.mediabox,
+    resources=base.resources,
+    rotate=base.rotate,
+    rest=Dictionary([("/Annots", Array([existing]))]),
+  )
   let base_annot = @pdfannot.Annotation::new(FreeText)
   let annot : @pdfannot.Annotation = {
     subtype: base_annot.subtype,
@@ -592,13 +592,13 @@ test "annotations_of_page errors on non-dictionary annots" {
     Real(10.0),
   ])
   let base = @pdfpage.Page::custom(rect)
-  let page : @pdfpage.Page = {
-    content: base.content,
-    mediabox: base.mediabox,
-    resources: base.resources,
-    rotate: base.rotate,
-    rest: Dictionary([("/Annots", Array([Integer(1)]))]),
-  }
+  let page = @pdfpage.Page(
+    content=base.content,
+    mediabox=base.mediabox,
+    resources=base.resources,
+    rotate=base.rotate,
+    rest=Dictionary([("/Annots", Array([Integer(1)]))]),
+  )
   let pdf = @pdf.Pdf::empty()
   assert_is_err(try? @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page))
 }
@@ -652,13 +652,13 @@ test "read_annotation covers remaining subtypes" {
     ("/Annots", Array(nums.map(fn(n) { Indirect(n) }))),
   ])
   let base = @pdfpage.Page::custom(rect)
-  let page : @pdfpage.Page = {
-    content: base.content,
-    mediabox: base.mediabox,
-    resources: base.resources,
-    rotate: base.rotate,
-    rest,
-  }
+  let page = @pdfpage.Page(
+    content=base.content,
+    mediabox=base.mediabox,
+    resources=base.resources,
+    rotate=base.rotate,
+    rest~,
+  )
   let parsed = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   assert_eq(parsed.length(), subtype_names.length())
   match (parsed[0].subtype : @pdfannot.Subtype) {
@@ -753,13 +753,13 @@ test "read_annotation handles inset style and non-name /S" {
     ("/Annots", Array(nums.map(fn(n) { Indirect(n) }))),
   ])
   let base = @pdfpage.Page::custom(rect)
-  let page : @pdfpage.Page = {
-    content: base.content,
-    mediabox: base.mediabox,
-    resources: base.resources,
-    rotate: base.rotate,
-    rest,
-  }
+  let page = @pdfpage.Page(
+    content=base.content,
+    mediabox=base.mediabox,
+    resources=base.resources,
+    rotate=base.rotate,
+    rest~,
+  )
   let parsed = @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page)
   match (parsed[0].border.style : @pdfannot.Style) {
     Inset => ()
@@ -791,21 +791,21 @@ test "read_annotation errors on popup stream and add_annotation requires diction
     ("/Annots", Array([Indirect(objnum)])),
   ])
   let base = @pdfpage.Page::custom(rect)
-  let page : @pdfpage.Page = {
-    content: base.content,
-    mediabox: base.mediabox,
-    resources: base.resources,
-    rotate: base.rotate,
-    rest,
-  }
+  let page = @pdfpage.Page(
+    content=base.content,
+    mediabox=base.mediabox,
+    resources=base.resources,
+    rotate=base.rotate,
+    rest~,
+  )
   assert_is_err(try? @pdfannot.PdfAnnot::new(pdf).annotations_of_page(page))
-  let bad_page : @pdfpage.Page = {
-    content: base.content,
-    mediabox: base.mediabox,
-    resources: base.resources,
-    rotate: base.rotate,
-    rest: Integer(1),
-  }
+  let bad_page = @pdfpage.Page(
+    content=base.content,
+    mediabox=base.mediabox,
+    resources=base.resources,
+    rotate=base.rotate,
+    rest=Integer(1),
+  )
   let annot = @pdfannot.Annotation::new(Text)
   assert_is_err(
     try? @pdfannot.PdfAnnot::new(pdf).add_annotation(bad_page, annot),

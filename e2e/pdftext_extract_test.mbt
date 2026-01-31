@@ -783,13 +783,13 @@ fn build_unicode_pdf() -> @pdf.Pdf raise {
     Real(595.0),
     Real(842.0),
   ])
-  let page : @pdfpage.Page = {
-    content: [stream],
-    mediabox,
-    resources: Dictionary([("/Font", Dictionary([("/F0", font)]))]),
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  let page = @pdfpage.Page(
+    content=[stream],
+    mediabox~,
+    resources=Dictionary([("/Font", Dictionary([("/F0", font)]))]),
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
   let (pdf, pageroot) = @pdfpage.PdfPageDoc::new(pdf).add_pagetree([page])
   @pdfpage.PdfPageDoc::new(pdf).add_root(pageroot, [])
 }
@@ -811,13 +811,13 @@ fn extract_test_page(
   resources : @pdf.PdfObject,
 ) -> @pdfpage.Page raise {
   let stream = @pdfops.Op::stream_of_ops(ops)
-  {
-    content: [stream],
-    mediabox: extract_test_mediabox(),
-    resources,
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  Page(
+    content=[stream],
+    mediabox=extract_test_mediabox(),
+    resources~,
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
 }
 
 ///|

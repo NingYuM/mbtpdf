@@ -11,13 +11,35 @@ pub(all) enum Rotation {
 } derive(Debug)
 
 ///|
-/// A type representing a page.
-pub(all) struct Page {
+/// A type representing a PDF page.
+pub struct Page {
+  /// Content streams containing the page's graphics operators (text, images, paths).
   content : Array[PdfObject]
+  /// Page dimensions as a rectangle [minX, minY, maxX, maxY] in points (1/72 inch).
   mediabox : PdfObject
+  /// Resource dictionary mapping names to fonts, images, color spaces, etc.
   resources : PdfObject
+  /// Page rotation (0, 90, 180, or 270 degrees clockwise).
   rotate : Rotation
+  /// Additional page dictionary entries not captured by other fields.
   rest : PdfObject
+  fn new(
+    content~ : Array[PdfObject],
+    mediabox~ : PdfObject,
+    resources~ : PdfObject,
+    rotate~ : Rotation,
+    rest~ : PdfObject,
+  ) -> Page
+}
+
+fn Page::new(
+  content~ : Array[PdfObject],
+  mediabox~ : PdfObject,
+  resources~ : PdfObject,
+  rotate~ : Rotation,
+  rest~ : PdfObject,
+) -> Page {
+  { content, mediabox, resources, rotate, rest }
 }
 
 ///|
@@ -33,13 +55,13 @@ pub fn PdfPageDoc::new(pdf : @pdf.Pdf) -> PdfPageDoc {
 ///|
 /// Create a page with empty content and no extra dictionary entries.
 pub fn Page::custom(rectangle : PdfObject) -> Page {
-  {
-    content: [],
-    mediabox: rectangle,
-    resources: Dictionary([]),
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  Page(
+    content=[],
+    mediabox=rectangle,
+    resources=Dictionary([]),
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
 }
 
 ///|

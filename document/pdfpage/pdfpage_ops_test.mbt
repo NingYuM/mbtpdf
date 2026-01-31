@@ -5,13 +5,13 @@ fn ops_sample_rect() -> @pdf.PdfObject {
 
 ///|
 fn ops_page_with_ops(ops : Array[@pdfops.Op]) -> @pdfpage.Page raise {
-  {
-    content: [@pdfops.Op::stream_of_ops(ops)],
-    mediabox: ops_sample_rect(),
-    resources: Dictionary([]),
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  Page(
+    content=[@pdfops.Op::stream_of_ops(ops)],
+    mediabox=ops_sample_rect(),
+    resources=Dictionary([]),
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
 }
 
 ///|

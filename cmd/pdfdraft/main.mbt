@@ -103,13 +103,13 @@ fn remove_images_page(
   )
   let stream = @pdfops.Op::stream_of_ops(content)
   @pdfcodec.PdfCodec::new().encode_pdfstream(pdf, Flate, stream)
-  {
-    content: [stream],
-    mediabox: page.mediabox,
-    resources: remove_image_xobjects(pdf, page.resources),
-    rotate: page.rotate,
-    rest: page.rest,
-  }
+  Page(
+    content=[stream],
+    mediabox=page.mediabox,
+    resources=remove_image_xobjects(pdf, page.resources),
+    rotate=page.rotate,
+    rest=page.rest,
+  )
 }
 
 ///|

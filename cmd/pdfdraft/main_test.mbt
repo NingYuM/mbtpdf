@@ -44,13 +44,13 @@ async test "run removes image xobjects and writes output" {
         OpQ,
       ]
       let stream = @pdfops.Op::stream_of_ops(ops)
-      let page : @pdfpage.Page = {
-        content: [stream],
-        mediabox: sample_rect(),
-        resources,
-        rotate: Rotate0,
-        rest: Dictionary([]),
-      }
+      let page = @pdfpage.Page(
+        content=[stream],
+        mediabox=sample_rect(),
+        resources~,
+        rotate=Rotate0,
+        rest=Dictionary([]),
+      )
       let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(@pdf.Pdf::empty()).add_pagetree([
           page,
         ],

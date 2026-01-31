@@ -586,13 +586,13 @@ fn credits_ops() -> Array[@pdfops.Op] {
 ///|
 fn page_of_ops(ops : Array[@pdfops.Op]) -> @pdfpage.Page raise {
   let stream = @pdfops.Op::stream_of_ops(ops)
-  {
-    content: [stream],
-    mediabox: a4_mediabox(),
-    resources: default_resources(),
-    rotate: Rotate0,
-    rest: Dictionary([]),
-  }
+  Page(
+    content=[stream],
+    mediabox=a4_mediabox(),
+    resources=default_resources(),
+    rotate=Rotate0,
+    rest=Dictionary([]),
+  )
 }
 
 ///|
@@ -643,13 +643,13 @@ fn add_day_night_layers(pdf : @pdf.Pdf) -> @pdf.Pdf raise {
     ("/NIGHT", Indirect(night_num)),
   ])
   let resources = layer_page.resources.add_entry("/Properties", props)
-  pages[2] = {
-    content: layer_page.content,
-    mediabox: layer_page.mediabox,
-    resources,
-    rotate: layer_page.rotate,
-    rest: layer_page.rest,
-  }
+  pages[2] = Page(
+    content=layer_page.content,
+    mediabox=layer_page.mediabox,
+    resources~,
+    rotate=layer_page.rotate,
+    rest=layer_page.rest,
+  )
   @pdfpage.PdfPageDoc::new(pdf).change_pages(true, pages)
 }
 

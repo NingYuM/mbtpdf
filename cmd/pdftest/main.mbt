@@ -2,13 +2,13 @@
 fn rebuild_page(pdf : @pdf.Pdf, page : @pdfpage.Page) -> @pdfpage.Page raise {
   let ops = @pdfops.Op::parse_operators(pdf, page.resources, page.content)
   let stream = @pdfops.Op::stream_of_ops(ops)
-  {
-    content: [stream],
-    mediabox: page.mediabox,
-    resources: page.resources,
-    rotate: page.rotate,
-    rest: page.rest,
-  }
+  Page(
+    content=[stream],
+    mediabox=page.mediabox,
+    resources=page.resources,
+    rotate=page.rotate,
+    rest=page.rest,
+  )
 }
 
 ///|
