@@ -15,6 +15,15 @@ fn parse_lexemes(
 
 ///|
 /// Parse the operators in content streams.
+///
+/// This is the “page-friendly” entry point:
+///
+/// - Accepts a page’s `/Contents` array (`Array[PdfObject]`)
+/// - Decodes compressed streams via `@pdfcodec.PdfCodec`
+/// - Parses the resulting bytes into typed `Op`s
+///
+/// If you already have decoded bytes, prefer `Op::parse_stream` /
+/// `Op::parse_single_stream`.
 pub fn Op::parse_operators(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,

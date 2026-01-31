@@ -1,5 +1,9 @@
 ///|
-/// Given a colourspace and bits per component, return bytes per pixel.
+/// Return the number of components in a color space.
+///
+/// This is used when interpreting operators that carry component arrays (e.g.
+/// `rg/RG`, `k/K`, `scn/SCN`) based on the active color space referenced from
+/// `/Resources`.
 pub fn Op::components(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,

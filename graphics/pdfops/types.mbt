@@ -110,7 +110,12 @@ let whitespace : Ref[String] = { val: " " }
 let always_add_whitespace : Ref[Bool] = { val: false }
 
 ///|
+/// Begin a marked-content section tagged as `/Artifact`.
+///
+/// Many PDF producers mark decorative / non-semantic drawing as artifacts so
+/// downstream processors (accessibility, reflow, text extraction) can ignore it.
 pub let begin_artifact : Op = OpBMC("/Artifact")
 
 ///|
+/// End a marked-content section (pairs with `begin_artifact`).
 pub let end_artifact : Op = OpEMC

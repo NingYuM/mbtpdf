@@ -7,9 +7,45 @@ PDF content stream operators for graphics and text.
 The `pdfops` package provides:
 
 - The `Op` enum representing all PDF content stream operators
-- Parsing content streams into operator sequences
+- Parsing PDF content streams into operator sequences
 - Serializing operators back to content streams
-- Operator manipulation utilities
+- Utilities for manipulating / rewriting operator sequences
+
+In PDFs, **content streams** are where page graphics live (paths, text, images,
+marked content, etc.). The most common place you’ll see them is the page
+dictionary’s `/Contents`, but they can also appear in XObjects (e.g. form
+XObjects) and other places that use the same operator language.
+
+## Is It “Standalone”?
+
+`pdfops` is a **package** inside the `@bobzhang/mbtpdf` module (not a separate
+MoonBit module), but it *can* be developed and tested largely in isolation:
+
+```sh
+moon check graphics/pdfops
+moon test graphics/pdfops
+```
+
+It depends on lower-level `mbtpdf` packages like `core/pdf` (types), `core/pdfio`
+(byte I/O), `codec/pdfcodec` (stream decoding), and `syntax/pdfsyntax` (token
+parsing).
+
+## Use Cases
+
+Typical uses of `pdfops`:
+
+- **Inspection / analysis**: parse `/Contents` into typed operators to find
+  text draws, images (`Do` / inline images), marked content tags, etc.
+- **Rewriting / normalization**: read operators, transform them (e.g. rename
+  resource keys, drop images, add watermarks, apply transforms), and write them
+  back.
+- **Generation**: build new pages or overlays by constructing `Array[Op]` and
+  turning it into a stream.
+
+If you’re looking for concrete examples in this repo:
+
+- Generating a PDF from operators: `cmd/pdfhello/main.mbt`
+- Parsing and rewriting streams: `cmd/pdfdraft/main.mbt`, `cmd/pdftest/main.mbt`
 
 ## Op Enum
 
@@ -128,6 +164,16 @@ The `Op` enum represents PDF graphics operators:
 
 ### Parse to Operators
 
+In many PDFs, a page’s `/Contents` is an array of streams. Use `parse_operators`
+to handle that common case (including decoding compressed streams):
+
+```mbt nocheck
+///|
+let ops = @pdfops.Op::parse_operators(pdf, page.resources, page.content)
+```
+
+If you already have decoded stream bytes, use `parse_stream` / `parse_single_stream`:
+
 ```mbt nocheck
 ///|
 let ops = @pdfops.Op::parse_stream(pdf, resources, content_stream)
@@ -136,6 +182,10 @@ let ops = @pdfops.Op::parse_stream(pdf, resources, content_stream)
 ## Serializing Operators
 
 ### To String
+
+`string_of_ops` and `to_string` are primarily intended for logging / debugging
+and test assertions. For producing a real PDF stream object, prefer
+`stream_of_ops`.
 
 ```mbt check
 ///|
@@ -161,6 +211,13 @@ test "string_of_ops" {
 ```mbt nocheck
 ///|
 let bytes = @pdfops.Op::concat_bytess(byte_arrays)
+```
+
+### To PDF Stream
+
+```mbt nocheck
+///|
+let stream_obj = @pdfops.Op::stream_of_ops(ops)
 ```
 
 ## Common Patterns

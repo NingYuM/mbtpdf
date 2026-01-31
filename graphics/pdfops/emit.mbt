@@ -395,19 +395,29 @@ fn string_of_lexemes(lexemes : Array[Lexeme]) -> String raise {
 }
 
 ///|
-/// Make a string of several operators (debug only).
+/// Render operators as PDF content-stream syntax.
+///
+/// This is primarily intended for logging, debugging, and test assertions
+/// (e.g. snapshotting a rewritten operator sequence as text).
+///
+/// For producing a real PDF `/Contents` stream object, prefer `stream_of_ops`.
 pub fn Op::string_of_ops(ops : Array[Op]) -> String raise {
   string_of_lexemes(lexemes_of_ops(ops))
 }
 
 ///|
-/// Make a string of a single operator (debug only).
+/// Render an operator as PDF content-stream syntax.
+///
+/// This is equivalent to `Op::string_of_ops([self])`.
 pub fn Op::to_string(self : Op) -> String raise {
   Op::string_of_ops([self])
 }
 
 ///|
 /// Concatenate byte streams with whitespace between them.
+///
+/// This is mainly useful when a page has multiple `/Contents` streams and you
+/// want to lex/parse them as a single stream.
 pub fn Op::concat_bytess(ss : Array[Array[Byte]]) -> Array[Byte] {
   let mut total = 0
   for bytes in ss {
@@ -470,6 +480,9 @@ fn stream_of_lexemes(oplists : Array[Array[Lexeme]]) -> Array[Byte] raise {
 
 ///|
 /// Flatten a list of operators to an uncompressed PDF stream.
+///
+/// This produces a `Stream` object suitable for use as page `/Contents` (often
+/// after further encoding via `@pdfcodec.PdfCodec::encode_pdfstream`).
 pub fn Op::stream_of_ops(ops : Array[Op]) -> @pdf.PdfObject raise {
   let data = stream_of_lexemes(lexemelists_of_ops(ops))
   Stream(
@@ -1015,6 +1028,9 @@ fn parse_operator(
 
 ///|
 /// Parse a list of byte streams to an operator list.
+///
+/// If `streams` contains multiple byte arrays, they are concatenated with
+/// whitespace (like many real PDFs where `/Contents` is an array of streams).
 pub fn Op::parse_stream(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,

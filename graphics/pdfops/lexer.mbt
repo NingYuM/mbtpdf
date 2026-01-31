@@ -161,7 +161,11 @@ fn lex_stream(
 }
 
 ///|
-/// Parse a single byte stream to an operator list.
+/// Parse a single decoded content stream into operators.
+///
+/// This expects **decoded bytes**. If you have a PDF `Stream` object (possibly
+/// compressed), use `Op::parse_operators` which will decode `/Contents` streams
+/// before parsing.
 pub fn Op::parse_single_stream(
   pdf : @pdf.Pdf,
   resources : @pdf.PdfObject,
