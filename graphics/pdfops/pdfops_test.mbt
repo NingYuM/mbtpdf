@@ -254,7 +254,7 @@ test "string_of_ops renders inline image" {
 
 ///|
 test "parse_single_stream returns OpUnknown for bad ops" {
-  @pdfe.with_silenced_logs(fn() {
+  @pdfe.with_silenced_logs(() => {
     let pdf = @pdf.Pdf::empty()
     let resources : @pdf.PdfObject = Dictionary([])
     let data = @pdfio.bytes_of_string("1 2 ZZ")

@@ -18,7 +18,7 @@ fn concat_parts(parts : Array[Array[Byte]]) -> Array[Byte] {
 
 ///|
 test "parse_single_stream reports malformed section without operator" {
-  @pdfe.with_silenced_logs(fn() {
+  @pdfe.with_silenced_logs(() => {
     let pdf = @pdf.Pdf::empty()
     let resources : @pdf.PdfObject = Dictionary([])
     let ops = @pdfops.Op::parse_single_stream(
@@ -32,7 +32,7 @@ test "parse_single_stream reports malformed section without operator" {
 
 ///|
 test "parse_single_stream parses incomplete operators as unknown" {
-  @pdfe.with_silenced_logs(fn() {
+  @pdfe.with_silenced_logs(() => {
     let pdf = @pdf.Pdf::empty()
     let resources : @pdf.PdfObject = Dictionary([])
     let data = @pdfio.bytes_of_string("w J gs Tf Tj")
@@ -43,7 +43,7 @@ test "parse_single_stream parses incomplete operators as unknown" {
 
 ///|
 test "parse_single_stream parses DP/BDC with comment operand as unknown" {
-  @pdfe.with_silenced_logs(fn() {
+  @pdfe.with_silenced_logs(() => {
     let pdf = @pdf.Pdf::empty()
     let resources : @pdf.PdfObject = Dictionary([])
     // Ensure the input ends with whitespace so the lexer doesn't raise End_of_file.
@@ -55,7 +55,7 @@ test "parse_single_stream parses DP/BDC with comment operand as unknown" {
 
 ///|
 test "parse inline image fixes bad end marker after fixed-length data" {
-  @pdfe.with_silenced_logs(fn() {
+  @pdfe.with_silenced_logs(() => {
     let pdf = @pdf.Pdf::empty()
     let resources : @pdf.PdfObject = Dictionary([])
     let header = @pdfio.bytes_of_string(
@@ -73,7 +73,7 @@ test "parse inline image fixes bad end marker after fixed-length data" {
 
 ///|
 test "parse inline image flate detects EI at end of stream" {
-  @pdfe.with_silenced_logs(fn() {
+  @pdfe.with_silenced_logs(() => {
     let pdf = @pdf.Pdf::empty()
     let resources : @pdf.PdfObject = Dictionary([])
     let raw = @pdfio.bytes_of_list([0x7f])
