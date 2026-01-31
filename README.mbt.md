@@ -33,6 +33,9 @@ moon run cmd/pdfbeamer
 
 # Run a choose-your-own-adventure storybook (interactive buttons + spoilers layer).
 moon run cmd/pdfstorybook
+
+# Run a birthday card generator (balloons + party mode + secret layer).
+moon run cmd/pdfbirthday
 ```
 
 ## Testing
