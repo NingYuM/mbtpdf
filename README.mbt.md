@@ -36,6 +36,9 @@ moon run cmd/pdfstorybook
 
 # Run a birthday card generator (balloons + party mode + secret layer).
 moon run cmd/pdfbirthday
+
+# Run a printable mini escape-room board game (clickable board + hint/solution layers).
+moon run cmd/pdfboardgame
 ```
 
 ## Testing
