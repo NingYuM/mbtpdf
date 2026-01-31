@@ -30,6 +30,9 @@ moon run cmd/pdfmaze
 
 # Run a beamer-ish slide deck generator (links + bookmarks + speaker notes layer).
 moon run cmd/pdfbeamer
+
+# Run a choose-your-own-adventure storybook (interactive buttons + spoilers layer).
+moon run cmd/pdfstorybook
 ```
 
 ## Testing
