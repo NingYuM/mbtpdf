@@ -77,7 +77,7 @@ pub(all) enum Op {
   OpEX
   OpUnknown(String)
   OpComment(String)
-}
+} derive(Debug)
 
 ///|
 type PdfObject = @pdf.PdfObject

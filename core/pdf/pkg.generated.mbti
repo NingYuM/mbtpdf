@@ -108,6 +108,7 @@ pub impl Compare for PdfName
 pub impl Eq for PdfName
 pub impl Hash for PdfName
 pub impl Show for PdfName
+pub impl @debug.Debug for PdfName
 
 pub(all) enum PdfObject {
   Null
@@ -131,6 +132,7 @@ pub fn PdfObject::remove_entry(Self, String) -> Self raise
 pub fn PdfObject::replace_entry(Self, String, Self) -> Self raise
 pub fn PdfObject::to_string(Self) -> String
 pub fn PdfObject::to_string_including_data(Self) -> String
+pub impl @debug.Debug for PdfObject
 
 pub(all) struct PdfObjects {
   mut max_obj_num : Int

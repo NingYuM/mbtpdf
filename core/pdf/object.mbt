@@ -17,7 +17,7 @@ pub(all) enum PdfObject {
   Dictionary(Array[(String, PdfObject)])
   Stream(Ref[(PdfObject, Stream)])
   Indirect(Int)
-}
+} derive(Debug)
 
 ///|
 /// Convert primitive numeric types into PDF numeric objects.

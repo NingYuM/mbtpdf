@@ -9,7 +9,7 @@
 /// - parsing/serialization is byte-faithful,
 /// - we avoid accidentally applying Unicode/text semantics,
 /// - comparisons can be made lexicographically by byte.
-pub(all) struct PdfName(Bytes) derive(Eq, Hash)
+pub(all) struct PdfName(Bytes) derive(Eq, Hash, Debug)
 
 ///|
 fn ensure_leading_slash(bytes : Bytes) -> Bytes {

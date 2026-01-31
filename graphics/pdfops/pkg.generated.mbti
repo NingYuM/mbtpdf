@@ -4,6 +4,7 @@ package "bobzhang/mbtpdf/graphics/pdfops"
 import {
   "bobzhang/mbtpdf/core/pdf",
   "bobzhang/mbtpdf/core/pdftransform",
+  "moonbitlang/core/debug",
 }
 
 // Values
@@ -99,6 +100,7 @@ pub fn Op::parse_stream(@pdf.Pdf, @pdf.PdfObject, Array[Array[Byte]]) -> Array[S
 pub fn Op::stream_of_ops(Array[Self]) -> @pdf.PdfObject raise
 pub fn Op::string_of_ops(Array[Self]) -> String raise
 pub fn Op::to_string(Self) -> String raise
+pub impl @debug.Debug for Op
 
 // Type aliases
 
