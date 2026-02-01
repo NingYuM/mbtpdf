@@ -20,7 +20,7 @@ pub(all) enum PdfObject {
   Integer(Int)
   Real(Double)
   String(String)
-  Name(String)
+  Name(PdfName)
   Array(Array[PdfObject])
   Dictionary(Array[(String, PdfObject)])
   Stream(Ref[(PdfObject, Stream)])
@@ -28,15 +28,15 @@ pub(all) enum PdfObject {
 }
 ```
 
-- **Null**: PDF null value
-- **Boolean**: `true` or `false`
-- **Integer/Real**: Numeric values
-- **String**: Literal or hexadecimal strings
-- **Name**: PDF names like `/Type`, `/Page`
-- **Array**: Ordered collection of objects
-- **Dictionary**: Key-value pairs (keys are names). Stored as an `Array[(String, PdfObject)]` so malformed PDFs with duplicate keys can be represented; use `lookup_immediate` (first match) or `lookup_immediate_all` (all matches).
-- **Stream**: Dictionary plus binary data
-- **Indirect**: Reference to another object by number
+- **Null**: PDF `null`.
+- **Boolean**: `true` or `false`.
+- **Integer/Real**: Numeric values.
+- **String**: Literal `(...)` or hex `<...>` strings. Stored as a MoonBit `String`, but treated as raw bytes by the parser/serializer.
+- **Name**: PDF names like `/Type`, `/Page`, stored as `PdfName` (byte sequence, not Unicode text).
+- **Array**: Ordered collection of objects.
+- **Dictionary**: Key-value pairs, stored as `Array[(String, PdfObject)]` so we can represent malformed PDFs with duplicate keys and preserve insertion order; use `lookup_immediate` (first match) or `lookup_immediate_all` (all matches).
+- **Stream**: A stream dictionary plus stream payload (possibly deferred), stored behind a `Ref` so `getstream` can materialize bytes in-place.
+- **Indirect**: Reference to another object by number (`n 0 R`).
 
 ### Pdf
 

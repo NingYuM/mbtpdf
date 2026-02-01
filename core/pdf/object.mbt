@@ -1,21 +1,45 @@
 ///|
 /// Core PDF object tree.
+///
+/// This is a low-level representation close to PDF syntax. In particular:
+/// - `PdfObject::String` is treated as a byte string by the parser/serializer.
+/// - `PdfObject::Dictionary` keys are also stored as "bytes-in-String" so we can
+///   round-trip weird/malformed PDFs without losing information.
 pub(all) enum PdfObject {
+  /// PDF `null`.
   Null
+  /// PDF boolean (`true` or `false`).
   Boolean(Bool)
+  /// PDF integer number.
   Integer(Int)
+  /// PDF real number.
   Real(Double)
+  /// PDF string object (either literal `(...)` or hexadecimal `<...>`).
+  ///
+  /// Note: this is stored in a MoonBit `String` but treated as raw bytes by the
+  /// parser/serializer (each UTF-16 code unit stores one byte).
   String(String)
+  /// PDF name object (written like `/Type`).
+  ///
+  /// Names are byte sequences, not Unicode text; see `PdfName`.
   Name(PdfName)
+  /// PDF array object (ordered list).
   Array(Array[PdfObject])
-  // Use an Array of (key, value) pairs instead of Map:
-  // - Allows representing malformed PDFs with duplicate keys.
-  // - Preserves "first match wins" semantics used by lookup_* (search_by).
-  // - Keeps insertion order stable for serialization.
-  // - Key encoding: `String` is treated as a "bytes-in-String" byte string,
-  //   matching the parser/serializer (each UTF-16 code unit stores one byte).
+  /// PDF dictionary object.
+  ///
+  /// Stored as an array of `(key, value)` pairs instead of a map:
+  /// - Allows representing malformed PDFs with duplicate keys.
+  /// - Preserves "first match wins" semantics used by `lookup_*` (search_by).
+  /// - Keeps insertion order stable for serialization.
+  /// - Key encoding: `String` is treated as a "bytes-in-String" byte string,
+  ///   matching the parser/serializer (each UTF-16 code unit stores one byte).
   Dictionary(Array[(String, PdfObject)])
+  /// PDF stream object.
+  ///
+  /// Streams are represented as a `(stream_dict, stream_data)` pair stored in a
+  /// mutable reference so code can "materialize" deferred bytes in-place.
   Stream(Ref[(PdfObject, Stream)])
+  /// PDF indirect reference (`n 0 R`) to an object number.
   Indirect(Int)
 } derive(Debug)
 
