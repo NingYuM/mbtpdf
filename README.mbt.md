@@ -48,6 +48,9 @@ moon run cmd/pdfrecipe
 
 # Run an interactive travel brochure (tabs + coupons + optional layers).
 moon run cmd/pdftravel
+
+# Run a printable paper doll (mix-and-match outfit layers + poster pages).
+moon run cmd/pdfpaperdoll
 ```
 
 ## Testing
