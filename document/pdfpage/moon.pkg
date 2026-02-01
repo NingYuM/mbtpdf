@@ -11,5 +11,6 @@ import {
   "bobzhang/mbtpdf/document/pdfst",
   "bobzhang/mbtpdf/document/pdftree",
   "bobzhang/mbtpdf/core/pdftransform",
-  "bobzhang/mbtpdf/core/pdfunits",
+  // "bobzhang/mbtpdf/core/pdfunits",
+  // TODO(upstream): uncomment does not trigger warning
 }

@@ -1,11 +1,4 @@
 ///|
-fn copy_bytes(bytes : Array[Byte]) -> Array[Byte] {
-  let out = Array::new(capacity=bytes.length())
-  out.append(bytes[:])
-  out
-}
-
-///|
 fn deep_copy_pdfobject(obj : PdfObject) -> PdfObject {
   match obj {
     Array(values) => Array(values.map(v => deep_copy_pdfobject(v)))
@@ -15,7 +8,7 @@ fn deep_copy_pdfobject(obj : PdfObject) -> PdfObject {
       let (dict, stream) = r.val
       let dict_copy = deep_copy_pdfobject(dict)
       let stream_copy = match stream {
-        Got(bytes) => Stream::Got(copy_bytes(bytes))
+        Got(bytes) => Stream::Got(bytes.copy())
         ToGet(toget) => ToGet(toget)
       }
       Stream(Ref::new((dict_copy, stream_copy)))
