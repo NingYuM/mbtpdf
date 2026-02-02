@@ -121,7 +121,7 @@ fn lex_inline_image(
       nocontent(input)
     }
     let filters = match pdf.lookup_direct_orelse("/F", "/Filter", dict) {
-      Some(Array(items)) => items
+      Some(PdfArray(items)) => items
       Some(Name(name)) => [Name(name)]
       _ => []
     }
@@ -170,7 +170,7 @@ fn lex_inline_image(
             }
           }
         }
-      Some(Array(_) as n) => n
+      Some(PdfArray(_) as n) => n
       None =>
         match pdf.lookup_direct_orelse("/IM", "/ImageMask", dict) {
           Some(Boolean(true)) => Name(PdfName("/DeviceGray"))
@@ -213,7 +213,7 @@ fn lex_inline_image(
       "/F", "/Filter", dict,
     )
     let data = match filter_opt {
-      None | Some(Array([])) => {
+      None | Some(PdfArray([])) => {
         let out = @pdfio.mkbytes(bytes)
         for i in 0..<bytes {
           @pdfio.bset_unsafe(out, i, (input.input_byte)())
@@ -234,7 +234,7 @@ fn lex_inline_image(
             }
           }
         }
-      Some(Array(items)) =>
+      Some(PdfArray(items)) =>
         if items.length() == 1 {
           match items[0] {
             Name(name) =>
@@ -308,7 +308,7 @@ fn lex_inline_image(
           }
           cleaned
         }
-      Some(Array(items)) =>
+      Some(PdfArray(items)) =>
         if items.length() == 1 {
           match items[0] {
             Name(name) =>

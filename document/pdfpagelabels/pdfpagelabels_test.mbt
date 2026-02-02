@@ -32,7 +32,7 @@ test "pagelabel_of_pagenumber" {
 
 ///|
 fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
-  let rect : @pdf.PdfObject = Array([
+  let rect : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(100.0),
@@ -42,7 +42,7 @@ fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
   let pages_root_num = pdf.addobj(
     Dictionary([
       ("/Type", Name(PdfName("/Pages"))),
-      ("/Kids", Array([])),
+      ("/Kids", PdfArray([])),
       ("/Count", Integer(count)),
     ]),
   )
@@ -62,7 +62,7 @@ fn make_pdf_with_pages(count : Int) -> @pdf.Pdf raise {
       pages_root_num,
       Dictionary([
         ("/Type", Name(PdfName("/Pages"))),
-        ("/Kids", Array(kids)),
+        ("/Kids", PdfArray(kids)),
         ("/Count", Integer(count)),
       ]),
     ),
@@ -265,7 +265,7 @@ test "string_of_labelstyle covers all styles" {
 fn set_page_labels(pdf : @pdf.Pdf, nums : Array[@pdf.PdfObject]) -> Unit raise {
   let rootnum = pdf.root
   let root = pdf.lookup_obj(rootnum)
-  let labels : @pdf.PdfObject = Dictionary([("/Nums", Array(nums))])
+  let labels : @pdf.PdfObject = Dictionary([("/Nums", PdfArray(nums))])
   let updated = root.add_entry("/PageLabels", labels)
   pdf.addobj_given_num((rootnum, updated))
   pdf.trailerdict = pdf.trailerdict.add_entry("/Root", Indirect(rootnum))

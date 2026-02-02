@@ -134,7 +134,7 @@ pub fn Destination::read(
         Some(dest) => Destination::read(pdf, dest, shallow~)
         None => NullDestination
       }
-    Array(arr) =>
+    PdfArray(arr) =>
       match read_array_destination(pdf, arr) {
         Some(dest) => dest
         None => {
@@ -211,20 +211,20 @@ pub fn Destination::to_pdf_object(self : Destination) -> PdfObject {
     NamedDestination(name) => Name(name)
     StringDestination(s) => PdfString(s)
     XYZ(p, left, top, zoom) =>
-      Array([
+      PdfArray([
         p.to_pdf_object(),
         Name(PdfName("/XYZ")),
         pos_null(left),
         pos_null(top),
         pos_null(zoom),
       ])
-    Fit(p) => Array([p.to_pdf_object(), Name(PdfName("/Fit"))])
+    Fit(p) => PdfArray([p.to_pdf_object(), Name(PdfName("/Fit"))])
     FitH(p, top) =>
-      Array([p.to_pdf_object(), Name(PdfName("/FitH")), pos_null(top)])
+      PdfArray([p.to_pdf_object(), Name(PdfName("/FitH")), pos_null(top)])
     FitV(p, left) =>
-      Array([p.to_pdf_object(), Name(PdfName("/FitV")), pos_null(left)])
+      PdfArray([p.to_pdf_object(), Name(PdfName("/FitV")), pos_null(left)])
     FitR(p, left, bottom, right, top) =>
-      Array([
+      PdfArray([
         p.to_pdf_object(),
         Name(PdfName("/FitR")),
         Real(left),
@@ -232,11 +232,11 @@ pub fn Destination::to_pdf_object(self : Destination) -> PdfObject {
         Real(right),
         Real(top),
       ])
-    FitB(p) => Array([p.to_pdf_object(), Name(PdfName("/FitB"))])
+    FitB(p) => PdfArray([p.to_pdf_object(), Name(PdfName("/FitB"))])
     FitBH(p, top) =>
-      Array([p.to_pdf_object(), Name(PdfName("/FitBH")), pos_null(top)])
+      PdfArray([p.to_pdf_object(), Name(PdfName("/FitBH")), pos_null(top)])
     FitBV(p, left) =>
-      Array([p.to_pdf_object(), Name(PdfName("/FitBV")), pos_null(left)])
+      PdfArray([p.to_pdf_object(), Name(PdfName("/FitBV")), pos_null(left)])
   }
 }
 

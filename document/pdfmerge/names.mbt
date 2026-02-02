@@ -39,7 +39,7 @@ fn apply_namechanges_to_destination_nametree(
     }
     let mut updated = entries
     match lookup("/Names", updated) {
-      Some(Array(values)) =>
+      Some(PdfArray(values)) =>
         match pairs_of_array(values) {
           Some(pairs) => {
             let updated_pairs = pairs.map(pair => match pair {
@@ -52,23 +52,23 @@ fn apply_namechanges_to_destination_nametree(
               rebuilt.push(pair.0)
               rebuilt.push(pair.1)
             }
-            updated = add_entry(updated, "/Names", Array(rebuilt))
+            updated = add_entry(updated, "/Names", PdfArray(rebuilt))
           }
           None => @pdfe.warn("Warning: malformed /Names")
         }
       _ => ()
     }
     match lookup("/Limits", updated) {
-      Some(Array([PdfString(a), PdfString(b)])) =>
+      Some(PdfArray([PdfString(a), PdfString(b)])) =>
         updated = add_entry(
           updated,
           "/Limits",
-          Array([PdfString(rewrite_string(a)), PdfString(rewrite_string(b))]),
+          PdfArray([PdfString(rewrite_string(a)), PdfString(rewrite_string(b))]),
         )
       _ => ()
     }
     match lookup("/Kids", updated) {
-      Some(Array(kids)) =>
+      Some(PdfArray(kids)) =>
         for kid in kids {
           match kid {
             Indirect(i) =>
@@ -150,7 +150,7 @@ fn apply_namechanges_at_destination_callsites(
           _ => Dictionary(updated)
         }
       }
-      Array(values) => @pdf.recurse_array(f, values)
+      PdfArray(values) => @pdf.recurse_array(f, values)
       _ => obj
     }
   }

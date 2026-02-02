@@ -264,7 +264,7 @@ fn write_pdf_object(
     Real(r) => sb.write_string(format_real(r))
     PdfString(s) => sb.write_string(make_pdf_string(s))
     Name(n) => sb.write_string(make_pdf_name(n.to_string_bytes()))
-    Array(values) => {
+    PdfArray(values) => {
       sb.write_char('[')
       for i in 0..<values.length() {
         if i > 0 {

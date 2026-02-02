@@ -55,14 +55,14 @@ pub fn PdfCodec::encode_pdfstream(
   fn update_filter(dict : @pdf.PdfObject) -> @pdf.PdfObject raise CodecError {
     let filter_obj : @pdf.PdfObject = match pdf.lookup_direct("/Filter", dict) {
       None => Name(encoding_pdf_name)
-      Some(Name(name)) => Array([Name(encoding_pdf_name), Name(name)])
-      Some(Array(filters)) => {
+      Some(Name(name)) => PdfArray([Name(encoding_pdf_name), Name(name)])
+      Some(PdfArray(filters)) => {
         let updated = Array::new(capacity=filters.length() + 1)
         updated.push(@pdf.PdfObject::Name(encoding_pdf_name))
         for f in filters {
           updated.push(f)
         }
-        Array(updated)
+        PdfArray(updated)
       }
       Some(_) => raise CouldntDecodeStream("malformed /Filter")
     }
@@ -187,9 +187,9 @@ pub fn PdfCodec::decode_pdfstream_onestage(
             Array[@pdf.PdfObject]?,
           ) = match (filter_obj : @pdf.PdfObject) {
             Name(name) => (name, None)
-            Array([]) => raise DecodeNotSupported("empty filter array")
-            Array([Name(name), .. rest]) => (name, Some(rest.to_array()))
-            Array(_) => raise DecodeNotSupported("invalid filter entry")
+            PdfArray([]) => raise DecodeNotSupported("empty filter array")
+            PdfArray([Name(name), .. rest]) => (name, Some(rest.to_array()))
+            PdfArray(_) => raise DecodeNotSupported("invalid filter entry")
             _ => raise DecodeNotSupported("invalid filter")
           }
           map_pdf_error("getstream", fn() raise { obj.getstream() })
@@ -198,7 +198,7 @@ pub fn PdfCodec::decode_pdfstream_onestage(
             _ => raise CouldntDecodeStream("stream data not available")
           }
           let parms_first = match parms {
-            Some(Array(arr)) =>
+            Some(PdfArray(arr)) =>
               if arr.length() > 0 {
                 Some(arr[0])
               } else {
@@ -224,13 +224,13 @@ pub fn PdfCodec::decode_pdfstream_onestage(
                 })
               } else {
                 map_pdf_error("replace filter", fn() raise {
-                  new_dict.replace_entry(filter_key, Array(rest))
+                  new_dict.replace_entry(filter_key, PdfArray(rest))
                 })
               }
           }
           new_dict = match parms {
             None => new_dict
-            Some(Array(arr)) =>
+            Some(PdfArray(arr)) =>
               if arr.length() == 0 {
                 map_pdf_error("remove decode parms", fn() raise {
                   new_dict.remove_entry(parms_key)
@@ -243,7 +243,7 @@ pub fn PdfCodec::decode_pdfstream_onestage(
                   })
                 } else {
                   map_pdf_error("replace decode parms", fn() raise {
-                    new_dict.replace_entry(parms_key, Array(rest))
+                    new_dict.replace_entry(parms_key, PdfArray(rest))
                   })
                 }
               }
@@ -347,7 +347,7 @@ pub fn PdfCodec::decode_from_bytes(
   let parms_opt = pdf.lookup_direct_orelse("/DP", "/DecodeParms", dict)
   fn parms_at(index : Int) -> @pdf.PdfObject? {
     match parms_opt {
-      Some(Array(arr)) =>
+      Some(PdfArray(arr)) =>
         if index < arr.length() {
           Some(arr[index])
         } else {
@@ -380,7 +380,7 @@ pub fn PdfCodec::decode_from_bytes(
 
   match filter_opt {
     Some(Name(name)) => decode_stage(bytes, name, parms_at(0))
-    Some(Array(filters)) => {
+    Some(PdfArray(filters)) => {
       if filters.length() == 0 {
         return None
       }

@@ -27,7 +27,7 @@ test "parse_single_object parses integer" {
 ```mbt check
 ///|
 test "parse_single_object parses array" {
-  guard @pdfsyntax.parse_single_object("[1 2 3]") is Array(items) else {
+  guard @pdfsyntax.parse_single_object("[1 2 3]") is PdfArray(items) else {
     fail("expected array")
   }
   inspect(items.length(), content="3")

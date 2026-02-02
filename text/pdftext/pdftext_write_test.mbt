@@ -3,10 +3,10 @@ fn type3_font_dict() -> @pdf.PdfObject {
   Dictionary([
     ("/Subtype", Name(PdfName("/Type3"))),
     ("/BaseFont", Name(PdfName("/TestFont"))),
-    ("/FontBBox", Array([Real(0.0), Real(0.0), Real(1.0), Real(1.0)])),
+    ("/FontBBox", PdfArray([Real(0.0), Real(0.0), Real(1.0), Real(1.0)])),
     (
       "/FontMatrix",
-      Array([
+      PdfArray([
         Real(0.001),
         Real(0.0),
         Real(0.0),
@@ -18,7 +18,7 @@ fn type3_font_dict() -> @pdf.PdfObject {
     ("/CharProcs", Dictionary([("/A", Null)])),
     ("/FirstChar", Integer(0)),
     ("/LastChar", Integer(0)),
-    ("/Widths", Array([Integer(0)])),
+    ("/Widths", PdfArray([Integer(0)])),
     ("/FontDescriptor", Dictionary([])),
   ])
 }
@@ -38,7 +38,7 @@ test "write_encoding handles builtins and custom diffs" {
   match (pdf.lookup_obj(custom) : @pdf.PdfObject) {
     Dictionary(_) as dict =>
       match (pdf.lookup_direct("/Differences", dict) : @pdf.PdfObject?) {
-        Some(Array(values)) => assert_true(values.length() >= 2)
+        Some(PdfArray(values)) => assert_true(values.length() >= 2)
         _ => fail("expected /Differences")
       }
     _ => fail("expected encoding dictionary")

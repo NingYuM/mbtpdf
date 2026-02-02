@@ -79,7 +79,7 @@ fn PdfText::append_text_from_streams(
 
   fn append_text_array(obj : @pdf.PdfObject) -> Unit {
     match obj {
-      Array(values) =>
+      PdfArray(values) =>
         for value in values {
           if value is PdfString(text) {
             append_text_value(text)

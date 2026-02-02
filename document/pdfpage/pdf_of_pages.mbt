@@ -36,7 +36,7 @@ fn buildnode(kids : ArrayView[Int], parent : Int, count : Int) -> PdfObject {
   }
   let entries : Array[(String, PdfObject)] = [
     ("/Type", Name(PdfName("/Pages"))),
-    ("/Kids", Array(kid_refs)),
+    ("/Kids", PdfArray(kid_refs)),
     ("/Count", Integer(count)),
   ]
   if parent != 0 {

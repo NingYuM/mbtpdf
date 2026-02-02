@@ -13,12 +13,12 @@ test "process_xobjects updates form xobject stream" {
   ])
   let page = @pdfpage.Page(
     content=[],
-    mediabox=Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    mediabox=PdfArray([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
     resources~,
     rotate=Rotate0,
     rest=Dictionary([]),
   )
-  let bbox : @pdf.PdfObject = Array([
+  let bbox : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(10.0),
@@ -43,7 +43,7 @@ test "process_xobjects updates form xobject stream" {
     _ => fail("expected /Form subtype")
   }
   match (pdf.lookup_direct("/BBox", updated) : @pdf.PdfObject?) {
-    Some(Array(_)) => ()
+    Some(PdfArray(_)) => ()
     _ => fail("expected bbox")
   }
   match pdf.lookup_direct("/Filter", updated) {
@@ -94,7 +94,7 @@ test "process_xobjects errors when xobject subtype missing" {
   ])
   let page = @pdfpage.Page(
     content=[],
-    mediabox=Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    mediabox=PdfArray([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
     resources~,
     rotate=Rotate0,
     rest=Dictionary([]),
@@ -125,7 +125,7 @@ test "process_xobjects accepts updated stream with non-dict metadata" {
   ])
   let page = @pdfpage.Page(
     content=[],
-    mediabox=Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    mediabox=PdfArray([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
     resources~,
     rotate=Rotate0,
     rest=Dictionary([]),
@@ -157,7 +157,7 @@ test "process_xobjects errors on non-indirect xobject references" {
   ])
   let page = @pdfpage.Page(
     content=[],
-    mediabox=Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    mediabox=PdfArray([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
     resources~,
     rotate=Rotate0,
     rest=Dictionary([]),
@@ -185,7 +185,7 @@ test "process_xobjects ignores non-form xobjects" {
   ])
   let page = @pdfpage.Page(
     content=[],
-    mediabox=Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    mediabox=PdfArray([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
     resources~,
     rotate=Rotate0,
     rest=Dictionary([]),
@@ -209,7 +209,7 @@ test "process_xobjects does nothing when /XObject is missing" {
   let resources : @pdf.PdfObject = Dictionary([])
   let page = @pdfpage.Page(
     content=[],
-    mediabox=Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    mediabox=PdfArray([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
     resources~,
     rotate=Rotate0,
     rest=Dictionary([]),
@@ -269,7 +269,7 @@ test "process_xobjects errors when updater returns non-stream" {
   ])
   let page = @pdfpage.Page(
     content=[],
-    mediabox=Array([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
+    mediabox=PdfArray([Real(0.0), Real(0.0), Real(10.0), Real(20.0)]),
     resources~,
     rotate=Rotate0,
     rest=Dictionary([]),

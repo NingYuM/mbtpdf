@@ -1,12 +1,12 @@
 ///|
 fn fixups_sample_rect() -> @pdf.PdfObject {
-  Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  PdfArray([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
 }
 
 ///|
 fn annot_numbers(pdf : @pdf.Pdf, page_obj : @pdf.PdfObject) -> Array[Int] {
   match (pdf.lookup_direct("/Annots", page_obj) : @pdf.PdfObject?) {
-    Some(Array(arr)) =>
+    Some(PdfArray(arr)) =>
       arr.filter_map(fn(obj) {
         match (obj : @pdf.PdfObject) {
           Indirect(i) => Some(i)
@@ -50,7 +50,7 @@ test "fixup_duplicate_annots clones duplicates and updates popup" {
   let refs = pdf.page_reference_numbers()
   for refnum in refs {
     let page_obj = pdf.lookup_obj(refnum)
-    let annots : @pdf.PdfObject = Array([Indirect(annot_num), Integer(0)])
+    let annots : @pdf.PdfObject = PdfArray([Indirect(annot_num), Integer(0)])
     let updated = page_obj.add_entry("/Annots", annots)
     pdf.addobj_given_num((refnum, updated))
   }
@@ -80,7 +80,7 @@ test "fixup_duplicate_annots tolerates missing popup/parent links" {
   let refs = pdf.page_reference_numbers()
   for refnum in refs {
     let page_obj = pdf.lookup_obj(refnum)
-    let updated = page_obj.add_entry("/Annots", Array([Indirect(annot_num)]))
+    let updated = page_obj.add_entry("/Annots", PdfArray([Indirect(annot_num)]))
     pdf.addobj_given_num((refnum, updated))
   }
   @pdfpage.PdfPageDoc::new(pdf).fixup_duplicate_annots()
@@ -95,11 +95,11 @@ test "fixup_destinations removes nulled entries" {
     Some(n) => n
     None => fail("expected page 1")
   }
-  let dead_dest : @pdf.PdfObject = Array([
+  let dead_dest : @pdf.PdfObject = PdfArray([
     Indirect(null_num),
     Name(PdfName("/Fit")),
   ])
-  let live_dest : @pdf.PdfObject = Array([
+  let live_dest : @pdf.PdfObject = PdfArray([
     Indirect(live_page_num),
     Name(PdfName("/Fit")),
   ])
@@ -158,7 +158,7 @@ test "fixup_parents skips direct kids" {
   ])
   let pages : @pdf.PdfObject = Dictionary([
     ("/Type", Name(PdfName("/Pages"))),
-    ("/Kids", Array([page])),
+    ("/Kids", PdfArray([page])),
     ("/Count", Integer(1)),
   ])
   let pages_num = pdf0.addobj(pages)
@@ -227,7 +227,7 @@ test "fixup_duplicate_pages scans malformed page trees" {
   let pages_num = base.addobj(
     Dictionary([
       ("/Type", Name(PdfName("/Pages"))),
-      ("/Kids", Array([Integer(1)])),
+      ("/Kids", PdfArray([Integer(1)])),
       ("/Count", Integer(1)),
     ]),
   )

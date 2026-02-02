@@ -94,7 +94,7 @@ test "textwidth handles missing widths and kerning" {
       "/Encoding",
       Dictionary([
         ("/BaseEncoding", Name(PdfName("/WinAnsiEncoding"))),
-        ("/Differences", Array([Integer(65), Name(no_slash)])),
+        ("/Differences", PdfArray([Integer(65), Name(no_slash)])),
       ]),
     ),
   ])

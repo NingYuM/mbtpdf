@@ -30,7 +30,7 @@ fn set_catalog_entry(
 
 ///|
 fn dest_for_page(page_objnum : Int) -> @pdf.PdfObject {
-  Array([Indirect(page_objnum), Name(PdfName("/Fit"))])
+  PdfArray([Indirect(page_objnum), Name(PdfName("/Fit"))])
 }
 
 ///|
@@ -57,7 +57,7 @@ fn update_page_annots(
   let page_obj = pdf.lookup_obj(page_objnum)
   match (page_obj : @pdf.PdfObject) {
     Dictionary(_) => {
-      let updated = page_obj.add_entry("/Annots", Array(annots))
+      let updated = page_obj.add_entry("/Annots", PdfArray(annots))
       pdf.addobj_given_num((page_objnum, updated))
     }
     _ => raise @pdf.PdfError::Msg("page object not a dictionary")
@@ -203,7 +203,7 @@ test "change_pages keeps array openaction for identity matrices" {
   )
   let catalog = updated.catalog_of_pdf()
   match (updated.lookup_direct("/OpenAction", catalog) : @pdf.PdfObject?) {
-    Some(Array(_)) => ()
+    Some(PdfArray(_)) => ()
     _ => fail("expected array /OpenAction")
   }
 }
@@ -372,7 +372,7 @@ test "change_pages processes bookmark targets with missing matrices and tables" 
 test "change_pages catches failures in annotations and openaction rewriting" {
   let pdf = build_two_page_pdf()
   let page1 = page_objnum(pdf, 1)
-  let bad_dest : @pdf.PdfObject = Array([
+  let bad_dest : @pdf.PdfObject = PdfArray([
     Indirect(page1),
     Name(PdfName("/XYZ")),
     Name(PdfName("/BadNumber")),

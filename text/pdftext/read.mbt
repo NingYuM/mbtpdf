@@ -22,7 +22,7 @@ fn PdfText::parse_matrix(
 ) -> @pdftransform.TransformMatrix raise {
   let obj = self.pdf.lookup_fail("No matrix", key, dict)
   match obj {
-    Array(vals) if vals.length() == 6 => {
+    PdfArray(vals) if vals.length() == 6 => {
       let a = self.pdf.getnum(vals[0])
       let b = self.pdf.getnum(vals[1])
       let c = self.pdf.getnum(vals[2])
@@ -205,7 +205,7 @@ pub fn PdfText::read_metrics(
         _ => 0.0
       }
       let elts = match self.pdf.lookup_direct("/Widths", font) {
-        Some(Array(values)) => values
+        Some(PdfArray(values)) => values
         _ => raise @pdf.PdfError::Msg("No /Widths")
       }
       if elts.length() != lastchar - firstchar + 1 {
@@ -235,7 +235,7 @@ pub fn PdfText::pairs_of_differences(
   differences : @pdf.PdfObject,
 ) -> @pdffont.Differences raise {
   match differences {
-    Array(elts) => {
+    PdfArray(elts) => {
       let direct = elts.map(obj => self.pdf.direct(obj))
       let out = Array::new()
       let mut i = 0
@@ -508,7 +508,7 @@ pub fn PdfTextUtil::read_cid_widths(
           raise @pdf.PdfError::Msg("Bad /W array")
         } else {
           match elts[i + 1] {
-            Array(ws) => {
+            PdfArray(ws) => {
               for j, wobj in ws {
                 let w = match wobj {
                   Integer(n) => Double::from_int(n)
@@ -563,7 +563,7 @@ pub fn PdfText::read_descendant(
     None => raise @pdf.PdfError::Msg("No FontDescriptor in CIDkeyed font")
   }
   let cid_widths = match self.pdf.lookup_direct("/W", dict) {
-    Some(Array(ws)) => PdfTextUtil::new().read_cid_widths(ws)
+    Some(PdfArray(ws)) => PdfTextUtil::new().read_cid_widths(ws)
     _ => []
   }
   let default_width = match self.pdf.lookup_direct("/DW", dict) {
@@ -589,7 +589,7 @@ pub fn PdfText::read_cidkeyed_font(
     _ => raise @pdf.PdfError::Msg("Bad /BaseFont")
   }
   let composite = match self.pdf.lookup_direct("/DescendantFonts", font) {
-    Some(Array(elts)) =>
+    Some(PdfArray(elts)) =>
       if elts.length() == 1 {
         self.read_descendant(self.pdf.direct(elts[0]))
       } else {

@@ -33,7 +33,7 @@ fn make_basic_pdf() -> @pdf.Pdf {
   let base = @pdf.Pdf::empty()
   let pages = @pdf.PdfObject::Dictionary([
     ("/Type", Name(PdfName("/Pages"))),
-    ("/Kids", Array([Indirect(2)])),
+    ("/Kids", PdfArray([Indirect(2)])),
   ])
   let page = @pdf.PdfObject::Dictionary([("/Type", Name(PdfName("/Page")))])
   let catalog = @pdf.PdfObject::Dictionary([

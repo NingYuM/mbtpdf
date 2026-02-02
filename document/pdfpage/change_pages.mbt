@@ -181,7 +181,7 @@ fn change_pages_process_annotations(
   for page in pages {
     pnum = pnum + 1
     match pdf.lookup_direct("/Annots", page.rest) {
-      Some(Array(annots)) =>
+      Some(PdfArray(annots)) =>
         for annotobj in annots {
           match annotobj {
             Indirect(i) => {
@@ -243,8 +243,8 @@ fn change_pages_process_openaction(
   pdf : @pdf.Pdf,
 ) -> Unit raise {
   match pdf.lookup_direct("/OpenAction", pdf.catalog_of_pdf()) {
-    Some(Array(dest)) =>
-      match rewrite_dest(pdf, mattable, refnumstable, Array(dest)) {
+    Some(PdfArray(dest)) =>
+      match rewrite_dest(pdf, mattable, refnumstable, PdfArray(dest)) {
         Some(new_dest_objnum) =>
           rewrite_openaction(pdf, Indirect(new_dest_objnum))
         None => ()

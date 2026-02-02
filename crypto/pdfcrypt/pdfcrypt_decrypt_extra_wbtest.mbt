@@ -33,9 +33,12 @@ test "is_identity handles decodeparms shapes" {
     Dictionary([("/Name", Name(PdfName("/NotIdentity")))]),
   )
   assert_false(is_identity(false, pdf, dict_bad_name))
-  let dict_array_first = base.add_entry("/DecodeParms", Array([Dictionary([])]))
+  let dict_array_first = base.add_entry(
+    "/DecodeParms",
+    PdfArray([Dictionary([])]),
+  )
   assert_true(is_identity(false, pdf, dict_array_first))
-  let dict_array_other = base.add_entry("/DecodeParms", Array([Integer(1)]))
+  let dict_array_other = base.add_entry("/DecodeParms", PdfArray([Integer(1)]))
   assert_true(is_identity(false, pdf, dict_array_other))
   let dict_other = base.add_entry("/DecodeParms", Integer(1))
   assert_true(is_identity(false, pdf, dict_other))
@@ -65,9 +68,9 @@ test "decrypt returns unchanged values when already_decrypted is set" {
       40,
       2,
       None,
-      Array([Integer(1)]),
+      PdfArray([Integer(1)]),
     ) {
-    Array(_) => ()
+    PdfArray(_) => ()
     _ => fail("expected array passthrough")
   }
   match

@@ -46,7 +46,7 @@ pub fn Paper::rectangle(self : Paper) -> @pdf.PdfObject {
   let unit = self.unit()
   let width = unit.to_points(self.width())
   let height = unit.to_points(self.height())
-  Array([Real(0.0), Real(0.0), Real(width), Real(height)])
+  PdfArray([Real(0.0), Real(0.0), Real(width), Real(height)])
 }
 
 ///|

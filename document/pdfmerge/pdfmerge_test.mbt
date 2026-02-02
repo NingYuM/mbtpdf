@@ -30,14 +30,14 @@ fn set_catalog_entry(
 ///|
 fn add_dest_name_tree(pdf : @pdf.Pdf, name : String) -> Unit raise {
   let child : @pdf.PdfObject = Dictionary([
-    ("/Names", Array([PdfString(name), Null])),
-    ("/Limits", Array([PdfString(name), PdfString(name)])),
+    ("/Names", PdfArray([PdfString(name), Null])),
+    ("/Limits", PdfArray([PdfString(name), PdfString(name)])),
   ])
   let child_num = pdf.addobj(child)
   let root_tree : @pdf.PdfObject = Dictionary([
-    ("/Names", Array([PdfString(name), Null])),
-    ("/Limits", Array([PdfString(name), PdfString(name)])),
-    ("/Kids", Array([Indirect(child_num)])),
+    ("/Names", PdfArray([PdfString(name), Null])),
+    ("/Limits", PdfArray([PdfString(name), PdfString(name)])),
+    ("/Kids", PdfArray([Indirect(child_num)])),
   ])
   set_catalog_entry(pdf, "/Names", Dictionary([("/Dests", root_tree)]))
 }
@@ -48,10 +48,10 @@ fn add_dest_name_tree_with_non_indirect_kid(
   name : String,
 ) -> Unit raise {
   let root_tree : @pdf.PdfObject = Dictionary([
-    ("/Names", Array([PdfString(name), Null])),
-    ("/Limits", Array([PdfString(name), PdfString(name)])),
+    ("/Names", PdfArray([PdfString(name), Null])),
+    ("/Limits", PdfArray([PdfString(name), PdfString(name)])),
     // Malformed /Kids entries should be ignored.
-    ("/Kids", Array([Integer(0)])),
+    ("/Kids", PdfArray([Integer(0)])),
   ])
   set_catalog_entry(pdf, "/Names", Dictionary([("/Dests", root_tree)]))
 }
@@ -282,11 +282,11 @@ test "merge_pdfs merges dests ocg and acroform" {
     pdf1,
     "/OCProperties",
     Dictionary([
-      ("/OCGs", Array([Name(PdfName("/OCG1"))])),
+      ("/OCGs", PdfArray([Name(PdfName("/OCG1"))])),
       (
         "/D",
         Dictionary([
-          ("/ON", Array([Name(PdfName("/OCG1"))])),
+          ("/ON", PdfArray([Name(PdfName("/OCG1"))])),
           ("/Name", PdfString("Layer1")),
         ]),
       ),
@@ -296,26 +296,29 @@ test "merge_pdfs merges dests ocg and acroform" {
     pdf2,
     "/OCProperties",
     Dictionary([
-      ("/OCGs", Array([Name(PdfName("/OCG2"))])),
+      ("/OCGs", PdfArray([Name(PdfName("/OCG2"))])),
       (
         "/D",
         Dictionary([
-          ("/OFF", Array([Name(PdfName("/OCG2"))])),
+          ("/OFF", PdfArray([Name(PdfName("/OCG2"))])),
           ("/BaseState", Name(PdfName("/OFF"))),
         ]),
       ),
-      ("/Configs", Array([Dictionary([("/Name", PdfString("Cfg"))])])),
+      ("/Configs", PdfArray([Dictionary([("/Name", PdfString("Cfg"))])])),
     ]),
   )
   set_catalog_entry(
     pdf1,
     "/AcroForm",
-    Dictionary([("/Fields", Array([Null])), ("/NeedAppearances", Boolean(true))]),
+    Dictionary([
+      ("/Fields", PdfArray([Null])),
+      ("/NeedAppearances", Boolean(true)),
+    ]),
   )
   set_catalog_entry(
     pdf2,
     "/AcroForm",
-    Dictionary([("/Fields", Array([Null])), ("/SigFlags", Integer(1))]),
+    Dictionary([("/Fields", PdfArray([Null])), ("/SigFlags", Integer(1))]),
   )
   let merged = PdfMerger::new(["one", "two"], [pdf1, pdf2], [[1], [1]]).merge_pdfs(
     false,
@@ -334,7 +337,7 @@ test "merge_pdfs merges dests ocg and acroform" {
   match merged.lookup_direct("/OCProperties", catalog) {
     Some(ocp) =>
       match merged.lookup_direct("/OCGs", ocp) {
-        Some(Array(arr)) => assert_eq(arr.length(), 2)
+        Some(PdfArray(arr)) => assert_eq(arr.length(), 2)
         _ => fail("expected /OCGs array")
       }
     _ => fail("expected /OCProperties")
@@ -342,7 +345,7 @@ test "merge_pdfs merges dests ocg and acroform" {
   match merged.lookup_direct("/AcroForm", catalog) {
     Some(form) =>
       match merged.lookup_direct("/Fields", form) {
-        Some(Array(arr)) => assert_eq(arr.length(), 2)
+        Some(PdfArray(arr)) => assert_eq(arr.length(), 2)
         _ => fail("expected /Fields array")
       }
     _ => fail("expected /AcroForm")

@@ -302,7 +302,7 @@ fn add_spoilers_layer(pdf : @pdf.Pdf) -> Int raise {
     ("/Name", PdfString("Default")),
   ])
   let ocprops : PdfObject = Dictionary([
-    ("/OCGs", Array([Indirect(ocg_num)])),
+    ("/OCGs", PdfArray([Indirect(ocg_num)])),
     ("/D", default_dict),
   ])
   let ocprops_num = pdf.addobj(ocprops)

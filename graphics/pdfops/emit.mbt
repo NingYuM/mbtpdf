@@ -342,7 +342,7 @@ fn string_of_lexeme(lexeme : Lexeme) -> String raise {
     LexInlineImage((dict, dp, data)) => {
       let dict_data = match
         @pdf.Pdf::empty().lookup_direct_orelse("/F", "/Filter", dict) {
-        None | Some(Array([])) => {
+        None | Some(PdfArray([])) => {
           let _ = dp
           let dict = dict.add_entry("/F", Name(PdfName("/Fl")))
           let encoded = @pdfcodec.PdfCodec::new().encode_flate(data)
@@ -357,7 +357,7 @@ fn string_of_lexeme(lexeme : Lexeme) -> String raise {
       let dict_body = strip_dict_markers(dict_string)
       let filters = match
         @pdf.Pdf::empty().lookup_direct_orelse("/F", "/Filter", dict) {
-        Some(Array(items)) => items
+        Some(PdfArray(items)) => items
         Some(Name(name)) => [Name(name)]
         _ => []
       }

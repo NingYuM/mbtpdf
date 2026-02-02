@@ -4,7 +4,7 @@ test "trim_structure_tree no-ops on empty pdf" {
   let pages_root_num = pdf0.addobj(
     Dictionary([
       ("/Type", Name(PdfName("/Pages"))),
-      ("/Kids", Array([])),
+      ("/Kids", PdfArray([])),
       ("/Count", Integer(0)),
     ]),
   )

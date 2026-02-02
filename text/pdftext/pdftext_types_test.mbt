@@ -49,10 +49,17 @@ test "string_of_fonttype covers variants" {
     None => fail("expected Truetype")
   }
   let type3_font : @pdf.PdfObject = Dictionary([
-    ("/FontBBox", Array([Real(0.0), Real(0.0), Real(10.0), Real(10.0)])),
+    ("/FontBBox", PdfArray([Real(0.0), Real(0.0), Real(10.0), Real(10.0)])),
     (
       "/FontMatrix",
-      Array([Real(1.0), Real(0.0), Real(0.0), Real(1.0), Real(0.0), Real(0.0)]),
+      PdfArray([
+        Real(1.0),
+        Real(0.0),
+        Real(0.0),
+        Real(1.0),
+        Real(0.0),
+        Real(0.0),
+      ]),
     ),
     ("/CharProcs", Dictionary([("/A", Null)])),
   ])
@@ -95,7 +102,7 @@ test "string_of_encoding covers variants" {
       "/Encoding",
       Dictionary([
         ("/BaseEncoding", Name(PdfName("/WinAnsiEncoding"))),
-        ("/Differences", Array([Integer(65), Name(PdfName("/A"))])),
+        ("/Differences", PdfArray([Integer(65), Name(PdfName("/A"))])),
       ]),
     ),
   ])
@@ -125,12 +132,12 @@ test "string_of_simple_font formats details" {
     ("/BaseFont", Name(PdfName("/Helvetica"))),
     ("/FirstChar", Integer(65)),
     ("/LastChar", Integer(65)),
-    ("/Widths", Array([Integer(500)])),
+    ("/Widths", PdfArray([Integer(500)])),
     (
       "/Encoding",
       Dictionary([
         ("/BaseEncoding", Name(PdfName("/WinAnsiEncoding"))),
-        ("/Differences", Array([Integer(65), Name(PdfName("/A"))])),
+        ("/Differences", PdfArray([Integer(65), Name(PdfName("/A"))])),
       ]),
     ),
   ])
@@ -159,7 +166,7 @@ test "string_of_font covers variants" {
     ("/BaseFont", Name(PdfName("/Helvetica"))),
     ("/FirstChar", Integer(65)),
     ("/LastChar", Integer(65)),
-    ("/Widths", Array([Integer(500)])),
+    ("/Widths", PdfArray([Integer(500)])),
   ])
   let simple = ctx.read_simple_font(simple_font)
   assert_true(simple.to_string().contains("SimpleFont fonttype"))
@@ -177,7 +184,7 @@ test "string_of_font covers variants" {
   ])
   let cid_font : @pdf.PdfObject = Dictionary([
     ("/BaseFont", Name(PdfName("/CIDFontType0"))),
-    ("/DescendantFonts", Array([descendant])),
+    ("/DescendantFonts", PdfArray([descendant])),
     ("/Encoding", Name(PdfName("/Identity-H"))),
   ])
   let cid = ctx.read_cidkeyed_font(cid_font)

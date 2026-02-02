@@ -203,7 +203,7 @@ fn add_layers(pdf : @pdf.Pdf) -> (Int, Int, Int, Int, Int) raise {
     ("/Name", PdfString("Default")),
     (
       "/OFF",
-      Array([
+      PdfArray([
         Indirect(dress_num),
         Indirect(space_num),
         Indirect(hero_num),
@@ -215,7 +215,7 @@ fn add_layers(pdf : @pdf.Pdf) -> (Int, Int, Int, Int, Int) raise {
   let ocprops : PdfObject = Dictionary([
     (
       "/OCGs",
-      Array([
+      PdfArray([
         Indirect(dress_num),
         Indirect(space_num),
         Indirect(hero_num),

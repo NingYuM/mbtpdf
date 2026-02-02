@@ -33,7 +33,7 @@ pub fn Op::components(
         None => raise @pdf.PdfError::Msg("ColorSpace dict not found")
       }
     }
-    Array(items) => {
+    PdfArray(items) => {
       if items.length() >= 2 {
         match items[0] {
           Name(name) =>
@@ -49,7 +49,7 @@ pub fn Op::components(
                 }
               "/DeviceN" =>
                 match items[1] {
-                  Array(names) => return names.length()
+                  PdfArray(names) => return names.length()
                   _ => ()
                 }
               "/Separation" => if items.length() == 4 { return 1 }

@@ -157,7 +157,7 @@ test "lookup and chains" {
     _ => fail("expected none")
   }
   let arr_dict = PdfObject::Dictionary([
-    ("/Arr", Array([Integer(1), Integer(2)])),
+    ("/Arr", PdfArray([Integer(1), Integer(2)])),
   ])
   assert_some_integer(pdf.lookup_chain(arr_dict, ["/Arr", "/[1]"][:]), 2)
   match pdf.lookup_chain(arr_dict, ["/[x]"][:]) {
@@ -169,7 +169,7 @@ test "lookup and chains" {
     _ => fail("expected none")
   }
   let pdf2 = Pdf::empty()
-  pdf2.trailerdict = Dictionary([("/A", Array([Integer(1), Integer(2)]))])
+  pdf2.trailerdict = Dictionary([("/A", PdfArray([Integer(1), Integer(2)]))])
   pdf2.replace_chain(["/A", "/[1]"][:], Integer(9))
   assert_some_integer(pdf2.lookup_chain(pdf2.trailerdict, ["/A", "/[1]"][:]), 9)
   assert_is_err(try? pdf2.replace_chain(["/A", "/[5]"][:], Integer(3)))

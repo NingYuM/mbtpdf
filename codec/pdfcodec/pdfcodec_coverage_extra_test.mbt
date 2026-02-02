@@ -160,7 +160,7 @@ test "encode_pdfstream LZW clears dictionary when full" {
   ctx.encode_pdfstream(pdf, LZW(1), stream_obj, only_if_smaller=false)
   match (pdf.lookup_direct("/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
     Some(Name(PdfName("/LZWDecode"))) => ()
-    Some(Array([Name(PdfName("/LZWDecode")), ..])) => ()
+    Some(PdfArray([Name(PdfName("/LZWDecode")), ..])) => ()
     _ => fail("expected /LZWDecode filter after encoding")
   }
 
@@ -233,7 +233,7 @@ test "encode_pdfstream LZW grows code length past 9 bits" {
   ctx.encode_pdfstream(pdf, LZW(1), stream_obj, only_if_smaller=false)
   match (pdf.lookup_direct("/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
     Some(Name(PdfName("/LZWDecode"))) => ()
-    Some(Array([Name(PdfName("/LZWDecode")), ..])) => ()
+    Some(PdfArray([Name(PdfName("/LZWDecode")), ..])) => ()
     _ => fail("expected /LZWDecode filter after encoding")
   }
 }
@@ -314,7 +314,7 @@ test "decode_from_bytes RunLength returns on truncated repeat chunks" {
 
 ///|
 test "decode_from_bytes returns None on empty filter arrays" {
-  let dict : @pdf.PdfObject = Dictionary([("/Filter", Array([]))])
+  let dict : @pdf.PdfObject = Dictionary([("/Filter", PdfArray([]))])
   let out = @pdfcodec.PdfCodec::new().decode_from_bytes(
     @pdfio.bytes_of_string("x"),
     dict,
@@ -325,7 +325,7 @@ test "decode_from_bytes returns None on empty filter arrays" {
 ///|
 test "decode_from_bytes handles non-array DecodeParms for multi-stage filters" {
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Array([Name(PdfName("/Crypt")), Name(PdfName("/Crypt"))])),
+    ("/Filter", PdfArray([Name(PdfName("/Crypt")), Name(PdfName("/Crypt"))])),
     ("/DecodeParms", Dictionary([("/Columns", Integer(1))])),
   ])
   match
@@ -342,8 +342,8 @@ test "decode_from_bytes handles non-array DecodeParms for multi-stage filters" {
 ///|
 test "decode_from_bytes trims DecodeParms arrays shorter than Filter arrays" {
   let dict : @pdf.PdfObject = Dictionary([
-    ("/Filter", Array([Name(PdfName("/Crypt")), Name(PdfName("/Crypt"))])),
-    ("/DecodeParms", Array([Dictionary([])])),
+    ("/Filter", PdfArray([Name(PdfName("/Crypt")), Name(PdfName("/Crypt"))])),
+    ("/DecodeParms", PdfArray([Dictionary([])])),
   ])
   match
     (
@@ -577,8 +577,8 @@ test "decode_pdfstream_onestage removes singleton filter and decode parms arrays
   let raw = @pdfio.bytes_of_string("x")
   let encoded = ctx.encode_flate(raw)
   let (pdf, stream_ref, stream_obj) = mk_stream(encoded, [
-    ("/Filter", Array([Name(PdfName("/FlateDecode"))])),
-    ("/DecodeParms", Array([Dictionary([("/Predictor", Integer(1))])])),
+    ("/Filter", PdfArray([Name(PdfName("/FlateDecode"))])),
+    ("/DecodeParms", PdfArray([Dictionary([("/Predictor", Integer(1))])])),
   ])
   ctx.decode_pdfstream_onestage(pdf, stream_obj)
   let dict = stream_ref.val.0
@@ -591,7 +591,7 @@ test "decode_pdfstream_onestage handles empty DecodeParms arrays" {
   let ctx = @pdfcodec.PdfCodec::new()
   let (pdf, stream_ref, stream_obj) = mk_stream(@pdfio.bytes_of_string("x"), [
     ("/Filter", Name(PdfName("/Crypt"))),
-    ("/DecodeParms", Array([])),
+    ("/DecodeParms", PdfArray([])),
   ])
   ctx.decode_pdfstream_onestage(pdf, stream_obj)
   let decoded = match (stream_ref.val.1 : @pdf.Stream) {

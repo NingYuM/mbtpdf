@@ -212,10 +212,10 @@ fn add_layers(pdf : @pdf.Pdf) -> (Int, Int) raise {
     ("/BaseState", Name(PdfName("/ON"))),
     ("/Intent", Name(PdfName("/View"))),
     ("/Name", PdfString("Default")),
-    ("/OFF", Array([Indirect(hints_num), Indirect(solution_num)])),
+    ("/OFF", PdfArray([Indirect(hints_num), Indirect(solution_num)])),
   ])
   let ocprops : PdfObject = Dictionary([
-    ("/OCGs", Array([Indirect(hints_num), Indirect(solution_num)])),
+    ("/OCGs", PdfArray([Indirect(hints_num), Indirect(solution_num)])),
     ("/D", default_dict),
   ])
   let ocprops_num = pdf.addobj(ocprops)

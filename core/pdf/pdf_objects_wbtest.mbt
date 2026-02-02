@@ -3,7 +3,7 @@ fn make_basic_pdf() -> Pdf {
   let base = Pdf::empty()
   let pages = PdfObject::Dictionary([
     ("/Type", Name(PdfName("/Pages"))),
-    ("/Kids", Array([Indirect(2)])),
+    ("/Kids", PdfArray([Indirect(2)])),
   ])
   let page = PdfObject::Dictionary([("/Type", Name(PdfName("/Page")))])
   let catalog = PdfObject::Dictionary([
@@ -57,7 +57,7 @@ test "recurse and iterators" {
       },
       [Integer(1), Integer(2)],
     ) {
-    Array(values) => assert_eq(values.length(), 2)
+    PdfArray(values) => assert_eq(values.length(), 2)
     _ => fail("expected array")
   }
   let seen = Ref::new(([] : Array[Int]))
@@ -117,7 +117,7 @@ test "references and renumbering" {
     _ => fail("expected dictionary")
   }
   match pdf.generate_id("path", () => 1.0) {
-    Array(values) => {
+    PdfArray(values) => {
       assert_eq(values.length(), 2)
       match (values[0], values[1]) {
         (PdfString(a), PdfString(b)) => assert_eq(a, b)
@@ -128,7 +128,7 @@ test "references and renumbering" {
   }
   pdf.change_id("path-")
   match pdf.trailerdict.lookup_immediate("/ID") {
-    Some(Array(values)) => assert_eq(values.length(), 2)
+    Some(PdfArray(values)) => assert_eq(values.length(), 2)
     _ => fail("expected id entry")
   }
   let bad = Pdf::empty()

@@ -23,7 +23,7 @@ test "pagenumber_of_target handles non-page targets" {
 test "pagenumber_of_target follows GoTo action and fastrefnums" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let refs = pdf.page_reference_numbers()
-  let dest_array : @pdf.PdfObject = Array([
+  let dest_array : @pdf.PdfObject = PdfArray([
     Indirect(refs[0]),
     Name(PdfName("/Fit")),
   ])
@@ -61,7 +61,7 @@ test "pagenumber_of_target handles action edge cases" {
 test "pagenumber_of_target follows GoTo action without fastrefnums" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let refs = pdf.page_reference_numbers()
-  let dest_array : @pdf.PdfObject = Array([
+  let dest_array : @pdf.PdfObject = PdfArray([
     Indirect(refs[0]),
     Name(PdfName("/Fit")),
   ])

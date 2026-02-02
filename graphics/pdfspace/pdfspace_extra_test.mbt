@@ -1,6 +1,6 @@
 ///|
 fn mk_point(x : Double, y : Double, z : Double) -> @pdf.PdfObject {
-  Array([Real(x), Real(y), Real(z)])
+  PdfArray([Real(x), Real(y), Real(z)])
 }
 
 ///|
@@ -40,7 +40,7 @@ test "read_colourspace uses default gamma for CalGray" {
   let space = ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array([Name(PdfName("/CalGray")), dict]),
+    PdfArray([Name(PdfName("/CalGray")), dict]),
   )
   match (space : ColourSpace) {
     CalGray(_, _, gamma) => assert_eq(gamma, 1.0)
@@ -58,7 +58,7 @@ test "read_colourspace uses default gamma and matrix for CalRGB" {
   let space = ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array([Name(PdfName("/CalRGB")), dict]),
+    PdfArray([Name(PdfName("/CalRGB")), dict]),
   )
   match (space : ColourSpace) {
     CalRGB(_, _, gamma, matrix) => {
@@ -79,7 +79,7 @@ test "read_colourspace uses default range for Lab" {
   let space = ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array([Name(PdfName("/Lab")), dict]),
+    PdfArray([Name(PdfName("/Lab")), dict]),
   )
   match (space : ColourSpace) {
     Lab(_, _, range) => assert_eq(range, [-100.0, 100.0, -100.0, 100.0])
@@ -94,7 +94,7 @@ test "read_colourspace Indexed parses lookup stream" {
   let space = ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array([
+    PdfArray([
       Name(PdfName("/Indexed")),
       Name(PdfName("/DeviceRGB")),
       Integer(1),
@@ -123,16 +123,16 @@ test "read_colourspace Indexed handles DeviceN base" {
   let table = @pdfio.string_of_int_array([0, 0, 0])
   let indexed_arr : Array[@pdf.PdfObject] = [
     Name(PdfName("/Indexed")),
-    Array([
+    PdfArray([
       Name(PdfName("/DeviceN")),
-      Array([Name(PdfName("/C1"))]),
+      PdfArray([Name(PdfName("/C1"))]),
       Name(PdfName("/DeviceRGB")),
       tint,
     ]),
     Integer(0),
     PdfString(table),
   ]
-  let space = ColourSpace::read(pdf, Dictionary([]), Array(indexed_arr))
+  let space = ColourSpace::read(pdf, Dictionary([]), PdfArray(indexed_arr))
   match (space : ColourSpace) {
     Indexed(DeviceN(_, _, _, _), table_map) =>
       match table_map.get(0) {
@@ -150,7 +150,7 @@ test "read_colourspace Indexed handles DeviceCMYK base" {
   let space = ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array([
+    PdfArray([
       Name(PdfName("/Indexed")),
       Name(PdfName("/DeviceCMYK")),
       Integer(0),
@@ -180,7 +180,7 @@ test "read_colourspace Indexed errors on invalid inputs" {
   let bad_hival : Result[ColourSpace, Error] = try? ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array(bad_hival_arr),
+    PdfArray(bad_hival_arr),
   )
   assert_true(bad_hival is Err(_))
   let bad_base_stream_arr : Array[@pdf.PdfObject] = [
@@ -192,7 +192,7 @@ test "read_colourspace Indexed errors on invalid inputs" {
   let bad_base_stream : Result[ColourSpace, Error] = try? ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array(bad_base_stream_arr),
+    PdfArray(bad_base_stream_arr),
   )
   assert_true(bad_base_stream is Err(_))
   let bad_base_string_arr : Array[@pdf.PdfObject] = [
@@ -204,7 +204,7 @@ test "read_colourspace Indexed errors on invalid inputs" {
   let bad_base_string : Result[ColourSpace, Error] = try? ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array(bad_base_string_arr),
+    PdfArray(bad_base_string_arr),
   )
   assert_true(bad_base_string is Err(_))
   let bad_lookup_arr : Array[@pdf.PdfObject] = [
@@ -216,7 +216,7 @@ test "read_colourspace Indexed errors on invalid inputs" {
   let bad_lookup : Result[ColourSpace, Error] = try? ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array(bad_lookup_arr),
+    PdfArray(bad_lookup_arr),
   )
   assert_true(bad_lookup is Err(_))
   let toget = @pdf.ToGet::new(@pdfio.Input::of_string("abc"), 0, 3)
@@ -233,7 +233,7 @@ test "read_colourspace Indexed errors on invalid inputs" {
   let bad_toget : Result[ColourSpace, Error] = try? ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array(bad_toget_arr),
+    PdfArray(bad_toget_arr),
   )
   assert_true(bad_toget is Err(_))
 }
@@ -247,7 +247,7 @@ test "read_colourspace ICCBased invalid N errors" {
   let res : Result[ColourSpace, Error] = try? ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array([Name(PdfName("/ICCBased")), stream_obj]),
+    PdfArray([Name(PdfName("/ICCBased")), stream_obj]),
   )
   match res {
     Err(_) => ()
@@ -262,17 +262,17 @@ test "read_colourspace ICCBased defaults alternate by N" {
   let cs1 = ColourSpace::read(
     pdf,
     resources,
-    Array([Name(PdfName("/ICCBased")), icc_stream_with_n(1)]),
+    PdfArray([Name(PdfName("/ICCBased")), icc_stream_with_n(1)]),
   )
   let cs3 = ColourSpace::read(
     pdf,
     resources,
-    Array([Name(PdfName("/ICCBased")), icc_stream_with_n(3)]),
+    PdfArray([Name(PdfName("/ICCBased")), icc_stream_with_n(3)]),
   )
   let cs4 = ColourSpace::read(
     pdf,
     resources,
-    Array([Name(PdfName("/ICCBased")), icc_stream_with_n(4)]),
+    PdfArray([Name(PdfName("/ICCBased")), icc_stream_with_n(4)]),
   )
   match (cs1 : ColourSpace) {
     ICCBased(icc) =>
@@ -327,7 +327,7 @@ test "write_colourspace ICCBased missing stream falls back" {
     ColourSpace::ICCBased(icc).to_pdf_object(pdf)
   })
   match (obj : @pdf.PdfObject) {
-    Array([Name(PdfName("/ICCBased")), alt]) =>
+    PdfArray([Name(PdfName("/ICCBased")), alt]) =>
       match (alt : @pdf.PdfObject) {
         Name(PdfName("/DeviceRGB")) => ()
         _ => fail("expected alternate colourspace")
@@ -343,7 +343,7 @@ test "write_colourspace DeviceN omits empty attributes" {
   let space : ColourSpace = DeviceN(["C1"], DeviceRGB, tint, Dictionary([]))
   let obj = space.to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
-    Array(items) => assert_eq(items.length(), 4)
+    PdfArray(items) => assert_eq(items.length(), 4)
     _ => fail("expected DeviceN array")
   }
 }
@@ -360,7 +360,7 @@ test "write_colourspace DeviceN includes non-dict attributes" {
   )
   let obj = space.to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
-    Array(items) => assert_eq(items.length(), 5)
+    PdfArray(items) => assert_eq(items.length(), 5)
     _ => fail("expected DeviceN array with attrs")
   }
 }
@@ -372,14 +372,14 @@ test "write_colourspace Indexed handles DeviceGray and DeviceCMYK" {
   table_gray.set(0, [0])
   let gray = ColourSpace::Indexed(DeviceGray, table_gray).to_pdf_object(pdf)
   match (gray : @pdf.PdfObject) {
-    Array([Name(PdfName("/Indexed")), _, _, _]) => ()
+    PdfArray([Name(PdfName("/Indexed")), _, _, _]) => ()
     _ => fail("expected indexed DeviceGray")
   }
   let table_cmyk : Map[Int, Array[Int]] = Map::new()
   table_cmyk.set(0, [0, 0, 0, 0])
   let cmyk = ColourSpace::Indexed(DeviceCMYK, table_cmyk).to_pdf_object(pdf)
   match (cmyk : @pdf.PdfObject) {
-    Array([Name(PdfName("/Indexed")), _, _, _]) => ()
+    PdfArray([Name(PdfName("/Indexed")), _, _, _]) => ()
     _ => fail("expected indexed DeviceCMYK")
   }
 }
@@ -413,7 +413,7 @@ test "write_colourspace ICCBased preserves length and skips bad range" {
   }
   let obj = ColourSpace::ICCBased(icc).to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
-    Array([Name(PdfName("/ICCBased")), Indirect(n)]) =>
+    PdfArray([Name(PdfName("/ICCBased")), Indirect(n)]) =>
       match (pdf.lookup_obj(n) : @pdf.PdfObject) {
         Stream(r) => {
           let (dict_obj, _) = r.val
@@ -443,7 +443,7 @@ test "write_colourspace ICCBased handles non-dict stream data" {
   }
   let obj = ColourSpace::ICCBased(icc).to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
-    Array([Name(PdfName("/ICCBased")), Indirect(_)]) => ()
+    PdfArray([Name(PdfName("/ICCBased")), Indirect(_)]) => ()
     _ => fail("expected ICCBased array")
   }
 }
@@ -531,7 +531,7 @@ test "read_colourspace handles indirect and singleton array" {
   let singleton = ColourSpace::read(
     pdf,
     resources,
-    Array([Name(PdfName("/DeviceRGB"))]),
+    PdfArray([Name(PdfName("/DeviceRGB"))]),
   )
   match (singleton : ColourSpace) {
     DeviceRGB => ()
@@ -571,13 +571,13 @@ test "read_colourspace ICCBased errors on missing N and non-stream" {
   let missing_n : Result[ColourSpace, Error] = try? ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array([Name(PdfName("/ICCBased")), stream_obj]),
+    PdfArray([Name(PdfName("/ICCBased")), stream_obj]),
   )
   assert_true(missing_n is Err(_))
   let non_stream : Result[ColourSpace, Error] = try? ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array([Name(PdfName("/ICCBased")), Integer(1)]),
+    PdfArray([Name(PdfName("/ICCBased")), Integer(1)]),
   )
   assert_true(non_stream is Err(_))
 }
@@ -605,7 +605,7 @@ test "read_colourspace rejects indexed base colourspaces" {
   let res : Result[ColourSpace, Error] = try? ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array(arr),
+    PdfArray(arr),
   )
   assert_true(res is Err(_))
 }
@@ -619,12 +619,12 @@ test "read_colourspace DeviceN attributes and name validation" {
   ])
   let space_arr : Array[@pdf.PdfObject] = [
     Name(PdfName("/DeviceN")),
-    Array([Name(PdfName("/Cyan"))]),
+    PdfArray([Name(PdfName("/Cyan"))]),
     Name(PdfName("/DeviceRGB")),
     tint,
     attrs,
   ]
-  let space = ColourSpace::read(pdf, Dictionary([]), Array(space_arr))
+  let space = ColourSpace::read(pdf, Dictionary([]), PdfArray(space_arr))
   match (space : ColourSpace) {
     DeviceN(names, _, _, attr_dict) => {
       assert_eq(names.length(), 1)
@@ -638,14 +638,14 @@ test "read_colourspace DeviceN attributes and name validation" {
   }
   let bad_names_arr : Array[@pdf.PdfObject] = [
     Name(PdfName("/DeviceN")),
-    Array([Integer(1)]),
+    PdfArray([Integer(1)]),
     Name(PdfName("/DeviceRGB")),
     tint,
   ]
   let bad_names : Result[ColourSpace, Error] = try? ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array(bad_names_arr),
+    PdfArray(bad_names_arr),
   )
   assert_true(bad_names is Err(_))
 }
@@ -669,13 +669,13 @@ test "write_colourspace writes ICCBased metadata and range" {
   }
   let obj = ColourSpace::ICCBased(icc).to_pdf_object(pdf)
   match (obj : @pdf.PdfObject) {
-    Array([Name(PdfName("/ICCBased")), Indirect(n)]) =>
+    PdfArray([Name(PdfName("/ICCBased")), Indirect(n)]) =>
       match (pdf.lookup_obj(n) : @pdf.PdfObject) {
         Stream(r) => {
           let (dict, _) = r.val
           assert_true(pdf.lookup_direct("/Metadata", dict) is Some(_))
           match pdf.lookup_direct("/Range", dict) {
-            Some(Array(values)) => assert_eq(values.length(), 6)
+            Some(PdfArray(values)) => assert_eq(values.length(), 6)
             _ => fail("expected /Range entry")
           }
         }
@@ -691,7 +691,7 @@ test "write_colourspace handles indexed empty table and deviceN attrs" {
   let empty_table : Map[Int, Array[Int]] = Map::new()
   let indexed = ColourSpace::Indexed(DeviceRGB, empty_table).to_pdf_object(pdf)
   match (indexed : @pdf.PdfObject) {
-    Array(items) =>
+    PdfArray(items) =>
       match (items[2] : @pdf.PdfObject) {
         Integer(0) => ()
         _ => fail("expected hival 0")
@@ -708,7 +708,7 @@ test "write_colourspace handles indexed empty table and deviceN attrs" {
     attrs,
   ).to_pdf_object(pdf)
   match (device_n : @pdf.PdfObject) {
-    Array(items) => assert_eq(items.length(), 5)
+    PdfArray(items) => assert_eq(items.length(), 5)
     _ => fail("expected DeviceN array with attrs")
   }
 }
@@ -720,7 +720,7 @@ test "write_colourspace handles Pattern with base" {
     pdf,
   )
   match (obj : @pdf.PdfObject) {
-    Array([Name(PdfName("/Pattern")), Name(PdfName("/DeviceGray"))]) => ()
+    PdfArray([Name(PdfName("/Pattern")), Name(PdfName("/DeviceGray"))]) => ()
     _ => fail("expected Pattern with base")
   }
 }
@@ -734,7 +734,7 @@ test "read_colourspace missing whitepoint defaults to zeros" {
   let space = ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array([Name(PdfName("/CalGray")), dict]),
+    PdfArray([Name(PdfName("/CalGray")), dict]),
   )
   match (space : ColourSpace) {
     CalGray(white, _, _) => assert_eq(white, (0.0, 0.0, 0.0))
@@ -749,7 +749,7 @@ test "read_colourspace indexed handles ICCBased base" {
   let icc_stream : @pdf.PdfObject = Stream(
     Ref::new((icc_dict, Got(@pdfio.bytes_of_list([0])))),
   )
-  let base : @pdf.PdfObject = Array([Name(PdfName("/ICCBased")), icc_stream])
+  let base : @pdf.PdfObject = PdfArray([Name(PdfName("/ICCBased")), icc_stream])
   let lookup : @pdf.PdfObject = PdfString(
     @pdfio.string_of_bytes(@pdfio.bytes_of_list([1, 2, 3])),
   )
@@ -759,7 +759,7 @@ test "read_colourspace indexed handles ICCBased base" {
     Integer(0),
     lookup,
   ]
-  let space = ColourSpace::read(pdf, Dictionary([]), Array(space_arr))
+  let space = ColourSpace::read(pdf, Dictionary([]), PdfArray(space_arr))
   match (space : ColourSpace) {
     Indexed(ICCBased(_), table) =>
       match table.get(0) {
@@ -785,7 +785,7 @@ test "read_colourspace indexed rejects short table" {
   let res : Result[ColourSpace, Error] = try? ColourSpace::read(
     pdf,
     Dictionary([]),
-    Array(arr),
+    PdfArray(arr),
   )
   match res {
     Err(_) => ()

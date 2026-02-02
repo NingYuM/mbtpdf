@@ -624,11 +624,11 @@ fn add_day_night_layers(pdf : @pdf.Pdf) -> @pdf.Pdf raise {
     ("/BaseState", Name(PdfName("/ON"))),
     ("/Intent", Name(PdfName("/View"))),
     ("/Name", PdfString("Default")),
-    ("/OFF", Array([Indirect(night_num)])),
-    ("/ON", Array([Indirect(day_num)])),
+    ("/OFF", PdfArray([Indirect(night_num)])),
+    ("/ON", PdfArray([Indirect(day_num)])),
   ])
   let ocprops : @pdf.PdfObject = Dictionary([
-    ("/OCGs", Array([Indirect(day_num), Indirect(night_num)])),
+    ("/OCGs", PdfArray([Indirect(day_num), Indirect(night_num)])),
     ("/D", default_dict),
   ])
   let ocprops_num = pdf.addobj(ocprops)

@@ -122,10 +122,10 @@ fn decode_defaults(
         Some(cspace) =>
           match @pdfspace.ColourSpace::read(pdf, resources, cspace) {
             DeviceGray | CalGray(_, _, _) | Separation(_, _, _) =>
-              Some(Array([Real(0.0), Real(1.0)]))
+              Some(PdfArray([Real(0.0), Real(1.0)]))
             DeviceRGB | CalRGB(_, _, _, _) =>
               Some(
-                Array([
+                PdfArray([
                   Real(0.0),
                   Real(1.0),
                   Real(0.0),
@@ -136,7 +136,7 @@ fn decode_defaults(
               )
             DeviceCMYK =>
               Some(
-                Array([
+                PdfArray([
                   Real(0.0),
                   Real(1.0),
                   Real(0.0),
@@ -152,13 +152,13 @@ fn decode_defaults(
               values.push(PdfObject::Real(0.0))
               values.push(Real(1.0))
               values.append(real_array(range))
-              Some(Array(values))
+              Some(PdfArray(values))
             }
-            ICCBased(icc) => Some(Array(real_array(icc.icc_range)))
-            Indexed(_, _) => Some(Array([Real(0.0), Real(1.0)]))
+            ICCBased(icc) => Some(PdfArray(real_array(icc.icc_range)))
+            Indexed(_, _) => Some(PdfArray([Real(0.0), Real(1.0)]))
             Pattern | PatternWithBaseColourspace(_) => None
             DeviceN(names, _, _, _) =>
-              Some(Array(repeat_decode_pairs(names.length())))
+              Some(PdfArray(repeat_decode_pairs(names.length())))
           }
       }
     Some(_) =>
@@ -184,9 +184,9 @@ fn decode_to_image(pdf : @pdf.Pdf, stream : @pdf.PdfObject) -> Unit raise {
       let (dict, _) = r.val
       match pdf.lookup_direct("/Filter", dict) {
         None => ()
-        Some(Array([])) => ()
+        Some(PdfArray([])) => ()
         Some(Name(n)) if is_direct_image_filter(n) => ()
-        Some(Array([Name(n)])) if is_direct_image_filter(n) => ()
+        Some(PdfArray([Name(n)])) if is_direct_image_filter(n) => ()
         _ => {
           @pdfcodec.PdfCodec::new().decode_pdfstream_onestage(pdf, stream)
           decode_to_image(pdf, stream)
@@ -813,7 +813,7 @@ pub fn Image::get_image_24bpp(
     let decode_entry = pdf.lookup_direct_orelse("/Decode", "/D", streamdict)
     let decode_entry = decode_defaults(pdf, resources, decode_entry, streamdict)
     match decode_entry {
-      Some(Array(nums)) => Some(nums.map(n => pdf.getnum(n)))
+      Some(PdfArray(nums)) => Some(nums.map(n => pdf.getnum(n)))
       _ => None
     }
   }
@@ -830,7 +830,7 @@ pub fn Image::get_image_24bpp(
   }
 
   match pdf.lookup_direct_orelse("/Filter", "/F", streamdict) {
-    None | Some(Array([])) => {
+    None | Some(PdfArray([])) => {
       let raw = Image::from_stream_data(
         pdf, resources, width, height, streamdict, data,
       )
@@ -839,7 +839,7 @@ pub fn Image::get_image_24bpp(
         pdf, resources, decode_entry, streamdict,
       )
       let floats = match decode_entry {
-        Some(Array(elts)) => elts.map(e => pdf.getnum(e))
+        Some(PdfArray(elts)) => elts.map(e => pdf.getnum(e))
         None => []
         _ => raise @pdf.PdfError::Msg("Bad /Decode")
       }
@@ -853,7 +853,7 @@ pub fn Image::get_image_24bpp(
       raw
     }
     Some(Name(n)) if is_dct_filter(n) => JPEG(data, get_decode())
-    Some(Array([Name(n)])) if is_dct_filter(n) => JPEG(data, get_decode())
+    Some(PdfArray([Name(n)])) if is_dct_filter(n) => JPEG(data, get_decode())
     Some(Name(n)) if is_jbig2_filter(n) => {
       let globals = match pdf.lookup_direct("/DecodeParms", streamdict) {
         Some(Dictionary(parms)) =>
@@ -865,7 +865,7 @@ pub fn Image::get_image_24bpp(
       }
       JBIG2(data, get_decode(), globals)
     }
-    Some(Array([Name(n)])) if is_jbig2_filter(n) => {
+    Some(PdfArray([Name(n)])) if is_jbig2_filter(n) => {
       let globals = match pdf.lookup_direct("/DecodeParms", streamdict) {
         Some(Dictionary(parms)) =>
           match PdfObject::Dictionary(parms).lookup_immediate("/JBIG2Globals") {
@@ -877,7 +877,8 @@ pub fn Image::get_image_24bpp(
       JBIG2(data, get_decode(), globals)
     }
     Some(Name(n)) if is_jpx_filter(n) => JPEG2000(data, get_decode())
-    Some(Array([Name(n)])) if is_jpx_filter(n) => JPEG2000(data, get_decode())
+    Some(PdfArray([Name(n)])) if is_jpx_filter(n) =>
+      JPEG2000(data, get_decode())
     _ => raise @pdf.PdfError::Msg("decode_to_image")
   }
 }

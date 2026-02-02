@@ -155,10 +155,10 @@ fn add_swaps_layer(pdf : @pdf.Pdf) -> Int raise {
     ("/BaseState", Name(PdfName("/ON"))),
     ("/Intent", Name(PdfName("/View"))),
     ("/Name", PdfString("Default")),
-    ("/OFF", Array([Indirect(swaps_num)])),
+    ("/OFF", PdfArray([Indirect(swaps_num)])),
   ])
   let ocprops : PdfObject = Dictionary([
-    ("/OCGs", Array([Indirect(swaps_num)])),
+    ("/OCGs", PdfArray([Indirect(swaps_num)])),
     ("/D", default_dict),
   ])
   let ocprops_num = pdf.addobj(ocprops)

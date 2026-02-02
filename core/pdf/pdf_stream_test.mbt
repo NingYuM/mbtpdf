@@ -27,15 +27,17 @@ test "streams and transforms" {
   assert_eq(pdf.getnum(Indirect(1)), 7.0)
   assert_is_err(try? pdf.getnum(Name(PdfName("/A"))))
   assert_eq(
-    pdf.parse_rectangle(Array([Integer(2), Integer(1), Integer(4), Integer(3)])),
+    pdf.parse_rectangle(
+      PdfArray([Integer(2), Integer(1), Integer(4), Integer(3)]),
+    ),
     (2.0, 1.0, 4.0, 3.0),
   )
-  assert_is_err(try? pdf.parse_rectangle(Array([Integer(1)])))
+  assert_is_err(try? pdf.parse_rectangle(PdfArray([Integer(1)])))
   assert_is_err(try? pdf.parse_rectangle(Integer(1)))
   let dict_matrix = PdfObject::Dictionary([
     (
       "/Matrix",
-      Array([
+      PdfArray([
         Integer(1),
         Integer(0),
         Integer(0),
@@ -56,19 +58,24 @@ test "streams and transforms" {
   assert_is_err(
     try? pdf.parse_matrix(
       "/Matrix",
-      Dictionary([("/Matrix", Array([Integer(1)]))]),
+      Dictionary([("/Matrix", PdfArray([Integer(1)]))]),
     ),
   )
   assert_is_err(
     try? pdf.parse_matrix("/Matrix", Dictionary([("/Matrix", Integer(1))])),
   )
   match make_matrix(@pdftransform.TransformMatrix::identity()) {
-    Array(values) => assert_eq(values.length(), 6)
+    PdfArray(values) => assert_eq(values.length(), 6)
     _ => fail("expected matrix array")
   }
-  let rect = PdfObject::Array([Integer(0), Integer(0), Integer(2), Integer(3)])
+  let rect = PdfObject::PdfArray([
+    Integer(0),
+    Integer(0),
+    Integer(2),
+    Integer(3),
+  ])
   match pdf.transform_rect(@pdftransform.TransformMatrix::identity(), rect) {
-    Array(values) => {
+    PdfArray(values) => {
       assert_eq(values.length(), 4)
       match values[0] {
         Real(value) => assert_eq(value, 0.0)
@@ -85,7 +92,7 @@ test "streams and transforms" {
     }
     _ => fail("expected transformed rect")
   }
-  let qp = PdfObject::Array([
+  let qp = PdfObject::PdfArray([
     Real(0.0),
     Real(0.0),
     Real(1.0),
@@ -105,10 +112,10 @@ test "streams and transforms" {
   ])
   match
     pdf.transform_quadpoints(@pdftransform.TransformMatrix::identity(), qp) {
-    Array(values) => assert_eq(values.length(), 16)
+    PdfArray(values) => assert_eq(values.length(), 16)
     _ => fail("expected quadpoints")
   }
-  let qp_mixed = PdfObject::Array([
+  let qp_mixed = PdfObject::PdfArray([
     Real(0.0),
     Real(1.0),
     Real(2.0),
@@ -126,16 +133,16 @@ test "streams and transforms" {
         @pdftransform.TransformMatrix::identity(),
         qp_mixed,
       ) {
-      Array(values) => assert_eq(values.length(), 10)
+      PdfArray(values) => assert_eq(values.length(), 10)
       _ => fail("expected quadpoints")
     }
-    let qp_bad = PdfObject::Array([Real(0.0), Real(1.0)])
+    let qp_bad = PdfObject::PdfArray([Real(0.0), Real(1.0)])
     match
       pdf.transform_quadpoints(
         @pdftransform.TransformMatrix::identity(),
         qp_bad,
       ) {
-      Array(values) => assert_eq(values.length(), 2)
+      PdfArray(values) => assert_eq(values.length(), 2)
       _ => fail("expected quadpoints")
     }
     match

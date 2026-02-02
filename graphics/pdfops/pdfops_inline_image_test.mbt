@@ -109,7 +109,7 @@ test "parse inline image handles colorspace array" {
     ("/BPC", Integer(8)),
     (
       "/CS",
-      Array([
+      PdfArray([
         Name(PdfName("/Indexed")),
         Name(PdfName("/DeviceRGB")),
         Integer(1),
@@ -295,7 +295,7 @@ test "parse inline image cleans filter arrays" {
     ("/H", Integer(1)),
     ("/BPC", Integer(8)),
     ("/CS", Name(PdfName("/DeviceGray"))),
-    ("/Filter", Array([Name(PdfName("/FlateDecode"))])),
+    ("/Filter", PdfArray([Name(PdfName("/FlateDecode"))])),
   ])
   let rendered = @pdfops.Op::string_of_ops([InlineImage((dict, None, encoded))])
   let ops = @pdfops.Op::parse_single_stream(
@@ -430,7 +430,7 @@ test "parse inline image handles bad filters" {
       ("/H", Integer(1)),
       ("/BPC", Integer(8)),
       ("/CS", Name(PdfName("/DeviceGray"))),
-      ("/Filter", Array([Integer(1)])),
+      ("/Filter", PdfArray([Integer(1)])),
     ])
     let rendered_array = @pdfops.Op::string_of_ops([
       InlineImage((dict_array, None, @pdfio.bytes_of_list([0x00]))),
@@ -448,7 +448,10 @@ test "parse inline image handles bad filters" {
       ("/CS", Name(PdfName("/DeviceGray"))),
       (
         "/Filter",
-        Array([Name(PdfName("/FlateDecode")), Name(PdfName("/ASCIIHexDecode"))]),
+        PdfArray([
+          Name(PdfName("/FlateDecode")),
+          Name(PdfName("/ASCIIHexDecode")),
+        ]),
       ),
     ])
     let rendered_multi = @pdfops.Op::string_of_ops([
@@ -539,7 +542,7 @@ test "parse inline image errors on invalid filter array" {
       ("/H", Integer(1)),
       ("/BPC", Integer(8)),
       ("/CS", Name(PdfName("/DeviceGray"))),
-      ("/Filter", Array([Integer(1)])),
+      ("/Filter", PdfArray([Integer(1)])),
     ])
     let rendered = @pdfops.Op::string_of_ops([
       InlineImage((dict, None, @pdfio.bytes_of_list([0x00]))),
@@ -559,7 +562,7 @@ test "components handles indexed shorthand and errors" {
   @pdfe.with_logger(_ => (), () => {
     let pdf = @pdf.Pdf::empty()
     let resources : @pdf.PdfObject = Dictionary([])
-    let indexed : @pdf.PdfObject = Array([
+    let indexed : @pdf.PdfObject = PdfArray([
       Name(PdfName("/I")),
       Name(PdfName("/DeviceRGB")),
     ])
@@ -567,7 +570,7 @@ test "components handles indexed shorthand and errors" {
     let bad_first : Result[Int, Error] = try? @pdfops.Op::components(
       pdf,
       resources,
-      Array([Integer(1), Name(PdfName("/DeviceRGB"))]),
+      PdfArray([Integer(1), Name(PdfName("/DeviceRGB"))]),
     )
     assert_true(bad_first is Err(_))
     ()

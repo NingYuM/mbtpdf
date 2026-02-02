@@ -18,7 +18,7 @@ fn pdf_with_stream() -> @pdf.Pdf raise {
     ("/Length", Integer(@pdfio.bytes_size(data))),
   ])
   let stream : @pdf.PdfObject = Stream(Ref::new((dict, Got(data))))
-  let mediabox : @pdf.PdfObject = Array([
+  let mediabox : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(100.0),

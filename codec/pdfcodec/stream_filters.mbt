@@ -16,7 +16,7 @@ pub fn PdfCodec::decode_pdfstream(
         let filter_opt = pdf.lookup_direct_orelse("/Filter", "/F", dict)
         match filter_opt {
           None => ()
-          Some(Name(_)) | Some(Array(_)) => {
+          Some(Name(_)) | Some(PdfArray(_)) => {
             let before = dict.to_string()
             self.decode_pdfstream_onestage(pdf, obj, jbig2dec?)
             let (after_dict, _after_stream) = r.val

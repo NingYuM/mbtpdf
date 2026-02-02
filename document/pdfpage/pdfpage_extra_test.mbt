@@ -14,7 +14,7 @@ test "minimum_valid_pdf has one page" {
 
 ///|
 test "add_pagetree builds page objects" {
-  let rect : @pdf.PdfObject = Array([
+  let rect : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(100.0),
@@ -34,13 +34,13 @@ test "add_pagetree builds page objects" {
 
 ///|
 test "pages_of_pagetree handles missing mediabox and non-stream contents" {
-  let rect1 : @pdf.PdfObject = Array([
+  let rect1 : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(100.0),
     Real(120.0),
   ])
-  let rect2 : @pdf.PdfObject = Array([
+  let rect2 : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(200.0),
@@ -60,7 +60,7 @@ test "pages_of_pagetree handles missing mediabox and non-stream contents" {
     None => fail("expected page object number")
   }
   let page1_obj = pdf.lookup_obj(page1_num)
-  let page1_updated = page1_obj.add_entry("/Contents", Array([Integer(1)]))
+  let page1_updated = page1_obj.add_entry("/Contents", PdfArray([Integer(1)]))
   pdf.addobj_given_num((page1_num, page1_updated))
   let page2_obj = pdf.lookup_obj(page2_num)
   let page2_updated = page2_obj
@@ -75,7 +75,7 @@ test "pages_of_pagetree handles missing mediabox and non-stream contents" {
   assert_eq(out_pages[0].content.length(), 0)
   assert_eq(out_pages[1].content.length(), 0)
   match (out_pages[1].mediabox : @pdf.PdfObject) {
-    Array(vals) =>
+    PdfArray(vals) =>
       match ((vals[2], vals[3]) : (@pdf.PdfObject, _)) {
         (Real(w), Real(h)) => {
           assert_close(w, 100.0)
@@ -94,7 +94,7 @@ test "pages_of_pagetree handles missing mediabox and non-stream contents" {
 ///|
 test "change_pages rewrites bookmarks and mixed annotations" {
   let pdf0 = @pdf.Pdf::empty()
-  let rect : @pdf.PdfObject = Array([
+  let rect : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(100.0),
@@ -104,8 +104,14 @@ test "change_pages rewrites bookmarks and mixed annotations" {
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree(pages_in)
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   let refs = pdf.page_reference_numbers()
-  let dest1 : @pdf.PdfObject = Array([Indirect(refs[0]), Name(PdfName("/Fit"))])
-  let dest2 : @pdf.PdfObject = Array([Indirect(refs[1]), Name(PdfName("/Fit"))])
+  let dest1 : @pdf.PdfObject = PdfArray([
+    Indirect(refs[0]),
+    Name(PdfName("/Fit")),
+  ])
+  let dest2 : @pdf.PdfObject = PdfArray([
+    Indirect(refs[1]),
+    Name(PdfName("/Fit")),
+  ])
   let annot_dest1 : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name(PdfName("/Link"))),
     ("/Rect", rect),
@@ -138,7 +144,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
     pdf.addobj(annot_action_other),
     pdf.addobj(annot_action_none),
   ]
-  let annots : @pdf.PdfObject = Array(annot_nums.map(fn(n) { Indirect(n) }))
+  let annots : @pdf.PdfObject = PdfArray(annot_nums.map(fn(n) { Indirect(n) }))
   let page1_obj = pdf.lookup_obj(refs[0])
   let page1_updated = page1_obj.add_entry("/Annots", annots)
   pdf.addobj_given_num((refs[0], page1_updated))
@@ -200,7 +206,7 @@ test "change_pages rewrites bookmarks and mixed annotations" {
 
 ///|
 test "pdf_of_pages extracts subset" {
-  let rect : @pdf.PdfObject = Array([
+  let rect : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(100.0),
@@ -226,7 +232,7 @@ test "pdf_of_pages extracts subset" {
 ///|
 test "prepend/postpend operators update content" {
   let pdf = @pdf.Pdf::empty()
-  let rect : @pdf.PdfObject = Array([
+  let rect : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(100.0),
@@ -270,7 +276,7 @@ test "rotation_of_int rejects invalid" {
 ///|
 test "fixup_duplicate_pages creates unique refs" {
   let pdf0 = @pdf.Pdf::empty()
-  let rect : @pdf.PdfObject = Array([
+  let rect : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(100.0),
@@ -283,7 +289,7 @@ test "fixup_duplicate_pages creates unique refs" {
   ])
   let pages : @pdf.PdfObject = Dictionary([
     ("/Type", Name(PdfName("/Pages"))),
-    ("/Kids", Array([Indirect(1), Indirect(1)])),
+    ("/Kids", PdfArray([Indirect(1), Indirect(1)])),
     ("/Count", Integer(2)),
   ])
   pdf0.addobj_given_num((1, page))
@@ -298,7 +304,7 @@ test "fixup_duplicate_pages creates unique refs" {
 ///|
 test "replace_inherit fills mediabox" {
   let pdf0 = @pdf.Pdf::empty()
-  let rect : @pdf.PdfObject = Array([
+  let rect : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(100.0),
@@ -310,7 +316,7 @@ test "replace_inherit fills mediabox" {
   ])
   let pages : @pdf.PdfObject = Dictionary([
     ("/Type", Name(PdfName("/Pages"))),
-    ("/Kids", Array([Indirect(1)])),
+    ("/Kids", PdfArray([Indirect(1)])),
     ("/Count", Integer(1)),
     ("/MediaBox", rect),
   ])
@@ -334,7 +340,7 @@ test "renumber_pages updates resources and operators" {
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F1", 12.0), OpTj("Hi"), OpET]
   let page = @pdfpage.Page(
     content=[@pdfops.Op::stream_of_ops(ops)],
-    mediabox=Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
+    mediabox=PdfArray([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
     resources~,
     rotate=Rotate0,
     rest=Dictionary([]),
@@ -368,7 +374,7 @@ test "add_prefix rewrites resources and content" {
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F1", 12.0), OpTj("Hi"), OpET]
   let page = @pdfpage.Page(
     content=[@pdfops.Op::stream_of_ops(ops)],
-    mediabox=Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
+    mediabox=PdfArray([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
     resources~,
     rotate=Rotate0,
     rest=Dictionary([]),
@@ -404,7 +410,7 @@ test "shortest_unused_prefix skips used names" {
   ])
   let page = @pdfpage.Page(
     content=[],
-    mediabox=Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
+    mediabox=PdfArray([Real(0.0), Real(0.0), Real(100.0), Real(100.0)]),
     resources~,
     rotate=Rotate0,
     rest=Dictionary([]),
@@ -417,7 +423,7 @@ test "shortest_unused_prefix skips used names" {
 ///|
 test "change_pages rewrites annotation and openaction" {
   let pdf0 = @pdf.Pdf::empty()
-  let rect : @pdf.PdfObject = Array([
+  let rect : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(100.0),
@@ -427,7 +433,7 @@ test "change_pages rewrites annotation and openaction" {
   let (pdf1, pageroot) = @pdfpage.PdfPageDoc::new(pdf0).add_pagetree([page])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
   let refs = pdf.page_reference_numbers()
-  let dest_array : @pdf.PdfObject = Array([
+  let dest_array : @pdf.PdfObject = PdfArray([
     Indirect(refs[0]),
     Name(PdfName("/XYZ")),
     Real(10.0),
@@ -445,7 +451,7 @@ test "change_pages rewrites annotation and openaction" {
   let annot1 = pdf.addobj(annot_dest)
   let annot2 = pdf.addobj(annot_action)
   let page_obj = pdf.lookup_obj(refs[0])
-  let annots : @pdf.PdfObject = Array([Indirect(annot1), Indirect(annot2)])
+  let annots : @pdf.PdfObject = PdfArray([Indirect(annot1), Indirect(annot2)])
   let updated_page = page_obj.add_entry("/Annots", annots)
   pdf.addobj_given_num((refs[0], updated_page))
   let catalog = pdf.catalog_of_pdf()
@@ -470,7 +476,7 @@ test "change_pages rewrites annotation and openaction" {
   let refs2 = translated.page_reference_numbers()
   let page2 = translated.lookup_obj(refs2[0])
   let annots = match translated.lookup_direct("/Annots", page2) {
-    Some(Array(arr)) => arr
+    Some(PdfArray(arr)) => arr
     _ => fail("expected annots")
   }
   for annot in annots {

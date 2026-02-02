@@ -1,6 +1,6 @@
 ///|
 fn coverage_rect() -> @pdf.PdfObject {
-  Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  PdfArray([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
 }
 
 ///|
@@ -59,7 +59,7 @@ test "pages_of_pagetree treats stream /Contents as singleton array" {
   let pages_root_num = pdf0.addobj(
     Dictionary([
       ("/Type", Name(PdfName("/Pages"))),
-      ("/Kids", Array([Indirect(page_num)])),
+      ("/Kids", PdfArray([Indirect(page_num)])),
       ("/Count", Integer(1)),
     ]),
   )

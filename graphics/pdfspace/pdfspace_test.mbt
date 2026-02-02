@@ -24,7 +24,7 @@ test "read_colourspace indexed" {
   let space = ColourSpace::read(
     pdf,
     resources,
-    Array([
+    PdfArray([
       Name(PdfName("/Indexed")),
       Name(PdfName("/DeviceRGB")),
       Integer(0),

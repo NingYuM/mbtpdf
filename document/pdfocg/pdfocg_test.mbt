@@ -12,28 +12,28 @@ test "read_ocg parses ocproperties" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let ocg_obj : @pdf.PdfObject = Dictionary([
     ("/Name", PdfString("Layer 1")),
-    ("/Intent", Array([Name(PdfName("/View")), Integer(0)])),
+    ("/Intent", PdfArray([Name(PdfName("/View")), Integer(0)])),
   ])
   let ocg_ref = pdf.addobj(ocg_obj)
   let default_config : @pdf.PdfObject = Dictionary([
     ("/Name", PdfString("Default")),
     ("/Creator", PdfString("tester")),
     ("/BaseState", Name(PdfName("/OFF"))),
-    ("/ON", Array([Indirect(ocg_ref), Integer(99)])),
-    ("/OFF", Array([Indirect(ocg_ref)])),
-    ("/Intent", Array([Name(PdfName("/View")), Integer(0)])),
-    ("/AS", Array([Dictionary([])])),
+    ("/ON", PdfArray([Indirect(ocg_ref), Integer(99)])),
+    ("/OFF", PdfArray([Indirect(ocg_ref)])),
+    ("/Intent", PdfArray([Name(PdfName("/View")), Integer(0)])),
+    ("/AS", PdfArray([Dictionary([])])),
     ("/ListMode", Name(PdfName("/VisiblePages"))),
-    ("/Locked", Array([Indirect(ocg_ref), Integer(0)])),
+    ("/Locked", PdfArray([Indirect(ocg_ref), Integer(0)])),
   ])
   let alt_config : @pdf.PdfObject = Dictionary([
     ("/BaseState", Name(PdfName("/Unchanged"))),
     ("/Intent", Name(PdfName("/Design"))),
   ])
   let ocprops : @pdf.PdfObject = Dictionary([
-    ("/OCGs", Array([Indirect(ocg_ref)])),
+    ("/OCGs", PdfArray([Indirect(ocg_ref)])),
     ("/D", default_config),
-    ("/Configs", Array([alt_config])),
+    ("/Configs", PdfArray([alt_config])),
   ])
   let root = pdf.lookup_obj(pdf.root)
   let updated_root = root.add_entry("/OCProperties", ocprops)
@@ -110,7 +110,7 @@ test "read_ocg raises when ocg is missing name" {
   let ocg_obj : @pdf.PdfObject = Dictionary([])
   let ocg_ref = pdf.addobj(ocg_obj)
   let ocprops : @pdf.PdfObject = Dictionary([
-    ("/OCGs", Array([Indirect(ocg_ref)])),
+    ("/OCGs", PdfArray([Indirect(ocg_ref)])),
     ("/D", Dictionary([])),
   ])
   let root = pdf.lookup_obj(pdf.root)
@@ -135,7 +135,7 @@ test "read_ocg uses config defaults" {
   let ocg_ref = pdf.addobj(ocg_obj)
   let default_config : @pdf.PdfObject = Dictionary([])
   let ocprops : @pdf.PdfObject = Dictionary([
-    ("/OCGs", Array([Indirect(ocg_ref)])),
+    ("/OCGs", PdfArray([Indirect(ocg_ref)])),
     ("/D", default_config),
   ])
   let root = pdf.lookup_obj(pdf.root)
@@ -165,7 +165,7 @@ test "read_ocg parses ocg intent name" {
   ])
   let ocg_ref = pdf.addobj(ocg_obj)
   let ocprops : @pdf.PdfObject = Dictionary([
-    ("/OCGs", Array([Indirect(ocg_ref)])),
+    ("/OCGs", PdfArray([Indirect(ocg_ref)])),
     ("/D", Dictionary([])),
   ])
   let root = pdf.lookup_obj(pdf.root)
@@ -197,16 +197,16 @@ test "print_document_ocg prints ocgs and configs" {
   let ocg_ref = pdf.addobj(ocg_obj)
   let default_config : @pdf.PdfObject = Dictionary([
     ("/Name", PdfString("Default")),
-    ("/Locked", Array([Indirect(ocg_ref)])),
-    ("/Intent", Array([Name(PdfName("/View"))])),
+    ("/Locked", PdfArray([Indirect(ocg_ref)])),
+    ("/Intent", PdfArray([Name(PdfName("/View"))])),
   ])
   let alt_config : @pdf.PdfObject = Dictionary([
     ("/BaseState", Name(PdfName("/ON"))),
   ])
   let ocprops : @pdf.PdfObject = Dictionary([
-    ("/OCGs", Array([Indirect(ocg_ref)])),
+    ("/OCGs", PdfArray([Indirect(ocg_ref)])),
     ("/D", default_config),
-    ("/Configs", Array([alt_config])),
+    ("/Configs", PdfArray([alt_config])),
   ])
   let root = pdf.lookup_obj(pdf.root)
   let updated_root = root.add_entry("/OCProperties", ocprops)
@@ -228,11 +228,11 @@ test "read_ocg handles direct ocgs and usage defaults" {
   ])
   let default_config : @pdf.PdfObject = Dictionary([
     ("/BaseState", Name(PdfName("/ON"))),
-    ("/OFF", Array([Integer(12), Name(PdfName("/Bad"))])),
-    ("/Locked", Array([Integer(1)])),
+    ("/OFF", PdfArray([Integer(12), Name(PdfName("/Bad"))])),
+    ("/Locked", PdfArray([Integer(1)])),
   ])
   let ocprops : @pdf.PdfObject = Dictionary([
-    ("/OCGs", Array([ocg_obj])),
+    ("/OCGs", PdfArray([ocg_obj])),
     ("/D", default_config),
   ])
   let root = pdf.lookup_obj(pdf.root)

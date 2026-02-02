@@ -47,7 +47,7 @@ test "paper constants match expected sizes" {
 test "rectangle converts to points" {
   let paper : @pdfpaper.Paper = Paper::new(unit=Inch, width=1.0, height=2.0)
   match paper.rectangle() {
-    Array([Real(x0), Real(y0), Real(x1), Real(y1)]) => {
+    PdfArray([Real(x0), Real(y0), Real(x1), Real(y1)]) => {
       assert_eq(x0, 0.0)
       assert_eq(y0, 0.0)
       assert_eq(x1, 72.0)

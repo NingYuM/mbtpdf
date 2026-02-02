@@ -52,7 +52,7 @@ pub fn PdfText::write_encoding(
       }
       let mut encoding_dict = PdfObject::Dictionary([
         ("/Type", Name(PdfName("/Encoding"))),
-        ("/Differences", Array(diff_array)),
+        ("/Differences", PdfArray(diff_array)),
       ])
       match encoding_name(base) {
         Some(name) =>
@@ -189,11 +189,11 @@ pub fn PdfText::write_font(
                   ("/Subtype", Name(PdfName("/Type3"))),
                   (
                     "/FontBBox",
-                    Array([Real(0.0), Real(0.0), Real(0.0), Real(0.0)]),
+                    PdfArray([Real(0.0), Real(0.0), Real(0.0), Real(0.0)]),
                   ),
                   (
                     "/FontMatrix",
-                    Array([
+                    PdfArray([
                       Real(0.0),
                       Real(0.0),
                       Real(0.0),
@@ -208,7 +208,7 @@ pub fn PdfText::write_font(
                   ),
                   ("/FirstChar", Integer(0)),
                   ("/LastChar", Integer(0)),
-                  ("/Widths", Array([Real(0.0)])),
+                  ("/Widths", PdfArray([Real(0.0)])),
                 ].add(encoding_entry),
               )
               self.pdf.addobj(dict)
@@ -230,7 +230,7 @@ pub fn PdfText::write_font(
                     ("/Flags", Integer(fd.flags)),
                     (
                       "/FontBBox",
-                      Array([
+                      PdfArray([
                         Integer(minx.to_int()),
                         Integer(miny.to_int()),
                         Integer(maxx.to_int()),
@@ -258,7 +258,7 @@ pub fn PdfText::write_font(
                     ("/FontDescriptor", Indirect(fontdesc_num)),
                     ("/FirstChar", Integer(simple.firstchar)),
                     ("/LastChar", Integer(simple.lastchar)),
-                    ("/Widths", Array(simple.widths.map(w => Integer(w)))),
+                    ("/Widths", PdfArray(simple.widths.map(w => Integer(w)))),
                   ]
                   font_dict_entries = match fd.tounicode {
                     None =>

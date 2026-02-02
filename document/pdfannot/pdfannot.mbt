@@ -165,14 +165,14 @@ fn read_annotation(pdf : @pdf.Pdf, annot : PdfObject) -> Annotation raise {
         _ => NoStyle
       }
       let dasharray = match pdf.lookup_direct("/D", bsdict) {
-        Some(Array(dash)) => int_array_of_numbers(pdf, dash)
+        Some(PdfArray(dash)) => int_array_of_numbers(pdf, dash)
         _ => []
       }
       { width, vradius: 0.0, hradius: 0.0, style, dasharray }
     }
     None =>
       match pdf.lookup_direct("/Border", annot) {
-        Some(Array([h, v, w])) =>
+        Some(PdfArray([h, v, w])) =>
           {
             width: pdf.getnum(w),
             vradius: pdf.getnum(v),
@@ -180,7 +180,7 @@ fn read_annotation(pdf : @pdf.Pdf, annot : PdfObject) -> Annotation raise {
             style: NoStyle,
             dasharray: [],
           }
-        Some(Array([h, v, w, Array(dash)])) =>
+        Some(PdfArray([h, v, w, PdfArray(dash)])) =>
           {
             width: pdf.getnum(w),
             vradius: pdf.getnum(v),
@@ -199,7 +199,7 @@ fn read_annotation(pdf : @pdf.Pdf, annot : PdfObject) -> Annotation raise {
       }
   }
   let colour = match pdf.lookup_direct("/C", annot) {
-    Some(Array([r, g, b])) =>
+    Some(PdfArray([r, g, b])) =>
       Some((toint(pdf.getnum(r)), toint(pdf.getnum(g)), toint(pdf.getnum(b))))
     _ => None
   }
@@ -249,7 +249,7 @@ pub fn PdfAnnot::annotations_of_page(
   page : @pdfpage.Page,
 ) -> Array[Annotation] raise {
   match self.pdf.lookup_direct("/Annots", page.rest) {
-    Some(Array(annotations)) => {
+    Some(PdfArray(annotations)) => {
       let popup_parents : Map[Int, Unit] = Map::new(
         capacity=annotations.length(),
       )
@@ -326,24 +326,24 @@ fn Annotation::to_pdf_object(self : Annotation) -> PdfObject raise {
       "/Rect",
       {
         let (a, b, c, d) = self.rectangle
-        Array([Real(a), Real(b), Real(c), Real(d)])
+        PdfArray([Real(a), Real(b), Real(c), Real(d)])
       },
     ),
     (
       "/Border",
       match self.border.dasharray {
         [] =>
-          Array([
+          PdfArray([
             Real(self.border.hradius),
             Real(self.border.vradius),
             Real(self.border.width),
           ])
         dash =>
-          Array([
+          PdfArray([
             Real(self.border.hradius),
             Real(self.border.vradius),
             Real(self.border.width),
-            Array(dash.map(value => Integer(value))),
+            PdfArray(dash.map(value => Integer(value))),
           ])
       },
     ),
@@ -356,7 +356,7 @@ fn Annotation::to_pdf_object(self : Annotation) -> PdfObject raise {
   let dict_entries = match self.colour {
     None => dict_entries
     Some((r, g, b)) =>
-      [("/C", Array([Integer(r), Integer(g), Integer(b)]))] + dict_entries
+      [("/C", PdfArray([Integer(r), Integer(g), Integer(b)]))] + dict_entries
   }
   let dict_entries = match self.subject {
     None => dict_entries
@@ -407,10 +407,10 @@ pub fn PdfAnnot::add_annotation(
 ) -> @pdfpage.Page raise {
   let obj = anno.to_pdf_object()
   let new_rest = match self.pdf.lookup_direct("/Annots", page.rest) {
-    Some(Array(annotations)) =>
-      page.rest.add_entry("/Annots", Array([obj] + annotations))
+    Some(PdfArray(annotations)) =>
+      page.rest.add_entry("/Annots", PdfArray([obj] + annotations))
     Some(_) => raise @pdf.PdfError::Msg("Bad annotation dictionary")
-    None => page.rest.add_entry("/Annots", Array([obj]))
+    None => page.rest.add_entry("/Annots", PdfArray([obj]))
   }
   Page(
     content=page.content,
@@ -429,7 +429,7 @@ pub fn PdfAnnot::transform_annotations(
   rest : PdfObject,
 ) -> Unit raise {
   match self.pdf.lookup_direct("/Annots", rest) {
-    Some(Array(annots)) =>
+    Some(PdfArray(annots)) =>
       for annot in annots {
         match (annot : PdfObject) {
           Indirect(i) => {

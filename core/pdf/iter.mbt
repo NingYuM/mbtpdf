@@ -4,7 +4,7 @@ pub fn recurse_array(
   f : (PdfObject) -> PdfObject,
   elts : Array[PdfObject],
 ) -> PdfObject {
-  Array(elts.map(f))
+  PdfArray(elts.map(f))
 }
 
 ///|
@@ -94,7 +94,7 @@ fn Pdf::nullify_deleted_page_references(self : Pdf) -> Unit raise {
   fn nullify(numbers : Map[Int, Bool], obj : PdfObject) -> PdfObject {
     match obj {
       Indirect(i) => if numbers.contains(i) { Null } else { obj }
-      Array(elts) => recurse_array(v => nullify(numbers, v), elts)
+      PdfArray(elts) => recurse_array(v => nullify(numbers, v), elts)
       Dictionary(elts) => recurse_dict(v => nullify(numbers, v), elts)
       Stream(r) => {
         let (dict, stream) = r.val
@@ -142,8 +142,8 @@ pub fn Pdf::renumber_object_parsed(
         Some(x) => Indirect(x)
         None => Indirect(i)
       }
-    Array(values) =>
-      Array(
+    PdfArray(values) =>
+      PdfArray(
         values.map(v => self.renumber_object_parsed(changes, v, preserve_order~)),
       )
     Dictionary(entries) =>

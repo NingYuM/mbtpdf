@@ -1,6 +1,6 @@
 ///|
 fn pdf_of_pages_rect() -> @pdf.PdfObject {
-  Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  PdfArray([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
 }
 
 ///|
@@ -180,7 +180,7 @@ test "endpage_fast handles missing count" {
   let page_num = pdf0.addobj(page)
   let pages : @pdf.PdfObject = Dictionary([
     ("/Type", Name(PdfName("/Pages"))),
-    ("/Kids", Array([Indirect(page_num)])),
+    ("/Kids", PdfArray([Indirect(page_num)])),
   ])
   let pages_num = pdf0.addobj(pages)
   let pdf = @pdfpage.PdfPageDoc::new(pdf0).add_root(pages_num, [])

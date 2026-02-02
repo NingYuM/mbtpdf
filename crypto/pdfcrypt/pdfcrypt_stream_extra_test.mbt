@@ -89,10 +89,10 @@ test "decrypt_single_stream skips identity crypt filters" {
     _ => fail("expected stream")
   }
   let dict_array : @pdf.PdfObject = Dictionary([
-    ("/Filter", Array([Name(PdfName("/Crypt"))])),
+    ("/Filter", PdfArray([Name(PdfName("/Crypt"))])),
     (
       "/DecodeParms",
-      Array([Dictionary([("/Name", Name(PdfName("/Identity")))])]),
+      PdfArray([Dictionary([("/Name", Name(PdfName("/Identity")))])]),
     ),
     ("/Length", Integer(3)),
   ])

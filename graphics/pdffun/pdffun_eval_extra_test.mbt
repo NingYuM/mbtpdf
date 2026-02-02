@@ -22,9 +22,9 @@ test "parse_function sampled order" {
   let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(0)),
-    ("/Domain", Array([Real(0.0), Real(1.0)])),
-    ("/Range", Array([Real(0.0), Real(1.0)])),
-    ("/Size", Array([Integer(1)])),
+    ("/Domain", PdfArray([Real(0.0), Real(1.0)])),
+    ("/Range", PdfArray([Real(0.0), Real(1.0)])),
+    ("/Size", PdfArray([Integer(1)])),
     ("/BitsPerSample", Integer(8)),
     ("/Order", Integer(3)),
     ("/Length", Integer(1)),
@@ -43,7 +43,7 @@ test "parse_function defaults c0 c1" {
   let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(2)),
-    ("/Domain", Array([Real(0.0), Real(1.0)])),
+    ("/Domain", PdfArray([Real(0.0), Real(1.0)])),
     ("/N", Real(1.0)),
   ])
   let parsed = PdfFunction::parse(pdf, dict)
@@ -64,7 +64,7 @@ test "parse_function calculator supports nested procedures" {
   let program = "{ false { true { 1 } if } { 0 } ifelse }"
   let dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(4)),
-    ("/Domain", Array([Real(0.0), Real(1.0)])),
+    ("/Domain", PdfArray([Real(0.0), Real(1.0)])),
     ("/Length", Integer(program.length())),
   ])
   let data = @pdfio.bytes_of_string(program)
@@ -85,9 +85,9 @@ test "parse_function rejects bad bits per sample" {
   let pdf = @pdf.Pdf::empty()
   let dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(0)),
-    ("/Domain", Array([Real(0.0), Real(1.0)])),
-    ("/Range", Array([Real(0.0), Real(1.0)])),
-    ("/Size", Array([Integer(1)])),
+    ("/Domain", PdfArray([Real(0.0), Real(1.0)])),
+    ("/Range", PdfArray([Real(0.0), Real(1.0)])),
+    ("/Size", PdfArray([Integer(1)])),
     ("/BitsPerSample", Name(PdfName("/Bad"))),
   ])
   let res : Result[PdfFunction, Error] = try? PdfFunction::parse(pdf, dict)

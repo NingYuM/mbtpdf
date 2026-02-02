@@ -38,12 +38,12 @@ test "build_name_tree handles empty input" {
   let tree_ctx = @pdftree.PdfTree::new(pdf)
   let name_tree = tree_ctx.build_name_tree(false, [])
   match pdf.lookup_direct("/Names", name_tree) {
-    Some(Array(items)) => assert_eq(items.length(), 0)
+    Some(PdfArray(items)) => assert_eq(items.length(), 0)
     _ => fail("expected empty /Names")
   }
   let num_tree = tree_ctx.build_name_tree(true, [])
   match pdf.lookup_direct("/Nums", num_tree) {
-    Some(Array(items)) => assert_eq(items.length(), 0)
+    Some(PdfArray(items)) => assert_eq(items.length(), 0)
     _ => fail("expected empty /Nums")
   }
 }
@@ -58,7 +58,7 @@ test "build_name_tree uses kids for large inputs" {
   ))
   let tree = tree_ctx.build_name_tree(false, entries)
   match pdf.lookup_direct("/Kids", tree) {
-    Some(Array(kids)) => assert_true(kids.length() > 0)
+    Some(PdfArray(kids)) => assert_true(kids.length() > 0)
     _ => fail("expected /Kids on large tree")
   }
   let read = tree_ctx.read_name_tree(tree)
@@ -83,7 +83,7 @@ test "build_name_tree uses integer limits for large number trees" {
   ))
   let tree = tree_ctx.build_name_tree(true, entries)
   match pdf.lookup_direct("/Kids", tree) {
-    Some(Array(kids)) => assert_true(kids.length() > 0)
+    Some(PdfArray(kids)) => assert_true(kids.length() > 0)
     _ => fail("expected /Kids on large number tree")
   }
   let read = tree_ctx.read_number_tree(tree)
@@ -98,7 +98,7 @@ test "read_name_tree skips malformed keys" {
   let tree : @pdf.PdfObject = Dictionary([
     (
       "/Names",
-      Array([
+      PdfArray([
         Integer(1),
         Name(PdfName("/One")),
         PdfString("B"),
@@ -118,7 +118,7 @@ test "read_number_tree handles duplicate keys" {
   let tree : @pdf.PdfObject = Dictionary([
     (
       "/Nums",
-      Array([
+      PdfArray([
         Integer(1),
         Name(PdfName("/One")),
         Integer(1),
@@ -163,7 +163,7 @@ test "read_number_tree returns empty on non-integer keys" {
   let tree : @pdf.PdfObject = Dictionary([
     (
       "/Nums",
-      Array([
+      PdfArray([
         PdfString("x"),
         Name(PdfName("/X")),
         Integer(2),

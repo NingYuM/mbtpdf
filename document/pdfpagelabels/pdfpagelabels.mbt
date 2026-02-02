@@ -398,7 +398,7 @@ pub fn PageLabel::write_all(
     let root = pdf.lookup_obj(rootnum)
     let updated_root = root.add_entry(
       "/PageLabels",
-      Dictionary([("/Nums", Array(arr))]),
+      Dictionary([("/Nums", PdfArray(arr))]),
     )
     pdf.addobj_given_num((rootnum, updated_root))
     pdf.trailerdict = pdf.trailerdict.add_entry("/Root", Indirect(rootnum))

@@ -395,7 +395,7 @@ fn add_notes_layer(pdf : @pdf.Pdf) -> Int raise {
     ("/Name", PdfString("Default")),
   ])
   let ocprops : PdfObject = Dictionary([
-    ("/OCGs", Array([Indirect(notes_num)])),
+    ("/OCGs", PdfArray([Indirect(notes_num)])),
     ("/D", default_dict),
   ])
   let ocprops_num = pdf.addobj(ocprops)

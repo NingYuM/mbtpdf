@@ -72,7 +72,7 @@ fn parse_array(items : Array[ParseItem], start : Int) -> (ParseItem, Int) raise 
   let mut i = start + 1
   while i < items.length() {
     match items[i] {
-      Lexeme(LexRightSquare) => return (Parsed(Array(values)), i + 1)
+      Lexeme(LexRightSquare) => return (Parsed(PdfArray(values)), i + 1)
       _ => {
         let (val_item, next_i) = parse_value(items, i)
         match val_item {

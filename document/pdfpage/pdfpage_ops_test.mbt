@@ -1,6 +1,6 @@
 ///|
 fn ops_sample_rect() -> @pdf.PdfObject {
-  Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  PdfArray([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
 }
 
 ///|

@@ -317,7 +317,7 @@ fn read_xref_stream(
   @pdfcodec.PdfCodec::new().decode_pdfstream(@pdf.Pdf::empty(), stream_obj)
   stream_obj.getstream()
   let (w1, w2, w3) = match @pdf.Pdf::empty().lookup_direct("/W", stream_obj) {
-    Some(Array([Integer(a), Integer(b), Integer(c)])) => (a, b, c)
+    Some(PdfArray([Integer(a), Integer(b), Integer(c)])) => (a, b, c)
     _ => raise err
   }
   let raw_input = match stream_obj {
@@ -338,7 +338,7 @@ fn read_xref_stream(
   }
   let starts_and_lens = match
     @pdf.Pdf::empty().lookup_direct("/Index", stream_obj) {
-    Some(Array(elts)) => {
+    Some(PdfArray(elts)) => {
       // PDF spec: /Index is an array of (start, count) pairs, so it must be even-length.
       let pairs = Array::new()
       for i = 0; i < elts.length(); {

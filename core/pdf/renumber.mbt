@@ -5,7 +5,7 @@ fn check_object_contains_renumbering(
 ) -> Bool {
   match obj {
     Indirect(i) => changes.get(i) is Some(_)
-    Array(values) =>
+    PdfArray(values) =>
       values.any(v => check_object_contains_renumbering(changes, v))
     Dictionary(entries) =>
       entries.any(pair => check_object_contains_renumbering(changes, pair.1))

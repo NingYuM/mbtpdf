@@ -38,9 +38,9 @@ pub fn PdfTree::build_name_tree(
 ) -> @pdf.PdfObject {
   if entries.length() == 0 {
     if isnum {
-      Dictionary([("/Nums", Array([]))])
+      Dictionary([("/Nums", PdfArray([]))])
     } else {
-      Dictionary([("/Names", Array([]))])
+      Dictionary([("/Names", PdfArray([]))])
     }
   } else {
     let sorted = clone_entries(entries)
@@ -85,7 +85,7 @@ fn PdfTree::read_tree_raw(
   tree : @pdf.PdfObject,
 ) -> Array[(@pdf.PdfObject, @pdf.PdfObject)] {
   let names = match self.pdf.lookup_direct_orelse("/Names", "/Nums", tree) {
-    Some(Array(elts)) =>
+    Some(PdfArray(elts)) =>
       if elts.length() % 2 == 1 {
         @pdfe.log("Bad /Names array. Name tree will be read as empty\n")
         []
@@ -95,7 +95,7 @@ fn PdfTree::read_tree_raw(
     _ => []
   }
   match self.pdf.lookup_direct("/Kids", tree) {
-    Some(Array(kids)) =>
+    Some(PdfArray(kids)) =>
       concat_arrays(names, flatten(kids.map(kid => self.read_tree_raw(kid))))
     _ => names
   }
@@ -319,14 +319,14 @@ fn PdfTree::name_tree_of_nt(
         array_items.push(pair.1)
       }
       let entry_key = if isnum { "/Nums" } else { "/Names" }
-      let entry = (entry_key, PdfObject::Array(array_items))
+      let entry = (entry_key, PdfObject::PdfArray(array_items))
       let limits = if isnum {
-        PdfObject::Array([
+        PdfObject::PdfArray([
           Integer(parse_int(llimit)),
           Integer(parse_int(rlimit)),
         ])
       } else {
-        Array([PdfString(llimit), PdfString(rlimit)])
+        PdfArray([PdfString(llimit), PdfString(rlimit)])
       }
       let dict_entries = Array::new(capacity=2)
       dict_entries.push(entry)
@@ -340,7 +340,7 @@ fn PdfTree::name_tree_of_nt(
       for child in kids {
         let child_obj = self.name_tree_of_nt(isnum, false, child)
         match child_obj {
-          Dictionary(_) | Stream(_) | Array(_) => {
+          Dictionary(_) | Stream(_) | PdfArray(_) => {
             let objnum = self.pdf.addobj(child_obj)
             kid_refs.push(PdfObject::Indirect(objnum))
           }
@@ -348,14 +348,14 @@ fn PdfTree::name_tree_of_nt(
         }
       }
       let limits = if isnum {
-        PdfObject::Array([
+        PdfObject::PdfArray([
           Integer(parse_int(llimit)),
           Integer(parse_int(rlimit)),
         ])
       } else {
-        Array([PdfString(llimit), PdfString(rlimit)])
+        PdfArray([PdfString(llimit), PdfString(rlimit)])
       }
-      Dictionary([("/Kids", Array(kid_refs)), ("/Limits", limits)])
+      Dictionary([("/Kids", PdfArray(kid_refs)), ("/Limits", limits)])
     }
   }
 }

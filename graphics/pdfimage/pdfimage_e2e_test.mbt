@@ -46,7 +46,7 @@ test "get_image_24bpp applies decode for 1bpp" {
     ("/Height", Integer(1)),
     ("/ColorSpace", Name(PdfName("/DeviceGray"))),
     ("/BitsPerComponent", Integer(1)),
-    ("/Decode", Array([Real(1.0), Real(0.0)])),
+    ("/Decode", PdfArray([Real(1.0), Real(0.0)])),
     ("/Length", Integer(1)),
   ])
   let data = @pdfio.bytes_of_list([0x00])

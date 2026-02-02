@@ -34,12 +34,15 @@ fn build_minimal_pdf() -> @pdf.Pdf {
     ("/Type", Name(PdfName("/Page"))),
     ("/Parent", Indirect(1)),
     ("/Resources", resources),
-    ("/MediaBox", Array([Integer(0), Integer(0), Integer(300), Integer(300)])),
+    (
+      "/MediaBox",
+      PdfArray([Integer(0), Integer(0), Integer(300), Integer(300)]),
+    ),
     ("/Contents", Indirect(2)),
   ])
   let pages : @pdf.PdfObject = Dictionary([
     ("/Type", Name(PdfName("/Pages"))),
-    ("/Kids", Array([Indirect(3)])),
+    ("/Kids", PdfArray([Indirect(3)])),
     ("/Count", Integer(1)),
   ])
   let catalog : @pdf.PdfObject = Dictionary([

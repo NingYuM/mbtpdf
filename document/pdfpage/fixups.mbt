@@ -44,7 +44,7 @@ fn rewrite_first_indirect(
   new_num : Int,
 ) -> Bool raise {
   match pdf.lookup_direct("/Kids", obj) {
-    Some(Array(kids)) => {
+    Some(PdfArray(kids)) => {
       let mut found = false
       for kid in kids {
         match kid {
@@ -54,7 +54,7 @@ fn rewrite_first_indirect(
       }
       if found {
         let updated_kids = rewrite_first_kid(old_num, new_num, kids)
-        let updated = obj.add_entry("/Kids", Array(updated_kids))
+        let updated = obj.add_entry("/Kids", PdfArray(updated_kids))
         pdf.addobj_given_num((objnum, updated))
         true
       } else {
@@ -75,7 +75,7 @@ fn page_tree_nodes_not_pages_inner(
     []
   } else {
     match pdf.lookup_direct("/Kids", pages_node) {
-      Some(Array(elts)) => {
+      Some(PdfArray(elts)) => {
         let out = Array::new()
         out.push(node_number)
         for elt in elts {
@@ -151,7 +151,7 @@ fn page_reference_numbers_unordered_inner(
     acc.val.push(node_number)
   } else {
     match pdf.lookup_direct("/Kids", pages_node) {
-      Some(Array(elts)) =>
+      Some(PdfArray(elts)) =>
         for elt in elts {
           match elt {
             Indirect(i) =>
@@ -220,7 +220,7 @@ fn fixup_parents_inner(
     None => ()
   }
   match pdf.lookup_direct("/Kids", obj) {
-    Some(Array(kids)) =>
+    Some(PdfArray(kids)) =>
       for kid in kids {
         match kid {
           Indirect(i) => fixup_parents_inner(pdf, objnum, i)
@@ -266,7 +266,7 @@ pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
   let pages = PdfPageDoc::new(pdf).pages_of_pagetree()
   let existing_annots = pages.map(page => match
     pdf.lookup_direct("/Annots", page.rest) {
-    Some(Array(a)) =>
+    Some(PdfArray(a)) =>
       a.filter_map(obj => match obj {
         Indirect(i) => Some(i)
         _ => None
@@ -318,7 +318,7 @@ pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
       match page_obj {
         Dictionary(_) => {
           let indirects = annots.map(n => PdfObject::Indirect(n))
-          let updated = page_obj.add_entry("/Annots", Array(indirects))
+          let updated = page_obj.add_entry("/Annots", PdfArray(indirects))
           pdf.addobj_given_num((pagerefnum, updated))
         }
         _ => ()
@@ -331,7 +331,7 @@ pub fn PdfPageDoc::fixup_duplicate_annots(self : PdfPageDoc) -> Unit raise {
 fn was_nulled(pdf : @pdf.Pdf, pair : (String, PdfObject)) -> Bool {
   let (_, dest) = pair
   match pdf.direct(dest) {
-    Array([Indirect(i), ..]) =>
+    PdfArray([Indirect(i), ..]) =>
       match pdf.lookup_obj(i) {
         Null => true
         _ => false

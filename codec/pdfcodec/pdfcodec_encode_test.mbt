@@ -18,7 +18,7 @@ test "encode/decode flate stream" {
   }
   match (pdf.lookup_direct("/Filter", encoded_dict) : @pdf.PdfObject?) {
     Some(Name(PdfName("/FlateDecode")))
-    | Some(Array([Name(PdfName("/FlateDecode")), ..])) => ()
+    | Some(PdfArray([Name(PdfName("/FlateDecode")), ..])) => ()
     _ => fail("expected /Filter entry")
   }
   match (pdf.lookup_direct("/Length", encoded_dict) : @pdf.PdfObject?) {
@@ -222,7 +222,7 @@ test "encode_pdfstream prepends filter when name already set" {
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
   ctx.encode_pdfstream(pdf, Flate, stream_obj)
   match (pdf.lookup_direct("/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
-    Some(Array(filters)) => {
+    Some(PdfArray(filters)) => {
       assert_true(filters.length() >= 2)
       match (filters[0] : @pdf.PdfObject) {
         Name(PdfName("/FlateDecode")) => ()
@@ -239,13 +239,13 @@ test "encode_pdfstream prepends filter when array already set" {
   let data = @pdfio.bytes_of_string("array filter")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/Filter", Array([Name(PdfName("/ASCIIHexDecode"))])),
+    ("/Filter", PdfArray([Name(PdfName("/ASCIIHexDecode"))])),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
   ctx.encode_pdfstream(pdf, Flate, stream_obj)
   match (pdf.lookup_direct("/Filter", stream_ref.val.0) : @pdf.PdfObject?) {
-    Some(Array(filters)) =>
+    Some(PdfArray(filters)) =>
       match (filters[0] : @pdf.PdfObject) {
         Name(PdfName("/FlateDecode")) => ()
         _ => fail("expected /FlateDecode to be first")

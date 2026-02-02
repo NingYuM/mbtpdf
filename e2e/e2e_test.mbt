@@ -176,7 +176,7 @@ fn make_ap_stream(payload : String) -> @pdf.PdfObject {
   let dict : @pdf.PdfObject = Dictionary([
     ("/Type", Name(PdfName("/XObject"))),
     ("/Subtype", Name(PdfName("/Form"))),
-    ("/BBox", Array([Integer(0), Integer(0), Integer(10), Integer(10)])),
+    ("/BBox", PdfArray([Integer(0), Integer(0), Integer(10), Integer(10)])),
     ("/Resources", Dictionary([])),
     ("/Length", Integer(@pdfio.bytes_size(bytes))),
   ])
@@ -261,10 +261,10 @@ fn add_ocg_properties(pdf : @pdf.Pdf, ocg_name : String) -> Unit raise {
     ("/BaseState", Name(PdfName("/ON"))),
     ("/Intent", Name(PdfName("/View"))),
     ("/Name", PdfString("Default")),
-    ("/ON", Array([Indirect(ocg_num)])),
+    ("/ON", PdfArray([Indirect(ocg_num)])),
   ])
   let ocprops : @pdf.PdfObject = Dictionary([
-    ("/OCGs", Array([Indirect(ocg_num)])),
+    ("/OCGs", PdfArray([Indirect(ocg_num)])),
     ("/D", default_dict),
   ])
   let ocprops_num = pdf.addobj(ocprops)
@@ -286,18 +286,18 @@ fn add_ocg_properties_with_config(
     ("/BaseState", Name(PdfName("/ON"))),
     ("/Intent", Name(PdfName("/View"))),
     ("/Name", PdfString("Default")),
-    ("/ON", Array([Indirect(ocg_num)])),
+    ("/ON", PdfArray([Indirect(ocg_num)])),
   ])
   let config_dict : @pdf.PdfObject = Dictionary([
     ("/Name", PdfString(config_name)),
     ("/BaseState", Name(PdfName("/OFF"))),
     ("/Intent", Name(PdfName("/View"))),
-    ("/ON", Array([Indirect(ocg_num)])),
+    ("/ON", PdfArray([Indirect(ocg_num)])),
   ])
   let ocprops : @pdf.PdfObject = Dictionary([
-    ("/OCGs", Array([Indirect(ocg_num)])),
+    ("/OCGs", PdfArray([Indirect(ocg_num)])),
     ("/D", default_dict),
-    ("/Configs", Array([config_dict])),
+    ("/Configs", PdfArray([config_dict])),
   ])
   let ocprops_num = pdf.addobj(ocprops)
   set_catalog_entry(pdf, "/OCProperties", Indirect(ocprops_num))
@@ -311,7 +311,7 @@ fn read_ocg_names(pdf : @pdf.Pdf) -> Array[String] raise {
     None => fail("missing /OCProperties")
   }
   let ocgs = match (pdf.lookup_direct("/OCGs", ocprops) : @pdf.PdfObject?) {
-    Some(Array(arr)) => arr
+    Some(PdfArray(arr)) => arr
     _ => fail("missing /OCGs array")
   }
   let names = Array::new(capacity=ocgs.length())
@@ -339,7 +339,7 @@ fn read_ocg_config_names(pdf : @pdf.Pdf) -> Array[String] raise {
   }
   let configs = match
     (pdf.lookup_direct("/Configs", ocprops) : @pdf.PdfObject?) {
-    Some(Array(arr)) => arr
+    Some(PdfArray(arr)) => arr
     _ => fail("missing /Configs array")
   }
   let names = Array::new(capacity=configs.length())
@@ -365,7 +365,7 @@ fn read_ocg_on_count(pdf : @pdf.Pdf) -> Int raise {
     None => fail("missing /D")
   }
   match (pdf.lookup_direct("/ON", default_dict) : @pdf.PdfObject?) {
-    Some(Array(arr)) => arr.length()
+    Some(PdfArray(arr)) => arr.length()
     _ => 0
   }
 }
@@ -1051,11 +1051,11 @@ async test "e2e merge preserves AcroForm entries" {
   let left = @pdfpage.PdfPageDoc::minimum_valid()
   let right = @pdfpage.PdfPageDoc::minimum_valid()
   let left_form : @pdf.PdfObject = Dictionary([
-    ("/Fields", Array([Null])),
+    ("/Fields", PdfArray([Null])),
     ("/NeedAppearances", Boolean(true)),
   ])
   let right_form : @pdf.PdfObject = Dictionary([
-    ("/Fields", Array([Null])),
+    ("/Fields", PdfArray([Null])),
     ("/SigFlags", Integer(1)),
   ])
   set_catalog_entry(left, "/AcroForm", left_form)
@@ -1076,7 +1076,7 @@ async test "e2e merge preserves AcroForm entries" {
     None => fail("missing /AcroForm")
   }
   match (merged.lookup_direct("/Fields", form) : @pdf.PdfObject?) {
-    Some(Array(arr)) => assert_eq(arr.length(), 2)
+    Some(PdfArray(arr)) => assert_eq(arr.length(), 2)
     _ => fail("expected /Fields array")
   }
   match (merged.lookup_direct("/NeedAppearances", form) : @pdf.PdfObject?) {
@@ -1097,7 +1097,7 @@ async test "e2e merge preserves AcroForm entries" {
     None => fail("missing parsed /AcroForm")
   }
   match (parsed.lookup_direct("/Fields", parsed_form) : @pdf.PdfObject?) {
-    Some(Array(arr)) => assert_eq(arr.length(), 2)
+    Some(PdfArray(arr)) => assert_eq(arr.length(), 2)
     _ => fail("expected parsed /Fields array")
   }
   match
@@ -2038,7 +2038,7 @@ async test "e2e page labels roundtrip" {
 
 ///|
 async test "e2e page ops roundtrip" {
-  let rect : @pdf.PdfObject = Array([
+  let rect : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(100.0),

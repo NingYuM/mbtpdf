@@ -22,7 +22,7 @@ test "pages_of_pagetree_quick detects cycle" {
   let pdf0 = @pdf.Pdf::empty()
   let pages : @pdf.PdfObject = Dictionary([
     ("/Type", Name(PdfName("/Pages"))),
-    ("/Kids", Array([Indirect(1)])),
+    ("/Kids", PdfArray([Indirect(1)])),
   ])
   pdf0.addobj_given_num((1, pages))
   let pdf = PdfPageDoc::new(pdf0).add_root(1, [])

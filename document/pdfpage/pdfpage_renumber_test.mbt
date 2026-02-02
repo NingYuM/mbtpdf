@@ -47,7 +47,7 @@ test "renumber_pages returns empty on no pages" {
 ///|
 test "renumber_pages renames resource operators consistently" {
   let pdf = @pdf.Pdf::empty()
-  let rect : @pdf.PdfObject = Array([
+  let rect : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(100.0),
@@ -116,7 +116,7 @@ test "renumber_pages renames resource operators consistently" {
 ///|
 test "renumber_pages rewrites inline image colorspace names" {
   let pdf = @pdf.Pdf::empty()
-  let rect : @pdf.PdfObject = Array([
+  let rect : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(100.0),
@@ -137,7 +137,7 @@ test "renumber_pages rewrites inline image colorspace names" {
     ("/BPC", Integer(8)),
     (
       "/CS",
-      Array([
+      PdfArray([
         Name(PdfName("/Indexed")),
         Name(PdfName("/DeviceRGB")),
         Integer(0),
@@ -184,7 +184,7 @@ test "renumber_pages rewrites inline image colorspace names" {
               assert_true(!(name is PdfName("/CS1")))
               saw_renamed = true
             }
-          Some(Array(_)) => saw_passthrough = true
+          Some(PdfArray(_)) => saw_passthrough = true
           _ => ()
         }
       _ => ()
@@ -198,7 +198,7 @@ test "renumber_pages rewrites inline image colorspace names" {
 ///|
 test "renumber_pages errors on missing resource key references" {
   let pdf = @pdf.Pdf::empty()
-  let rect : @pdf.PdfObject = Array([
+  let rect : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(100.0),

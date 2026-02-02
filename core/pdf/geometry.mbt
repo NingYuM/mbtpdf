@@ -16,7 +16,7 @@ pub fn Pdf::parse_rectangle(
   obj : PdfObject,
 ) -> (Double, Double, Double, Double) raise {
   match obj {
-    Array(vals) =>
+    PdfArray(vals) =>
       if vals.length() == 4 {
         let x = self.getnum(vals[0])
         let y = self.getnum(vals[1])
@@ -43,7 +43,7 @@ pub fn Pdf::parse_matrix(
 ) -> @pdftransform.TransformMatrix raise {
   match self.lookup_direct(key, dict) {
     None | Some(Null) => @pdftransform.TransformMatrix::identity()
-    Some(Array(vals)) =>
+    Some(PdfArray(vals)) =>
       if vals.length() != 6 {
         raise PdfError::Msg("Malformed matrix")
       } else {
@@ -62,7 +62,14 @@ pub fn Pdf::parse_matrix(
 ///|
 /// Build a matrix object.
 pub fn make_matrix(tr : @pdftransform.TransformMatrix) -> PdfObject {
-  Array([Real(tr.a), Real(tr.b), Real(tr.c), Real(tr.d), Real(tr.e), Real(tr.f)])
+  PdfArray([
+    Real(tr.a),
+    Real(tr.b),
+    Real(tr.c),
+    Real(tr.d),
+    Real(tr.e),
+    Real(tr.f),
+  ])
 }
 
 ///|
@@ -99,7 +106,7 @@ pub fn Pdf::transform_rect(
   let miny = fmin(fmin(y0, y1), fmin(y2, y3))
   let maxx = fmax(fmax(x0, x1), fmax(x2, x3))
   let maxy = fmax(fmax(y0, y1), fmax(y2, y3))
-  Array([Real(minx), Real(miny), Real(maxx), Real(maxy)])
+  PdfArray([Real(minx), Real(miny), Real(maxx), Real(maxy)])
 }
 
 ///|
@@ -159,12 +166,12 @@ pub fn Pdf::transform_quadpoints(
   qp : PdfObject,
 ) -> PdfObject raise {
   match qp {
-    Array(qps) => {
+    PdfArray(qps) => {
       let out = Array::new(capacity=qps.length())
       for chunk in split_into(qps, 8) {
         out.append(self.transform_quadpoint_single(transform, chunk))
       }
-      Array(out)
+      PdfArray(out)
     }
     _ => {
       @pdfe.log("Unknown or malformed /QuadPoints format\n")

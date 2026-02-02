@@ -228,7 +228,7 @@ fn add_prefix_impl(pdf : @pdf.Pdf, prefix : String) -> Unit raise {
                       fixed_streams,
                       dict[index].1,
                     )
-                  Array(a) => {
+                  PdfArray(a) => {
                     if a.length() > 1 {
                       try {
                         for c in a {
@@ -295,7 +295,7 @@ fn merge_content_streams(pdf : @pdf.Pdf) -> Unit raise {
               Some(index) =>
                 match dict[index].1 {
                   Indirect(_) => obj
-                  Array(a) =>
+                  PdfArray(a) =>
                     if a.length() <= 1 {
                       obj
                     } else {

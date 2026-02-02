@@ -100,7 +100,7 @@ fn build_xref_stream(
   let dict_with_root = dict_with_size.add_entry("/Root", Indirect(pdf.root))
   let dict_with_w = dict_with_root.add_entry(
     "/W",
-    Array([Integer(w1), Integer(w2), Integer(w3)]),
+    PdfArray([Integer(w1), Integer(w2), Integer(w3)]),
   )
   let dict_with_length = dict_with_w.add_entry(
     "/Length",

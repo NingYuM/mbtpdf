@@ -45,7 +45,7 @@ test "components resolves color spaces" {
     @pdfops.Op::components(
       pdf,
       resources,
-      Array([Name(PdfName("/Pattern")), Name(PdfName("/DeviceRGB"))]),
+      PdfArray([Name(PdfName("/Pattern")), Name(PdfName("/DeviceRGB"))]),
     ),
     3,
   )
@@ -53,7 +53,7 @@ test "components resolves color spaces" {
     @pdfops.Op::components(
       pdf,
       resources,
-      Array([Name(PdfName("/ICCBased")), Dictionary([("/N", Integer(4))])]),
+      PdfArray([Name(PdfName("/ICCBased")), Dictionary([("/N", Integer(4))])]),
     ),
     4,
   )
@@ -61,9 +61,9 @@ test "components resolves color spaces" {
     @pdfops.Op::components(
       pdf,
       resources,
-      Array([
+      PdfArray([
         Name(PdfName("/DeviceN")),
-        Array([Name(PdfName("/A")), Name(PdfName("/B"))]),
+        PdfArray([Name(PdfName("/A")), Name(PdfName("/B"))]),
       ]),
     ),
     2,
@@ -72,7 +72,7 @@ test "components resolves color spaces" {
     @pdfops.Op::components(
       pdf,
       resources,
-      Array([
+      PdfArray([
         Name(PdfName("/Separation")),
         Name(PdfName("/Spot")),
         Name(PdfName("/DeviceRGB")),
@@ -196,7 +196,7 @@ test "parse_operators handles diverse ops" {
     OpTm(TransformMatrix(a=1.0, b=0.0, c=0.0, d=1.0, e=0.0, f=0.0)),
     OpTStar,
     OpTj("Hello"),
-    OpTJ(Array([PdfString("A"), Integer(-120), PdfString("B")])),
+    OpTJ(PdfArray([PdfString("A"), Integer(-120), PdfString("B")])),
     OpSingleQuote("World"),
     OpDoubleQuote(1.0, 2.0, "Quote"),
     Opd0(0.0, 1.0),

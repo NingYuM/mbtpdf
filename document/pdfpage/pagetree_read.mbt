@@ -16,7 +16,7 @@ fn remove_dict_entries(
 
 ///|
 let last_mediabox_seen : Ref[PdfObject] = {
-  val: Array([Integer(0), Integer(0), Integer(612), Integer(792)]),
+  val: PdfArray([Integer(0), Integer(0), Integer(612), Integer(792)]),
 }
 
 ///|
@@ -35,7 +35,7 @@ fn find_pages(
         None => {
           let kids = match
             pdf.lookup_fail("No /Kids in page tree", "/Kids", pages) {
-            Array(values) => values
+            PdfArray(values) => values
             _ => raise @pdf.PdfError::Msg("Malformed /Kids in page tree node")
           }
           let resources = match pdf.lookup_direct("/Resources", pages) {
@@ -70,7 +70,7 @@ fn find_pages(
         Some(Name(PdfName("/Pages"))) => {
           let kids = match
             pdf.lookup_fail("No /Kids in page tree", "/Kids", pages) {
-            Array(values) => values
+            PdfArray(values) => values
             _ => raise @pdf.PdfError::Msg("Malformed /Kids in page tree node")
           }
           let resources = match pdf.lookup_direct("/Resources", pages) {
@@ -116,8 +116,8 @@ fn find_pages(
               match pages.lookup_immediate("/Contents") {
                 Some(Indirect(i)) =>
                   match pdf.lookup_obj(i) {
-                    Array(a) => Some(PdfObject::Array(a))
-                    _ => Some(Array([Indirect(i)]))
+                    PdfArray(a) => Some(PdfObject::PdfArray(a))
+                    _ => Some(PdfArray([Indirect(i)]))
                   }
                 _ => pdf.lookup_direct("/Contents", pages)
               }
@@ -129,7 +129,7 @@ fn find_pages(
           }
           let content = match contents {
             None => []
-            Some(Array(cs)) =>
+            Some(PdfArray(cs)) =>
               cs.filter_map(c => match pdf.direct(c) {
                 Stream(_) => Some(c)
                 _ => {
@@ -224,7 +224,7 @@ fn find_pages_quick(
         None => {
           let kids = match
             pdf.lookup_fail("No /Kids in page tree", "/Kids", resolved) {
-            Array(values) => values
+            PdfArray(values) => values
             _ => raise @pdf.PdfError::Msg("Malformed /Kids in page tree node")
           }
           let mut total = 0
@@ -240,7 +240,7 @@ fn find_pages_quick(
         Some(Name(PdfName("/Pages"))) => {
           let kids = match
             pdf.lookup_fail("No /Kids in page tree", "/Kids", resolved) {
-            Array(values) => values
+            PdfArray(values) => values
             _ => raise @pdf.PdfError::Msg("Malformed /Kids in page tree node")
           }
           let mut total = 0

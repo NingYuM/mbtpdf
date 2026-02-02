@@ -1,6 +1,6 @@
 ///|
 fn prefix_sample_rect() -> @pdf.PdfObject {
-  Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  PdfArray([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
 }
 
 ///|
@@ -304,7 +304,7 @@ test "add_prefix handles single indirect contents" {
   }
   let page_obj = pdf.lookup_obj(page_num)
   let first_content = match pdf.lookup_direct("/Contents", page_obj) {
-    Some(Array(contents)) => contents[0]
+    Some(PdfArray(contents)) => contents[0]
     _ => fail("expected contents array")
   }
   let updated = page_obj.add_entry("/Contents", first_content)
@@ -376,7 +376,7 @@ test "add_prefix preserves inline colorspace arrays" {
     ("/BPC", Integer(8)),
     (
       "/CS",
-      Array([
+      PdfArray([
         Name(PdfName("/Indexed")),
         Name(PdfName("/DeviceRGB")),
         Integer(1),
@@ -408,7 +408,7 @@ test "add_prefix preserves inline colorspace arrays" {
     match (op : @pdfops.Op) {
       InlineImage((inline_dict, _, _)) =>
         match pdf.lookup_direct("/CS", inline_dict) {
-          Some(Array(_)) => saw = true
+          Some(PdfArray(_)) => saw = true
           _ => fail("expected inline colorspace array")
         }
       _ => ()
@@ -528,7 +528,7 @@ test "add_prefix merge_content_streams tolerates varied /Contents shapes" {
   // Make page 2 use a single indirect contents reference (non-array).
   let page2_obj = pdf.lookup_obj(page2_num)
   let page2_first = match pdf.lookup_direct("/Contents", page2_obj) {
-    Some(Array(contents)) => contents[0]
+    Some(PdfArray(contents)) => contents[0]
     _ => fail("expected page2 /Contents array")
   }
   pdf.addobj_given_num(
@@ -571,7 +571,7 @@ test "add_prefix errors on /Contents arrays containing non-indirect objects" {
   }
   let page_obj = pdf.lookup_obj(page_num)
   pdf.addobj_given_num(
-    (page_num, page_obj.add_entry("/Contents", Array([Integer(0)]))),
+    (page_num, page_obj.add_entry("/Contents", PdfArray([Integer(0)]))),
   )
   let res : Result[Unit, Error] = try? @pdfpage.PdfPageDoc::new(pdf).add_prefix(
     "p",
@@ -600,7 +600,7 @@ test "add_prefix errors when /Contents indirect points to non-stream object" {
   pdf.addobj_given_num(
     (
       page_num,
-      page_obj.add_entry("/Contents", Array([Indirect(non_stream_num)])),
+      page_obj.add_entry("/Contents", PdfArray([Indirect(non_stream_num)])),
     ),
   )
   let res : Result[Unit, Error] = try? @pdfpage.PdfPageDoc::new(pdf).add_prefix(

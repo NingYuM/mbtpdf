@@ -5,7 +5,7 @@ fn bytes_string(len : Int, value : Int) -> String {
 
 ///|
 fn add_id(pdf : @pdf.Pdf) -> Unit raise {
-  let id : @pdf.PdfObject = Array([PdfString("id"), PdfString("id")])
+  let id : @pdf.PdfObject = PdfArray([PdfString("id"), PdfString("id")])
   pdf.trailerdict = pdf.trailerdict.add_entry("/ID", id)
 }
 

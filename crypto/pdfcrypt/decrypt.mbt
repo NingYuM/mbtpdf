@@ -19,7 +19,7 @@ fn is_identity(
 ) -> Bool {
   let identity_crypt_filter_present = match pdf.lookup_direct("/Filter", dict) {
     Some(Name(PdfName("/Crypt"))) => true
-    Some(Array([Name(PdfName("/Crypt")), ..])) => true
+    Some(PdfArray([Name(PdfName("/Crypt")), ..])) => true
     _ => false
   }
   let identity_param = if identity_crypt_filter_present {
@@ -30,13 +30,13 @@ fn is_identity(
           None => true
           _ => false
         }
-      Some(Array([Dictionary(decodeparms), ..])) =>
+      Some(PdfArray([Dictionary(decodeparms), ..])) =>
         match pdf.lookup_direct("/Name", Dictionary(decodeparms)) {
           Some(Name(PdfName("/Identity"))) => true
           None => true
           _ => false
         }
-      Some(Array(_)) => true
+      Some(PdfArray(_)) => true
       _ => true
     }
   } else {
@@ -186,7 +186,7 @@ fn decrypt(
         decrypt_obj, crypt_type, pdf, no_encrypt_metadata, encrypt, obj, gen, key,
         keylength, r, file_encryption_key, objval,
       )
-    Array(values) =>
+    PdfArray(values) =>
       if already_decrypted(pdf, obj) {
         objval
       } else {
@@ -194,7 +194,7 @@ fn decrypt(
         for value in values {
           out.push(decrypt_obj(value))
         }
-        Array(out)
+        PdfArray(out)
       }
     Dictionary(values) =>
       if already_decrypted(pdf, obj) {
@@ -361,7 +361,7 @@ pub fn PdfCrypt::get_encryption_values(
         _ => raise @pdf.PdfError::Msg("Bad or missing /P entry")
       }
       let id = match pdf.lookup_direct("/ID", pdf.trailerdict) {
-        Some(Array([PdfString(s), _])) => s
+        Some(PdfArray([PdfString(s), _])) => s
         _ => raise @pdf.PdfError::Msg("Bad or missing /ID element")
       }
       let oe = match pdf.lookup_direct("/OE", encryptdict) {

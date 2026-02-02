@@ -1,6 +1,6 @@
 ///|
 fn merge_rect() -> @pdf.PdfObject {
-  Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  PdfArray([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
 }
 
 ///|
@@ -115,17 +115,21 @@ test "merge_pdfs handles malformed names and optional catalog entries" {
   let pdf1 = make_pdf_pages(1)
   let pdf2 = make_pdf_pages(1)
   let bad_tree : @pdf.PdfObject = Dictionary([
-    ("/Names", Array([PdfString("A"), Null, PdfString("B")])),
+    ("/Names", PdfArray([PdfString("A"), Null, PdfString("B")])),
   ])
   let names_dict : @pdf.PdfObject = Dictionary([("/Dests", bad_tree)])
   set_catalog_entry(pdf1, "/Names", names_dict)
   set_catalog_entry(
     pdf1,
     "/OCProperties",
-    Dictionary([("/OCGs", Array([Name(PdfName("/OCG1"))]))]),
+    Dictionary([("/OCGs", PdfArray([Name(PdfName("/OCG1"))]))]),
   )
   set_catalog_entry(pdf1, "/AcroForm", Null)
-  set_catalog_entry(pdf2, "/AcroForm", Dictionary([("/Fields", Array([Null]))]))
+  set_catalog_entry(
+    pdf2,
+    "/AcroForm",
+    Dictionary([("/Fields", PdfArray([Null]))]),
+  )
   let merged = @pdfe.with_logger(_ => (), fn() {
     PdfMerger::new(["one", "two"], [pdf1, pdf2], [[1], [1]]).merge_pdfs(
       false,
@@ -138,7 +142,7 @@ test "merge_pdfs handles malformed names and optional catalog entries" {
   match merged.lookup_direct("/OCProperties", catalog) {
     Some(ocp) =>
       match merged.lookup_direct("/OCGs", ocp) {
-        Some(Array(arr)) => assert_eq(arr.length(), 1)
+        Some(PdfArray(arr)) => assert_eq(arr.length(), 1)
         _ => fail("expected /OCGs array")
       }
     _ => fail("expected /OCProperties")
@@ -146,7 +150,7 @@ test "merge_pdfs handles malformed names and optional catalog entries" {
   match merged.lookup_direct("/AcroForm", catalog) {
     Some(form) =>
       match merged.lookup_direct("/Fields", form) {
-        Some(Array(arr)) => assert_eq(arr.length(), 1)
+        Some(PdfArray(arr)) => assert_eq(arr.length(), 1)
         _ => fail("expected /Fields array")
       }
     _ => fail("expected /AcroForm")

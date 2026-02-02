@@ -1,7 +1,7 @@
 ///|
 fn deep_copy_pdfobject(obj : PdfObject) -> PdfObject {
   match obj {
-    Array(values) => Array(values.map(v => deep_copy_pdfobject(v)))
+    PdfArray(values) => PdfArray(values.map(v => deep_copy_pdfobject(v)))
     Dictionary(entries) =>
       Dictionary(entries.map(pair => (pair.0, deep_copy_pdfobject(pair.1))))
     Stream(r) => {

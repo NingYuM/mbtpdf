@@ -3,7 +3,7 @@ test "page_reference_numbers variants" {
   let base1 = Pdf::empty()
   let pages_kid_non_indirect = PdfObject::Dictionary([
     ("/Type", Name(PdfName("/Pages"))),
-    ("/Kids", Array([Integer(1)])),
+    ("/Kids", PdfArray([Integer(1)])),
   ])
   let catalog1 = PdfObject::Dictionary([
     ("/Type", Name(PdfName("/Catalog"))),

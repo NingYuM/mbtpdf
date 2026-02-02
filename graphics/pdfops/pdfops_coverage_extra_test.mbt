@@ -338,7 +338,7 @@ test "parse_single_stream parses TJ arrays and skips malformed elements" {
     let mut saw = false
     for op in ops {
       match (op : @pdfops.Op) {
-        OpTJ(Array(items)) => {
+        OpTJ(PdfArray(items)) => {
           // /Bad is skipped, so we should have 3 elements: "A", 20, "B".
           assert_eq(items.length(), 3)
           saw = true
@@ -467,9 +467,9 @@ test "Op::components handles Cal* colourspaces in array form" {
   @pdfe.with_silenced_logs(fn() {
     let pdf = @pdf.Pdf::empty()
     let resources : @pdf.PdfObject = Dictionary([])
-    let calrgb : @pdf.PdfObject = Array([Name(PdfName("/CalRGB")), Null])
-    let calgray : @pdf.PdfObject = Array([Name(PdfName("/CalGray")), Null])
-    let calcmky : @pdf.PdfObject = Array([Name(PdfName("/CalCMYK")), Null])
+    let calrgb : @pdf.PdfObject = PdfArray([Name(PdfName("/CalRGB")), Null])
+    let calgray : @pdf.PdfObject = PdfArray([Name(PdfName("/CalGray")), Null])
+    let calcmky : @pdf.PdfObject = PdfArray([Name(PdfName("/CalCMYK")), Null])
     assert_eq(@pdfops.Op::components(pdf, resources, calrgb), 3)
     assert_eq(@pdfops.Op::components(pdf, resources, calgray), 1)
     assert_eq(@pdfops.Op::components(pdf, resources, calcmky), 4)
@@ -529,7 +529,10 @@ test "Op::components errors on unknown colourspace array" {
   @pdfe.with_silenced_logs(fn() {
     let pdf = @pdf.Pdf::empty()
     let resources : @pdf.PdfObject = Dictionary([])
-    let bad : @pdf.PdfObject = Array([Name(PdfName("/NotAColourSpace")), Null])
+    let bad : @pdf.PdfObject = PdfArray([
+      Name(PdfName("/NotAColourSpace")),
+      Null,
+    ])
     let res : Result[Int, Error] = try? @pdfops.Op::components(
       pdf, resources, bad,
     )

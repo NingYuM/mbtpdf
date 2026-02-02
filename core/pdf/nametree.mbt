@@ -45,7 +45,7 @@ fn key_eq(a : PdfObject, b : PdfObject) -> Bool {
 ///|
 fn array_lookup(key : PdfObject, array : PdfObject) -> PdfObject? raise {
   match array {
-    Array(elts) => {
+    PdfArray(elts) => {
       for i = 0; i + 1 < elts.length(); i = i + 2 {
         if key_eq(key, elts[i]) {
           return Some(elts[i + 1])
@@ -64,7 +64,7 @@ fn Pdf::nametree_lookup_kids(
   kids : PdfObject,
 ) -> PdfObject? raise {
   match kids {
-    Array(values) => {
+    PdfArray(values) => {
       for kid in values {
         match self.nametree_lookup(key, kid) {
           Some(result) => return Some(result)
@@ -85,7 +85,7 @@ pub fn Pdf::nametree_lookup(
   dict : PdfObject,
 ) -> PdfObject? raise {
   match self.lookup_direct("/Limits", dict) {
-    Some(Array([l, r])) => {
+    Some(PdfArray([l, r])) => {
       match key_compare(key, l) {
         Some(cmp) if cmp < 0 => return None
         _ => ()
@@ -123,7 +123,7 @@ pub fn Pdf::contents_of_nametree(
   tree : PdfObject,
 ) -> Array[(PdfObject, PdfObject)] raise {
   match self.lookup_direct_orelse("/Names", "/Nums", tree) {
-    Some(Array(names)) => {
+    Some(PdfArray(names)) => {
       let out = Array::new(capacity=names.length() / 2)
       for i = 0; i + 1 < names.length(); i = i + 2 {
         out.push((names[i], names[i + 1]))
@@ -135,7 +135,7 @@ pub fn Pdf::contents_of_nametree(
     }
     _ =>
       match self.lookup_direct("/Kids", tree) {
-        Some(Array(kids)) =>
+        Some(PdfArray(kids)) =>
           flatten(kids.map(kid => self.contents_of_nametree(kid)))
         _ => raise PdfError::Msg("contents_of_nametree: neither names nor kids")
       }

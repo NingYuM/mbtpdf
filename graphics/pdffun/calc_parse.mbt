@@ -277,17 +277,17 @@ pub fn PdfFunction::parse(pdf : @pdf.Pdf, obj : PdfObject) -> PdfFunction raise 
   let f = pdf.direct(obj)
   let getnum_direct = (value : PdfObject) => pdf.getnum(value)
   let domain = match pdf.lookup_fail("No /Domain", "/Domain", f) {
-    Array(values) => values.map(getnum_direct)
+    PdfArray(values) => values.map(getnum_direct)
     _ => raise @pdf.PdfError::Msg("Bad /Domain")
   }
   let range = match pdf.lookup_direct("/Range", f) {
-    Some(Array(values)) => Some(values.map(getnum_direct))
+    Some(PdfArray(values)) => Some(values.map(getnum_direct))
     _ => None
   }
   let func = match pdf.lookup_fail("no /FunctionType", "/FunctionType", f) {
     Integer(0) => {
       let size = match pdf.lookup_fail("no /Size (sampled fun)", "/Size", f) {
-        Array(values) =>
+        PdfArray(values) =>
           values.map(value => match value {
             Integer(n) => n
             _ => raise @pdf.PdfError::Msg("bad /Size (sampled fun)")
@@ -299,7 +299,7 @@ pub fn PdfFunction::parse(pdf : @pdf.Pdf, obj : PdfObject) -> PdfFunction raise 
         _ => 1
       }
       let encode = match pdf.lookup_direct("/Encode", f) {
-        Some(Array(values)) if values.length() == 2 * size.length() =>
+        Some(PdfArray(values)) if values.length() == 2 * size.length() =>
           values.map(getnum_direct)
         _ =>
           interleave_lists(
@@ -308,7 +308,7 @@ pub fn PdfFunction::parse(pdf : @pdf.Pdf, obj : PdfObject) -> PdfFunction raise 
           )
       }
       let decode = match pdf.lookup_direct("/Decode", f) {
-        Some(Array(values)) => values.map(getnum_direct)
+        Some(PdfArray(values)) => values.map(getnum_direct)
         _ =>
           match range {
             Some(values) => values
@@ -342,11 +342,11 @@ pub fn PdfFunction::parse(pdf : @pdf.Pdf, obj : PdfObject) -> PdfFunction raise 
     }
     Integer(2) => {
       let c0 = match pdf.lookup_direct("/C0", f) {
-        Some(Array(values)) => values.map(getnum_direct)
+        Some(PdfArray(values)) => values.map(getnum_direct)
         _ => [0.0]
       }
       let c1 = match pdf.lookup_direct("/C1", f) {
-        Some(Array(values)) => values.map(getnum_direct)
+        Some(PdfArray(values)) => values.map(getnum_direct)
         _ => [1.0]
       }
       let n = getnum_direct(pdf.lookup_fail("No /N in Type 2 fun", "/N", f))
@@ -354,15 +354,15 @@ pub fn PdfFunction::parse(pdf : @pdf.Pdf, obj : PdfObject) -> PdfFunction raise 
     }
     Integer(3) => {
       let functions = match pdf.lookup_fail("no /Functions", "/Functions", f) {
-        Array(values) => values
+        PdfArray(values) => values
         _ => raise @pdf.PdfError::Msg("Bad /Functions")
       }
       let bounds = match pdf.lookup_fail("no /Bounds", "/Bounds", f) {
-        Array(values) => values.map(getnum_direct)
+        PdfArray(values) => values.map(getnum_direct)
         _ => raise @pdf.PdfError::Msg("Bad /Bounds")
       }
       let encode = match pdf.lookup_fail("no /Encode", "/Encode", f) {
-        Array(values) => values.map(getnum_direct)
+        PdfArray(values) => values.map(getnum_direct)
         _ => raise @pdf.PdfError::Msg("Bad /Bounds")
       }
       Stitching({

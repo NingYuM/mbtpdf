@@ -1,6 +1,6 @@
 ///|
 fn sample_rect() -> @pdf.PdfObject {
-  Array([Integer(0), Integer(0), Integer(100), Integer(100)])
+  PdfArray([Integer(0), Integer(0), Integer(100), Integer(100)])
 }
 
 ///|
@@ -11,7 +11,7 @@ fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
   let pages_root_num = pdf.addobj(
     Dictionary([
       ("/Type", Name(PdfName("/Pages"))),
-      ("/Kids", Array([])),
+      ("/Kids", PdfArray([])),
       ("/Count", Integer(count)),
     ]),
   )
@@ -34,7 +34,7 @@ fn build_page_pdf(count : Int) -> @pdf.Pdf raise {
       pages_root_num,
       Dictionary([
         ("/Type", Name(PdfName("/Pages"))),
-        ("/Kids", Array(kids)),
+        ("/Kids", PdfArray(kids)),
         ("/Count", Integer(count)),
       ]),
     ),
@@ -84,7 +84,7 @@ fn add_struct_tree(pdf : @pdf.Pdf) -> (Int, Int) raise {
   let struct1_num = pdf.addobj(struct1)
   let struct2_num = pdf.addobj(struct2)
   let root : @pdf.PdfObject = Dictionary([
-    ("/K", Array([Indirect(struct1_num), Indirect(struct2_num)])),
+    ("/K", PdfArray([Indirect(struct1_num), Indirect(struct2_num)])),
   ])
   let root_num = pdf.addobj(root)
   let catalog_num = match
@@ -106,7 +106,7 @@ test "trim_structure_tree removes entries" {
   assert_true(!pdf.objnumbers().contains(removed_num))
   let root = pdf.lookup_obj(root_num)
   match (root.lookup_immediate("/K") : @pdf.PdfObject?) {
-    Some(Array(items)) => assert_eq(items.length(), 1)
+    Some(PdfArray(items)) => assert_eq(items.length(), 1)
     Some(Indirect(_)) => ()
     _ => fail("expected updated /K")
   }
@@ -129,7 +129,7 @@ test "trim_structure_tree updates nested k arrays" {
   let parent_keep_obj : @pdf.PdfObject = Dictionary([
     (
       "/K",
-      Array([
+      PdfArray([
         Indirect(keep),
         Indirect(remove_pg),
         Indirect(999),
@@ -140,7 +140,7 @@ test "trim_structure_tree updates nested k arrays" {
   ])
   let parent_keep = pdf.addobj(parent_keep_obj)
   let parent_remove_obj : @pdf.PdfObject = Dictionary([
-    ("/K", Array([Indirect(remove_pg)])),
+    ("/K", PdfArray([Indirect(remove_pg)])),
   ])
   let parent_remove = pdf.addobj(parent_remove_obj)
   let parent_int_obj : @pdf.PdfObject = Dictionary([("/K", Integer(1))])
@@ -148,7 +148,7 @@ test "trim_structure_tree updates nested k arrays" {
   let root_dict : @pdf.PdfObject = Dictionary([
     (
       "/K",
-      Array([
+      PdfArray([
         Indirect(parent_keep),
         Indirect(parent_remove),
         Indirect(parent_int),
@@ -165,12 +165,12 @@ test "trim_structure_tree updates nested k arrays" {
   assert_true(!pdf.objnumbers().contains(parent_remove))
   let root = pdf.lookup_obj(root_num)
   match (root.lookup_immediate("/K") : @pdf.PdfObject?) {
-    Some(Array(items)) => assert_eq(items.length(), 2)
+    Some(PdfArray(items)) => assert_eq(items.length(), 2)
     _ => fail("expected root /K array")
   }
   let parent = pdf.lookup_obj(parent_keep)
   match (parent.lookup_immediate("/K") : @pdf.PdfObject?) {
-    Some(Array(items)) => assert_eq(items.length(), 2)
+    Some(PdfArray(items)) => assert_eq(items.length(), 2)
     _ => fail("expected updated parent /K array")
   }
 }
@@ -200,7 +200,7 @@ test "renumber_parent_trees remaps struct parents" {
   let obj2_dict : @pdf.PdfObject = Dictionary([("/StructParent", Integer(0))])
   let obj2 = pdf2.addobj(obj2_dict)
   let obj3_dict : @pdf.PdfObject = Dictionary([
-    ("/StructParents", Array([Integer(0)])),
+    ("/StructParents", PdfArray([Integer(0)])),
   ])
   let obj3 = pdf2.addobj(obj3_dict)
   ignore(obj3)
@@ -294,8 +294,8 @@ test "merge_structure_trees merges roots" {
     ("/IDTree", idtree1),
     ("/ParentTree", parenttree1),
     ("/RoleMap", Dictionary([("/Sect", Name(PdfName("/Div")))])),
-    ("/Namespaces", Array([Dictionary([("/NS", PdfString("ns1"))])])),
-    ("/PronunciationLexicon", Array([])),
+    ("/Namespaces", PdfArray([Dictionary([("/NS", PdfString("ns1"))])])),
+    ("/PronunciationLexicon", PdfArray([])),
   ])
   ignore(install_struct_root(pdf1, root1))
   let kid2 : @pdf.PdfObject = Dictionary([("/Pg", Indirect(page_refs2[0]))])
@@ -304,13 +304,13 @@ test "merge_structure_trees merges roots" {
     ("0", Null),
   ])
   let root2 : @pdf.PdfObject = Dictionary([
-    ("/K", Array([kid2, Integer(3)])),
+    ("/K", PdfArray([kid2, Integer(3)])),
     ("/IDTree", idtree2),
     ("/ParentTree", parenttree2),
     ("/RoleMap", Name(PdfName("/NotADict"))),
     ("/ClassMap", Dictionary([("/Class", Name(PdfName("/Span")))])),
     ("/Namespaces", Dictionary([])),
-    ("/AF", Array([Name(PdfName("/File"))])),
+    ("/AF", PdfArray([Name(PdfName("/File"))])),
   ])
   ignore(install_struct_root(pdf2, root2))
   let merged = @pdfe.with_logger(_ => (), fn() {

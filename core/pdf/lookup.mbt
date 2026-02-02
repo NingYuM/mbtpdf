@@ -131,7 +131,7 @@ fn Pdf::lookup_direct_or_array(
   match array_index_from_key(key) {
     Some(index) =>
       match obj {
-        Array(items) => Some(self.direct(items[index]))
+        PdfArray(items) => Some(self.direct(items[index]))
         _ => None
       }
     None => self.lookup_direct(key, obj)
@@ -176,7 +176,7 @@ pub fn Pdf::replace_chain(
     match array_index_from_key(key) {
       Some(index) =>
         match current {
-          Array(items) => {
+          PdfArray(items) => {
             if index < 0 || index >= items.length() {
               raise PdfError::Msg("replace_chain: array index out of range")
             }
@@ -187,7 +187,7 @@ pub fn Pdf::replace_chain(
             }
             let out = items.copy()
             out[index] = updated
-            Array(out)
+            PdfArray(out)
           }
           _ => raise PdfError::Msg("replace_chain: bad array chain")
         }

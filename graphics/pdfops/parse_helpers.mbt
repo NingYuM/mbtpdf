@@ -140,7 +140,7 @@ fn parse_tj_op(section : Array[Lexeme]) -> Op raise {
           _ => @pdfe.warn("Warning: malformed TJ element; skipping")
         }
       }
-      return OpTJ(Array(elements))
+      return OpTJ(PdfArray(elements))
     }
   }
   raise @pdf.PdfError::Msg("malformed TJ op")
@@ -163,7 +163,7 @@ test "parse helpers cover int/real conversion paths" {
     Op("TJ"),
   ])
   match op {
-    OpTJ(Array(values)) => {
+    OpTJ(PdfArray(values)) => {
       assert_eq(values.length(), 3)
       match values[1] {
         Real(v) => assert_eq(v, 120.0)

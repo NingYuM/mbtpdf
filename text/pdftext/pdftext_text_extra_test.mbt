@@ -30,7 +30,9 @@ fn embedded_font_with_custom_encoding() -> @pdf.PdfObject {
     ("/FontDescriptor", Dictionary([("/FontFile2", Indirect(10))])),
     (
       "/Encoding",
-      Dictionary([("/Differences", Array([Integer(65), Name(PdfName("/A"))]))]),
+      Dictionary([
+        ("/Differences", PdfArray([Integer(65), Name(PdfName("/A"))])),
+      ]),
     ),
   ])
 }
@@ -45,7 +47,7 @@ fn font_with_difference(name : String) -> @pdf.PdfObject {
       Dictionary([
         (
           "/Differences",
-          Array([Integer(70), Name(@pdf.PdfName::of_string(name))]),
+          PdfArray([Integer(70), Name(@pdf.PdfName::of_string(name))]),
         ),
       ]),
     ),

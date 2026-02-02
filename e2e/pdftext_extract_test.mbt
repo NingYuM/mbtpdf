@@ -777,7 +777,7 @@ fn build_unicode_pdf() -> @pdf.Pdf raise {
   ])
   let ops : Array[@pdfops.Op] = [OpBT, OpTf("/F0", 24.0), OpTj(text), OpET]
   let stream = @pdfops.Op::stream_of_ops(ops)
-  let mediabox : @pdf.PdfObject = Array([
+  let mediabox : @pdf.PdfObject = PdfArray([
     Real(0.0),
     Real(0.0),
     Real(595.0),
@@ -802,7 +802,7 @@ test "extract unicode from generated pdf" {
 
 ///|
 fn extract_test_mediabox() -> @pdf.PdfObject {
-  Array([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
+  PdfArray([Real(0.0), Real(0.0), Real(100.0), Real(100.0)])
 }
 
 ///|
@@ -854,7 +854,7 @@ fn cid_font_dict(encoding_name : String) -> @pdf.PdfObject {
   Dictionary([
     ("/Subtype", Name(PdfName("/Type0"))),
     ("/BaseFont", Name(PdfName("/CIDFontType0"))),
-    ("/DescendantFonts", Array([descendant])),
+    ("/DescendantFonts", PdfArray([descendant])),
     ("/Encoding", Name(@pdf.PdfName::of_string(encoding_name))),
   ])
 }
@@ -872,7 +872,7 @@ test "extract text handles text ops and arrays" {
     OpTd(0.0, 10.0),
     OpTj("E"),
     OpTD(0.0, 10.0),
-    OpTJ(Array([PdfString("F"), Integer(120), PdfString("")])),
+    OpTJ(PdfArray([PdfString("F"), Integer(120), PdfString("")])),
     OpET,
   ]
   let page = extract_test_page(ops, Dictionary([]))

@@ -30,7 +30,7 @@ test "write_encoding covers mac and custom encodings" {
     Dictionary(_) as dict => {
       assert_true(pdf.lookup_direct("/BaseEncoding", dict) is None)
       match (pdf.lookup_direct("/Differences", dict) : @pdf.PdfObject?) {
-        Some(Array(values)) => assert_true(values.length() > 0)
+        Some(PdfArray(values)) => assert_true(values.length() > 0)
         _ => fail("expected differences array")
       }
     }
@@ -108,7 +108,7 @@ fn truetype_font_dict(
     ("/BaseFont", Name(PdfName("/DummyTTF"))),
     ("/FirstChar", Integer(0)),
     ("/LastChar", Integer(1)),
-    ("/Widths", Array([Integer(500), Integer(600)])),
+    ("/Widths", PdfArray([Integer(500), Integer(600)])),
     ("/Encoding", Name(@pdf.PdfName::of_string(encoding_name))),
   ]
   match font_descriptor {
@@ -127,16 +127,23 @@ fn type3_font_dict_extra(font_descriptor : Int?) -> @pdf.PdfObject {
   let entries : Array[(String, @pdf.PdfObject)] = [
     ("/Subtype", Name(PdfName("/Type3"))),
     ("/BaseFont", Name(PdfName("/DummyType3"))),
-    ("/FontBBox", Array([Real(0.0), Real(0.0), Real(0.0), Real(0.0)])),
+    ("/FontBBox", PdfArray([Real(0.0), Real(0.0), Real(0.0), Real(0.0)])),
     (
       "/FontMatrix",
-      Array([Real(1.0), Real(0.0), Real(0.0), Real(1.0), Real(0.0), Real(0.0)]),
+      PdfArray([
+        Real(1.0),
+        Real(0.0),
+        Real(0.0),
+        Real(1.0),
+        Real(0.0),
+        Real(0.0),
+      ]),
     ),
     ("/CharProcs", Dictionary([("/A", Null)])),
     ("/Resources", Dictionary([])),
     ("/FirstChar", Integer(0)),
     ("/LastChar", Integer(0)),
-    ("/Widths", Array([Integer(0)])),
+    ("/Widths", PdfArray([Integer(0)])),
   ]
   match font_descriptor {
     Some(objnum) => entries.push(("/FontDescriptor", Indirect(objnum)))

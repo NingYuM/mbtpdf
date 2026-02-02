@@ -340,7 +340,7 @@ fn node_of_line(
   }
   let (r, g, b) = colour
   if !(r == 0.0 && g == 0.0 && b == 0.0) {
-    entries.push(("/C", Array([Real(r), Real(g), Real(b)])))
+    entries.push(("/C", PdfArray([Real(r), Real(g), Real(b)])))
   }
   if flags != 0 {
     entries.push(("/F", Integer(flags)))
@@ -470,7 +470,7 @@ fn do_until_no_next_lb(
         Some(action) =>
           if preserve_actions {
             match pdf.lookup_direct("/D", action) {
-              Some(Array(_) as dest) =>
+              Some(PdfArray(_) as dest) =>
                 @pdfdest.Destination::read(pdf, dest, shallow=preserve_actions)
               _ => Action(pdf.direct(action))
             }
@@ -489,7 +489,7 @@ fn do_until_no_next_lb(
   }
   let colour = try {
     match pdf.lookup_direct("/C", outline) {
-      Some(Array([a, b, c])) => (pdf.getnum(a), pdf.getnum(b), pdf.getnum(c))
+      Some(PdfArray([a, b, c])) => (pdf.getnum(a), pdf.getnum(b), pdf.getnum(c))
       _ => (0.0, 0.0, 0.0)
     }
   } catch {

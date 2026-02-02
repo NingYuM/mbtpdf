@@ -280,7 +280,7 @@ match obj {
 ///|
 test "parse_rectangle" {
   let pdf = @pdf.Pdf::empty()
-  let rect = @pdf.PdfObject::Array([
+  let rect = @pdf.PdfObject::PdfArray([
     Real(0.0),
     Real(0.0),
     Real(612.0),

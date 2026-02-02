@@ -28,7 +28,7 @@ test "write_encoding custom encoding base and differences" {
             _ => fail("expected /BaseEncoding name")
           }
           match entries[di].1 {
-            Array(elts) => {
+            PdfArray(elts) => {
               assert_eq(elts.length(), 4)
               match (elts[0], elts[1], elts[2], elts[3]) {
                 (Integer(a), Name(n1), Integer(b), Name(n2)) => {

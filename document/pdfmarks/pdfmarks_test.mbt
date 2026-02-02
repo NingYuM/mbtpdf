@@ -4,7 +4,7 @@ fn minimum_valid_pdf() -> @pdf.Pdf raise {
   let pages_root_num = pdf.addobj(
     Dictionary([
       ("/Type", Name(PdfName("/Pages"))),
-      ("/Kids", Array([])),
+      ("/Kids", PdfArray([])),
       ("/Count", Integer(1)),
     ]),
   )
@@ -12,7 +12,10 @@ fn minimum_valid_pdf() -> @pdf.Pdf raise {
     Dictionary([
       ("/Type", Name(PdfName("/Page"))),
       ("/Parent", Indirect(pages_root_num)),
-      ("/MediaBox", Array([Integer(0), Integer(0), Integer(100), Integer(100)])),
+      (
+        "/MediaBox",
+        PdfArray([Integer(0), Integer(0), Integer(100), Integer(100)]),
+      ),
     ]),
   )
   pdf.addobj_given_num(
@@ -20,7 +23,7 @@ fn minimum_valid_pdf() -> @pdf.Pdf raise {
       pages_root_num,
       Dictionary([
         ("/Type", Name(PdfName("/Pages"))),
-        ("/Kids", Array([Indirect(page_num)])),
+        ("/Kids", PdfArray([Indirect(page_num)])),
         ("/Count", Integer(1)),
       ]),
     ),

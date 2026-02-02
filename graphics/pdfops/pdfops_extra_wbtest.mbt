@@ -3,7 +3,7 @@ test "string_of_ops handles comments and inline filters" {
   let old = write_comments.val
   write_comments.val = true
   let dict_filter_array : @pdf.PdfObject = Dictionary([
-    ("/Filter", Array([Name(PdfName("/ASCII85Decode"))])),
+    ("/Filter", PdfArray([Name(PdfName("/ASCII85Decode"))])),
   ])
   let dict_filter_name : @pdf.PdfObject = Dictionary([
     ("/Filter", Name(PdfName("/FlateDecode"))),
@@ -50,7 +50,7 @@ test "components handles extra branches and errors" {
       Op::components(
         pdf,
         resources,
-        Array([Name(PdfName("/Lab")), Dictionary([])]),
+        PdfArray([Name(PdfName("/Lab")), Dictionary([])]),
       ),
       3,
     )
@@ -58,7 +58,7 @@ test "components handles extra branches and errors" {
       Op::components(
         pdf,
         resources,
-        Array([
+        PdfArray([
           Name(PdfName("/Indexed")),
           Name(PdfName("/DeviceRGB")),
           Integer(0),
@@ -85,13 +85,13 @@ test "components handles extra branches and errors" {
     let bad_icc : Result[Int, Error] = try? Op::components(
       pdf,
       resources,
-      Array([Name(PdfName("/ICCBased")), Dictionary([])]),
+      PdfArray([Name(PdfName("/ICCBased")), Dictionary([])]),
     )
     assert_true(bad_icc is Err(_))
     let bad_device_n : Result[Int, Error] = try? Op::components(
       pdf,
       resources,
-      Array([Name(PdfName("/DeviceN")), Name(PdfName("/DeviceRGB"))]),
+      PdfArray([Name(PdfName("/DeviceN")), Name(PdfName("/DeviceRGB"))]),
     )
     assert_true(bad_device_n is Err(_))
     let bad_other : Result[Int, Error] = try? Op::components(
@@ -112,7 +112,7 @@ test "components handles /I alias" {
     Op::components(
       pdf,
       resources,
-      Array([Name(PdfName("/I")), Name(PdfName("/DeviceRGB"))]),
+      PdfArray([Name(PdfName("/I")), Name(PdfName("/DeviceRGB"))]),
     ),
     1,
   )
@@ -126,7 +126,7 @@ test "components errors on array without name leader" {
     let res : Result[Int, Error] = try? Op::components(
       pdf,
       resources,
-      Array([Integer(1), Name(PdfName("/DeviceRGB"))]),
+      PdfArray([Integer(1), Name(PdfName("/DeviceRGB"))]),
     )
     assert_true(res is Err(_))
     ()
@@ -180,7 +180,7 @@ test "string_of_ops covers operator variants" {
     OpTm(@pdftransform.TransformMatrix::identity()),
     OpTStar,
     OpTj("Hi"),
-    OpTJ(Array([PdfString("A"), Real(-10.0), PdfString("B")])),
+    OpTJ(PdfArray([PdfString("A"), Real(-10.0), PdfString("B")])),
     OpSingleQuote("A"),
     OpDoubleQuote(0.1, 0.2, "B"),
     Opd0(0.0, 0.0),

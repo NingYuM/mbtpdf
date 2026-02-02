@@ -24,7 +24,7 @@ pub(all) enum PdfObject {
   /// Names are byte sequences, not Unicode text; see `PdfName`.
   Name(PdfName)
   /// PDF array object (ordered list).
-  Array(Array[PdfObject])
+  PdfArray(Array[PdfObject])
   /// PDF dictionary object.
   ///
   /// Stored as an array of `(key, value)` pairs instead of a map:

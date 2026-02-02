@@ -24,7 +24,7 @@ fn write_pdf_object_to_output(
         },
       )
     Name(n) => write_str(make_pdf_name(ctx, n.to_string_bytes()))
-    Array(values) => {
+    PdfArray(values) => {
       write_str("[")
       for i in 0..<values.length() {
         if i > 0 {
@@ -93,7 +93,7 @@ fn write_pdf_object(
     Real(r) => sb.write_string(format_real(r))
     PdfString(s) => sb.write_string(make_pdf_string(s))
     Name(n) => sb.write_string(make_pdf_name(ctx, n.to_string_bytes()))
-    Array(values) => {
+    PdfArray(values) => {
       sb.write_char('[')
       for i in 0..<values.length() {
         if i > 0 {

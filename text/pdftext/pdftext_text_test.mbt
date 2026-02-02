@@ -25,7 +25,7 @@ fn custom_encoding_font_dict() -> @pdf.PdfObject {
       "/Encoding",
       Dictionary([
         ("/BaseEncoding", Name(PdfName("/WinAnsiEncoding"))),
-        ("/Differences", Array([Integer(65), Name(PdfName("/A"))])),
+        ("/Differences", PdfArray([Integer(65), Name(PdfName("/A"))])),
       ]),
     ),
   ])
@@ -38,7 +38,7 @@ fn simple_font_with_tounicode(tounicode_ref : Int) -> @pdf.PdfObject {
     ("/BaseFont", Name(PdfName("/Helvetica"))),
     ("/FirstChar", Integer(33)),
     ("/LastChar", Integer(33)),
-    ("/Widths", Array([Integer(500)])),
+    ("/Widths", PdfArray([Integer(500)])),
     ("/ToUnicode", Indirect(tounicode_ref)),
   ])
 }
@@ -60,7 +60,7 @@ fn cid_font_dict(encoding_name : String) -> @pdf.PdfObject {
   Dictionary([
     ("/Subtype", Name(PdfName("/Type0"))),
     ("/BaseFont", Name(PdfName("/CIDFontType0"))),
-    ("/DescendantFonts", Array([descendant])),
+    ("/DescendantFonts", PdfArray([descendant])),
     ("/Encoding", Name(@pdf.PdfName::of_string(encoding_name))),
   ])
 }

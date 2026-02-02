@@ -98,7 +98,7 @@ fn Pdf::referenced_pdfobj(
           )
         }
       }
-    Array(values) =>
+    PdfArray(values) =>
       for value in values {
         self.referenced_pdfobj(
           no_follow_entries, no_follow_contains, found, value,
@@ -155,7 +155,7 @@ fn Pdf::page_reference_numbers_inner(
     [node_number]
   } else {
     match self.lookup_direct("/Kids", pages_node) {
-      Some(Array(elts)) => {
+      Some(PdfArray(elts)) => {
         let out = Array::new(capacity=elts.length())
         for elt in elts {
           match elt {

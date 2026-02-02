@@ -90,7 +90,7 @@ fn mkpage(
   }
   entries.append(rest_entries[:])
   if indirects.length() > 0 {
-    entries.push(("/Contents", Array(indirects)))
+    entries.push(("/Contents", PdfArray(indirects)))
   }
   let page_obj = PdfObject::Dictionary(entries)
   let objnum = getobjnum()
@@ -135,7 +135,7 @@ fn objects_of_ptree(
       let kids = page_objects.map(pair => PdfObject::Indirect(pair.0))
       let node_entries : Array[(String, PdfObject)] = [
         ("/Type", Name(PdfName("/Pages"))),
-        ("/Kids", Array(kids)),
+        ("/Kids", PdfArray(kids)),
         ("/Count", Integer(pages.length())),
       ]
       node_entries.append(parent_entry[:])
@@ -168,7 +168,7 @@ fn objects_of_ptree(
       kids.push(Indirect(right_num))
       let node_entries : Array[(String, PdfObject)] = [
         ("/Type", Name(PdfName("/Pages"))),
-        ("/Kids", Array(kids)),
+        ("/Kids", PdfArray(kids)),
         ("/Count", Integer(count_left + count_right + page_objects.length())),
       ]
       node_entries.append(parent_entry[:])

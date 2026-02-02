@@ -1,11 +1,11 @@
 ///|
 fn type3_bbox() -> @pdf.PdfObject {
-  Array([Real(0.0), Real(0.0), Real(10.0), Real(10.0)])
+  PdfArray([Real(0.0), Real(0.0), Real(10.0), Real(10.0)])
 }
 
 ///|
 fn type3_matrix_ok() -> @pdf.PdfObject {
-  Array([Real(1.0), Real(0.0), Real(0.0), Real(1.0), Real(0.0), Real(0.0)])
+  PdfArray([Real(1.0), Real(0.0), Real(0.0), Real(1.0), Real(0.0), Real(0.0)])
 }
 
 ///|
@@ -29,7 +29,7 @@ fn type3_font_base(
 test "read_type3_data validates matrix and charprocs" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
-  let bad_len_matrix : @pdf.PdfObject = Array([
+  let bad_len_matrix : @pdf.PdfObject = PdfArray([
     Real(1.0),
     Real(0.0),
     Real(0.0),
@@ -59,7 +59,7 @@ test "read_type3_data validates matrix and charprocs" {
   assert_true(bad_charprocs_result is Err(_))
   let with_resources = type3_font_base(type3_matrix_ok(), type3_charprocs_ok()).add_entry(
     "/Resources",
-    Dictionary([("/ProcSet", Array([]))]),
+    Dictionary([("/ProcSet", PdfArray([]))]),
   )
   let good = ctx.read_type3_data(with_resources)
   match (good.type3_resources : @pdf.PdfObject) {
@@ -138,7 +138,7 @@ test "read_metrics validates required keys" {
   let missing_first : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", descriptor),
     ("/LastChar", Integer(0)),
-    ("/Widths", Array([Integer(10)])),
+    ("/Widths", PdfArray([Integer(10)])),
   ])
   let missing_first_result : Result[@pdffont.FontMetrics?, Error] = try? ctx.read_metrics(
     missing_first,
@@ -148,7 +148,7 @@ test "read_metrics validates required keys" {
     ("/FontDescriptor", descriptor),
     ("/FirstChar", Integer(999)),
     ("/LastChar", Integer(0)),
-    ("/Widths", Array([Integer(10)])),
+    ("/Widths", PdfArray([Integer(10)])),
   ])
   let bad_first_result : Result[@pdffont.FontMetrics?, Error] = try? ctx.read_metrics(
     bad_first,
@@ -157,7 +157,7 @@ test "read_metrics validates required keys" {
   let missing_last : @pdf.PdfObject = Dictionary([
     ("/FontDescriptor", descriptor),
     ("/FirstChar", Integer(0)),
-    ("/Widths", Array([Integer(10)])),
+    ("/Widths", PdfArray([Integer(10)])),
   ])
   let missing_last_result : Result[@pdffont.FontMetrics?, Error] = try? ctx.read_metrics(
     missing_last,
@@ -167,7 +167,7 @@ test "read_metrics validates required keys" {
     ("/FontDescriptor", descriptor),
     ("/FirstChar", Integer(0)),
     ("/LastChar", Integer(999)),
-    ("/Widths", Array([Integer(10)])),
+    ("/Widths", PdfArray([Integer(10)])),
   ])
   let bad_last_result : Result[@pdffont.FontMetrics?, Error] = try? ctx.read_metrics(
     bad_last,
@@ -186,7 +186,7 @@ test "read_metrics validates required keys" {
     ("/FontDescriptor", descriptor),
     ("/FirstChar", Integer(0)),
     ("/LastChar", Integer(1)),
-    ("/Widths", Array([Integer(10)])),
+    ("/Widths", PdfArray([Integer(10)])),
   ])
   let bad_widths_result : Result[@pdffont.FontMetrics?, Error] = try? ctx.read_metrics(
     bad_widths,
@@ -203,7 +203,7 @@ test "read_metrics accepts real widths" {
     ("/FontDescriptor", descriptor),
     ("/FirstChar", Integer(0)),
     ("/LastChar", Integer(0)),
-    ("/Widths", Array([Real(250.5)])),
+    ("/Widths", PdfArray([Real(250.5)])),
   ])
   match ctx.read_metrics(font) {
     Some(metrics) => {
@@ -224,7 +224,7 @@ test "read_metrics accepts integer MissingWidth" {
     ("/FontDescriptor", descriptor),
     ("/FirstChar", Integer(0)),
     ("/LastChar", Integer(0)),
-    ("/Widths", Array([Integer(250)])),
+    ("/Widths", PdfArray([Integer(250)])),
   ])
   match ctx.read_metrics(font) {
     Some(metrics) => {
@@ -305,7 +305,7 @@ test "pairs_of_differences rejects malformed inputs" {
     Name(PdfName("/Bad")),
   )
   assert_true(not_array is Err(_))
-  let bad_array_obj : @pdf.PdfObject = Array([Name(PdfName("/A"))])
+  let bad_array_obj : @pdf.PdfObject = PdfArray([Name(PdfName("/A"))])
   let bad_array : Result[@pdffont.Differences, Error] = try? ctx.pairs_of_differences(
     bad_array_obj,
   )
@@ -331,7 +331,7 @@ test "read_metrics rejects non-number width entries" {
     ("/FontDescriptor", Dictionary([])),
     ("/FirstChar", Integer(0)),
     ("/LastChar", Integer(0)),
-    ("/Widths", Array([Name(PdfName("/Bad"))])),
+    ("/Widths", PdfArray([Name(PdfName("/Bad"))])),
   ])
   let res : Result[@pdffont.FontMetrics?, Error] = try? ctx.read_metrics(font)
   assert_true(res is Err(_))
@@ -364,7 +364,7 @@ test "read_encoding handles TrueType differences and bad subtype" {
     ("/BaseEncoding", Name(PdfName("/WinAnsiEncoding"))),
     (
       "/Differences",
-      Array([Integer(65), Name(PdfName("/A")), Name(PdfName("/B"))]),
+      PdfArray([Integer(65), Name(PdfName("/A")), Name(PdfName("/B"))]),
     ),
   ])
   let font : @pdf.PdfObject = Dictionary([
@@ -416,7 +416,7 @@ test "read_cid_system_info and widths reject malformed input" {
   assert_true(missing_tail is Err(_))
   let bad_width_arr : Array[@pdf.PdfObject] = [
     Integer(1),
-    Array([Name(PdfName("/Bad"))]),
+    PdfArray([Name(PdfName("/Bad"))]),
   ]
   let bad_width : Result[Array[(Int, Double)], Error] = try? @pdftext.PdfTextUtil::new().read_cid_widths(
     bad_width_arr,
@@ -452,7 +452,7 @@ test "read_descendant and cidkeyed_font error paths" {
   assert_true(desc_res is Err(_))
   let bad_font : @pdf.PdfObject = Dictionary([
     ("/BaseFont", Name(PdfName("/CIDFontType0"))),
-    ("/DescendantFonts", Array([desc])),
+    ("/DescendantFonts", PdfArray([desc])),
   ])
   let bad_cid : Result[@pdffont.Font, Error] = try? ctx.read_cidkeyed_font(
     bad_font,
@@ -469,7 +469,7 @@ test "find_tounicode returns none for simple fonts without descriptor" {
     ("/BaseFont", Name(PdfName("/Helvetica"))),
     ("/FirstChar", Integer(65)),
     ("/LastChar", Integer(65)),
-    ("/Widths", Array([Integer(500)])),
+    ("/Widths", PdfArray([Integer(500)])),
   ])
   let font = ctx.read_simple_font(fontdict)
   assert_true(@pdftext.PdfTextUtil::new().find_tounicode(font) is None)
@@ -568,7 +568,7 @@ test "read_cid_system_info rejects missing supplement" {
 
 ///|
 test "read_cid_widths handles real values and ranges" {
-  let widths_arr : Array[@pdf.PdfObject] = [Integer(1), Array([Real(10.5)])]
+  let widths_arr : Array[@pdf.PdfObject] = [Integer(1), PdfArray([Real(10.5)])]
   let widths = @pdftext.PdfTextUtil::new().read_cid_widths(widths_arr)
   assert_eq(widths.length(), 1)
   assert_eq(widths[0].0, 1)
@@ -600,7 +600,7 @@ test "read_descendant and cidkeyed_font missing basefont" {
   )
   assert_true(res_desc is Err(_))
   let cid_font : @pdf.PdfObject = Dictionary([
-    ("/DescendantFonts", Array([desc])),
+    ("/DescendantFonts", PdfArray([desc])),
     ("/Encoding", Name(PdfName("/Identity-H"))),
   ])
   let res_cid : Result[@pdffont.Font, Error] = try? ctx.read_cidkeyed_font(
@@ -627,7 +627,7 @@ test "read_cidkeyed_font rejects bad descendants and encoding streams" {
   ])
   let bad_desc : @pdf.PdfObject = Dictionary([
     ("/BaseFont", Name(PdfName("/CIDFontType0"))),
-    ("/DescendantFonts", Array([descendant, descendant])),
+    ("/DescendantFonts", PdfArray([descendant, descendant])),
     ("/Encoding", Name(PdfName("/Identity-H"))),
   ])
   let res_desc : Result[@pdffont.Font, Error] = try? ctx.read_cidkeyed_font(
@@ -640,7 +640,7 @@ test "read_cidkeyed_font rejects bad descendants and encoding streams" {
   )
   let bad_encoding : @pdf.PdfObject = Dictionary([
     ("/BaseFont", Name(PdfName("/CIDFontType0"))),
-    ("/DescendantFonts", Array([descendant])),
+    ("/DescendantFonts", PdfArray([descendant])),
     ("/Encoding", stream),
   ])
   let res_stream : Result[@pdffont.Font, Error] = try? ctx.read_cidkeyed_font(
@@ -658,7 +658,7 @@ test "find_tounicode uses descriptor fields when present" {
     ("/BaseFont", Name(PdfName("/Helvetica"))),
     ("/FirstChar", Integer(65)),
     ("/LastChar", Integer(65)),
-    ("/Widths", Array([Integer(500)])),
+    ("/Widths", PdfArray([Integer(500)])),
     ("/FontDescriptor", Dictionary([])),
   ])
   let font = ctx.read_simple_font(fontdict)
@@ -677,7 +677,7 @@ test "find_tounicode uses descriptor fields when present" {
   ])
   let cid_font : @pdf.PdfObject = Dictionary([
     ("/BaseFont", Name(PdfName("/CIDFontType0"))),
-    ("/DescendantFonts", Array([descendant])),
+    ("/DescendantFonts", PdfArray([descendant])),
     ("/Encoding", Name(PdfName("/Identity-H"))),
   ])
   let cid = ctx.read_cidkeyed_font(cid_font)

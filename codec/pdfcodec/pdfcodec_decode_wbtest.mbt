@@ -146,7 +146,7 @@ test "decode_pdfstream_onestage rejects empty filter array" {
   let data = @pdfio.bytes_of_string("4869>")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/Filter", Array([])),
+    ("/Filter", PdfArray([])),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
@@ -162,7 +162,7 @@ test "decode_pdfstream_onestage rejects invalid filter entry" {
   let data = @pdfio.bytes_of_string("4869>")
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
-    ("/Filter", Array([Integer(1)])),
+    ("/Filter", PdfArray([Integer(1)])),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
@@ -195,7 +195,7 @@ test "decode_pdfstream_onestage handles /F and /DP keys" {
   let dict : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(@pdfio.bytes_size(data))),
     ("/F", name_obj("/ASCIIHexDecode")),
-    ("/DP", Array([Null, Null])),
+    ("/DP", PdfArray([Null, Null])),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
@@ -203,7 +203,7 @@ test "decode_pdfstream_onestage handles /F and /DP keys" {
   let (updated_dict, _) = stream_ref.val
   assert_true(pdf.lookup_direct("/F", updated_dict) is None)
   match (pdf.lookup_direct("/DP", updated_dict) : @pdf.PdfObject?) {
-    Some(Array(values)) => assert_eq(values.length(), 1)
+    Some(PdfArray(values)) => assert_eq(values.length(), 1)
     _ => fail("expected trimmed /DP array")
   }
 }
@@ -216,20 +216,20 @@ test "decode_pdfstream_onestage trims filter and decode parms arrays" {
     ("/Length", Integer(@pdfio.bytes_size(data))),
     (
       "/Filter",
-      Array([name_obj("/ASCIIHexDecode"), name_obj("/ASCIIHexDecode")]),
+      PdfArray([name_obj("/ASCIIHexDecode"), name_obj("/ASCIIHexDecode")]),
     ),
-    ("/DecodeParms", Array([Null, Null])),
+    ("/DecodeParms", PdfArray([Null, Null])),
   ])
   let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
   decode_ctx.decode_pdfstream_onestage(pdf, stream_obj)
   let (updated_dict, _) = stream_ref.val
   match (pdf.lookup_direct("/Filter", updated_dict) : @pdf.PdfObject?) {
-    Some(Array(filters)) => assert_eq(filters.length(), 1)
+    Some(PdfArray(filters)) => assert_eq(filters.length(), 1)
     _ => fail("expected updated filter array")
   }
   match (pdf.lookup_direct("/DecodeParms", updated_dict) : @pdf.PdfObject?) {
-    Some(Array(parms)) => assert_eq(parms.length(), 1)
+    Some(PdfArray(parms)) => assert_eq(parms.length(), 1)
     _ => fail("expected updated decode parms array")
   }
 }

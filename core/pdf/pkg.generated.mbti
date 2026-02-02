@@ -117,7 +117,7 @@ pub(all) enum PdfObject {
   Real(Double)
   PdfString(String)
   Name(PdfName)
-  Array(Array[PdfObject])
+  PdfArray(Array[PdfObject])
   Dictionary(Array[(String, PdfObject)])
   Stream(Ref[(PdfObject, Stream)])
   Indirect(Int)
