@@ -286,7 +286,7 @@ test "read handles label styles and bad startpage" {
     Integer(3),
     Dictionary([("/S", Name(PdfName("/D")))]),
     Integer(4),
-    Dictionary([("/P", String("P"))]),
+    Dictionary([("/P", PdfString("P"))]),
   ]
   set_page_labels(pdf, nums)
   let labels = @pdfe.with_logger(_ => (), fn() {

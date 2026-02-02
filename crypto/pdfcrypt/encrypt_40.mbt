@@ -11,8 +11,8 @@ fn encrypt_pdf_40bit_inner(
     ("/Filter", Name(PdfName("/Standard"))),
     ("/V", Integer(1)),
     ("/R", Integer(2)),
-    ("/O", String(owner)),
-    ("/U", String(user)),
+    ("/O", PdfString(owner)),
+    ("/U", PdfString(user)),
     ("/P", Integer(p)),
   ])
   match

@@ -14,7 +14,7 @@ fn update_perms(pdf : @pdf.Pdf, perms : String) -> Unit raise {
   match pdf.trailerdict.lookup_immediate("/Encrypt") {
     Some(Indirect(n)) => {
       let dict = pdf.lookup_obj(n)
-      let updated = dict.add_entry("/Perms", String(perms))
+      let updated = dict.add_entry("/Perms", PdfString(perms))
       replace_encrypt_entry(pdf, updated)
     }
     _ => fail("expected /Encrypt indirect reference")

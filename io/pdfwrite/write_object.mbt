@@ -15,7 +15,7 @@ fn write_pdf_object_to_output(
     Boolean(b) => write_str(if b { "true" } else { "false" })
     Integer(i) => write_str(i.to_string())
     Real(r) => write_str(format_real(r))
-    String(s) =>
+    PdfString(s) =>
       write_str(
         if hex_strings {
           make_hex_pdf_string(s)
@@ -91,7 +91,7 @@ fn write_pdf_object(
     Boolean(b) => sb.write_string(if b { "true" } else { "false" })
     Integer(i) => sb.write_string(i.to_string())
     Real(r) => sb.write_string(format_real(r))
-    String(s) => sb.write_string(make_pdf_string(s))
+    PdfString(s) => sb.write_string(make_pdf_string(s))
     Name(n) => sb.write_string(make_pdf_name(ctx, n.to_string_bytes()))
     Array(values) => {
       sb.write_char('[')

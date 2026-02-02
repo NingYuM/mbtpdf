@@ -16,9 +16,9 @@ test "already_decrypted returns false for missing objnum" {
 ///|
 test "already_decrypted returns true for ParsedAlreadyDecrypted" {
   let pdf = @pdf.Pdf::empty()
-  let objnum = pdf.addobj(String("x"))
+  let objnum = pdf.addobj(PdfString("x"))
   let entry = @pdf.pdfobjmap_find(objnum, pdf.objects.objects)
-  entry.0.val = ParsedAlreadyDecrypted(String("x"))
+  entry.0.val = ParsedAlreadyDecrypted(PdfString("x"))
   assert_true(already_decrypted(pdf, objnum))
 }
 
@@ -44,13 +44,13 @@ test "is_identity handles decodeparms shapes" {
 ///|
 test "decrypt returns unchanged values when already_decrypted is set" {
   let pdf = @pdf.Pdf::empty()
-  let objnum = pdf.addobj(String("x"))
+  let objnum = pdf.addobj(PdfString("x"))
   let entry = @pdf.pdfobjmap_find(objnum, pdf.objects.objects)
-  entry.0.val = ParsedAlreadyDecrypted(String("x"))
+  entry.0.val = ParsedAlreadyDecrypted(PdfString("x"))
   let ct = @pdfcryptprimitives.Encryption::AESV2
   match
-    decrypt(ct, pdf, false, false, objnum, 0, [1], 40, 2, None, String("s")) {
-    String("s") => ()
+    decrypt(ct, pdf, false, false, objnum, 0, [1], 40, 2, None, PdfString("s")) {
+    PdfString("s") => ()
     _ => fail("expected string passthrough")
   }
   match
@@ -92,7 +92,7 @@ test "decrypt raises when AESV3 key is missing" {
     256,
     5,
     None,
-    String("x"),
+    PdfString("x"),
   )
   assert_true(res is Err(_))
   let stream_ref = Ref::new(

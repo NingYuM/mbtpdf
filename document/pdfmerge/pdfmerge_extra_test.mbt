@@ -69,7 +69,7 @@ test "merge_pdfs keeps named and action bookmarks while dropping out of range" {
   add_names_dests(pdf, entries)
   let action : @pdf.PdfObject = Dictionary([
     ("/S", Name(PdfName("/GoTo"))),
-    ("/D", String("DestB")),
+    ("/D", PdfString("DestB")),
   ])
   let bookmarks : Array[@pdfmarks.Bookmark] = [
     {
@@ -115,7 +115,7 @@ test "merge_pdfs handles malformed names and optional catalog entries" {
   let pdf1 = make_pdf_pages(1)
   let pdf2 = make_pdf_pages(1)
   let bad_tree : @pdf.PdfObject = Dictionary([
-    ("/Names", Array([String("A"), Null, String("B")])),
+    ("/Names", Array([PdfString("A"), Null, PdfString("B")])),
   ])
   let names_dict : @pdf.PdfObject = Dictionary([("/Dests", bad_tree)])
   set_catalog_entry(pdf1, "/Names", names_dict)
@@ -398,7 +398,7 @@ test "merge_pdfs resolves NamedDestination via name tree when /Dests missing" {
   ])
   let action_goto : @pdf.PdfObject = Dictionary([
     ("/S", Name(PdfName("/GoTo"))),
-    ("/D", String("TreeStr")),
+    ("/D", PdfString("TreeStr")),
   ])
   let action_bad_d : @pdf.PdfObject = Dictionary([
     ("/S", Name(PdfName("/GoTo"))),
@@ -406,15 +406,15 @@ test "merge_pdfs resolves NamedDestination via name tree when /Dests missing" {
   ])
   let action_bad_s : @pdf.PdfObject = Dictionary([
     ("/S", Name(PdfName("/NotGoTo"))),
-    ("/D", String("TreeStr")),
+    ("/D", PdfString("TreeStr")),
   ])
   let action_missing_dest : @pdf.PdfObject = Dictionary([
     ("/S", Name(PdfName("/GoTo"))),
-    ("/D", String("MissingStr")),
+    ("/D", PdfString("MissingStr")),
   ])
   let action_no_d : @pdf.PdfObject = Dictionary([
     ("/S", Name(PdfName("/GoTo"))),
-    ("/D", String("NoDStr")),
+    ("/D", PdfString("NoDStr")),
   ])
   let bookmarks : Array[@pdfmarks.Bookmark] = [
     {

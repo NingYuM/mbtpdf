@@ -174,23 +174,23 @@ fn set_catalog_entry(
 fn add_layers(pdf : @pdf.Pdf) -> (Int, Int, Int, Int, Int) raise {
   let dress : PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("DRESS")),
+    ("/Name", PdfString("DRESS")),
   ])
   let space : PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("SPACE SUIT")),
+    ("/Name", PdfString("SPACE SUIT")),
   ])
   let hero : PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("HERO CAPE")),
+    ("/Name", PdfString("HERO CAPE")),
   ])
   let hat : PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("HAT")),
+    ("/Name", PdfString("HAT")),
   ])
   let sparkles : PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("SPARKLES")),
+    ("/Name", PdfString("SPARKLES")),
   ])
   let dress_num = pdf.addobj(dress)
   let space_num = pdf.addobj(space)
@@ -200,7 +200,7 @@ fn add_layers(pdf : @pdf.Pdf) -> (Int, Int, Int, Int, Int) raise {
   let default_dict : PdfObject = Dictionary([
     ("/BaseState", Name(PdfName("/ON"))),
     ("/Intent", Name(PdfName("/View"))),
-    ("/Name", String("Default")),
+    ("/Name", PdfString("Default")),
     (
       "/OFF",
       Array([

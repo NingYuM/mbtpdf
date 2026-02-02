@@ -380,7 +380,7 @@ test "add_prefix preserves inline colorspace arrays" {
         Name(PdfName("/Indexed")),
         Name(PdfName("/DeviceRGB")),
         Integer(1),
-        String(""),
+        PdfString(""),
       ]),
     ),
   ])

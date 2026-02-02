@@ -244,7 +244,7 @@ pub fn ColourSpace::read(
             _ => raise @pdf.PdfError::Msg("Indexed/Inconsistent")
           }
         }
-        String(s) => {
+        PdfString(s) => {
           let data = @pdfio.bytes_of_string(s)
           match get_basic_table_colourspace(base_space) {
             DeviceRGB | CalRGB(_, _, _, _) | Lab(_, _, _) =>
@@ -536,7 +536,7 @@ pub fn ColourSpace::to_pdf_object(
           Name(PdfName("/Indexed")),
           base.to_pdf_object(pdf),
           Integer(hival),
-          String(lookup),
+          PdfString(lookup),
         ])
       }
     }

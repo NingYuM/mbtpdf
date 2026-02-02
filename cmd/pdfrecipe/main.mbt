@@ -148,13 +148,13 @@ fn set_catalog_entry(
 fn add_swaps_layer(pdf : @pdf.Pdf) -> Int raise {
   let swaps : PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("SWAPS")),
+    ("/Name", PdfString("SWAPS")),
   ])
   let swaps_num = pdf.addobj(swaps)
   let default_dict : PdfObject = Dictionary([
     ("/BaseState", Name(PdfName("/ON"))),
     ("/Intent", Name(PdfName("/View"))),
-    ("/Name", String("Default")),
+    ("/Name", PdfString("Default")),
     ("/OFF", Array([Indirect(swaps_num)])),
   ])
   let ocprops : PdfObject = Dictionary([
@@ -195,7 +195,7 @@ fn goto_action(refnum : Int) -> PdfObject {
 
 ///|
 fn uri_action(uri : String) -> PdfObject {
-  Dictionary([("/S", Name(PdfName("/URI"))), ("/URI", String(uri))])
+  Dictionary([("/S", Name(PdfName("/URI"))), ("/URI", PdfString(uri))])
 }
 
 ///|

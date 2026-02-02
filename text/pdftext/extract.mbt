@@ -81,11 +81,11 @@ fn PdfText::append_text_from_streams(
     match obj {
       Array(values) =>
         for value in values {
-          if value is String(text) {
+          if value is PdfString(text) {
             append_text_value(text)
           }
         }
-      String(text) => append_text_value(text)
+      PdfString(text) => append_text_value(text)
       _ => ()
     }
   }

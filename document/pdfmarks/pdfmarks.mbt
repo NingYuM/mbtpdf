@@ -328,7 +328,7 @@ fn node_of_line(
   colour : (Double, Double, Double),
   flags : Int,
 ) -> PdfObject {
-  let entries : Array[(String, PdfObject)] = [("/Title", String(title))]
+  let entries : Array[(String, PdfObject)] = [("/Title", PdfString(title))]
   let dest = target.to_pdf_object()
   match (dest : PdfObject) {
     Null => ()
@@ -451,7 +451,7 @@ fn do_until_no_next_lb(
   out : Ref[Array[Bookmark]],
 ) -> Unit raise {
   let title = match pdf.lookup_direct("/Title", outline) {
-    Some(String(s)) => s
+    Some(PdfString(s)) => s
     _ => {
       @pdfe.log(
         "/Title not a string or not present in document outline entry. Using the empty string.\n",
@@ -460,7 +460,7 @@ fn do_until_no_next_lb(
     }
   }
   let page : @pdfdest.Destination = match pdf.lookup_direct("/Dest", outline) {
-    Some(String(stringdest)) if preserve_actions =>
+    Some(PdfString(stringdest)) if preserve_actions =>
       StringDestination(stringdest)
     Some(dest) =>
       @pdfdest.Destination::read(pdf, dest, shallow=preserve_actions)

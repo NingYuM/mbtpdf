@@ -2,7 +2,7 @@
 /// Core PDF object tree.
 ///
 /// This is a low-level representation close to PDF syntax. In particular:
-/// - `PdfObject::String` is treated as a byte string by the parser/serializer.
+/// - `PdfObject::PdfString` is treated as a byte string by the parser/serializer.
 /// - `PdfObject::Dictionary` keys are also stored as "bytes-in-String" so we can
 ///   round-trip weird/malformed PDFs without losing information.
 pub(all) enum PdfObject {
@@ -18,7 +18,7 @@ pub(all) enum PdfObject {
   ///
   /// Note: this is stored in a MoonBit `String` but treated as raw bytes by the
   /// parser/serializer (each UTF-16 code unit stores one byte).
-  String(String)
+  PdfString(String)
   /// PDF name object (written like `/Type`).
   ///
   /// Names are byte sequences, not Unicode text; see `PdfName`.

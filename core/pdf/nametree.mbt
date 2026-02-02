@@ -28,7 +28,7 @@ fn[T] flatten(lists : Array[Array[T]]) -> Array[T] {
 ///|
 fn key_compare(a : PdfObject, b : PdfObject) -> Int? {
   match (a, b) {
-    (String(sa), String(sb)) => Some(compare_string(sa, sb))
+    (PdfString(sa), PdfString(sb)) => Some(compare_string(sa, sb))
     (Integer(ia), Integer(ib)) => Some(ia - ib)
     _ => None
   }

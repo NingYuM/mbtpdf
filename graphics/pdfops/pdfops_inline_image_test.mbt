@@ -113,7 +113,7 @@ test "parse inline image handles colorspace array" {
         Name(PdfName("/Indexed")),
         Name(PdfName("/DeviceRGB")),
         Integer(1),
-        String(""),
+        PdfString(""),
       ]),
     ),
   ])

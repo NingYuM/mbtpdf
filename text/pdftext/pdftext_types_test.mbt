@@ -167,8 +167,8 @@ test "string_of_font covers variants" {
     (
       "/CIDSystemInfo",
       Dictionary([
-        ("/Registry", String("Adobe")),
-        ("/Ordering", String("Identity")),
+        ("/Registry", PdfString("Adobe")),
+        ("/Ordering", PdfString("Identity")),
         ("/Supplement", Integer(0)),
       ]),
     ),

@@ -115,7 +115,7 @@ pub(all) enum PdfObject {
   Boolean(Bool)
   Integer(Int)
   Real(Double)
-  String(String)
+  PdfString(String)
   Name(PdfName)
   Array(Array[PdfObject])
   Dictionary(Array[(String, PdfObject)])

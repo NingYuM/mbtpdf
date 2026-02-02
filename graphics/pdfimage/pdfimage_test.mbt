@@ -182,7 +182,7 @@ test "get_image_24bpp errors on non-array decode entry" {
 test "get_image_24bpp reads JBIG2 globals for filter array" {
   let pdf = @pdf.Pdf::empty()
   let resources : @pdf.PdfObject = Dictionary([])
-  let globals_num = pdf.addobj(String("globals"))
+  let globals_num = pdf.addobj(PdfString("globals"))
   let data = @pdfio.bytes_of_list([1, 2, 3, 4])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(1)),
@@ -437,7 +437,7 @@ test "get_image_24bpp ignores decode for indexed colourspace" {
     Name(PdfName("/Indexed")),
     Name(PdfName("/DeviceRGB")),
     Integer(0),
-    String(table),
+    PdfString(table),
   ])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(1)),
@@ -835,7 +835,7 @@ test "get_image_24bpp decode ignored for indexed DCT" {
     Name(PdfName("/Indexed")),
     Name(PdfName("/DeviceRGB")),
     Integer(0),
-    String(table),
+    PdfString(table),
   ])
   let dict : @pdf.PdfObject = Dictionary([
     ("/Width", Integer(1)),
@@ -937,7 +937,7 @@ test "get_image_24bpp handles indexed RGB" {
         Name(PdfName("/Indexed")),
         Name(PdfName("/DeviceRGB")),
         Integer(1),
-        String(table),
+        PdfString(table),
       ]),
     ),
   ])
@@ -972,7 +972,7 @@ test "get_image_24bpp handles indexed CMYK" {
         Name(PdfName("/Indexed")),
         Name(PdfName("/DeviceCMYK")),
         Integer(1),
-        String(table),
+        PdfString(table),
       ]),
     ),
   ])
@@ -1008,7 +1008,7 @@ test "get_image_24bpp handles indexed Lab" {
     ("/BitsPerComponent", Integer(8)),
     (
       "/ColorSpace",
-      Array([Name(PdfName("/Indexed")), lab, Integer(0), String(table)]),
+      Array([Name(PdfName("/Indexed")), lab, Integer(0), PdfString(table)]),
     ),
   ])
   let data = @pdfio.bytes_of_list([0])
@@ -1039,7 +1039,7 @@ test "get_image_24bpp clamps indexed Lab conversions" {
     ("/BitsPerComponent", Integer(8)),
     (
       "/ColorSpace",
-      Array([Name(PdfName("/Indexed")), lab, Integer(0), String(table)]),
+      Array([Name(PdfName("/Indexed")), lab, Integer(0), PdfString(table)]),
     ),
   ])
   let data = @pdfio.bytes_of_list([0])
@@ -1166,7 +1166,7 @@ test "get_image_24bpp indexed rgb missing table entry" {
         Name(PdfName("/Indexed")),
         Name(PdfName("/DeviceRGB")),
         Integer(0),
-        String(table),
+        PdfString(table),
       ]),
     ),
   ])
@@ -1377,7 +1377,7 @@ fn make_indexed_colorspace(
   table_bytes : Array[Int],
 ) -> @pdf.PdfObject {
   let table = @pdfio.string_of_bytes(@pdfio.bytes_of_list(table_bytes))
-  Array([Name(PdfName("/Indexed")), base, Integer(hival), String(table)])
+  Array([Name(PdfName("/Indexed")), base, Integer(hival), PdfString(table)])
 }
 
 ///|

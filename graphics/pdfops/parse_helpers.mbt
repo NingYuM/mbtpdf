@@ -136,7 +136,7 @@ fn parse_tj_op(section : Array[Lexeme]) -> Op raise {
         match section[idx] {
           Obj(LexReal(value)) => elements.push(Real(value))
           Obj(LexInt(value)) => elements.push(Real(Double::from_int(value)))
-          Obj(LexString(text)) => elements.push(String(text))
+          Obj(LexString(text)) => elements.push(PdfString(text))
           _ => @pdfe.warn("Warning: malformed TJ element; skipping")
         }
       }

@@ -15,7 +15,7 @@ test "serialization escapes extra cases" {
   assert_true(multibyte_rendered.contains("#94"))
   let yen = PdfObject::Name(PdfName::of_string("/\u00A5"))
   assert_true(yen.to_string().contains("#A5"))
-  let escaped = PdfObject::String("\t\u000C")
+  let escaped = PdfObject::PdfString("\t\u000C")
   let rendered = escaped.to_string()
   assert_true(rendered.contains("\\t"))
   assert_true(rendered.contains("\\f"))

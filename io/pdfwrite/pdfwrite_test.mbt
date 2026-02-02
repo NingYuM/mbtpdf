@@ -1,6 +1,6 @@
 ///|
 test "string_of_pdf basic" {
-  let obj : @pdf.PdfObject = String("a(b)\\c")
+  let obj : @pdf.PdfObject = PdfString("a(b)\\c")
   let s = @pdfwrite.PdfWrite::new().string_of_pdf(obj)
   assert_eq(s, "(a\\(b\\)\\\\c)")
 }

@@ -386,13 +386,13 @@ fn set_catalog_entry(
 fn add_notes_layer(pdf : @pdf.Pdf) -> Int raise {
   let ocg_notes : PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("NOTES")),
+    ("/Name", PdfString("NOTES")),
   ])
   let notes_num = pdf.addobj(ocg_notes)
   let default_dict : PdfObject = Dictionary([
     ("/BaseState", Name(PdfName("/OFF"))),
     ("/Intent", Name(PdfName("/View"))),
-    ("/Name", String("Default")),
+    ("/Name", PdfString("Default")),
   ])
   let ocprops : PdfObject = Dictionary([
     ("/OCGs", Array([Indirect(notes_num)])),

@@ -612,18 +612,18 @@ fn set_catalog_entry(
 fn add_day_night_layers(pdf : @pdf.Pdf) -> @pdf.Pdf raise {
   let ocg_day : @pdf.PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("DAY")),
+    ("/Name", PdfString("DAY")),
   ])
   let ocg_night : @pdf.PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("NIGHT")),
+    ("/Name", PdfString("NIGHT")),
   ])
   let day_num = pdf.addobj(ocg_day)
   let night_num = pdf.addobj(ocg_night)
   let default_dict : @pdf.PdfObject = Dictionary([
     ("/BaseState", Name(PdfName("/ON"))),
     ("/Intent", Name(PdfName("/View"))),
-    ("/Name", String("Default")),
+    ("/Name", PdfString("Default")),
     ("/OFF", Array([Indirect(night_num)])),
     ("/ON", Array([Indirect(day_num)])),
   ])
@@ -693,7 +693,7 @@ fn goto_action(refnum : Int) -> @pdf.PdfObject {
 
 ///|
 fn uri_action(uri : String) -> @pdf.PdfObject {
-  Dictionary([("/S", Name(PdfName("/URI"))), ("/URI", String(uri))])
+  Dictionary([("/S", Name(PdfName("/URI"))), ("/URI", PdfString(uri))])
 }
 
 ///|

@@ -284,8 +284,8 @@ test "read_descendant errors when FontDescriptor missing" {
     (
       "/CIDSystemInfo",
       Dictionary([
-        ("/Registry", String("R")),
-        ("/Ordering", String("O")),
+        ("/Registry", PdfString("R")),
+        ("/Ordering", PdfString("O")),
         ("/Supplement", Integer(0)),
       ]),
     ),
@@ -404,7 +404,7 @@ test "read_simple_font and standard14font error branches" {
 test "read_cid_system_info and widths reject malformed input" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
-  let bad_info : @pdf.PdfObject = Dictionary([("/Registry", String("Adobe"))])
+  let bad_info : @pdf.PdfObject = Dictionary([("/Registry", PdfString("Adobe"))])
   let info_res : Result[@pdffont.CIDSystemInfo, Error] = try? ctx.read_cid_system_info(
     bad_info,
   )
@@ -557,8 +557,8 @@ test "read_cid_system_info rejects missing supplement" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let info : @pdf.PdfObject = Dictionary([
-    ("/Registry", String("Adobe")),
-    ("/Ordering", String("Identity")),
+    ("/Registry", PdfString("Adobe")),
+    ("/Ordering", PdfString("Identity")),
   ])
   let res : Result[@pdffont.CIDSystemInfo, Error] = try? ctx.read_cid_system_info(
     info,
@@ -588,8 +588,8 @@ test "read_descendant and cidkeyed_font missing basefont" {
     (
       "/CIDSystemInfo",
       Dictionary([
-        ("/Registry", String("Adobe")),
-        ("/Ordering", String("Identity")),
+        ("/Registry", PdfString("Adobe")),
+        ("/Ordering", PdfString("Identity")),
         ("/Supplement", Integer(0)),
       ]),
     ),
@@ -617,8 +617,8 @@ test "read_cidkeyed_font rejects bad descendants and encoding streams" {
     (
       "/CIDSystemInfo",
       Dictionary([
-        ("/Registry", String("Adobe")),
-        ("/Ordering", String("Identity")),
+        ("/Registry", PdfString("Adobe")),
+        ("/Ordering", PdfString("Identity")),
         ("/Supplement", Integer(0)),
       ]),
     ),
@@ -667,8 +667,8 @@ test "find_tounicode uses descriptor fields when present" {
     (
       "/CIDSystemInfo",
       Dictionary([
-        ("/Registry", String("Adobe")),
-        ("/Ordering", String("Identity")),
+        ("/Registry", PdfString("Adobe")),
+        ("/Ordering", PdfString("Identity")),
         ("/Supplement", Integer(0)),
       ]),
     ),

@@ -167,7 +167,7 @@ fn decrypt(
     )
   }
   match objval {
-    String(s) =>
+    PdfString(s) =>
       if already_decrypted(pdf, obj) {
         objval
       } else {
@@ -179,7 +179,7 @@ fn decrypt(
           crypt_type, encrypt, file_encryption_key, obj, gen, key, keylength, r,
           s_bytes,
         )
-        String(@pdfio.string_of_bytes(out_bytes))
+        PdfString(@pdfio.string_of_bytes(out_bytes))
       }
     Stream(_) =>
       decrypt_stream(
@@ -349,11 +349,11 @@ pub fn PdfCrypt::get_encryption_values(
     None => raise @pdf.PdfError::Msg("No encryption method")
     Some(ct) => {
       let o = match pdf.lookup_direct("/O", encryptdict) {
-        Some(String(o)) => chop_string3248("/O", o)
+        Some(PdfString(o)) => chop_string3248("/O", o)
         _ => raise @pdf.PdfError::Msg("Bad or missing /O entry")
       }
       let u = match pdf.lookup_direct("/U", encryptdict) {
-        Some(String(u)) => chop_string3248("/U", u)
+        Some(PdfString(u)) => chop_string3248("/U", u)
         _ => raise @pdf.PdfError::Msg("Bad or missing /U entry")
       }
       let p = match pdf.lookup_direct("/P", encryptdict) {
@@ -361,15 +361,15 @@ pub fn PdfCrypt::get_encryption_values(
         _ => raise @pdf.PdfError::Msg("Bad or missing /P entry")
       }
       let id = match pdf.lookup_direct("/ID", pdf.trailerdict) {
-        Some(Array([String(s), _])) => s
+        Some(Array([PdfString(s), _])) => s
         _ => raise @pdf.PdfError::Msg("Bad or missing /ID element")
       }
       let oe = match pdf.lookup_direct("/OE", encryptdict) {
-        Some(String(s)) => Some(s)
+        Some(PdfString(s)) => Some(s)
         _ => None
       }
       let ue = match pdf.lookup_direct("/UE", encryptdict) {
-        Some(String(s)) => Some(s)
+        Some(PdfString(s)) => Some(s)
         _ => None
       }
       (ct, u, o, p, id, ue, oe)
@@ -399,7 +399,7 @@ pub fn PdfCrypt::decrypt_pdf(
                 Some(k) => (5, 256, Some(k))
                 None => {
                   let perms = match pdf.lookup_direct("/Perms", encrypt_dict) {
-                    Some(String(s)) => s
+                    Some(PdfString(s)) => s
                     _ =>
                       raise @pdf.PdfError::Msg(
                         "Missing /Perms in encryption dictionary",
@@ -444,7 +444,7 @@ pub fn PdfCrypt::decrypt_pdf(
         _ => true
       }
       let perms = match pdf.lookup_direct("/Perms", encrypt_dict) {
-        Some(String(s)) => s
+        Some(PdfString(s)) => s
         _ => ""
       }
       pdf.saved_encryption = Some({
@@ -751,7 +751,7 @@ fn load_saved_encryption_from_pdf(pdf : @pdf.Pdf) -> @pdf.SavedEncryption raise 
     _ => true
   }
   let perms = match pdf.lookup_direct("/Perms", encrypt_dict) {
-    Some(String(s)) => s
+    Some(PdfString(s)) => s
     _ => ""
   }
   {

@@ -161,7 +161,7 @@ pub fn Destination::read(
           None => raise @pdf.PdfError::Msg("read_destination: no catalog")
         }
       }
-    String(s) =>
+    PdfString(s) =>
       if shallow {
         StringDestination(s)
       } else {
@@ -170,7 +170,7 @@ pub fn Destination::read(
           Some(namedict) =>
             match pdf.lookup_direct("/Dests", namedict) {
               Some(destsdict) =>
-                match pdf.nametree_lookup(String(s), destsdict) {
+                match pdf.nametree_lookup(PdfString(s), destsdict) {
                   None => StringDestination(s)
                   Some(dest) => Destination::read(pdf, dest, shallow~)
                 }
@@ -209,7 +209,7 @@ pub fn Destination::to_pdf_object(self : Destination) -> PdfObject {
     Action(a) => a
     NullDestination => Null
     NamedDestination(name) => Name(name)
-    StringDestination(s) => String(s)
+    StringDestination(s) => PdfString(s)
     XYZ(p, left, top, zoom) =>
       Array([
         p.to_pdf_object(),

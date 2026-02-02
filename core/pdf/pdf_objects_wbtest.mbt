@@ -120,7 +120,7 @@ test "references and renumbering" {
     Array(values) => {
       assert_eq(values.length(), 2)
       match (values[0], values[1]) {
-        (String(a), String(b)) => assert_eq(a, b)
+        (PdfString(a), PdfString(b)) => assert_eq(a, b)
         _ => fail("expected id strings")
       }
     }

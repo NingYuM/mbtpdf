@@ -43,7 +43,7 @@ test "PdfObject::to_string escapes strings and normalizes names" {
   let rendered = @pdfe.with_logger(fn(msg) { messages.push(msg) }, fn() {
     let obj = PdfObject::Dictionary([
       ("Type", Name(PdfName::of_string("NoSlash"))),
-      ("/Needs Escape", String("a(b)\\c\n")),
+      ("/Needs Escape", PdfString("a(b)\\c\n")),
     ])
     obj.to_string()
   })

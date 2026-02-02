@@ -43,7 +43,8 @@ fn apply_namechanges_to_destination_nametree(
         match pairs_of_array(values) {
           Some(pairs) => {
             let updated_pairs = pairs.map(pair => match pair {
-              (String(s), obj) => (PdfObject::String(rewrite_string(s)), obj)
+              (PdfString(s), obj) =>
+                (PdfObject::PdfString(rewrite_string(s)), obj)
               _ => pair
             })
             let rebuilt = Array::new(capacity=values.length())
@@ -58,11 +59,11 @@ fn apply_namechanges_to_destination_nametree(
       _ => ()
     }
     match lookup("/Limits", updated) {
-      Some(Array([String(a), String(b)])) =>
+      Some(Array([PdfString(a), PdfString(b)])) =>
         updated = add_entry(
           updated,
           "/Limits",
-          Array([String(rewrite_string(a)), String(rewrite_string(b))]),
+          Array([PdfString(rewrite_string(a)), PdfString(rewrite_string(b))]),
         )
       _ => ()
     }
@@ -135,15 +136,17 @@ fn apply_namechanges_at_destination_callsites(
         let updated = match lookup("/S", updated) {
           Some(Name(PdfName("/GoTo"))) =>
             match lookup("/D", updated) {
-              Some(String(s)) =>
-                add_entry(updated, "/D", String(rewrite_string(s)))
+              Some(PdfString(s)) =>
+                add_entry(updated, "/D", PdfString(rewrite_string(s)))
               _ => updated
             }
           _ => updated
         }
         match lookup("/Dest", updated) {
-          Some(String(s)) =>
-            Dictionary(add_entry(updated, "/Dest", String(rewrite_string(s))))
+          Some(PdfString(s)) =>
+            Dictionary(
+              add_entry(updated, "/Dest", PdfString(rewrite_string(s))),
+            )
           _ => Dictionary(updated)
         }
       }

@@ -31,14 +31,14 @@ fn encrypt_pdf_AES256_inner(
     ("/EncryptMetadata", Boolean(encrypt_metadata)),
     ("/Length", Integer(256)),
     ("/R", Integer(if iso { 6 } else { 5 })),
-    ("/O", String(owner)),
-    ("/U", String(user)),
+    ("/O", PdfString(owner)),
+    ("/U", PdfString(user)),
     ("/P", Integer(p)),
     ("/StrF", Name(PdfName("/StdCF"))),
     ("/StmF", Name(PdfName("/StdCF"))),
-    ("/Perms", String(perms)),
-    ("/OE", String(oe)),
-    ("/UE", String(ue)),
+    ("/Perms", PdfString(perms)),
+    ("/OE", PdfString(oe)),
+    ("/UE", PdfString(ue)),
   ])
   match
     process_cryption(

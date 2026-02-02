@@ -38,7 +38,7 @@ test "parse_single_object names, strings, and atoms" {
   }
   let str_obj = @pdfsyntax.parse_single_object("(hello\\nworld)")
   match (str_obj : @pdf.PdfObject) {
-    String(value) => assert_eq(value, "hello\nworld")
+    PdfString(value) => assert_eq(value, "hello\nworld")
     _ => fail("expected string")
   }
   let bool_obj = @pdfsyntax.parse_single_object("true")

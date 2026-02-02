@@ -258,8 +258,8 @@ test "read_annotation parses styles and extras" {
   let extras : @pdf.PdfObject = Dictionary([
     ("/Subtype", Name(PdfName("/Text"))),
     ("/Rect", rect),
-    ("/Contents", String("Note")),
-    ("/Subj", String("Subject")),
+    ("/Contents", PdfString("Note")),
+    ("/Subj", PdfString("Subject")),
     ("/C", Array([Integer(1), Integer(2), Integer(3)])),
     ("/Foo", Integer(7)),
   ])
@@ -432,7 +432,7 @@ test "read_annotation handles more subtypes and popup fallback" {
     Dictionary([
       ("/Subtype", Name(PdfName("/Popup"))),
       ("/Rect", rect),
-      ("/Parent", String("nope")),
+      ("/Parent", PdfString("nope")),
     ]),
     Dictionary([("/Rect", rect)]),
   ]

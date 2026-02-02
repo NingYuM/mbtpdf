@@ -294,7 +294,7 @@ test "merge_structure_trees merges roots" {
     ("/IDTree", idtree1),
     ("/ParentTree", parenttree1),
     ("/RoleMap", Dictionary([("/Sect", Name(PdfName("/Div")))])),
-    ("/Namespaces", Array([Dictionary([("/NS", String("ns1"))])])),
+    ("/Namespaces", Array([Dictionary([("/NS", PdfString("ns1"))])])),
     ("/PronunciationLexicon", Array([])),
   ])
   ignore(install_struct_root(pdf1, root1))

@@ -293,13 +293,13 @@ fn set_catalog_entry(
 fn add_spoilers_layer(pdf : @pdf.Pdf) -> Int raise {
   let ocg : PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("SPOILERS")),
+    ("/Name", PdfString("SPOILERS")),
   ])
   let ocg_num = pdf.addobj(ocg)
   let default_dict : PdfObject = Dictionary([
     ("/BaseState", Name(PdfName("/OFF"))),
     ("/Intent", Name(PdfName("/View"))),
-    ("/Name", String("Default")),
+    ("/Name", PdfString("Default")),
   ])
   let ocprops : PdfObject = Dictionary([
     ("/OCGs", Array([Indirect(ocg_num)])),

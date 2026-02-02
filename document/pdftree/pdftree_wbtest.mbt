@@ -1,10 +1,10 @@
 ///|
 test "remove_duplicates keeps last entry" {
   let entries = [
-    (@pdf.PdfObject::String("A"), @pdf.PdfObject::Integer(1)),
-    (String("A"), Integer(2)),
-    (String("B"), Integer(3)),
-    (String("B"), Integer(4)),
+    (@pdf.PdfObject::PdfString("A"), @pdf.PdfObject::Integer(1)),
+    (PdfString("A"), Integer(2)),
+    (PdfString("B"), Integer(3)),
+    (PdfString("B"), Integer(4)),
   ]
   let deduped = remove_duplicates(entries, false)
   assert_eq(deduped.length(), 2)

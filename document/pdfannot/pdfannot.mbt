@@ -136,11 +136,11 @@ fn read_annotation(pdf : @pdf.Pdf, annot : PdfObject) -> Annotation raise {
     _ => Unknown("")
   }
   let contents = match pdf.lookup_direct("/Contents", annot) {
-    Some(String(s)) => Some(s)
+    Some(PdfString(s)) => Some(s)
     _ => None
   }
   let subject = match pdf.lookup_direct("/Subj", annot) {
-    Some(String(s)) => Some(s)
+    Some(PdfString(s)) => Some(s)
     _ => None
   }
   let rectangle = pdf.parse_rectangle(
@@ -319,7 +319,7 @@ fn Annotation::to_pdf_object(self : Annotation) -> PdfObject raise {
       "/Contents",
       match self.annot_contents {
         None => Null
-        Some(s) => String(s)
+        Some(s) => PdfString(s)
       },
     ),
     (
@@ -360,7 +360,7 @@ fn Annotation::to_pdf_object(self : Annotation) -> PdfObject raise {
   }
   let dict_entries = match self.subject {
     None => dict_entries
-    Some(s) => [("/Subj", String(s))] + dict_entries
+    Some(s) => [("/Subj", PdfString(s))] + dict_entries
   }
   Dictionary(dict_entries)
 }

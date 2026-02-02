@@ -31,7 +31,7 @@ fn parse_R(tokens : Array[Token]) -> Array[ParseItem] {
       LexBool(b) => out.push(Parsed(Boolean(b)))
       LexInt(v) => out.push(Parsed(Integer(v)))
       LexReal(v) => out.push(Parsed(Real(v)))
-      LexString(s) => out.push(Parsed(String(s)))
+      LexString(s) => out.push(Parsed(PdfString(s)))
       LexName(n) => out.push(Parsed(Name(@pdf.PdfName::of_string(n))))
       other => out.push(Lexeme(other))
     }

@@ -84,7 +84,7 @@ fn label_of_range(pdf : @pdf.Pdf, range : (PdfObject, PdfObject)) -> PageLabel {
     _ => NoLabelPrefixOnly
   }
   let labelprefix = match pdf.lookup_direct("/P", thing) {
-    Some(String(s)) => Some(s)
+    Some(PdfString(s)) => Some(s)
     _ => None
   }
   let startvalue = match pdf.lookup_direct("/St", thing) {
@@ -385,7 +385,7 @@ pub fn PageLabel::write_all(
         LowercaseLetters => entries.push(("/S", Name(PdfName("/a"))))
       }
       match label.labelprefix {
-        Some(p) => entries.push(("/P", String(p)))
+        Some(p) => entries.push(("/P", PdfString(p)))
         None => ()
       }
       if label.startvalue != 1 {

@@ -843,8 +843,8 @@ fn cid_font_dict(encoding_name : String) -> @pdf.PdfObject {
     (
       "/CIDSystemInfo",
       Dictionary([
-        ("/Registry", String("Adobe")),
-        ("/Ordering", String("Identity")),
+        ("/Registry", PdfString("Adobe")),
+        ("/Ordering", PdfString("Identity")),
         ("/Supplement", Integer(0)),
       ]),
     ),
@@ -872,7 +872,7 @@ test "extract text handles text ops and arrays" {
     OpTd(0.0, 10.0),
     OpTj("E"),
     OpTD(0.0, 10.0),
-    OpTJ(Array([String("F"), Integer(120), String("")])),
+    OpTJ(Array([PdfString("F"), Integer(120), PdfString("")])),
     OpET,
   ]
   let page = extract_test_page(ops, Dictionary([]))

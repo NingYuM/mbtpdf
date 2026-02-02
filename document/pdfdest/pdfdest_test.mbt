@@ -354,11 +354,11 @@ test "read_destination name resolution" {
 ///|
 test "read_destination string resolution" {
   let pdf = minimum_valid_pdf()
-  match Destination::read(pdf, String("Shallow"), shallow=true) {
+  match Destination::read(pdf, PdfString("Shallow"), shallow=true) {
     StringDestination("Shallow") => ()
     _ => fail("expected shallow StringDestination")
   }
-  match Destination::read(pdf, String("Missing")) {
+  match Destination::read(pdf, PdfString("Missing")) {
     StringDestination("Missing") => ()
     _ => fail("expected StringDestination with no /Names")
   }
@@ -366,32 +366,32 @@ test "read_destination string resolution" {
   let root = pdf_no_dests.lookup_obj(pdf_no_dests.root)
   let root = root.add_entry("/Names", Dictionary([]))
   pdf_no_dests.addobj_given_num((pdf_no_dests.root, root))
-  match Destination::read(pdf_no_dests, String("Missing")) {
+  match Destination::read(pdf_no_dests, PdfString("Missing")) {
     StringDestination("Missing") => ()
     _ => fail("expected StringDestination with missing /Dests")
   }
   let pdf_with_tree = minimum_valid_pdf()
   let dest : @pdf.PdfObject = Array([Integer(0), Name(PdfName("/Fit"))])
   let dests : @pdf.PdfObject = Dictionary([
-    ("/Names", Array([String("Anchor"), dest])),
+    ("/Names", Array([PdfString("Anchor"), dest])),
   ])
   let names : @pdf.PdfObject = Dictionary([("/Dests", dests)])
   let root = pdf_with_tree.lookup_obj(pdf_with_tree.root)
   let root = root.add_entry("/Names", names)
   pdf_with_tree.addobj_given_num((pdf_with_tree.root, root))
-  match Destination::read(pdf_with_tree, String("Anchor")) {
+  match Destination::read(pdf_with_tree, PdfString("Anchor")) {
     Fit(OtherDocPageNumber(0)) => ()
     _ => fail("expected resolved StringDestination")
   }
   let pdf_no_match = minimum_valid_pdf()
   let dests : @pdf.PdfObject = Dictionary([
-    ("/Names", Array([String("Other"), dest])),
+    ("/Names", Array([PdfString("Other"), dest])),
   ])
   let names : @pdf.PdfObject = Dictionary([("/Dests", dests)])
   let root = pdf_no_match.lookup_obj(pdf_no_match.root)
   let root = root.add_entry("/Names", names)
   pdf_no_match.addobj_given_num((pdf_no_match.root, root))
-  match Destination::read(pdf_no_match, String("Missing")) {
+  match Destination::read(pdf_no_match, PdfString("Missing")) {
     StringDestination("Missing") => ()
     _ => fail("expected StringDestination for missing name")
   }

@@ -101,7 +101,7 @@ test "read_name_tree skips malformed keys" {
       Array([
         Integer(1),
         Name(PdfName("/One")),
-        String("B"),
+        PdfString("B"),
         Name(PdfName("/Two")),
       ]),
     ),
@@ -164,7 +164,7 @@ test "read_number_tree returns empty on non-integer keys" {
     (
       "/Nums",
       Array([
-        String("x"),
+        PdfString("x"),
         Name(PdfName("/X")),
         Integer(2),
         Name(PdfName("/Two")),

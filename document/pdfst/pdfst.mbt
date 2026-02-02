@@ -499,7 +499,7 @@ pub fn PdfStructTree::merge_structure_trees(
   standard_entries.append(optional("/AF", merged_af)[:])
   if add_toplevel_document {
     let namespace_objnum = pdf.addobj(
-      Dictionary([("/NS", String("http://iso.org/pdf2/ssn"))]),
+      Dictionary([("/NS", PdfString("http://iso.org/pdf2/ssn"))]),
     )
     let merged_namespaces = match merged_namespaces {
       Array(items) => {

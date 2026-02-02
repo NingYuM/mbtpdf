@@ -179,7 +179,7 @@ test "add_bookmarks links siblings and counts" {
       pdf_with.lookup_direct("/Title", first),
       pdf_with.lookup_direct("/Title", last),
     ) {
-    (Some(String(a)), Some(String(b))) => {
+    (Some(PdfString(a)), Some(PdfString(b))) => {
       assert_eq(a, "A")
       assert_eq(b, "B")
     }
@@ -188,7 +188,7 @@ test "add_bookmarks links siblings and counts" {
   match pdf_with.lookup_direct("/Next", first) {
     Some(next) =>
       match pdf_with.lookup_direct("/Title", next) {
-        Some(String(s)) => assert_eq(s, "B")
+        Some(PdfString(s)) => assert_eq(s, "B")
         _ => fail("expected /Next title")
       }
     None => fail("expected /Next")
@@ -196,7 +196,7 @@ test "add_bookmarks links siblings and counts" {
   match pdf_with.lookup_direct("/Prev", last) {
     Some(prev) =>
       match pdf_with.lookup_direct("/Title", prev) {
-        Some(String(s)) => assert_eq(s, "A")
+        Some(PdfString(s)) => assert_eq(s, "A")
         _ => fail("expected /Prev title")
       }
     None => fail("expected /Prev")
@@ -227,7 +227,7 @@ test "read_bookmarks toggles action preservation" {
   let pdf = minimum_valid_pdf()
   let action : @pdf.PdfObject = Dictionary([
     ("/S", Name(PdfName("/GoTo"))),
-    ("/D", String("dest")),
+    ("/D", PdfString("dest")),
   ])
   let marks : Array[@pdfmarks.Bookmark] = [
     {

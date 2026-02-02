@@ -121,7 +121,7 @@ fn PdfTree::read_tree_strings(
     let value = pair.1
     match key {
       Integer(i) if isnum => out.push((i.to_string(), value))
-      String(s) if !isnum => out.push((s, value))
+      PdfString(s) if !isnum => out.push((s, value))
       _ => {
         let msg = if isnum {
           "Pdftree.read_number_tree: skipping malformed number tree\n"
@@ -147,7 +147,7 @@ fn key_int(obj : @pdf.PdfObject) -> Int {
 ///|
 fn key_string(obj : @pdf.PdfObject) -> String {
   match obj {
-    String(s) => s
+    PdfString(s) => s
     _ => ""
   }
 }
@@ -313,7 +313,7 @@ fn PdfTree::name_tree_of_nt(
         let key_obj = if isnum {
           PdfObject::Integer(parse_int(pair.0))
         } else {
-          String(pair.0)
+          PdfString(pair.0)
         }
         array_items.push(key_obj)
         array_items.push(pair.1)
@@ -326,7 +326,7 @@ fn PdfTree::name_tree_of_nt(
           Integer(parse_int(rlimit)),
         ])
       } else {
-        Array([String(llimit), String(rlimit)])
+        Array([PdfString(llimit), PdfString(rlimit)])
       }
       let dict_entries = Array::new(capacity=2)
       dict_entries.push(entry)
@@ -353,7 +353,7 @@ fn PdfTree::name_tree_of_nt(
           Integer(parse_int(rlimit)),
         ])
       } else {
-        Array([String(llimit), String(rlimit)])
+        Array([PdfString(llimit), PdfString(rlimit)])
       }
       Dictionary([("/Kids", Array(kid_refs)), ("/Limits", limits)])
     }

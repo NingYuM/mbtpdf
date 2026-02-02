@@ -231,18 +231,18 @@ fn set_catalog_entry(
 fn add_layers(pdf : @pdf.Pdf) -> (Int, Int) raise {
   let secret : PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("SECRET")),
+    ("/Name", PdfString("SECRET")),
   ])
   let party : PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("PARTY MODE")),
+    ("/Name", PdfString("PARTY MODE")),
   ])
   let secret_num = pdf.addobj(secret)
   let party_num = pdf.addobj(party)
   let default_dict : PdfObject = Dictionary([
     ("/BaseState", Name(PdfName("/ON"))),
     ("/Intent", Name(PdfName("/View"))),
-    ("/Name", String("Default")),
+    ("/Name", PdfString("Default")),
     ("/OFF", Array([Indirect(secret_num)])),
     ("/ON", Array([Indirect(party_num)])),
   ])

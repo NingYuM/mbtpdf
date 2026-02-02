@@ -130,7 +130,7 @@ test "read_colourspace Indexed handles DeviceN base" {
       tint,
     ]),
     Integer(0),
-    String(table),
+    PdfString(table),
   ]
   let space = ColourSpace::read(pdf, Dictionary([]), Array(indexed_arr))
   match (space : ColourSpace) {
@@ -175,7 +175,7 @@ test "read_colourspace Indexed errors on invalid inputs" {
     Name(PdfName("/Indexed")),
     Name(PdfName("/DeviceRGB")),
     Name(PdfName("/Bad")),
-    String(@pdfio.string_of_int_array([0, 0, 0])),
+    PdfString(@pdfio.string_of_int_array([0, 0, 0])),
   ]
   let bad_hival : Result[ColourSpace, Error] = try? ColourSpace::read(
     pdf,
@@ -199,7 +199,7 @@ test "read_colourspace Indexed errors on invalid inputs" {
     Name(PdfName("/Indexed")),
     Name(PdfName("/DeviceGray")),
     Integer(0),
-    String(@pdfio.string_of_int_array([0])),
+    PdfString(@pdfio.string_of_int_array([0])),
   ]
   let bad_base_string : Result[ColourSpace, Error] = try? ColourSpace::read(
     pdf,
@@ -600,7 +600,7 @@ test "read_colourspace rejects indexed base colourspaces" {
     Name(PdfName("/Indexed")),
     Name(PdfName("/Pattern")),
     Integer(0),
-    String(""),
+    PdfString(""),
   ]
   let res : Result[ColourSpace, Error] = try? ColourSpace::read(
     pdf,
@@ -750,7 +750,7 @@ test "read_colourspace indexed handles ICCBased base" {
     Ref::new((icc_dict, Got(@pdfio.bytes_of_list([0])))),
   )
   let base : @pdf.PdfObject = Array([Name(PdfName("/ICCBased")), icc_stream])
-  let lookup : @pdf.PdfObject = String(
+  let lookup : @pdf.PdfObject = PdfString(
     @pdfio.string_of_bytes(@pdfio.bytes_of_list([1, 2, 3])),
   )
   let space_arr : Array[@pdf.PdfObject] = [
@@ -773,7 +773,7 @@ test "read_colourspace indexed handles ICCBased base" {
 ///|
 test "read_colourspace indexed rejects short table" {
   let pdf = @pdf.Pdf::empty()
-  let lookup : @pdf.PdfObject = String(
+  let lookup : @pdf.PdfObject = PdfString(
     @pdfio.string_of_bytes(@pdfio.bytes_of_list([1, 2, 3])),
   )
   let arr : Array[@pdf.PdfObject] = [

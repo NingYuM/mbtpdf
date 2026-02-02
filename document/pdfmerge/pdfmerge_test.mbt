@@ -30,13 +30,13 @@ fn set_catalog_entry(
 ///|
 fn add_dest_name_tree(pdf : @pdf.Pdf, name : String) -> Unit raise {
   let child : @pdf.PdfObject = Dictionary([
-    ("/Names", Array([String(name), Null])),
-    ("/Limits", Array([String(name), String(name)])),
+    ("/Names", Array([PdfString(name), Null])),
+    ("/Limits", Array([PdfString(name), PdfString(name)])),
   ])
   let child_num = pdf.addobj(child)
   let root_tree : @pdf.PdfObject = Dictionary([
-    ("/Names", Array([String(name), Null])),
-    ("/Limits", Array([String(name), String(name)])),
+    ("/Names", Array([PdfString(name), Null])),
+    ("/Limits", Array([PdfString(name), PdfString(name)])),
     ("/Kids", Array([Indirect(child_num)])),
   ])
   set_catalog_entry(pdf, "/Names", Dictionary([("/Dests", root_tree)]))
@@ -48,8 +48,8 @@ fn add_dest_name_tree_with_non_indirect_kid(
   name : String,
 ) -> Unit raise {
   let root_tree : @pdf.PdfObject = Dictionary([
-    ("/Names", Array([String(name), Null])),
-    ("/Limits", Array([String(name), String(name)])),
+    ("/Names", Array([PdfString(name), Null])),
+    ("/Limits", Array([PdfString(name), PdfString(name)])),
     // Malformed /Kids entries should be ignored.
     ("/Kids", Array([Integer(0)])),
   ])
@@ -58,11 +58,11 @@ fn add_dest_name_tree_with_non_indirect_kid(
 
 ///|
 fn add_dest_callsites(pdf : @pdf.Pdf, name : String) -> Unit {
-  let dest_obj : @pdf.PdfObject = Dictionary([("/Dest", String(name))])
+  let dest_obj : @pdf.PdfObject = Dictionary([("/Dest", PdfString(name))])
   ignore(pdf.addobj(dest_obj))
   let action_obj : @pdf.PdfObject = Dictionary([
     ("/S", Name(PdfName("/GoTo"))),
-    ("/D", String(name)),
+    ("/D", PdfString(name)),
   ])
   ignore(pdf.addobj(action_obj))
 }
@@ -86,13 +86,13 @@ fn collect_dest_strings(pdf : @pdf.Pdf) -> Array[String] {
   pdf.objiter((_, obj) => match (obj : @pdf.PdfObject) {
     Dictionary(entries) => {
       match lookup_entry(entries, "/Dest") {
-        Some(String(s)) => out.push(s)
+        Some(PdfString(s)) => out.push(s)
         _ => ()
       }
       match lookup_entry(entries, "/S") {
         Some(Name(PdfName("/GoTo"))) =>
           match lookup_entry(entries, "/D") {
-            Some(String(s)) => out.push(s)
+            Some(PdfString(s)) => out.push(s)
             _ => ()
           }
         _ => ()
@@ -287,7 +287,7 @@ test "merge_pdfs merges dests ocg and acroform" {
         "/D",
         Dictionary([
           ("/ON", Array([Name(PdfName("/OCG1"))])),
-          ("/Name", String("Layer1")),
+          ("/Name", PdfString("Layer1")),
         ]),
       ),
     ]),
@@ -304,7 +304,7 @@ test "merge_pdfs merges dests ocg and acroform" {
           ("/BaseState", Name(PdfName("/OFF"))),
         ]),
       ),
-      ("/Configs", Array([Dictionary([("/Name", String("Cfg"))])])),
+      ("/Configs", Array([Dictionary([("/Name", PdfString("Cfg"))])])),
     ]),
   )
   set_catalog_entry(

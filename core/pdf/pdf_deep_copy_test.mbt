@@ -12,7 +12,10 @@ test "deep_copy copies streams and object data" {
     ),
   )
   pdf.addobj_given_num((7, toget_stream))
-  pdf.objects.objects.set(5, ({ val: ParsedAlreadyDecrypted(String("x")) }, 0))
+  pdf.objects.objects.set(
+    5,
+    ({ val: ParsedAlreadyDecrypted(PdfString("x")) }, 0),
+  )
   let themap : Map[Int, Array[Int]] = Map::new()
   let parser = (_ : Int, _ : Array[Int]) => (
     [] : Array[(Int, (Ref[ObjectData], Int))])

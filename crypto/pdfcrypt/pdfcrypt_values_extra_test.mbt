@@ -5,7 +5,7 @@ fn bytes_string(len : Int, value : Int) -> String {
 
 ///|
 fn add_id(pdf : @pdf.Pdf) -> Unit raise {
-  let id : @pdf.PdfObject = Array([String("id"), String("id")])
+  let id : @pdf.PdfObject = Array([PdfString("id"), PdfString("id")])
   pdf.trailerdict = pdf.trailerdict.add_entry("/ID", id)
 }
 
@@ -22,8 +22,8 @@ test "get_encryption_values handles V2 without length" {
     ("/Filter", Name(PdfName("/Standard"))),
     ("/V", Integer(2)),
     ("/R", Integer(3)),
-    ("/O", String(bytes_string(32, 65))),
-    ("/U", String(bytes_string(32, 66))),
+    ("/O", PdfString(bytes_string(32, 65))),
+    ("/U", PdfString(bytes_string(32, 66))),
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
@@ -45,8 +45,8 @@ test "get_encryption_values rejects invalid length" {
     ("/V", Integer(2)),
     ("/R", Integer(3)),
     ("/Length", Integer(42)),
-    ("/O", String(bytes_string(32, 65))),
-    ("/U", String(bytes_string(32, 66))),
+    ("/O", PdfString(bytes_string(32, 65))),
+    ("/U", PdfString(bytes_string(32, 66))),
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
@@ -67,8 +67,8 @@ test "get_encryption_values handles V4 CF V2 length" {
       "/CF",
       Dictionary([("/StdCF", Dictionary([("/CFM", Name(PdfName("/V2")))]))]),
     ),
-    ("/O", String(bytes_string(32, 65))),
-    ("/U", String(bytes_string(32, 66))),
+    ("/O", PdfString(bytes_string(32, 65))),
+    ("/U", PdfString(bytes_string(32, 66))),
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
@@ -98,8 +98,8 @@ test "get_encryption_values falls back to /CF /Length for V4 V2" {
         ("/StdCF", Dictionary([("/CFM", Name(PdfName("/V2")))])),
       ]),
     ),
-    ("/O", String(bytes_string(32, 65))),
-    ("/U", String(bytes_string(32, 66))),
+    ("/O", PdfString(bytes_string(32, 65))),
+    ("/U", PdfString(bytes_string(32, 66))),
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
@@ -121,8 +121,8 @@ test "get_encryption_values rejects V4 without CF dictionary" {
     ("/V", Integer(4)),
     ("/R", Integer(4)),
     ("/Length", Integer(64)),
-    ("/O", String(bytes_string(32, 65))),
-    ("/U", String(bytes_string(32, 66))),
+    ("/O", PdfString(bytes_string(32, 65))),
+    ("/U", PdfString(bytes_string(32, 66))),
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
@@ -138,8 +138,8 @@ test "get_encryption_values rejects nonstandard V in encryption dictionary" {
     ("/Filter", Name(PdfName("/Standard"))),
     ("/V", Integer(3)),
     ("/R", Integer(3)),
-    ("/O", String(bytes_string(32, 65))),
-    ("/U", String(bytes_string(32, 66))),
+    ("/O", PdfString(bytes_string(32, 65))),
+    ("/U", PdfString(bytes_string(32, 66))),
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
@@ -165,8 +165,8 @@ test "get_encryption_values rejects V4 V2 when /CF /Length is not an integer" {
         ("/StdCF", Dictionary([("/CFM", Name(PdfName("/V2")))])),
       ]),
     ),
-    ("/O", String(bytes_string(32, 65))),
-    ("/U", String(bytes_string(32, 66))),
+    ("/O", PdfString(bytes_string(32, 65))),
+    ("/U", PdfString(bytes_string(32, 66))),
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
@@ -182,8 +182,8 @@ test "get_encryption_values rejects unknown encryption filter" {
     ("/Filter", Name(PdfName("/NotStandard"))),
     ("/V", Integer(2)),
     ("/R", Integer(3)),
-    ("/O", String(bytes_string(32, 65))),
-    ("/U", String(bytes_string(32, 66))),
+    ("/O", PdfString(bytes_string(32, 65))),
+    ("/U", PdfString(bytes_string(32, 66))),
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
@@ -203,10 +203,10 @@ test "decrypt_pdf AESV3 errors when /Perms is missing" {
       "/CF",
       Dictionary([("/StdCF", Dictionary([("/CFM", Name(PdfName("/AESV3")))]))]),
     ),
-    ("/O", String(bytes_string(48, 65))),
-    ("/U", String(bytes_string(48, 66))),
-    ("/OE", String("x")),
-    ("/UE", String("y")),
+    ("/O", PdfString(bytes_string(48, 65))),
+    ("/U", PdfString(bytes_string(48, 66))),
+    ("/OE", PdfString("x")),
+    ("/UE", PdfString("y")),
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
@@ -223,8 +223,8 @@ test "get_encryption_values rejects missing stdcf" {
     ("/V", Integer(4)),
     ("/R", Integer(4)),
     ("/CF", Dictionary([("/Other", Dictionary([]))])),
-    ("/O", String(bytes_string(32, 65))),
-    ("/U", String(bytes_string(32, 66))),
+    ("/O", PdfString(bytes_string(32, 65))),
+    ("/U", PdfString(bytes_string(32, 66))),
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
@@ -244,8 +244,8 @@ test "get_encryption_values rejects unknown cfm" {
       "/CF",
       Dictionary([("/StdCF", Dictionary([("/CFM", Name(PdfName("/Unknown")))]))]),
     ),
-    ("/O", String(bytes_string(32, 65))),
-    ("/U", String(bytes_string(32, 66))),
+    ("/O", PdfString(bytes_string(32, 65))),
+    ("/U", PdfString(bytes_string(32, 66))),
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
@@ -260,8 +260,8 @@ test "get_encryption_values rejects missing id entry" {
     ("/Filter", Name(PdfName("/Standard"))),
     ("/V", Integer(2)),
     ("/R", Integer(3)),
-    ("/O", String(bytes_string(32, 65))),
-    ("/U", String(bytes_string(32, 66))),
+    ("/O", PdfString(bytes_string(32, 65))),
+    ("/U", PdfString(bytes_string(32, 66))),
     ("/P", Integer(-4)),
   ])
   attach_encrypt(pdf, encrypt_dict)
@@ -279,7 +279,7 @@ test "get_encryption_values rejects missing or malformed O/U/P entries" {
       ("/Filter", Name(PdfName("/Standard"))),
       ("/V", Integer(2)),
       ("/R", Integer(3)),
-      ("/U", String(bytes_string(32, 66))),
+      ("/U", PdfString(bytes_string(32, 66))),
       ("/P", Integer(-4)),
     ]),
   )
@@ -293,7 +293,7 @@ test "get_encryption_values rejects missing or malformed O/U/P entries" {
       ("/Filter", Name(PdfName("/Standard"))),
       ("/V", Integer(2)),
       ("/R", Integer(3)),
-      ("/O", String(bytes_string(32, 65))),
+      ("/O", PdfString(bytes_string(32, 65))),
       ("/P", Integer(-4)),
     ]),
   )
@@ -307,8 +307,8 @@ test "get_encryption_values rejects missing or malformed O/U/P entries" {
       ("/Filter", Name(PdfName("/Standard"))),
       ("/V", Integer(2)),
       ("/R", Integer(3)),
-      ("/O", String(bytes_string(32, 65))),
-      ("/U", String(bytes_string(32, 66))),
+      ("/O", PdfString(bytes_string(32, 65))),
+      ("/U", PdfString(bytes_string(32, 66))),
     ]),
   )
   let p_res = try? @pdfcrypt.PdfCrypt::new().get_encryption_values(pdf_p)
@@ -323,7 +323,7 @@ test "get_encryption_values rejects missing or malformed O/U/P entries" {
       ("/R", Integer(3)),
       ("/O", Integer(0)),
       ("/U", Integer(0)),
-      ("/P", String("x")),
+      ("/P", PdfString("x")),
     ]),
   )
   let bad_types_res = try? @pdfcrypt.PdfCrypt::new().get_encryption_values(
@@ -342,8 +342,8 @@ test "get_encryption_values rejects too-short O/U strings" {
       ("/Filter", Name(PdfName("/Standard"))),
       ("/V", Integer(2)),
       ("/R", Integer(3)),
-      ("/O", String("x")),
-      ("/U", String(bytes_string(32, 66))),
+      ("/O", PdfString("x")),
+      ("/U", PdfString(bytes_string(32, 66))),
       ("/P", Integer(-4)),
     ]),
   )
@@ -365,7 +365,7 @@ test "encrypt AES V2 without metadata and AES256 with long passwords" {
   )
   let (dec, _) = @pdfcrypt.PdfCrypt::new().decrypt_pdf("user", enc.deep_copy())
   assert_true(dec is Some(_))
-  let string_obj : @pdf.PdfObject = String("secret")
+  let string_obj : @pdf.PdfObject = PdfString("secret")
   pdf.addobj_given_num((10, string_obj))
   let stream_dict : @pdf.PdfObject = Dictionary([("/Length", Integer(4))])
   let got_stream : @pdf.PdfObject = Stream(

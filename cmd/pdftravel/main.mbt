@@ -181,18 +181,18 @@ fn set_catalog_entry(
 fn add_layers(pdf : @pdf.Pdf) -> (Int, Int) raise {
   let night : PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("NIGHT MODE")),
+    ("/Name", PdfString("NIGHT MODE")),
   ])
   let surprise : PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("SURPRISE")),
+    ("/Name", PdfString("SURPRISE")),
   ])
   let night_num = pdf.addobj(night)
   let surprise_num = pdf.addobj(surprise)
   let default_dict : PdfObject = Dictionary([
     ("/BaseState", Name(PdfName("/ON"))),
     ("/Intent", Name(PdfName("/View"))),
-    ("/Name", String("Default")),
+    ("/Name", PdfString("Default")),
     ("/OFF", Array([Indirect(night_num), Indirect(surprise_num)])),
   ])
   let ocprops : PdfObject = Dictionary([
@@ -237,7 +237,7 @@ fn goto_action(refnum : Int) -> PdfObject {
 
 ///|
 fn uri_action(uri : String) -> PdfObject {
-  Dictionary([("/S", Name(PdfName("/URI"))), ("/URI", String(uri))])
+  Dictionary([("/S", Name(PdfName("/URI"))), ("/URI", PdfString(uri))])
 }
 
 ///|

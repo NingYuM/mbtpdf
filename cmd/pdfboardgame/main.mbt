@@ -200,18 +200,18 @@ fn set_catalog_entry(
 fn add_layers(pdf : @pdf.Pdf) -> (Int, Int) raise {
   let hints : PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("HINTS")),
+    ("/Name", PdfString("HINTS")),
   ])
   let solution : PdfObject = Dictionary([
     ("/Type", Name(PdfName("/OCG"))),
-    ("/Name", String("SOLUTION")),
+    ("/Name", PdfString("SOLUTION")),
   ])
   let hints_num = pdf.addobj(hints)
   let solution_num = pdf.addobj(solution)
   let default_dict : PdfObject = Dictionary([
     ("/BaseState", Name(PdfName("/ON"))),
     ("/Intent", Name(PdfName("/View"))),
-    ("/Name", String("Default")),
+    ("/Name", PdfString("Default")),
     ("/OFF", Array([Indirect(hints_num), Indirect(solution_num)])),
   ])
   let ocprops : PdfObject = Dictionary([

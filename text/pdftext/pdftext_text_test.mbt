@@ -49,8 +49,8 @@ fn cid_font_dict(encoding_name : String) -> @pdf.PdfObject {
     (
       "/CIDSystemInfo",
       Dictionary([
-        ("/Registry", String("Adobe")),
-        ("/Ordering", String("Identity")),
+        ("/Registry", PdfString("Adobe")),
+        ("/Ordering", PdfString("Identity")),
         ("/Supplement", Integer(0)),
       ]),
     ),

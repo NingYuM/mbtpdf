@@ -293,7 +293,7 @@ test "change_pages ignores unsupported openaction dictionaries" {
   set_catalog_entry(
     pdf,
     "/OpenAction",
-    Dictionary([("/S", Name(PdfName("/URI"))), ("/URI", String("x"))]),
+    Dictionary([("/S", Name(PdfName("/URI"))), ("/URI", PdfString("x"))]),
   )
   let pages = @pdfpage.PdfPageDoc::new(pdf).pages_of_pagetree()
   let matrices = [

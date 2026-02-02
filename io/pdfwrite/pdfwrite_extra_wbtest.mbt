@@ -3,7 +3,7 @@ let write_ctx : PdfWrite = PdfWrite::new()
 
 ///|
 test "string_of_pdf escapes carriage return and form feed" {
-  let obj : @pdf.PdfObject = String("a\r\f")
+  let obj : @pdf.PdfObject = PdfString("a\r\f")
   let rendered = write_ctx.string_of_pdf(obj)
   assert_true(rendered.contains("\\r"))
   assert_true(rendered.contains("\\f"))
@@ -11,7 +11,7 @@ test "string_of_pdf escapes carriage return and form feed" {
 
 ///|
 test "string_of_pdf escapes newline" {
-  let obj : @pdf.PdfObject = String("a\nb")
+  let obj : @pdf.PdfObject = PdfString("a\nb")
   let rendered = write_ctx.string_of_pdf(obj)
   assert_true(rendered.contains("\\n"))
 }
@@ -116,7 +116,7 @@ test "pdf_to_output generates object streams with indirect lengths" {
   let payload = "A".repeat(1000)
   let payload_ids = Array::new()
   for _ in 0..<=30 {
-    let objnum = pdf.addobj(String(payload))
+    let objnum = pdf.addobj(PdfString(payload))
     payload_ids.push(objnum)
   }
   for objnum in payload_ids {
