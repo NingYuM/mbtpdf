@@ -24,6 +24,8 @@ pub struct Output {
   output_string : (String) -> Unit
   out_channel_length : () -> Int
   flush : async () -> Unit
+  /// Bulk write: (bytes, offset, length) -> Unit. Faster than per-byte output_byte for large data.
+  output_bulk : ((Array[Byte], Int, Int) -> Unit)?
 }
 
 ///|
@@ -255,6 +257,7 @@ pub fn Output::of_write_at(
     output_string: s => output_bytes(Bytes::from_array(bytes_of_string(s))),
     out_channel_length: () => highest_written + 1,
     flush: flush_output,
+    output_bulk: None,
   }
 }
 
@@ -273,9 +276,7 @@ pub fn Output::extract_bytes(
 ) -> Array[Byte] {
   let len = (self.pos_out)()
   let out = mkbytes(len)
-  for i in 0..<len {
-    bset_unsafe(out, i, bget_unsafe(data.val, i))
-  }
+  data.val[:len].blit_to(out)
   out
 }
 
@@ -420,8 +421,12 @@ pub fn Output::getinit(
   if offset > max || offset < 0 || last < 0 || last > max {
     fail("getinit")
   }
-  for i = offset; i < offset + length; i = i + 1 {
-    (self.output_byte)(bget_unsafe(bytes, i))
+  match self.output_bulk {
+    Some(bulk) => bulk(bytes, offset, length)
+    None =>
+      for i = offset; i < offset + length; i = i + 1 {
+        (self.output_byte)(bget_unsafe(bytes, i))
+      }
   }
 }
 
@@ -599,19 +604,43 @@ fn output_of_bytes(data : Ref[Array[Byte]]) -> Output {
       pos = pos + 1
     }
   }
+  let bulk_write = fn(bytes : Array[Byte], offset : Int, length : Int) -> Unit {
+    if length == 0 {
+      return
+    }
+    let end_pos = pos + length
+    // Ensure buffer is large enough
+    if end_pos > data.val.length() {
+      let mut new_len = data.val.length()
+      while new_len < end_pos {
+        new_len = if new_len * 2 > 0 { new_len * 2 } else { 1 }
+      }
+      let new_bytes = mkbytes(new_len)
+      data.val[:].blit_to(new_bytes)
+      data.val = new_bytes
+    }
+    // Batch copy
+    bytes[offset:offset + length].blit_to(data.val, dst_offset=pos)
+    let last = end_pos - 1
+    highest_written = if highest_written > last {
+      highest_written
+    } else {
+      last
+    }
+    pos = end_pos
+  }
   {
     pos_out: () => pos,
     seek_out: p => pos = p,
     output_char: c => output_int(c.to_int()),
     output_string: s => {
       let bytes = bytes_of_string(s)
-      for b in bytes {
-        output_int(b.to_int())
-      }
+      bulk_write(bytes, 0, bytes.length())
     },
     output_byte: output_int,
     out_channel_length: () => highest_written + 1,
     flush: noop_flush,
+    output_bulk: Some(bulk_write),
   }
 }
 
