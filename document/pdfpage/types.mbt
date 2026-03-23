@@ -12,7 +12,7 @@ pub(all) enum Rotation {
 
 ///|
 /// A type representing a PDF page.
-pub struct Page {
+pub(all) struct Page {
   /// Content streams containing the page's graphics operators (text, images, paths).
   content : Array[PdfObject]
   /// Page dimensions as a rectangle [minX, minY, maxX, maxY] in points (1/72 inch).
