@@ -307,6 +307,7 @@ fn lexemes_of_op(op : Op) -> Array[Lexeme] {
       } else {
         ()
       }
+    OpRaw(text) => push(LexRaw(text))
   }
   out
 }
@@ -339,6 +340,7 @@ fn string_of_lexeme(lexeme : Lexeme) -> String raise {
     Obj(token) => @pdfsyntax.string_of_lexeme(token)
     Op(op) => op
     PdfObj(obj) => obj.to_string()
+    LexRaw(text) => text
     LexInlineImage((dict, dp, data)) => {
       let dict_data = match
         @pdf.Pdf::empty().lookup_direct_orelse("/F", "/Filter", dict) {
@@ -485,6 +487,18 @@ fn stream_of_lexemes(oplists : Array[Array[Lexeme]]) -> Array[Byte] raise {
 /// after further encoding via `@pdfcodec.PdfCodec::encode_pdfstream`).
 pub fn Op::stream_of_ops(ops : Array[Op]) -> @pdf.PdfObject raise {
   let data = stream_of_lexemes(lexemelists_of_ops(ops))
+  Stream(
+    Ref::new(
+      (Dictionary([("/Length", Integer(@pdfio.bytes_size(data)))]), Got(data)),
+    ),
+  )
+}
+
+///|
+/// Create a PDF stream directly from a pre-serialized content string.
+/// This bypasses the Op→Lexeme→String pipeline entirely.
+pub fn Op::stream_of_string(content : String) -> @pdf.PdfObject {
+  let data = @pdfio.bytes_of_string(content)
   Stream(
     Ref::new(
       (Dictionary([("/Length", Integer(@pdfio.bytes_size(data)))]), Got(data)),

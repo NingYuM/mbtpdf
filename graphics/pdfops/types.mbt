@@ -77,6 +77,7 @@ pub(all) enum Op {
   OpEX
   OpUnknown(String)
   OpComment(String)
+  OpRaw(String)
 } derive(Debug)
 
 ///|
@@ -92,6 +93,7 @@ priv enum Lexeme {
   PdfObj(PdfObject)
   LexInlineImage((PdfObject, PdfObject?, Array[Byte]))
   LexComment
+  LexRaw(String)
 }
 
 ///|
