@@ -169,6 +169,19 @@ pub fn copybytes(bytes : Array[Byte]) -> Array[Byte] {
 }
 
 ///|
+fn copy_byte_range(
+  src : Array[Byte],
+  src_offset : Int,
+  dst : Array[Byte],
+  dst_offset : Int,
+  length : Int,
+) -> Unit {
+  for i in 0..<length {
+    dst.unsafe_set(dst_offset + i, src.unsafe_get(src_offset + i))
+  }
+}
+
+///|
 /// Build an input from bytes.
 pub fn Input::of_bytes(
   bytes : Array[Byte],
@@ -223,7 +236,7 @@ pub fn Output::of_write_at(
       if pos > buffer.val.length() - 1 {
         let new_len = if pos * 2 > 0 { pos * 2 } else { 1 }
         let new_bytes = mkbytes(new_len)
-        buffer.val[:].blit_to(new_bytes)
+        copy_byte_range(buffer.val, 0, new_bytes, 0, buffer.val.length())
         buffer.val = new_bytes
       }
       buffer.val.unsafe_set(pos, b)
@@ -238,7 +251,7 @@ pub fn Output::of_write_at(
   }
   async fn flush_output() -> Unit {
     let out = mkbytes(pos)
-    buffer.val[:pos].blit_to(out)
+    copy_byte_range(buffer.val, 0, out, 0, pos)
     let bytes = Bytes::from_array(out)
     write_at(bytes[:], 0)
   }
@@ -276,7 +289,7 @@ pub fn Output::extract_bytes(
 ) -> Array[Byte] {
   let len = (self.pos_out)()
   let out = mkbytes(len)
-  data.val[:len].blit_to(out)
+  copy_byte_range(data.val, 0, out, 0, len)
   out
 }
 
@@ -585,7 +598,7 @@ fn output_of_bytes(data : Ref[Array[Byte]]) -> Output {
     if pos > data.val.length() - 1 {
       let new_len = if pos * 2 > 0 { pos * 2 } else { 1 }
       let new_bytes = mkbytes(new_len)
-      data.val[:].blit_to(new_bytes)
+      copy_byte_range(data.val, 0, new_bytes, 0, data.val.length())
       bset_unsafe(new_bytes, pos, value)
       highest_written = if highest_written > pos {
         highest_written
@@ -616,11 +629,10 @@ fn output_of_bytes(data : Ref[Array[Byte]]) -> Output {
         new_len = if new_len * 2 > 0 { new_len * 2 } else { 1 }
       }
       let new_bytes = mkbytes(new_len)
-      data.val[:].blit_to(new_bytes)
+      copy_byte_range(data.val, 0, new_bytes, 0, data.val.length())
       data.val = new_bytes
     }
-    // Batch copy
-    bytes[offset:offset + length].blit_to(data.val, dst_offset=pos)
+    copy_byte_range(bytes, offset, data.val, pos, length)
     let last = end_pos - 1
     highest_written = if highest_written > last {
       highest_written

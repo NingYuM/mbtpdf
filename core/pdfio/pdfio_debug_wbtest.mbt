@@ -12,6 +12,20 @@ async test "input_output_of_bytes supports seek and flush" {
 }
 
 ///|
+test "output_of_bytes grows across repeated resizes" {
+  let payload = "a".repeat(20000)
+  let (output, buffer) = Output::of_bytes(1)
+  (output.output_string)(payload)
+  (output.seek_out)(0)
+  (output.output_byte)('b')
+  (output.seek_out)(payload.length())
+  let out = output.extract_bytes(buffer)
+  assert_eq(out.length(), payload.length())
+  assert_eq(out[0].to_int(), 'b')
+  assert_eq(out[out.length() - 1].to_int(), 'a')
+}
+
+///|
 test "debug_next_n_chars rewinds input" {
   let input = Input::of_string("abc")
   @pdfe.with_logger(_ => (), fn() { debug_next_n_chars(2, input) })
