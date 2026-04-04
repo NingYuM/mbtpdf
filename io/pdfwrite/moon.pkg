@@ -7,7 +7,10 @@ import {
   "bobzhang/mbtpdf/crypto/pdfcrypt",
   "bobzhang/mbtpdf/io/pdfread",
   "bobzhang/mbtpdf/document/pdfpage",
-  "bobzhang/mbtpdf/io/pdfiofs",
   "moonbitlang/async",
-  "moonbitlang/async/fs",
 }
+
+import {
+  "bobzhang/mbtpdf/io/pdfiofs",
+  "moonbitlang/async/fs",
+} for "wbtest"

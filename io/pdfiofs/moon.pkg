@@ -4,3 +4,5 @@ import {
   "moonbitlang/async/fs",
   "moonbitlang/async/io",
 }
+
+supported_targets = "+native"
