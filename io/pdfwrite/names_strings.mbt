@@ -82,20 +82,30 @@ fn make_pdf_name(ctx : PdfWrite, name : String) -> String {
 
 ///|
 fn make_pdf_string(value : String) -> String {
+  let bytes = @pdfio.bytes_of_string(value)
   let sb = StringBuilder::new()
   sb.write_char('(')
-  for ch in value {
-    match ch {
-      '(' | ')' | '\\' => {
+  for byte in bytes {
+    let b = byte.to_int()
+    match b {
+      0x28 | 0x29 | 0x5C => {
         sb.write_char('\\')
-        sb.write_char(ch)
+        sb.write_char(byte.to_char())
       }
-      '\n' => sb.write_string("\\n")
-      '\r' => sb.write_string("\\r")
-      '\t' => sb.write_string("\\t")
-      '\b' => sb.write_string("\\b")
-      '\f' => sb.write_string("\\f")
-      _ => sb.write_char(ch)
+      0x0A => sb.write_string("\\n")
+      0x0D => sb.write_string("\\r")
+      0x09 => sb.write_string("\\t")
+      0x08 => sb.write_string("\\b")
+      0x0C => sb.write_string("\\f")
+      _ =>
+        if b < 0x20 || b >= 0x7F {
+          sb.write_char('\\')
+          sb.write_char((((b >> 6) & 0x07) + 48).to_byte().to_char())
+          sb.write_char((((b >> 3) & 0x07) + 48).to_byte().to_char())
+          sb.write_char(((b & 0x07) + 48).to_byte().to_char())
+        } else {
+          sb.write_char(byte.to_char())
+        }
     }
   }
   sb.write_char(')')

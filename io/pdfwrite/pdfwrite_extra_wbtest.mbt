@@ -17,6 +17,15 @@ test "string_of_pdf escapes newline" {
 }
 
 ///|
+test "string_of_pdf escapes raw non-ascii and delimiter bytes bytewise" {
+  let raw = @pdfio.string_of_int_array([
+    0x00, 0x28, 0x29, 0x5C, 0xE4, 0xB8, 0xAD,
+  ])
+  let rendered = write_ctx.string_of_pdf(PdfString(raw))
+  assert_eq(rendered, "(\\000\\(\\)\\\\\\344\\270\\255)")
+}
+
+///|
 test "string_of_pdf expands scientific notation" {
   let rendered = write_ctx.string_of_pdf(Real(1.2e20))
   assert_true(!rendered.contains("e") && !rendered.contains("E"))
