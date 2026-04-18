@@ -65,3 +65,20 @@ test "string_of_input and getinit write output" {
   let out = output.extract_bytes(buffer)
   assert_eq(string_of_bytes(out), "hi")
 }
+
+///|
+#warnings("-unused_async")
+async test "of_write_at getinit preserves bulk writes and seeks" {
+  let flushed : Ref[Array[Byte]] = { val: [] }
+  let output = Output::of_write_at(async fn(bytes, pos) {
+    assert_eq(pos.to_int(), 0)
+    flushed.val = bytes.to_array()
+  })
+  let hello = bytes_of_string("hello world")
+  output.getinit(hello, 0, hello.length())
+  (output.seek_out)(6)
+  let moonbit = bytes_of_string("MoonBit")
+  output.getinit(moonbit, 0, moonbit.length())
+  (output.flush)()
+  assert_eq(string_of_bytes(flushed.val), "hello MoonBit")
+}
