@@ -39,20 +39,6 @@ fn hex_digit(value : Int) -> Char {
 }
 
 ///|
-fn needs_processing_name(bytes : Array[Byte]) -> Bool {
-  if bytes.length() < 2 {
-    return false
-  }
-  for i in 1..<bytes.length() {
-    let b = bytes[i].to_int()
-    if b < 33 || b > 126 || is_delimiter_byte(b) || b == '#' {
-      return true
-    }
-  }
-  false
-}
-
-///|
 fn make_pdf_name(ctx : PdfWrite, name : String) -> String {
   let normalized = match name.get_char(0) {
     Some('/') => name
@@ -61,10 +47,18 @@ fn make_pdf_name(ctx : PdfWrite, name : String) -> String {
       "/" + name
     }
   }
-  let bytes = @pdfio.bytes_of_string(normalized)
-  if !needs_processing_name(bytes) {
+  let mut needs_processing = false
+  for i in 1..<normalized.length() {
+    let b = normalized[i].to_int()
+    if b < 33 || b > 126 || is_delimiter_byte(b) || b == '#' {
+      needs_processing = true
+      break
+    }
+  }
+  if !needs_processing {
     return normalized
   }
+  let bytes = @pdfio.bytes_of_string(normalized)
   let sb = StringBuilder::new()
   sb.write_char('/')
   for i in 1..<bytes.length() {
