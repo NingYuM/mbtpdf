@@ -231,6 +231,18 @@ pub fn Output::of_write_at(
   let mut highest_written = -1
   let single : Array[Byte] = mkbytes(1)
   let buffer : Ref[Array[Byte]] = { val: mkbytes(4096) }
+  let ensure_capacity = (end_pos : Int) => {
+    if end_pos <= buffer.val.length() {
+      return
+    }
+    let mut new_len = buffer.val.length()
+    while new_len < end_pos {
+      new_len = if new_len * 2 > 0 { new_len * 2 } else { 1 }
+    }
+    let new_bytes = mkbytes(new_len)
+    copy_byte_range(buffer.val, 0, new_bytes, 0, buffer.val.length())
+    buffer.val = new_bytes
+  }
   let output_bytes = (bytes : Bytes) => {
     for b in bytes {
       if pos > buffer.val.length() - 1 {
@@ -248,6 +260,21 @@ pub fn Output::of_write_at(
     } else {
       last
     }
+  }
+  let bulk_write = fn(bytes : Array[Byte], offset : Int, length : Int) -> Unit {
+    if length == 0 {
+      return
+    }
+    let end_pos = pos + length
+    ensure_capacity(end_pos)
+    copy_byte_range(bytes, offset, buffer.val, pos, length)
+    let last = end_pos - 1
+    highest_written = if highest_written > last {
+      highest_written
+    } else {
+      last
+    }
+    pos = end_pos
   }
   async fn flush_output() -> Unit {
     let out = mkbytes(pos)
@@ -270,7 +297,7 @@ pub fn Output::of_write_at(
     output_string: s => output_bytes(Bytes::from_array(bytes_of_string(s))),
     out_channel_length: () => highest_written + 1,
     flush: flush_output,
-    output_bulk: None,
+    output_bulk: Some(bulk_write),
   }
 }
 
