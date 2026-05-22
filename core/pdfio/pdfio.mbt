@@ -77,7 +77,11 @@ pub fn bytes_of_string(s : String) -> Array[Byte] {
 ///|
 /// Make bytes from core bytes.
 pub fn bytes_of_caml_bytes(bytes : Bytes) -> Array[Byte] {
-  bytes.to_array()
+  let out = Array::new(capacity=bytes.length())
+  for b in bytes {
+    out.push(b)
+  }
+  out
 }
 
 ///|

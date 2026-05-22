@@ -2,7 +2,9 @@
 fn filterspecial(filters : Array[@pdf.PdfObject]) -> Bool {
   filters.any(filter => match filter {
     Name(name) =>
-      name is PdfName("/ASCIIHexDecode" | "/ASCII85Decode" | "/AHx" | "/A85")
+      name is PdfName(
+        b"/ASCIIHexDecode" | b"/ASCII85Decode" | b"/AHx" | b"/A85",
+      )
     _ => false
   })
 }
@@ -143,12 +145,12 @@ fn lex_inline_image(
       Some(Name(name)) =>
         if name
           is PdfName(
-            "/DeviceGray"
-            | "/DeviceRGB"
-            | "/DeviceCMYK"
-            | "/G"
-            | "/RGB"
-            | "/CMYK"
+            b"/DeviceGray"
+            | b"/DeviceRGB"
+            | b"/DeviceCMYK"
+            | b"/G"
+            | b"/RGB"
+            | b"/CMYK"
           ) {
           PdfObject::Name(name)
         } else {
@@ -173,7 +175,7 @@ fn lex_inline_image(
       Some(PdfArray(_) as n) => n
       None =>
         match pdf.lookup_direct_orelse("/IM", "/ImageMask", dict) {
-          Some(Boolean(true)) => Name(PdfName("/DeviceGray"))
+          Some(Boolean(true)) => Name(PdfName(b"/DeviceGray"))
           _ => {
             @pdfe.debug("no colourspace C\n")
             nocontent(input)
@@ -221,7 +223,7 @@ fn lex_inline_image(
         out
       }
       Some(Name(name)) =>
-        if name is PdfName("/DCT" | "/DCTDecode") {
+        if name is PdfName(b"/DCT" | b"/DCTDecode") {
           get_jpeg_data(input)
         } else {
           let encoded = read_inline_image_encoded_data(input)
@@ -238,7 +240,7 @@ fn lex_inline_image(
         if items.length() == 1 {
           match items[0] {
             Name(name) =>
-              if name is PdfName("/DCT" | "/DCTDecode") {
+              if name is PdfName(b"/DCT" | b"/DCTDecode") {
                 get_jpeg_data(input)
               } else {
                 let encoded = read_inline_image_encoded_data(input)
@@ -299,7 +301,7 @@ fn lex_inline_image(
     }
     let dict_clean = match filter_opt {
       Some(Name(name)) =>
-        if name is PdfName("/DCT" | "/DCTDecode") {
+        if name is PdfName(b"/DCT" | b"/DCTDecode") {
           dict
         } else {
           let mut cleaned = dict
@@ -312,7 +314,7 @@ fn lex_inline_image(
         if items.length() == 1 {
           match items[0] {
             Name(name) =>
-              if name is PdfName("/DCT" | "/DCTDecode") {
+              if name is PdfName(b"/DCT" | b"/DCTDecode") {
                 dict
               } else {
                 let mut cleaned = dict

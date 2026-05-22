@@ -112,10 +112,7 @@ test "uncompress stored zlib" {
     Error(stage, msg) => fail("\{stage}: \{msg}")
   }
   let ints = out.map(b => b.to_int())
-  inspect(
-    ints,
-    content="[104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100]",
-  )
+  assert_true(ints == [104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100])
 }
 
 ///|
@@ -127,10 +124,7 @@ test "uncompress fixed huffman" {
     Error(stage, msg) => fail("\{stage}: \{msg}")
   }
   let ints = out.map(b => b.to_int())
-  inspect(
-    ints,
-    content="[104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100]",
-  )
+  assert_true(ints == [104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100])
 }
 
 ///|
@@ -143,7 +137,7 @@ test "uncompress fixed huffman with length/distance pairs" {
   let out = run_uncompress(data, false) catch {
     Error(stage, msg) => fail("\{stage}: \{msg}")
   }
-  assert_eq(@pdfio.string_of_bytes(out), "ABCDEFBCDEFBCDEFBBBB")
+  assert_true(@pdfio.string_of_bytes(out) == "ABCDEFBCDEFBCDEFBBBB")
 }
 
 ///|
@@ -157,7 +151,7 @@ test "uncompress dynamic huffman" {
     Error(stage, msg) => fail("\{stage}: \{msg}")
   }
   let expected = @pdfio.bytes_of_string("abcde".repeat(1000))
-  assert_eq(out, expected)
+  assert_true(out == expected)
 }
 
 ///|
@@ -167,7 +161,7 @@ test "compress/uncompress roundtrip zlib" {
   let decoded = run_uncompress(encoded, true) catch {
     Error(stage, msg) => fail("\{stage}: \{msg}")
   }
-  assert_eq(@pdfio.string_of_bytes(decoded), "hello flate")
+  assert_true(@pdfio.string_of_bytes(decoded) == "hello flate")
 }
 
 ///|
@@ -177,7 +171,7 @@ test "compress/uncompress roundtrip raw" {
   let decoded = run_uncompress(encoded, false) catch {
     Error(stage, msg) => fail("\{stage}: \{msg}")
   }
-  assert_eq(@pdfio.string_of_bytes(decoded), "hello flate raw")
+  assert_true(@pdfio.string_of_bytes(decoded) == "hello flate raw")
 }
 
 ///|
@@ -190,7 +184,7 @@ test "compress/uncompress roundtrip raw multi-block stored" {
   let decoded = run_uncompress(encoded, false) catch {
     Error(stage, msg) => fail("\{stage}: \{msg}")
   }
-  assert_eq(decoded, input)
+  assert_true(decoded == input)
 }
 
 ///|

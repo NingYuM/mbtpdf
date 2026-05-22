@@ -20,9 +20,9 @@ test "build and read number tree" {
   let pdf = @pdf.Pdf::empty()
   let tree_ctx = @pdftree.PdfTree::new(pdf)
   let entries : Array[(String, @pdf.PdfObject)] = [
-    ("1", Name(PdfName("/One"))),
-    ("3", Name(PdfName("/Three"))),
-    ("2", Name(PdfName("/Two"))),
+    ("1", Name(PdfName(b"/One"))),
+    ("3", Name(PdfName(b"/Three"))),
+    ("2", Name(PdfName(b"/Two"))),
   ]
   let tree = tree_ctx.build_name_tree(true, entries)
   let read = tree_ctx.read_number_tree(tree)
@@ -100,9 +100,9 @@ test "read_name_tree skips malformed keys" {
       "/Names",
       PdfArray([
         Integer(1),
-        Name(PdfName("/One")),
+        Name(PdfName(b"/One")),
         PdfString("B"),
-        Name(PdfName("/Two")),
+        Name(PdfName(b"/Two")),
       ]),
     ),
   ])
@@ -120,11 +120,11 @@ test "read_number_tree handles duplicate keys" {
       "/Nums",
       PdfArray([
         Integer(1),
-        Name(PdfName("/One")),
+        Name(PdfName(b"/One")),
         Integer(1),
-        Name(PdfName("/Uno")),
+        Name(PdfName(b"/Uno")),
         Integer(2),
-        Name(PdfName("/Two")),
+        Name(PdfName(b"/Two")),
       ]),
     ),
   ])
@@ -134,7 +134,7 @@ test "read_number_tree handles duplicate keys" {
   for pair in read {
     if pair.0 == "1" {
       match (pair.1 : @pdf.PdfObject) {
-        Name(name) => if name is PdfName("/One" | "/Uno") { found = true }
+        Name(name) => if name is PdfName(b"/One" | b"/Uno") { found = true }
         _ => ()
       }
     }
@@ -147,8 +147,8 @@ test "build_number_tree parses non-integer keys as 0" {
   let pdf = @pdf.Pdf::empty()
   let tree_ctx = @pdftree.PdfTree::new(pdf)
   let entries : Array[(String, @pdf.PdfObject)] = [
-    ("x", Name(PdfName("/X"))),
-    ("2", Name(PdfName("/Two"))),
+    ("x", Name(PdfName(b"/X"))),
+    ("2", Name(PdfName(b"/Two"))),
   ]
   let tree = tree_ctx.build_name_tree(true, entries)
   let read = tree_ctx.read_number_tree(tree)
@@ -165,9 +165,9 @@ test "read_number_tree returns empty on non-integer keys" {
       "/Nums",
       PdfArray([
         PdfString("x"),
-        Name(PdfName("/X")),
+        Name(PdfName(b"/X")),
         Integer(2),
-        Name(PdfName("/Two")),
+        Name(PdfName(b"/Two")),
       ]),
     ),
   ])

@@ -1,7 +1,3 @@
-import {
-  "bobzhang/mbtpdf" as @lib,
-}
-
 options(
   "is-main": true,
 )

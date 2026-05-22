@@ -50,7 +50,7 @@ pub fn PdfMergeDoc::remove_duplicate_fonts(self : PdfMergeDoc) -> Unit {
   for group in toprocess {
     match group {
       [keep, .. rest] => {
-        let changetable : Map[Int, Int] = Map::new(capacity=rest.length())
+        let changetable : Map[Int, Int] = Map([], capacity=rest.length())
         for item in rest {
           changetable.set(item, keep)
         }
@@ -59,16 +59,22 @@ pub fn PdfMergeDoc::remove_duplicate_fonts(self : PdfMergeDoc) -> Unit {
       _ => ()
     }
   }
-  let existing = pdf.objects.objects.to_array()
-  for entry in existing {
-    pdf.objects.objects.remove(entry.0)
+  let existing_objnums = Array::new(capacity=pdf.objects.objects.length())
+  for entry in pdf.objects.objects {
+    existing_objnums.push(entry.0)
+  }
+  for objnum in existing_objnums {
+    pdf.objects.objects.remove(objnum)
   }
   for entry in current.objects.objects {
     pdf.objects.objects.set(entry.0, entry.1)
   }
-  let existing_ids = pdf.objects.object_stream_ids.to_array()
-  for entry in existing_ids {
-    pdf.objects.object_stream_ids.remove(entry.0)
+  let existing_id_keys = Array::new(capacity=pdf.objects.object_stream_ids.length())
+  for entry in pdf.objects.object_stream_ids {
+    existing_id_keys.push(entry.0)
+  }
+  for objnum in existing_id_keys {
+    pdf.objects.object_stream_ids.remove(objnum)
   }
   for entry in current.objects.object_stream_ids {
     pdf.objects.object_stream_ids.set(entry.0, entry.1)

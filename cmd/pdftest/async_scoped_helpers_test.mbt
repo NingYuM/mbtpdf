@@ -10,17 +10,17 @@ async test "pdfe.with_logger_async restores logger on error" {
     @pdfe.quiet.val = prev_quiet
     @pdfe.logger.val = prev_logger
   }
-  let res : Result[Unit, Error] = try? @pdfe.with_logger_async(
+  let res : Result[Unit, Error] = @pdfe.with_logger_async(
     s => inner.push(s),
-    fn() {
+    fn() raise {
       @pdfe.log("inner")
       fail("boom")
     },
   )
   assert_true(res is Err(_))
   @pdfe.log("outer")
-  assert_eq(inner, ["inner"])
-  assert_eq(outer, ["outer"])
+  assert_true(inner == ["inner"])
+  assert_true(outer == ["outer"])
 }
 
 ///|
@@ -40,15 +40,15 @@ async test "pdfutil.with_printer_async restores printer on error" {
     @pdfutil.quiet.val = prev_quiet
     @pdfutil.printer.val = prev_printer
   }
-  let res : Result[Unit, Error] = try? @pdfutil.with_printer_async(
+  let res : Result[Unit, Error] = @pdfutil.with_printer_async(
     s => inner.push(s),
-    fn() {
+    fn() raise {
       @pdfutil.PdfUtil::new().flprint("inner\n")
       fail("boom")
     },
   )
   assert_true(res is Err(_))
   @pdfutil.PdfUtil::new().flprint("outer\n")
-  assert_eq(inner, ["inner"])
-  assert_eq(outer, ["outer"])
+  assert_true(inner == ["inner"])
+  assert_true(outer == ["outer"])
 }

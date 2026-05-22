@@ -5,7 +5,7 @@ fn font_with_encoding_name(
 ) -> @pdf.PdfObject {
   Dictionary([
     ("/Subtype", Name(@pdf.PdfName::of_string(subtype))),
-    ("/BaseFont", Name(PdfName("/CustomFont"))),
+    ("/BaseFont", Name(PdfName(b"/CustomFont"))),
     ("/Encoding", Name(@pdf.PdfName::of_string(encoding_name))),
   ])
 }
@@ -13,11 +13,11 @@ fn font_with_encoding_name(
 ///|
 fn truetype_font_with_encoding_dict() -> @pdf.PdfObject {
   Dictionary([
-    ("/Subtype", Name(PdfName("/TrueType"))),
-    ("/BaseFont", Name(PdfName("/CustomFont"))),
+    ("/Subtype", Name(PdfName(b"/TrueType"))),
+    ("/BaseFont", Name(PdfName(b"/CustomFont"))),
     (
       "/Encoding",
-      Dictionary([("/BaseEncoding", Name(PdfName("/MacRomanEncoding")))]),
+      Dictionary([("/BaseEncoding", Name(PdfName(b"/MacRomanEncoding")))]),
     ),
   ])
 }
@@ -25,13 +25,13 @@ fn truetype_font_with_encoding_dict() -> @pdf.PdfObject {
 ///|
 fn embedded_font_with_custom_encoding() -> @pdf.PdfObject {
   Dictionary([
-    ("/Subtype", Name(PdfName("/Type1"))),
-    ("/BaseFont", Name(PdfName("/CustomFont"))),
+    ("/Subtype", Name(PdfName(b"/Type1"))),
+    ("/BaseFont", Name(PdfName(b"/CustomFont"))),
     ("/FontDescriptor", Dictionary([("/FontFile2", Indirect(10))])),
     (
       "/Encoding",
       Dictionary([
-        ("/Differences", PdfArray([Integer(65), Name(PdfName("/A"))])),
+        ("/Differences", PdfArray([Integer(65), Name(PdfName(b"/A"))])),
       ]),
     ),
   ])
@@ -40,8 +40,8 @@ fn embedded_font_with_custom_encoding() -> @pdf.PdfObject {
 ///|
 fn font_with_difference(name : String) -> @pdf.PdfObject {
   Dictionary([
-    ("/Subtype", Name(PdfName("/Type1"))),
-    ("/BaseFont", Name(PdfName("/CustomFont"))),
+    ("/Subtype", Name(PdfName(b"/Type1"))),
+    ("/BaseFont", Name(PdfName(b"/CustomFont"))),
     (
       "/Encoding",
       Dictionary([
@@ -64,17 +64,17 @@ test "encoding tables include mac variants and filled standards" {
   let macroman = @pdftext.PdfTextUtil::new().table_of_encoding(
     macroman_encoding,
   )
-  assert_eq(macroman.get(65), Some("/A"))
+  assert_true(macroman.get(65) == Some("/A"))
   let macexpert_encoding = ctx.read_encoding(
     font_with_encoding_name("/MacExpertEncoding"),
   )
   let macexpert = @pdftext.PdfTextUtil::new().table_of_encoding(
     macexpert_encoding,
   )
-  assert_eq(macexpert.get(97), Some("/Asmall"))
+  assert_true(macexpert.get(97) == Some("/Asmall"))
   let filled_encoding = ctx.read_encoding(truetype_font_with_encoding_dict())
   let filled = @pdftext.PdfTextUtil::new().table_of_encoding(filled_encoding)
-  assert_eq(filled.get(65), Some("/A"))
+  assert_true(filled.get(65) == Some("/A"))
 }
 
 ///|
@@ -82,33 +82,33 @@ test "reverse tables handle implicit and mac encodings" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
   let font_dict : @pdf.PdfObject = Dictionary([
-    ("/Subtype", Name(PdfName("/Type1"))),
-    ("/BaseFont", Name(PdfName("/CustomFont"))),
+    ("/Subtype", Name(PdfName(b"/Type1"))),
+    ("/BaseFont", Name(PdfName(b"/CustomFont"))),
   ])
   let implicit_encoding = ctx.read_encoding(font_dict)
   let implicit = @pdftext.PdfTextUtil::new().reverse_table_of_encoding(
     implicit_encoding,
   )
-  assert_eq(implicit.get("/A"), None)
+  assert_true(implicit.get("/A") == None)
   let macroman_encoding = ctx.read_encoding(
     font_with_encoding_name("/MacRomanEncoding"),
   )
   let macroman = @pdftext.PdfTextUtil::new().reverse_table_of_encoding(
     macroman_encoding,
   )
-  assert_eq(macroman.get("/A"), Some(65))
+  assert_true(macroman.get("/A") == Some(65))
   let macexpert_encoding = ctx.read_encoding(
     font_with_encoding_name("/MacExpertEncoding"),
   )
   let macexpert = @pdftext.PdfTextUtil::new().reverse_table_of_encoding(
     macexpert_encoding,
   )
-  assert_eq(macexpert.get("/Asmall"), Some(97))
+  assert_true(macexpert.get("/Asmall") == Some(97))
   let filled_encoding = ctx.read_encoding(truetype_font_with_encoding_dict())
   let filled = @pdftext.PdfTextUtil::new().reverse_table_of_encoding(
     filled_encoding,
   )
-  assert_eq(filled.get("/A"), Some(65))
+  assert_true(filled.get("/A") == Some(65))
 }
 
 ///|
@@ -118,7 +118,7 @@ test "reverse table handles custom differences" {
     font_with_difference("/NotAGlyph"),
   )
   let reversed = @pdftext.PdfTextUtil::new().reverse_table_of_encoding(encoding)
-  assert_eq(reversed.get("/NotAGlyph"), Some(70))
+  assert_true(reversed.get("/NotAGlyph") == Some(70))
 }
 
 ///|
@@ -132,7 +132,7 @@ test "text extractor handles missing glyph hashes" {
   let pairs = extractor.glyphnames_and_codepoints_of_text("F")
   assert_eq(pairs.length(), 1)
   assert_true(pairs[0].0.contains("NotAGlyph"))
-  inspect(pairs[0].1, content="[70]")
+  assert_true(pairs[0].1 == [70])
   let names = extractor.glyphnames_of_text("F")
   assert_eq(names.length(), 1)
 }
@@ -141,13 +141,13 @@ test "text extractor handles missing glyph hashes" {
 test "charcode extractor uses tounicode bytes map" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
-  let tounicode : Map[Int, String] = Map::new()
+  let tounicode : Map[Int, String] = Map([])
   tounicode.set(33, @pdfio.string_of_int_array([0x00, 0x42]))
   let tounicode_ref = ctx.write_tounicode(tounicode)
   let charcode = ctx.charcode_extractor_of_font(
     simple_font_with_tounicode(tounicode_ref),
   )
-  assert_eq(charcode(66), Some(33))
+  assert_true(charcode(66) == Some(33))
 }
 
 ///|
@@ -172,7 +172,7 @@ test "codepoints_of_utf16be rejects invalid surrogate pairs" {
 ///|
 test "codepoints_of_utf8 handles two byte sequences" {
   let utf8 = @pdftext.PdfTextUtil::new().utf8_of_codepoints([0x00e9])
-  inspect(@pdftext.PdfTextUtil::new().codepoints_of_utf8(utf8), content="[233]")
+  assert_true(@pdftext.PdfTextUtil::new().codepoints_of_utf8(utf8) == [233])
 }
 
 ///|

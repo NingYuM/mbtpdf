@@ -346,7 +346,7 @@ fn string_of_lexeme(lexeme : Lexeme) -> String raise {
         @pdf.Pdf::empty().lookup_direct_orelse("/F", "/Filter", dict) {
         None | Some(PdfArray([])) => {
           let _ = dp
-          let dict = dict.add_entry("/F", Name(PdfName("/Fl")))
+          let dict = dict.add_entry("/F", Name(PdfName(b"/Fl")))
           let encoded = @pdfcodec.PdfCodec::new().encode_flate(data)
           (dict, encoded)
         }
@@ -488,7 +488,7 @@ fn stream_of_lexemes(oplists : Array[Array[Lexeme]]) -> Array[Byte] raise {
 pub fn Op::stream_of_ops(ops : Array[Op]) -> @pdf.PdfObject raise {
   let data = stream_of_lexemes(lexemelists_of_ops(ops))
   Stream(
-    Ref::new(
+    Ref(
       (Dictionary([("/Length", Integer(@pdfio.bytes_size(data)))]), Got(data)),
     ),
   )
@@ -500,7 +500,7 @@ pub fn Op::stream_of_ops(ops : Array[Op]) -> @pdf.PdfObject raise {
 pub fn Op::stream_of_string(content : String) -> @pdf.PdfObject {
   let data = @pdfio.bytes_of_string(content)
   Stream(
-    Ref::new(
+    Ref(
       (Dictionary([("/Length", Integer(@pdfio.bytes_size(data)))]), Got(data)),
     ),
   )

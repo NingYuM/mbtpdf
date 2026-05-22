@@ -1,4 +1,5 @@
 import {
   "bobzhang/mbtpdf/core/pdfio",
+  "moonbitlang/core/string",
   "moonbitlang/core/strconv",
 }

@@ -26,20 +26,12 @@ fn trim_trailing_zeros(value : String) -> String {
 
 ///|
 fn slice_from(value : String, start : Int) -> String {
-  try value[start:] catch {
-    _ => ""
-  } noraise {
-    view => view.to_string()
-  }
+  value[start:].to_owned()
 }
 
 ///|
 fn slice_range(value : String, start : Int, end : Int) -> String {
-  try value[start:end] catch {
-    _ => ""
-  } noraise {
-    view => view.to_string()
-  }
+  value[start:end].to_owned()
 }
 
 ///|

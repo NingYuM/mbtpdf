@@ -70,7 +70,9 @@ test "bytes_of_list" {
 test "int_array_of_bytes" {
   let bytes = @pdfio.bytes_of_string("Hi")
   let ints = @pdfio.int_array_of_bytes(bytes)
-  inspect(ints, content="[72, 105]")
+  if ints != [72, 105] {
+    fail("unexpected int array")
+  }
 }
 ```
 
@@ -123,8 +125,14 @@ test "input_of_bytes" {
 ///|
 test "input_of_string" {
   let input = @pdfio.Input::of_string("ABC")
-  inspect((input.input_char)(), content="Some('A')")
-  inspect((input.input_char)(), content="Some('B')")
+  match (input.input_char)() {
+    Some('A') => ()
+    _ => fail("expected A")
+  }
+  match (input.input_char)() {
+    Some('B') => ()
+    _ => fail("expected B")
+  }
 }
 ```
 

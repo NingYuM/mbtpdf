@@ -29,17 +29,17 @@ test "input_of_string supports read_line" {
 ///|
 test "peek_char and read_char_back" {
   let input = Input::of_string("ab")
-  assert_eq(input.peek_char(), Some('a'))
+  assert_true(input.peek_char() == Some('a'))
   let _ = (input.input_char)()
   let back = input.read_char_back()
-  assert_eq(back, Some('a'))
+  assert_true(back == Some('a'))
 }
 
 ///|
 test "read_lines reads all lines" {
   let input = Input::of_string("first\nsecond\n")
   let lines = input.read_lines()
-  assert_eq(lines, ["first", "second"])
+  assert_true(lines == ["first", "second"])
 }
 
 ///|
@@ -72,7 +72,11 @@ async test "of_write_at getinit preserves bulk writes and seeks" {
   let flushed : Ref[Array[Byte]] = { val: [] }
   let output = Output::of_write_at(async fn(bytes, pos) {
     assert_eq(pos.to_int(), 0)
-    flushed.val = bytes.to_array()
+    let collected = Array::new(capacity=bytes.length())
+    for b in bytes {
+      collected.push(b)
+    }
+    flushed.val = collected
   })
   let hello = bytes_of_string("hello world")
   output.getinit(hello, 0, hello.length())

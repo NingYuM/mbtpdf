@@ -1,13 +1,12 @@
 ///|
 async fn cleanup(path : String) -> Unit {
-  let _ : Result[Unit, Error] = try? @fs.remove(path)
-
+  let _ = @fs.remove(path)
 }
 
 ///|
 async test "run extracts text and rejects encrypted inputs" {
-  @pdfutil.with_quiet_async(true, async fn() {
-    @pdfe.with_silenced_logs_async(async fn() {
+  @pdfutil.with_quiet_async(true, fn() {
+    @pdfe.with_silenced_logs_async(fn() {
       run(["pdftext"], quiet=true)
       let in_file = "cmd_pdftext_in.pdf"
       let out_file = "cmd_pdftext_out.txt"

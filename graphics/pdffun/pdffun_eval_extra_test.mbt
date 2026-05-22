@@ -30,7 +30,7 @@ test "parse_function sampled order" {
     ("/Length", Integer(1)),
   ])
   let data = @pdfio.bytes_of_list([0x80])
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, Got(data))))
+  let stream : @pdf.PdfObject = Stream(Ref((dict, Got(data))))
   let parsed = PdfFunction::parse(pdf, stream)
   match parsed.func {
     Sampled(s) => assert_eq(s.order, 3)
@@ -68,7 +68,7 @@ test "parse_function calculator supports nested procedures" {
     ("/Length", Integer(program.length())),
   ])
   let data = @pdfio.bytes_of_string(program)
-  let stream : @pdf.PdfObject = Stream(Ref::new((dict, Got(data))))
+  let stream : @pdf.PdfObject = Stream(Ref((dict, Got(data))))
   let parsed = PdfFunction::parse(pdf, stream)
   match parsed.func {
     Calculator(ops) =>
@@ -88,7 +88,7 @@ test "parse_function rejects bad bits per sample" {
     ("/Domain", PdfArray([Real(0.0), Real(1.0)])),
     ("/Range", PdfArray([Real(0.0), Real(1.0)])),
     ("/Size", PdfArray([Integer(1)])),
-    ("/BitsPerSample", Name(PdfName("/Bad"))),
+    ("/BitsPerSample", Name(PdfName(b"/Bad"))),
   ])
   let res : Result[PdfFunction, Error] = try? PdfFunction::parse(pdf, dict)
   assert_true(res is Err(_))

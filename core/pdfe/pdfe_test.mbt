@@ -6,7 +6,7 @@ test "log forwards to logger" {
     @pdfe.log("world")
     ()
   })
-  inspect(messages, content="[\"hello\", \"world\"]")
+  assert_true(messages == ["hello", "world"])
 }
 
 ///|
@@ -19,7 +19,7 @@ test "quiet suppresses log output" {
     @pdfe.log("world")
     ()
   })
-  inspect(messages, content="[\"world\"]")
+  assert_true(messages == ["world"])
 }
 
 ///|
@@ -35,7 +35,7 @@ test "with_silenced_logs restores quiet flag" {
     ()
   })
   assert_false(@pdfe.quiet.val)
-  inspect(messages, content="[\"shown\"]")
+  assert_true(messages == ["shown"])
 }
 
 ///|
@@ -54,8 +54,8 @@ test "with_logger restores previous logger on error" {
     @pdfe.log("outer")
     ()
   })
-  inspect(inner_messages, content="[\"inner\"]")
-  inspect(outer_messages, content="[\"outer\"]")
+  assert_true(inner_messages == ["inner"])
+  assert_true(outer_messages == ["outer"])
 }
 
 ///|
@@ -66,7 +66,7 @@ test "warn appends newline (and preserves existing newline)" {
     @pdfe.warn("world\n")
     ()
   })
-  inspect(messages, content="[\"hello\\n\", \"world\\n\"]")
+  assert_true(messages == ["hello\n", "world\n"])
 }
 
 ///|
@@ -81,7 +81,7 @@ test "debug logs only when read_debug is enabled" {
     @pdfe.read_debug.val = prev
     ()
   })
-  inspect(messages, content="[\"shown\\n\"]")
+  assert_true(messages == ["shown\n"])
 }
 
 ///|
@@ -91,7 +91,7 @@ test "default logger writes via PdfUtil" {
     @pdfutil.with_quiet(true, fn() { @pdfutil.PdfUtil::new().fleprint("reset") })
     @pdfutil.with_quiet(false, fn() {
       (@pdfe.logger.val)("hello\n")
-      assert_eq(lines, ["hello"])
+      assert_true(lines == ["hello"])
     })
     ()
   })

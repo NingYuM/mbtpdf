@@ -22,7 +22,7 @@ test "read parses simple AFM data" {
   assert_eq(widths[0].0, 65)
   assert_eq(widths[0].1, 600)
   assert_eq(kerns.length(), 1)
-  assert_eq(kerns[0], (65, 66, -50))
+  assert_true(kerns[0] == (65, 66, -50))
   assert_eq(widths_prime.length(), 2)
   assert_eq(widths_prime[0].0, "A")
   assert_eq(widths_prime[0].1, 600)
@@ -77,9 +77,9 @@ test "read ignores short lines and unknown kern glyphs" {
     Some(index) => assert_eq(headers[index].1, "")
     None => fail("expected FooBar header")
   }
-  assert_eq(widths, [(65, 600)])
-  assert_eq(kerns, [(65, 65, -30)])
-  assert_eq(widths_prime, [("A", 600)])
+  assert_true(widths == [(65, 600)])
+  assert_true(kerns == [(65, 65, -30)])
+  assert_true(widths_prime == [("A", 600)])
 }
 
 ///|

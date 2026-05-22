@@ -43,7 +43,7 @@ fn ccitt_roundtrip(
     ("/Length", Integer(@pdfio.bytes_size(raw))),
     ("/DecodeParms", decodeparms),
   ])
-  let stream_ref = Ref::new((dict, @pdf.Stream::Got(raw)))
+  let stream_ref = Ref((dict, @pdf.Stream::Got(raw)))
   let stream_obj = @pdf.PdfObject::Stream(stream_ref)
   let ctx : PdfCodec = PdfCodec::new()
   ctx.encode_pdfstream(pdf, encoding, stream_obj)
@@ -153,7 +153,7 @@ test "encode_pdfstream CCITT errors on insufficient data" {
   let pdf = @pdf.Pdf::empty()
   let data = @pdfio.mkbytes(0)
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(0))])
-  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_ref = Ref((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
   let ctx : PdfCodec = PdfCodec::new()
   let res : Result[Unit, Error] = try? ctx.encode_pdfstream(
@@ -170,7 +170,7 @@ test "encode_pdfstream CCITTG4 errors on insufficient data" {
   let pdf = @pdf.Pdf::empty()
   let data = @pdfio.mkbytes(0)
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(0))])
-  let stream_ref = Ref::new((dict, @pdf.Stream::Got(data)))
+  let stream_ref = Ref((dict, @pdf.Stream::Got(data)))
   let stream_obj : @pdf.PdfObject = Stream(stream_ref)
   let ctx : PdfCodec = PdfCodec::new()
   let res : Result[Unit, Error] = try? ctx.encode_pdfstream(

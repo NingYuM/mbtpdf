@@ -48,7 +48,10 @@ pub fn Pdf::objiter_gen(
   self : Pdf,
   f : (Int, Int, PdfObject) -> Unit raise?,
 ) -> Unit raise? {
-  let entries = self.objects.objects.to_array()
+  let entries = Array::new(capacity=self.objects.objects.length())
+  for entry in self.objects.objects {
+    entries.push(entry)
+  }
   entries.sort_by((a, b) => a.0 - b.0)
   for entry in entries {
     let key = entry.0
@@ -63,7 +66,10 @@ pub fn Pdf::objselfmap(
   self : Pdf,
   f : (PdfObject) -> PdfObject raise?,
 ) -> Unit raise? {
-  let entries = self.objects.objects.to_array()
+  let entries = Array::new(capacity=self.objects.objects.length())
+  for entry in self.objects.objects {
+    entries.push(entry)
+  }
   entries.sort_by((a, b) => a.0 - b.0)
   for entry in entries {
     let key = entry.0
@@ -110,14 +116,14 @@ fn Pdf::nullify_deleted_page_references(self : Pdf) -> Unit raise {
   self.objiter((objnum, obj) => match obj {
     Dictionary(_) =>
       match self.lookup_direct("/Type", obj) {
-        Some(Name(PdfName("/Page"))) => page_object_numbers.push(objnum)
+        Some(Name(PdfName(b"/Page"))) => page_object_numbers.push(objnum)
         _ => ()
       }
     _ => ()
   })
   let refnums = self.page_reference_numbers()
   if refnums.length() != page_object_numbers.length() {
-    let table = Map::new(capacity=page_object_numbers.length())
+    let table = Map([], capacity=page_object_numbers.length())
     for num in page_object_numbers {
       table.set(num, true)
     }

@@ -65,7 +65,7 @@ test "log: captures messages with custom logger" {
     @pdfe.log("world")
     ()
   })
-  inspect(messages, content="[\"hello\", \"world\"]")
+  assert_true(messages.join("|") == "hello|world")
 }
 ```
 
@@ -85,7 +85,7 @@ test "with_silenced_logs: suppresses log calls within scope" {
     @pdfe.log("shown")
     ()
   })
-  inspect(messages, content="[\"shown\"]")
+  assert_true(messages.join("|") == "shown")
 }
 ```
 

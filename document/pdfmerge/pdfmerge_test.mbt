@@ -61,7 +61,7 @@ fn add_dest_callsites(pdf : @pdf.Pdf, name : String) -> Unit {
   let dest_obj : @pdf.PdfObject = Dictionary([("/Dest", PdfString(name))])
   ignore(pdf.addobj(dest_obj))
   let action_obj : @pdf.PdfObject = Dictionary([
-    ("/S", Name(PdfName("/GoTo"))),
+    ("/S", Name(PdfName(b"/GoTo"))),
     ("/D", PdfString(name)),
   ])
   ignore(pdf.addobj(action_obj))
@@ -90,7 +90,7 @@ fn collect_dest_strings(pdf : @pdf.Pdf) -> Array[String] {
         _ => ()
       }
       match lookup_entry(entries, "/S") {
-        Some(Name(PdfName("/GoTo"))) =>
+        Some(Name(PdfName(b"/GoTo"))) =>
           match lookup_entry(entries, "/D") {
             Some(PdfString(s)) => out.push(s)
             _ => ()
@@ -165,8 +165,8 @@ test "remove_duplicate_fonts merges identical streams" {
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(2))])
   let data1 : Array[Byte] = [0x01, 0x02]
   let data2 : Array[Byte] = [0x01, 0x02]
-  let stream1 : @pdf.PdfObject = Stream(Ref::new((dict, Got(data1))))
-  let stream2 : @pdf.PdfObject = Stream(Ref::new((dict, Got(data2))))
+  let stream1 : @pdf.PdfObject = Stream(Ref((dict, Got(data1))))
+  let stream2 : @pdf.PdfObject = Stream(Ref((dict, Got(data2))))
   ignore(pdf.addobj(stream1))
   ignore(pdf.addobj(stream2))
   let before = count_streams(pdf)
@@ -182,13 +182,13 @@ test "remove_duplicate_fonts keeps distinct streams" {
   let dict : @pdf.PdfObject = Dictionary([("/Length", Integer(1))])
   let dict_alt : @pdf.PdfObject = Dictionary([
     ("/Length", Integer(1)),
-    ("/Subtype", Name(PdfName("/XObject"))),
+    ("/Subtype", Name(PdfName(b"/XObject"))),
   ])
-  let stream1 : @pdf.PdfObject = Stream(Ref::new((dict, Got([0x01]))))
-  let stream2 : @pdf.PdfObject = Stream(Ref::new((dict, Got([0x01, 0x02]))))
-  let stream3 : @pdf.PdfObject = Stream(Ref::new((dict, Got([0x02]))))
-  let stream4 : @pdf.PdfObject = Stream(Ref::new((dict, Got([0x01]))))
-  let stream5 : @pdf.PdfObject = Stream(Ref::new((dict_alt, Got([0x01]))))
+  let stream1 : @pdf.PdfObject = Stream(Ref((dict, Got([0x01]))))
+  let stream2 : @pdf.PdfObject = Stream(Ref((dict, Got([0x01, 0x02]))))
+  let stream3 : @pdf.PdfObject = Stream(Ref((dict, Got([0x02]))))
+  let stream4 : @pdf.PdfObject = Stream(Ref((dict, Got([0x01]))))
+  let stream5 : @pdf.PdfObject = Stream(Ref((dict_alt, Got([0x01]))))
   ignore(pdf.addobj(stream1))
   ignore(pdf.addobj(stream2))
   ignore(pdf.addobj(stream3))
@@ -282,11 +282,11 @@ test "merge_pdfs merges dests ocg and acroform" {
     pdf1,
     "/OCProperties",
     Dictionary([
-      ("/OCGs", PdfArray([Name(PdfName("/OCG1"))])),
+      ("/OCGs", PdfArray([Name(PdfName(b"/OCG1"))])),
       (
         "/D",
         Dictionary([
-          ("/ON", PdfArray([Name(PdfName("/OCG1"))])),
+          ("/ON", PdfArray([Name(PdfName(b"/OCG1"))])),
           ("/Name", PdfString("Layer1")),
         ]),
       ),
@@ -296,12 +296,12 @@ test "merge_pdfs merges dests ocg and acroform" {
     pdf2,
     "/OCProperties",
     Dictionary([
-      ("/OCGs", PdfArray([Name(PdfName("/OCG2"))])),
+      ("/OCGs", PdfArray([Name(PdfName(b"/OCG2"))])),
       (
         "/D",
         Dictionary([
-          ("/OFF", PdfArray([Name(PdfName("/OCG2"))])),
-          ("/BaseState", Name(PdfName("/OFF"))),
+          ("/OFF", PdfArray([Name(PdfName(b"/OCG2"))])),
+          ("/BaseState", Name(PdfName(b"/OFF"))),
         ]),
       ),
       ("/Configs", PdfArray([Dictionary([("/Name", PdfString("Cfg"))])])),

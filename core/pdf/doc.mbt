@@ -44,7 +44,7 @@ pub(all) struct Pdf {
 
 ///|
 pub fn pdfobjmap_empty() -> PdfObjMap {
-  Map::new()
+  Map([])
 }
 
 ///|
@@ -62,7 +62,11 @@ pub fn pdfobjmap_find(
 pub fn pdfobjmap_bindings(
   map : PdfObjMap,
 ) -> Array[(PdfObjMapKey, PdfObjMapEntry)] {
-  map.to_array()
+  let entries = Array::new(capacity=map.length())
+  for pair in map {
+    entries.push(pair)
+  }
+  entries
 }
 
 ///|
@@ -76,7 +80,7 @@ pub fn Pdf::empty() -> Pdf {
       max_obj_num: 0,
       parse: None,
       objects: pdfobjmap_empty(),
-      object_stream_ids: Map::new(),
+      object_stream_ids: Map([]),
     },
     trailerdict: Dictionary([]),
     was_linearized: false,
@@ -93,7 +97,10 @@ pub fn Pdf::objcard(self : Pdf) -> Int {
 ///|
 /// Return the object numbers in ascending order.
 pub fn Pdf::objnumbers(self : Pdf) -> Array[Int] {
-  let entries = self.objects.objects.to_array()
+  let entries = Array::new(capacity=self.objects.objects.length())
+  for entry in self.objects.objects {
+    entries.push(entry)
+  }
   entries.sort_by((a, b) => a.0 - b.0)
   entries.map(pair => pair.0)
 }
@@ -134,10 +141,10 @@ pub fn Pdf::catalog_of_pdf(self : Pdf) -> PdfObject raise {
 
 ///|
 fn deep_copy_pdfobjects(from : Pdf) -> PdfObjMap {
-  let out : PdfObjMap = Map::new(capacity=from.objects.objects.length())
+  let out : PdfObjMap = Map([], capacity=from.objects.objects.length())
   for objnum, entry in from.objects.objects {
     let (obj_ref, gen) = entry
-    out.set(objnum, (Ref::new(deep_copy_objdata(obj_ref.val)), gen))
+    out.set(objnum, (Ref(deep_copy_objdata(obj_ref.val)), gen))
   }
   out
 }
