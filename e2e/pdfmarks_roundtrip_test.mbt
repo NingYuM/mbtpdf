@@ -17,7 +17,12 @@ async test "pdfmarks bookmark string roundtrip through file output" {
     @fs.mkdir(dir, permission=0o755, recursive=true)
   }
   let filename = dir + "/bookmark_string_test.pdf"
-  let file = @fs.open(filename, mode=WriteOnly, create=0o644, truncate=true)
+  let file = @fs.open(
+    filename,
+    mode=WriteOnly,
+    create_mode=CreateOrTruncate,
+    permission=0o644,
+  )
   defer file.close()
   @pdfwritefs.PdfWriteFs::new().pdf_to_channel(None, true, pdf_with, file)
   let parsed = @pdfreadfs.PdfReadFs::new().pdf_of_file(None, None, filename)

@@ -20,8 +20,8 @@ async fn write_pdf_bytes(pdf : @pdf.Pdf, path : String) -> Unit {
   let fs_res : Result[Unit, Error] = try? @fs.write_file(
     path,
     Bytes::from_array(bytes),
-    create=0o644,
-    truncate=true,
+    create_mode=CreateOrTruncate,
+    permission=0o644,
   )
   match fs_res {
     Ok(_) => ()

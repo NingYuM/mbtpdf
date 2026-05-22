@@ -3,7 +3,7 @@ name = "bobzhang/mbtpdf"
 version = "0.1.1"
 
 import {
-  "moonbitlang/async@0.17.0",
+  "moonbitlang/async@0.19.1",
 }
 
 readme = "README.mbt.md"

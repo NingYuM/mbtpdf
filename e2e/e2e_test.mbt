@@ -1882,7 +1882,12 @@ async test "e2e write object streams and read back" {
   let pdf = read_pdf(MERGE_THIRD_PATH)
   ensure_dir(OUTPUT_DIR)
   let out_path = OUTPUT_DIR + "/objstm.pdf"
-  let file = @fs.open(out_path, mode=WriteOnly, create=0o644, truncate=true)
+  let file = @fs.open(
+    out_path,
+    mode=WriteOnly,
+    create_mode=CreateOrTruncate,
+    permission=0o644,
+  )
   defer file.close()
   @pdfwritefs.PdfWriteFs::new().pdf_to_channel(
     generate_objstm=true,
@@ -1908,7 +1913,12 @@ async test "e2e encrypt pdf and require password" {
   )
   ensure_dir(OUTPUT_DIR)
   let out_path = OUTPUT_DIR + "/encrypted.pdf"
-  let file = @fs.open(out_path, mode=WriteOnly, create=0o644, truncate=true)
+  let file = @fs.open(
+    out_path,
+    mode=WriteOnly,
+    create_mode=CreateOrTruncate,
+    permission=0o644,
+  )
   defer file.close()
   @pdfwritefs.PdfWriteFs::new().pdf_to_channel(Some(enc), true, pdf, file)
   let res : Result[@pdf.Pdf, Error] = try? @pdfreadfs.PdfReadFs::new().pdf_of_file(

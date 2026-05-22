@@ -246,7 +246,12 @@ test "pdf_to_output drops invalid object stream ids and writes toget" {
 async test "pdf_to_file writes output" {
   let pdf = @pdfpage.PdfPageDoc::minimum_valid()
   let path = "pdfwrite_async_test.pdf"
-  let file = @fs.open(path, mode=WriteOnly, create=0o644, truncate=true)
+  let file = @fs.open(
+    path,
+    mode=WriteOnly,
+    create_mode=CreateOrTruncate,
+    permission=0o644,
+  )
   defer file.close()
   let output = @pdfiofs.output_of_channel(file)
   write_ctx.pdf_to_output(None, true, pdf, output)
