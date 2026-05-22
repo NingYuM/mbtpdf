@@ -17,3 +17,5 @@ import {
 import {
   "bobzhang/mbtpdf/document/pdfpage",
 } for "test"
+
+supported_targets = "+native+wasm-gc"

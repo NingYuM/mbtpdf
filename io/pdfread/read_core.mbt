@@ -225,13 +225,7 @@ fn read_pdf_internal(
       xref_entries.push(pair)
     }
     let objects = build_pdf_objects(
-      ctx,
-      input,
-      xref_entries,
-      read_stream_data,
-      trailerdict,
-      user_password,
-      owner_password,
+      ctx, input, xref_entries, read_stream_data, trailerdict, user_password, owner_password,
     )
     let sanitized_trailer = sanitize_trailerdict(
       objects.objects.length(),

@@ -173,9 +173,7 @@ test "getstream error cases" {
     r: 5,
   })
   let toget_crypt = ToGet::new(input, 0, 3, crypt~)
-  let crypt_ref = Ref(
-    (PdfObject::Dictionary([]), Stream::ToGet(toget_crypt)),
-  )
+  let crypt_ref = Ref((PdfObject::Dictionary([]), Stream::ToGet(toget_crypt)))
   let crypt_stream = PdfObject::Stream(crypt_ref)
   assert_is_err(try? crypt_stream.getstream())
   let plain = @pdfio.Input::of_string("abc", source="plain")

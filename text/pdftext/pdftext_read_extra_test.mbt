@@ -536,7 +536,9 @@ test "read_encoding base encoding branches and implicit fallback" {
 test "read_simple_font rejects non-simple subtype" {
   let pdf = @pdf.Pdf::empty()
   let ctx = @pdftext.PdfText::new(pdf)
-  let font : @pdf.PdfObject = Dictionary([("/Subtype", Name(PdfName(b"/Type0")))])
+  let font : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name(PdfName(b"/Type0"))),
+  ])
   let res : Result[@pdffont.Font, Error] = try? ctx.read_simple_font(font)
   assert_true(res is Err(_))
 }

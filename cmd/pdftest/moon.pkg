@@ -17,6 +17,8 @@ import {
   "bobzhang/mbtpdf/core/pdfutil",
 } for "test"
 
+supported_targets = "+native"
+
 options(
   "is-main": true,
 )

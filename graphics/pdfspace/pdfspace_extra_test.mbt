@@ -221,9 +221,7 @@ test "read_colourspace Indexed errors on invalid inputs" {
   assert_true(bad_lookup is Err(_))
   let toget = @pdf.ToGet::new(@pdfio.Input::of_string("abc"), 0, 3)
   let stream_dict : @pdf.PdfObject = Dictionary([])
-  let bad_stream : @pdf.PdfObject = Stream(
-    Ref((stream_dict, ToGet(toget))),
-  )
+  let bad_stream : @pdf.PdfObject = Stream(Ref((stream_dict, ToGet(toget))))
   let bad_toget_arr : Array[@pdf.PdfObject] = [
     Name(PdfName(b"/Indexed")),
     Name(PdfName(b"/DeviceRGB")),
@@ -431,9 +429,7 @@ test "write_colourspace ICCBased handles non-dict stream data" {
   let pdf = @pdf.Pdf::empty()
   let toget = @pdf.ToGet::new(@pdfio.Input::of_string("data"), 0, 4)
   let stream_dict : @pdf.PdfObject = Name(PdfName(b"/Bad"))
-  let stream_obj : @pdf.PdfObject = Stream(
-    Ref((stream_dict, ToGet(toget))),
-  )
+  let stream_obj : @pdf.PdfObject = Stream(Ref((stream_dict, ToGet(toget))))
   let icc : ICCBased = {
     icc_n: 3,
     icc_alternate: DeviceRGB,

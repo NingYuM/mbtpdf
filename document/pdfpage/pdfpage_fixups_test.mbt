@@ -75,7 +75,9 @@ test "fixup_duplicate_annots tolerates missing popup/parent links" {
     page, page,
   ])
   let pdf = @pdfpage.PdfPageDoc::new(pdf1).add_root(pageroot, [])
-  let annot : @pdf.PdfObject = Dictionary([("/Subtype", Name(PdfName(b"/Text")))])
+  let annot : @pdf.PdfObject = Dictionary([
+    ("/Subtype", Name(PdfName(b"/Text"))),
+  ])
   let annot_num = pdf.addobj(annot)
   let refs = pdf.page_reference_numbers()
   for refnum in refs {

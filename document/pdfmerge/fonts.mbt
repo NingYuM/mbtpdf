@@ -35,9 +35,11 @@ fn stream_compare(pdf : @pdf.Pdf, x : Int, y : Int) -> Int {
 pub fn PdfMergeDoc::remove_duplicate_fonts(self : PdfMergeDoc) -> Unit {
   let pdf = self.pdf
   let streamobjs = Array::new(capacity=pdf.objects.objects.length())
-  pdf.objiter((objnum, obj) => match obj {
-    Stream(_) => streamobjs.push(objnum)
-    _ => ()
+  pdf.objiter((objnum, obj) => {
+    match obj {
+      Stream(_) => streamobjs.push(objnum)
+      _ => ()
+    }
   })
   let sorted = streamobjs
   sorted.sort_by((a, b) => stream_compare(pdf, a, b))
@@ -69,7 +71,9 @@ pub fn PdfMergeDoc::remove_duplicate_fonts(self : PdfMergeDoc) -> Unit {
   for entry in current.objects.objects {
     pdf.objects.objects.set(entry.0, entry.1)
   }
-  let existing_id_keys = Array::new(capacity=pdf.objects.object_stream_ids.length())
+  let existing_id_keys = Array::new(
+    capacity=pdf.objects.object_stream_ids.length(),
+  )
   for entry in pdf.objects.object_stream_ids {
     existing_id_keys.push(entry.0)
   }

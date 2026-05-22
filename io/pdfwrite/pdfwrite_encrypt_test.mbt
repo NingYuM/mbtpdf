@@ -172,7 +172,9 @@ test "pdfread lazy decrypts object streams for encrypted PDFs" {
     None,
     input,
   )
-  let objstm_entries = Array::new(capacity=parsed.objects.object_stream_ids.length())
+  let objstm_entries = Array::new(
+    capacity=parsed.objects.object_stream_ids.length(),
+  )
   for pair in parsed.objects.object_stream_ids {
     objstm_entries.push(pair)
   }

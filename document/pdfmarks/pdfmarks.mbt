@@ -206,10 +206,9 @@ fn add_parent(parent : Int?, node : Ntree) -> Ntree raise {
     Some(parent_num) =>
       ntree_obj(node).add_entry("/Parent", Indirect(parent_num))
   }
-  let children = ntree_children(node).map(child => add_parent(
-    Some(ntree_objnum(node)),
-    child,
-  ))
+  let children = ntree_children(node).map(child => {
+    add_parent(Some(ntree_objnum(node)), child)
+  })
   Br(ntree_objnum(node), obj, children, ntree_isopen(node))
 }
 
@@ -532,13 +531,7 @@ pub fn PdfMarks::read_bookmarks(
         None => []
         Some(outlines) => {
           let out = Ref(Array::new())
-          traverse_outlines_lb(
-            pdf,
-            outlines,
-            Ref(0),
-            preserve_actions,
-            out,
-          )
+          traverse_outlines_lb(pdf, outlines, Ref(0), preserve_actions, out)
           out.val
         }
       }

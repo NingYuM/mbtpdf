@@ -70,7 +70,8 @@ test "utf16be conversions" {
   if @pdftext.PdfTextUtil::new().utf16be_of_codepoint(0x41) != [0, 65] {
     fail("unexpected utf16 for 0x41")
   }
-  if @pdftext.PdfTextUtil::new().utf16be_of_codepoint(0x1f600) != [216, 61, 222, 0] {
+  if @pdftext.PdfTextUtil::new().utf16be_of_codepoint(0x1f600) !=
+    [216, 61, 222, 0] {
     fail("unexpected utf16 for 0x1f600")
   }
   let utf16 = @pdftext.PdfTextUtil::new().utf16be_of_codepoints([0x41, 0x1f600])
@@ -123,7 +124,8 @@ test "pdfdocstring conversions" {
   ])
   assert_true(@pdftext.PdfTextUtil::new().is_unicode(pdfdoc_cjk))
   assert_true(
-    @pdftext.PdfTextUtil::new().codepoints_of_pdfdocstring(pdfdoc_cjk) == [20013],
+    @pdftext.PdfTextUtil::new().codepoints_of_pdfdocstring(pdfdoc_cjk) ==
+    [20013],
   )
   let bad : Result[Int, Error] = try? @pdftext.PdfTextUtil::new().codepoint_of_pdfdocencoding_character(
     300,

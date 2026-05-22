@@ -33,7 +33,8 @@ fn make_changes(
       entries.append(entries_of_page(name, pagenums[i], page)[:])
     }
   }
-  let table : Map[(String, Int, String), String] = Map([],
+  let table : Map[(String, Int, String), String] = Map(
+    [],
     capacity=entries.length(),
   )
   for entry in entries {
@@ -146,9 +147,9 @@ pub fn PdfPageDoc::renumber_pages(
     content : Array[@pdf.PdfObject],
   ) -> Array[@pdf.PdfObject] raise {
     let operators = @pdfops.Op::parse_operators(pdf, resources, content)
-    let operators_updated = operators.map(op => change_operator(
-      pdf, lookup, lookup_option, seqnum, op,
-    ))
+    let operators_updated = operators.map(op => {
+      change_operator(pdf, lookup, lookup_option, seqnum, op)
+    })
     [@pdfops.Op::stream_of_ops(operators_updated)]
   }
 

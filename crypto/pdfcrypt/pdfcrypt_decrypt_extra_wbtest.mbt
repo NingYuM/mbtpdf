@@ -145,9 +145,7 @@ test "decrypt_stream handles non-stream and non-dictionary stream dict cases" {
     _ => fail("expected passthrough")
   }
   let toget = @pdf.ToGet::new(@pdfio.Input::of_string("", source="toget"), 0, 0)
-  let stream_ref = Ref(
-    (@pdf.PdfObject::Integer(0), @pdf.Stream::ToGet(toget)),
-  )
+  let stream_ref = Ref((@pdf.PdfObject::Integer(0), @pdf.Stream::ToGet(toget)))
   let out = decrypt_stream(
     v => v,
     ct,

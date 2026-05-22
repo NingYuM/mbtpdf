@@ -1,9 +1,11 @@
 ///|
 fn first_stream(pdf : @pdf.Pdf) -> (Int, Int, @pdf.PdfObject) raise {
   let mut found : (Int, Int, @pdf.PdfObject)? = None
-  pdf.objiter_gen((objnum, gen, obj) => match (obj : @pdf.PdfObject) {
-    Stream(_) => if found is None { found = Some((objnum, gen, obj)) }
-    _ => ()
+  pdf.objiter_gen((objnum, gen, obj) => {
+    match (obj : @pdf.PdfObject) {
+      Stream(_) => if found is None { found = Some((objnum, gen, obj)) }
+      _ => ()
+    }
   })
   match found {
     Some(value) => value
@@ -91,7 +93,10 @@ test "decrypt_single_stream restores AES256 stream bytes" {
       match r.val.1 {
         Got(bytes) => {
           assert_true(@pdfio.bytes_size(bytes) == @pdfio.bytes_size(orig_bytes))
-          assert_true(@pdfio.int_array_of_bytes(bytes) == @pdfio.int_array_of_bytes(orig_bytes))
+          assert_true(
+            @pdfio.int_array_of_bytes(bytes) ==
+            @pdfio.int_array_of_bytes(orig_bytes),
+          )
         }
         _ => fail("expected decrypted bytes")
       }
@@ -133,7 +138,10 @@ test "decrypt_single_stream restores ARC4 128 stream bytes via owner password" {
       match r.val.1 {
         Got(bytes) => {
           assert_true(@pdfio.bytes_size(bytes) == @pdfio.bytes_size(orig_bytes))
-          assert_true(@pdfio.int_array_of_bytes(bytes) == @pdfio.int_array_of_bytes(orig_bytes))
+          assert_true(
+            @pdfio.int_array_of_bytes(bytes) ==
+            @pdfio.int_array_of_bytes(orig_bytes),
+          )
         }
         _ => fail("expected decrypted bytes")
       }

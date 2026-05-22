@@ -42,10 +42,12 @@ fn apply_namechanges_to_destination_nametree(
       Some(PdfArray(values)) =>
         match pairs_of_array(values) {
           Some(pairs) => {
-            let updated_pairs = pairs.map(pair => match pair {
-              (PdfString(s), obj) =>
-                (PdfObject::PdfString(rewrite_string(s)), obj)
-              _ => pair
+            let updated_pairs = pairs.map(pair => {
+              match pair {
+                (PdfString(s), obj) =>
+                  (PdfObject::PdfString(rewrite_string(s)), obj)
+                _ => pair
+              }
             })
             let rebuilt = Array::new(capacity=values.length())
             for pair in updated_pairs {
@@ -108,7 +110,8 @@ fn apply_namechanges_at_destination_callsites(
   for pair in changes {
     changes_map.set(pair.0, pair.1)
   }
-  let allchanges_map : Map[String, String] = Map([],
+  let allchanges_map : Map[String, String] = Map(
+    [],
     capacity=allchanges.length(),
   )
   for i in (allchanges.length() - 1)>=..0 {
@@ -167,9 +170,12 @@ fn merge_pdfs_rename_name_trees(
   let pairs = combine(names, pdfs)
   pairs.sort_by((a, b) => String::compare(a.0, b.0))
   let groups = collate(pairs, (a, b) => String::compare(a.0, b.0))
-  let unique_pdfs = groups.map(group => match group {
-    [(_, pdf), ..] => pdf
-    [] => raise @pdf.PdfError::Msg("merge_pdfs_rename_name_trees: empty group")
+  let unique_pdfs = groups.map(group => {
+    match group {
+      [(_, pdf), ..] => pdf
+      [] =>
+        raise @pdf.PdfError::Msg("merge_pdfs_rename_name_trees: empty group")
+    }
   })
   let pdfs_and_nametrees = unique_pdfs.map(pdf => {
     let catalog = pdf.catalog_of_pdf()
@@ -182,10 +188,15 @@ fn merge_pdfs_rename_name_trees(
       _ => (pdf, None)
     }
   })
-  let name_lists = pdfs_and_nametrees.map(pair => match pair.1 {
-    Some(tree) =>
-      (pair.0, @pdftree.PdfTree::new(pair.0).read_name_tree(tree).map(p => p.0))
-    None => (pair.0, [])
+  let name_lists = pdfs_and_nametrees.map(pair => {
+    match pair.1 {
+      Some(tree) =>
+        (
+          pair.0,
+          @pdftree.PdfTree::new(pair.0).read_name_tree(tree).map(p => p.0),
+        )
+      None => (pair.0, [])
+    }
   })
   fn worked(values : Array[(@pdf.Pdf, Array[(String, String)])]) -> Bool {
     let all = flatten(values.map(pair => pair.1.map(item => item.1)))
@@ -193,10 +204,9 @@ fn merge_pdfs_rename_name_trees(
   }
 
   let mut num = -1
-  let mut renamed = name_lists.map(pair => (
-    pair.0,
-    pair.1.map(name => (name, name)),
-  ))
+  let mut renamed = name_lists.map(pair => {
+    (pair.0, pair.1.map(name => (name, name)))
+  })
   while !worked(renamed) {
     num = num + 1
     let indexes = ilist(num, num + renamed.length() - 1)

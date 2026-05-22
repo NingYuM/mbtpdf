@@ -73,7 +73,8 @@ pub fn Pdf::renumber(
       max_obj_num = new_num
     }
   }
-  let object_stream_ids = Map([],
+  let object_stream_ids = Map(
+    [],
     capacity=self.objects.object_stream_ids.length(),
   )
   for key, value in self.objects.object_stream_ids {

@@ -46,7 +46,9 @@ test "pagenumber_of_target handles action edge cases" {
   let action_missing : @pdf.PdfObject = Dictionary([
     ("/S", Name(PdfName(b"/GoTo"))),
   ])
-  let action_other : @pdf.PdfObject = Dictionary([("/S", Name(PdfName(b"/URI")))])
+  let action_other : @pdf.PdfObject = Dictionary([
+    ("/S", Name(PdfName(b"/URI"))),
+  ])
   assert_eq(
     @pdfpage.PdfPageDoc::new(pdf).pagenumber_of_target(Action(action_missing)),
     0,

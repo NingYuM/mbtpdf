@@ -648,10 +648,7 @@ fn build_pdf_objects(
         let out = Array::new(capacity=parsed.length())
         for pair in parsed {
           out.push(
-            (
-              pair.0,
-              (Ref(@pdf.ObjectData::ParsedAlreadyDecrypted(pair.1)), 0),
-            ),
+            (pair.0, (Ref(@pdf.ObjectData::ParsedAlreadyDecrypted(pair.1)), 0)),
           )
         }
         out

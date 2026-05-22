@@ -29,7 +29,8 @@ fn generate_object_stream_hints(
   if !preserve_existing {
     clear_object_stream_ids(pdf.objects.object_stream_ids)
   }
-  let indirect_lengths : Map[Int, Bool] = Map([],
+  let indirect_lengths : Map[Int, Bool] = Map(
+    [],
     capacity=pdf.objects.objects.length(),
   )
   let entries = @pdf.pdfobjmap_bindings(pdf.objects.objects)
@@ -79,7 +80,8 @@ fn generate_object_stream_hints(
 
 ///|
 fn build_object_stream_groups(pdf : @pdf.Pdf) -> Array[(Int, Array[Int])] {
-  let groups : Map[Int, Array[Int]] = Map([],
+  let groups : Map[Int, Array[Int]] = Map(
+    [],
     capacity=pdf.objects.object_stream_ids.length(),
   )
   for pair in pdf.objects.object_stream_ids.to_array() {
@@ -121,7 +123,8 @@ fn bake_object_streams(
   compress : Bool,
   groups : Array[(Int, Array[Int])],
 ) -> Map[Int, (Int, Int)] raise {
-  let entries : Map[Int, (Int, Int)] = Map([],
+  let entries : Map[Int, (Int, Int)] = Map(
+    [],
     capacity=pdf.objects.object_stream_ids.length(),
   )
   for group in groups {

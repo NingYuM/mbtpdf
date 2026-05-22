@@ -242,7 +242,9 @@ test "get_encryption_values rejects unknown cfm" {
     ("/R", Integer(4)),
     (
       "/CF",
-      Dictionary([("/StdCF", Dictionary([("/CFM", Name(PdfName(b"/Unknown")))]))]),
+      Dictionary([
+        ("/StdCF", Dictionary([("/CFM", Name(PdfName(b"/Unknown")))])),
+      ]),
     ),
     ("/O", PdfString(bytes_string(32, 65))),
     ("/U", PdfString(bytes_string(32, 66))),
@@ -374,9 +376,7 @@ test "encrypt AES V2 without metadata and AES256 with long passwords" {
   pdf.addobj_given_num((11, got_stream))
   let input = @pdfio.Input::of_string("data", source="stream")
   let toget = @pdf.ToGet::new(input, 0, 4)
-  let toget_stream : @pdf.PdfObject = Stream(
-    Ref((stream_dict, ToGet(toget))),
-  )
+  let toget_stream : @pdf.PdfObject = Stream(Ref((stream_dict, ToGet(toget))))
   pdf.addobj_given_num((12, toget_stream))
   let long_pw = "a".repeat(130)
   let enc256 = @pdfcrypt.PdfCrypt::new().encrypt_pdf_AES256(

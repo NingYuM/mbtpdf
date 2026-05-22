@@ -10,13 +10,10 @@ async test "pdfe.with_logger_async restores logger on error" {
     @pdfe.quiet.val = prev_quiet
     @pdfe.logger.val = prev_logger
   }
-  let res : Result[Unit, Error] = @pdfe.with_logger_async(
-    s => inner.push(s),
-    fn() raise {
-      @pdfe.log("inner")
-      fail("boom")
-    },
-  )
+  let res : Result[Unit, Error] = @pdfe.with_logger_async(s => inner.push(s), fn() raise {
+    @pdfe.log("inner")
+    fail("boom")
+  })
   assert_true(res is Err(_))
   @pdfe.log("outer")
   assert_true(inner == ["inner"])

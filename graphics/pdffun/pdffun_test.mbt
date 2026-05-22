@@ -922,17 +922,13 @@ test "parse_function hits error branches" {
     ("/BitsPerSample", Integer(8)),
     ("/Decode", PdfArray([Real(0.0)])),
   ])
-  let sample_stream : @pdf.PdfObject = Stream(
-    Ref((sample_dict, ToGet(to_get))),
-  )
+  let sample_stream : @pdf.PdfObject = Stream(Ref((sample_dict, ToGet(to_get))))
   assert_is_err(try? PdfFunction::parse(pdf, sample_stream))
   let calc_dict : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(4)),
     ("/Domain", PdfArray([])),
   ])
-  let calc_stream : @pdf.PdfObject = Stream(
-    Ref((calc_dict, ToGet(to_get))),
-  )
+  let calc_stream : @pdf.PdfObject = Stream(Ref((calc_dict, ToGet(to_get))))
   assert_is_err(try? PdfFunction::parse(pdf, calc_stream))
   let bad_functions : @pdf.PdfObject = Dictionary([
     ("/FunctionType", Integer(3)),

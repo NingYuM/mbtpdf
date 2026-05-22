@@ -14,6 +14,8 @@ import {
   "bobzhang/mbtpdf/io/pdfwritefs",
 } for "test"
 
+supported_targets = "+native"
+
 options(
   "is-main": true,
 )
