@@ -12,8 +12,6 @@ pub(all) enum TransformOp {
 /// A list of transformations, stored with the most recent op at the head.
 pub struct Transform {
   ops : Array[TransformOp]
-
-  fn new(ops : Array[TransformOp]) -> Transform
 } derive(Debug)
 
 ///|
@@ -25,16 +23,24 @@ pub struct TransformMatrix {
   d : Double
   e : Double
   f : Double
-
-  fn new(
-    a~ : Double,
-    b~ : Double,
-    c~ : Double,
-    d~ : Double,
-    e~ : Double,
-    f~ : Double,
-  ) -> TransformMatrix
 } derive(Debug)
+
+///|
+pub fn Transform::Transform(ops : Array[TransformOp]) -> Transform {
+  { ops, }
+}
+
+///|
+pub fn TransformMatrix::TransformMatrix(
+  a~ : Double,
+  b~ : Double,
+  c~ : Double,
+  d~ : Double,
+  e~ : Double,
+  f~ : Double,
+) -> TransformMatrix {
+  { a, b, c, d, e, f }
+}
 
 ///|
 fn TransformMatrix::new(
